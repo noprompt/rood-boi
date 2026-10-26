@@ -1,0 +1,251 @@
+{
+ "function": "vs_battle_applyWeapon",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_applyWeapon",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006aeac",
+  "difficulty": "S",
+  "zig_name": "applyWeapon",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "apply_weapon",
+  "spec_file": "applyWeapon.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn applyWeapon(target: ?*v.vs_battle_uiWeapon, source: ?*v.vs_main_inventoryWeapon) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiWeapon"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryWeapon"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14394,
+     "completion_tokens": 12889,
+     "reasoning_tokens": 10683,
+     "cost": 0.0078839,
+     "seconds": 54.4,
+     "sample": 1,
+     "conversation": "465f37f6e6410ed55488ebeb01c742ea10edf27d5cf661234508e2afcdfe5401"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-source": "4958",
+   "no-parts": "34",
+   "parts-no-gems": "867",
+   "gems-only": "943",
+   "parts-and-gems": "23198"
+  },
+  "mutations": [
+   {
+    "name": "A1: grip tested as > 1 (grip index 1 skipped)",
+    "caught": true
+   },
+   {
+    "name": "A2: blade material store dropped",
+    "caught": true
+   },
+   {
+    "name": "A3: name copies 23 bytes, not 24",
+    "caught": true
+   },
+   {
+    "name": "A4: gem loop stops at slot 1",
+    "caught": true
+   },
+   {
+    "name": "A5: every gem read from gems[0]",
+    "caught": true
+   },
+   {
+    "name": "A6: index taken from isEquipped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 12,
+   "branches_hit": 12,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 21,
+   "lines_hit": 21,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 11,
+     "text": "if (source->blade != 0) {",
+     "size": 1,
+     "count": 25042,
+     "kind": "against a constant",
+     "outcomes": "== 4967, < 0, > 20075 (signed); < 0, > 20075 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..17"
+    },
+    {
+     "line": 17,
+     "text": "if (source->grip != 0) {",
+     "size": 1,
+     "count": 25042,
+     "kind": "against a constant",
+     "outcomes": "== 5051, < 0, > 19991 (signed); < 0, > 19991 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..17"
+    },
+    {
+     "line": 22,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 100168,
+     "kind": "against a constant",
+     "outcomes": "== 25042, < 50084, > 25042 (signed); < 50084, > 25042 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 23,
+     "text": "if (source->gems[i] != 0) {",
+     "size": 1,
+     "count": 75126,
+     "kind": "against a constant",
+     "outcomes": "== 24710, < 0, > 50416 (signed); < 0, > 50416 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..48"
+    },
+    {
+     "line": 29,
+     "text": "for (i = 0; i < 24; ++i) {",
+     "size": 4,
+     "count": 626050,
+     "kind": "against a constant",
+     "outcomes": "== 25042, < 575966, > 25042 (signed); < 575966, > 25042 (unsigned)",
+     "operand": "constant 23",
+     "a": "0..24"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37859,
+     "completion_tokens": 8088,
+     "reasoning_tokens": 7201,
+     "cost": 0.0078299,
+     "seconds": 33.4,
+     "sample": 1,
+     "conversation": "caaab33a01bb99dba98789ccd18f7546de291c8d0f6d3004af570856ad8669aa"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/applyWeapon.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/apply_weapon.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 212.36435510299634,
+ "wall_seconds": 562.461226708001,
+ "totals": {
+  "cost": 0.01571,
+  "prompt_tokens": 52253,
+  "completion_tokens": 20977,
+  "model_seconds": 87.8,
+  "check_seconds": 212.4,
+  "calls": 2,
+  "wall_seconds": 562.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

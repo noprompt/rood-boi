@@ -1,0 +1,221 @@
+{
+ "function": "vs_battle_copyInventoryBladeStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (u8->u16 id, u16->u8 truncations, bitfield copies); spec sound",
+ "plan": {
+  "name": "vs_battle_copyInventoryBladeStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006ab44",
+  "difficulty": "M",
+  "zig_name": "copyInventoryBladeStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_inventory_blade_stats",
+  "spec_file": "copyInventoryBladeStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyInventoryBladeStats(target: ?*v.vs_battle_uiEquipment, source: ?*v.vs_main_inventoryBlade) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiEquipment"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryBlade"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiEquipment",
+   "vs_main_inventoryBlade"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12385,
+     "completion_tokens": 6637,
+     "reasoning_tokens": 5152,
+     "cost": 0.004557,
+     "seconds": 27.9,
+     "sample": 1,
+     "conversation": "9430347d3aa37a42f08505a9c1ad42ff7b6acecd1cbc2e29db76824d49ec647a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "non-negative-strength": "9873",
+   "negative-strength": "10127"
+  },
+  "mutations": [
+   {
+    "name": "C1: unk14 takes unk11 instead of unk12",
+    "caught": true
+   },
+   {
+    "name": "C2: maxDp copies currentDp",
+    "caught": true
+   },
+   {
+    "name": "C3: classes loop runs 7 entries (wrong bound)",
+    "caught": true
+   },
+   {
+    "name": "C4: affinities loop runs 8 entries (wrong bound)",
+    "caught": true
+   },
+   {
+    "name": "C5: material store dropped",
+    "caught": true
+   },
+   {
+    "name": "C6: intelligence copies agility (wrong field)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 25,
+   "lines_hit": 25,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 26,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 140000,
+     "kind": "against a constant",
+     "outcomes": "== 20000, < 100000, > 20000 (signed); < 100000, > 20000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 30,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 160000,
+     "kind": "against a constant",
+     "outcomes": "== 20000, < 120000, > 20000 (signed); < 120000, > 20000 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35809,
+     "completion_tokens": 2908,
+     "reasoning_tokens": 2252,
+     "cost": 0.0050349,
+     "seconds": 12.4,
+     "sample": 1,
+     "conversation": "51218a1faae33ef8921d5a3fb0a7d28e0419358e688e10b0d91d747357d521af"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyInventoryBladeStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_inventory_blade_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 28.88725642800091,
+ "wall_seconds": 69.66337485900021,
+ "totals": {
+  "cost": 0.00959,
+  "prompt_tokens": 48194,
+  "completion_tokens": 9545,
+  "model_seconds": 40.3,
+  "check_seconds": 28.9,
+  "calls": 2,
+  "wall_seconds": 69.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,191 @@
+{
+ "function": "_setRoomSeen",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_setRoomSeen",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006f53c",
+  "difficulty": "S",
+  "zig_name": "setRoomSeen",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_room_seen",
+  "spec_file": "setRoomSeen.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setRoomSeen() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F19A0",
+   "vs_main_mapStatus"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11402,
+     "completion_tokens": 5421,
+     "reasoning_tokens": 4216,
+     "cost": 0.0038507,
+     "seconds": 23.9,
+     "sample": 1,
+     "conversation": "9ee52a68658a39575b06e9ec14003c332aed1cb905c41a51aedb1ac25a9093fe"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "flag-clear": "4945",
+   "flag-set": "15055"
+  },
+  "mutations": [
+   {
+    "name": "R1: the area bit uses scene & 0x0F",
+    "caught": true
+   },
+   {
+    "name": "R2: the room bit uses room & 0x0F",
+    "caught": true
+   },
+   {
+    "name": "R3: the pending flag is never cleared",
+    "caught": true
+   },
+   {
+    "name": "R4: the clear moved across the room call",
+    "caught": true
+   },
+   {
+    "name": "R5: the early return tests == 1",
+    "caught": true
+   },
+   {
+    "name": "R6: the room word is assigned, not or-ed",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (D_800F19A0 == 0) {",
+     "size": 4,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 4945, < 6803, > 8252 (signed); < 0, > 15055 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34878,
+     "completion_tokens": 1723,
+     "reasoning_tokens": 1231,
+     "cost": 0.0043493,
+     "seconds": 8.0,
+     "sample": 1,
+     "conversation": "c19c6827fa4647d704522c6d9416b7b5a395c59f0f29e9a6ff1bed097cb0b641"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setRoomSeen.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_room_seen.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 109.88496783099981,
+ "wall_seconds": 282.8626249930003,
+ "totals": {
+  "cost": 0.0082,
+  "prompt_tokens": 46280,
+  "completion_tokens": 7144,
+  "model_seconds": 31.9,
+  "check_seconds": 109.9,
+  "calls": 2,
+  "wall_seconds": 282.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 3 / nested 6 / nested 15, 0 mismatches"
+ }
+}

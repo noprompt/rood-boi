@@ -1,0 +1,209 @@
+{
+ "function": "_calculateWeaponClassAffinity",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_calculateWeaponClassAffinity",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007e380",
+  "difficulty": "S",
+  "zig_name": "calculateWeaponClassAffinity",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "calculate_weapon_class_affinity",
+  "spec_file": "calculateWeaponClassAffinity.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn calculateWeaponClassAffinity(arg0: ?*v.vs_battle_actor2) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_battle_actor2"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13229,
+     "completion_tokens": 6284,
+     "reasoning_tokens": 4799,
+     "cost": 0.0044649,
+     "seconds": 26.8,
+     "sample": 1,
+     "conversation": "f732a8e7c8eb444a6a2342385b6a18ba2258bb565f2f643f7a5bebc8f56373c8"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "wraps": "6318",
+   "fits": "23682"
+  },
+  "mutations": [
+   {
+    "name": "W1: class loop runs to 7 (writes class[*][6])",
+    "caught": true
+   },
+   {
+    "name": "W2: class[0] store dropped",
+    "caught": true
+   },
+   {
+    "name": "W3: unk168 not added to affinity[0]",
+    "caught": true
+   },
+   {
+    "name": "W4: gems[2] affinities read from classes",
+    "caught": true
+   },
+   {
+    "name": "W5: blade class read unsigned",
+    "caught": true
+   },
+   {
+    "name": "W6: affinity loop stops at 6 (slot 6 unwritten)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 12,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 240000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 180000, > 30000 (signed); < 180000, > 30000 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36656,
+     "completion_tokens": 2787,
+     "reasoning_tokens": 2054,
+     "cost": 0.0050591,
+     "seconds": 11.5,
+     "sample": 1,
+     "conversation": "eee0d29e8006e14f5f60fb239828fdeb6cae83a36df9acb4b6070621010d0a51"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/calculateWeaponClassAffinity.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/calculate_weapon_class_affinity.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 160.04516741100088,
+ "wall_seconds": 433.338651561,
+ "totals": {
+  "cost": 0.00952,
+  "prompt_tokens": 49885,
+  "completion_tokens": 9071,
+  "model_seconds": 38.3,
+  "check_seconds": 160.0,
+  "calls": 2,
+  "wall_seconds": 433.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 9, 0 mismatches"
+ }
+}

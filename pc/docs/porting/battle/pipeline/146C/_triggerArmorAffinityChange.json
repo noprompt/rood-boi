@@ -1,0 +1,423 @@
+{
+ "function": "_triggerArmorAffinityChange",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the C leaves targetAffinity/physical/opposing undefined for an element outside 0..6 (port: 0), the spec's waiver is justified; spec sound",
+ "plan": {
+  "name": "_triggerArmorAffinityChange",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80080534",
+  "difficulty": "M",
+  "zig_name": "triggerArmorAffinityChange",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "trigger_armor_affinity_change",
+  "spec_file": "triggerArmorAffinityChange.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn triggerArmorAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_battle_uiEquipment, affinity: c_int, arg3: c_int, actorId: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "equipment",
+    "?*v.vs_battle_uiEquipment"
+   ],
+   [
+    "affinity",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "actorId",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiEquipment"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13744,
+     "completion_tokens": 15116,
+     "reasoning_tokens": 13270,
+     "cost": 0.0089324,
+     "seconds": 66.2,
+     "sample": 1,
+     "conversation": "310ae080a7a6141dfd5abd144bced06eb74b3a7df0c690806bda48b75bfe7bf4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _triggerArmorAffinityChange: branches 37/38 (97.4%), conditions not measured (GCC < 14: branch coverage only), lines 65/65\n  UNCOVERED +13 b7: branch never taken: `switch (affinity) {`\ncoverage _triggerArmorAffinityChange: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (affinity) {` (+13): one way out of this test (+13 b7) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function._triggerArmorAffinityChange.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15890,
+     "completion_tokens": 3426,
+     "reasoning_tokens": 1373,
+     "cost": 0.003302,
+     "seconds": 13.5,
+     "sample": 1,
+     "conversation": "3e02312208138b0bb410356cf13a8dcb3f4c1de84d44620008e83186c14a23f6"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "capped": "5423",
+   "self-affinity-zero": "3500",
+   "other-affinity": "21077"
+  },
+  "mutations": [
+   {
+    "name": "A1: the affinity-up message dropped",
+    "caught": true
+   },
+   {
+    "name": "A2: the affinity increment dropped",
+    "caught": true
+   },
+   {
+    "name": "A3: the loop stops before index 6",
+    "caught": true
+   },
+   {
+    "name": "A4: loop floor test >= -100 instead of > -100",
+    "caught": true
+   },
+   {
+    "name": "A5: opposing bonus 19 instead of 20",
+    "caught": true
+   },
+   {
+    "name": "A6: capped test unsigned (negative affinities read as capped)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 38,
+   "branches_hit": 37,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 65,
+   "lines_hit": 65,
+   "uncovered": [
+    {
+     "id": "+13 b7",
+     "line": 13,
+     "text": "switch (affinity) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147418843, max 2147306567, unsigned 0..4294899019, seen zero/negative"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147364569, max 2147385226, unsigned 33467..4294877879, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147446682, max 2145867756, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (action->hitParams[0].affinity != 0) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14946, < 8622, > 6432 (signed); < 0, > 15054 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..96"
+    },
+    {
+     "line": 13,
+     "text": "switch (affinity) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 30000, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6"
+    },
+    {
+     "line": 55,
+     "text": "if (equipment->affinities[targetAffinity] >= 100) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1957, < 22620, > 5423 (signed); < 9454, > 18589 (unsigned)",
+     "operand": "constant 99",
+     "a": "-128..127"
+    },
+    {
+     "line": 61,
+     "text": "if ((70 - ((equipment->affinities[targetAffinity] + 100) / 4)) >= randVal) {",
+     "size": 4,
+     "count": 24577,
+     "kind": "a == b / a < b",
+     "outcomes": "== 395, < 15868, > 8314 (signed); < 15868, > 8314 (unsigned)",
+     "operand": "b 21..77",
+     "a": "20..59"
+    },
+    {
+     "line": 65,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 16263,
+     "kind": "against a constant",
+     "outcomes": "== 8262, < 3270, > 4731 (signed); < 0, > 8001 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146446146..2145701625"
+    },
+    {
+     "line": 69,
+     "text": "if (targetAffinity == 0) {",
+     "size": 4,
+     "count": 16263,
+     "kind": "against a constant",
+     "outcomes": "== 2346, < 0, > 13917 (signed); < 0, > 13917 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..6"
+    },
+    {
+     "line": 70,
+     "text": "for (i = 1; i < 7; ++i) {",
+     "size": 4,
+     "count": 16422,
+     "kind": "against a constant",
+     "outcomes": "== 2346, < 11730, > 2346 (signed); < 11730, > 2346 (unsigned)",
+     "operand": "constant 6",
+     "a": "1..7"
+    },
+    {
+     "line": 71,
+     "text": "if (equipment->affinities[i] > -100) {",
+     "size": 1,
+     "count": 14076,
+     "kind": "against a constant",
+     "outcomes": "== 29, < 3382, > 10665 (signed); < 11287, > 2760 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 75,
+     "text": "if ((((equipment->affinities[i] + 100) / 4) + 20) >= randVal) {",
+     "size": 4,
+     "count": 10694,
+     "kind": "a == b / a < b",
+     "outcomes": "== 122, < 8188, > 2384 (signed); < 8188, > 2384 (unsigned)",
+     "operand": "b 20..76",
+     "a": "20..59"
+    },
+    {
+     "line": 79,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 8310,
+     "kind": "against a constant",
+     "outcomes": "== 4277, < 1682, > 2351 (signed); < 0, > 4033 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146446146..2144124407"
+    },
+    {
+     "line": 88,
+     "text": "if (equipment->affinities[physical] > -100) {",
+     "size": 1,
+     "count": 13917,
+     "kind": "against a constant",
+     "outcomes": "== 30, < 3427, > 10460 (signed); < 11193, > 2694 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 92,
+     "text": "if ((((equipment->affinities[physical] + 100) / 4) + 20) >= randVal) {",
+     "size": 4,
+     "count": 10490,
+     "kind": "a == b / a < b",
+     "outcomes": "== 124, < 8009, > 2357 (signed); < 8009, > 2357 (unsigned)",
+     "operand": "b 20..76",
+     "a": "20..59"
+    },
+    {
+     "line": 96,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 8133,
+     "kind": "against a constant",
+     "outcomes": "== 4136, < 1588, > 2409 (signed); < 0, > 3997 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2143886682..2144798747"
+    },
+    {
+     "line": 102,
+     "text": "if (equipment->affinities[opposingAffinity] > -100) {",
+     "size": 1,
+     "count": 13917,
+     "kind": "against a constant",
+     "outcomes": "== 39, < 3400, > 10478 (signed); < 11184, > 2694 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 106,
+     "text": "if ((((equipment->affinities[opposingAffinity] + 100) / 4) + 0x14)",
+     "size": 4,
+     "count": 10517,
+     "kind": "a == b / a < b",
+     "outcomes": "== 108, < 8004, > 2405 (signed); < 8004, > 2405 (unsigned)",
+     "operand": "b 20..76",
+     "a": "20..59"
+    },
+    {
+     "line": 111,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 8112,
+     "kind": "against a constant",
+     "outcomes": "== 4122, < 1630, > 2360 (signed); < 0, > 3990 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145090712..2145701625"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+13 b7",
+    "reason": "The switch's no-match exit is reached only by an argument outside 0..6 with hitParams[0].affinity == 0. The C has no default case, so targetAffinity, physical and opposingAffinity stay indeterminate and the next read indexes equipment->affinities with an indeterminate value. The C's result is then stack garbage, not a defined outcome, so no input can give the port a defined result to compare with. Inputs with hitParams[0].affinity 1..7 always map to 0..6 and never take this exit."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37179,
+     "completion_tokens": 7316,
+     "reasoning_tokens": 5653,
+     "cost": 0.0073759,
+     "seconds": 29.8,
+     "sample": 1,
+     "conversation": "e1caeed2bf8e32bd7fe3bb80e39aa0f397ef46cab9993e7a44ec0eec47db65a0"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/triggerArmorAffinityChange.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/trigger_armor_affinity_change.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 126.57713276599952,
+ "wall_seconds": 236.5417469569993,
+ "totals": {
+  "cost": 0.01961,
+  "prompt_tokens": 66813,
+  "completion_tokens": 25858,
+  "model_seconds": 109.5,
+  "check_seconds": 126.6,
+  "calls": 3,
+  "wall_seconds": 236.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 9, 0 mismatches"
+ }
+}

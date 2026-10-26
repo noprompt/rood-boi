@@ -1,0 +1,257 @@
+{
+ "function": "func_800D4C18",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; ROOD_PC branch checked: func_800D6E44(psx_get(arg0->unk18)) re-reads the head after func_800D52A4, no extra guards; spec sound",
+ "plan": {
+  "name": "func_800D4C18",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d4c18",
+  "difficulty": "M",
+  "zig_name": "func_800D4C18",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D4C18",
+  "spec_file": "func_800D4C18.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D4C18(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "D_800F53B8_t",
+   "func_800D2904_t"
+  ],
+  "globals": [],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13379,
+     "completion_tokens": 19059,
+     "reasoning_tokens": 16659,
+     "cost": 0.0108674,
+     "seconds": 78.7,
+     "sample": 1,
+     "conversation": "355ff7a40d88df81e956d39f929add9788e3b76e3a677babeacb97932661840c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-list": "5046",
+   "immortal-hidden": "2760",
+   "immortal-ends": "405",
+   "expires": "1528",
+   "alive": "20261"
+  },
+  "mutations": [
+   {
+    "name": "R1: returns 0 instead of 1",
+    "caught": true
+   },
+   {
+    "name": "D1: func_800D52A4 call dropped",
+    "caught": true
+   },
+   {
+    "name": "D2: func_800D6E44 call dropped",
+    "caught": true
+   },
+   {
+    "name": "T1: tick event fires on tickEvent 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "E1: the byte 0x42 test reads 1 instead of 0",
+    "caught": true
+   },
+   {
+    "name": "L1: lifetime tested after the decrement",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 21,
+   "lines_hit": 21,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 16,
+     "text": "if (node->tickEvent != 0) {",
+     "size": 1,
+     "count": 43569,
+     "kind": "against a constant",
+     "outcomes": "== 3165, < 20414, > 19990 (signed); < 0, > 40404 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 19,
+     "text": "if (node->lifetime == -1) {",
+     "size": 2,
+     "count": 43569,
+     "kind": "against a constant",
+     "outcomes": "== 1719, < 20244, > 21606 (signed); < 41850, > 0 (unsigned)",
+     "operand": "constant -1",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 20,
+     "text": "if (((u_char*)node)[0x42] == 0) {",
+     "size": 1,
+     "count": 1719,
+     "kind": "against a constant",
+     "outcomes": "== 250, < 863, > 606 (signed); < 0, > 1469 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 21,
+     "text": "if (node->endEvent != 0) {",
+     "size": 1,
+     "count": 250,
+     "kind": "against a constant",
+     "outcomes": "== 16, < 112, > 122 (signed); < 0, > 234 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..124"
+    },
+    {
+     "line": 26,
+     "text": "} else if (--node->lifetime == 0) {",
+     "size": 2,
+     "count": 41850,
+     "kind": "against a constant",
+     "outcomes": "== 859, < 20238, > 20753 (signed); < 0, > 40991 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 27,
+     "text": "if (node->endEvent != 0) {",
+     "size": 1,
+     "count": 859,
+     "kind": "against a constant",
+     "outcomes": "== 54, < 399, > 406 (signed); < 0, > 805 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36851,
+     "completion_tokens": 5003,
+     "reasoning_tokens": 4181,
+     "cost": 0.0061866,
+     "seconds": 20.4,
+     "sample": 1,
+     "conversation": "59b1b040debc6a3ddf457f87e8336ead2a3d8027045a598544db273756d55ef1"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D4C18.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D4C18.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 67.0242563119973,
+ "wall_seconds": 478.7996406949969,
+ "totals": {
+  "cost": 0.01705,
+  "prompt_tokens": 50230,
+  "completion_tokens": 24062,
+  "model_seconds": 99.1,
+  "check_seconds": 67.0,
+  "calls": 2,
+  "wall_seconds": 478.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 231 / nested 510 / nested 207, 0 mismatches"
+ }
+}

@@ -1,0 +1,466 @@
+{
+ "function": "func_80085390",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (mediator table called through its own declared prototype); spec sound",
+ "plan": {
+  "name": "func_80085390",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80085390",
+  "difficulty": "M",
+  "zig_name": "func_80085390",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80085390",
+  "spec_file": "func_80085390.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80085390(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, hit: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "hit",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "_actionEffectMediators",
+   "_lastValue",
+   "vs_main_artsPointsRequirements",
+   "vs_main_artsStatus"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18077,
+     "completion_tokens": 30802,
+     "reasoning_tokens": 27671,
+     "cost": 0.0172087,
+     "seconds": 127.6,
+     "sample": 1,
+     "conversation": "47791ab434588de7fc01a56c595adec9d68125261a8e5792ae3c5f156491f533"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80085390: branches 41/42 (97.6%), conditions not measured (GCC < 14: branch coverage only), lines 35/35\n  UNCOVERED +17 b1: branch never taken: `if (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->unk957`\ncoverage func_80085390: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->unk957` (+17): one way out of this test (+17 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80085390.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 21649,
+     "completion_tokens": 5196,
+     "reasoning_tokens": 1997,
+     "cost": 0.0047629,
+     "seconds": 19.2,
+     "sample": 1,
+     "conversation": "8357719bb0bc1efa41b3b4968559062f4f466077ee08b89d5d96d40eb31ffadf"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "dead-target": "7488",
+   "spell-status-skip": "1959",
+   "spell-mediated": "2135",
+   "mediated-other": "17342",
+   "arts-block": "1076"
+  },
+  "mutations": [
+   {
+    "name": "F1: the hpEffect store is dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: the dead-target heal is 990, not 999",
+    "caught": true
+   },
+   {
+    "name": "F3: arg3 tested as > 0 (not != 0)",
+    "caught": true
+   },
+   {
+    "name": "F4: currentHP < hp (strict) in the arts block",
+    "caught": true
+   },
+   {
+    "name": "F5: the inflicted-status mask loses bit 0x1000",
+    "caught": true
+   },
+   {
+    "name": "F6: weapon category taken modulo 9",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 42,
+   "branches_hit": 42,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 35,
+   "lines_hit": 35,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147168183, max 2147438534, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min 0, max 1, seen zero, never negative, 2 value(s): 1, 0"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if ((arg2->unk40 == 0)",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22505, < 0, > 7495 (signed); < 0, > 7495 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 4,
+     "text": "&& (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->unk957 == 0x80)) {",
+     "size": 1,
+     "count": 22505,
+     "kind": "against a constant",
+     "outcomes": "== 7488, < 0, > 15017 (signed); < 6274, > 8743 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 7,
+     "text": "} else if (action->type == actionTypeSpell) {",
+     "size": 1,
+     "count": 22512,
+     "kind": "against a constant",
+     "outcomes": "== 4094, < 2081, > 16337 (signed); < 2081, > 16337 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 8,
+     "text": "if ((arg2->unk40 == 0)",
+     "size": 4,
+     "count": 4094,
+     "kind": "against a constant",
+     "outcomes": "== 2775, < 0, > 1319 (signed); < 0, > 1319 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 9,
+     "text": "&& (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->statuses",
+     "size": 4,
+     "count": 2775,
+     "kind": "against a constant",
+     "outcomes": "== 816, < 1142, > 817 (signed); < 0, > 1959 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..262144"
+    },
+    {
+     "line": 16,
+     "text": "if (arg2->unk40 == 0) {",
+     "size": 4,
+     "count": 4094,
+     "kind": "against a constant",
+     "outcomes": "== 2775, < 0, > 1319 (signed); < 0, > 1319 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 17,
+     "text": "if (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->unk957",
+     "size": 1,
+     "count": 2775,
+     "kind": "against a constant",
+     "outcomes": "== 278, < 0, > 2497 (signed); < 1010, > 1487 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 28,
+     "text": "if ((arg3 != 0) && (arg1->unk40 == 0) && (arg1->unk0.targetActor == 0)",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 4970, < 12513, > 12517 (signed); < 0, > 25030 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147168183..2147438534"
+    },
+    {
+     "line": 28,
+     "text": "if ((arg3 != 0) && (arg1->unk40 == 0) && (arg1->unk0.targetActor == 0)",
+     "size": 4,
+     "count": 25030,
+     "kind": "against a constant",
+     "outcomes": "== 18794, < 0, > 6236 (signed); < 0, > 6236 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 28,
+     "text": "if ((arg3 != 0) && (arg1->unk40 == 0) && (arg1->unk0.targetActor == 0)",
+     "size": 1,
+     "count": 18794,
+     "kind": "against a constant",
+     "outcomes": "== 12453, < 0, > 6341 (signed); < 0, > 6341 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 29,
+     "text": "&& (arg2->unk40 == 0)",
+     "size": 4,
+     "count": 12453,
+     "kind": "against a constant",
+     "outcomes": "== 9288, < 0, > 3165 (signed); < 0, > 3165 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 30,
+     "text": "&& (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->unk957 != 0x80)",
+     "size": 1,
+     "count": 9288,
+     "kind": "against a constant",
+     "outcomes": "== 4989, < 0, > 4299 (signed); < 1776, > 2523 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 31,
+     "text": "&& (action->type == actionTypeAbility || action->type == actionTypeBreakArt",
+     "size": 1,
+     "count": 4299,
+     "kind": "against a constant",
+     "outcomes": "== 373, < 1400, > 2526 (signed); < 1400, > 2526 (unsigned)",
+     "operand": "constant 4",
+     "a": "0..14"
+    },
+    {
+     "line": 31,
+     "text": "&& (action->type == actionTypeAbility || action->type == actionTypeBreakArt",
+     "size": 1,
+     "count": 3926,
+     "kind": "against a constant",
+     "outcomes": "== 702, < 1400, > 1824 (signed); < 1400, > 1824 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..14"
+    },
+    {
+     "line": 32,
+     "text": "|| action->type == actionTypeBaseAttack)",
+     "size": 1,
+     "count": 3224,
+     "kind": "against a constant",
+     "outcomes": "== 731, < 2122, > 371 (signed); < 2122, > 371 (unsigned)",
+     "operand": "constant 12",
+     "a": "0..14"
+    },
+    {
+     "line": 33,
+     "text": "&& (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->currentHP",
+     "size": 2,
+     "count": 1806,
+     "kind": "a == b / a < b",
+     "outcomes": "== 487, < 753, > 566 (signed); < 841, > 478 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 35,
+     "text": "&& (arg2->unk0.targetActor != 0)",
+     "size": 1,
+     "count": 1240,
+     "kind": "against a constant",
+     "outcomes": "== 250, < 0, > 990 (signed); < 0, > 990 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 36,
+     "text": "&& (vs_battle_actors[arg2->unk0.targetActor]->unk29 == 0)) {",
+     "size": 1,
+     "count": 990,
+     "kind": "against a constant",
+     "outcomes": "== 670, < 0, > 320 (signed); < 0, > 320 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 40,
+     "text": "if ((vs_battle_getStateFlag(0x82) >= 0xA)",
+     "size": 1,
+     "count": 670,
+     "kind": "against a constant",
+     "outcomes": "== 43, < 429, > 198 (signed); < 429, > 198 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..13"
+    },
+    {
+     "line": 41,
+     "text": "&& (vs_main_artsStatus.artsLearned[temp_s0] < 4)",
+     "size": 1,
+     "count": 198,
+     "kind": "against a constant",
+     "outcomes": "== 47, < 69, > 82 (signed); < 69, > 82 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..11"
+    },
+    {
+     "line": 42,
+     "text": "&& (vs_main_artsStatus.kills.weaponCategories[temp_s0]",
+     "size": 2,
+     "count": 116,
+     "kind": "a == b / a < b",
+     "outcomes": "== 46, < 39, > 31 (signed); < 33, > 37 (unsigned)",
+     "operand": "b -32727..31403",
+     "a": "-32276..31918"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 41384,
+     "completion_tokens": 17280,
+     "reasoning_tokens": 15629,
+     "cost": 0.0127784,
+     "seconds": 68.3,
+     "sample": 1,
+     "conversation": "4912655872f93c070b01a204e0b6344f983e4530a62e2c602a7f8884777fdcc6"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80085390.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80085390.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 106.15291093999804,
+ "wall_seconds": 321.58246241300003,
+ "totals": {
+  "cost": 0.03475,
+  "prompt_tokens": 81110,
+  "completion_tokens": 53278,
+  "model_seconds": 215.1,
+  "check_seconds": 106.2,
+  "calls": 3,
+  "wall_seconds": 321.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 21 / nested 66 / nested 84, 0 mismatches"
+ }
+}

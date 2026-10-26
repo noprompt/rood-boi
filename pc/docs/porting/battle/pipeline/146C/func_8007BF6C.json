@@ -1,0 +1,212 @@
+{
+ "function": "func_8007BF6C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8007BF6C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007bf6c",
+  "difficulty": "S",
+  "zig_name": "func_8007BF6C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007BF6C",
+  "spec_file": "func_8007BF6C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007BF6C(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11970,
+     "completion_tokens": 4031,
+     "reasoning_tokens": 2937,
+     "cost": 0.0032125,
+     "seconds": 17.5,
+     "sample": 1,
+     "conversation": "3c9b92f59160ec2ea504cfb6b51561532fc0a4ee140a12b7f1d0ad7bf0f5a3dd"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "slot-null": "9991",
+   "slot-live": "10009"
+  },
+  "mutations": [
+   {
+    "name": "F1: null test inverted",
+    "caught": true
+   },
+   {
+    "name": "F2: wrong constant (| 2 for | 1)",
+    "caught": true
+   },
+   {
+    "name": "F3: the | 1 dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: the call to func_800A087C dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong slot read (arg0 ^ 1)",
+    "caught": true
+   },
+   {
+    "name": "F6: wrong argument passed to func_800A087C",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35335,
+     "completion_tokens": 1388,
+     "reasoning_tokens": 1127,
+     "cost": 0.0042275,
+     "seconds": 6.8,
+     "sample": 1,
+     "conversation": "a5c091fb84024f8fe95618ab6f90155c1890603ba616a435e557d086add65069"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8007BF6C.zig:10:53: error: expected type 'c_int', found 'c_uint'\n        c.func_800A087C(arg0, c.func_800A0BE0(arg0) | 1);\n                              ~~~~~~~~~~~~~~~~~~~~~~^~~\ngame/battle/func_8007BF6C.zig:10:53: note: signed 32-bit int cannot represent all possible unsigned 32-bit values\npc/build/boot64/zig/c_146C.zig:3916:45: note: parameter type declared here\npub extern fn func_800A087C(actorId: c_int, c_int) void;\n                                            ^~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35993,
+     "completion_tokens": 505,
+     "reasoning_tokens": 234,
+     "cost": 0.0038518,
+     "seconds": 2.8,
+     "sample": 1,
+     "conversation": "1ae444362c2051eff5861f20ff24f8efb3e10abe11d31b183606fe06c688f0d5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007BF6C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007BF6C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 236.48446873699868,
+ "wall_seconds": 782.1859863930003,
+ "totals": {
+  "cost": 0.01129,
+  "prompt_tokens": 83298,
+  "completion_tokens": 5924,
+  "model_seconds": 27.1,
+  "check_seconds": 236.5,
+  "calls": 3,
+  "wall_seconds": 782.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

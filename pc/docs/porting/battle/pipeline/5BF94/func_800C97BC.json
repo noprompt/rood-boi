@@ -1,0 +1,344 @@
+{
+ "function": "func_800C97BC",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; ROOD_PC hook pc_ui_menu_hide_rows checked (same position, short-circuit order, taken as the PC branch); spec sound",
+ "plan": {
+  "name": "func_800C97BC",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c97bc",
+  "difficulty": "M",
+  "zig_name": "func_800C97BC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800C97BC",
+  "spec_file": "func_800C97BC.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800C97BC() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "vs_battle_menuItem_t"
+  ],
+  "globals": [
+   "D_800F4E98",
+   "vs_battle_menuItems",
+   "vs_battle_menuState",
+   "vs_battle_shortcutInvoked"
+  ],
+  "hooks": [
+   "pc_ui_menu_hide_rows"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12324,
+     "completion_tokens": 18693,
+     "reasoning_tokens": 16691,
+     "cost": 0.0105789,
+     "seconds": 79.3,
+     "sample": 1,
+     "conversation": "8a78c957e3307a341ff4c721499755eeb6ccdcb54760102c987ad64443f1c188"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M4: the item loop draws nine rows: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800C97BC: 30000 iterations, seed 1, 0 mismatches; classes: menu-7f=1085 menu-done=3216 loaded-shortcut=1352 loaded-exec=11646 idle-misc-positive=723 idle-misc-negative=648 idle-misc-zero=206 page-high=9298 page-low=1826",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800C97BC: branches 19/22 (86.4%), conditions not measured (GCC < 14: branch coverage only), lines 22/25\n  UNCOVERED +47 b4: branch never taken: `if (((var_s0 >= 0x1F) || (temp_s1 == 0)) && !pc_ui_menu_hide_rows()) {`\n  UNCOVERED +51 b0: branch never taken (not executed): `for (i = 0; i < 10; ++i) {`\n  UNCOVERED +51 b1: branch never taken (not executed): `for (i = 0; i < 10; ++i) {`\n  FLAG +38 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (miscIndex > 0) {`\ncoverage func_800C97BC: FAILED (threshold 100%: 3 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (((var_s0 >= 0x1F) || (temp_s1 == 0)) && !pc_ui_menu_hide_rows()) {` (+47): one way out of this test (+47 b4) was never taken; add inputs that take it.\n- `for (i = 0; i < 10; ++i) {` (+51) never ran: no input reaches this line; add inputs that get there (the tests before it must come out the other way).\n- `for (i = 0; i < 10; ++i) {` (+51) never ran: no input reaches this line; add inputs that get there (the tests before it must come out the other way).\n- `if (miscIndex > 0) {` (+38): the two sides of this ordered compare were equal 0 time(s) in 1371. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800C97BC.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15232,
+     "completion_tokens": 4351,
+     "reasoning_tokens": 2178,
+     "cost": 0.0036987,
+     "seconds": 17.2,
+     "sample": 1,
+     "conversation": "1bcbe73eacfef8e4cd9d7b57388be2fb034f21eb770deb462f1a7122f4971346"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "menu-7f": "1085",
+   "menu-done": "3216",
+   "loaded-shortcut": "1352",
+   "loaded-exec": "11646",
+   "idle-misc-positive": "723",
+   "idle-misc-negative": "648",
+   "idle-misc-zero": "206",
+   "page-high": "9298",
+   "page-low": "1826"
+  },
+  "mutations": [
+   {
+    "name": "M1: the 0x7F menu test misses its value",
+    "caught": true
+   },
+   {
+    "name": "M2: the negative misc index stores 0x1E, not 0x1F",
+    "caught": true
+   },
+   {
+    "name": "M3: the page test uses > for >=",
+    "caught": true
+   },
+   {
+    "name": "M4: the item loop draws nine rows",
+    "caught": true
+   },
+   {
+    "name": "M5: the misc index compared unsigned",
+    "caught": true
+   },
+   {
+    "name": "M6: the menu exec gets the masked menu, not the full byte",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 22,
+   "branches_hit": 22,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 25,
+   "lines_hit": 25,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+38 eq",
+     "line": 38,
+     "text": "if (miscIndex > 0) {",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 1371,
+     "what": "boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [],
+   "compares": [
+    {
+     "line": 11,
+     "text": "if (var_s0 == 0x7F) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1085, < 18427, > 10488 (signed); < 18427, > 10488 (unsigned)",
+     "operand": "constant 127",
+     "a": "0..255"
+    },
+    {
+     "line": 18,
+     "text": "if (temp_s1 != 0x3F) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 4301, < 25699, > 0 (signed); < 25699, > 0 (unsigned)",
+     "operand": "constant 63",
+     "a": "0..63"
+    },
+    {
+     "line": 19,
+     "text": "if (vs_battle_loadMenuPrg(0) != 0) {",
+     "size": 4,
+     "count": 25699,
+     "kind": "against a constant",
+     "outcomes": "== 12701, < 6478, > 6520 (signed); < 0, > 12998 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147127985"
+    },
+    {
+     "line": 21,
+     "text": "if (vs_battle_shortcutInvoked == 5) {",
+     "size": 1,
+     "count": 12998,
+     "kind": "against a constant",
+     "outcomes": "== 701, < 6912, > 5385 (signed); < 1439, > 10858 (unsigned)",
+     "operand": "constant 5",
+     "a": "-128..127"
+    },
+    {
+     "line": 30,
+     "text": "if (temp_s1 == 0) {",
+     "size": 4,
+     "count": 12701,
+     "kind": "against a constant",
+     "outcomes": "== 1577, < 0, > 11124 (signed); < 0, > 11124 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..62"
+    },
+    {
+     "line": 34,
+     "text": "if (miscIndex != 0) {",
+     "size": 4,
+     "count": 1577,
+     "kind": "against a constant",
+     "outcomes": "== 206, < 648, > 723 (signed); < 0, > 1371 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147482859..2135748960"
+    },
+    {
+     "line": 38,
+     "text": "if (miscIndex > 0) {",
+     "size": 4,
+     "count": 1371,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 648, > 723 (signed); < 0, > 1371 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147482859..2135748960"
+    },
+    {
+     "line": 47,
+     "text": "if (((var_s0 >= 0x1F) || (temp_s1 == 0)) && !pc_ui_menu_hide_rows()) {",
+     "size": 4,
+     "count": 12701,
+     "kind": "against a constant",
+     "outcomes": "== 518, < 1379, > 10804 (signed); < 1379, > 10804 (unsigned)",
+     "operand": "constant 30",
+     "a": "0..2135748960"
+    },
+    {
+     "line": 47,
+     "text": "if (((var_s0 >= 0x1F) || (temp_s1 == 0)) && !pc_ui_menu_hide_rows()) {",
+     "size": 4,
+     "count": 1897,
+     "kind": "against a constant",
+     "outcomes": "== 71, < 0, > 1826 (signed); < 0, > 1826 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..30"
+    },
+    {
+     "line": 47,
+     "text": "if (((var_s0 >= 0x1F) || (temp_s1 == 0)) && !pc_ui_menu_hide_rows()) {",
+     "size": 4,
+     "count": 10875,
+     "kind": "against a constant",
+     "outcomes": "== 5484, < 0, > 5391 (signed); < 0, > 5391 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 51,
+     "text": "for (i = 0; i < 10; ++i) {",
+     "size": 4,
+     "count": 60324,
+     "kind": "against a constant",
+     "outcomes": "== 5484, < 49356, > 5484 (signed); < 49356, > 5484 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..10"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+38 eq",
+    "reason": "the compare runs only inside `if (miscIndex != 0)`, so miscIndex is never 0 there and the sides are never equal"
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35797,
+     "completion_tokens": 6886,
+     "reasoning_tokens": 6093,
+     "cost": 0.0070227,
+     "seconds": 28.4,
+     "sample": 1,
+     "conversation": "cea07b556f347e92340aecffc7b4e6f51e749fc3236448dedb05cf15b59c893c"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800C97BC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800C97BC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 112.41214255300292,
+ "wall_seconds": 524.8105059569934,
+ "totals": {
+  "cost": 0.0213,
+  "prompt_tokens": 63353,
+  "completion_tokens": 29930,
+  "model_seconds": 124.9,
+  "check_seconds": 112.4,
+  "calls": 3,
+  "wall_seconds": 524.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / root 44, 0 mismatches"
+ }
+}

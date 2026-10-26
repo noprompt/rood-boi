@@ -1,0 +1,218 @@
+{
+ "function": "vs_battle_applyArmor",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_applyArmor",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006b110",
+  "difficulty": "S",
+  "zig_name": "applyArmor",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "apply_armor",
+  "spec_file": "applyArmor.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn applyArmor(target: ?*v.vs_battle_uiArmor, source: ?*v.vs_main_inventoryArmor) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiArmor"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryArmor"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_armorIntermediate"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12627,
+     "completion_tokens": 12212,
+     "reasoning_tokens": 10517,
+     "cost": 0.0073687,
+     "seconds": 51.3,
+     "sample": 1,
+     "conversation": "367ff6ad89691e40019de2c796b516686fe5ec0b7c37a8a6f1e3656859c2ea87"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation A1: source null test inverted: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x4060a0 [arena] (zdiff_state+0x30): C 72, Zig 221\nzdiff: CRASH (signal 11) in the Zig run, iteration 1, fault address 0x27 [NULL+0x27: a field of a null pointer]\nzdiff: crashed on arguments: 0x406070 [arena] 0 (class no-source)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14586,
+     "completion_tokens": 2546,
+     "reasoning_tokens": 832,
+     "cost": 0.0027316,
+     "seconds": 10.0,
+     "sample": 1,
+     "conversation": "be2719d7cd2b399ed2a39dfa248bb004dd9ba85be336a21cfb451bdd327aeab0"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-source": "7479",
+   "source": "22521"
+  },
+  "mutations": [
+   {
+    "name": "A1: source null test inverted (the C dereferences a null source)",
+    "caught": true
+   },
+   {
+    "name": "A2: index read from id",
+    "caught": true
+   },
+   {
+    "name": "A3: material store dropped",
+    "caught": true
+   },
+   {
+    "name": "A4: equip copy dropped",
+    "caught": true
+   },
+   {
+    "name": "A5: temp block not zeroed",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 10,
+   "lines_hit": 10,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36100,
+     "completion_tokens": 3700,
+     "reasoning_tokens": 3186,
+     "cost": 0.00546,
+     "seconds": 14.9,
+     "sample": 1,
+     "conversation": "6de1a39bee1cf8166e9d75f02cd3138c1dcbe66dc32d29b2f8a16748de163254"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/applyArmor.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/apply_armor.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 200.33698134100268,
+ "wall_seconds": 506.1637595109969,
+ "totals": {
+  "cost": 0.01556,
+  "prompt_tokens": 63313,
+  "completion_tokens": 18458,
+  "model_seconds": 76.2,
+  "check_seconds": 200.3,
+  "calls": 3,
+  "wall_seconds": 506.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

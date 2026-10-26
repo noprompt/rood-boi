@@ -1,0 +1,213 @@
+{
+ "function": "vs_battle_setRoomsUnk0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_setRoomsUnk0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b4d8",
+  "difficulty": "S",
+  "zig_name": "setRoomsUnk0",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_rooms_unk0",
+  "spec_file": "setRoomsUnk0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setRoomsUnk0(scene: ?*v.vs_battle_scene) callconv(.c) void",
+  "params": [
+   [
+    "scene",
+    "?*v.vs_battle_scene"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_room",
+   "vs_battle_scene"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11594,
+     "completion_tokens": 10037,
+     "reasoning_tokens": 8425,
+     "cost": 0.0061779,
+     "seconds": 43.0,
+     "sample": 1,
+     "conversation": "677a8dade930491ba89322cc8fdcaf07bd95188cd8ec6b051a2ecf66704896c0"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-rooms": "11226",
+   "one-room": "3751",
+   "several-rooms": "15023"
+  },
+  "mutations": [
+   {
+    "name": "R1: a zero location id counts as linked",
+    "caught": true
+   },
+   {
+    "name": "R2: flag bit taken from the low four bits",
+    "caught": true
+   },
+   {
+    "name": "R3: map id used without the -1",
+    "caught": true
+   },
+   {
+    "name": "R4: unlinked room keeps its old visited flag",
+    "caught": true
+   },
+   {
+    "name": "R5: flag word index off by one location",
+    "caught": true
+   },
+   {
+    "name": "R6: last room skipped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 10,
+   "lines_hit": 10,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "for (i = 0; i < roomCount; ++i, ++room) {",
+     "size": 4,
+     "count": 101456,
+     "kind": "a == b / a < b",
+     "outcomes": "== 22484, < 71456, > 7516 (signed); < 78972, > 0 (unsigned)",
+     "operand": "b -2..8",
+     "a": "0..8"
+    },
+    {
+     "line": 8,
+     "text": "if (locationId > 0) {",
+     "size": 4,
+     "count": 71456,
+     "kind": "against a constant",
+     "outcomes": "== 22342, < 11289, > 37825 (signed); < 0, > 49114 (unsigned)",
+     "operand": "constant 0",
+     "a": "-256..512"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35034,
+     "completion_tokens": 3516,
+     "reasoning_tokens": 3023,
+     "cost": 0.0052614,
+     "seconds": 14.3,
+     "sample": 1,
+     "conversation": "67338388deeaf322914efc9c3fa7110574a282689b92166999913497db864581"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setRoomsUnk0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_rooms_unk0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 171.2815000240007,
+ "wall_seconds": 449.8606599570012,
+ "totals": {
+  "cost": 0.01144,
+  "prompt_tokens": 46628,
+  "completion_tokens": 13553,
+  "model_seconds": 57.3,
+  "check_seconds": 171.3,
+  "calls": 2,
+  "wall_seconds": 449.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,357 @@
+{
+ "function": "func_80073AFC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; sp10[1],[3] unwritten in the C but func_8009E070 reads only vx/vz (no hazard), template undefined for lock states 4+ (spec avoids them); waivers justified; spec sound",
+ "plan": {
+  "name": "func_80073AFC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80073afc",
+  "difficulty": "M",
+  "zig_name": "func_80073AFC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80073AFC",
+  "spec_file": "func_80073AFC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80073AFC(arg0: ?*v._mpdRoomSectionA) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v._mpdRoomSectionA"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13464,
+     "completion_tokens": 19020,
+     "reasoning_tokens": 17024,
+     "cost": 0.0108564,
+     "seconds": 83.4,
+     "sample": 1,
+     "conversation": "393558affdd3a1876760bc52002ab1465aaa56f0f290629bc05ac8b11cab381d"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80073AFC: branches 25/27 (92.6%), conditions not measured (GCC < 14: branch coverage only), lines 50/50\n  UNCOVERED +46 b1: branch never taken: `if (arg0->unk0.unk8.lock.state != 0) {`\n  UNCOVERED +47 b3: branch never taken: `switch (arg0->unk0.unk8.lock.state) {`\n  note: waivers no longer needed: TODO second-switch no-match b0, TODO state!=0 false b0\ncoverage func_80073AFC: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (arg0->unk0.unk8.lock.state != 0) {` (+46): one way out of this test (+46 b1) was never taken; add inputs that take it.\n- `switch (arg0->unk0.unk8.lock.state) {` (+47): one way out of this test (+47 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80073AFC.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15909,
+     "completion_tokens": 4223,
+     "reasoning_tokens": 2177,
+     "cost": 0.0037024,
+     "seconds": 18.0,
+     "sample": 1,
+     "conversation": "bd0feea2791e4a34c3a885ad9e754cf361a8066a142b9394eb9a1b1b68dc6d67"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "gate-closed": "13094",
+   "lock-0": "4220",
+   "lock-2": "4141",
+   "lock-1-3-sigil": "3932",
+   "lock-1-3-key": "4613"
+  },
+  "mutations": [
+   {
+    "name": "M1: sp10 shifted by 6, not 7",
+    "caught": true
+   },
+   {
+    "name": "M2: sigil message uses the key's template",
+    "caught": true
+   },
+   {
+    "name": "M3: key unlock returns the wrong action",
+    "caught": true
+   },
+   {
+    "name": "M4: dropped func_8008BEBC call",
+    "caught": true
+   },
+   {
+    "name": "M5: state flag read at the wrong id",
+    "caught": true
+   },
+   {
+    "name": "M6: magic lock uses the key's message",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 27,
+   "branches_hit": 25,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 50,
+   "lines_hit": 50,
+   "uncovered": [
+    {
+     "id": "+46 b1",
+     "line": 46,
+     "text": "if (arg0->unk0.unk8.lock.state != 0) {",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+47 b3",
+     "line": 47,
+     "text": "switch (arg0->unk0.unk8.lock.state) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (arg0->unkE == 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22490, < 3755, > 3755 (signed); < 0, > 7510 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 7,
+     "text": "if (arg0->unk12 == 0) {",
+     "size": 1,
+     "count": 22490,
+     "kind": "against a constant",
+     "outcomes": "== 16906, < 3254, > 2330 (signed); < 0, > 5584 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 13,
+     "text": "switch (arg0->unk0.unk8.lock.state) {",
+     "size": 4,
+     "count": 16906,
+     "kind": "switch",
+     "outcomes": "== 12765, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 19,
+     "text": "if (vs_battle_itemIdIsInInventory(arg0->keyOrSigil) != 0) {",
+     "size": 4,
+     "count": 8545,
+     "kind": "against a constant",
+     "outcomes": "== 2093, < 3218, > 3234 (signed); < 0, > 6452 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146305305..2146753896"
+    },
+    {
+     "line": 20,
+     "text": "if (arg0->keyOrSigil >= chamomileSigil) {",
+     "size": 2,
+     "count": 6452,
+     "kind": "against a constant",
+     "outcomes": "== 421, < 3050, > 2981 (signed); < 503, > 5528 (unsigned)",
+     "operand": "constant 465",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 26,
+     "text": "} else if (vs_battle_getStateFlag(arg0->keyOrSigil + 0x1B6)) {",
+     "size": 1,
+     "count": 2093,
+     "kind": "against a constant",
+     "outcomes": "== 1056, < 512, > 525 (signed); < 0, > 1037 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 33,
+     "text": "if (action != 0) {",
+     "size": 4,
+     "count": 16906,
+     "kind": "against a constant",
+     "outcomes": "== 5197, < 0, > 11709 (signed); < 0, > 11709 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 34,
+     "text": "if (action == 2) {",
+     "size": 4,
+     "count": 11709,
+     "kind": "against a constant",
+     "outcomes": "== 6452, < 4220, > 1037 (signed); < 4220, > 1037 (unsigned)",
+     "operand": "constant 2",
+     "a": "1..3"
+    },
+    {
+     "line": 36,
+     "text": "if (arg0->keyOrSigil >= chamomileSigil) {",
+     "size": 2,
+     "count": 6452,
+     "kind": "against a constant",
+     "outcomes": "== 421, < 3050, > 2981 (signed); < 503, > 5528 (unsigned)",
+     "operand": "constant 465",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 46,
+     "text": "if (arg0->unk0.unk8.lock.state != 0) {",
+     "size": 1,
+     "count": 5197,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 0, > 5197 (signed); < 0, > 5197 (unsigned)",
+     "operand": "constant 0",
+     "a": "1..3"
+    },
+    {
+     "line": 47,
+     "text": "switch (arg0->unk0.unk8.lock.state) {",
+     "size": 4,
+     "count": 5197,
+     "kind": "switch",
+     "outcomes": "== 5197, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "1..3"
+    },
+    {
+     "line": 50,
+     "text": "if (arg0->keyOrSigil >= chamomileSigil) {",
+     "size": 2,
+     "count": 514,
+     "kind": "against a constant",
+     "outcomes": "== 32, < 240, > 242 (signed); < 35, > 447 (unsigned)",
+     "operand": "constant 465",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+46 b1",
+    "reason": "after action == 0 the lock state is 1, 2 or 3 (state 0 returns via action 1); no modelled callee rewrites it, so the state != 0 false edge is unreachable"
+   },
+   {
+    "id": "+47 b3",
+    "reason": "the second switch sees the nonzero state that reached it (1, 2 or 3), so its implicit no-case-matched edge is unreachable"
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36937,
+     "completion_tokens": 6920,
+     "reasoning_tokens": 5642,
+     "cost": 0.0071537,
+     "seconds": 29.2,
+     "sample": 1,
+     "conversation": "2b6e6a4fff791ba6ceb523323ee0081d08fa1723afb86d6e16e7aba793ea2c7e"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80073AFC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80073AFC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 68.14575854199848,
+ "wall_seconds": 199.24227247199997,
+ "totals": {
+  "cost": 0.02171,
+  "prompt_tokens": 66310,
+  "completion_tokens": 30163,
+  "model_seconds": 130.6,
+  "check_seconds": 68.1,
+  "calls": 3,
+  "wall_seconds": 199.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

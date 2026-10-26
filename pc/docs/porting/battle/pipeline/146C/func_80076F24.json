@@ -1,0 +1,305 @@
+{
+ "function": "func_80076F24",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80076F24",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80076f24",
+  "difficulty": "M",
+  "zig_name": "func_80076F24",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80076F24",
+  "spec_file": "func_80076F24.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80076F24(id: c_int, arg1: ?*v.vs_battle_charInitData, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int) callconv(.c) void",
+  "params": [
+   [
+    "id",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "?*v.vs_battle_charInitData"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ],
+   [
+    "arg5",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_charInitData",
+   "vs_main_CdQueueSlot"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14906,
+     "completion_tokens": 11278,
+     "reasoning_tokens": 9554,
+     "cost": 0.0071296,
+     "seconds": 48.5,
+     "sample": 1,
+     "conversation": "5bdf65700dd772933bdd8a455c7a003f030ed25672b2c93918e73fbce942d28c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80076F24: branches 8/9 (88.9%), conditions not measured (GCC < 14: branch coverage only), lines 41/41\n  UNCOVERED +25 b3: branch never taken: `switch (arg4 & 3) {`\ncoverage func_80076F24: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (arg4 & 3) {` (+25): one way out of this test (+25 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80076F24.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16918,
+     "completion_tokens": 2788,
+     "reasoning_tokens": 965,
+     "cost": 0.0030858,
+     "seconds": 10.5,
+     "sample": 1,
+     "conversation": "cd537e7d854dae8c63592539119e097c0f4177188c55c25f8f8c873a3402da50"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "id0": "1848",
+   "id1": "1834",
+   "default-arm1": "6511",
+   "default-arm2-3": "13189",
+   "default-arm0": "6618"
+  },
+  "mutations": [
+   {
+    "name": "M1: default arm 1 sets the wrong state constant",
+    "caught": true
+   },
+   {
+    "name": "M2: the weapon-drawn call dropped",
+    "caught": true
+   },
+   {
+    "name": "M3: unk2B takes arg2 instead of arg3",
+    "caught": true
+   },
+   {
+    "name": "M4: the flag test reads bit 6, not bit 7",
+    "caught": true
+   },
+   {
+    "name": "M5: the init block forwarded as arg4",
+    "caught": true
+   },
+   {
+    "name": "M6: subType read from the unk2 byte",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 9,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 41,
+   "lines_hit": 41,
+   "uncovered": [
+    {
+     "id": "+25 b3",
+     "line": 25,
+     "text": "switch (arg4 & 3) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2146703577, max 2147479317, unsigned 164446..4294856067, seen negative, never zero"
+    },
+    {
+     "arg": 5,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 16,
+     "text": "switch (id) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 3682, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..15"
+    },
+    {
+     "line": 25,
+     "text": "switch (arg4 & 3) {",
+     "size": 4,
+     "count": 26318,
+     "kind": "switch",
+     "outcomes": "== 26318, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 41,
+     "text": "if (arg4 & 0x80) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15073, < 0, > 14927 (signed); < 0, > 14927 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..128"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+25 b3",
+    "reason": "The inner switch on (arg4 & 3) has cases 0, 1, 2 and 3, which cover every value of the masked expression, so the implicit no-match edge GCC emits for it cannot be taken by any input."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38286,
+     "completion_tokens": 5258,
+     "reasoning_tokens": 4505,
+     "cost": 0.0064576,
+     "seconds": 22.5,
+     "sample": 1,
+     "conversation": "b6df8cb9b3448025e5737448e6fca3ab7985207cc14b9e803636a0e1343ea250"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80076F24.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80076F24.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 71.77634496700102,
+ "wall_seconds": 153.6909288200004,
+ "totals": {
+  "cost": 0.01667,
+  "prompt_tokens": 70110,
+  "completion_tokens": 19324,
+  "model_seconds": 81.5,
+  "check_seconds": 71.8,
+  "calls": 3,
+  "wall_seconds": 153.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

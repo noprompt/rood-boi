@@ -1,0 +1,185 @@
+{
+ "function": "func_8007CEC0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8007CEC0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007cec0",
+  "difficulty": "S",
+  "zig_name": "func_8007CEC0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007CEC0",
+  "spec_file": "func_8007CEC0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007CEC0() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11974,
+     "completion_tokens": 4537,
+     "reasoning_tokens": 3325,
+     "cost": 0.0034659,
+     "seconds": 20.0,
+     "sample": 1,
+     "conversation": "4d48dd3de6201d5556d8d18eb9676d058ca832d11dfd1fd56ba895e105b4c010"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "none-set": "7629",
+   "all-set": "7551",
+   "mixed": "14820"
+  },
+  "mutations": [
+   {
+    "name": "L1: loop bound 16 -> 15 (last actor skipped)",
+    "caught": true
+   },
+   {
+    "name": "L2: null test dropped (calls for empty slots)",
+    "caught": true
+   },
+   {
+    "name": "L3: call dropped",
+    "caught": true
+   },
+   {
+    "name": "L4: wrong argument (i + 1 passed)",
+    "caught": true
+   },
+   {
+    "name": "L5: loop starts at 1 (actor 0 skipped)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 3,
+     "text": "for (i = 0; i < 16; ++i) {",
+     "size": 4,
+     "count": 510000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 450000, > 30000 (signed); < 450000, > 30000 (unsigned)",
+     "operand": "constant 15",
+     "a": "0..16"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35338,
+     "completion_tokens": 1561,
+     "reasoning_tokens": 1296,
+     "cost": 0.0043143,
+     "seconds": 7.3,
+     "sample": 1,
+     "conversation": "688c09ae6ca93530aab550f339da79a261218b0f2549b2010df1f93e5ee96156"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007CEC0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007CEC0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 231.81639120100226,
+ "wall_seconds": 764.3202946900019,
+ "totals": {
+  "cost": 0.00778,
+  "prompt_tokens": 47312,
+  "completion_tokens": 6098,
+  "model_seconds": 27.3,
+  "check_seconds": 231.8,
+  "calls": 2,
+  "wall_seconds": 764.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,231 @@
+{
+ "function": "_dropWeaponRand",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_dropWeaponRand",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006bb0c",
+  "difficulty": "S",
+  "zig_name": "dropWeaponRand",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "drop_weapon_rand",
+  "spec_file": "dropWeaponRand.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn dropWeaponRand(looted: ?*v.vs_battle_lootedWeapon, base: ?*v.vs_battle_uiWeapon) callconv(.c) c_int",
+  "params": [
+   [
+    "looted",
+    "?*v.vs_battle_lootedWeapon"
+   ],
+   [
+    "base",
+    "?*v.vs_battle_uiWeapon"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "vs_battle_lootedWeapon"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13209,
+     "completion_tokens": 12240,
+     "reasoning_tokens": 10214,
+     "cost": 0.0074409,
+     "seconds": 51.5,
+     "sample": 1,
+     "conversation": "a6d35022ac1d7bbe6b0651203ef1f3acd99646c4ce2b7af8b4862db4cd6c5b3a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "roll-equal": "10624",
+   "roll-below": "9601",
+   "roll-above": "9775"
+  },
+  "mutations": [
+   {
+    "name": "D1: roll at the drop rate drops too (<=)",
+    "caught": true
+   },
+   {
+    "name": "D2: difficultyFlags set to 2",
+    "caught": true
+   },
+   {
+    "name": "D3: the third gem is not copied",
+    "caught": true
+   },
+   {
+    "name": "D4: grip copied from the blade",
+    "caught": true
+   },
+   {
+    "name": "D5: success returns 2",
+    "caught": true
+   },
+   {
+    "name": "D6: name not copied",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (vs_main_getRand(0xFF) < base->dropRate) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 10624, < 9601, > 9775 (signed); < 2602, > 16774 (unsigned)",
+     "operand": "b 0..255",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 8,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 38404,
+     "kind": "against a constant",
+     "outcomes": "== 9601, < 19202, > 9601 (signed); < 19202, > 9601 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 9,
+     "text": "if (base->gems[i].id != 0) {",
+     "size": 2,
+     "count": 28803,
+     "kind": "against a constant",
+     "outcomes": "== 9647, < 9512, > 9644 (signed); < 0, > 19156 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36675,
+     "completion_tokens": 3980,
+     "reasoning_tokens": 3362,
+     "cost": 0.0056575,
+     "seconds": 16.5,
+     "sample": 1,
+     "conversation": "81d0cf3fd9997be2d55e265bcee116ded89b8947b9009fa70123411ddb0156c7"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/dropWeaponRand.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/drop_weapon_rand.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 182.51185282600272,
+ "wall_seconds": 454.64808544100015,
+ "totals": {
+  "cost": 0.0131,
+  "prompt_tokens": 49884,
+  "completion_tokens": 16220,
+  "model_seconds": 68.0,
+  "check_seconds": 182.5,
+  "calls": 2,
+  "wall_seconds": 454.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

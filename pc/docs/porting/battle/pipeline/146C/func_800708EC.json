@@ -1,0 +1,254 @@
+{
+ "function": "func_800708EC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (char temp unsigned under -funsigned-char; the unchecked index through psx.at); spec sound",
+ "plan": {
+  "name": "func_800708EC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800708ec",
+  "difficulty": "S",
+  "zig_name": "func_800708EC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800708EC",
+  "spec_file": "func_800708EC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800708EC() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16488,
+     "completion_tokens": 24730,
+     "reasoning_tokens": 22731,
+     "cost": 0.0140138,
+     "seconds": 105.8,
+     "sample": 1,
+     "conversation": "1d7551eb493ada2eb4f3d8582942031f373fb577a193181c656b09e1c34de0db"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation S1: temp_v1 < 16 becomes <= 16: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 11, fault address 0x3d [NULL+0x3d: a field of a null pointer]\nzdiff: crashed on arguments: (class far)",
+     "FAIL: mutation S2: temp_v1 unsigned (signed/unsigned slip): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800708EC: 30000 iterations, seed 1, 0 mismatches; classes: lookup-limb=1671 given-limb=13491 callee=2604 far=12234"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18827,
+     "completion_tokens": 7012,
+     "reasoning_tokens": 4854,
+     "cost": 0.0053887,
+     "seconds": 29.4,
+     "sample": 1,
+     "conversation": "582b9277678bee07f0367f115f2f3c075ea8b1434d86800f110eaa646c6b1abb"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "lookup-limb": "1238",
+   "given-limb": "17706",
+   "callee": "1786",
+   "far": "9270"
+  },
+  "mutations": [
+   {
+    "name": "S1: temp_v1 < 16 becomes <= 16",
+    "caught": true
+   },
+   {
+    "name": "S2: the lookup test misses -1 (wrong constant)",
+    "caught": true
+   },
+   {
+    "name": "S3: unk844 stored before the callee instead of after its return path",
+    "caught": true
+   },
+   {
+    "name": "S4: the store before the early return is dropped",
+    "caught": true
+   },
+   {
+    "name": "S5: mp copied from unkA, not unk9",
+    "caught": true
+   },
+   {
+    "name": "S6: wrong mask for the 4/1 choice (0x20 for 0x10)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 24,
+   "lines_hit": 24,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (temp_v1 < 16) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1041, < 17903, > 11056 (signed); < 2688, > 26271 (unsigned)",
+     "operand": "constant 15",
+     "a": "-128..127"
+    },
+    {
+     "line": 12,
+     "text": "if (D_800F19CC->unk8.unk4C[0].unk0.targetLimb == -1) {",
+     "size": 1,
+     "count": 3729,
+     "kind": "against a constant",
+     "outcomes": "== 1238, < 1235, > 1256 (signed); < 2491, > 0 (unsigned)",
+     "operand": "constant -1",
+     "a": "-128..127"
+    },
+    {
+     "line": 18,
+     "text": "D_800F19CC->unk8.unk4C[0].unk40 = temp_v1 & 0x10 ? 4 : 1;",
+     "size": 4,
+     "count": 26271,
+     "kind": "against a constant",
+     "outcomes": "== 11793, < 0, > 14478 (signed); < 0, > 14478 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16"
+    },
+    {
+     "line": 23,
+     "text": "if (D_800F19CC->unk8.unk4.unk40 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15057, < 6240, > 8703 (signed); < 0, > 14943 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147015916..2146663228"
+    },
+    {
+     "line": 24,
+     "text": "if (D_800F19CC->unk29C0[D_800F19CC->unk298C].unk9",
+     "size": 1,
+     "count": 15057,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5027, < 5348, > 4682 (signed); < 5320, > 4710 (unsigned)",
+     "operand": "b -128..127",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39869,
+     "completion_tokens": 13973,
+     "reasoning_tokens": 13077,
+     "cost": 0.0109734,
+     "seconds": 56.6,
+     "sample": 1,
+     "conversation": "8046012162cfb2558f03fbeb768fd270599609f76198db2185a7b0a198aaf327"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800708EC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800708EC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 289.6723545459972,
+ "wall_seconds": 708.0232708129988,
+ "totals": {
+  "cost": 0.03038,
+  "prompt_tokens": 75184,
+  "completion_tokens": 45715,
+  "model_seconds": 191.8,
+  "check_seconds": 289.7,
+  "calls": 3,
+  "wall_seconds": 708.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 3 / nested 9 / nested 15, 0 mismatches"
+ }
+}

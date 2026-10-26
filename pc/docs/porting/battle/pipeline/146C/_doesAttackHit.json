@@ -1,0 +1,358 @@
+{
+ "function": "_doesAttackHit",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage _doesAttackHit: branches 28/28 (100.0%), conditions not measured (GCC < 14: branc",
+ "plan": {
+  "name": "_doesAttackHit",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f230",
+  "difficulty": "M",
+  "zig_name": "doesAttackHit",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "does_attack_hit",
+  "spec_file": "doesAttackHit.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn doesAttackHit(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, hitNumber: c_int, addVariance: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "source",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "target",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "hitNumber",
+    "c_int"
+   ],
+   [
+    "addVariance",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "D_800F1A00",
+   "_hitFunctions"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16609,
+     "completion_tokens": 31818,
+     "reasoning_tokens": 29326,
+     "cost": 0.0175699,
+     "seconds": 135.6,
+     "sample": 1,
+     "conversation": "fe470edbf106a0ac82cc47ac9e6b6f026cbbed7b3cc0c367b058c3f49b762514"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _doesAttackHit: branches 28/28 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 25/25\n  FLAG +41 sign: every value above 255 had the sign bit set (a port testing the sign, `< 0`, for this test would pass): `if (threshold != 255) {`\ncoverage _doesAttackHit: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (threshold != 255) {` (+41): this compares a value with 255. Every input where the value was above 255 also had its sign bit set (negative as a signed 32-bit number), so a port that tests the sign instead (`< 0`, or a signed read where the C reads unsigned) would pass your spec. Add inputs where the value is above 255 AND positive (e.g. 256, 511, 2147483647).\nOnly a gap no input can reach (say why) may be waived instead: [[function._doesAttackHit.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 19506,
+     "completion_tokens": 6413,
+     "reasoning_tokens": 3650,
+     "cost": 0.0051571,
+     "seconds": 25.4,
+     "sample": 1,
+     "conversation": "be775a897b72119aeefa58a87c60f850f71e9a5d7957cebd12540fd8f44cddf2"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _doesAttackHit: branches 28/28 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 25/25\n  FLAG +41 sign: every value above 255 had the sign bit set (a port testing the sign, `< 0`, for this test would pass): `if (threshold != 255) {`\ncoverage _doesAttackHit: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (threshold != 255) {` (+41): this compares a value with 255. Every input where the value was above 255 also had its sign bit set (negative as a signed 32-bit number), so a port that tests the sign instead (`< 0`, or a signed read where the C reads unsigned) would pass your spec. Add inputs where the value is above 255 AND positive (e.g. 256, 511, 2147483647).\nOnly a gap no input can reach (say why) may be waived instead: [[function._doesAttackHit.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "fixed-100": "7435",
+   "spell-blocked": "5565",
+   "global-off": "821",
+   "big-positive": "12641",
+   "hit-fn": "13538"
+  },
+  "mutations": [
+   {
+    "name": "D1: clamp bound 101 instead of 100",
+    "caught": true
+   },
+   {
+    "name": "D2: chance compared with <= (equal sides wrongly pass)",
+    "caught": true
+   },
+   {
+    "name": "D3: no-threshold return is 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "D4: hitThreshold store dropped",
+    "caught": true
+   },
+   {
+    "name": "D5: getRand called with 99",
+    "caught": true
+   },
+   {
+    "name": "D6: spell test inverted",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 28,
+   "branches_hit": 28,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 25,
+   "lines_hit": 25,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+41 sign",
+     "line": 41,
+     "text": "if (threshold != 255) {",
+     "kind": "sign",
+     "bits": 32,
+     "constant": 255,
+     "what": "every value above 255 had the sign bit set (a port testing the sign, `< 0`, for this test would pass)"
+    }
+   ],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 40000,
+     "text": "32-bit: min 0, max 3, seen zero, never negative, 4 value(s): 3, 2, 0, 1"
+    },
+    {
+     "arg": 4,
+     "count": 40000,
+     "text": "32-bit: min -1000000000, max 2147339349, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if ((target->unk40 == 0)",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 14992, < 7547, > 17461 (signed); < 0, > 25008 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 7,
+     "text": "&& (((__typeof__((vs_battle_actors[target->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[target->unk0.targetActor]->unk3C).raw)->unk957 == 0x80)) {",
+     "size": 1,
+     "count": 14992,
+     "kind": "against a constant",
+     "outcomes": "== 7435, < 0, > 7557 (signed); < 3755, > 3802 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 12,
+     "text": "if ((action->type == actionTypeSpell)",
+     "size": 1,
+     "count": 32565,
+     "kind": "against a constant",
+     "outcomes": "== 12819, < 11307, > 8439 (signed); < 11307, > 8439 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 13,
+     "text": "&& (((__typeof__((vs_battle_actors[target->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[target->unk0.targetActor]->unk3C).raw)->statuses",
+     "size": 4,
+     "count": 12819,
+     "kind": "against a constant",
+     "outcomes": "== 801, < 5565, > 6453 (signed); < 0, > 12018 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 19,
+     "text": "if (D_800F1A00 == 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 1474, < 19289, > 19237 (signed); < 0, > 38526 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147282089..2147210475"
+    },
+    {
+     "line": 23,
+     "text": "if (threshold != 255) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 1716, < 24200, > 14084 (signed); < 22306, > 15978 (unsigned)",
+     "operand": "constant 255",
+     "a": "-1000000000..2147339354"
+    },
+    {
+     "line": 24,
+     "text": "if (target->unk40 == 0) {",
+     "size": 4,
+     "count": 38284,
+     "kind": "against a constant",
+     "outcomes": "== 14180, < 7103, > 17001 (signed); < 0, > 24104 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 25,
+     "text": "if (((__typeof__((vs_battle_actors[target->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[target->unk0.targetActor]->unk3C).raw)->statuses",
+     "size": 4,
+     "count": 14180,
+     "kind": "against a constant",
+     "outcomes": "== 7060, < 0, > 7120 (signed); < 0, > 7120 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    },
+    {
+     "line": 30,
+     "text": "if (threshold > 100) {",
+     "size": 4,
+     "count": 38284,
+     "kind": "against a constant",
+     "outcomes": "== 3618, < 12297, > 22369 (signed); < 10277, > 24389 (unsigned)",
+     "operand": "constant 100",
+     "a": "-2147483648..2147483646"
+    },
+    {
+     "line": 35,
+     "text": "if ((hitNumber == 0) || (target->unk0.hitThreshold == 255)) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 10123, < 0, > 29877 (signed); < 0, > 29877 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 35,
+     "text": "if ((hitNumber == 0) || (target->unk0.hitThreshold == 255)) {",
+     "size": 1,
+     "count": 29877,
+     "kind": "against a constant",
+     "outcomes": "== 14741, < 0, > 15136 (signed); < 15136, > 0 (unsigned)",
+     "operand": "constant -1",
+     "a": "-1..7"
+    },
+    {
+     "line": 41,
+     "text": "if (threshold != 255) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 1716, < 38284, > 0 (signed); < 36264, > 2020 (unsigned)",
+     "operand": "constant 255",
+     "a": "-2147483648..255"
+    },
+    {
+     "line": 42,
+     "text": "if ((source->unk40 == 0) && (source->unk0.targetActor == 0)) {",
+     "size": 4,
+     "count": 38284,
+     "kind": "against a constant",
+     "outcomes": "== 19075, < 9786, > 9423 (signed); < 0, > 19209 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 42,
+     "text": "if ((source->unk40 == 0) && (source->unk0.targetActor == 0)) {",
+     "size": 1,
+     "count": 19075,
+     "kind": "against a constant",
+     "outcomes": "== 9621, < 0, > 9454 (signed); < 0, > 9454 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 45,
+     "text": "return chance < threshold;",
+     "size": 4,
+     "count": 38284,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4775, < 24351, > 9158 (signed); < 26341, > 7168 (unsigned)",
+     "operand": "b -2147483648..110",
+     "a": "0..100"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 44.232011993000015,
+ "wall_seconds": 205.7662220279999,
+ "totals": {
+  "cost": 0.02273,
+  "prompt_tokens": 36115,
+  "completion_tokens": 38231,
+  "model_seconds": 161.0,
+  "check_seconds": 44.2,
+  "calls": 2,
+  "wall_seconds": 205.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

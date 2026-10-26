@@ -1,0 +1,285 @@
+{
+ "function": "func_800CACD0",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (pointer stores in C order, unlock loop, flag ORs); spec sound",
+ "plan": {
+  "name": "func_800CACD0",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cacd0",
+  "difficulty": "M",
+  "zig_name": "func_800CACD0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CACD0",
+  "spec_file": "func_800CACD0.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CACD0(menuState: c_int, arg1: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "menuState",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "vs_battle_menuItem_t"
+  ],
+  "globals": [
+   "D_800EBD68",
+   "D_800F4E98",
+   "D_800F4EA0",
+   "D_800F4FDB",
+   "_loadedSubMenu",
+   "vs_battle_menuItems",
+   "vs_battle_menuState",
+   "vs_battle_rowTypeBuf",
+   "vs_battle_shortcutInvoked",
+   "vs_battle_stringBuf",
+   "vs_main_settings",
+   "vs_main_stateFlags"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15926,
+     "completion_tokens": 18202,
+     "reasoning_tokens": 15814,
+     "cost": 0.0106936,
+     "seconds": 75.5,
+     "sample": 1,
+     "conversation": "a60f4e8d0ef2501a53e470727204267d43cc7f0ab83b84778927d6dda4e5793e"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "invalid-menu": "7522",
+   "already-open": "7506",
+   "init-intro-3-up": "11890",
+   "init-intro-low": "3082"
+  },
+  "mutations": [
+   {
+    "name": "M1: the attribute flags 0x120 become 0x122",
+    "caught": true
+   },
+   {
+    "name": "M2: introState test is > 3 (equal case lost)",
+    "caught": true
+   },
+   {
+    "name": "M3: unkB5 read signed (0x80 reads as negative)",
+    "caught": true
+   },
+   {
+    "name": "M4: the menuFlags store is dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: the invalid-sfx-free open sound (playSfx10) is dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: the sub-menu loop stops at 2 (wrong bound)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 33,
+   "lines_hit": 33,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147055772, max 2147445472, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "if (vs_battle_menuState.currentMenu == 0x3F) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22478, < 5653, > 1869 (signed); < 3804, > 3718 (unsigned)",
+     "operand": "constant 63",
+     "a": "-1..64"
+    },
+    {
+     "line": 15,
+     "text": "if (arg1 == 0) {",
+     "size": 4,
+     "count": 22478,
+     "kind": "against a constant",
+     "outcomes": "== 2220, < 10266, > 9992 (signed); < 0, > 20258 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 30,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 53188,
+     "kind": "against a constant",
+     "outcomes": "== 13297, < 26594, > 13297 (signed); < 26594, > 13297 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 31,
+     "text": "for (var_a0 = D_800EBD68[i * 2]; var_a0 < D_800EBD68[i * 2 + 1];",
+     "size": 4,
+     "count": 438144,
+     "kind": "a == b / a < b",
+     "outcomes": "== 19465, < 406934, > 11745 (signed); < 406934, > 11745 (unsigned)",
+     "operand": "b 0..255",
+     "a": "0..255"
+    },
+    {
+     "line": 33,
+     "text": "if (vs_main_actions[var_a0].unlocked) {",
+     "size": 1,
+     "count": 406934,
+     "kind": "against a constant",
+     "outcomes": "== 398253, < 0, > 8681 (signed); < 0, > 8681 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 40,
+     "text": "if (vs_main_stateFlags.unkB5 != 0) {",
+     "size": 1,
+     "count": 13297,
+     "kind": "against a constant",
+     "outcomes": "== 873, < 6594, > 5830 (signed); < 0, > 12424 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 43,
+     "text": "if (vs_main_stateFlags.introState >= 3) {",
+     "size": 1,
+     "count": 13297,
+     "kind": "against a constant",
+     "outcomes": "== 697, < 6351, > 6249 (signed); < 743, > 11857 (unsigned)",
+     "operand": "constant 2",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39292,
+     "completion_tokens": 12221,
+     "reasoning_tokens": 11072,
+     "cost": 0.0100397,
+     "seconds": 48.7,
+     "sample": 1,
+     "conversation": "919320c5540fcc63ebccecbb519f954dd2d7e3858497127a125d321360ccb166"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CACD0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CACD0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 73.47774521999963,
+ "wall_seconds": 516.1210029309987,
+ "totals": {
+  "cost": 0.02073,
+  "prompt_tokens": 55218,
+  "completion_tokens": 30423,
+  "model_seconds": 124.2,
+  "check_seconds": 73.5,
+  "calls": 2,
+  "wall_seconds": 516.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / root 1, 0 mismatches"
+ }
+}

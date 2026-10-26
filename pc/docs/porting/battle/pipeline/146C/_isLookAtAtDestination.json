@@ -1,0 +1,201 @@
+{
+ "function": "_isLookAtAtDestination",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation L3: wrong constant in vy offset: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inpu",
+ "plan": {
+  "name": "_isLookAtAtDestination",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80077df0",
+  "difficulty": "S",
+  "zig_name": "isLookAtAtDestination",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "is_look_at_at_destination",
+  "spec_file": "isLookAtAtDestination.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn isLookAtAtDestination() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [
+   "func_80077DF0_t"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12586,
+     "completion_tokens": 9995,
+     "reasoning_tokens": 8203,
+     "cost": 0.0062561,
+     "seconds": 43.6,
+     "sample": 1,
+     "conversation": "421889cc02b9485a64c4740ed8852c31219812bad4f59f0c6386594e303bbbfc"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L1: vy clamp test takes vy >= 0: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _isLookAtAtDestination: 30000 iterations, seed 1, 0 mismatches; classes: lookAt-negative-x=14940 lookAt-nonnegative-x=15060",
+     "FAIL: mutation L2: clamped vy is -1, not 0: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _isLookAtAtDestination: 30000 iterations, seed 1, 0 mismatches; classes: lookAt-negative-x=14940 lookAt-nonnegative-x=15060",
+     "FAIL: mutation L3: wrong constant in vy offset: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _isLookAtAtDestination: 30000 iterations, seed 1, 0 mismatches; classes: lookAt-negative-x=14940 lookAt-nonnegative-x=15060"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14796,
+     "completion_tokens": 6459,
+     "reasoning_tokens": 4516,
+     "cost": 0.0047091,
+     "seconds": 27.9,
+     "sample": 1,
+     "conversation": "7d5c34406804efb75a9cff11797ac44e99e0f3194a3b3456c0b9e8399333af41"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L3: wrong constant in vy offset: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _isLookAtAtDestination: 30000 iterations, seed 1, 0 mismatches; classes: lookAt-negative-x=14940 lookAt-nonnegative-x=15060",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _isLookAtAtDestination: branches 8/8 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 14/14\n  FLAG +9 eq: boundary equality occurred only 1 time(s) in 30000 (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (sp10.position.vy > 0) {`\ncoverage _isLookAtAtDestination: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (sp10.position.vy > 0) {` (+9): the two sides of this ordered compare were equal 1 time(s) in 30000. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function._isLookAtAtDestination.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "lookAt-negative-x": "14940",
+   "lookAt-nonnegative-x": "15060"
+  },
+  "mutations": [
+   {
+    "name": "L1: vy clamp test reads the wrong sign (vy < 0)",
+    "caught": true
+   },
+   {
+    "name": "L2: clamped vy is -1, not 0",
+    "caught": true
+   },
+   {
+    "name": "L3: wrong constant in vy offset",
+    "caught": false
+   },
+   {
+    "name": "L4: vz target not masked",
+    "caught": true
+   },
+   {
+    "name": "L5: zone clamp dropped",
+    "caught": true
+   },
+   {
+    "name": "L6: lookAt read from the wrong camera field",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+9 eq",
+     "line": 9,
+     "text": "if (sp10.position.vy > 0) {",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 1,
+     "count": 30000,
+     "what": "boundary equality occurred only 1 time(s) in 30000 (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (sp10.position.vy > 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1, < 5621, > 24378 (signed); < 0, > 29999 (unsigned)",
+     "operand": "constant 0",
+     "a": "-134574080..133799936"
+    },
+    {
+     "line": 15,
+     "text": "if ((sp10.position.vx == (sp10.lookAt.vx & ~0xFFF))",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 17747, < 6115, > 6138 (signed); < 6232, > 6021 (unsigned)",
+     "operand": "b -2147483648..2147479552",
+     "a": "-2147483648..2147479552"
+    },
+    {
+     "line": 16,
+     "text": "&& (sp10.position.vz == (sp10.lookAt.vz & ~0xFFF))",
+     "size": 4,
+     "count": 17747,
+     "kind": "a == b / a < b",
+     "outcomes": "== 10502, < 3662, > 3583 (signed); < 3654, > 3591 (unsigned)",
+     "operand": "b -2147483648..2147479552",
+     "a": "-2147483648..2147479552"
+    },
+    {
+     "line": 17,
+     "text": "&& (sp10.position.vy == (sp10.lookAt.vy & ~0xFFF))) {",
+     "size": 4,
+     "count": 10502,
+     "kind": "a == b / a < b",
+     "outcomes": "== 6514, < 2044, > 1944 (signed); < 2552, > 1436 (unsigned)",
+     "operand": "b -2147483648..2147479552",
+     "a": "-2147483648..2147479552"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 38.70260159200188,
+ "wall_seconds": 110.58868168700064,
+ "totals": {
+  "cost": 0.01097,
+  "prompt_tokens": 27382,
+  "completion_tokens": 16454,
+  "model_seconds": 71.5,
+  "check_seconds": 38.7,
+  "calls": 2,
+  "wall_seconds": 110.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

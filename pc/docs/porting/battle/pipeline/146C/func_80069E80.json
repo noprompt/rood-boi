@@ -1,0 +1,256 @@
+{
+ "function": "func_80069E80",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80069E80",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80069e80",
+  "difficulty": "S",
+  "zig_name": "func_80069E80",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80069E80",
+  "spec_file": "func_80069E80.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80069E80(arg0: c_int) callconv(.c) ?*anyopaque",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "?*anyopaque",
+  "types": [],
+  "globals": [
+   "D_80060064",
+   "D_80061078"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11451,
+     "completion_tokens": 9156,
+     "reasoning_tokens": 7886,
+     "cost": 0.0057231,
+     "seconds": 39.5,
+     "sample": 1,
+     "conversation": "3609a40fb917891db92f3c1297b9cc4a383cda1dfb36d5b924a326b0bbfd2900"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80069E80/spec1/build/spec.zig:27:69: error: expected unsigned integer type, found 'c_int'\n            e[0] = if (fits) @as(u8, @intCast(want)) else @truncate(want);\n                                                                    ^~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12994,
+     "completion_tokens": 2428,
+     "reasoning_tokens": 1152,
+     "cost": 0.0025134,
+     "seconds": 9.1,
+     "sample": 1,
+     "conversation": "d4c3ab47e7b3c5a6fc1c31c904fca5d77a93661d7a0d1c216e58d579230b5d90"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80069E80/spec2/build/spec.zig:27:77: error: expected unsigned integer type, found 'c_int'\n            e[0] = if (fits) @as(u8, @intCast(want)) else @as(u8, @truncate(want));\n                                                                            ^~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14549,
+     "completion_tokens": 1908,
+     "reasoning_tokens": 647,
+     "cost": 0.0024089,
+     "seconds": 7.3,
+     "sample": 1,
+     "conversation": "6ebc9d28c8d418e63a4780ca3b261a9fa69b9e2fbe330e80960eeb36b702e738"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 3,
+   "sample": 1
+  },
+  "classes": {
+   "out-of-byte": "23277",
+   "no-match": "257",
+   "one-match": "982",
+   "several-matches": "5484"
+  },
+  "mutations": [
+   {
+    "name": "F1: first match wins, not the last",
+    "caught": true
+   },
+   {
+    "name": "F2: row byte compared through a u8 truncation of arg0 + 1",
+    "caught": true
+   },
+   {
+    "name": "F3: loop stops before the last row",
+    "caught": true
+   },
+   {
+    "name": "F4: the +1 dropped from the compared key",
+    "caught": true
+   },
+   {
+    "name": "F5: returned pointer one byte past the row",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483647, max 2147483646, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "for (i = 0; i < 8; ++i) {",
+     "size": 4,
+     "count": 270000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 210000, > 30000 (signed); < 210000, > 30000 (unsigned)",
+     "operand": "constant 7",
+     "a": "0..8"
+    },
+    {
+     "line": 6,
+     "text": "if (D_80061078[D_80060064].unk8[i][0] == (arg0 + 1)) {",
+     "size": 4,
+     "count": 240000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 18239, < 108383, > 113378 (signed); < 195335, > 26426 (unsigned)",
+     "operand": "b -2147483646..2147483647",
+     "a": "0..255"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34931,
+     "completion_tokens": 1940,
+     "reasoning_tokens": 1576,
+     "cost": 0.0044631,
+     "seconds": 9.0,
+     "sample": 1,
+     "conversation": "76967b5dd378802e776ac81e18d7f8d5d1991e1837b996a3ac88c2a88e63df07"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80069E80.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80069E80.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 107.48275042600108,
+ "wall_seconds": 266.6689621919995,
+ "totals": {
+  "cost": 0.01511,
+  "prompt_tokens": 73925,
+  "completion_tokens": 15432,
+  "model_seconds": 64.9,
+  "check_seconds": 107.5,
+  "calls": 4,
+  "wall_seconds": 266.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,316 @@
+{
+ "function": "_finishLoadZnd",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 3): zdiff: PANIC in the Zig run, iteration 0: incorrect alignment (return address 0x404ef4)",
+ "plan": {
+  "name": "_finishLoadZnd",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80088ef0",
+  "difficulty": "M",
+  "zig_name": "finishLoadZnd",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "finish_load_znd",
+  "spec_file": "finishLoadZnd.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn finishLoadZnd(id: c_int) callconv(.c) void",
+  "params": [
+   [
+    "id",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_zndHeader",
+   "vs_main_CdFile",
+   "vs_main_CdQueueSlot"
+  ],
+  "globals": [
+   "D_8004FCCC",
+   "D_80050468",
+   "D_800F18B0",
+   "vs_main_soundData",
+   "vs_main_startState",
+   "vs_main_zndFiles"
+  ],
+  "hooks": [],
+  "statics": [
+   "_loadZnd"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14701,
+     "completion_tokens": 28513,
+     "reasoning_tokens": 25596,
+     "cost": 0.0157266,
+     "seconds": 118.9,
+     "sample": 1,
+     "conversation": "0d8c74660f06c3284a1a3ab70f05d2ca0cc8e93fbc27290a770ba658ab12dbfe"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "load-znd": "9741",
+   "wait-loop": "13585",
+   "music-swap-armed": "5840",
+   "no-music-swap": "834"
+  },
+  "mutations": [
+   {
+    "name": "F1: music slot loaded into slot 2",
+    "caught": true
+   },
+   {
+    "name": "F2: unk38 store dropped",
+    "caught": true
+   },
+   {
+    "name": "F3: music frees stop at slot 3",
+    "caught": true
+   },
+   {
+    "name": "F4: startState compared to 0",
+    "caught": true
+   },
+   {
+    "name": "F5: musicId stored one too high",
+    "caught": true
+   },
+   {
+    "name": "F6: signed slip in the music-swap test",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 33,
+   "lines_hit": 33,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 7, seen zero, never negative, 8 value(s): 6, 2, 7, 4, 3, 0, 1, 5"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (((__typeof__((_zoneContext.zndCdFile).psx_type_[0]))(long unsigned int)(_zoneContext.zndCdFile).raw) == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9741, < 0, > 20259 (signed); < 0, > 20259 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4244272"
+    },
+    {
+     "line": 10,
+     "text": "while (((__typeof__((_zoneContext.zndCdFile).psx_type_[0]))(long unsigned int)(_zoneContext.zndCdFile).raw)->state != vs_main_CdQueueStateLoaded) {",
+     "size": 2,
+     "count": 65449,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 17778, > 17671 (signed); < 3, > 35446 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32767..32766"
+    },
+    {
+     "line": 18,
+     "text": "if (D_80050468.unk2 == 1) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15073, < 7401, > 7526 (signed); < 0, > 14927 (unsigned)",
+     "operand": "constant 1",
+     "a": "-32764..32765"
+    },
+    {
+     "line": 34,
+     "text": "if (vs_main_startState == 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7502, < 14965, > 7533 (signed); < 7518, > 14980 (unsigned)",
+     "operand": "constant 1",
+     "a": "-1..2"
+    },
+    {
+     "line": 40,
+     "text": "if (vs_main_getCurrentMusicId() != musicId) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 15221, < 8606, > 6173 (signed); < 6974, > 7805 (unsigned)",
+     "operand": "b -2147483648..2147068396",
+     "a": "-2147483648..2147055147"
+    },
+    {
+     "line": 41,
+     "text": "if (D_800F18B0 != 0) {",
+     "size": 4,
+     "count": 14779,
+     "kind": "against a constant",
+     "outcomes": "== 1884, < 7348, > 5547 (signed); < 0, > 12895 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147180516"
+    },
+    {
+     "line": 44,
+     "text": "for (i = 0; i < 4;) {",
+     "size": 4,
+     "count": 64475,
+     "kind": "against a constant",
+     "outcomes": "== 12895, < 38685, > 12895 (signed); < 38685, > 12895 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 50,
+     "text": "if (musicId != 0) {",
+     "size": 4,
+     "count": 12895,
+     "kind": "against a constant",
+     "outcomes": "== 1561, < 6334, > 5000 (signed); < 0, > 11334 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2146100137"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+60 b0",
+    "reason": "_loadZnd is called only when zndCdFile is 0, so its nop9(0x87) branch cannot be taken"
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38203,
+     "completion_tokens": 17294,
+     "reasoning_tokens": 15561,
+     "cost": 0.0124673,
+     "seconds": 67.5,
+     "sample": 1,
+     "conversation": "6a083e307f84b2e8cfa5b31430620fda66335b9b0b2c07c0d0dc787bbb9b4f78"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/finish_load_znd.zig:23:55: error: expected type 'c_uint', found 'i32'\n    psx.put(&zone.zndData, c.vs_main_allocHeapR(cdFile.size));\n                                                ~~~~~~^~~~~\ngame/battle/finish_load_znd.zig:23:55: note: unsigned 32-bit int cannot represent all possible signed 32-bit values\npc/build/boot64/zig/c_146C.zig:2355:34: note: parameter type declared here\npub extern fn vs_main_allocHeapR(u_int) ?*anyopaque;\n                                 ^~~~~\nreferenced by:\n    finishLoadZnd: game/battle/finish_load_znd.zig:47:16\n    main: pc/tests/zig_diff/main.zig:469:31\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40329,
+     "completion_tokens": 2556,
+     "reasoning_tokens": 811,
+     "cost": 0.0053109,
+     "seconds": 9.4,
+     "sample": 1,
+     "conversation": "137119e57881bf4d209667604000b89a0c4d9b0861487bdb5525d6b0fe54138e"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/finish_load_znd.zig:31:28: error: value of type 'c_int' ignored\n            c.func_8004552C(v.g.vs_main_soundData().currentMusicSlot, 0, 0x78);\n            ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/finish_load_znd.zig:31:28: note: all non-void values must be used\ngame/battle/finish_load_znd.zig:31:28: note: to discard the value, assign it to '_'\nreferenced by:\n    finishLoadZnd: game/battle/finish_load_znd.zig:47:16\n    main: pc/tests/zig_diff/main.zig:469:31\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 42462,
+     "completion_tokens": 2312,
+     "reasoning_tokens": 528,
+     "cost": 0.0054022,
+     "seconds": 8.0,
+     "sample": 1,
+     "conversation": "99468b4fd5ea10523c14167addacb8185a5f24f2bb3b7140595f704ab468266d"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 3):\nzdiff: PANIC in the Zig run, iteration 0: incorrect alignment (return address 0x404ef4)"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 3,
+      "mismatches": null,
+      "first": "PANIC in the Zig run, iteration 0: incorrect alignment (return address 0x404ef4)"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 22.07937484499962,
+ "wall_seconds": 226.5026355989994,
+ "totals": {
+  "cost": 0.03891,
+  "prompt_tokens": 135695,
+  "completion_tokens": 50675,
+  "model_seconds": 203.8,
+  "check_seconds": 22.1,
+  "calls": 4,
+  "wall_seconds": 226.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

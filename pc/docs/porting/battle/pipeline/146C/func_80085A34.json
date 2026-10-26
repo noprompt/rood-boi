@@ -1,0 +1,265 @@
+{
+ "function": "func_80085A34",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80085A34",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80085a34",
+  "difficulty": "S",
+  "zig_name": "func_80085A34",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80085A34",
+  "spec_file": "func_80085A34.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80085A34(arg0: ?*v.func_80085A34_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.func_80085A34_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11508,
+     "completion_tokens": 11014,
+     "reasoning_tokens": 9469,
+     "cost": 0.0066578,
+     "seconds": 46.4,
+     "sample": 1,
+     "conversation": "a0ddd13e39ee5b2ad73feec2e022ecbd4e37c6cd43f67ae569a557605af50a64"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "locked": "5990",
+   "not-six": "5953",
+   "word-zero-kept": "1348",
+   "word-zero-idle": "459",
+   "digit-1": "4747",
+   "digit-2": "4907",
+   "digit-3": "4782",
+   "no-digit": "1814"
+  },
+  "mutations": [
+   {
+    "name": "M1: the digit loop stops one step early",
+    "caught": true
+   },
+   {
+    "name": "M2: the word's sign bit dropped before the test",
+    "caught": true
+   },
+   {
+    "name": "M3: the idle test ANDs the two words instead of ORing",
+    "caught": true
+   },
+   {
+    "name": "M4: the idle path sets the wrong state",
+    "caught": true
+   },
+   {
+    "name": "M5: digit 2 maps to state 1",
+    "caught": true
+   },
+   {
+    "name": "M6: the 0xFF reset tests the wrong constant",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 21,
+   "lines_hit": 21,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (arg0->unk40 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 24010, < 2974, > 3016 (signed); < 0, > 5990 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2145065271"
+    },
+    {
+     "line": 6,
+     "text": "if (arg0->unk2 == 0xFF) {",
+     "size": 1,
+     "count": 24010,
+     "kind": "against a constant",
+     "outcomes": "== 4024, < 9933, > 10053 (signed); < 19986, > 0 (unsigned)",
+     "operand": "constant -1",
+     "a": "-128..127"
+    },
+    {
+     "line": 9,
+     "text": "if (arg0->unk3 == 6) {",
+     "size": 1,
+     "count": 24010,
+     "kind": "against a constant",
+     "outcomes": "== 18057, < 3158, > 2795 (signed); < 142, > 5811 (unsigned)",
+     "operand": "constant 6",
+     "a": "-128..127"
+    },
+    {
+     "line": 11,
+     "text": "if (var_a1 != 0) {",
+     "size": 4,
+     "count": 18057,
+     "kind": "against a constant",
+     "outcomes": "== 1807, < 8524, > 7726 (signed); < 0, > 16250 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2146968676"
+    },
+    {
+     "line": 12,
+     "text": "for (i = 0; i < 9; var_a1 /= 4, ++i) {",
+     "size": 4,
+     "count": 89836,
+     "kind": "against a constant",
+     "outcomes": "== 3347, < 84675, > 1814 (signed); < 84675, > 1814 (unsigned)",
+     "operand": "constant 8",
+     "a": "0..9"
+    },
+    {
+     "line": 13,
+     "text": "switch (var_a1 & 3) {",
+     "size": 4,
+     "count": 88022,
+     "kind": "switch",
+     "outcomes": "== 14436, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 25,
+     "text": "} else if ((arg0->unk14 | arg0->unk18) == 0) {",
+     "size": 4,
+     "count": 1807,
+     "kind": "against a constant",
+     "outcomes": "== 459, < 756, > 592 (signed); < 0, > 1348 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2122076198..2147480566"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34988,
+     "completion_tokens": 2237,
+     "reasoning_tokens": 1654,
+     "cost": 0.0046173,
+     "seconds": 9.6,
+     "sample": 1,
+     "conversation": "ece649040cc8fcb6fa7465524ab8aae279dc71ebbb98b3d00354d07b46991a28"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80085A34.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80085A34.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 224.45676764100426,
+ "wall_seconds": 534.8991974469973,
+ "totals": {
+  "cost": 0.01128,
+  "prompt_tokens": 46496,
+  "completion_tokens": 13251,
+  "model_seconds": 56.0,
+  "check_seconds": 224.5,
+  "calls": 2,
+  "wall_seconds": 534.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 45 / nested 114 / nested 180, 0 mismatches"
+ }
+}

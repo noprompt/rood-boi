@@ -1,0 +1,311 @@
+{
+ "function": "_adjustDpPp",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_adjustDpPp",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800802c4",
+  "difficulty": "S",
+  "zig_name": "adjustDpPp",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "adjust_dp_pp",
+  "spec_file": "adjustDpPp.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn adjustDpPp(action: ?*v.vs_action_t, source: ?*v.vs_battle_actor2, target: ?*v.vs_battle_actor2, amount: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "source",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "target",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "amount",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15708,
+     "completion_tokens": 14338,
+     "reasoning_tokens": 12328,
+     "cost": 0.0087398,
+     "seconds": 61.1,
+     "sample": 1,
+     "conversation": "ef6a918e037cbde9dc97d31c56a46c1df02deae360c6ace81ebf73186b8073cd"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation A2: weapon DP compare off by one (> for >=): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _adjustDpPp: 30000 iterations, seed 1, 0 mismatches; classes: spell=9853 undrawn=11345 drawn-shield-equal=1798 drawn-shield-other=7004"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17886,
+     "completion_tokens": 3150,
+     "reasoning_tokens": 1094,
+     "cost": 0.0033636,
+     "seconds": 11.6,
+     "sample": 1,
+     "conversation": "47bb663b3f673d15935b32a065a548d9fde43590b9384dee1c0a2bfcb7060d70"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "spell": "9853",
+   "undrawn": "11345",
+   "drawn-shield-equal": "1798",
+   "drawn-shield-other": "7004"
+  },
+  "mutations": [
+   {
+    "name": "A1: spell test inverted",
+    "caught": true
+   },
+   {
+    "name": "A2: weapon DP compare done unsigned (a negative amount is huge)",
+    "caught": true
+   },
+   {
+    "name": "A3: drawn test on bit 1 instead of bit 0",
+    "caught": true
+   },
+   {
+    "name": "A4: exhausted weapon DP not zeroed (dropped store)",
+    "caught": true
+   },
+   {
+    "name": "A5: armor limit compared as unsigned short",
+    "caught": true
+   },
+   {
+    "name": "A6: limb loop stops one early",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 15,
+   "lines_hit": 15,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (action->type != actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9853, < 2778, > 17369 (signed); < 2778, > 17369 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 6,
+     "text": "if (source->weapon.currentDp >= amount) {",
+     "size": 4,
+     "count": 20147,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4164, < 9435, > 6548 (signed); < 5107, > 10876 (unsigned)",
+     "operand": "b 0..65535",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 13,
+     "text": "if (vs_battle_actors[target->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16959, < 0, > 13041 (signed); < 0, > 13041 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 14,
+     "text": "if (target->shield.currentDp >= amount) {",
+     "size": 4,
+     "count": 13041,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2690, < 6020, > 4331 (signed); < 3197, > 7154 (unsigned)",
+     "operand": "b 0..65535",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 21,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 22,
+     "text": "if (_armorDpAdjustmentAmounts[i] != 0) {",
+     "size": 2,
+     "count": 180000,
+     "kind": "against a constant",
+     "outcomes": "== 25576, < 70807, > 83617 (signed); < 0, > 154424 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 23,
+     "text": "if (target->limbs[i].armor.currentDp >= _armorDpAdjustmentAmounts[i]) {",
+     "size": 4,
+     "count": 154424,
+     "kind": "a == b / a < b",
+     "outcomes": "== 42872, < 17533, > 94019 (signed); < 88340, > 23212 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39035,
+     "completion_tokens": 4501,
+     "reasoning_tokens": 3776,
+     "cost": 0.006154,
+     "seconds": 18.2,
+     "sample": 1,
+     "conversation": "9c0f1ebf8031af42d400b64faacf6cb518ac4befe819f5bd5b0089c283291998"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/adjustDpPp.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/adjust_dp_pp.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 237.71052930400037,
+ "wall_seconds": 568.2605585639976,
+ "totals": {
+  "cost": 0.01826,
+  "prompt_tokens": 72629,
+  "completion_tokens": 21989,
+  "model_seconds": 90.9,
+  "check_seconds": 237.7,
+  "calls": 3,
+  "wall_seconds": 568.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 9, 0 mismatches"
+ }
+}

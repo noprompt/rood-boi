@@ -1,0 +1,232 @@
+{
+ "function": "_getLocationId",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_getLocationId",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007c81c",
+  "difficulty": "S",
+  "zig_name": "getLocationId",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_location_id",
+  "spec_file": "getLocationId.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getLocationId(zoneId: c_int, mapId: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "zoneId",
+    "c_int"
+   ],
+   [
+    "mapId",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_main_locationZoneMapIds"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12062,
+     "completion_tokens": 8317,
+     "reasoning_tokens": 6548,
+     "cost": 0.0053647,
+     "seconds": 36.7,
+     "sample": 1,
+     "conversation": "5ed7fe85d4b91bbbdd6158ad4599f405f3461409a41e644a3e694f26adda5115"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-zone": "13713",
+   "zone-only": "4345",
+   "match-low": "6573",
+   "match-high": "5369"
+  },
+  "mutations": [
+   {
+    "name": "M1: the last entry (511) is never checked",
+    "caught": true
+   },
+   {
+    "name": "M2: map compared against the zone entry",
+    "caught": true
+   },
+   {
+    "name": "M3: zoneId truncated to 8 bits before the compare",
+    "caught": true
+   },
+   {
+    "name": "M4: a miss returns -1, not 0",
+    "caught": true
+   },
+   {
+    "name": "M5: only even entries are searched",
+    "caught": true
+   },
+   {
+    "name": "M6: the match index is off by one",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 512; ++i) {",
+     "size": 4,
+     "count": 12331733,
+     "kind": "against a constant",
+     "outcomes": "== 19255, < 12294420, > 18058 (signed); < 12294420, > 18058 (unsigned)",
+     "operand": "constant 511",
+     "a": "0..512"
+    },
+    {
+     "line": 5,
+     "text": "if (zoneId == vs_main_locationZoneMapIds[i * 2]",
+     "size": 4,
+     "count": 12313675,
+     "kind": "a == b / a < b",
+     "outcomes": "== 35907, < 6117471, > 6160297 (signed); < 2672735, > 9605033 (unsigned)",
+     "operand": "b 0..255",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 6,
+     "text": "&& mapId == vs_main_locationZoneMapIds[i * 2 + 1]) {",
+     "size": 4,
+     "count": 35907,
+     "kind": "a == b / a < b",
+     "outcomes": "== 11942, < 13391, > 10574 (signed); < 12092, > 11873 (unsigned)",
+     "operand": "b 0..255",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35438,
+     "completion_tokens": 1593,
+     "reasoning_tokens": 1263,
+     "cost": 0.0043403,
+     "seconds": 7.5,
+     "sample": 1,
+     "conversation": "d44193e6f9b232e2b31a773326755bd8c698cc0c1afe55e265c39b0d834f768e"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getLocationId.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_location_id.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 145.4153007319983,
+ "wall_seconds": 364.8298308330013,
+ "totals": {
+  "cost": 0.00971,
+  "prompt_tokens": 47500,
+  "completion_tokens": 9910,
+  "model_seconds": 44.2,
+  "check_seconds": 145.4,
+  "calls": 2,
+  "wall_seconds": 364.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 258 / nested 375 / nested 528, 0 mismatches"
+ }
+}

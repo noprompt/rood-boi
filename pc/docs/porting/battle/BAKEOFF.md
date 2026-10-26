@@ -954,6 +954,14 @@ A real asynchronous batch API (OpenRouter docs: "Batch API quickstart",
   endpoint (adapter AnthropicBatchAdapter)"). OpenRouter runs it on
   Anthropic's Message Batches API itself (`provider: Anthropic`, expiry 24 h),
   so no Anthropic key is needed.
+- **No cancel.** The documentation lists "cancel a batch" as unsupported
+  ("wait for the batch to finish, then delete it") and `POST /batches/{id}/cancel`
+  answers 404. `DELETE /api/v1/batches/{id}` does remove a batch that is still
+  `validating` (afterwards `GET` answers 404 and nothing was charged): that is
+  what `port_pipeline.py cancel --mode rounds --units ...` does (it also puts the
+  functions waiting for the batch back to `needs-spec`/`needs-port`, to be sent
+  again or drafted synchronously). Wave 4's batch sat in `validating` for 13
+  hours before it was deleted.
 - Latency, measured 2026-10-21: a rounds smoke batch (two Haiku spec
   requests, submitted 14:06) finished after **6.1 hours** (20:12); two
   probe batches submitted at 13:52 and 14:03 (2 and 1 tiny requests) were
@@ -1402,3 +1410,164 @@ Unported in 30DB0.c: `_parseWep`, `_parseShp`, `func_800A0024`,
 `func_8009EA14`, `func_8009A028` (reasons above). Next: 5BF94.c (262
 unported, now plannable), 4A0A8.c (231, now plannable), 146C.c (631), and
 a 32-bit compile of each written port in the pipeline.
+
+## Wave 4 (Haiku 5.5 drafts, synchronous, 2026-10-24/25)
+
+Branch `port-wave4`. The wave was planned as **batch rounds** (half price, $4.00)
+and run **synchronously** instead: the 631 146C spec requests went out as one
+OpenRouter batch on 2026-10-24 and sat in `validating` for 13 hours, nothing
+charged; the batch was **deleted** (OpenRouter has no cancel: `DELETE
+/api/v1/batches/{id}`, see "Batches and rounds"; the 631 functions' rounds state
+was reset to `needs-spec`) and the wave ran as in wave 3: `anthropic/claude-haiku-5.5`,
+synchronous, `--jobs 3`, default reasoning, temperature 0, the feedback retry and
+one compile-fix round, privacy filter on, a **hard $8.00 cap** over every call of
+the wave. Sonnet 5.5 reviewers (three at a time, one per batch of 20-60 functions)
+read every function that passed.
+
+### What was run
+
+The unit with the most hooks first, oracle-reachable functions first. Reach was
+measured, not guessed: the game under `gdb -batch` (a Popen wrapper around
+`differ.py`) with a one-shot breakpoint on every function of the three units, over
+the three recipes' boot, room setup and play (`battle_30DB0_port` shadowed, call
+mode): 146C 254 of 631 reached (2 XL, 17 L, 49 M, 186 S), 5BF94 112 of 264, 4A0A8
+34 of 231. Order: the 146C functions with ROOD_PC hooks (16; the two XL ones
+skipped), then all M, then the reached L and S; then 5BF94's reached L, M and S
+until the time ran out. 4A0A8 was not started.
+
+| Unit | Attempted | Ported | Spec failed | Port failed | Other | Cost | Wall |
+|---|---|---|---|---|---|---|---|
+| 146C.c | 272 | 223 | 36 | 12 | 1 views-conflict | $4.28 | ~7 h (3 jobs) |
+| 5BF94.c | 29 | 20 | 6 | 3 | - | $0.71 | ~1 h (2 jobs, alongside) |
+| 4A0A8.c | 0 | - | - | - | - | - | - |
+
+Total logged: **$4.99** of the $8.00 (calls killed in flight are not logged: well
+under $0.1). 145 of the 223 146C ports needed no retry. Time, not money, ended the run: the gates (zig_diff builds and runs,
+about 2-5 minutes per function) ran at about 0.5 functions a minute on a machine
+shared with other suites.
+
+### Review
+
+All 243 ported functions were read against the C: hooks by hand, the checklist of
+PORTING.md section 19, a stack-residue scan. Findings (all fixed):
+
+- **Four early `.?` unwraps** of a pointer the C only dereferences on some path
+  (`func_80089A00`, `vs_battle_copyUiWeaponStats`, `_dropShieldRand`,
+  `func_800D0B30`): the port trapped where the C reads nothing; the specs never
+  passed null, two now do (`func_80089A00`, `func_800D0B30`).
+- **Three calls through a function pointer cast to a private prototype**
+  (`func_8006C84C`, `func_800773BC`, `func_800CED60`): direct `c.` calls now.
+- **Dead-stack hazards zeroed under ROOD_PC** (compound literal, the ports zero theirs):
+  `func_8006F4B0` and `func_800771E0` (whole records copied into game memory),
+  `func_80085B10` (`origin`, `position`, `impact` read where no callee wrote them),
+  `func_8006C5AC` (`sp20.pad`: `vs_main_panSfx` loads the whole word into the GTE;
+  the oracle saw `gteRegs` differ by the port's 0xAA fill, call mode on enemy_kill).
+- ROOD_PC hooks checked by hand for the 16 hook functions: `_setCameraPositionFromAngles`
+  (`pc_camera_stick_place`), `func_800735F8` (`pc_fast_travel_begin` after
+  `func_8006F4B0`, before `func_8007C694`), `func_8008A3A0`, `func_8008B1FC`
+  (`pc_scene_room`, `pc_scene_camera`), `func_8008EC48` (`PC_ANCHOR_PACKETS`: cursor read
+  before `func_8009147C`, `pc_hw_anchor_packets` through `psx.weak` after), `func_8008FAC8`
+  (both `PC_GTE_UNNARROWED` brackets and the weather margin), `_removeActorAtIndex`,
+  `func_8007D03C`; 5BF94's `pc_ui_menu_hide_rows`, `pc_text_char`, `pc_screff2_*`.
+- Doubts left (not bugs the recipes can show): C-undefined locals the ports set to 0
+  (`_triggerArmorAffinityChange`, `_triggerWeaponAffinityChange`, `_triggerClassChange`
+  for out-of-range arguments, `func_8006EBF8`'s returned `v`, `func_800790BC`'s `var_s3`);
+  `.?` on allocator results (`applyAccessory`/`Armor`/`Weapon`: a crash on heap
+  exhaustion where the C calls `bzero(NULL)`), on `target`/`source` at entry of
+  `applyShieldStats` and `copyInventoryArmorStats`, and `_dropLoot`'s `stats`;
+  `sp10` of `func_8006E640`, `func_8006EBF8`, `func_80069FC4`, `func_800780A8`,
+  `vs_battle_initialiseCameraFromSpherical`, `func_80077F70` stays dead stack when
+  `func_800A1108`/`func_800A1AF8` fail for a missing actor (no recipe).
+- Not fixed in the C (no port in this wave; Oracle.md's list): the other effect
+  requests (`func_8006C4C4` etc.).
+
+### Oracle
+
+`differ.py battle_146C_port` and `battle_5BF94_port` (call, tick, alternate and the
+control, on the three recipes, 64-bit, classic profile, `ROOD_RENDERER=null`):
+
+| Subsystem | Recipe | Call: root calls (mismatches) | Tick (ticks) | Alternate |
+|---|---|---|---|---|
+| `battle_146C_port` | enemy_cast_wait | 45 functions, 5671 calls (0) | 600, 0 | pass (30 once-called waived) |
+| | action_name_window | 46, 10859 (0) | 1200, 0 | pass (3 waived) |
+| | enemy_kill | 39, 19714 (0) | 1700, 0 (after the fix below; differed at tick 0 before) | pass (failed before) |
+| `battle_5BF94_port` | enemy_cast_wait | 11, 2666 (0) | 600, 0 | pass (2 waived) |
+| | action_name_window | 11, 5300 (0) | 1200, 0 | pass |
+| | enemy_kill | 17, 5659 (0) | 1700, 0 | pass (1 waived) |
+
+The first run found one real divergence in call mode, `func_8006C5AC`'s `sp20.pad` (see
+Review), fixed in the port and, under ROOD_PC, in the C.
+
+**enemy_kill tick/alternate, found and fixed (2026-10-26).** The owned run differed at
+tick 0 in 64 bytes: the halfword at +0x12 of 0x20-byte records, 0x1F80 owned and 0
+original. Those records are bone matrices (`actor + 0x6C + 0x20 k`) and +0x12 is
+`MATRIX.pad`; 0x1F80 is the high half of a scratchpad pointer (0x1F80xxxx) that a Zig
+frame left on the host stack. A gdb write watchpoint on the scratchpad matrix's pad
+(0x1F8003D2, conditioned on 0x1F80; the oracle under gdb through a `subprocess.Popen`
+wrapper around `differ.main`, Oracle.md) found the writer at once, so the bisect by
+ownership halves was not needed: **`func_800AECA0` (44F14.c, not a port)** writes only
+the 3x3 of its local `MATRIX rotation` and copies it whole into the scratchpad matrix,
+which `D_800F49B8` (0x800F49CA) and every bone `func_800B28A8` prepares then copy whole.
+Its `D_800F4910 = *(MATRIX*)&source` (0x800F492A) read 32 bytes of host stack through a
+parameter's address (on the PS1, the parameter's home slot and the caller's frame;
+nothing reads it). No 146C port is wrong: any owned function called earlier in
+`vs_battle_exec` leaves different dead stack where `rotation` lives. Fix (C only, under
+ROOD_PC, commit-check clean): `rotation = (MATRIX) { 0 };` and `D_800F4910` as the
+pointer word and zeros.
+
+With that fixed the same run differed at **tick 96** in `D_800F53C0`, the effect
+request `func_800CF218` copies whole: the watch named `func_8006C4C4` (146C.c, C,
+called from the owned `func_8006C84C`), the first of Oracle.md's "other effect
+requests". It and the rest of that list (146C `func_8006F450`, `func_8006F848`,
+`func_800733F8`, `func_80073D30`, `func_8007BE20`; 5BF94 `func_800CF7A8`,
+`func_800CF8BC`) now zero their request under ROOD_PC. None is ported (no Zig change,
+no spec to strengthen). No waiver was added.
+
+The `Root calls` line of each run names what its recipes never call (146C 48 of 225
+routed functions are roots in the three; 5BF94 17 of 36); those are covered by the
+harness only. `shadow_battle_smoke` with each subsystem shadowed, the ctest-equivalents
+(zig_views, zig_c, ownership, prompt_tools, bakeoff_tools, port_pipeline, port_rounds,
+zig_diff_coverage) and the ten zig_diff shards were queued behind the other
+suites' locks and did not run after the last source change (see below).
+
+### Tooling fixes
+
+- `port_pipeline.py cancel --mode rounds`: deletes the open batches at the provider
+  (`DELETE /batches/{id}`; OpenRouter has no cancel endpoint), confirms they are gone
+  and resets their functions to `needs-*` (CTest `port_pipeline` / `port_rounds_test`:
+  a fake `DELETE`, the reset, and drafting again).
+- `ownership.py`: two names at one address no longer fail the table check. ENDING
+  loads over BATTLE (0x80068800), and its `_addRenderer` shares 0x8006AB44 with 146C's
+  `vs_battle_copyInventoryBladeStats`; the reverse map kept the last name and the build
+  refused the route ("renamed upstream?"). Test in `ownership_test.py`.
+- `port_pipeline.py`: the writer into the tree takes a file lock
+  (`pc/build/port-pipeline/write.lock`), so two runs of different units can write at once.
+- `waivers.toml`: alternate-mode one-sided waivers for the once-called functions of
+  `battle_146C_port` and `battle_5BF94_port`.
+- No path comparison broke through the `.claude/worktrees` symlink.
+
+### Where this stands
+
+Branch `port-wave4`, committed in the worktree; nothing merged or pushed. Main merged
+in (2026-10-26, no conflicts: main's new 146C hook, `func_8007629C`'s
+`pc_hud_panels_classic`, and 5BF94's `_renderTextImmediate` fade are in functions this
+wave did not port). After the fixes above: the oracle passes call, tick and alternate
+on the three recipes for both units (146C call: 11110, 21368 and 39700 shadowed calls,
+0 mismatches; 5BF94: 6074, 12008, 14842, 0); the root-call gate lists the routed
+functions the recipes never call (146C 48 of 225 called, 5BF94 17 of 36), covered by
+the harness only, as before. Builds: 32-bit, `--battle`, `--arch 64`,
+`--engine-library` and the no-Zig build (`ROOD_NO_ZIG=1`) pass; commit-check prints
+"All files match" (the formatter's edit of 5BF94.c reverted). `shadow_battle_smoke`
+with `battle_146C_port` shadowed: 11330 routed calls, 0 mismatches, 0 errors (the
+injected wrong write caught); with `battle_5BF94_port`: 6362, 0, 0. Targeted tests:
+run.py `ctest` passes; the ten zig_diff shards and `zig_diff_coverage` pass (CTest,
+`-j 2`); `port_pipeline_test.py` passes run on its own, but took longer than CTest's
+600 s timeout on the shared machine (twice, once beside the shards), so the
+`ctest_pipeline` lane timed out here: watch it in the quick lane on main. **146C
+and 5BF94 are merge-ready.**
+
+Unported 146C functions reached by the recipes (the spec or port gate failed, 49):
+see the records (`pipeline/146C/*.json`, `reviewed` says why); 5BF94: 9. Unstarted:
+4A0A8.c (231 functions, 34 reached), 146C's other 359 functions (the two XL hook
+functions `func_8008FDC4` and `func_80089DC0` among them), 5BF94's other 235.
+

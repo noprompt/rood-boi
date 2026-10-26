@@ -1,0 +1,292 @@
+{
+ "function": "func_80072EC4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80072EC4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80072ec4",
+  "difficulty": "M",
+  "zig_name": "func_80072EC4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80072EC4",
+  "spec_file": "func_80072EC4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80072EC4(arg0: c_int, arg1: c_ushort) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_ushort"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14916,
+     "completion_tokens": 12364,
+     "reasoning_tokens": 10747,
+     "cost": 0.0076736,
+     "seconds": 52.9,
+     "sample": 1,
+     "conversation": "7a6f1a1f6f9c3d1bc4a505e3d0d29129d8d68f7a7b215384d805bb6f61f42dff"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "target-zero": "7550",
+   "target-nonzero": "22450"
+  },
+  "mutations": [
+   {
+    "name": "M1: loop skips the slots below the target",
+    "caught": true
+   },
+   {
+    "name": "M2: the flag tested is bit 1, not bit 2",
+    "caught": true
+   },
+   {
+    "name": "M3: the bit is not cleared before the call",
+    "caught": true
+   },
+   {
+    "name": "M4: the loop runs to 15 (slot 15 dropped)",
+    "caught": true
+   },
+   {
+    "name": "M5: wrong constant in the player's clear call",
+    "caught": true
+   },
+   {
+    "name": "M6: the dropped store to unk4",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 37,
+   "lines_hit": 37,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "16-bit: min -32768, max 32767, unsigned 0..65535, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 13,
+     "text": "if (arg0 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7550, < 0, > 22450 (signed); < 0, > 22450 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 27,
+     "text": "if (D_800F19CC->unk2984 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14994, < 0, > 15006 (signed); < 0, > 15006 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 34,
+     "text": "for (i = 0; i < 16; ++i) {",
+     "size": 4,
+     "count": 510000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 450000, > 30000 (signed); < 450000, > 30000 (unsigned)",
+     "operand": "constant 15",
+     "a": "0..16"
+    },
+    {
+     "line": 35,
+     "text": "if (i != D_800F19CC->unk8.unk4.unk0.targetActor) {",
+     "size": 4,
+     "count": 480000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 30000, < 180176, > 269824 (signed); < 180176, > 269824 (unsigned)",
+     "operand": "b 0..15",
+     "a": "0..15"
+    },
+    {
+     "line": 37,
+     "text": "if (temp_v0 & 4) {",
+     "size": 4,
+     "count": 450000,
+     "kind": "against a constant",
+     "outcomes": "== 224921, < 0, > 225079 (signed); < 0, > 225079 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    },
+    {
+     "line": 43,
+     "text": "if (arg0 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7550, < 0, > 22450 (signed); < 0, > 22450 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 48,
+     "text": "if (D_800F19CC->unk2984 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14994, < 0, > 15006 (signed); < 0, > 15006 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38288,
+     "completion_tokens": 7132,
+     "reasoning_tokens": 5844,
+     "cost": 0.0073948,
+     "seconds": 27.5,
+     "sample": 1,
+     "conversation": "28876d4a8bfcb4fafd06858495baeaef4d88ea0584931eb0a70727f45e8402f1"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_80072EC4.zig:46:44: error: expected type 'c_int', found 'c_uint'\n                c.func_800A087C(i, temp_v0 & ~@as(c_uint, 4));\n                                   ~~~~~~~~^~~~~~~~~~~~~~~~~\ngame/battle/func_80072EC4.zig:46:44: note: signed 32-bit int cannot represent all possible unsigned 32-bit values\npc/build/boot64/zig/c_146C.zig:3916:45: note: parameter type declared here\npub extern fn func_800A087C(actorId: c_int, c_int) void;\n                                            ^~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39971,
+     "completion_tokens": 2021,
+     "reasoning_tokens": 693,
+     "cost": 0.0050076,
+     "seconds": 7.8,
+     "sample": 1,
+     "conversation": "01037c31c6892faee28812c162a46e9216ab3677ca7c2756859ecb17f94617b8"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80072EC4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80072EC4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 113.56209510200006,
+ "wall_seconds": 202.07784432899916,
+ "totals": {
+  "cost": 0.02008,
+  "prompt_tokens": 93175,
+  "completion_tokens": 21517,
+  "model_seconds": 88.2,
+  "check_seconds": 113.6,
+  "calls": 3,
+  "wall_seconds": 202.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 1 / root 3 / root 5, 0 mismatches"
+ }
+}

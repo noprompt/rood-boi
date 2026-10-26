@@ -1,0 +1,291 @@
+{
+ "function": "func_800753F8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_800753F8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800753f8",
+  "difficulty": "S",
+  "zig_name": "func_800753F8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800753F8",
+  "spec_file": "func_800753F8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800753F8(arg0: ?*v.vs_battle_actor, arg1: ?*v.SVECTOR) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_battle_actor"
+   ],
+   [
+    "arg1",
+    "?*v.SVECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13247,
+     "completion_tokens": 9936,
+     "reasoning_tokens": 8334,
+     "cost": 0.0062927,
+     "seconds": 40.4,
+     "sample": 1,
+     "conversation": "1706f156eec22f2e5c171c3abfaba0c7966d841fdfccad4280d61984f0bbfb34"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "unkC-at-or-below--8000": "9108",
+   "unkC-neg-in-range": "10820",
+   "unkC-zero": "267",
+   "unkC-pos-in-range": "10661",
+   "unkC-at-or-above-8000": "9144"
+  },
+  "mutations": [
+   {
+    "name": "M1: the unkC lower bound is exclusive",
+    "caught": true
+   },
+   {
+    "name": "M2: the unk10 upper bound is exclusive",
+    "caught": true
+   },
+   {
+    "name": "M3: the -8 clamp for unk14 is -7",
+    "caught": true
+   },
+   {
+    "name": "M4: unsigned quotient for unkC in the low arm",
+    "caught": true
+   },
+   {
+    "name": "M5: the negative unk14 store is dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: vz written from the wrong field at the high clamp",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 18,
+   "branches_hit": 18,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 35,
+   "lines_hit": 35,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (arg0->unkC < 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 267, < 19928, > 19805 (signed); < 0, > 39733 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 3,
+     "text": "if (arg0->unkC >= -0x7FFF) {",
+     "size": 4,
+     "count": 19928,
+     "kind": "against a constant",
+     "outcomes": "== 255, < 9108, > 10565 (signed); < 9108, > 10565 (unsigned)",
+     "operand": "constant -32767",
+     "a": "-2147483648..-1"
+    },
+    {
+     "line": 10,
+     "text": "} else if (arg0->unkC <= 0x7FFF) {",
+     "size": 4,
+     "count": 20072,
+     "kind": "against a constant",
+     "outcomes": "== 236, < 10692, > 9144 (signed); < 10692, > 9144 (unsigned)",
+     "operand": "constant 32767",
+     "a": "0..2147483647"
+    },
+    {
+     "line": 18,
+     "text": "if (arg0->unk10.s32 < 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 259, < 19987, > 19754 (signed); < 0, > 39741 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 19,
+     "text": "if (arg0->unk10.s32 >= -0x7FFF) {",
+     "size": 4,
+     "count": 19987,
+     "kind": "against a constant",
+     "outcomes": "== 257, < 9255, > 10475 (signed); < 9255, > 10475 (unsigned)",
+     "operand": "constant -32767",
+     "a": "-2147483648..-1"
+    },
+    {
+     "line": 26,
+     "text": "} else if (arg0->unk10.s32 <= 0x7FFF) {",
+     "size": 4,
+     "count": 20013,
+     "kind": "against a constant",
+     "outcomes": "== 259, < 10625, > 9129 (signed); < 10625, > 9129 (unsigned)",
+     "operand": "constant 32767",
+     "a": "0..2147483647"
+    },
+    {
+     "line": 34,
+     "text": "if (arg0->unk14 < 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 257, < 19817, > 19926 (signed); < 0, > 39743 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 35,
+     "text": "if (arg0->unk14 >= -0x7FFF) {",
+     "size": 4,
+     "count": 19817,
+     "kind": "against a constant",
+     "outcomes": "== 273, < 9193, > 10351 (signed); < 9193, > 10351 (unsigned)",
+     "operand": "constant -32767",
+     "a": "-2147483648..-1"
+    },
+    {
+     "line": 42,
+     "text": "} else if (arg0->unk14 <= 0x7FFF) {",
+     "size": 4,
+     "count": 20183,
+     "kind": "against a constant",
+     "outcomes": "== 247, < 10857, > 9079 (signed); < 10857, > 9079 (unsigned)",
+     "operand": "constant 32767",
+     "a": "0..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36727,
+     "completion_tokens": 2988,
+     "reasoning_tokens": 2008,
+     "cost": 0.0051667,
+     "seconds": 12.7,
+     "sample": 1,
+     "conversation": "1aba74e116174836204f10f270b196eaf63997e42404d4bfe7197f7248161d09"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800753F8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800753F8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 135.271800059998,
+ "wall_seconds": 233.19273984399842,
+ "totals": {
+  "cost": 0.01146,
+  "prompt_tokens": 49974,
+  "completion_tokens": 12924,
+  "model_seconds": 53.1,
+  "check_seconds": 135.3,
+  "calls": 2,
+  "wall_seconds": 233.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

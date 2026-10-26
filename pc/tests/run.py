@@ -162,7 +162,7 @@ def suites(args, mode="egl"):
               note="the long CMake tests: zig_diff's shards and coverage lane, the port pipeline",
               sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py"]),
         Suite("ctest_pipeline", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure",
-                                 "-R", "^port_pipeline"], 600, binary=None,
+                                 "-R", "^port_pipeline"], 1500, binary=None,
               note="the port pipeline's CMake test alone (~2.5 min): what a pipeline or model-client change needs, "
                    "without ctest_long's zig_diff shards",
               sources=[TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),

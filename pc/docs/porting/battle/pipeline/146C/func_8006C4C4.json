@@ -1,0 +1,256 @@
+{
+ "function": "func_8006C4C4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 0: memory at 0x408c99 [arena] (zdiff_state+0x2c19): C 170, Zig",
+ "plan": {
+  "name": "func_8006C4C4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006c4c4",
+  "difficulty": "S",
+  "zig_name": "func_8006C4C4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006C4C4",
+  "spec_file": "func_8006C4C4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006C4C4(arg0: c_int, arg1: ?*v._hitEntity_t, targetLimb: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "targetLimb",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_8006C4C4_t",
+   "func_800CF0E8_t"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13976,
+     "completion_tokens": 10091,
+     "reasoning_tokens": 8734,
+     "cost": 0.0064431,
+     "seconds": 42.2,
+     "sample": 1,
+     "conversation": "2ea749cc0b62627c1ff1ee90f39c1cfaea52346082f99c8741032e4c4470882e"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F2: battle slot index masks 1 bit, not 2: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006C4C4: 30000 iterations, seed 1, 0 mismatches; classes: unk40-zero=9912 unk40-positive=11761 unk40-negative=8327",
+     "FAIL: mutation F5: else branch stores the wrong unk10 (5 becomes 4): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006C4C4: 30000 iterations, seed 1, 0 mismatches; classes: unk40-zero=9912 unk40-positive=11761 unk40-negative=8327",
+     "FAIL: mutation F6: unk0 takes targetLimb instead of arg0: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006C4C4: 30000 iterations, seed 1, 0 mismatches; classes: unk40-zero=9912 unk40-positive=11761 unk40-negative=8327"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15763,
+     "completion_tokens": 7125,
+     "reasoning_tokens": 5224,
+     "cost": 0.0051388,
+     "seconds": 29.5,
+     "sample": 1,
+     "conversation": "77308dcfd87e96beadc7cbeb6735d8a168d8a1926610e890217318d6b3c1bceb"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "unk40-zero": "9912",
+   "unk40-positive": "11761",
+   "unk40-negative": "8327"
+  },
+  "mutations": [
+   {
+    "name": "F1: hitThreshold uses class 3, not 2",
+    "caught": true
+   },
+   {
+    "name": "F2: battle slot index masks 1 bit, not 2",
+    "caught": true
+   },
+   {
+    "name": "F3: the call to func_800CF3F8 is dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: unk40 tested as a signed <= 0",
+    "caught": true
+   },
+   {
+    "name": "F5: else branch stores the wrong unk10 (5 becomes 4)",
+    "caught": true
+   },
+   {
+    "name": "F6: unk0 takes targetLimb instead of arg0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 19,
+   "lines_hit": 19,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147264222, max 2147157613, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (arg1->unk40 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9912, < 8327, > 11761 (signed); < 0, > 20088 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37440,
+     "completion_tokens": 5224,
+     "reasoning_tokens": 4447,
+     "cost": 0.006356,
+     "seconds": 20.6,
+     "sample": 1,
+     "conversation": "f10c82c9cd4937f9fa4faf82acc322328561d6dee0d6b2dffad9fa9645be6450"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x408c96 [arena] (zdiff_state+0x2c16): C 0, Zig 170\nzdiff: MISMATCH iteration 1: memory at 0x408c96 [arena] (zdiff_state+0x2c16): C 0, Zig 170\nzdiff: MISMATCH iteration 2: memory at 0x408c96 [arena] (zdiff_state+0x2c16): C 0, Zig 170\nzdiff: func_8006C4C4: 1000 iterations, seed 1, 1000 mismatches; classes: unk40-zero=325 unk40-positive=396 unk40-negative=279"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: memory at 0x408c96 (zdiff_state+0x2c16): C 0, Zig 170"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38499,
+     "completion_tokens": 2339,
+     "reasoning_tokens": 1440,
+     "cost": 0.0050194,
+     "seconds": 10.7,
+     "sample": 1,
+     "conversation": "93d7ebe361e70243b6ad7f8876e96660730c836fd008005a286da6dbba9c9151"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x408c99 [arena] (zdiff_state+0x2c19): C 170, Zig 0\nzdiff: MISMATCH iteration 1: memory at 0x408c99 [arena] (zdiff_state+0x2c19): C 226, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x408c99 [arena] (zdiff_state+0x2c19): C 226, Zig 0\nzdiff: func_8006C4C4: 1000 iterations, seed 1, 1000 mismatches; classes: unk40-zero=325 unk40-positive=396 unk40-negative=279"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: memory at 0x408c99 (zdiff_state+0x2c19): C 170, Zig 0"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 42.76302170100098,
+ "wall_seconds": 146.39636834299745,
+ "totals": {
+  "cost": 0.02296,
+  "prompt_tokens": 105678,
+  "completion_tokens": 24779,
+  "model_seconds": 103.0,
+  "check_seconds": 42.8,
+  "calls": 4,
+  "wall_seconds": 146.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

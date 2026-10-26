@@ -1,0 +1,235 @@
+{
+ "function": "func_8007D03C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (the assembly callee called through a cast with arg0 in place, as the ROOD_PC branch); spec sound",
+ "plan": {
+  "name": "func_8007D03C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007d03c",
+  "difficulty": "S",
+  "zig_name": "func_8007D03C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007D03C",
+  "spec_file": "func_8007D03C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007D03C(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11367,
+     "completion_tokens": 5732,
+     "reasoning_tokens": 4429,
+     "cost": 0.0040027,
+     "seconds": 24.5,
+     "sample": 1,
+     "conversation": "70248d207a62e72c929d057f0150d2c2b1b8b64057e8bedfa9aaa77d2e416eef"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:235:46: error: expected 2 argument(s), found 1\n                return adapt(S, @call(.auto, f, .{&ctx} ++ stubArgs(@TypeOf(f), args)));\n                                             ^\npc/build/port-pipeline/func_8007D03C/spec1/build/spec.zig:22:9: note: function declared here\n    pub fn func_800E5154(ctx: *zd.Ctx, id: anytype) c_int {\n    ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    f: pc/build/port-pipeline/func_8007D03C/spec1/build/game/common/route.zig:19:28\n    comptime: pc/tests/zig_diff/main.zig:244:58\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13087,
+     "completion_tokens": 2413,
+     "reasoning_tokens": 1107,
+     "cost": 0.0025152,
+     "seconds": 9.6,
+     "sample": 1,
+     "conversation": "88a11ce0dbc86cdbe9f31d1d1239c31b22091faa82cad5159deeaf60a2bc0f69"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "ret-zero": "9994",
+   "ret-two": "10061",
+   "ret-other": "9945"
+  },
+  "mutations": [
+   {
+    "name": "F1: ret 2 takes the ok path too",
+    "caught": true
+   },
+   {
+    "name": "F2: flag mask clears bit 0 as well",
+    "caught": true
+   },
+   {
+    "name": "F3: ok path returns 0, not 1",
+    "caught": true
+   },
+   {
+    "name": "F4: the result test is != 0, not == 2",
+    "caught": true
+   },
+   {
+    "name": "F5: dropped store to func_800A0A1C",
+    "caught": true
+   },
+   {
+    "name": "F6: flag query reads the wrong id",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 8,
+     "text": "if (temp_v0 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9994, < 5049, > 14957 (signed); < 0, > 20006 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147438403..2147427909"
+    },
+    {
+     "line": 12,
+     "text": "return temp_v0 == 2;",
+     "size": 4,
+     "count": 20006,
+     "kind": "against a constant",
+     "outcomes": "== 10061, < 5049, > 4896 (signed); < 0, > 9945 (unsigned)",
+     "operand": "constant 2",
+     "a": "-2147438403..2147427909"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34840,
+     "completion_tokens": 2668,
+     "reasoning_tokens": 2221,
+     "cost": 0.004818,
+     "seconds": 12.9,
+     "sample": 1,
+     "conversation": "13f48db19b56fc6f432657e94b470d84ddc73ea09aec44428620fcba2b826df7"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007D03C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007D03C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 35.54963156900112,
+ "wall_seconds": 82.94890877700027,
+ "totals": {
+  "cost": 0.01134,
+  "prompt_tokens": 59294,
+  "completion_tokens": 10813,
+  "model_seconds": 47.0,
+  "check_seconds": 35.5,
+  "calls": 3,
+  "wall_seconds": 82.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

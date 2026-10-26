@@ -1,0 +1,356 @@
+{
+ "function": "func_80089A00",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful after fix; spec strengthened",
+ "plan": {
+  "name": "func_80089A00",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80089a00",
+  "difficulty": "S",
+  "zig_name": "func_80089A00",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80089A00",
+  "spec_file": "func_80089A00.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80089A00() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_80060064",
+   "D_80061078"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13132,
+     "completion_tokens": 17304,
+     "reasoning_tokens": 15237,
+     "cost": 0.0099652,
+     "seconds": 73.2,
+     "sample": 1,
+     "conversation": "d9d5bffe1e6997cf317e3653d63296a74cd6924d437fac340c1c57e76f74bd0a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80089A00/spec1/build/spec.zig:52:43: error: expected unsigned integer type, found 'i32'\n            e.zndId = @as(u8, @truncate(zc.zndId));\n                                        ~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15465,
+     "completion_tokens": 3712,
+     "reasoning_tokens": 1544,
+     "cost": 0.0034025,
+     "seconds": 13.6,
+     "sample": 1,
+     "conversation": "310a4b9b5248772aa6edd5c48007b3ce8996280a4615023a65d0777751926eec"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "hit": "18984",
+   "miss": "11016"
+  },
+  "mutations": [
+   {
+    "name": "F1: minimum search takes the last tied slot",
+    "caught": true
+   },
+   {
+    "name": "F2: decrement loop also decrements ties",
+    "caught": true
+   },
+   {
+    "name": "F3: slot match ignores mapId",
+    "caught": true
+   },
+   {
+    "name": "F4: bzero clears one byte short",
+    "caught": true
+   },
+   {
+    "name": "F5: claimed slot's zndId not stored",
+    "caught": true
+   },
+   {
+    "name": "F6: enemy byte read at index 0, not 1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 22,
+   "branches_hit": 22,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 27,
+   "lines_hit": 27,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 10,
+     "text": "for (j = 0; j < 4; ++j) {",
+     "size": 4,
+     "count": 94137,
+     "kind": "against a constant",
+     "outcomes": "== 13548, < 69573, > 11016 (signed); < 69573, > 11016 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 11,
+     "text": "if ((D_80061078[j].unk0 != 0) && (D_80061078[j].zndId == _zoneContext.zndId)",
+     "size": 1,
+     "count": 83121,
+     "kind": "against a constant",
+     "outcomes": "== 10400, < 13085, > 59636 (signed); < 0, > 72721 (unsigned)",
+     "operand": "constant 0",
+     "a": "-56..5"
+    },
+    {
+     "line": 11,
+     "text": "if ((D_80061078[j].unk0 != 0) && (D_80061078[j].zndId == _zoneContext.zndId)",
+     "size": 4,
+     "count": 72721,
+     "kind": "a == b / a < b",
+     "outcomes": "== 32924, < 14594, > 25203 (signed); < 23409, > 16388 (unsigned)",
+     "operand": "b -1..256",
+     "a": "0..255"
+    },
+    {
+     "line": 12,
+     "text": "&& (D_80061078[j].mapId == _zoneContext.mapId)) {",
+     "size": 4,
+     "count": 32924,
+     "kind": "a == b / a < b",
+     "outcomes": "== 18984, < 4858, > 9082 (signed); < 7753, > 6187 (unsigned)",
+     "operand": "b -1..65536",
+     "a": "0..65535"
+    },
+    {
+     "line": 15,
+     "text": "for (i = 0; i < _zoneContext.mpdEnemyCount; ++i) {",
+     "size": 4,
+     "count": 78928,
+     "kind": "a == b / a < b",
+     "outcomes": "== 18984, < 0, > 59944 (signed); < 0, > 59944 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 26,
+     "text": "if (var_s4 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 11016, < 0, > 18984 (signed); < 0, > 18984 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 28,
+     "text": "for (j = 0; j < 4; ++j) {",
+     "size": 4,
+     "count": 55080,
+     "kind": "against a constant",
+     "outcomes": "== 11016, < 33048, > 11016 (signed); < 33048, > 11016 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 29,
+     "text": "if (D_80061078[j].unk0 < D_80061078[i].unk0) {",
+     "size": 1,
+     "count": 44064,
+     "kind": "a == b / a < b",
+     "outcomes": "== 15873, < 12543, > 15648 (signed); < 9665, > 18526 (unsigned)",
+     "operand": "b -56..5",
+     "a": "-56..5"
+    },
+    {
+     "line": 37,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 150000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 90000, > 30000 (signed); < 90000, > 30000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 38,
+     "text": "if (D_80061078[D_80060064].unk0 < D_80061078[i].unk0) {",
+     "size": 1,
+     "count": 120000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 39619, < 51056, > 29325 (signed); < 53563, > 26818 (unsigned)",
+     "operand": "b -56..5",
+     "a": "-56..5"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36612,
+     "completion_tokens": 4605,
+     "reasoning_tokens": 3724,
+     "cost": 0.0059637,
+     "seconds": 20.2,
+     "sample": 1,
+     "conversation": "2d94984f43619cdd8b2b39d90382b857da520a6cb6136cfca9808ea54ad52603"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_80089A00.zig:25:38: error: type '?*anyopaque' does not support indexing\n                    enemy.unk2 = temp[1];\n                                 ~~~~^~~\ngame/battle/func_80089A00.zig:25:38: note: operand must be an array, slice, tuple, or vector\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37769,
+     "completion_tokens": 2188,
+     "reasoning_tokens": 1287,
+     "cost": 0.0048709,
+     "seconds": 8.7,
+     "sample": 1,
+     "conversation": "bd36a66acca6553c2088f9499d3c1af8ce69d7d795f337272de7adb1863287c2"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_80089A00.zig:22:69: error: type '*views_146C._mpdEnemy' does not support indexing\n                const enemy = &psx.at(psx.get(zone.mpdEnemies).?, i)[0];\n                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~\ngame/battle/func_80089A00.zig:22:69: note: operand must be an array, slice, tuple, or vector\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39003,
+     "completion_tokens": 1487,
+     "reasoning_tokens": 590,
+     "cost": 0.0046438,
+     "seconds": 5.6,
+     "sample": 1,
+     "conversation": "97ef63edc2258b8c4540d5db82ef952a2004c8e2c9cb98f17adc67fc4f98efa5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 3,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80089A00.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80089A00.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 94.29859294000198,
+ "wall_seconds": 270.0073485789999,
+ "totals": {
+  "cost": 0.02885,
+  "prompt_tokens": 141981,
+  "completion_tokens": 29296,
+  "model_seconds": 121.3,
+  "check_seconds": 94.3,
+  "calls": 5,
+  "wall_seconds": 270.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "port_fixes": [
+   "the enemy-list pointer was unwrapped (.?) before func_80069E80 ran, so a null list with no found record panicked where the C never dereferences it",
+   " unwrap moved inside the found branch, gate re-run clean"
+  ],
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

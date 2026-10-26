@@ -1,0 +1,258 @@
+{
+ "function": "func_800CED60",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the private-prototype cast of func_800CF70C replaced by a direct c. call (entries are heap blocks, alignCast holds); spec sound",
+ "plan": {
+  "name": "func_800CED60",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ced60",
+  "difficulty": "M",
+  "zig_name": "func_800CED60",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CED60",
+  "spec_file": "func_800CED60.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CED60() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [
+   "D_800F53B8_t",
+   "D_800F569C_t",
+   "func_800D4910_t",
+   "pFileCurveBlock"
+  ],
+  "globals": [
+   "D_800F53BC",
+   "D_800F54B0",
+   "D_800F569C"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13811,
+     "completion_tokens": 29885,
+     "reasoning_tokens": 26976,
+     "cost": 0.0163236,
+     "seconds": 125.9,
+     "sample": 1,
+     "conversation": "f1b4e8c78d945d1cceae5cd0d5b3b30e39f7c547e8506510991a127ff92d723b"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "empty": "8081",
+   "case-2-head": "3989",
+   "case-3-head": "4063",
+   "case-4-curve": "5342",
+   "case-4-no-curve": "2575",
+   "other-head": "15950"
+  },
+  "mutations": [
+   {
+    "name": "F1: the return ORs only the last node's flags",
+    "caught": true
+   },
+   {
+    "name": "F2: next re-read after the case-3 call (a moved read across a call)",
+    "caught": true
+   },
+   {
+    "name": "F3: renderer test inverted (the removal call is made for the wrong nodes)",
+    "caught": true
+   },
+   {
+    "name": "F4: the renderer walk follows the node's next after the call, not the saved one",
+    "caught": true
+   },
+   {
+    "name": "F5: the current-node global stores the list head",
+    "caught": true
+   },
+   {
+    "name": "F6: wrong constant to the case-3 call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 31,
+   "lines_hit": 31,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 15,
+     "text": "switch (var_s1->unkD1C.unk3A) {",
+     "size": 4,
+     "count": 79853,
+     "kind": "switch",
+     "outcomes": "== 39577, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-1..5"
+    },
+    {
+     "line": 23,
+     "text": "if (((__typeof__((D_800F569C->curveBlock).psx_type_[0]))(long unsigned int)(D_800F569C->curveBlock).raw) != 0) {",
+     "size": 4,
+     "count": 19743,
+     "kind": "against a constant",
+     "outcomes": "== 7303, < 0, > 12440 (signed); < 0, > 12440 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4246720"
+    },
+    {
+     "line": 33,
+     "text": "if (var_s0->renderer(var_s0, 2, 0) == 0) {",
+     "size": 4,
+     "count": 29631,
+     "kind": "against a constant",
+     "outcomes": "== 3738, < 14675, > 11218 (signed); < 0, > 25893 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147266882"
+    },
+    {
+     "line": 38,
+     "text": "if (func_800D51D8(var_s1) == 0) {",
+     "size": 4,
+     "count": 19743,
+     "kind": "against a constant",
+     "outcomes": "== 4924, < 7554, > 7265 (signed); < 0, > 14819 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147381183..2147061597"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37291,
+     "completion_tokens": 7645,
+     "reasoning_tokens": 6744,
+     "cost": 0.0075516,
+     "seconds": 29.7,
+     "sample": 1,
+     "conversation": "46dc180c2d852e34feb9f98478ceb8678fa9c8f670b81bf80aa3655078a27db6"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/common/psx.zig:241:12: error: @ptrCast increases pointer alignment\n    return @ptrCast(p);\n           ^~~~~~~~~~~\ngame/common/psx.zig:241:21: note: '*align(4) views_5BF94.func_800D4910_t' has alignment '4'\n    return @ptrCast(p);\n                    ^\ngame/common/psx.zig:241:12: note: '[*c]c_5BF94.struct_func_800D4910_t' has alignment '8'\ngame/common/psx.zig:241:12: note: use @alignCast to assert pointer alignment\nreferenced by:\n    func_800CED60: game/battle/func_800CED60.zig:38:65\n    main: pc/tests/zig_diff/main.zig:469:31\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38565,
+     "completion_tokens": 2258,
+     "reasoning_tokens": 1225,
+     "cost": 0.0049855,
+     "seconds": 9.2,
+     "sample": 1,
+     "conversation": "b5735b860349c49533df41fa48332b592999a6d5cdbbf13604bae9ddfdd775c6"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CED60.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CED60.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 75.21644238199588,
+ "wall_seconds": 481.79074246600067,
+ "totals": {
+  "cost": 0.02886,
+  "prompt_tokens": 89667,
+  "completion_tokens": 39788,
+  "model_seconds": 164.8,
+  "check_seconds": 75.2,
+  "calls": 3,
+  "wall_seconds": 481.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "port_fixes": [
+   "func_800CF70C called directly through c. with @alignCast, no function-pointer cast to a private prototype"
+  ],
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 248 / root 481 / root 850, 0 mismatches"
+ }
+}

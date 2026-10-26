@@ -1,0 +1,191 @@
+{
+ "function": "vs_battle_setDoorEntered2",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation D6: off-by-one roomCount offset: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is w",
+ "plan": {
+  "name": "vs_battle_setDoorEntered2",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008d948",
+  "difficulty": "S",
+  "zig_name": "setDoorEntered2",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_door_entered2",
+  "spec_file": "setDoorEntered2.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setDoorEntered2(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_scene"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12644,
+     "completion_tokens": 12742,
+     "reasoning_tokens": 11151,
+     "cost": 0.0076354,
+     "seconds": 58.2,
+     "sample": 1,
+     "conversation": "cd907a7efa5261b010d09dc87c505ad875da07999c65ff473131fb8d824db9a1"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 28, fault address 0x1196b146 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x4559427 (class hit)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14646,
+     "completion_tokens": 5057,
+     "reasoning_tokens": 3461,
+     "cost": 0.0039931,
+     "seconds": 20.4,
+     "sample": 1,
+     "conversation": "6341ca0cb5897abe38c6406541411ab833766142c2ed7218d8d5367c9293d021"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation D6: off-by-one roomCount offset: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x69dabf2c [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x5 (class miss)"
+    ]
+   }
+  ],
+  "classes": {
+   "no-section": "5973",
+   "no-entries": "6001",
+   "hit": "3071",
+   "miss": "14955"
+  },
+  "mutations": [
+   {
+    "name": "D1: loop misses its last entry",
+    "caught": true
+   },
+   {
+    "name": "D2: wrong flag constant (0x20 for 0x10)",
+    "caught": true
+   },
+   {
+    "name": "D3: doorEntered store dropped",
+    "caught": true
+   },
+   {
+    "name": "D4: loop count read without advancing past it",
+    "caught": true
+   },
+   {
+    "name": "D5: entry stride of two words",
+    "caught": true
+   },
+   {
+    "name": "D6: off-by-one roomCount offset",
+    "caught": false
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 16,
+   "lines_hit": 16,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "if (((__typeof__((vs_battle_roomData.sectionF).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionF).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 5973, < 0, > 24027 (signed); < 0, > 24027 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4231792"
+    },
+    {
+     "line": 17,
+     "text": "for (i = 0; i < temp_a3; ++i) {",
+     "size": 4,
+     "count": 87093,
+     "kind": "a == b / a < b",
+     "outcomes": "== 21063, < 63066, > 2964 (signed); < 66030, > 0 (unsigned)",
+     "operand": "b -1..6",
+     "a": "0..6"
+    },
+    {
+     "line": 18,
+     "text": "if (i == arg0) {",
+     "size": 4,
+     "count": 63066,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3071, < 32856, > 27139 (signed); < 54827, > 5168 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "0..5"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 17.254335699000876,
+ "wall_seconds": 96.37167493199922,
+ "totals": {
+  "cost": 0.01163,
+  "prompt_tokens": 27290,
+  "completion_tokens": 17799,
+  "model_seconds": 78.6,
+  "check_seconds": 17.3,
+  "calls": 2,
+  "wall_seconds": 96.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

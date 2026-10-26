@@ -1,0 +1,246 @@
+{
+ "function": "_dropLoot",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_dropLoot",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006be64",
+  "difficulty": "S",
+  "zig_name": "dropLoot",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "drop_loot",
+  "spec_file": "dropLoot.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn dropLoot(enemy: ?*v.vs_battle_actor) callconv(.c) void",
+  "params": [
+   [
+    "enemy",
+    "?*v.vs_battle_actor"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_lootListNode"
+  ],
+  "globals": [
+   "_lootListHead"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17237,
+     "completion_tokens": 23513,
+     "reasoning_tokens": 21074,
+     "cost": 0.0134802,
+     "seconds": 99.1,
+     "sample": 1,
+     "conversation": "e7d1c0db547e02b0a133b17df7460af5d43fcd5a8e59ec24942ca497aa2bed1a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "alloc-fails": "6095",
+   "no-drops": "6000",
+   "already-listed": "5910",
+   "insert-empty-list": "5943",
+   "insert-after-list": "6052"
+  },
+  "mutations": [
+   {
+    "name": "L1: the limb loop stops at 5 (limb 5 skipped)",
+    "caught": true
+   },
+   {
+    "name": "L2: a matching node does not block the insert",
+    "caught": true
+   },
+   {
+    "name": "L3: the new node's id is never stored",
+    "caught": true
+   },
+   {
+    "name": "L4: bzero clears only the actorId, not the loot",
+    "caught": true
+   },
+   {
+    "name": "L5: the list entry takes the wrong field (subType for id)",
+    "caught": true
+   },
+   {
+    "name": "L6: the misc-rand roll is dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 31,
+   "lines_hit": 31,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 17,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 167335,
+     "kind": "against a constant",
+     "outcomes": "== 23905, < 119525, > 23905 (signed); < 119525, > 23905 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 18,
+     "text": "if (temp_s2->limbs[i].armor.armor.id != 0) {",
+     "size": 2,
+     "count": 143430,
+     "kind": "against a constant",
+     "outcomes": "== 35947, < 53637, > 53846 (signed); < 0, > 107483 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32766"
+    },
+    {
+     "line": 27,
+     "text": "if (lootList->actorId != 0) {",
+     "size": 4,
+     "count": 23905,
+     "kind": "against a constant",
+     "outcomes": "== 6000, < 17871, > 34 (signed); < 0, > 17905 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1073741825..2147483647"
+    },
+    {
+     "line": 33,
+     "text": "if (node->actorId == enemy->id) {",
+     "size": 4,
+     "count": 23951,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5910, < 9066, > 8975 (signed); < 8252, > 9789 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 39,
+     "text": "if (insertLoot != 0) {",
+     "size": 4,
+     "count": 17905,
+     "kind": "against a constant",
+     "outcomes": "== 5910, < 0, > 11995 (signed); < 0, > 11995 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40728,
+     "completion_tokens": 7247,
+     "reasoning_tokens": 6177,
+     "cost": 0.0076963,
+     "seconds": 29.6,
+     "sample": 1,
+     "conversation": "ca4c9e1daa4274e205a22898b69d23fd9cd2a89a04e985deee568bae4efea99d"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/dropLoot.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/drop_loot.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 94.29347748400141,
+ "wall_seconds": 292.9685544499989,
+ "totals": {
+  "cost": 0.02118,
+  "prompt_tokens": 57965,
+  "completion_tokens": 30760,
+  "model_seconds": 128.7,
+  "check_seconds": 94.3,
+  "calls": 2,
+  "wall_seconds": 293.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

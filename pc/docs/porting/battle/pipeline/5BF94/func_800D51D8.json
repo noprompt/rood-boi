@@ -1,0 +1,258 @@
+{
+ "function": "func_800D51D8",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40",
+ "plan": {
+  "name": "func_800D51D8",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d51d8",
+  "difficulty": "M",
+  "zig_name": "func_800D51D8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D51D8",
+  "spec_file": "func_800D51D8.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D51D8(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "D_800F53B8_t"
+  ],
+  "globals": [
+   "D_800EC3F4"
+  ],
+  "hooks": [
+   "pc_unimplemented",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12092,
+     "completion_tokens": 18104,
+     "reasoning_tokens": 16090,
+     "cost": 0.0102612,
+     "seconds": 80.4,
+     "sample": 1,
+     "conversation": "7f858426d29a80dfe8b2dc5ee2588b1a21edb184fb905cd4b2d141d12a663243"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "out-of-range": "9917",
+   "all-repeat": "2599",
+   "exit-2": "4186",
+   "exit-other": "13298"
+  },
+  "mutations": [
+   {
+    "name": "D1: opcode 49 counted as in range",
+    "caught": true
+   },
+   {
+    "name": "D2: the unimplemented report dropped",
+    "caught": true
+   },
+   {
+    "name": "D3: a handler result 2 does not end the loop",
+    "caught": true
+   },
+   {
+    "name": "D4: the loop repeats on any result but 2",
+    "caught": true
+   },
+   {
+    "name": "D5: the fall-through return is 0, not 1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (opcode >= 49) {",
+     "size": 4,
+     "count": 103938,
+     "kind": "against a constant",
+     "outcomes": "== 17231, < 52331, > 34376 (signed); < 52331, > 34376 (unsigned)",
+     "operand": "constant 48",
+     "a": "0..50"
+    },
+    {
+     "line": 17,
+     "text": "if (miscIndex == 2) {",
+     "size": 4,
+     "count": 103938,
+     "kind": "against a constant",
+     "outcomes": "== 10216, < 80505, > 13217 (signed); < 80505, > 13217 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..255"
+    },
+    {
+     "line": 20,
+     "text": "} while (miscIndex == 1);",
+     "size": 4,
+     "count": 93722,
+     "kind": "against a constant",
+     "outcomes": "== 73938, < 6567, > 13217 (signed); < 6567, > 13217 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..255"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35564,
+     "completion_tokens": 2911,
+     "reasoning_tokens": 2468,
+     "cost": 0.0050119,
+     "seconds": 12.8,
+     "sample": 1,
+     "conversation": "11fe330374ccd4bc1b9e80bd5c27794ee7662be1a73c28872611ec4c3b224dd0"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 2: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 5: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: func_800D51D8: 1951 iterations, seed 1, 1000 mismatches; classes: out-of-range=653 all-repeat=175 exit-2=268 exit-other=855"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36291,
+     "completion_tokens": 2551,
+     "reasoning_tokens": 1854,
+     "cost": 0.0049046,
+     "seconds": 12.7,
+     "sample": 1,
+     "conversation": "2fd8004860da39671c569047eb31f0f6976d337cf3e484653cd1531d9453039a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_800D51D8/port2/build/harness.o: in function `func_800D51D8.func_800D51D8':\ngame/battle/func_800D51D8.zig:11:(.text.func_800D51D8.func_800D51D8+0x11): undefined reference to `pc_msg_effectOpcodeRange'\n/usr/bin/ld: pc/build/port-pipeline/func_800D51D8/port2/build/harness.o:(.debug_info+0x1e34): undefined reference to `pc_msg_effectOpcodeRange'\n/usr/bin/ld: pc/build/port-pipeline/func_800D51D8/port2/build/zdiff: hidden symbol `pc_msg_effectOpcodeRange' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37336,
+     "completion_tokens": 1963,
+     "reasoning_tokens": 1267,
+     "cost": 0.0047151,
+     "seconds": 9.9,
+     "sample": 1,
+     "conversation": "1cd31b09053b67f23e86a8f0edca5534c927dba5aba3a7ff6be5407aea81c3ce"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 2: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 5: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: func_800D51D8: 1951 iterations, seed 1, 1000 mismatches; classes: out-of-range=653 all-repeat=175 exit-2=268 exit-other=855"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 18.296007967997866,
+ "wall_seconds": 134.29908747599984,
+ "totals": {
+  "cost": 0.02489,
+  "prompt_tokens": 121283,
+  "completion_tokens": 25529,
+  "model_seconds": 115.8,
+  "check_seconds": 18.3,
+  "calls": 4,
+  "wall_seconds": 134.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

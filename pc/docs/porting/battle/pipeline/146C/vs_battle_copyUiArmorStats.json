@@ -1,0 +1,208 @@
+{
+ "function": "vs_battle_copyUiArmorStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_copyUiArmorStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006baa8",
+  "difficulty": "S",
+  "zig_name": "copyUiArmorStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_ui_armor_stats",
+  "spec_file": "copyUiArmorStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyUiArmorStats(target: ?*v.vs_main_inventoryArmor, source: ?*v.vs_battle_uiArmor) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_main_inventoryArmor"
+   ],
+   [
+    "source",
+    "?*v.vs_battle_uiArmor"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiArmor",
+   "vs_main_inventoryArmor"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12062,
+     "completion_tokens": 7354,
+     "reasoning_tokens": 5880,
+     "cost": 0.0048832,
+     "seconds": 31.2,
+     "sample": 1,
+     "conversation": "ff1c53da8de6c93d32b0c1a108d89b4b56dd295336e296067a3ae6ecf80413ba"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-armor": "3076",
+   "armor-sign-bit": "13508",
+   "armor-plain-id": "13416"
+  },
+  "mutations": [
+   {
+    "name": "A1: armor id compared to 1",
+    "caught": true
+   },
+   {
+    "name": "A2: armor currentDp copied from maxDp",
+    "caught": true
+   },
+   {
+    "name": "A3: copy moved after the callee call",
+    "caught": true
+   },
+   {
+    "name": "A4: callee never called",
+    "caught": true
+   },
+   {
+    "name": "A5: signed id test (sign bit skips the copy)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (source->armor.id != 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3076, < 13508, > 13416 (signed); < 0, > 26924 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35501,
+     "completion_tokens": 1940,
+     "reasoning_tokens": 1595,
+     "cost": 0.0045201,
+     "seconds": 9.2,
+     "sample": 1,
+     "conversation": "8ea83b11f80c0127ba780be34c553211dd05d78c2fc3ed82cf8fad2c5ca6a612"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyUiArmorStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_ui_armor_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 95.85504247300014,
+ "wall_seconds": 232.61027040599947,
+ "totals": {
+  "cost": 0.0094,
+  "prompt_tokens": 47563,
+  "completion_tokens": 9294,
+  "model_seconds": 40.4,
+  "check_seconds": 95.9,
+  "calls": 2,
+  "wall_seconds": 232.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 15, 0 mismatches"
+ }
+}

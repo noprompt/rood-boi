@@ -1,0 +1,116 @@
+{
+ "function": "_printVariableWidthFont",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's bug). The harness fills every global and the arena with r",
+ "plan": {
+  "name": "_printVariableWidthFont",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c7230",
+  "difficulty": "L",
+  "zig_name": "printVariableWidthFont",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "print_variable_width_font",
+  "spec_file": "printVariableWidthFont.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn printVariableWidthFont(arg0: ?*v.vs_battle_textBox) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_battle_textBox"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F4E80",
+   "D_800F51B8",
+   "vs_gametime_tickspeed",
+   "vs_main_buttonsPressed"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "length",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 19370,
+     "completion_tokens": 64000,
+     "reasoning_tokens": 60450,
+     "cost": 0.033937,
+     "seconds": 274.3,
+     "sample": 1,
+     "conversation": "cc9b54d98a7265886b93a3d3ca9c80ecf00469e9891ee226f3ffdb456d74ec97"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no ```zig block in the reply",
+     "FAIL: no ```toml block in the reply"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22982,
+     "completion_tokens": 24832,
+     "reasoning_tokens": 20062,
+     "cost": 0.0147142,
+     "seconds": 99.9,
+     "sample": 1,
+     "conversation": "e902b1e6a40c5edd3b0781e6198db74e2c387c8e8a0ae86cb46385a3c74b4ed7"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x0 [NULL+0x0: a field of a null pointer]\nzdiff: crashed on arguments: 0x40c260 [arena] (class newline-justify)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [],
+  "coverage": null
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 0.7142756280009053,
+ "wall_seconds": 375.17524778699953,
+ "totals": {
+  "cost": 0.04865,
+  "prompt_tokens": 42352,
+  "completion_tokens": 88832,
+  "model_seconds": 374.2,
+  "check_seconds": 0.7,
+  "calls": 2,
+  "wall_seconds": 375.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

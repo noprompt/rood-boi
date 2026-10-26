@@ -1,0 +1,506 @@
+{
+ "function": "func_800C930C",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_800C930C: branches 55/56 (98.2%), conditions not measured (GCC < 14: branch ",
+ "plan": {
+  "name": "func_800C930C",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c930c",
+  "difficulty": "L",
+  "zig_name": "func_800C930C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800C930C",
+  "spec_file": "func_800C930C.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800C930C(mode: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "mode",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "vs_battle_menuItem_t"
+  ],
+  "globals": [
+   "D_800EBA78",
+   "D_800F4CC0",
+   "D_800F4EA0",
+   "vs_battle_menuItems",
+   "vs_battle_rowAnimationSteps",
+   "vs_battle_submenuStates",
+   "vs_main_buttonRepeat",
+   "vs_main_buttonsPressed",
+   "vs_main_buttonsState",
+   "vs_main_settings"
+  ],
+  "hooks": [
+   "pc_fast_travel_mask",
+   "pc_fast_travel_menu_bits",
+   "pc_ui_menu_active",
+   "pc_ui_menu_open",
+   "pc_ui_menu_top",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 19094,
+     "completion_tokens": 41984,
+     "reasoning_tokens": 38751,
+     "cost": 0.0229014,
+     "seconds": 177.4,
+     "sample": 1,
+     "conversation": "8a12395dfb052be3a85fbd0572f43c7fe533eaa9c1123a7af41d5df762f149e0"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800C930C/spec1/build/spec.zig:32:46: error: @ptrCast increases pointer alignment\n    const items: [*]v.vs_battle_menuItem_t = @ptrCast(block);\n                                             ^~~~~~~~~~~~~~~\npc/build/port-pipeline/func_800C930C/spec1/build/spec.zig:32:55: note: '*[2852]u8' has alignment '1'\n    const items: [*]v.vs_battle_menuItem_t = @ptrCast(block);\n                                                      ^~~~~\npc/build/port-pipeline/func_800C930C/spec1/build/spec.zig:32:46: note: '[*]views_5BF94.vs_battle_menuItem_t' has alignment '4'\npc/build/port-pipeline/func_800C930C/spec1/build/spec.zig:32:46: note: use @alignCast to assert pointer alignment\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22823,
+     "completion_tokens": 4956,
+     "reasoning_tokens": 1730,
+     "cost": 0.0047603,
+     "seconds": 17.7,
+     "sample": 1,
+     "conversation": "640157d25c00bb546c3cb640e6ec0af9d9fa65bc30abc7ab49199f1ab05d5b31"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800C930C: branches 55/56 (98.2%), conditions not measured (GCC < 14: branch coverage only), lines 82/82\n  UNCOVERED +50 b0: branch never taken: `(char*)&vs_battle_menuStrings[vs_battle_menuStrings[mode]]);`\n  note: waivers no longer needed: mode==10 ternary (vs_battle_setMenuItem's backgroundWidth argument)\ncoverage func_800C930C: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `(char*)&vs_battle_menuStrings[vs_battle_menuStrings[mode]]);` (+50): one way out of this test (+50 b0) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800C930C.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "mode-2-no-memory": "454",
+   "mode": "14554",
+   "animate": "9357",
+   "idle-at-zero": "1940",
+   "idle": "3695"
+  },
+  "mutations": [
+   {
+    "name": "M1: cursorMemory test negated",
+    "caught": true
+   },
+   {
+    "name": "M2: animation counter tested <= 0",
+    "caught": true
+   },
+   {
+    "name": "M3: animation step off by one",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong mask constant for items[1]",
+    "caught": true
+   },
+   {
+    "name": "M5: cursor's selected flag store dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: menu-items memset one word short",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 56,
+   "branches_hit": 55,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 82,
+   "lines_hit": 82,
+   "uncovered": [
+    {
+     "id": "+50 b0",
+     "line": 50,
+     "text": "(char*)&vs_battle_menuStrings[vs_battle_menuStrings[mode]]);",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147128861, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if (!mode && pc_ui_menu_active()) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14992, < 7549, > 7459 (signed); < 0, > 15008 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147128861"
+    },
+    {
+     "line": 10,
+     "text": "if (!mode && pc_ui_menu_active()) {",
+     "size": 4,
+     "count": 14992,
+     "kind": "against a constant",
+     "outcomes": "== 3681, < 0, > 11311 (signed); < 0, > 11311 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 15,
+     "text": "if (mode) {",
+     "size": 4,
+     "count": 18689,
+     "kind": "against a constant",
+     "outcomes": "== 3681, < 7549, > 7459 (signed); < 0, > 15008 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147128861"
+    },
+    {
+     "line": 16,
+     "text": "if (mode == 2 && !vs_main_settings.cursorMemory) {",
+     "size": 4,
+     "count": 15008,
+     "kind": "against a constant",
+     "outcomes": "== 1871, < 9462, > 3675 (signed); < 1913, > 11224 (unsigned)",
+     "operand": "constant 2",
+     "a": "-2147483648..2147128861"
+    },
+    {
+     "line": 16,
+     "text": "if (mode == 2 && !vs_main_settings.cursorMemory) {",
+     "size": 1,
+     "count": 1871,
+     "kind": "against a constant",
+     "outcomes": "== 454, < 939, > 478 (signed); < 0, > 1417 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 19,
+     "text": "while (!((enabled >> selected) & 1)) {",
+     "size": 4,
+     "count": 47420,
+     "kind": "against a constant",
+     "outcomes": "== 32412, < 0, > 15008 (signed); < 0, > 15008 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 25,
+     "text": "if (pc_ui_menu_open(mode)) {",
+     "size": 4,
+     "count": 15008,
+     "kind": "against a constant",
+     "outcomes": "== 11248, < 0, > 3760 (signed); < 0, > 3760 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 31,
+     "text": "for (mode = 0; mode < 10; ++mode) {",
+     "size": 4,
+     "count": 123728,
+     "kind": "against a constant",
+     "outcomes": "== 11248, < 101232, > 11248 (signed); < 101232, > 11248 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..10"
+    },
+    {
+     "line": 32,
+     "text": "if ((enabled >> mode) & 1) {",
+     "size": 4,
+     "count": 112480,
+     "kind": "against a constant",
+     "outcomes": "== 66108, < 0, > 46372 (signed); < 0, > 46372 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 40,
+     "text": "if (D_800F4CC0 < 0) {",
+     "size": 4,
+     "count": 3681,
+     "kind": "against a constant",
+     "outcomes": "== 489, < 2282, > 910 (signed); < 0, > 3192 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2146534128"
+    },
+    {
+     "line": 42,
+     "text": "for (selected = 0; mode < 10; ++mode) {",
+     "size": 4,
+     "count": 25102,
+     "kind": "against a constant",
+     "outcomes": "== 2282, < 20538, > 2282 (signed); < 20538, > 2282 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..10"
+    },
+    {
+     "line": 43,
+     "text": "if ((enabled >> mode) & 1) {",
+     "size": 4,
+     "count": 22820,
+     "kind": "against a constant",
+     "outcomes": "== 13440, < 0, > 9380 (signed); < 0, > 9380 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 45,
+     "text": "if (step != 0) {",
+     "size": 1,
+     "count": 9380,
+     "kind": "against a constant",
+     "outcomes": "== 434, < 0, > 8946 (signed); < 0, > 8946 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..20"
+    },
+    {
+     "line": 48,
+     "text": "vs_battle_setMenuItem(mode, vs_battle_rowAnimationSteps[step] + 194,",
+     "size": 4,
+     "count": 9380,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 9380, > 0 (signed); < 9380, > 0 (unsigned)",
+     "operand": "constant 10",
+     "a": "0..9"
+    },
+    {
+     "line": 53,
+     "text": "items[0].unselectable = (mask & pc_fast_travel_mask(0xB7)) != 0;",
+     "size": 4,
+     "count": 9380,
+     "kind": "against a constant",
+     "outcomes": "== 4004, < 1802, > 3574 (signed); < 0, > 5376 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2134850588"
+    },
+    {
+     "line": 54,
+     "text": "items[1].unselectable = (mask & 0x15F) != 0;",
+     "size": 4,
+     "count": 9380,
+     "kind": "against a constant",
+     "outcomes": "== 2183, < 0, > 7197 (signed); < 0, > 7197 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..351"
+    },
+    {
+     "line": 55,
+     "text": "items[3].unselectable = (mask & 7) != 0;",
+     "size": 4,
+     "count": 9380,
+     "kind": "against a constant",
+     "outcomes": "== 2720, < 0, > 6660 (signed); < 0, > 6660 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..7"
+    },
+    {
+     "line": 56,
+     "text": "items[5].unselectable = vs_battle_getCurrentSceneId() == 0;",
+     "size": 4,
+     "count": 9380,
+     "kind": "against a constant",
+     "outcomes": "== 2318, < 0, > 7062 (signed); < 0, > 7062 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 62,
+     "text": "if (vs_main_buttonsPressed.all & (1<< 5)) {",
+     "size": 4,
+     "count": 1399,
+     "kind": "against a constant",
+     "outcomes": "== 760, < 0, > 639 (signed); < 0, > 639 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..32"
+    },
+    {
+     "line": 69,
+     "text": "if (vs_main_buttonsPressed.all & ((1<< 4) | (1<< 6))) {",
+     "size": 4,
+     "count": 760,
+     "kind": "against a constant",
+     "outcomes": "== 225, < 0, > 535 (signed); < 0, > 535 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..80"
+    },
+    {
+     "line": 74,
+     "text": "if (vs_main_buttonRepeat & (1<<12)) {",
+     "size": 4,
+     "count": 225,
+     "kind": "against a constant",
+     "outcomes": "== 121, < 0, > 104 (signed); < 0, > 104 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4096"
+    },
+    {
+     "line": 77,
+     "text": "} while (!((enabled >> selected) & 1));",
+     "size": 4,
+     "count": 320,
+     "kind": "against a constant",
+     "outcomes": "== 216, < 0, > 104 (signed); < 0, > 104 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 79,
+     "text": "if (vs_main_buttonRepeat & (1<<14)) {",
+     "size": 4,
+     "count": 225,
+     "kind": "against a constant",
+     "outcomes": "== 142, < 0, > 83 (signed); < 0, > 83 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16384"
+    },
+    {
+     "line": 82,
+     "text": "while (!((enabled >> selected) & 1)) {",
+     "size": 4,
+     "count": 635,
+     "kind": "against a constant",
+     "outcomes": "== 410, < 0, > 225 (signed); < 0, > 225 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 85,
+     "text": "if (selected != vs_battle_submenuStates[0]) {",
+     "size": 4,
+     "count": 225,
+     "kind": "a == b / a < b",
+     "outcomes": "== 38, < 126, > 61 (signed); < 126, > 61 (unsigned)",
+     "operand": "b 0..15",
+     "a": "0..15"
+    },
+    {
+     "line": 92,
+     "text": "if (items[selected].unselectable) {",
+     "size": 1,
+     "count": 225,
+     "kind": "against a constant",
+     "outcomes": "== 73, < 88, > 64 (signed); < 0, > 152 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..107"
+    },
+    {
+     "line": 93,
+     "text": "if (vs_main_buttonsState & ((1<<12) | (1<<14))) {",
+     "size": 4,
+     "count": 152,
+     "kind": "against a constant",
+     "outcomes": "== 37, < 0, > 115 (signed); < 0, > 115 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..20480"
+    },
+    {
+     "line": 100,
+     "text": "if (selected == 0) {",
+     "size": 4,
+     "count": 37,
+     "kind": "against a constant",
+     "outcomes": "== 3, < 0, > 34 (signed); < 0, > 34 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 103,
+     "text": "if (selected == 1) {",
+     "size": 4,
+     "count": 37,
+     "kind": "against a constant",
+     "outcomes": "== 5, < 3, > 29 (signed); < 3, > 29 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..15"
+    },
+    {
+     "line": 106,
+     "text": "if (selected == 3) {",
+     "size": 4,
+     "count": 37,
+     "kind": "against a constant",
+     "outcomes": "== 2, < 12, > 23 (signed); < 12, > 23 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..15"
+    },
+    {
+     "line": 110,
+     "text": "for (mode = 0; mode < 9; ++mode) {",
+     "size": 4,
+     "count": 290,
+     "kind": "against a constant",
+     "outcomes": "== 28, < 234, > 28 (signed); < 234, > 28 (unsigned)",
+     "operand": "constant 8",
+     "a": "0..9"
+    },
+    {
+     "line": 111,
+     "text": "if (conditions & (1 << mode)) {",
+     "size": 4,
+     "count": 262,
+     "kind": "against a constant",
+     "outcomes": "== 253, < 0, > 9 (signed); < 0, > 9 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 26.265682422999816,
+ "wall_seconds": 221.68092319199786,
+ "totals": {
+  "cost": 0.02766,
+  "prompt_tokens": 41917,
+  "completion_tokens": 46940,
+  "model_seconds": 195.1,
+  "check_seconds": 26.3,
+  "calls": 2,
+  "wall_seconds": 221.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

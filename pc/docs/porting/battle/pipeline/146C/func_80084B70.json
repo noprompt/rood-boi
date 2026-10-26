@@ -1,0 +1,279 @@
+{
+ "function": "func_80084B70",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 0: return value zdiff: MISMATCH iteration 1: return value zdif",
+ "plan": {
+  "name": "func_80084B70",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80084b70",
+  "difficulty": "S",
+  "zig_name": "func_80084B70",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80084B70",
+  "spec_file": "func_80084B70.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80084B70(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "D_800F1A0C"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16161,
+     "completion_tokens": 17951,
+     "reasoning_tokens": 15300,
+     "cost": 0.0105916,
+     "seconds": 74.9,
+     "sample": 1,
+     "conversation": "dc4110926c62b78ae9c59310d46f326fa08238bc0e7c48e969a0910f0167250e"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "unk40-set": "10089",
+   "no-adjust": "1976",
+   "adjust": "15658",
+   "aliased-adjust": "2277"
+  },
+  "mutations": [
+   {
+    "name": "M1: statuses bit 15 masked as bit 14",
+    "caught": true
+   },
+   {
+    "name": "M2: unk957 compared against the wrong constant",
+    "caught": true
+   },
+   {
+    "name": "M3: arg4 tested as > 0 (negative arg4 skips the adjust)",
+    "caught": true
+   },
+   {
+    "name": "M4: hpEffect 3 written as 1 on the flag path",
+    "caught": true
+   },
+   {
+    "name": "M5: the flag reset before _calculateStatChange dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: _adjustDpPp gets temp_s2 and temp_s4 swapped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 17,
+   "lines_hit": 17,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147384507, max 2147116709, unsigned 295299..4294912678, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if (D_800F1A0C != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15018, < 7572, > 7410 (signed); < 0, > 14982 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147440160..2147199892"
+    },
+    {
+     "line": 16,
+     "text": "if (arg2->unk40 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14941, < 7618, > 7441 (signed); < 0, > 15059 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147437131..2147441302"
+    },
+    {
+     "line": 20,
+     "text": "if (temp_s2->unk957 != 0x80) {",
+     "size": 1,
+     "count": 14941,
+     "kind": "against a constant",
+     "outcomes": "== 7429, < 0, > 7512 (signed); < 3719, > 3793 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 24,
+     "text": "if (arg4 != 0) {",
+     "size": 4,
+     "count": 14941,
+     "kind": "against a constant",
+     "outcomes": "== 1464, < 6691, > 6786 (signed); < 0, > 13477 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39541,
+     "completion_tokens": 7203,
+     "reasoning_tokens": 6264,
+     "cost": 0.0075556,
+     "seconds": 29.6,
+     "sample": 1,
+     "conversation": "ee5e3747b69628a6cfd7f9069ec081fa53fe5d079ec638270067b003a908062a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084B70: 1006 iterations, seed 1, 1000 mismatches; classes: unk40-set=327 no-adjust=59 adjust=545 aliased-adjust=75"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: return value"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40660,
+     "completion_tokens": 3189,
+     "reasoning_tokens": 2003,
+     "cost": 0.0056605,
+     "seconds": 14.7,
+     "sample": 1,
+     "conversation": "7991337320d34206087b899f0f5f6bbec56d7997f3dbc48a4c78a257aa5a527b"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084B70: 1947 iterations, seed 1, 1000 mismatches; classes: unk40-set=647 no-adjust=117 adjust=1039 aliased-adjust=144"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: return value"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 16.739130138998007,
+ "wall_seconds": 136.4266423579993,
+ "totals": {
+  "cost": 0.02381,
+  "prompt_tokens": 96362,
+  "completion_tokens": 28343,
+  "model_seconds": 119.2,
+  "check_seconds": 16.7,
+  "calls": 3,
+  "wall_seconds": 136.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

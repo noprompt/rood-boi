@@ -1,0 +1,229 @@
+{
+ "function": "func_8008D2C0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 4): zdiff: CRASH (signal 11) in the Zig run, iteration 1, fault address 0x80068bfa [memory t",
+ "plan": {
+  "name": "func_8008D2C0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008d2c0",
+  "difficulty": "S",
+  "zig_name": "func_8008D2C0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008D2C0",
+  "spec_file": "func_8008D2C0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008D2C0(arg0: ?*v.func_8008D2C0_t) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.func_8008D2C0_t"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "func_8008D2C0_t"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [
+   "D_80068BEC"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13916,
+     "completion_tokens": 13032,
+     "reasoning_tokens": 10853,
+     "cost": 0.0079076,
+     "seconds": 55.0,
+     "sample": 1,
+     "conversation": "07bfdb74b177e943e51dffa249932425eeba88726c89395b3e9a5631e2718985"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-section": "3760",
+   "no-entries": "6661",
+   "all-hidden": "6148",
+   "mixed": "7327",
+   "all-visible": "6104"
+  },
+  "mutations": [
+   {
+    "name": "F1: returns the record count, not the visible count",
+    "caught": true
+   },
+   {
+    "name": "F2: hidden test inverted",
+    "caught": true
+   },
+   {
+    "name": "F3: unkA8 divided by a shift (rounds negatives toward -inf)",
+    "caught": true
+   },
+   {
+    "name": "F4: record count divided by 185",
+    "caught": true
+   },
+   {
+    "name": "F5: unk3 stores the output index, not the record index",
+    "caught": true
+   },
+   {
+    "name": "F6: subtraction operands swapped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 17,
+   "lines_hit": 17,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if (((__typeof__((vs_battle_roomData.section12).psx_type_[0]))(long unsigned int)(vs_battle_roomData.section12).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3760, < 0, > 26240 (signed); < 0, > 26240 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4235952"
+    },
+    {
+     "line": 15,
+     "text": "for (i = 0; i < temp_t3; ++i, ++var_t0) {",
+     "size": 4,
+     "count": 109529,
+     "kind": "a == b / a < b",
+     "outcomes": "== 26240, < 83289, > 0 (signed); < 83289, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 16,
+     "text": "if (!((var_t0->unk0_9))) {",
+     "size": 1,
+     "count": 83289,
+     "kind": "against a constant",
+     "outcomes": "== 41326, < 0, > 41963 (signed); < 0, > 41963 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37274,
+     "completion_tokens": 7490,
+     "reasoning_tokens": 6869,
+     "cost": 0.0074724,
+     "seconds": 33.1,
+     "sample": 1,
+     "conversation": "b1dc225eb5d64c83f8ef5a217ae20e91f6e279571da7062132af9121c72d6062"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_8008D2C0/port1/build/harness.o: in function `func_8008D2C0.func_8008D2C0':\ngame/battle/func_8008D2C0.zig:(.text.func_8008D2C0.func_8008D2C0+0x56): undefined reference to `D_80068BEC'\n/usr/bin/ld: pc/build/port-pipeline/func_8008D2C0/port1/build/harness.o:(.debug_info+0x1d33): undefined reference to `D_80068BEC'\n/usr/bin/ld: pc/build/port-pipeline/func_8008D2C0/port1/build/zdiff: hidden symbol `D_80068BEC' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38224,
+     "completion_tokens": 2571,
+     "reasoning_tokens": 1751,
+     "cost": 0.0051079,
+     "seconds": 12.5,
+     "sample": 1,
+     "conversation": "6ebcbe73a0275c52993b3cb1a88f85fed6299ca9ef2f579b6fe7b4e63d0bed4c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 4):\nzdiff: CRASH (signal 11) in the Zig run, iteration 1, fault address 0x80068bfa [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x406070 [arena] (class all-visible)"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 4,
+      "mismatches": null,
+      "first": "CRASH (signal 11) in the Zig run, iteration 1, fault address 0x80068bfa"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 14.351016962002177,
+ "wall_seconds": 115.42153194899947,
+ "totals": {
+  "cost": 0.02049,
+  "prompt_tokens": 89414,
+  "completion_tokens": 23093,
+  "model_seconds": 100.6,
+  "check_seconds": 14.4,
+  "calls": 3,
+  "wall_seconds": 115.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

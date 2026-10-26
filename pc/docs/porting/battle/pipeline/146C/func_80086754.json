@@ -1,0 +1,840 @@
+{
+ "function": "func_80086754",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound (the two uncovered branches, timers 3 and 4, are unreachable: the bit is cleared just before the test)",
+ "plan": {
+  "name": "func_80086754",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80086754",
+  "difficulty": "L",
+  "zig_name": "func_80086754",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80086754",
+  "spec_file": "func_80086754.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80086754(arg0: c_int, arg1: ?*v.vs_battle_actor2) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "?*v.vs_battle_actor2"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16632,
+     "completion_tokens": 27096,
+     "reasoning_tokens": 24549,
+     "cost": 0.0152112,
+     "seconds": 113.6,
+     "sample": 1,
+     "conversation": "e43b4ea0276243def42d091f7ae4d2a46579b62ec920874c4c7b1888e6f361a6"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80086754: branches 124/126 (98.4%), conditions not measured (GCC < 14: branch coverage only), lines 151/151\n  UNCOVERED +28 b1: branch never taken: `if (!(arg1->statuses & 0x2000)) {`\n  UNCOVERED +34 b1: branch never taken: `if (!(arg1->statuses & 0x8000)) {`\ncoverage func_80086754: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (!(arg1->statuses & 0x2000)) {` (+28): one way out of this test (+28 b1) was never taken; add inputs that take it.\n- `if (!(arg1->statuses & 0x8000)) {` (+34): one way out of this test (+34 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80086754.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 19577,
+     "completion_tokens": 4512,
+     "reasoning_tokens": 1699,
+     "cost": 0.0042137,
+     "seconds": 17.0,
+     "sample": 1,
+     "conversation": "722de80f65e65a3a5b8786d39eeb4f09baf7d75b00a8398b43fd06c8551df12d"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-affinity-bits": "642",
+   "affinity-case": "14759",
+   "affinity-default": "14599"
+  },
+  "mutations": [
+   {
+    "name": "S1: statusTimers[3] not cleared when the bit is newly set",
+    "caught": true
+   },
+   {
+    "name": "S2: agility group tested on the wrong bit",
+    "caught": true
+   },
+   {
+    "name": "S3: shield affinity bound <= for <",
+    "caught": true
+   },
+   {
+    "name": "S4: unsigned compare of a limb's hp",
+    "caught": true
+   },
+   {
+    "name": "S5: weapon unk168 reset at the wrong index",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 126,
+   "branches_hit": 124,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 151,
+   "lines_hit": 151,
+   "uncovered": [
+    {
+     "id": "+28 b1",
+     "line": 28,
+     "text": "if (!(arg1->statuses & 0x2000)) {",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+34 b1",
+     "line": 34,
+     "text": "if (!(arg1->statuses & 0x8000)) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483520, max 2146969605, unsigned 11..4294746372, seen negative, never zero"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (arg0 & 0x7E0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 5428, < 0, > 24572 (signed); < 0, > 24572 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2016"
+    },
+    {
+     "line": 10,
+     "text": "if (!(arg1->statuses & 0x7E0)) {",
+     "size": 4,
+     "count": 24572,
+     "kind": "against a constant",
+     "outcomes": "== 12977, < 0, > 11595 (signed); < 0, > 11595 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1984"
+    },
+    {
+     "line": 15,
+     "text": "if (arg0 & 0x810) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16850, < 0, > 13150 (signed); < 0, > 13150 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2064"
+    },
+    {
+     "line": 16,
+     "text": "if (!(arg1->statuses & 0x810)) {",
+     "size": 4,
+     "count": 13150,
+     "kind": "against a constant",
+     "outcomes": "== 10286, < 0, > 2864 (signed); < 0, > 2864 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2048"
+    },
+    {
+     "line": 21,
+     "text": "if (arg0 & 0x1FF80000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 369, < 0, > 29631 (signed); < 0, > 29631 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..536346624"
+    },
+    {
+     "line": 22,
+     "text": "if (!(arg1->statuses & 0x1FF80000)) {",
+     "size": 4,
+     "count": 29631,
+     "kind": "against a constant",
+     "outcomes": "== 15095, < 0, > 14536 (signed); < 0, > 14536 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..533725184"
+    },
+    {
+     "line": 27,
+     "text": "if (arg0 & 0x2000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22543, < 0, > 7457 (signed); < 0, > 7457 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..8192"
+    },
+    {
+     "line": 28,
+     "text": "if (!(arg1->statuses & 0x2000)) {",
+     "size": 4,
+     "count": 7457,
+     "kind": "against a constant",
+     "outcomes": "== 7457, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..0"
+    },
+    {
+     "line": 33,
+     "text": "if (arg0 & 0x8000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22480, < 0, > 7520 (signed); < 0, > 7520 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..32768"
+    },
+    {
+     "line": 34,
+     "text": "if (!(arg1->statuses & 0x8000)) {",
+     "size": 4,
+     "count": 7520,
+     "kind": "against a constant",
+     "outcomes": "== 7520, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..0"
+    },
+    {
+     "line": 39,
+     "text": "if (arg0 & 0x24000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16855, < 0, > 13145 (signed); < 0, > 13145 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..147456"
+    },
+    {
+     "line": 40,
+     "text": "if (!(arg1->statuses & 0x24000)) {",
+     "size": 4,
+     "count": 13145,
+     "kind": "against a constant",
+     "outcomes": "== 10290, < 0, > 2855 (signed); < 0, > 2855 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..131072"
+    },
+    {
+     "line": 45,
+     "text": "if (arg0 & 0x60) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16952, < 0, > 13048 (signed); < 0, > 13048 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..96"
+    },
+    {
+     "line": 49,
+     "text": "if (arg0 & 0x180) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16824, < 0, > 13176 (signed); < 0, > 13176 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..384"
+    },
+    {
+     "line": 53,
+     "text": "if (arg0 & 0x600) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16921, < 0, > 13079 (signed); < 0, > 13079 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1536"
+    },
+    {
+     "line": 57,
+     "text": "if (arg0 & 0x10000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22517, < 0, > 7483 (signed); < 0, > 7483 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..65536"
+    },
+    {
+     "line": 63,
+     "text": "if (arg0 & 0x8010) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16850, < 0, > 13150 (signed); < 0, > 13150 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..32784"
+    },
+    {
+     "line": 64,
+     "text": "if (arg0 & 0x10) {",
+     "size": 4,
+     "count": 13150,
+     "kind": "against a constant",
+     "outcomes": "== 5651, < 0, > 7499 (signed); < 0, > 7499 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16"
+    },
+    {
+     "line": 66,
+     "text": "if ((arg1->unk34 != 0) && (arg1->limbs[arg1->unk34].maxHp != 0)",
+     "size": 1,
+     "count": 7499,
+     "kind": "against a constant",
+     "outcomes": "== 654, < 2523, > 4322 (signed); < 0, > 6845 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 66,
+     "text": "if ((arg1->unk34 != 0) && (arg1->limbs[arg1->unk34].maxHp != 0)",
+     "size": 2,
+     "count": 6845,
+     "kind": "against a constant",
+     "outcomes": "== 329, < 3234, > 3282 (signed); < 0, > 6516 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32752..32756"
+    },
+    {
+     "line": 67,
+     "text": "&& (arg1->limbs[arg1->unk34].hp < 2)) {",
+     "size": 2,
+     "count": 6516,
+     "kind": "against a constant",
+     "outcomes": "== 81, < 3206, > 3229 (signed); < 81, > 6354 (unsigned)",
+     "operand": "constant 1",
+     "a": "-32767..32763"
+    },
+    {
+     "line": 71,
+     "text": "if ((arg1->unk35 != 0) && (arg1->limbs[arg1->unk35].maxHp != 0)",
+     "size": 1,
+     "count": 7499,
+     "kind": "against a constant",
+     "outcomes": "== 621, < 2581, > 4297 (signed); < 0, > 6878 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 71,
+     "text": "if ((arg1->unk35 != 0) && (arg1->limbs[arg1->unk35].maxHp != 0)",
+     "size": 2,
+     "count": 6878,
+     "kind": "against a constant",
+     "outcomes": "== 339, < 3289, > 3250 (signed); < 0, > 6539 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32766..32767"
+    },
+    {
+     "line": 72,
+     "text": "&& (arg1->limbs[arg1->unk35].hp < 2)) {",
+     "size": 2,
+     "count": 6539,
+     "kind": "against a constant",
+     "outcomes": "== 69, < 3021, > 3449 (signed); < 64, > 6406 (unsigned)",
+     "operand": "constant 1",
+     "a": "-32768..32765"
+    },
+    {
+     "line": 77,
+     "text": "if (!(arg1->statuses & 0x10)) {",
+     "size": 4,
+     "count": 13150,
+     "kind": "against a constant",
+     "outcomes": "== 11716, < 0, > 1434 (signed); < 0, > 1434 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16"
+    },
+    {
+     "line": 85,
+     "text": "if ((arg0 & 0x800) && !(arg1->statuses & 0x8010)) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22476, < 0, > 7524 (signed); < 0, > 7524 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2048"
+    },
+    {
+     "line": 85,
+     "text": "if ((arg0 & 0x800) && !(arg1->statuses & 0x8010)) {",
+     "size": 4,
+     "count": 7524,
+     "kind": "against a constant",
+     "outcomes": "== 5178, < 0, > 2346 (signed); < 0, > 2346 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..32784"
+    },
+    {
+     "line": 93,
+     "text": "if (arg0 & 0x180000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16810, < 0, > 13190 (signed); < 0, > 13190 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1572864"
+    },
+    {
+     "line": 94,
+     "text": "if (arg1->weapon.blade.id != 0) {",
+     "size": 2,
+     "count": 13190,
+     "kind": "against a constant",
+     "outcomes": "== 5207, < 2711, > 5272 (signed); < 0, > 7983 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 99,
+     "text": "if (arg1->shield.base.id != 0) {",
+     "size": 2,
+     "count": 13190,
+     "kind": "against a constant",
+     "outcomes": "== 5286, < 2570, > 5334 (signed); < 0, > 7904 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 104,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 92330,
+     "kind": "against a constant",
+     "outcomes": "== 13190, < 65950, > 13190 (signed); < 65950, > 13190 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 105,
+     "text": "if (arg1->limbs[i].armor.armor.id != 0) {",
+     "size": 2,
+     "count": 79140,
+     "kind": "against a constant",
+     "outcomes": "== 31341, < 15930, > 31869 (signed); < 0, > 47799 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 114,
+     "text": "if (temp_v1_2 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 4305, < 0, > 25695 (signed); < 0, > 25695 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..31457280"
+    },
+    {
+     "line": 115,
+     "text": "switch (temp_v1_2) {",
+     "size": 4,
+     "count": 25695,
+     "kind": "switch",
+     "outcomes": "== 17205, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "2097152..31457280"
+    },
+    {
+     "line": 142,
+     "text": "if (statIncrease != 7) {",
+     "size": 4,
+     "count": 25695,
+     "kind": "against a constant",
+     "outcomes": "== 8490, < 17205, > 0 (signed); < 17205, > 0 (unsigned)",
+     "operand": "constant 7",
+     "a": "1..7"
+    },
+    {
+     "line": 143,
+     "text": "if (arg1->weapon.blade.id != 0) {",
+     "size": 2,
+     "count": 17205,
+     "kind": "against a constant",
+     "outcomes": "== 6708, < 3503, > 6994 (signed); < 0, > 10497 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 145,
+     "text": "if ((arg1->weapon.blade.affinities[statIncrease] < 50)",
+     "size": 1,
+     "count": 10497,
+     "kind": "against a constant",
+     "outcomes": "== 661, < 6194, > 3642 (signed); < 960, > 8876 (unsigned)",
+     "operand": "constant 49",
+     "a": "-128..127"
+    },
+    {
+     "line": 146,
+     "text": "&& (vs_main_getRand(8) == 0)) {",
+     "size": 4,
+     "count": 6855,
+     "kind": "against a constant",
+     "outcomes": "== 1693, < 2504, > 2658 (signed); < 0, > 5162 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147359942..2145293630"
+    },
+    {
+     "line": 150,
+     "text": "if (arg1->unk957 == 0) {",
+     "size": 1,
+     "count": 1693,
+     "kind": "against a constant",
+     "outcomes": "== 837, < 0, > 856 (signed); < 0, > 856 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 155,
+     "text": "if ((arg1->weapon.blade.affinities[statDecrease] > -100)",
+     "size": 1,
+     "count": 10497,
+     "kind": "against a constant",
+     "outcomes": "== 644, < 2541, > 7312 (signed); < 7857, > 1996 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 156,
+     "text": "&& (vs_main_getRand(16) == 0)) {",
+     "size": 4,
+     "count": 7956,
+     "kind": "against a constant",
+     "outcomes": "== 1989, < 2998, > 2969 (signed); < 0, > 5967 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147476345..2145808068"
+    },
+    {
+     "line": 160,
+     "text": "if (arg1->unk957 == 0) {",
+     "size": 1,
+     "count": 1989,
+     "kind": "against a constant",
+     "outcomes": "== 979, < 0, > 1010 (signed); < 0, > 1010 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 175,
+     "text": "if (temp_v1_2 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 4293, < 0, > 25707 (signed); < 0, > 25707 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..503316480"
+    },
+    {
+     "line": 177,
+     "text": "switch (temp_v1_2) {",
+     "size": 4,
+     "count": 25707,
+     "kind": "switch",
+     "outcomes": "== 17202, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "33554432..503316480"
+    },
+    {
+     "line": 204,
+     "text": "if (statIncrease != 7) {",
+     "size": 4,
+     "count": 25707,
+     "kind": "against a constant",
+     "outcomes": "== 8505, < 17202, > 0 (signed); < 17202, > 0 (unsigned)",
+     "operand": "constant 7",
+     "a": "1..7"
+    },
+    {
+     "line": 205,
+     "text": "if (arg1->shield.base.id != 0) {",
+     "size": 2,
+     "count": 17202,
+     "kind": "against a constant",
+     "outcomes": "== 6971, < 3336, > 6895 (signed); < 0, > 10231 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 207,
+     "text": "if ((arg1->shield.base.affinities[statIncrease] < 50)",
+     "size": 1,
+     "count": 10231,
+     "kind": "against a constant",
+     "outcomes": "== 634, < 6223, > 3374 (signed); < 1057, > 8540 (unsigned)",
+     "operand": "constant 49",
+     "a": "-128..127"
+    },
+    {
+     "line": 208,
+     "text": "&& (vs_main_getRand(8) == 0)) {",
+     "size": 4,
+     "count": 6857,
+     "kind": "against a constant",
+     "outcomes": "== 1669, < 2572, > 2616 (signed); < 0, > 5188 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146397386..2147111210"
+    },
+    {
+     "line": 212,
+     "text": "if (arg1->unk957 == 0) {",
+     "size": 1,
+     "count": 1669,
+     "kind": "against a constant",
+     "outcomes": "== 839, < 0, > 830 (signed); < 0, > 830 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 217,
+     "text": "if ((arg1->shield.base.affinities[statDecrease] > -100)",
+     "size": 1,
+     "count": 10231,
+     "kind": "against a constant",
+     "outcomes": "== 594, < 2393, > 7244 (signed); < 7500, > 2137 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 218,
+     "text": "&& (vs_main_getRand(0x10) == 0)) {",
+     "size": 4,
+     "count": 7838,
+     "kind": "against a constant",
+     "outcomes": "== 1936, < 2874, > 3028 (signed); < 0, > 5902 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147141370..2147041507"
+    },
+    {
+     "line": 222,
+     "text": "if (arg1->unk957 == 0) {",
+     "size": 1,
+     "count": 1936,
+     "kind": "against a constant",
+     "outcomes": "== 995, < 0, > 941 (signed); < 0, > 941 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 233,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 120414,
+     "kind": "against a constant",
+     "outcomes": "== 17202, < 86010, > 17202 (signed); < 86010, > 17202 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 234,
+     "text": "if (arg1->limbs[i].armor.armor.id != 0) {",
+     "size": 2,
+     "count": 103212,
+     "kind": "against a constant",
+     "outcomes": "== 6810, < 46751, > 49651 (signed); < 0, > 96402 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 236,
+     "text": "if ((arg1->limbs[i].armor.armor.affinities[statIncrease] < 50)",
+     "size": 1,
+     "count": 96402,
+     "kind": "against a constant",
+     "outcomes": "== 6153, < 57581, > 32668 (signed); < 9399, > 80850 (unsigned)",
+     "operand": "constant 49",
+     "a": "-128..127"
+    },
+    {
+     "line": 237,
+     "text": "&& (vs_main_getRand(8) == 0)) {",
+     "size": 4,
+     "count": 63734,
+     "kind": "against a constant",
+     "outcomes": "== 16222, < 23915, > 23597 (signed); < 0, > 47512 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147377100..2147358814"
+    },
+    {
+     "line": 241,
+     "text": "if (arg1->unk957 == 0) {",
+     "size": 1,
+     "count": 16222,
+     "kind": "against a constant",
+     "outcomes": "== 8152, < 0, > 8070 (signed); < 0, > 8070 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 246,
+     "text": "if ((arg1->limbs[i].armor.armor.affinities[statDecrease] > -100)",
+     "size": 1,
+     "count": 96402,
+     "kind": "against a constant",
+     "outcomes": "== 6112, < 23502, > 66788 (signed); < 71511, > 18779 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 247,
+     "text": "&& (vs_main_getRand(16) == 0)) {",
+     "size": 4,
+     "count": 72900,
+     "kind": "against a constant",
+     "outcomes": "== 18197, < 27393, > 27310 (signed); < 0, > 54703 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147446215..2147422333"
+    },
+    {
+     "line": 251,
+     "text": "if (arg1->unk957 == 0) {",
+     "size": 1,
+     "count": 18197,
+     "kind": "against a constant",
+     "outcomes": "== 9021, < 0, > 9176 (signed); < 0, > 9176 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+28 b1",
+    "reason": "Line 1 of the C (`arg1->statuses &= ~arg0;`) clears every bit of arg0 in statuses before this test. Once `arg0 & 0x2000` is set, `statuses & 0x2000` is always 0, so `!(statuses & 0x2000)` is always true and the other way out cannot be reached by any input."
+   },
+   {
+    "id": "+34 b1",
+    "reason": "Same as +28: line 1 clears arg0's bits from statuses, so once `arg0 & 0x8000` is set, `statuses & 0x8000` is always 0 and `!(statuses & 0x8000)` is always true. The other way out is unreachable."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40120,
+     "completion_tokens": 15956,
+     "reasoning_tokens": 12438,
+     "cost": 0.01199,
+     "seconds": 58.0,
+     "sample": 1,
+     "conversation": "ced62143d983c94871a331761172a6bea52344f18634530054de4147d12126b5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80086754.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80086754.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 119.59013612199851,
+ "wall_seconds": 308.60330953799894,
+ "totals": {
+  "cost": 0.03141,
+  "prompt_tokens": 76329,
+  "completion_tokens": 47564,
+  "model_seconds": 188.6,
+  "check_seconds": 119.6,
+  "calls": 3,
+  "wall_seconds": 308.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

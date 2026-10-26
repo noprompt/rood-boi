@@ -1,0 +1,274 @@
+{
+ "function": "vs_battle_initTextBox",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_initTextBox",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ccf08",
+  "difficulty": "M",
+  "zig_name": "initTextBox",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "init_text_box",
+  "spec_file": "initTextBox.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn initTextBox(id: c_int, flags: c_int, x: c_int, y: c_int, charsPerLine: c_int, h: c_int, centerX: c_int, centerY: c_int) callconv(.c) void",
+  "params": [
+   [
+    "id",
+    "c_int"
+   ],
+   [
+    "flags",
+    "c_int"
+   ],
+   [
+    "x",
+    "c_int"
+   ],
+   [
+    "y",
+    "c_int"
+   ],
+   [
+    "charsPerLine",
+    "c_int"
+   ],
+   [
+    "h",
+    "c_int"
+   ],
+   [
+    "centerX",
+    "c_int"
+   ],
+   [
+    "centerY",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13199,
+     "completion_tokens": 9223,
+     "reasoning_tokens": 7647,
+     "cost": 0.0059314,
+     "seconds": 39.3,
+     "sample": 1,
+     "conversation": "6f333ae0e4287d9a44087e87bf8c41aedf3512720cce1365db59d74b4535e727"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "case-1": "1879",
+   "case-4": "1917",
+   "case-5": "1831",
+   "no-case": "24373"
+  },
+  "mutations": [
+   {
+    "name": "I1: unk22 shift table constant off by one",
+    "caught": true
+   },
+   {
+    "name": "I2: state test strict (< for <=)",
+    "caught": true
+   },
+   {
+    "name": "I3: case 4 yIndent uses 12 lines, not 13",
+    "caught": true
+   },
+   {
+    "name": "I4: flags masked to 15 bits",
+    "caught": true
+   },
+   {
+    "name": "I5: speed store dropped",
+    "caught": true
+   },
+   {
+    "name": "I6: xIndent taken from y",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 36,
+   "lines_hit": 36,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 7, seen zero, never negative, 8 value(s): 6, 0, 4, 7, 5, 2, 3, 1"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147082717, max 2147447174, unsigned 32565..4294743253, seen negative, never zero"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -1073741824, max 1073741823, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -1073741824, max 1073741823, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147386947, max 2147296150, unsigned 2188..4294593374, seen negative, never zero"
+    },
+    {
+     "arg": 5,
+     "count": 30000,
+     "text": "32-bit: min -67105155, max 67105924, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 6,
+     "count": 30000,
+     "text": "32-bit: min -2147214532, max 2147213430, unsigned 125768..4294857519, seen negative, never zero"
+    },
+    {
+     "arg": 7,
+     "count": 30000,
+     "text": "32-bit: min -2147282613, max 2147285954, unsigned 211938..4294943896, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 23,
+     "text": "if (box->state <= 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9979, < 9884, > 10137 (signed); < 0, > 20021 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 27,
+     "text": "switch (box->unk0.unk0_0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 5627, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..15"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36562,
+     "completion_tokens": 5533,
+     "reasoning_tokens": 4480,
+     "cost": 0.0064227,
+     "seconds": 21.9,
+     "sample": 1,
+     "conversation": "f01300dcd9ca8e99f17e4d3a0f7204234bd440727be55a5d21052758db9887a5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/initTextBox.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/init_text_box.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 52.939285999000276,
+ "wall_seconds": 467.09877673699884,
+ "totals": {
+  "cost": 0.01235,
+  "prompt_tokens": 49761,
+  "completion_tokens": 14756,
+  "model_seconds": 61.2,
+  "check_seconds": 52.9,
+  "calls": 2,
+  "wall_seconds": 467.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 1 / root 3 / root 2, 0 mismatches"
+ }
+}

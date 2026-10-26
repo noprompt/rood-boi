@@ -1,0 +1,226 @@
+{
+ "function": "func_800D0B30",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "port bug fixed: arg1 unwrapped up front though the C touches it on the odd path only; spec now passes a null arg1 on the even path (without bit 15, so mutation M5 still bites); otherwise faithful",
+ "plan": {
+  "name": "func_800D0B30",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d0b30",
+  "difficulty": "M",
+  "zig_name": "func_800D0B30",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D0B30",
+  "spec_file": "func_800D0B30.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D0B30(arg0: ?*v.func_800D0B30_t, arg1: ?*v.SVECTOR, arg2: ?*v.func_800D0B30_t2) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.func_800D0B30_t"
+   ],
+   [
+    "arg1",
+    "?*v.SVECTOR"
+   ],
+   [
+    "arg2",
+    "?*v.func_800D0B30_t2"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_800CFE98_t",
+   "func_800D0B30_t",
+   "func_800D0B30_t2"
+  ],
+  "globals": [
+   "D_800F5330"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12571,
+     "completion_tokens": 12340,
+     "reasoning_tokens": 9994,
+     "cost": 0.0074271,
+     "seconds": 49.0,
+     "sample": 1,
+     "conversation": "7eb1e711381a062ea929afdf5b785b29463be725f8eb31961f33bdb6a7547cf9"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "odd-sign": "8744",
+   "odd-nosign": "6204",
+   "even": "15052"
+  },
+  "mutations": [
+   {
+    "name": "M1: vy takes unk8.vz",
+    "caught": true
+   },
+   {
+    "name": "M2: first lerp indexed by unk7",
+    "caught": true
+   },
+   {
+    "name": "M3: ScaleMatrix dropped",
+    "caught": true
+   },
+   {
+    "name": "M4: no return after the odd path",
+    "caught": true
+   },
+   {
+    "name": "M5: flag test uses the sign bit too",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 16,
+   "lines_hit": 16,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (arg0->unk0 & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15052, < 0, > 14948 (signed); < 0, > 14948 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35938,
+     "completion_tokens": 7725,
+     "reasoning_tokens": 6769,
+     "cost": 0.0074563,
+     "seconds": 30.6,
+     "sample": 1,
+     "conversation": "91fc5152388fda0e3a530aee261dbd6777355363db82efc96dc816802897df1d"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D0B30.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D0B30.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 58.24732121600027,
+ "wall_seconds": 234.79786012399927,
+ "totals": {
+  "cost": 0.01488,
+  "prompt_tokens": 48509,
+  "completion_tokens": 20065,
+  "model_seconds": 79.6,
+  "check_seconds": 58.2,
+  "calls": 2,
+  "wall_seconds": 234.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "port_fixes": [
+   "arg1.? moved inside the odd path (null guard neither added nor dropped)"
+  ],
+  "spec_fixes": [
+   "prepare passes a null arg1 when unk0 & 0x8001 == 0 (a third of those draws)"
+  ],
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 927 / nested 2160 / nested 1035, 0 mismatches"
+ }
+}

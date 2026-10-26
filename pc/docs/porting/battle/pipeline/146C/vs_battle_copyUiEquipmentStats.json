@@ -1,0 +1,228 @@
+{
+ "function": "vs_battle_copyUiEquipmentStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_copyUiEquipmentStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006b7bc",
+  "difficulty": "S",
+  "zig_name": "copyUiEquipmentStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_ui_equipment_stats",
+  "spec_file": "copyUiEquipmentStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyUiEquipmentStats(target: ?*v.vs_main_inventoryArmor, source: ?*v.vs_battle_uiEquipment) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_main_inventoryArmor"
+   ],
+   [
+    "source",
+    "?*v.vs_battle_uiEquipment"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12014,
+     "completion_tokens": 5389,
+     "reasoning_tokens": 3670,
+     "cost": 0.0038959,
+     "seconds": 22.3,
+     "sample": 1,
+     "conversation": "b8d4e5ccf1dc785a5d7da5a2fdd7895c1571c60fb34a551bf5d26164abbd593c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "id-fits": "9503",
+   "id-truncated": "20497"
+  },
+  "mutations": [
+   {
+    "name": "C1: affinities loop stops at 6",
+    "caught": true
+   },
+   {
+    "name": "C2: material not stored",
+    "caught": true
+   },
+   {
+    "name": "C3: maxDp read from currentDp",
+    "caught": true
+   },
+   {
+    "name": "C4: classes copied from affinities",
+    "caught": true
+   },
+   {
+    "name": "C5: types loop starts at 1",
+    "caught": true
+   },
+   {
+    "name": "C6: id masked to 7 bits",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 22,
+   "lines_hit": 22,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 21,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 150000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 90000, > 30000 (signed); < 90000, > 30000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 25,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 29,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 240000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 180000, > 30000 (signed); < 180000, > 30000 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35438,
+     "completion_tokens": 2839,
+     "reasoning_tokens": 2270,
+     "cost": 0.0049633,
+     "seconds": 11.4,
+     "sample": 1,
+     "conversation": "7c125b82f668e2fb6335e18527d42062c6023f4a95ff616076b861f30e4b765b"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyUiEquipmentStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_ui_equipment_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 179.3694316609981,
+ "wall_seconds": 466.290864437,
+ "totals": {
+  "cost": 0.00886,
+  "prompt_tokens": 47452,
+  "completion_tokens": 8228,
+  "model_seconds": 33.7,
+  "check_seconds": 179.4,
+  "calls": 2,
+  "wall_seconds": 466.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 21, 0 mismatches"
+ }
+}

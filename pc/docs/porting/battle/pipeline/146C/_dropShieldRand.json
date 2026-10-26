@@ -1,0 +1,235 @@
+{
+ "function": "_dropShieldRand",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful after one fix; spec sound",
+ "plan": {
+  "name": "_dropShieldRand",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006bbec",
+  "difficulty": "S",
+  "zig_name": "dropShieldRand",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "drop_shield_rand",
+  "spec_file": "dropShieldRand.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn dropShieldRand(looted: ?*v.vs_battle_lootedShield, base: ?*v.vs_battle_uiShield) callconv(.c) c_int",
+  "params": [
+   [
+    "looted",
+    "?*v.vs_battle_lootedShield"
+   ],
+   [
+    "base",
+    "?*v.vs_battle_uiShield"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "vs_battle_lootedShield"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12534,
+     "completion_tokens": 12883,
+     "reasoning_tokens": 11035,
+     "cost": 0.0076949,
+     "seconds": 54.2,
+     "sample": 1,
+     "conversation": "327ae632ad8abf139891f65e7efa74bc6c30f392a1470eef72c6e608d44bbb15"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "rate-zero": "3022",
+   "gems-none": "1015",
+   "gems-some": "17905",
+   "gems-all": "8058"
+  },
+  "mutations": [
+   {
+    "name": "D1: roll test uses <= instead of <",
+    "caught": true
+   },
+   {
+    "name": "D2: unsigned roll compare (negative rolls fail)",
+    "caught": true
+   },
+   {
+    "name": "D3: gem loop stops at slot 1",
+    "caught": true
+   },
+   {
+    "name": "D4: gem copy dropped",
+    "caught": true
+   },
+   {
+    "name": "D5: difficultyFlags stored before the shield copy",
+    "caught": true
+   },
+   {
+    "name": "D6: roll drawn with 0xFE instead of 0xFF",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (vs_main_getRand(0xFF) < base->dropRate) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 14904, < 7187, > 7909 (signed); < 3411, > 11685 (unsigned)",
+     "operand": "b 0..255",
+     "a": "-2147344266..2147454457"
+    },
+    {
+     "line": 7,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 28748,
+     "kind": "against a constant",
+     "outcomes": "== 7187, < 14374, > 7187 (signed); < 14374, > 7187 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 8,
+     "text": "if (base->gems[i].id != 0) {",
+     "size": 2,
+     "count": 21561,
+     "kind": "against a constant",
+     "outcomes": "== 7230, < 8397, > 5934 (signed); < 0, > 14331 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32746"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36008,
+     "completion_tokens": 2823,
+     "reasoning_tokens": 2308,
+     "cost": 0.0050123,
+     "seconds": 12.1,
+     "sample": 1,
+     "conversation": "53084a0ebd0e389b931687406bda9f431e441fd0ca2243be3cd54491ba06d264"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/dropShieldRand.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/drop_shield_rand.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 242.5700451820012,
+ "wall_seconds": 596.6911924880005,
+ "totals": {
+  "cost": 0.01271,
+  "prompt_tokens": 48542,
+  "completion_tokens": 15706,
+  "model_seconds": 66.3,
+  "check_seconds": 242.6,
+  "calls": 2,
+  "wall_seconds": 596.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "port_fixes": [
+   "looted.? and base.? unwrapped before the roll: looted is only dereferenced on the drop path in the C, moved inside the branch"
+  ],
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

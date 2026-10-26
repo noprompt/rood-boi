@@ -1,0 +1,277 @@
+{
+ "function": "_loadMpdRoomSection",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation L1: a zero section counts as present (>= 0 for > 0): not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at ",
+ "plan": {
+  "name": "_loadMpdRoomSection",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008a908",
+  "difficulty": "M",
+  "zig_name": "loadMpdRoomSection",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_mpd_room_section",
+  "spec_file": "loadMpdRoomSection.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadMpdRoomSection(arg0: c_int, data: ?*anyopaque) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "data",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "_mpdRoomCollisionMapSection",
+   "_mpdRoomSection",
+   "_mpdRoomSectionE",
+   "vs_battle_scene"
+  ],
+  "globals": [
+   "D_800F1BB6",
+   "D_800F1BBC",
+   "vs_battle_doorEntered",
+   "vs_main_stateFlags"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18021,
+     "completion_tokens": 35394,
+     "reasoning_tokens": 32799,
+     "cost": 0.0194991,
+     "seconds": 154.0,
+     "sample": 1,
+     "conversation": "6fc5a7d2b00c04e6617af99ffc1d3d33dd82fe7cec54c0b61d88e0f8b91139cf"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L1: a zero section counts as present (>= 0 for > 0): not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x4081c6 [arena] (zdiff_state+0x156): C 185, Zig 1\nzdiff: MISMATCH iteration 1: memory at 0x4080b0 [arena] (zdiff_state+0x40): C 83, Zig 160\nzdiff: MISMATCH iteration 2: memory at 0x4080ab [arena] (zdiff_state+0x3b): C 134, Zig 129\nzdiff: PANIC in the Zig run, iteration 6: psx_addr of 0xffffffffc74a8e84 (above 4 GB)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 20901,
+     "completion_tokens": 5692,
+     "reasoning_tokens": 3008,
+     "cost": 0.0049361,
+     "seconds": 23.2,
+     "sample": 1,
+     "conversation": "2c3e2037c051bc02a8ef164d78f5e8c2aff9ea0e2298c117760cfd8c69b487a0"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L1: a zero section counts as present (>= 0 for > 0): not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x4083c6 [arena] (zdiff_state+0x356): C 3, Zig 1\nzdiff: MISMATCH iteration 1: memory at 0x4082b0 [arena] (zdiff_state+0x240): C 182, Zig 54\nzdiff: MISMATCH iteration 2: memory at 0x4082ab [arena] (zdiff_state+0x23b): C 104, Zig 45\nzdiff: PANIC in the Zig run, iteration 12: psx_addr of 0xffffffffc211c651 (above 4 GB)"
+    ]
+   }
+  ],
+  "classes": {
+   "empty": "800",
+   "no-sectionE": "11706",
+   "unk8-not-positive": "11018",
+   "unk8-positive": "16476"
+  },
+  "mutations": [
+   {
+    "name": "L1: a zero section counts as present (>= 0 for > 0)",
+    "caught": false
+   },
+   {
+    "name": "L2: sectionE->unk8 tested against 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "L3: unk2 stores 0 instead of arg0",
+    "caught": true
+   },
+   {
+    "name": "L4: unk4 shifted by 1, not 2, before the pointer add",
+    "caught": true
+   },
+   {
+    "name": "L5: the final vs_main_wait dropped",
+    "caught": true
+   },
+   {
+    "name": "L6: the size sum skips the last section",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 22,
+   "branches_hit": 22,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 52,
+   "lines_hit": 52,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -2147308066, max 2146991572, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 10,
+     "text": "for (i = 0, dataSz = 0; i < 24; ++i) {",
+     "size": 4,
+     "count": 1000000,
+     "kind": "against a constant",
+     "outcomes": "== 40000, < 920000, > 40000 (signed); < 920000, > 40000 (unsigned)",
+     "operand": "constant 23",
+     "a": "0..24"
+    },
+    {
+     "line": 14,
+     "text": "if (dataSz == 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 800, < 0, > 39200 (signed); < 0, > 39200 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1700"
+    },
+    {
+     "line": 25,
+     "text": "for (i = 0; i < 24; i++) {",
+     "size": 4,
+     "count": 980000,
+     "kind": "against a constant",
+     "outcomes": "== 39200, < 901600, > 39200 (signed); < 901600, > 39200 (unsigned)",
+     "operand": "constant 23",
+     "a": "0..24"
+    },
+    {
+     "line": 26,
+     "text": "if (((int*)data)[i] > 0) {",
+     "size": 4,
+     "count": 940800,
+     "kind": "against a constant",
+     "outcomes": "== 282701, < 0, > 658099 (signed); < 0, > 658099 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..120"
+    },
+    {
+     "line": 38,
+     "text": "if (((__typeof__((vs_battle_roomData.geometrySection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.geometrySection).raw) != 0) {",
+     "size": 4,
+     "count": 39200,
+     "kind": "against a constant",
+     "outcomes": "== 11924, < 0, > 27276 (signed); < 0, > 27276 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4244672"
+    },
+    {
+     "line": 45,
+     "text": "if (sectionE->unk8 > 0) {",
+     "size": 4,
+     "count": 27494,
+     "kind": "against a constant",
+     "outcomes": "== 5616, < 5402, > 16476 (signed); < 0, > 21878 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..99"
+    },
+    {
+     "line": 53,
+     "text": "if (((__typeof__((vs_battle_roomData.collisionMapSection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.collisionMapSection).raw) != 0) {",
+     "size": 4,
+     "count": 39200,
+     "kind": "against a constant",
+     "outcomes": "== 11736, < 0, > 27464 (signed); < 0, > 27464 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4244792"
+    },
+    {
+     "line": 59,
+     "text": "if (((__typeof__((vs_battle_roomData.sectionF).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionF).raw) != 0) {",
+     "size": 4,
+     "count": 39200,
+     "kind": "against a constant",
+     "outcomes": "== 11825, < 0, > 27375 (signed); < 0, > 27375 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4245735"
+    },
+    {
+     "line": 63,
+     "text": "if (vs_main_stateFlags.doorEntered == 0) {",
+     "size": 1,
+     "count": 27375,
+     "kind": "against a constant",
+     "outcomes": "== 8289, < 7516, > 11570 (signed); < 0, > 19086 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 82,
+     "text": "if (((__typeof__((vs_battle_roomData.sectionE).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionE).raw) != 0) {",
+     "size": 4,
+     "count": 39200,
+     "kind": "against a constant",
+     "outcomes": "== 15703, < 0, > 23497 (signed); < 0, > 23497 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4248928"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 53.68709611099803,
+ "wall_seconds": 231.40406403699853,
+ "totals": {
+  "cost": 0.02444,
+  "prompt_tokens": 38922,
+  "completion_tokens": 41086,
+  "model_seconds": 177.2,
+  "check_seconds": 53.7,
+  "calls": 2,
+  "wall_seconds": 231.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

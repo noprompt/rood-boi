@@ -1,0 +1,405 @@
+{
+ "function": "vs_battle_renderTextRawColor",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (u_char wraps, c-3<2u unsigned, kerning, end-of-list link; nextPrim unwrapped at the end like the C); spec sound",
+ "plan": {
+  "name": "vs_battle_renderTextRawColor",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c6540",
+  "difficulty": "M",
+  "zig_name": "renderTextRawColor",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "render_text_raw_color",
+  "spec_file": "renderTextRawColor.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn renderTextRawColor(text: [*c]const u8, x: c_int, color: c_int, nextPrim: ?*anyopaque) callconv(.c) void",
+  "params": [
+   [
+    "text",
+    "[*c]const u8"
+   ],
+   [
+    "x",
+    "c_int"
+   ],
+   [
+    "color",
+    "c_int"
+   ],
+   [
+    "nextPrim",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800EB708",
+   "D_800EB7B4",
+   "D_800EB7D4",
+   "vs_scratch"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 20046,
+     "completion_tokens": 15314,
+     "reasoning_tokens": 13512,
+     "cost": 0.0096616,
+     "seconds": 67.8,
+     "sample": 1,
+     "conversation": "5476cfc85371f516c303a953bfa8bf1c82322de61d801fb44383399895c9c66a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage vs_battle_renderTextRawColor: branches 26/26 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 52/52\n  FLAG +61 sign: every value above 25 had the sign bit set (a port testing the sign, `< 0`, for this test would pass): `if (c < 26) {`\ncoverage vs_battle_renderTextRawColor: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (c < 26) {` (+61): this compares a value with 25. Every input where the value was above 25 also had its sign bit set (negative as a signed 8-bit number), so a port that tests the sign instead (`< 0`, or a signed read where the C reads unsigned) would pass your spec. Add inputs where the value is above 25 AND positive (e.g. 26, 256, 127).\nOnly a gap no input can reach (say why) may be waived instead: [[function.vs_battle_renderTextRawColor.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22266,
+     "completion_tokens": 4113,
+     "reasoning_tokens": 2021,
+     "cost": 0.0042831,
+     "seconds": 17.0,
+     "sample": 1,
+     "conversation": "cacb6ae7066874fe46f499f587c48c8a64e7389a89fcdcf592e1fc6ceca0712a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "empty-text": "3023",
+   "null-next": "6849",
+   "width-escape": "11244",
+   "glyph": "8884"
+  },
+  "mutations": [
+   {
+    "name": "G1: glyph 10 is 11",
+    "caught": true
+   },
+   {
+    "name": "B1: '[' takes the width path (> for >=)",
+    "caught": true
+   },
+   {
+    "name": "W1: escape width shifted by 1 always",
+    "caught": true
+   },
+   {
+    "name": "S1: signed c - 3 test (space and '!' enter the width path)",
+    "caught": true
+   },
+   {
+    "name": "C1: color store dropped",
+    "caught": true
+   },
+   {
+    "name": "K1: kerning uses c * 25",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 26,
+   "branches_hit": 26,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 52,
+   "lines_hit": 52,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+61 sign",
+     "line": 61,
+     "text": "if (c < 26) {",
+     "kind": "sign",
+     "bits": 8,
+     "constant": 25,
+     "what": "every value above 25 had the sign bit set (a port testing the sign, `< 0`, for this test would pass)"
+    }
+   ],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147207738, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 20,
+     "text": "while ((c = *text++) != 0) {",
+     "size": 1,
+     "count": 795556,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 11039, > 754517 (signed); < 0, > 765556 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 22,
+     "text": "if (c >= 0x3B) {",
+     "size": 1,
+     "count": 765556,
+     "kind": "against a constant",
+     "outcomes": "== 12643, < 463957, > 288956 (signed); < 447247, > 305666 (unsigned)",
+     "operand": "constant 58",
+     "a": "-33..96"
+    },
+    {
+     "line": 23,
+     "text": "if (c == 0x3B) {",
+     "size": 1,
+     "count": 305666,
+     "kind": "against a constant",
+     "outcomes": "== 12635, < 16710, > 276321 (signed); < 0, > 293031 (unsigned)",
+     "operand": "constant 59",
+     "a": "-33..96"
+    },
+    {
+     "line": 26,
+     "text": "} else if (c - 3 < 2u) {",
+     "size": 4,
+     "count": 459890,
+     "kind": "against a constant",
+     "outcomes": "== 12797, < 34144, > 412949 (signed); < 12642, > 434451 (unsigned)",
+     "operand": "constant 1",
+     "a": "-3..55"
+    },
+    {
+     "line": 29,
+     "text": "while ((ch = *scan++) != 0) {",
+     "size": 1,
+     "count": 484224,
+     "kind": "against a constant",
+     "outcomes": "== 25439, < 6589, > 452196 (signed); < 0, > 458785 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 31,
+     "text": "if (ch < 0x3C) {",
+     "size": 1,
+     "count": 458785,
+     "kind": "against a constant",
+     "outcomes": "== 7556, < 285565, > 165664 (signed); < 275582, > 175647 (unsigned)",
+     "operand": "constant 59",
+     "a": "-33..96"
+    },
+    {
+     "line": 34,
+     "text": "if (ch < 26) {",
+     "size": 1,
+     "count": 283138,
+     "kind": "against a constant",
+     "outcomes": "== 7393, < 268189, > 7556 (signed); < 111885, > 163860 (unsigned)",
+     "operand": "constant 25",
+     "a": "-33..26"
+    },
+    {
+     "line": 36,
+     "text": "if (index < 26) {",
+     "size": 4,
+     "count": 119278,
+     "kind": "against a constant",
+     "outcomes": "== 1880, < 73933, > 43465 (signed); < 27439, > 89959 (unsigned)",
+     "operand": "constant 25",
+     "a": "-65..190"
+    },
+    {
+     "line": 46,
+     "text": "if (width != 0) {",
+     "size": 4,
+     "count": 434451,
+     "kind": "against a constant",
+     "outcomes": "== 26925, < 0, > 407526 (signed); < 0, > 407526 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 53,
+     "text": "if (c == 10) {",
+     "size": 1,
+     "count": 407526,
+     "kind": "against a constant",
+     "outcomes": "== 11982, < 59297, > 336247 (signed); < 59297, > 336247 (unsigned)",
+     "operand": "constant 10",
+     "a": "0..58"
+    },
+    {
+     "line": 61,
+     "text": "if (c < 26) {",
+     "size": 1,
+     "count": 407526,
+     "kind": "against a constant",
+     "outcomes": "== 11865, < 395661, > 0 (signed); < 174847, > 220814 (unsigned)",
+     "operand": "constant 25",
+     "a": "-33..25"
+    },
+    {
+     "line": 63,
+     "text": "if (index < 26) {",
+     "size": 4,
+     "count": 186712,
+     "kind": "against a constant",
+     "outcomes": "== 3007, < 114561, > 69144 (signed); < 43908, > 139797 (unsigned)",
+     "operand": "constant 25",
+     "a": "-65..190"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+61 sign",
+    "reason": "The compared value is the u_char c after `c -= 0x21`, reached only for glyph-path c in {0,1,2,5..58}. Those give c-0x21 mod 256 = 0xDF..0xFF (sign set) or 0..25 (c 33..58). No input can produce a positive value in 26..127: c-0x21 >= 26 with the sign bit clear needs c in 0x3B..0x80, which takes the `c >= 0x3B` branch and never reaches this test."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 43312,
+     "completion_tokens": 22845,
+     "reasoning_tokens": 20994,
+     "cost": 0.0157537,
+     "seconds": 94.2,
+     "sample": 1,
+     "conversation": "e21e6f8bc2ffba37f94f7d37b78ace038bd5228ed10cc66fac1926856bbd0b2a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/render_text_raw_color.zig:60:17: error: local variable is never mutated\n            var w: c_uint = psx.conv(c_uint, (@as(c_int, widths[@as(usize, c >> 1)]) >> sh) & 0xF);\n                ^\ngame/battle/render_text_raw_color.zig:60:17: note: consider using 'const'\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 45375,
+     "completion_tokens": 3786,
+     "reasoning_tokens": 1935,
+     "cost": 0.0064305,
+     "seconds": 14.0,
+     "sample": 1,
+     "conversation": "b19fd984924462be04a3503837ba8959275454b9eab87d54011d96fa6a82512d"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/renderTextRawColor.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/render_text_raw_color.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 85.01611426099407,
+ "wall_seconds": 422.5211708079951,
+ "totals": {
+  "cost": 0.03613,
+  "prompt_tokens": 130999,
+  "completion_tokens": 46058,
+  "model_seconds": 193.0,
+  "check_seconds": 85.0,
+  "calls": 4,
+  "wall_seconds": 422.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 99 / root 155 / root 632, 0 mismatches"
+ }
+}

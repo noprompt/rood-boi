@@ -1,0 +1,211 @@
+{
+ "function": "func_8008B1FC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the lighting capture hooks checked by hand: pc_scene_room(arg0) then pc_scene_camera(0x1F800014), before SetRotMatrix, as the C; spec sound",
+ "plan": {
+  "name": "func_8008B1FC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b1fc",
+  "difficulty": "L",
+  "zig_name": "func_8008B1FC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008B1FC",
+  "spec_file": "func_8008B1FC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008B1FC(arg0: ?*anyopaque) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "MATRIX"
+  ],
+  "globals": [
+   "D_800F19C8",
+   "D_800F1BB0",
+   "D_800F1BB8",
+   "D_800F1CC0"
+  ],
+  "hooks": [
+   "pc_scene_camera",
+   "pc_scene_room",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12350,
+     "completion_tokens": 9223,
+     "reasoning_tokens": 7520,
+     "cost": 0.0058465,
+     "seconds": 36.7,
+     "sample": 1,
+     "conversation": "1e21651b12fa8045bb24a78bb003124d4ae68dec2c84dedf495c9b8ddc265236"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "unk6-zero": "5980",
+   "unk6-negative": "14967",
+   "unk6-positive": "9053"
+  },
+  "mutations": [
+   {
+    "name": "M1: func_80098D6C gets 1 for its last argument",
+    "caught": true
+   },
+   {
+    "name": "M2: func_8009723C gets 0 instead of D_800F19C8",
+    "caught": true
+   },
+   {
+    "name": "M3: unk6 tested as a signed value > 0",
+    "caught": true
+   },
+   {
+    "name": "M4: func_800983F8 call dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: first scratchpad read at 0x1F800004",
+    "caught": true
+   },
+   {
+    "name": "M6: pc_scene_camera gets 0x1F800018",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 17,
+     "text": "if (D_800F1BB0.unk6 != 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2999, < 15076, > 11925 (signed); < 0, > 27001 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32764"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35815,
+     "completion_tokens": 5913,
+     "reasoning_tokens": 5112,
+     "cost": 0.006538,
+     "seconds": 23.4,
+     "sample": 1,
+     "conversation": "d2c41b588ba2f7c3ebbe3dfddd745c51e6c5b36a76747df21f9b5152ff50422a"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008B1FC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008B1FC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 43.890936797000904,
+ "wall_seconds": 104.30262473600033,
+ "totals": {
+  "cost": 0.01238,
+  "prompt_tokens": 48165,
+  "completion_tokens": 15136,
+  "model_seconds": 60.1,
+  "check_seconds": 43.9,
+  "calls": 2,
+  "wall_seconds": 104.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 248 / root 481 / root 850, 0 mismatches"
+ }
+}

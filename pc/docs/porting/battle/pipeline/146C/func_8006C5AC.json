@@ -1,0 +1,258 @@
+{
+ "function": "func_8006C5AC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; SVECTOR pad of sp20 is unread by vs_main_panSfx (RotTransPers), no hazard; spec sound",
+ "plan": {
+  "name": "func_8006C5AC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006c5ac",
+  "difficulty": "M",
+  "zig_name": "func_8006C5AC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006C5AC",
+  "spec_file": "func_8006C5AC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006C5AC(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "D_800F19CC_t2"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15021,
+     "completion_tokens": 16899,
+     "reasoning_tokens": 14858,
+     "cost": 0.0099516,
+     "seconds": 71.8,
+     "sample": 1,
+     "conversation": "a18cd99a34f2dc419a9e834cc2de6357a46161562dc3c878982e44cc7621d54a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F6: entry block chosen with mask 1, not 3: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x4c8008 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x3 (class no-entries)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17280,
+     "completion_tokens": 3981,
+     "reasoning_tokens": 1790,
+     "cost": 0.0037185,
+     "seconds": 15.5,
+     "sample": 1,
+     "conversation": "b9f2b8a6822244bbdd7a6c4d49249d71ba993c2093fdb1c744f4a49fba82b583"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-entries": "5048",
+   "all-skipped": "5083",
+   "group-0-1-2-4": "4946",
+   "group-3": "5001",
+   "group-5": "4992",
+   "other-kind": "4930"
+  },
+  "mutations": [
+   {
+    "name": "F1: last entry skipped (wrong loop bound)",
+    "caught": true
+   },
+   {
+    "name": "F2: entry test inverted",
+    "caught": true
+   },
+   {
+    "name": "F3: wrong sfx constant in weapon category 6",
+    "caught": true
+   },
+   {
+    "name": "F4: group 3 sfx dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: vy read from the wrong field",
+    "caught": true
+   },
+   {
+    "name": "F6: entry block chosen with mask 1, not 3",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 19,
+   "branches_hit": 19,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 57,
+   "lines_hit": 57,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "for (i = 0; i < temp_s3->unk4A; ++i) {",
+     "size": 4,
+     "count": 417349,
+     "kind": "a == b / a < b",
+     "outcomes": "== 30000, < 387349, > 0 (signed); < 387349, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 10,
+     "text": "if (temp_s3->unk4C[i].unk40 == 0) {",
+     "size": 4,
+     "count": 387349,
+     "kind": "against a constant",
+     "outcomes": "== 247042, < 46647, > 93660 (signed); < 0, > 140307 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1073741824"
+    },
+    {
+     "line": 18,
+     "text": "switch (temp_s3->unk4C[i].unk0.unk3) {",
+     "size": 4,
+     "count": 247042,
+     "kind": "switch",
+     "outcomes": "== 171124, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..255"
+    },
+    {
+     "line": 23,
+     "text": "switch (vs_battle_actors[arg0]->equippedWeaponCategory) {",
+     "size": 4,
+     "count": 60872,
+     "kind": "switch",
+     "outcomes": "== 47111, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..255"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38386,
+     "completion_tokens": 7615,
+     "reasoning_tokens": 6440,
+     "cost": 0.0076461,
+     "seconds": 31.6,
+     "sample": 1,
+     "conversation": "9517dd2e26cfecda281252988d994c56a62ac2bc9c8ec328f640b739f77421f9"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006C5AC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006C5AC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 104.91193442300118,
+ "wall_seconds": 242.50171461800073,
+ "totals": {
+  "cost": 0.02132,
+  "prompt_tokens": 70687,
+  "completion_tokens": 28495,
+  "model_seconds": 118.9,
+  "check_seconds": 104.9,
+  "calls": 3,
+  "wall_seconds": 242.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 15, 0 mismatches"
+ }
+}

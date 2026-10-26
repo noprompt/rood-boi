@@ -1,0 +1,149 @@
+{
+ "function": "func_8008E88C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: input classes never generated: dac-null-dcc-null, dac-null-dcc-live, dac-live-dcc-null",
+ "plan": {
+  "name": "func_8008E88C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e88c",
+  "difficulty": "S",
+  "zig_name": "func_8008E88C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008E88C",
+  "spec_file": "func_8008E88C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008E88C() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F1DAC",
+   "D_800F1DB0",
+   "D_800F1DBC",
+   "D_800F1DCA",
+   "D_800F1DCB",
+   "D_800F1DD0"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12110,
+     "completion_tokens": 3455,
+     "reasoning_tokens": 2179,
+     "cost": 0.0029385,
+     "seconds": 15.4,
+     "sample": 1,
+     "conversation": "f7c871e6540e12fb05738ca0a1e80e5257165375c5457912bef69e9c2abff394"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13437,
+     "completion_tokens": 2365,
+     "reasoning_tokens": 841,
+     "cost": 0.0025262,
+     "seconds": 9.2,
+     "sample": 1,
+     "conversation": "1cbe2c7f49ab75fe3c95926970ec4c653b5ee6d0e3f958db6874bf09fe3629c4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: input classes never generated: dac-null-dcc-null, dac-null-dcc-live, dac-live-dcc-null"
+    ]
+   }
+  ],
+  "classes": {
+   "dac-null-dcc-null": "0",
+   "dac-null-dcc-live": "0",
+   "dac-live-dcc-null": "0",
+   "dac-live-dcc-live": "20000"
+  },
+  "mutations": [
+   {
+    "name": "F1: D_800F1DBC set to -1, not -2",
+    "caught": true
+   },
+   {
+    "name": "F2: the store to D_800F1DCB moved after the call",
+    "caught": true
+   },
+   {
+    "name": "F3: D_800F1DCA set to 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "F4: the call to func_8008E938 dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: D_800F1DC9 set to 2, not 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 18.93577209200157,
+ "wall_seconds": 43.97649730000194,
+ "totals": {
+  "cost": 0.00546,
+  "prompt_tokens": 25547,
+  "completion_tokens": 5820,
+  "model_seconds": 24.6,
+  "check_seconds": 18.9,
+  "calls": 2,
+  "wall_seconds": 44.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

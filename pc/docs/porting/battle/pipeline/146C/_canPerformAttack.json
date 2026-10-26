@@ -1,0 +1,241 @@
+{
+ "function": "_canPerformAttack",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (guard order and negative hitNumber via psx.at kept); spec sound",
+ "plan": {
+  "name": "_canPerformAttack",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007fdd8",
+  "difficulty": "M",
+  "zig_name": "canPerformAttack",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "can_perform_attack",
+  "spec_file": "canPerformAttack.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn canPerformAttack(action: ?*v.vs_action_t, arg1: [*c]u8, hitNumber: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ],
+   [
+    "hitNumber",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "_attackPrerequisiteFunctions"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12591,
+     "completion_tokens": 17202,
+     "reasoning_tokens": 15390,
+     "cost": 0.0098601,
+     "seconds": 74.4,
+     "sample": 1,
+     "conversation": "db1fb51bd7ec069accca91fef632bd2aac06909a98a76276cf1612004cd5a453"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "hit-zero": "5066",
+   "guarded": "4350",
+   "prereq-one-other-arg": "4322",
+   "table-call": "16262"
+  },
+  "mutations": [
+   {
+    "name": "A1: guard uses > instead of != for hitNumber",
+    "caught": true
+   },
+   {
+    "name": "A2: wrong constant in the arg1 test",
+    "caught": true
+   },
+   {
+    "name": "A3: guarded path returns 1",
+    "caught": true
+   },
+   {
+    "name": "A4: prerequisite test becomes >= 1",
+    "caught": true
+   },
+   {
+    "name": "A5: callee gets arg1 + 1",
+    "caught": true
+   },
+   {
+    "name": "A6: guard reads hitParams[0] instead of hitParams[hitNumber]",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -5, max 5, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (hitNumber != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 5066, < 12492, > 12442 (signed); < 0, > 24934 (unsigned)",
+     "operand": "constant 0",
+     "a": "-5..5"
+    },
+    {
+     "line": 3,
+     "text": "if ((action->hitParams[hitNumber].prerequisiteFunction == 1) && (arg1[3] == 4)) {",
+     "size": 1,
+     "count": 24934,
+     "kind": "against a constant",
+     "outcomes": "== 8672, < 415, > 15847 (signed); < 415, > 15847 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..39"
+    },
+    {
+     "line": 3,
+     "text": "if ((action->hitParams[hitNumber].prerequisiteFunction == 1) && (arg1[3] == 4)) {",
+     "size": 1,
+     "count": 8672,
+     "kind": "against a constant",
+     "outcomes": "== 4350, < 2304, > 2018 (signed); < 64, > 4258 (unsigned)",
+     "operand": "constant 4",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35957,
+     "completion_tokens": 3382,
+     "reasoning_tokens": 2904,
+     "cost": 0.0052867,
+     "seconds": 15.6,
+     "sample": 1,
+     "conversation": "59807b713677f49fe770925cce82a322cfc12ec90cddb21151e710c47fa32886"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/canPerformAttack.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/can_perform_attack.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 70.14931777900074,
+ "wall_seconds": 160.4161015159998,
+ "totals": {
+  "cost": 0.01515,
+  "prompt_tokens": 48548,
+  "completion_tokens": 20584,
+  "model_seconds": 90.0,
+  "check_seconds": 70.1,
+  "calls": 2,
+  "wall_seconds": 160.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 18 / nested 48 / nested 90, 0 mismatches"
+ }
+}

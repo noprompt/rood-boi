@@ -1,0 +1,211 @@
+{
+ "function": "_dropAccessoryRand",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_dropAccessoryRand",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006bcb0",
+  "difficulty": "S",
+  "zig_name": "dropAccessoryRand",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "drop_accessory_rand",
+  "spec_file": "dropAccessoryRand.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn dropAccessoryRand(looted: ?*v.vs_battle_lootedAccessory, base: ?*v.vs_battle_uiAccessory) callconv(.c) c_int",
+  "params": [
+   [
+    "looted",
+    "?*v.vs_battle_lootedAccessory"
+   ],
+   [
+    "base",
+    "?*v.vs_battle_uiAccessory"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "vs_battle_lootedAccessory"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12095,
+     "completion_tokens": 8843,
+     "reasoning_tokens": 7382,
+     "cost": 0.005631,
+     "seconds": 37.0,
+     "sample": 1,
+     "conversation": "94023babebf7e108f8e484f4fab2e82183d88832ffb086e9c0542f22d0155d7a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "hit": "11767",
+   "miss-equal": "6140",
+   "miss-above": "12093"
+  },
+  "mutations": [
+   {
+    "name": "D1: <= for <",
+    "caught": true
+   },
+   {
+    "name": "D2: dropRate read as signed char",
+    "caught": true
+   },
+   {
+    "name": "D3: wrong roll bound (0xFE)",
+    "caught": true
+   },
+   {
+    "name": "D4: difficultyFlags store dropped",
+    "caught": true
+   },
+   {
+    "name": "D5: miss returns 0 as hit",
+    "caught": true
+   },
+   {
+    "name": "D6: difficultyFlags stored before the copy call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (vs_main_getRand(0xFF) < base->dropRate) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 6140, < 11767, > 12093 (signed); < 2393, > 21467 (unsigned)",
+     "operand": "b 0..255",
+     "a": "-2147456781..2147063949"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35554,
+     "completion_tokens": 2162,
+     "reasoning_tokens": 1743,
+     "cost": 0.0046364,
+     "seconds": 9.3,
+     "sample": 1,
+     "conversation": "257b9868c8e2ebffe506e817288b455c1b72388c2552b4b0db0c8d1d39183caa"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/dropAccessoryRand.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/drop_accessory_rand.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 185.51053668700115,
+ "wall_seconds": 485.60196211400034,
+ "totals": {
+  "cost": 0.01027,
+  "prompt_tokens": 47649,
+  "completion_tokens": 11005,
+  "model_seconds": 46.3,
+  "check_seconds": 185.5,
+  "calls": 2,
+  "wall_seconds": 485.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

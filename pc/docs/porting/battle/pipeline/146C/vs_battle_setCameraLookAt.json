@@ -1,0 +1,184 @@
+{
+ "function": "vs_battle_setCameraLookAt",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_setCameraLookAt",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007ac6c",
+  "difficulty": "S",
+  "zig_name": "setCameraLookAt",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_camera_look_at",
+  "spec_file": "setCameraLookAt.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setCameraLookAt(inLookAt: ?*v.VECTOR) callconv(.c) void",
+  "params": [
+   [
+    "inLookAt",
+    "?*v.VECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11498,
+     "completion_tokens": 4364,
+     "reasoning_tokens": 3177,
+     "cost": 0.0033318,
+     "seconds": 17.6,
+     "sample": 1,
+     "conversation": "dd8e08befc26d00dcea9284b5cda8e4b14d5b29456d2d45fbd8ebe9cf01313ba"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "separate": "22533",
+   "aliased": "7467"
+  },
+  "mutations": [
+   {
+    "name": "L1: vy copied from vz",
+    "caught": true
+   },
+   {
+    "name": "L2: vz store dropped",
+    "caught": true
+   },
+   {
+    "name": "L3: vx written to camera.position",
+    "caught": true
+   },
+   {
+    "name": "L4: vx truncated to 16 bits",
+    "caught": true
+   },
+   {
+    "name": "L5: the pad word is copied too",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34947,
+     "completion_tokens": 1009,
+     "reasoning_tokens": 740,
+     "cost": 0.0039992,
+     "seconds": 5.1,
+     "sample": 1,
+     "conversation": "c8448520a722dfe3893368966c7d9c1708457f8c8de0bbd2eb5f8bd7018c6270"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setCameraLookAt.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_camera_look_at.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 218.81586179100123,
+ "wall_seconds": 720.3633600050016,
+ "totals": {
+  "cost": 0.00733,
+  "prompt_tokens": 46445,
+  "completion_tokens": 5373,
+  "model_seconds": 22.7,
+  "check_seconds": 218.8,
+  "calls": 2,
+  "wall_seconds": 720.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

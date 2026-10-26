@@ -1,0 +1,207 @@
+{
+ "function": "_computeSphericalOffset",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (store order kept for the aliasing cases); spec sound",
+ "plan": {
+  "name": "_computeSphericalOffset",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007a9dc",
+  "difficulty": "M",
+  "zig_name": "computeSphericalOffset",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "compute_spherical_offset",
+  "spec_file": "computeSphericalOffset.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn computeSphericalOffset(outPosition: ?*v.VECTOR, basePosition: ?*v.VECTOR, angles: ?*v._sphericalValues) callconv(.c) void",
+  "params": [
+   [
+    "outPosition",
+    "?*v.VECTOR"
+   ],
+   [
+    "basePosition",
+    "?*v.VECTOR"
+   ],
+   [
+    "angles",
+    "?*v._sphericalValues"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11838,
+     "completion_tokens": 11070,
+     "reasoning_tokens": 9259,
+     "cost": 0.0067188,
+     "seconds": 45.5,
+     "sample": 1,
+     "conversation": "893cb37b25865ad706bef282b1c5b930ec01af936a13148be463414486927c4f"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "distinct": "16797",
+   "base-is-out": "7653",
+   "angles-is-out": "5550"
+  },
+  "mutations": [
+   {
+    "name": "S1: pitch scaled by 4095, not 4096",
+    "caught": true
+   },
+   {
+    "name": "S2: VectorNormal call dropped",
+    "caught": true
+   },
+   {
+    "name": "S3: pitch division done unsigned",
+    "caught": true
+   },
+   {
+    "name": "S4: vx scaled by mode, not distance",
+    "caught": true
+   },
+   {
+    "name": "S5: vz offset taken from basePosition->vx",
+    "caught": true
+   },
+   {
+    "name": "S6: yaw cosine taken from pitch",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35297,
+     "completion_tokens": 2840,
+     "reasoning_tokens": 2283,
+     "cost": 0.0049497,
+     "seconds": 15.7,
+     "sample": 1,
+     "conversation": "c92e9eb11a69c7489211169d09342ea2d89823f863fb2bffad7843efc140f73c"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/computeSphericalOffset.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/compute_spherical_offset.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 68.12747591000152,
+ "wall_seconds": 158.38840679700024,
+ "totals": {
+  "cost": 0.01167,
+  "prompt_tokens": 47135,
+  "completion_tokens": 13910,
+  "model_seconds": 61.2,
+  "check_seconds": 68.1,
+  "calls": 2,
+  "wall_seconds": 158.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 582 / nested 1074 / nested 1422, 0 mismatches"
+ }
+}

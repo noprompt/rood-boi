@@ -1,0 +1,185 @@
+{
+ "function": "vs_battle_setNearClip",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_setNearClip",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007cccc",
+  "difficulty": "S",
+  "zig_name": "setNearClip",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_near_clip",
+  "spec_file": "setNearClip.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setNearClip(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11112,
+     "completion_tokens": 2925,
+     "reasoning_tokens": 2008,
+     "cost": 0.0025737,
+     "seconds": 12.9,
+     "sample": 1,
+     "conversation": "dadf2a6fd8ecedb0d1ce37df315dc87dc31d2a330ca9d6581e2cbf1d857db0f2"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "negative": "12558",
+   "zero": "1714",
+   "positive": "15728"
+  },
+  "mutations": [
+   {
+    "name": "N1: stored value xor 1 (off by one)",
+    "caught": true
+   },
+   {
+    "name": "N2: stored narrowed to 16 bits",
+    "caught": true
+   },
+   {
+    "name": "N3: call passes 0 instead of the argument",
+    "caught": true
+   },
+   {
+    "name": "N4: store moved after the call",
+    "caught": true
+   },
+   {
+    "name": "N5: the call to func_80098160 dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34584,
+     "completion_tokens": 992,
+     "reasoning_tokens": 776,
+     "cost": 0.0039544,
+     "seconds": 5.0,
+     "sample": 1,
+     "conversation": "cf1c1ef89100ee84f96d4f2e50244dee60444677457507e63e6cada8ab5d4267"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setNearClip.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_near_clip.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 163.8533044979995,
+ "wall_seconds": 420.8913212519983,
+ "totals": {
+  "cost": 0.00653,
+  "prompt_tokens": 45696,
+  "completion_tokens": 3917,
+  "model_seconds": 17.9,
+  "check_seconds": 163.9,
+  "calls": 2,
+  "wall_seconds": 420.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

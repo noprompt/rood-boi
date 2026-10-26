@@ -1,0 +1,229 @@
+{
+ "function": "func_800735F8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the ROOD_PC fast-travel hook checked by hand: pc_fast_travel_begin called after func_8006F4B0 and before func_8007C694, vs_battle_setStateFlag(0xB7) only when it returns nonzero; spec sound",
+ "plan": {
+  "name": "func_800735F8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800735f8",
+  "difficulty": "M",
+  "zig_name": "func_800735F8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800735F8",
+  "spec_file": "func_800735F8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800735F8(arg0: ?*v.D_800F18EC_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F18EC_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "D_800F18EC_t",
+   "func_8006EBF8_t"
+  ],
+  "globals": [],
+  "hooks": [
+   "pc_fast_travel_begin",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15114,
+     "completion_tokens": 17998,
+     "reasoning_tokens": 15924,
+     "cost": 0.0105104,
+     "seconds": 76.0,
+     "sample": 1,
+     "conversation": "f7f5e7ed79f3db415f16a2e64af9848633a94b4c1c0ff6c74c51b591022a6455"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "break-5": "3428",
+   "call-6-8": "9906",
+   "pay-short": "2158",
+   "pay-equal": "2179",
+   "pay-over": "2286",
+   "default": "20043"
+  },
+  "mutations": [
+   {
+    "name": "M1: pays the cost only when MP is strictly above it",
+    "caught": true
+   },
+   {
+    "name": "M2: MP added back instead of spent",
+    "caught": true
+   },
+   {
+    "name": "M3: wrong constant in the final func_8009E070 call",
+    "caught": true
+   },
+   {
+    "name": "M4: the fast-travel state flag dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: case 6-8 passes the wrong field (unk0 for the s32)",
+    "caught": true
+   },
+   {
+    "name": "M6: wrong constant in the opening func_8008B4C8 call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 24,
+   "lines_hit": 24,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "switch (arg0->unk2) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 16637, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 23,
+     "text": "if (pc_fast_travel_begin(arg0->executeAbility.s32)) {",
+     "size": 4,
+     "count": 6623,
+     "kind": "against a constant",
+     "outcomes": "== 1645, < 2514, > 2464 (signed); < 0, > 4978 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147333612..2147462598"
+    },
+    {
+     "line": 33,
+     "text": "if (((__typeof__((vs_battle_characterState->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_characterState->unk3C).raw)->currentMP",
+     "size": 4,
+     "count": 6623,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1104, < 2935, > 2584 (signed); < 490, > 5029 (unsigned)",
+     "operand": "b 4..8190",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38594,
+     "completion_tokens": 8213,
+     "reasoning_tokens": 7300,
+     "cost": 0.0079659,
+     "seconds": 33.4,
+     "sample": 1,
+     "conversation": "b8ee7f69b427ccdc5dfdebed79ed74667b92aa3e51bb5229cb39059d7efd8c3a"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800735F8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800735F8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 60.387186653999834,
+ "wall_seconds": 170.1306078399998,
+ "totals": {
+  "cost": 0.01848,
+  "prompt_tokens": 53708,
+  "completion_tokens": 26211,
+  "model_seconds": 109.4,
+  "check_seconds": 60.4,
+  "calls": 2,
+  "wall_seconds": 170.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

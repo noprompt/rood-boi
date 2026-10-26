@@ -1,0 +1,214 @@
+{
+ "function": "_loadZndEnemies",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (count*8 and the offsets as int arithmetic then u_int); spec sound",
+ "plan": {
+  "name": "_loadZndEnemies",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80088d40",
+  "difficulty": "S",
+  "zig_name": "loadZndEnemies",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_znd_enemies",
+  "spec_file": "loadZndEnemies.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadZndEnemies(data: [*c]c_int, arg1: c_int) callconv(.c) void",
+  "params": [
+   [
+    "data",
+    "[*c]c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_zndEnemy",
+   "vs_main_CdFile"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13180,
+     "completion_tokens": 14023,
+     "reasoning_tokens": 12508,
+     "cost": 0.0083295,
+     "seconds": 60.8,
+     "sample": 1,
+     "conversation": "2f1675cd2ab7dd35ec13996df817e86bcd56701b5239e746e3eda59557d2c384"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero": "2573",
+   "negative": "10829",
+   "small": "4910",
+   "wide": "7557",
+   "overflow": "4131"
+  },
+  "mutations": [
+   {
+    "name": "L1: zudFiles memcpy source one word late",
+    "caught": true
+   },
+   {
+    "name": "L2: zndEnemies memcpy source one word short",
+    "caught": true
+   },
+   {
+    "name": "L3: the count test is > 0 (negative counts take the zero path)",
+    "caught": true
+   },
+   {
+    "name": "L4: the count's sign bit masked off on load",
+    "caught": true
+   },
+   {
+    "name": "L5: zndEnemies not cleared on the zero path (dropped store)",
+    "caught": true
+   },
+   {
+    "name": "L6: the zero path falls through into the clearing stores",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147436487, max 2147090414, unsigned 8427..4294867066, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (_zoneContext.zndEnemyCount != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2573, < 10829, > 16598 (signed); < 0, > 27427 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36647,
+     "completion_tokens": 8506,
+     "reasoning_tokens": 7741,
+     "cost": 0.0079177,
+     "seconds": 35.3,
+     "sample": 1,
+     "conversation": "5dfc33ea97ec65d5121f2cd653092957ef9a30062d77a4861b73d11f90e44cd5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/loadZndEnemies.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/load_znd_enemies.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 268.94962117700925,
+ "wall_seconds": 669.3317080090055,
+ "totals": {
+  "cost": 0.01625,
+  "prompt_tokens": 49827,
+  "completion_tokens": 22529,
+  "model_seconds": 96.1,
+  "check_seconds": 268.9,
+  "calls": 2,
+  "wall_seconds": 669.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

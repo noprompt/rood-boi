@@ -1,0 +1,114 @@
+{
+ "function": "func_80089114",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's bug). The harness fills every global and the arena with r",
+ "plan": {
+  "name": "func_80089114",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80089114",
+  "difficulty": "L",
+  "zig_name": "func_80089114",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80089114",
+  "spec_file": "func_80089114.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80089114() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "_zndEnemy",
+   "mpdEnemySpawn",
+   "mpdObjectSpawn",
+   "savedEnemyState",
+   "vs_battle_objectData_flags"
+  ],
+  "globals": [
+   "D_8004FE88",
+   "D_800F18E0"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 27819,
+     "completion_tokens": 48116,
+     "reasoning_tokens": 44031,
+     "cost": 0.0268399,
+     "seconds": 201.0,
+     "sample": 1,
+     "conversation": "441803056b09bd65f15b4fd7f4549f115fd4a2ef86ae5651bd925544d9a352c7"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:235:46: error: expected 8 argument(s), found 9\n                return adapt(S, @call(.auto, f, .{&ctx} ++ stubArgs(@TypeOf(f), args)));\n                                             ^\npc/build/port-pipeline/func_80089114/spec1/build/spec.zig:152:9: note: function declared here\n    pub fn func_800774FC(ctx: *zd.Ctx, slot: anytype, bladeWepId: anytype, bladeMaterial: anytype, shieldWepId: anytype, shieldMaterial: anytype, arg6: anytype, arg7: anytype) ?*v.vs_battle_actor {\n    ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    f: pc/build/port-pipeline/func_80089114/spec1/build/game/common/route.zig:59:28\n    comptime: pc/tests/zig_diff/main.zig:244:58\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 32528,
+     "completion_tokens": 5336,
+     "reasoning_tokens": 1243,
+     "cost": 0.0059208,
+     "seconds": 16.8,
+     "sample": 1,
+     "conversation": "c698e2ada265a1bcea3268ddef9d4dbcd960e2c9665eb3d8cb47973602a246c3"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x4f6876 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: (class object-first)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [],
+  "coverage": null
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 1.1298093810000864,
+ "wall_seconds": 219.442654202001,
+ "totals": {
+  "cost": 0.03276,
+  "prompt_tokens": 60347,
+  "completion_tokens": 53452,
+  "model_seconds": 217.8,
+  "check_seconds": 1.1,
+  "calls": 2,
+  "wall_seconds": 219.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

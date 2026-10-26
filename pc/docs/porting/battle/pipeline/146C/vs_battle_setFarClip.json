@@ -1,0 +1,263 @@
+{
+ "function": "vs_battle_setFarClip",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_setFarClip",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007cd14",
+  "difficulty": "S",
+  "zig_name": "setFarClip",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_far_clip",
+  "spec_file": "setFarClip.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setFarClip(farClip: c_int, arg1: c_int) callconv(.c) void",
+  "params": [
+   [
+    "farClip",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11442,
+     "completion_tokens": 7633,
+     "reasoning_tokens": 6335,
+     "cost": 0.0049607,
+     "seconds": 33.3,
+     "sample": 1,
+     "conversation": "289bbb97d3e42bd4e547f521e596059cd89625b08b68ecbcd3a2b27d3d466595"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F4: clamp bound one too low: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: vs_battle_setFarClip: 30000 iterations, seed 1, 0 mismatches; classes: arg1-nonzero=7555 negative=10402 over-clamp=7190 in-range=4853"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12899,
+     "completion_tokens": 2318,
+     "reasoning_tokens": 1012,
+     "cost": 0.0024489,
+     "seconds": 8.8,
+     "sample": 1,
+     "conversation": "d310ac3a6222622ebaa59d995c4048d27a9f5bbdc1a52bb72de027f05e5e2033"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "arg1-nonzero": "7555",
+   "negative": "10058",
+   "over-clamp": "7097",
+   "in-range": "5290"
+  },
+  "mutations": [
+   {
+    "name": "F1: the camera farClip is not stored",
+    "caught": true
+   },
+   {
+    "name": "F2: the call runs when arg1 is nonzero",
+    "caught": true
+   },
+   {
+    "name": "F3: unsigned shift of a negative farClip",
+    "caught": true
+   },
+   {
+    "name": "F4: clamp value one too low",
+    "caught": true
+   },
+   {
+    "name": "F5: camera farClip stored after the call",
+    "caught": true
+   },
+   {
+    "name": "F6: wrong constant for the negative floor",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -1, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones, 4 value(s): 0, 4294967295, 2147483647, 1"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (arg1 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22445, < 2524, > 5031 (signed); < 0, > 7555 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2147483647"
+    },
+    {
+     "line": 5,
+     "text": "if (farClip < 0) {",
+     "size": 4,
+     "count": 22445,
+     "kind": "against a constant",
+     "outcomes": "== 776, < 10058, > 11611 (signed); < 0, > 21669 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 9,
+     "text": "if (farClip > 0x800) {",
+     "size": 4,
+     "count": 22445,
+     "kind": "against a constant",
+     "outcomes": "== 2302, < 13046, > 7097 (signed); < 4388, > 15755 (unsigned)",
+     "operand": "constant 2048",
+     "a": "-268435456..268435455"
+    },
+    {
+     "line": 11,
+     "text": "} else if (farClip < 0) {",
+     "size": 4,
+     "count": 15348,
+     "kind": "against a constant",
+     "outcomes": "== 2927, < 8658, > 3763 (signed); < 0, > 12421 (unsigned)",
+     "operand": "constant 0",
+     "a": "-268435456..2048"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34914,
+     "completion_tokens": 1611,
+     "reasoning_tokens": 1262,
+     "cost": 0.0042969,
+     "seconds": 7.2,
+     "sample": 1,
+     "conversation": "0df859b94b2a78d90bda6d9ed27685ea51a109b1bca0a386607f53be64926a2e"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setFarClip.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_far_clip.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 105.05990778700107,
+ "wall_seconds": 219.55035268599931,
+ "totals": {
+  "cost": 0.01171,
+  "prompt_tokens": 59255,
+  "completion_tokens": 11562,
+  "model_seconds": 49.3,
+  "check_seconds": 105.1,
+  "calls": 3,
+  "wall_seconds": 219.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

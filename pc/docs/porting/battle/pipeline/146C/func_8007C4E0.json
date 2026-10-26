@@ -1,0 +1,209 @@
+{
+ "function": "func_8007C4E0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8007C4E0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007c4e0",
+  "difficulty": "S",
+  "zig_name": "func_8007C4E0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007C4E0",
+  "spec_file": "func_8007C4E0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007C4E0(arg0: ?*v._mpdRoomDoorSection_t, effect: c_int, speed: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v._mpdRoomDoorSection_t"
+   ],
+   [
+    "effect",
+    "c_int"
+   ],
+   [
+    "speed",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_battle_screenTransitionEffect",
+   "vs_battle_screenTransitionSpeed"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12838,
+     "completion_tokens": 6927,
+     "reasoning_tokens": 5363,
+     "cost": 0.0047473,
+     "seconds": 28.6,
+     "sample": 1,
+     "conversation": "6855da07e4c95347ada87197e534573ea7b22c96029e4d73927b0078c6c52e80"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "arena-section": "26404",
+   "aliases-D_800F1AB0": "3596"
+  },
+  "mutations": [
+   {
+    "name": "F1: transition step set to 2",
+    "caught": true
+   },
+   {
+    "name": "F2: effect slipped to speed",
+    "caught": true
+   },
+   {
+    "name": "F3: zndId copied from the section, not _zoneContext",
+    "caught": true
+   },
+   {
+    "name": "F4: _loadMpd given zndId instead of mpdId",
+    "caught": true
+   },
+   {
+    "name": "F5: func_800A0A1C call dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: returns 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36302,
+     "completion_tokens": 2131,
+     "reasoning_tokens": 1677,
+     "cost": 0.0046957,
+     "seconds": 9.1,
+     "sample": 1,
+     "conversation": "e4344df031f38a7b80ca0e936c338c7aeb48f00a00f8c88f308bce5f90ec826f"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007C4E0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007C4E0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 177.59577992100094,
+ "wall_seconds": 473.4779861669995,
+ "totals": {
+  "cost": 0.00944,
+  "prompt_tokens": 49140,
+  "completion_tokens": 9058,
+  "model_seconds": 37.7,
+  "check_seconds": 177.6,
+  "calls": 2,
+  "wall_seconds": 473.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

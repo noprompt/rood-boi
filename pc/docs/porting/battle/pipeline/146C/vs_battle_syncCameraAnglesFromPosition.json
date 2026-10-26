@@ -1,0 +1,213 @@
+{
+ "function": "vs_battle_syncCameraAnglesFromPosition",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_syncCameraAnglesFromPosition",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007a850",
+  "difficulty": "M",
+  "zig_name": "syncCameraAnglesFromPosition",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "sync_camera_angles_from_position",
+  "spec_file": "syncCameraAnglesFromPosition.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn syncCameraAnglesFromPosition(arg0: ?*v._sphericalCamera) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v._sphericalCamera"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "_sphericalCamera"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12999,
+     "completion_tokens": 14199,
+     "reasoning_tokens": 11985,
+     "cost": 0.0083994,
+     "seconds": 59.2,
+     "sample": 1,
+     "conversation": "ca5436519eaa7b9eefe7f006d7d9b42f5a815c0607bbb2e28bfae22255252ee2"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-camera": "7350",
+   "x-offset": "7373",
+   "z-offset": "5168",
+   "on-look-at": "10109"
+  },
+  "mutations": [
+   {
+    "name": "S1: yaw wrapped with a mask, not %, so negative yaw differs",
+    "caught": true
+   },
+   {
+    "name": "S2: wrong constant in the no-delta distance",
+    "caught": true
+   },
+   {
+    "name": "S3: pitch not stored to the scratchpad angles",
+    "caught": true
+   },
+   {
+    "name": "S4: pitch field takes yaw",
+    "caught": true
+   },
+   {
+    "name": "S5: z-branch tests sign, so negative z falls through",
+    "caught": true
+   },
+   {
+    "name": "S6: pitch square uses vz for the x term",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 21,
+   "lines_hit": 21,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 24,
+     "text": "if (toCamera.vx != 0) {",
+     "size": 4,
+     "count": 22650,
+     "kind": "against a constant",
+     "outcomes": "== 15277, < 3800, > 3573 (signed); < 0, > 7373 (unsigned)",
+     "operand": "constant 0",
+     "a": "-506027..502857"
+    },
+    {
+     "line": 26,
+     "text": "} else if (toCamera.vz != 0) {",
+     "size": 4,
+     "count": 15277,
+     "kind": "against a constant",
+     "outcomes": "== 10109, < 2552, > 2616 (signed); < 0, > 5168 (unsigned)",
+     "operand": "constant 0",
+     "a": "-509251..497816"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36402,
+     "completion_tokens": 4119,
+     "reasoning_tokens": 3175,
+     "cost": 0.0056997,
+     "seconds": 17.2,
+     "sample": 1,
+     "conversation": "3c2d8aa40422c4770588ca6c09546d0f2f2fe7002c567abb67f40c8995bdebd5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/syncCameraAnglesFromPosition.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/sync_camera_angles_from_position.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 75.70807203999993,
+ "wall_seconds": 209.61073591199965,
+ "totals": {
+  "cost": 0.0141,
+  "prompt_tokens": 49401,
+  "completion_tokens": 18318,
+  "model_seconds": 76.4,
+  "check_seconds": 75.7,
+  "calls": 2,
+  "wall_seconds": 209.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 744 / nested 1443 / nested 2550, 0 mismatches"
+ }
+}

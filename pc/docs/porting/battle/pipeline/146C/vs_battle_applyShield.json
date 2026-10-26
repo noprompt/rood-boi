@@ -1,0 +1,224 @@
+{
+ "function": "vs_battle_applyShield",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_applyShield",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006b02c",
+  "difficulty": "S",
+  "zig_name": "applyShield",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "apply_shield",
+  "spec_file": "applyShield.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn applyShield(target: ?*v.vs_battle_uiShield, source: ?*v.vs_main_inventoryShield) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiShield"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryShield"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_shieldIntermediate",
+   "vs_battle_uiShield",
+   "vs_main_inventoryShield"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13489,
+     "completion_tokens": 14724,
+     "reasoning_tokens": 13035,
+     "cost": 0.0087109,
+     "seconds": 64.4,
+     "sample": 1,
+     "conversation": "2e87b634b53f80207933868cf2be4e824e4fa2f0a29a0667dea3944103d51fa7"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-source": "4957",
+   "no-gems": "6813",
+   "gem-index-minus-one": "5976",
+   "gem-in-range": "12254"
+  },
+  "mutations": [
+   {
+    "name": "A1: gem slot index masked with 0x7E",
+    "caught": true
+   },
+   {
+    "name": "A2: third gem slot skipped",
+    "caught": true
+   },
+   {
+    "name": "A3: material taken from base.maxDp",
+    "caught": true
+   },
+   {
+    "name": "A4: index read as a signed byte",
+    "caught": true
+   },
+   {
+    "name": "A5: shield temporary never freed",
+    "caught": true
+   },
+   {
+    "name": "A6: every gem copied into slot 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 14,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 100172,
+     "kind": "against a constant",
+     "outcomes": "== 25043, < 50086, > 25043 (signed); < 50086, > 25043 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 15,
+     "text": "if (source->gems[i] != 0) {",
+     "size": 1,
+     "count": 75129,
+     "kind": "against a constant",
+     "outcomes": "== 41651, < 20051, > 13427 (signed); < 0, > 33478 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..48"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36969,
+     "completion_tokens": 6375,
+     "reasoning_tokens": 5617,
+     "cost": 0.0068844,
+     "seconds": 26.7,
+     "sample": 1,
+     "conversation": "0df49ccf0413989653f7a2e8ee2e5d79bd6f071b49f8cc1e1be431c1d981acab"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/applyShield.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/apply_shield.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 87.40985124799772,
+ "wall_seconds": 242.269700077999,
+ "totals": {
+  "cost": 0.0156,
+  "prompt_tokens": 50458,
+  "completion_tokens": 21099,
+  "model_seconds": 91.1,
+  "check_seconds": 87.4,
+  "calls": 2,
+  "wall_seconds": 242.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,290 @@
+{
+ "function": "_getAgilityDifference",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_getAgilityDifference",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007ea74",
+  "difficulty": "S",
+  "zig_name": "getAgilityDifference",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_agility_difference",
+  "spec_file": "getAgilityDifference.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getAgilityDifference(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, hitNumber: c_int, addVariance: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "source",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "target",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "hitNumber",
+    "c_int"
+   ],
+   [
+    "addVariance",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18307,
+     "completion_tokens": 32170,
+     "reasoning_tokens": 29023,
+     "cost": 0.0179157,
+     "seconds": 140.4,
+     "sample": 1,
+     "conversation": "a64c1e7e315ad9515944f856ce77db2471457dedc241b43db091173506005cc7"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "exact-zero": "4439",
+   "exact-255": "4381",
+   "exact-negative": "4308",
+   "exact-high": "4306",
+   "exact-in-range": "4159",
+   "variance": "4235",
+   "random": "4172"
+  },
+  "mutations": [
+   {
+    "name": "A1: the 255 test is >= (above 255 clamps to 254)",
+    "caught": true
+   },
+   {
+    "name": "A2: the clamp to 254 becomes 255",
+    "caught": true
+   },
+   {
+    "name": "A3: target bonus read from limb 0, not the target limb",
+    "caught": true
+   },
+   {
+    "name": "A4: variance offset off by one",
+    "caught": true
+   },
+   {
+    "name": "A5: attack gem buff call dropped",
+    "caught": true
+   },
+   {
+    "name": "A6: weapon test uses bit 1 instead of bit 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 12,
+   "branches_hit": 12,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 33,
+   "lines_hit": 33,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147020783, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 14,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 19,
+     "text": "if (vs_battle_actors[sourceActor->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14976, < 0, > 15024 (signed); < 0, > 15024 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 24,
+     "text": "if (vs_battle_actors[targetActor->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15068, < 0, > 14932 (signed); < 0, > 14932 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 35,
+     "text": "if (addVariance != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22005, < 3778, > 4217 (signed); < 0, > 7995 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 44,
+     "text": "if (agiDiff < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2726, < 10967, > 16307 (signed); < 0, > 27274 (unsigned)",
+     "operand": "constant 0",
+     "a": "-268751..291932"
+    },
+    {
+     "line": 46,
+     "text": "} else if (agiDiff == 255) {",
+     "size": 4,
+     "count": 19033,
+     "kind": "against a constant",
+     "outcomes": "== 2697, < 5325, > 11011 (signed); < 5325, > 11011 (unsigned)",
+     "operand": "constant 255",
+     "a": "0..291932"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 41675,
+     "completion_tokens": 8748,
+     "reasoning_tokens": 7438,
+     "cost": 0.0085415,
+     "seconds": 34.8,
+     "sample": 1,
+     "conversation": "976854e2459cd0590cfc262398b99b81fc1505cd63c6434da09eb55e2d9773f4"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getAgilityDifference.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_agility_difference.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 200.30030194300343,
+ "wall_seconds": 517.4448125849995,
+ "totals": {
+  "cost": 0.02646,
+  "prompt_tokens": 59982,
+  "completion_tokens": 40918,
+  "model_seconds": 175.2,
+  "check_seconds": 200.3,
+  "calls": 2,
+  "wall_seconds": 517.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 90, 0 mismatches"
+ }
+}

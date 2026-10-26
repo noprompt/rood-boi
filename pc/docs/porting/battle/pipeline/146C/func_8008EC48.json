@@ -1,0 +1,357 @@
+{
+ "function": "func_8008EC48",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the PC_ANCHOR_PACKETS hook checked by hand (the packet cursor read before func_8009147C, pc_hw_anchor_packets through psx.weak after it, anchor 0x14); the flash quad's POLY_FT4 setup and the clamps as the C; spec sound",
+ "plan": {
+  "name": "func_8008EC48",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008ec48",
+  "difficulty": "L",
+  "zig_name": "func_8008EC48",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008EC48",
+  "spec_file": "func_8008EC48.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.VECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "MATRIX",
+   "POLY_FT4",
+   "P_TAG",
+   "VECTOR",
+   "_mpdRoomSectionB",
+   "vs_battle_backgroundLayout",
+   "vs_scratch_t"
+  ],
+  "globals": [
+   "D_80068C1C",
+   "D_800F1BB0",
+   "D_800F1CE0",
+   "D_800F1DB4",
+   "D_800F1DB6",
+   "D_800F1DB8",
+   "D_800F1DBA",
+   "D_800F1DC6",
+   "D_800F1DC8",
+   "D_800F1DC9",
+   "D_800F1DCC",
+   "vs_battle_roomData"
+  ],
+  "hooks": [
+   "pc_anchor_start",
+   "pc_hw_anchor_packets",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22281,
+     "completion_tokens": 30926,
+     "reasoning_tokens": 27648,
+     "cost": 0.0176911,
+     "seconds": 130.9,
+     "sample": 1,
+     "conversation": "a7b672030233bfd97480d44994abf60889cf65a9149072c49116def090646e7f"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M2: position.vx divided by shift (signed / not >>): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8008EC48: 30000 iterations, seed 1, 0 mismatches; classes: tiles-in-range=7510 tiles-out-of-range=7586 prim-tinted=3640 prim-plain=3729 camera-arg-far-4096=714 camera-arg-far-other=3042 camera-null-room=1869 camera-null-default=1910",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8008EC48: branches 18/20 (90.0%), conditions not measured (GCC < 14: branch coverage only), lines 46/46\n  UNCOVERED +10 b3: branch never taken: `if ((D_800F1DC9 != 0) && (D_800F1DCC != 0)) {`\n  UNCOVERED +20 b1: branch never taken: `do { void* pc_anchor_start = ((void*)(long unsigned int)(unsigned int)(*(const unsigned int*)(const void*)((u_int*)0x1F800000))); func_8009147C(D_800F1DCC, x, y, D_800F1DC8); if (pc_hw_anchor_packets) pc_hw_anchor_packets(pc_anchor_start, ((void*)(long unsigned int)(unsigned int)(*(const unsigned int*)(const void*)((u_int*)0x1F800000))), PC_ANCHOR_SCENE); } while (0)`\ncoverage func_8008EC48: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if ((D_800F1DC9 != 0) && (D_800F1DCC != 0)) {` (+10): one way out of this test (+10 b3) was never taken; add inputs that take it.\n- `do { void* pc_anchor_start = ((void*)(long unsigned int)(unsigned int)(*(const unsigned int*)(const void*)((u_int*)0x1F800000))); func_8009147C(D_800F1DCC, x, y, D_800F1DC8); if (pc_hw_anchor_packets) pc_hw_anchor_packets(pc_anchor_start, ((void*)(long unsigned int)(unsigned int)(*(const unsigned int*)(const void*)((u_int*)0x1F800000))), PC_ANCHOR_SCENE); } while (0)` (+20): one way out of this test (+20 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8008EC48.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 26535,
+     "completion_tokens": 9450,
+     "reasoning_tokens": 5784,
+     "cost": 0.0073785,
+     "seconds": 36.7,
+     "sample": 1,
+     "conversation": "3020f4aa509a4782c9d3294bd426f7268da6a8b3322b4e47a9006334bba2e1bd"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "tiles-in-range": "6706",
+   "tiles-out-of-range": "6784",
+   "prim-tinted": "3309",
+   "prim-plain": "3279",
+   "camera-arg-far-4096": "881",
+   "camera-arg-far-other": "4082",
+   "camera-null-room": "2448",
+   "camera-null-default": "2511"
+  },
+  "mutations": [
+   {
+    "name": "M1: tile width bound off by one",
+    "caught": true
+   },
+   {
+    "name": "M2: position.vx divided by shift (signed / not >>)",
+    "caught": true
+   },
+   {
+    "name": "M3: tint base 127 instead of 128",
+    "caught": true
+   },
+   {
+    "name": "M4: final func_8009820C call dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: far-clip test inverted",
+    "caught": true
+   },
+   {
+    "name": "M6: red clamp maximum 254",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 20,
+   "branches_hit": 19,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 46,
+   "lines_hit": 46,
+   "uncovered": [
+    {
+     "id": "+20 b1",
+     "line": 20,
+     "text": "do { void* pc_anchor_start = ((void*)(long unsigned int)(unsigned int)(*(const unsigned int*)(const void*)((u_int*)0x1F800000))); func_8009147C(D_800F1DCC, x, y, D_800F1DC8); if (pc_hw_anchor_packets) pc_hw_anchor_packets(pc_anchor_start, ((void*)(long unsigned int)(unsigned int)(*(const unsigned int*)(const void*)((u_int*)0x1F800000))), PC_ANCHOR_SCENE); } while (0)",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if ((D_800F1DC9 != 0) && (D_800F1DCC != 0)) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 13208, < 11301, > 5491 (signed); < 0, > 16792 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 11,
+     "text": "if (((u_int)(D_800F1DCC->width - 1) < 31)",
+     "size": 4,
+     "count": 13490,
+     "kind": "against a constant",
+     "outcomes": "== 2506, < 8716, > 2268 (signed); < 7589, > 3395 (unsigned)",
+     "operand": "constant 30",
+     "a": "-2..2147483646"
+    },
+    {
+     "line": 12,
+     "text": "&& ((u_int)(D_800F1DCC->height - 1) < 31)) {",
+     "size": 4,
+     "count": 10095,
+     "kind": "against a constant",
+     "outcomes": "== 1338, < 6723, > 2034 (signed); < 5368, > 3389 (unsigned)",
+     "operand": "constant 30",
+     "a": "-2..2147483646"
+    },
+    {
+     "line": 26,
+     "text": "} else if (D_800F1DC6 != 0) {",
+     "size": 1,
+     "count": 16510,
+     "kind": "against a constant",
+     "outcomes": "== 9922, < 4396, > 2192 (signed); < 0, > 6588 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 31,
+     "text": "if (D_800F1BB0.unk6 != 0) {",
+     "size": 2,
+     "count": 6588,
+     "kind": "against a constant",
+     "outcomes": "== 3279, < 1093, > 2216 (signed); < 0, > 3309 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..256"
+    },
+    {
+     "line": 49,
+     "text": "if (((__typeof__((vs_battle_roomData.sectionB).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionB).raw) != 0) {",
+     "size": 4,
+     "count": 4959,
+     "kind": "against a constant",
+     "outcomes": "== 2511, < 0, > 2448 (signed); < 0, > 2448 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4244160"
+    },
+    {
+     "line": 64,
+     "text": "if (((vs_scratch_t*)0x1F800000)->camera.farClip != 4096) {",
+     "size": 4,
+     "count": 9922,
+     "kind": "against a constant",
+     "outcomes": "== 1729, < 7278, > 915 (signed); < 4533, > 3660 (unsigned)",
+     "operand": "constant 4096",
+     "a": "-4096..4097"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+20 b1",
+    "reason": "pc_hw_anchor_packets is a weak hook the harness never links, so the C's null test (if (pc_hw_anchor_packets)) is always false; its taken side cannot be reached."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 45647,
+     "completion_tokens": 25562,
+     "reasoning_tokens": 23097,
+     "cost": 0.0173457,
+     "seconds": 99.6,
+     "sample": 1,
+     "conversation": "d2e46cf3fabc9ce8f0ec8905057ece17db57c70b2c5e907949203a115803d56e"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 7: call 1 (pc_hw_anchor_packets): argument 2: C 0x14, Zig 0x2\nzdiff: MISMATCH iteration 17: call 1 (pc_hw_anchor_packets): argument 2: C 0x14, Zig 0x2\nzdiff: MISMATCH iteration 19: call 1 (pc_hw_anchor_packets): argument 2: C 0x14, Zig 0x2\nzdiff: func_8008EC48: 4449 iterations, seed 1, 1000 mismatches; classes: tiles-in-range=1000 tiles-out-of-range=1057 prim-tinted=452 prim-plain=475 camera-arg-far-4096=130 camera-arg-far-other=612 camera-null-room=361 camera-null-default=362"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 7: call 1 (pc_hw_anchor_packets): argument 2: C 0x14, Zig 0x2"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 48447,
+     "completion_tokens": 3148,
+     "reasoning_tokens": 625,
+     "cost": 0.0064187,
+     "seconds": 10.7,
+     "sample": 1,
+     "conversation": "332dd629a52122714476739e60c93be3c869133d98966ca5f7d6e77ec8000f7c"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008EC48.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008EC48.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 67.27422960500189,
+ "wall_seconds": 345.7431745720005,
+ "totals": {
+  "cost": 0.04883,
+  "prompt_tokens": 142910,
+  "completion_tokens": 69086,
+  "model_seconds": 277.9,
+  "check_seconds": 67.3,
+  "calls": 4,
+  "wall_seconds": 345.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 248 / root 481 / root 850, 0 mismatches"
+ }
+}

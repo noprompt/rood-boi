@@ -1,0 +1,352 @@
+{
+ "function": "_triggerClassChange",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; class outside 0..5 leaves the opposing pair undefined in the C (port: case-5 values), not reachable by the spec; spec sound",
+ "plan": {
+  "name": "_triggerClassChange",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80080a9c",
+  "difficulty": "M",
+  "zig_name": "triggerClassChange",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "trigger_class_change",
+  "spec_file": "triggerClassChange.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn triggerClassChange(arg0: ?*v.vs_action_t, equipment: ?*v.vs_battle_uiEquipment, class: c_int, arg3: c_int, actorId: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "equipment",
+    "?*v.vs_battle_uiEquipment"
+   ],
+   [
+    "class",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "actorId",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiEquipment"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13014,
+     "completion_tokens": 18189,
+     "reasoning_tokens": 16370,
+     "cost": 0.0103959,
+     "seconds": 79.7,
+     "sample": 1,
+     "conversation": "ca6f216f7ac902fd0b46627a3496470c9b18dc9a04d3df2f779ec68aaea9bfa2"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation T1: capped at > 100, not >= 100: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: C makes 0 external calls, Zig 1 (first unmatched: vs_main_getRand)\nzdiff: MISMATCH iteration 1: C makes 0 external calls, Zig 1 (first unmatched: vs_main_getRand)\nzdiff: MISMATCH iteration 2: C makes 0 external calls, Zig 1 (first unmatched: vs_main_getRand)\nzdiff: CRASH (signal 11) in the Zig run, iteration 102, fault address 0x7ec000c0 [memory the harness does not own: a pointer from random bytes?]"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15174,
+     "completion_tokens": 3828,
+     "reasoning_tokens": 1908,
+     "cost": 0.0034314,
+     "seconds": 15.4,
+     "sample": 1,
+     "conversation": "12389a8c1d8791d52ff0dd595e307db1d59cb9e17bcb2fea56e2927b3d1ed830"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "capped": "14972",
+   "actor-not-zero": "7473",
+   "opp0-floor": "2012",
+   "rolls": "5543"
+  },
+  "mutations": [
+   {
+    "name": "T1: capped at > 100, not >= 100",
+    "caught": true
+   },
+   {
+    "name": "T2: the class bump adds 2",
+    "caught": true
+   },
+   {
+    "name": "T3: roll constant 70 read as 71",
+    "caught": true
+   },
+   {
+    "name": "T4: the opposing floor read as an unsigned byte",
+    "caught": true
+   },
+   {
+    "name": "T5: the second opposing class's notify call dropped",
+    "caught": true
+   },
+   {
+    "name": "T6: case 4 opposes class 6, not 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 25,
+   "branches_hit": 25,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 46,
+   "lines_hit": 46,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min 0, max 7, seen zero, never negative, 8 value(s): 3, 6, 7, 5, 2, 0, 4, 1"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147212742, max 2147138054, unsigned 159366..4294519671, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2146904269, max 2146278818, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 8,
+     "text": "switch (class) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 23985, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..7"
+    },
+    {
+     "line": 35,
+     "text": "if (equipment->classes[targetClass] >= 100) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1186, < 13842, > 14972 (signed); < 5379, > 23435 (unsigned)",
+     "operand": "constant 99",
+     "a": "-128..127"
+    },
+    {
+     "line": 41,
+     "text": "if ((70 - (equipment->classes[targetClass] + 100) / 4) >= randVal) {",
+     "size": 4,
+     "count": 15028,
+     "kind": "a == b / a < b",
+     "outcomes": "== 217, < 8464, > 6347 (signed); < 7557, > 7254 (unsigned)",
+     "operand": "b 21..77",
+     "a": "-2146029848..2145982421"
+    },
+    {
+     "line": 45,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 8681,
+     "kind": "against a constant",
+     "outcomes": "== 4400, < 1795, > 2486 (signed); < 0, > 4281 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145818726..2145634287"
+    },
+    {
+     "line": 49,
+     "text": "if (equipment->classes[opposingClass0] > -100) {",
+     "size": 1,
+     "count": 8681,
+     "kind": "against a constant",
+     "outcomes": "== 16, < 2312, > 6353 (signed); < 6933, > 1732 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 53,
+     "text": "if (((equipment->classes[opposingClass0] + 100) / 4 + 20) >= randVal) {",
+     "size": 4,
+     "count": 6369,
+     "kind": "a == b / a < b",
+     "outcomes": "== 93, < 3936, > 2340 (signed); < 3541, > 2735 (unsigned)",
+     "operand": "b 20..76",
+     "a": "-2140516793..2144117884"
+    },
+    {
+     "line": 57,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 4029,
+     "kind": "against a constant",
+     "outcomes": "== 2071, < 829, > 1129 (signed); < 0, > 1958 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145818726..2145634287"
+    },
+    {
+     "line": 63,
+     "text": "if (equipment->classes[opposingClass1] > -100) {",
+     "size": 1,
+     "count": 8681,
+     "kind": "against a constant",
+     "outcomes": "== 20, < 2274, > 6387 (signed); < 6967, > 1694 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 67,
+     "text": "if (((equipment->classes[opposingClass1] + 100) / 4 + 20) >= randVal) {",
+     "size": 4,
+     "count": 6407,
+     "kind": "a == b / a < b",
+     "outcomes": "== 89, < 3969, > 2349 (signed); < 3573, > 2745 (unsigned)",
+     "operand": "b 20..76",
+     "a": "-2136314505..2129586697"
+    },
+    {
+     "line": 71,
+     "text": "if (actorId == 0) {",
+     "size": 4,
+     "count": 4058,
+     "kind": "against a constant",
+     "outcomes": "== 2079, < 814, > 1165 (signed); < 0, > 1979 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145818726..2145634287"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36489,
+     "completion_tokens": 5392,
+     "reasoning_tokens": 4296,
+     "cost": 0.0063449,
+     "seconds": 23.1,
+     "sample": 1,
+     "conversation": "6f5b656103de46559a922c1bacf6e17fb9aa1365fba5c7dbb90f64aa5183d046"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/triggerClassChange.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/trigger_class_change.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 106.8210815650009,
+ "wall_seconds": 234.43110350799998,
+ "totals": {
+  "cost": 0.02017,
+  "prompt_tokens": 64677,
+  "completion_tokens": 27409,
+  "model_seconds": 118.2,
+  "check_seconds": 106.8,
+  "calls": 3,
+  "wall_seconds": 234.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 15, 0 mismatches"
+ }
+}

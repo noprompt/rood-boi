@@ -1,0 +1,578 @@
+{
+ "function": "_getDefenseGemBuff",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (null action untouched when weapon undrawn, as the C); spec sound",
+ "plan": {
+  "name": "_getDefenseGemBuff",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007e6a0",
+  "difficulty": "M",
+  "zig_name": "getDefenseGemBuff",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_defense_gem_buff",
+  "spec_file": "getDefenseGemBuff.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getDefenseGemBuff(action: ?*v.vs_action_t, actor: ?*v.vs_battle_actor2, hitNumber: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "actor",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "hitNumber",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15956,
+     "completion_tokens": 15084,
+     "reasoning_tokens": 13363,
+     "cost": 0.0091376,
+     "seconds": 65.3,
+     "sample": 1,
+     "conversation": "6f6081c30e286a3feac2571fb411b7cc3e1c9760af480f35ad5a2eb4ded1d57f"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation G5: weapon-drawn test uses mask 3 instead of 1: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 27, fault address 0x2 [NULL+0x2: a field of a null pointer]\nzdiff: crashed on arguments: 0 0x4060b0 [arena] 0x1 (class not-drawn)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17909,
+     "completion_tokens": 2533,
+     "reasoning_tokens": 771,
+     "cost": 0.0030574,
+     "seconds": 9.1,
+     "sample": 1,
+     "conversation": "af9cd39d9ed7ec6dacc2ff4714e5490a3737de3e606a6bf640a5354410f370e4"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "not-drawn": "18671",
+   "type-1": "5585",
+   "other-id-in": "10339",
+   "other-id-out": "5405"
+  },
+  "mutations": [
+   {
+    "name": "G1: id 40 counts as in range",
+    "caught": true
+   },
+   {
+    "name": "G2: the wrapped id bound is 169, not 170",
+    "caught": true
+   },
+   {
+    "name": "G3: type-1 branch tests gem effect 5 instead of 6",
+    "caught": true
+   },
+   {
+    "name": "G4: switch reads hit parameter 0 instead of hitNumber",
+    "caught": true
+   },
+   {
+    "name": "G5: weapon-drawn test uses mask 3 instead of 1 (a not-drawn actor with weaponDrawn 2 enters the branch and reads the null action)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 77,
+   "branches_hit": 77,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 77,
+   "lines_hit": 77,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -1, max 2, unsigned 0..4294967295, seen zero/negative/all ones, 4 value(s): 1, 0, 4294967295, 2"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (vs_battle_actors[actor->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 18671, < 0, > 21329 (signed); < 0, > 21329 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 8,
+     "text": "if (action->type == 1) {",
+     "size": 1,
+     "count": 21329,
+     "kind": "against a constant",
+     "outcomes": "== 5585, < 3426, > 12318 (signed); < 3426, > 12318 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 9,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 22340,
+     "kind": "against a constant",
+     "outcomes": "== 5585, < 11170, > 5585 (signed); < 11170, > 5585 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 10,
+     "text": "if (actor->shield.gems[i].gemEffects == 6) {",
+     "size": 1,
+     "count": 16755,
+     "kind": "against a constant",
+     "outcomes": "== 890, < 5281, > 10584 (signed); < 1069, > 14796 (unsigned)",
+     "operand": "constant 6",
+     "a": "-128..127"
+    },
+    {
+     "line": 14,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 5585,
+     "kind": "against a constant",
+     "outcomes": "== 4737, < 0, > 848 (signed); < 0, > 848 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 19,
+     "text": "if ((v < 40) || (((v - 54) & 0xFF) < 170)) {",
+     "size": 4,
+     "count": 15744,
+     "kind": "against a constant",
+     "outcomes": "== 1056, < 2114, > 12574 (signed); < 2114, > 12574 (unsigned)",
+     "operand": "constant 39",
+     "a": "0..255"
+    },
+    {
+     "line": 19,
+     "text": "if ((v < 40) || (((v - 54) & 0xFF) < 170)) {",
+     "size": 4,
+     "count": 12574,
+     "kind": "against a constant",
+     "outcomes": "== 1040, < 6129, > 5405 (signed); < 6129, > 5405 (unsigned)",
+     "operand": "constant 169",
+     "a": "0..255"
+    },
+    {
+     "line": 21,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 41356,
+     "kind": "against a constant",
+     "outcomes": "== 10339, < 20678, > 10339 (signed); < 20678, > 10339 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 22,
+     "text": "if (actor->shield.gems[i].gemEffects == 5) {",
+     "size": 1,
+     "count": 31017,
+     "kind": "against a constant",
+     "outcomes": "== 1500, < 8027, > 21490 (signed); < 304, > 29213 (unsigned)",
+     "operand": "constant 5",
+     "a": "-128..127"
+    },
+    {
+     "line": 26,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 10339,
+     "kind": "against a constant",
+     "outcomes": "== 8899, < 0, > 1440 (signed); < 0, > 1440 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 33,
+     "text": "switch (action->hitParams[hitNumber].effect) {",
+     "size": 4,
+     "count": 21329,
+     "kind": "switch",
+     "outcomes": "== 6552, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..127"
+    },
+    {
+     "line": 35,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3220,
+     "kind": "against a constant",
+     "outcomes": "== 805, < 1610, > 805 (signed); < 1610, > 805 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 36,
+     "text": "if (actor->shield.gems[i].gemEffects == 11) {",
+     "size": 1,
+     "count": 2415,
+     "kind": "against a constant",
+     "outcomes": "== 119, < 889, > 1407 (signed); < 292, > 2004 (unsigned)",
+     "operand": "constant 11",
+     "a": "-128..127"
+    },
+    {
+     "line": 40,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 805,
+     "kind": "against a constant",
+     "outcomes": "== 689, < 0, > 116 (signed); < 0, > 116 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 45,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3316,
+     "kind": "against a constant",
+     "outcomes": "== 829, < 1658, > 829 (signed); < 1658, > 829 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 46,
+     "text": "if (actor->shield.gems[i].gemEffects == 12) {",
+     "size": 1,
+     "count": 2487,
+     "kind": "against a constant",
+     "outcomes": "== 143, < 1045, > 1299 (signed); < 425, > 1919 (unsigned)",
+     "operand": "constant 12",
+     "a": "-128..127"
+    },
+    {
+     "line": 50,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 829,
+     "kind": "against a constant",
+     "outcomes": "== 696, < 0, > 133 (signed); < 0, > 133 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 55,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3264,
+     "kind": "against a constant",
+     "outcomes": "== 816, < 1632, > 816 (signed); < 1632, > 816 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 56,
+     "text": "if (actor->shield.gems[i].gemEffects == 13) {",
+     "size": 1,
+     "count": 2448,
+     "kind": "against a constant",
+     "outcomes": "== 119, < 1163, > 1166 (signed); < 574, > 1755 (unsigned)",
+     "operand": "constant 13",
+     "a": "-128..127"
+    },
+    {
+     "line": 60,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 816,
+     "kind": "against a constant",
+     "outcomes": "== 702, < 0, > 114 (signed); < 0, > 114 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 65,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3256,
+     "kind": "against a constant",
+     "outcomes": "== 814, < 1628, > 814 (signed); < 1628, > 814 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 66,
+     "text": "if (actor->shield.gems[i].gemEffects == 14) {",
+     "size": 1,
+     "count": 2442,
+     "kind": "against a constant",
+     "outcomes": "== 126, < 1261, > 1055 (signed); < 658, > 1658 (unsigned)",
+     "operand": "constant 14",
+     "a": "-128..127"
+    },
+    {
+     "line": 70,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 814,
+     "kind": "against a constant",
+     "outcomes": "== 694, < 0, > 120 (signed); < 0, > 120 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 75,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3336,
+     "kind": "against a constant",
+     "outcomes": "== 834, < 1668, > 834 (signed); < 1668, > 834 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 76,
+     "text": "if (actor->shield.gems[i].gemEffects == 16) {",
+     "size": 1,
+     "count": 2502,
+     "kind": "against a constant",
+     "outcomes": "== 123, < 1456, > 923 (signed); < 818, > 1561 (unsigned)",
+     "operand": "constant 16",
+     "a": "-128..127"
+    },
+    {
+     "line": 80,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 834,
+     "kind": "against a constant",
+     "outcomes": "== 716, < 0, > 118 (signed); < 0, > 118 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 85,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3276,
+     "kind": "against a constant",
+     "outcomes": "== 819, < 1638, > 819 (signed); < 1638, > 819 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 86,
+     "text": "if (actor->shield.gems[i].gemEffects == 18) {",
+     "size": 1,
+     "count": 2457,
+     "kind": "against a constant",
+     "outcomes": "== 150, < 1518, > 789 (signed); < 917, > 1390 (unsigned)",
+     "operand": "constant 18",
+     "a": "-128..127"
+    },
+    {
+     "line": 90,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 819,
+     "kind": "against a constant",
+     "outcomes": "== 681, < 0, > 138 (signed); < 0, > 138 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 95,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3292,
+     "kind": "against a constant",
+     "outcomes": "== 823, < 1646, > 823 (signed); < 1646, > 823 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 96,
+     "text": "if (actor->shield.gems[i].gemEffects == 19) {",
+     "size": 1,
+     "count": 2469,
+     "kind": "against a constant",
+     "outcomes": "== 131, < 1667, > 671 (signed); < 1064, > 1274 (unsigned)",
+     "operand": "constant 19",
+     "a": "-128..127"
+    },
+    {
+     "line": 100,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 823,
+     "kind": "against a constant",
+     "outcomes": "== 702, < 0, > 121 (signed); < 0, > 121 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 105,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 3248,
+     "kind": "against a constant",
+     "outcomes": "== 812, < 1624, > 812 (signed); < 1624, > 812 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 106,
+     "text": "if (actor->shield.gems[i].gemEffects == 21) {",
+     "size": 1,
+     "count": 2436,
+     "kind": "against a constant",
+     "outcomes": "== 136, < 1820, > 480 (signed); < 1218, > 1082 (unsigned)",
+     "operand": "constant 21",
+     "a": "-128..127"
+    },
+    {
+     "line": 110,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 812,
+     "kind": "against a constant",
+     "outcomes": "== 685, < 0, > 127 (signed); < 0, > 127 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39307,
+     "completion_tokens": 6666,
+     "reasoning_tokens": 5904,
+     "cost": 0.0072637,
+     "seconds": 27.8,
+     "sample": 1,
+     "conversation": "1654e4f02cc597164647c4db6fe9f0d89889e19f7f4c67f38ff1211d4d880525"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getDefenseGemBuff.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_defense_gem_buff.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 106.41997760599952,
+ "wall_seconds": 209.34945591799988,
+ "totals": {
+  "cost": 0.01946,
+  "prompt_tokens": 73172,
+  "completion_tokens": 24283,
+  "model_seconds": 102.2,
+  "check_seconds": 106.4,
+  "calls": 3,
+  "wall_seconds": 209.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 18 / nested 48 / nested 90, 0 mismatches"
+ }
+}

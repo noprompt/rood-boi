@@ -1,0 +1,227 @@
+{
+ "function": "func_8007820C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "views-conflict",
+ "reviewed": "not ported in this wave (unrouted): views-conflict: vs_battle_copyUiWeaponStats: PANIC in the Zig run, iteration 2: attempt to use null value (return address 0x4044c3)",
+ "plan": {
+  "name": "func_8007820C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007820c",
+  "difficulty": "S",
+  "zig_name": "func_8007820C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007820C",
+  "spec_file": "func_8007820C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007820C(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11198,
+     "completion_tokens": 6042,
+     "reasoning_tokens": 4674,
+     "cost": 0.0041408,
+     "seconds": 25.3,
+     "sample": 1,
+     "conversation": "d8571baf10de08556d5679eef78807db2530720fbe705f4b5c78edf56f91234a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero": "2885",
+   "positive": "13541",
+   "negative": "13574"
+  },
+  "mutations": [
+   {
+    "name": "M1: negative arg0 skips the step (> 0 for != 0)",
+    "caught": true
+   },
+   {
+    "name": "M2: inverted test on arg0",
+    "caught": true
+   },
+   {
+    "name": "M3: wrong step constant (0x27)",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong first argument to the step (0 for 1)",
+    "caught": true
+   },
+   {
+    "name": "M5: the step call dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: the vector fetch dropped (step sees the stack, not the fetched vector)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (arg0 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2885, < 13574, > 13541 (signed); < 0, > 27115 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34679,
+     "completion_tokens": 1284,
+     "reasoning_tokens": 1033,
+     "cost": 0.0041099,
+     "seconds": 6.4,
+     "sample": 1,
+     "conversation": "a4939f21593f31ab610f8e3c4f1ec265058d5dd02a652e6c9aacb4590f92bc6f"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x1f800206 [scratchpad+0x206] (scratchpad+0x206): C 0, Zig 170\nzdiff: MISMATCH iteration 1: memory at 0x1f800206 [scratchpad+0x206] (scratchpad+0x206): C 0, Zig 170\nzdiff: MISMATCH iteration 2: memory at 0x1f800206 [scratchpad+0x206] (scratchpad+0x206): C 0, Zig 170\nzdiff: func_8007820C: 1113 iterations, seed 1, 1000 mismatches; classes: zero=113 positive=479 negative=521"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: memory at 0x1f800206 (scratchpad+0x206): C 0, Zig 170"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35213,
+     "completion_tokens": 1230,
+     "reasoning_tokens": 823,
+     "cost": 0.0041363,
+     "seconds": 9.8,
+     "sample": 1,
+     "conversation": "1d708926a4fde71471441d1b34d5ed4eb4267ac5749742e5300521845b36f515"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [],
+ "check_seconds": 143.15147016699848,
+ "conflicts": [
+  "vs_battle_copyUiWeaponStats: PANIC in the Zig run, iteration 2: attempt to use null value (return address 0x4044c3)"
+ ],
+ "wall_seconds": 352.719416811,
+ "totals": {
+  "cost": 0.01239,
+  "prompt_tokens": 81090,
+  "completion_tokens": 8556,
+  "model_seconds": 41.5,
+  "check_seconds": 143.2,
+  "calls": 3,
+  "wall_seconds": 352.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

@@ -1,0 +1,359 @@
+{
+ "function": "_drawScreenTransition",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: does not compile: <zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/draw_screen_transition.zi",
+ "plan": {
+  "name": "_drawScreenTransition",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006d0a4",
+  "difficulty": "L",
+  "zig_name": "drawScreenTransition",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "draw_screen_transition",
+  "spec_file": "drawScreenTransition.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn drawScreenTransition(ot: ?*anyopaque) callconv(.c) void",
+  "params": [
+   [
+    "ot",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "vs_battle_screenTransitionAlpha",
+   "vs_battle_screenTransitionDrMode",
+   "vs_battle_screenTransitionEdgePolyG4",
+   "vs_battle_screenTransitionEffect",
+   "vs_battle_screenTransitionPolyF4",
+   "vs_battle_screenTransitionSpeed",
+   "vs_battle_screenTransitionWipeAngle",
+   "vs_battle_screenTransitionWipePolyF4"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 21446,
+     "completion_tokens": 28111,
+     "reasoning_tokens": 24706,
+     "cost": 0.0162001,
+     "seconds": 114.7,
+     "sample": 1,
+     "conversation": "47feb4dbe2f3a055e038a649fa3d3735b62019b51361f861aa45950ff0924970"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "alpha-zero": "4627",
+   "fade-black": "6687",
+   "fade-white-255": "264",
+   "fade-white": "1936",
+   "wipe": "2174",
+   "other-effect": "24312"
+  },
+  "mutations": [
+   {
+    "name": "D1: alpha == 255 - speed takes the fade (>= as >)",
+    "caught": true
+   },
+   {
+    "name": "D2: the hold test at alpha == speed is < not <=",
+    "caught": true
+   },
+   {
+    "name": "D3: signed/unsigned slip in the hold test (negative alpha)",
+    "caught": true
+   },
+   {
+    "name": "D4: wrong constant in the wipe angle offset (4096 / 4)",
+    "caught": true
+   },
+   {
+    "name": "D5: wrong field stored (edge y3 read from x)",
+    "caught": true
+   },
+   {
+    "name": "D6: fade-white opaque test at 254 not 255",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 28,
+   "branches_hit": 28,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 117,
+   "lines_hit": 117,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (vs_battle_screenTransitionAlpha != 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 4627, < 12786, > 22587 (signed); < 0, > 35373 (unsigned)",
+     "operand": "constant 0",
+     "a": "-600..600"
+    },
+    {
+     "line": 13,
+     "text": "switch (vs_battle_screenTransitionEffect) {",
+     "size": 4,
+     "count": 35373,
+     "kind": "switch",
+     "outcomes": "== 11061, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-2147105860..2146853462"
+    },
+    {
+     "line": 36,
+     "text": "if (vs_battle_screenTransitionAlpha == 255) {",
+     "size": 4,
+     "count": 2200,
+     "kind": "against a constant",
+     "outcomes": "== 264, < 1405, > 531 (signed); < 564, > 1372 (unsigned)",
+     "operand": "constant 255",
+     "a": "-598..600"
+    },
+    {
+     "line": 50,
+     "text": "if ((vs_battle_screenTransitionStep == 4)",
+     "size": 4,
+     "count": 2174,
+     "kind": "against a constant",
+     "outcomes": "== 124, < 1043, > 1007 (signed); < 499, > 1551 (unsigned)",
+     "operand": "constant 4",
+     "a": "-2144730682..2140614115"
+    },
+    {
+     "line": 51,
+     "text": "|| (vs_battle_screenTransitionStep == 7)) {",
+     "size": 4,
+     "count": 2050,
+     "kind": "against a constant",
+     "outcomes": "== 128, < 1268, > 654 (signed); < 724, > 1198 (unsigned)",
+     "operand": "constant 7",
+     "a": "-2144730682..2140614115"
+    },
+    {
+     "line": 145,
+     "text": "if (vs_battle_screenTransitionStep == 1 || vs_battle_screenTransitionStep == 2",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 2274, < 12157, > 25569 (signed); < 2274, > 35452 (unsigned)",
+     "operand": "constant 1",
+     "a": "-2147386703..2147295545"
+    },
+    {
+     "line": 145,
+     "text": "if (vs_battle_screenTransitionStep == 1 || vs_battle_screenTransitionStep == 2",
+     "size": 4,
+     "count": 37726,
+     "kind": "against a constant",
+     "outcomes": "== 2261, < 12157, > 23308 (signed); < 2274, > 33191 (unsigned)",
+     "operand": "constant 2",
+     "a": "-2147386703..2147295545"
+    },
+    {
+     "line": 146,
+     "text": "|| vs_battle_screenTransitionStep == 5) {",
+     "size": 4,
+     "count": 35465,
+     "kind": "against a constant",
+     "outcomes": "== 2223, < 16635, > 16607 (signed); < 6752, > 26490 (unsigned)",
+     "operand": "constant 5",
+     "a": "-2147386703..2147295545"
+    },
+    {
+     "line": 147,
+     "text": "if (vs_battle_screenTransitionAlpha >= (255 - vs_battle_screenTransitionSpeed)) {",
+     "size": 4,
+     "count": 6758,
+     "kind": "a == b / a < b",
+     "outcomes": "== 790, < 1650, > 4318 (signed); < 3582, > 2386 (unsigned)",
+     "operand": "b -600..600",
+     "a": "-45..555"
+    },
+    {
+     "line": 148,
+     "text": "if (vs_battle_screenTransitionStep == 5) {",
+     "size": 4,
+     "count": 2440,
+     "kind": "against a constant",
+     "outcomes": "== 810, < 1630, > 0 (signed); < 1630, > 0 (unsigned)",
+     "operand": "constant 5",
+     "a": "1..5"
+    },
+    {
+     "line": 155,
+     "text": "} else if (vs_battle_screenTransitionStep == 4",
+     "size": 4,
+     "count": 33242,
+     "kind": "against a constant",
+     "outcomes": "== 2256, < 14379, > 16607 (signed); < 4496, > 26490 (unsigned)",
+     "operand": "constant 4",
+     "a": "-2147386703..2147295545"
+    },
+    {
+     "line": 156,
+     "text": "|| vs_battle_screenTransitionStep == 7) {",
+     "size": 4,
+     "count": 30986,
+     "kind": "against a constant",
+     "outcomes": "== 2177, < 16672, > 12137 (signed); < 6789, > 22020 (unsigned)",
+     "operand": "constant 7",
+     "a": "-2147386703..2147295545"
+    },
+    {
+     "line": 157,
+     "text": "if (vs_battle_screenTransitionAlpha <= vs_battle_screenTransitionSpeed) {",
+     "size": 4,
+     "count": 4433,
+     "kind": "a == b / a < b",
+     "outcomes": "== 531, < 1563, > 2339 (signed); < 2073, > 1829 (unsigned)",
+     "operand": "b -300..300",
+     "a": "-600..600"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 44649,
+     "completion_tokens": 17624,
+     "reasoning_tokens": 14031,
+     "cost": 0.0132769,
+     "seconds": 66.4,
+     "sample": 1,
+     "conversation": "653f13360ce1c6c779e27126fb7739dec5d3184153b8348601655733106c20ea"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: C makes 1 external calls, Zig 0 (first unmatched: memset)\nzdiff: MISMATCH iteration 1: memory at 0x40907e [arena] (zdiff_state+0xe): C 18, Zig 3\nzdiff: MISMATCH iteration 2: memory at 0x429080 [vs_battle_screenTransitionDrMode+0x0] (zdiff_state+0x20010): C 42, Zig 38\nzdiff: _drawScreenTransition: 1000 iterations, seed 1, 1000 mismatches; classes: alpha-zero=96 fade-black=174 fade-white-255=5 fade-white=54 wipe=64 other-effect=607"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: C makes 1 external calls, Zig 0 (first unmatched: memset)"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 48545,
+     "completion_tokens": 6723,
+     "reasoning_tokens": 3105,
+     "cost": 0.008216,
+     "seconds": 25.6,
+     "sample": 1,
+     "conversation": "606c962d2653499d92210671e3bac89b5fcca3ade4477ea57b17bc100184c59b"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/draw_screen_transition.zig:74:18: error: @ptrCast must have a known result type\n    _ = c.memset(@ptrCast(&rect), 0, @sizeOf(v.RECT));\n                 ^~~~~~~~~~~~~~~\ngame/battle/draw_screen_transition.zig:74:17: note: result type is unknown due to anytype parameter\n    _ = c.memset(@ptrCast(&rect), 0, @sizeOf(v.RECT));\n        ~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/draw_screen_transition.zig:74:18: note: use @as to provide explicit result type\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 52583,
+     "completion_tokens": 4795,
+     "reasoning_tokens": 1165,
+     "cost": 0.0076558,
+     "seconds": 16.0,
+     "sample": 1,
+     "conversation": "3a4bcf8cef4c7566dcddec59118950b19894a6f28f4a205a512d290889499ef6"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/draw_screen_transition.zig:74:53: error: integer and float literals passed to variadic function must be casted to a fixed-size number type\n    _ = c.memset(@as(?*anyopaque, @ptrCast(&rect)), 0, @sizeOf(v.RECT));\n                                                    ^\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 32.10374260000026,
+ "wall_seconds": 255.20228536899958,
+ "totals": {
+  "cost": 0.04535,
+  "prompt_tokens": 167223,
+  "completion_tokens": 57253,
+  "model_seconds": 222.7,
+  "check_seconds": 32.1,
+  "calls": 4,
+  "wall_seconds": 255.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

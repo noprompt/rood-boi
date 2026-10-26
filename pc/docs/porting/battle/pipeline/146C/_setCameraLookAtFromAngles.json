@@ -1,0 +1,190 @@
+{
+ "function": "_setCameraLookAtFromAngles",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_setCameraLookAtFromAngles",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007aaf8",
+  "difficulty": "M",
+  "zig_name": "setCameraLookAtFromAngles",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_camera_look_at_from_angles",
+  "spec_file": "setCameraLookAtFromAngles.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setCameraLookAtFromAngles(spherical: ?*v._sphericalValues) callconv(.c) void",
+  "params": [
+   [
+    "spherical",
+    "?*v._sphericalValues"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11969,
+     "completion_tokens": 9035,
+     "reasoning_tokens": 7244,
+     "cost": 0.0057144,
+     "seconds": 38.5,
+     "sample": 1,
+     "conversation": "f7f15076e5c0c6a44361598ce5750a668f56ed15ca39aa6c9fec3591d3df4a43"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "distance-zero": "2219",
+   "distance-negative": "11816",
+   "distance-small": "6419",
+   "distance-large": "9546"
+  },
+  "mutations": [
+   {
+    "name": "L1: wrong scale constant (0x800 for 0x1000)",
+    "caught": true
+   },
+   {
+    "name": "L2: VectorNormal call dropped",
+    "caught": true
+   },
+   {
+    "name": "L3: vx offset taken from position.vy",
+    "caught": true
+   },
+   {
+    "name": "L4: vy scaled by mode, not distance",
+    "caught": true
+   },
+   {
+    "name": "L5: vx uses pitch instead of yaw",
+    "caught": true
+   },
+   {
+    "name": "L6: unsigned division of the pitch numerator",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35396,
+     "completion_tokens": 3255,
+     "reasoning_tokens": 2596,
+     "cost": 0.0051671,
+     "seconds": 13.6,
+     "sample": 1,
+     "conversation": "a149b0dd9cd064456ab82b695fa1ca30ae4e7d3c71195b7d10929c3a95e21103"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setCameraLookAtFromAngles.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_camera_look_at_from_angles.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 73.75086203299998,
+ "wall_seconds": 166.12297240600037,
+ "totals": {
+  "cost": 0.01088,
+  "prompt_tokens": 47365,
+  "completion_tokens": 12290,
+  "model_seconds": 52.1,
+  "check_seconds": 73.8,
+  "calls": 2,
+  "wall_seconds": 166.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

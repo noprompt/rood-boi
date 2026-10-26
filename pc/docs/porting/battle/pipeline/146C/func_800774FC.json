@@ -1,0 +1,306 @@
+{
+ "function": "func_800774FC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_800774FC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800774fc",
+  "difficulty": "S",
+  "zig_name": "func_800774FC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800774FC",
+  "spec_file": "func_800774FC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800774FC(arg0: c_int, arg1: c_int, bladeWepId: c_int, bladeMaterial: c_int, shieldWepId: c_int, shieldMaterial: c_int, arg6: ?*v.vs_battle_objectData_flags, arg7: c_int) callconv(.c) ?*v.vs_battle_actor",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "bladeWepId",
+    "c_int"
+   ],
+   [
+    "bladeMaterial",
+    "c_int"
+   ],
+   [
+    "shieldWepId",
+    "c_int"
+   ],
+   [
+    "shieldMaterial",
+    "c_int"
+   ],
+   [
+    "arg6",
+    "?*v.vs_battle_objectData_flags"
+   ],
+   [
+    "arg7",
+    "c_int"
+   ]
+  ],
+  "ret": "?*v.vs_battle_actor",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12907,
+     "completion_tokens": 10971,
+     "reasoning_tokens": 9071,
+     "cost": 0.0067762,
+     "seconds": 45.8,
+     "sample": 1,
+     "conversation": "78a45ac0ded1957f30ddbe6266ee60f1c97adf95c882d85772e80915f76edb69"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-result": "7563",
+   "valid-result": "22437"
+  },
+  "mutations": [
+   {
+    "name": "F1: func_800773BC call dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: shield and blade weapon ids swapped into func_800773BC",
+    "caught": true
+   },
+   {
+    "name": "F3: null test inverted",
+    "caught": true
+   },
+   {
+    "name": "F4: processObjectDataQueue dropped from the wait loop",
+    "caught": true
+   },
+   {
+    "name": "F5: blade material and weapon id swapped into func_80077240",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 5,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 6,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 7,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "while (vs_battle_getEmptyObjectDataSlot() != 0) {",
+     "size": 4,
+     "count": 68366,
+     "kind": "against a constant",
+     "outcomes": "== 22437, < 22982, > 22947 (signed); < 0, > 45929 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147096173..2147418175"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36388,
+     "completion_tokens": 2738,
+     "reasoning_tokens": 2210,
+     "cost": 0.0050078,
+     "seconds": 11.4,
+     "sample": 1,
+     "conversation": "6e2a7195eb46232aaca5127f54c3e6ae7b0e46d655c60f849ec476bc6f25e0cd"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_800774FC.zig:9:42: error: @ptrCast increases pointer alignment\n    const temp_v0: ?*v.vs_battle_actor = @ptrCast(c.func_80077240(arg0, arg1, bladeWepId, bladeMaterial, shieldWepId, shieldMaterial, @ptrCast(arg6), arg7));\n                                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/func_800774FC.zig:9:66: note: '?*c_146C.vs_battle_actor_dat' has alignment '1'\n    const temp_v0: ?*v.vs_battle_actor = @ptrCast(c.func_80077240(arg0, arg1, bladeWepId, bladeMaterial, shieldWepId, shieldMaterial, @ptrCast(arg6), arg7));\n                                                  ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/func_800774FC.zig:9:42: note: '?*views_146C.vs_battle_actor' has alignment '4'\ngame/battle/func_800774FC.zig:9:42: note: use @alignCast to assert pointer alignment\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37667,
+     "completion_tokens": 1395,
+     "reasoning_tokens": 839,
+     "cost": 0.0044642,
+     "seconds": 6.4,
+     "sample": 1,
+     "conversation": "a96d4bc2c810c0a0cced238de8b8ff81156def43a67d7b013bcb355844a58988"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_800774FC.zig:9:39: error: pointer element type 'c_146C.vs_battle_actor_dat' cannot coerce into element type 'anyopaque'\n    const raw: ?*align(4) anyopaque = @alignCast(c.func_80077240(arg0, arg1, bladeWepId, bladeMaterial, shieldWepId, shieldMaterial, @ptrCast(arg6), arg7));\n                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\npc/build/boot64/zig/c_146C.zig:3328:33: note: opaque declared here\npub const vs_battle_actor_dat = opaque {};\n                                ^~~~~~~~~\ngame/battle/func_800774FC.zig:9:39: note: use @ptrCast to cast pointer element type\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38769,
+     "completion_tokens": 1513,
+     "reasoning_tokens": 930,
+     "cost": 0.0046334,
+     "seconds": 6.1,
+     "sample": 1,
+     "conversation": "e128ac7a215bfe24e06cac82c5f538324b5fd0684b852f90a7157aa9856e54d9"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 3,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800774FC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800774FC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 247.81517153000095,
+ "wall_seconds": 599.5554033279986,
+ "totals": {
+  "cost": 0.02088,
+  "prompt_tokens": 125731,
+  "completion_tokens": 16617,
+  "model_seconds": 69.7,
+  "check_seconds": 247.8,
+  "calls": 4,
+  "wall_seconds": 599.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,250 @@
+{
+ "function": "func_8008E938",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8008E938",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e938",
+  "difficulty": "S",
+  "zig_name": "func_8008E938",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008E938",
+  "spec_file": "func_8008E938.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008E938() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13868,
+     "completion_tokens": 14080,
+     "reasoning_tokens": 12091,
+     "cost": 0.0084268,
+     "seconds": 59.2,
+     "sample": 1,
+     "conversation": "9565f0fb9b878d3e61679279d36f9a16cc4261d88dd6ab1187f16844ff3461cf"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-section": "3787",
+   "differs": "21000",
+   "equal-masked-zero": "954",
+   "equal-masked-set": "4259"
+  },
+  "mutations": [
+   {
+    "name": "F1: loop bound drops unk0[4] from the equality scan",
+    "caught": true
+   },
+   {
+    "name": "F2: flag mask keeps only 16 bits",
+    "caught": true
+   },
+   {
+    "name": "F3: the callee is dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: collision width scaled by 2, not 4",
+    "caught": true
+   },
+   {
+    "name": "F5: unk48[1].s16[1] offset added, not subtracted",
+    "caught": true
+   },
+   {
+    "name": "F6: fallback height constant 0x40 for the x side",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 29,
+   "lines_hit": 29,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if (((__typeof__((vs_battle_roomData.sectionB).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionB).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3787, < 0, > 26213 (signed); < 0, > 26213 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4235888"
+    },
+    {
+     "line": 14,
+     "text": "for (i = 1; i < 5; ++i) {",
+     "size": 4,
+     "count": 78801,
+     "kind": "against a constant",
+     "outcomes": "== 10523, < 63065, > 5213 (signed); < 63065, > 5213 (unsigned)",
+     "operand": "constant 4",
+     "a": "1..5"
+    },
+    {
+     "line": 15,
+     "text": "if (temp_s0->unk0[0] != temp_s0->unk0[i]) {",
+     "size": 4,
+     "count": 73588,
+     "kind": "a == b / a < b",
+     "outcomes": "== 52588, < 21000, > 0 (signed); < 19630, > 1370 (unsigned)",
+     "operand": "b -2147483648..2147335912",
+     "a": "-2147483648..2147335912"
+    },
+    {
+     "line": 19,
+     "text": "if ((i == 5) && (temp_s0->unk0[0] & 0xFFFFFF)) {",
+     "size": 4,
+     "count": 26213,
+     "kind": "against a constant",
+     "outcomes": "== 5213, < 21000, > 0 (signed); < 21000, > 0 (unsigned)",
+     "operand": "constant 5",
+     "a": "1..5"
+    },
+    {
+     "line": 19,
+     "text": "if ((i == 5) && (temp_s0->unk0[0] & 0xFFFFFF)) {",
+     "size": 4,
+     "count": 5213,
+     "kind": "against a constant",
+     "outcomes": "== 954, < 0, > 4259 (signed); < 0, > 4259 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16777215"
+    },
+    {
+     "line": 25,
+     "text": "if ((temp_s0->unk48[0].s32 == 0) && (temp_s0->unk48[1].s32 == 0)) {",
+     "size": 4,
+     "count": 26213,
+     "kind": "against a constant",
+     "outcomes": "== 13099, < 6166, > 6948 (signed); < 0, > 13114 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147406992"
+    },
+    {
+     "line": 25,
+     "text": "if ((temp_s0->unk48[0].s32 == 0) && (temp_s0->unk48[1].s32 == 0)) {",
+     "size": 4,
+     "count": 13099,
+     "kind": "against a constant",
+     "outcomes": "== 9334, < 1624, > 2141 (signed); < 0, > 3765 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2145346644"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37348,
+     "completion_tokens": 5486,
+     "reasoning_tokens": 4396,
+     "cost": 0.0064778,
+     "seconds": 20.6,
+     "sample": 1,
+     "conversation": "59f2561ad1179e349f4f4c4a4f853dfb05018f8d4b5c758cc54ad72c72339b1a"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008E938.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008E938.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 153.1705101970001,
+ "wall_seconds": 305.40497179900194,
+ "totals": {
+  "cost": 0.0149,
+  "prompt_tokens": 51216,
+  "completion_tokens": 19566,
+  "model_seconds": 79.8,
+  "check_seconds": 153.2,
+  "calls": 2,
+  "wall_seconds": 305.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

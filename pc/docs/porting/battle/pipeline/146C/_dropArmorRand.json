@@ -1,0 +1,233 @@
+{
+ "function": "_dropArmorRand",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_dropArmorRand",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006bd14",
+  "difficulty": "S",
+  "zig_name": "dropArmorRand",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "drop_armor_rand",
+  "spec_file": "dropArmorRand.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn dropArmorRand(looted: ?*v.vs_battle_lootedArmor, base: ?*v.vs_battle_uiArmor) callconv(.c) c_int",
+  "params": [
+   [
+    "looted",
+    "?*v.vs_battle_lootedArmor"
+   ],
+   [
+    "base",
+    "?*v.vs_battle_uiArmor"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "vs_battle_lootedArmor",
+   "vs_battle_uiArmor"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12224,
+     "completion_tokens": 15138,
+     "reasoning_tokens": 13360,
+     "cost": 0.0087914,
+     "seconds": 62.6,
+     "sample": 1,
+     "conversation": "cdcc26f9d89bbeb066a5d01e4e1ad5a4617a3f6783f9acbd0d8c64f322f40e5c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-drop": "21375",
+   "drop-slot0": "2959",
+   "drop-slot1": "1856",
+   "no-free-slot": "3810"
+  },
+  "mutations": [
+   {
+    "name": "D1: roll compared with <= (an equal roll drops)",
+    "caught": true
+   },
+   {
+    "name": "D2: only the first looted slot is tried",
+    "caught": true
+   },
+   {
+    "name": "D3: the copy is dropped",
+    "caught": true
+   },
+   {
+    "name": "D4: the flags store runs before the copy call",
+    "caught": true
+   },
+   {
+    "name": "D5: drop rate read as signed char",
+    "caught": true
+   },
+   {
+    "name": "D6: free test reads wepId, not id",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (vs_main_getRand(0xFF) < base->dropRate) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 12266, < 8625, > 9109 (signed); < 5376, > 12358 (unsigned)",
+     "operand": "b 0..255",
+     "a": "-1..256"
+    },
+    {
+     "line": 5,
+     "text": "for (i = 0; i < 2; ++i) {",
+     "size": 4,
+     "count": 18101,
+     "kind": "against a constant",
+     "outcomes": "== 5666, < 8625, > 3810 (signed); < 8625, > 3810 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..2"
+    },
+    {
+     "line": 6,
+     "text": "if (looted[i].armor.id == 0) {",
+     "size": 1,
+     "count": 14291,
+     "kind": "against a constant",
+     "outcomes": "== 4815, < 5514, > 3962 (signed); < 0, > 9476 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35698,
+     "completion_tokens": 2530,
+     "reasoning_tokens": 2066,
+     "cost": 0.0048348,
+     "seconds": 11.2,
+     "sample": 1,
+     "conversation": "9fd8d0be31e789d5f0f0313d1214cd4c9abe967a80e5b04db531bd867889571a"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/dropArmorRand.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/drop_armor_rand.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 91.18547669299915,
+ "wall_seconds": 165.34420172700084,
+ "totals": {
+  "cost": 0.01363,
+  "prompt_tokens": 47922,
+  "completion_tokens": 17668,
+  "model_seconds": 73.8,
+  "check_seconds": 91.2,
+  "calls": 2,
+  "wall_seconds": 165.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 18, 0 mismatches"
+ }
+}

@@ -1,0 +1,182 @@
+{
+ "function": "vs_battle_setProjectionDistance",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_setProjectionDistance",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007ccf0",
+  "difficulty": "M",
+  "zig_name": "setProjectionDistance",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_projection_distance",
+  "spec_file": "setProjectionDistance.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setProjectionDistance(projectionDistance: c_int) callconv(.c) void",
+  "params": [
+   [
+    "projectionDistance",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "vs_main_projectionDistance"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11169,
+     "completion_tokens": 2471,
+     "reasoning_tokens": 1544,
+     "cost": 0.0023524,
+     "seconds": 10.9,
+     "sample": 1,
+     "conversation": "24d86aac83be8f30f44712220528705175ad60c282e33fb41493718bc4c513ac"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "negative": "8417",
+   "non-negative": "11583"
+  },
+  "mutations": [
+   {
+    "name": "P1: the global store is dropped",
+    "caught": true
+   },
+   {
+    "name": "P2: the store moved after the SetGeomScreen call",
+    "caught": true
+   },
+   {
+    "name": "P3: the global stores a truncated 16-bit value",
+    "caught": true
+   },
+   {
+    "name": "P4: SetGeomScreen gets the distance with the sign bit masked",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34619,
+     "completion_tokens": 769,
+     "reasoning_tokens": 539,
+     "cost": 0.0038464,
+     "seconds": 4.1,
+     "sample": 1,
+     "conversation": "65a500054faa3425086e0e4db76ac807f39029ed08ff743565ca42d112c9ea99"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setProjectionDistance.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_projection_distance.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 55.978721051998946,
+ "wall_seconds": 83.54054930500024,
+ "totals": {
+  "cost": 0.0062,
+  "prompt_tokens": 45788,
+  "completion_tokens": 3240,
+  "model_seconds": 15.0,
+  "check_seconds": 56.0,
+  "calls": 2,
+  "wall_seconds": 83.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

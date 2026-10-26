@@ -320,6 +320,24 @@ def get_batch(batch_id, endpoint=None):
         raise ModelError(f"batch {batch_id}: unreachable: {getattr(error, 'reason', error)}") from None
 
 
+def cancel_batch(batch_id, endpoint=None):
+    """OpenRouter has no cancel endpoint (POST /batches/{id}/cancel is a 404); DELETE
+    /batches/{id} removes a batch that is not finished. True once the batch is gone
+    (GET answers 404) or final-cancelled."""
+    endpoint = endpoint or Endpoint()
+    try:
+        endpoint._get(endpoint.base_url + "/batches/" + urllib.parse.quote(batch_id), method="DELETE", timeout=120)
+    except urllib.error.HTTPError as error:
+        if error.code != 404:
+            raise ModelError(f"batch {batch_id}: delete: HTTP {error.code}: {error.read().decode(errors='replace')[:300]}") from None
+    except (urllib.error.URLError, OSError) as error:
+        raise ModelError(f"batch {batch_id}: delete: unreachable: {getattr(error, 'reason', error)}") from None
+    try:
+        return get_batch(batch_id, endpoint).get("status") == "cancelled"
+    except ModelError as error:
+        return "HTTP 404" in str(error)
+
+
 def batch_prices(model, endpoint=None):
     """(prompt, completion) US$ per token of `model`'s batch variant (OpenRouter's
     /models/<model>:batch/endpoints), or None."""

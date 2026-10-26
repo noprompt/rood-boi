@@ -1,0 +1,305 @@
+{
+ "function": "func_80080000",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; negative targetLimb not exercised by the spec but handled by psx.at; spec sound",
+ "plan": {
+  "name": "func_80080000",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80080000",
+  "difficulty": "M",
+  "zig_name": "func_80080000",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80080000",
+  "spec_file": "func_80080000.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80080000(action: ?*v.vs_action_t, entity: ?*v._hitEntity_t, baseValue: c_short) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "entity",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "baseValue",
+    "c_short"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "_armorDpAdjustmentAmounts"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16398,
+     "completion_tokens": 12857,
+     "reasoning_tokens": 11119,
+     "cost": 0.0080683,
+     "seconds": 55.3,
+     "sample": 1,
+     "conversation": "facb545efa58d9c4f41a48223b84a6620240c058503fa6866162b7fd75183368"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80080000/spec1/build/spec.zig:58:23: error: type '?*views_146C.vs_battle_actor2' does not support field access\n            for (stats.limbs) |limb| {\n                 ~~~~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:443:36\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18401,
+     "completion_tokens": 3107,
+     "reasoning_tokens": 1367,
+     "cost": 0.0033936,
+     "seconds": 11.7,
+     "sample": 1,
+     "conversation": "84a67136c7828eda4e9418ddf49c7a56701fa5ec4eb1053f54eb3594265d2d6b"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "limbs-none-alive": "1875",
+   "limbs-some-alive": "7611",
+   "splash": "5590",
+   "single": "7391",
+   "no-case": "7533"
+  },
+  "mutations": [
+   {
+    "name": "M1: each live limb counts twice",
+    "caught": true
+   },
+   {
+    "name": "M2: baseValue divided as unsigned",
+    "caught": true
+   },
+   {
+    "name": "M3: splash divided by 128, not 100",
+    "caught": true
+   },
+   {
+    "name": "M4: case 14 dropped from the splash arm",
+    "caught": true
+   },
+   {
+    "name": "M5: single limb stores instead of adding",
+    "caught": true
+   },
+   {
+    "name": "M6: the zeroing loop leaves entries 4 and 5 stale",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 26,
+   "lines_hit": 26,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "16-bit: min -32768, max 32767, unsigned 0..65535, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 12,
+     "text": "switch (action->unk2_4) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 16759, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..15"
+    },
+    {
+     "line": 20,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 66402,
+     "kind": "against a constant",
+     "outcomes": "== 9486, < 47430, > 9486 (signed); < 47430, > 9486 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 21,
+     "text": "if (actor->limbs[i].maxHp != 0) {",
+     "size": 2,
+     "count": 56916,
+     "kind": "against a constant",
+     "outcomes": "== 26517, < 13838, > 16561 (signed); < 0, > 30399 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 26,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 66402,
+     "kind": "against a constant",
+     "outcomes": "== 9486, < 47430, > 9486 (signed); < 47430, > 9486 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 27,
+     "text": "if (actor->limbs[i].maxHp != 0) {",
+     "size": 2,
+     "count": 56916,
+     "kind": "against a constant",
+     "outcomes": "== 26517, < 13838, > 16561 (signed); < 0, > 30399 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 36,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 39130,
+     "kind": "against a constant",
+     "outcomes": "== 5590, < 27950, > 5590 (signed); < 27950, > 5590 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39740,
+     "completion_tokens": 7616,
+     "reasoning_tokens": 6610,
+     "cost": 0.007782,
+     "seconds": 30.6,
+     "sample": 1,
+     "conversation": "dac95d74a8779595c5f928e5dc2779b6d37d715f81b003cb47611a153caea819"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80080000.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80080000.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 81.36348959699899,
+ "wall_seconds": 179.26207020500078,
+ "totals": {
+  "cost": 0.01924,
+  "prompt_tokens": 74539,
+  "completion_tokens": 23580,
+  "model_seconds": 97.6,
+  "check_seconds": 81.4,
+  "calls": 3,
+  "wall_seconds": 179.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 84, 0 mismatches"
+ }
+}

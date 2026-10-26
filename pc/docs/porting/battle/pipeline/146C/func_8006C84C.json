@@ -1,0 +1,260 @@
+{
+ "function": "func_8006C84C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful after a tidy: the private-prototype function-pointer cast of func_8006C4C4 replaced by direct c.func_8006C4C4 calls; spec sound",
+ "plan": {
+  "name": "func_8006C84C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006c84c",
+  "difficulty": "M",
+  "zig_name": "func_8006C84C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006C84C",
+  "spec_file": "func_8006C84C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006C84C(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "D_800F19CC_t2"
+  ],
+  "globals": [
+   "vs_main_actions"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14820,
+     "completion_tokens": 18662,
+     "reasoning_tokens": 16582,
+     "cost": 0.010813,
+     "seconds": 80.6,
+     "sample": 1,
+     "conversation": "15de09541dbd6256922db52037ab834ef336aa0e82492560991b20beb39ee245"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-entries": "4211",
+   "first-entry-live": "3131",
+   "action-high": "17761",
+   "prereq-3": "4065",
+   "switch": "832"
+  },
+  "mutations": [
+   {
+    "name": "M1: streak-routing bound <= 0x16 (should be < 0x16)",
+    "caught": true
+   },
+   {
+    "name": "M2: case 1 calls with 0x26 instead of 0x27",
+    "caught": true
+   },
+   {
+    "name": "M3: func_8006C5AC called with 0 instead of arg0",
+    "caught": true
+   },
+   {
+    "name": "M4: live-entry test as < 1 (negative unk40 taken as dead)",
+    "caught": true
+   },
+   {
+    "name": "M5: loop bound off by one (<= unk4A)",
+    "caught": true
+   },
+   {
+    "name": "M6: action table bound 0x29 instead of 0x28",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 30,
+   "lines_hit": 30,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147239387, max 2147199535, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "for (i = 0; i < temp_s0->unk4A; ++i) {",
+     "size": 4,
+     "count": 257584,
+     "kind": "a == b / a < b",
+     "outcomes": "== 16998, < 227584, > 13002 (signed); < 227584, > 13002 (unsigned)",
+     "operand": "b 0..32",
+     "a": "0..32"
+    },
+    {
+     "line": 8,
+     "text": "if (temp_s0->unk4C[i].unk40 == 0) {",
+     "size": 4,
+     "count": 227584,
+     "kind": "against a constant",
+     "outcomes": "== 35671, < 104797, > 87116 (signed); < 0, > 191913 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147478236"
+    },
+    {
+     "line": 9,
+     "text": "if (temp_s0->actionIndex < 0x28) {",
+     "size": 2,
+     "count": 35671,
+     "kind": "against a constant",
+     "outcomes": "== 1217, < 19001, > 15453 (signed); < 4957, > 29497 (unsigned)",
+     "operand": "constant 39",
+     "a": "-32768..32764"
+    },
+    {
+     "line": 11,
+     "text": "if (((vs_main_actions[temp_s0->actionIndex]",
+     "size": 1,
+     "count": 6174,
+     "kind": "against a constant",
+     "outcomes": "== 3096, < 158, > 2920 (signed); < 158, > 2920 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..63"
+    },
+    {
+     "line": 20,
+     "text": "switch (temp_s0->unk4C[i].unk0.unk3) {",
+     "size": 4,
+     "count": 3078,
+     "kind": "switch",
+     "outcomes": "== 2391, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..255"
+    },
+    {
+     "line": 24,
+     "text": "if (temp_s0->actionIndex < 0x16) {",
+     "size": 2,
+     "count": 1016,
+     "kind": "against a constant",
+     "outcomes": "== 195, < 188, > 633 (signed); < 188, > 633 (unsigned)",
+     "operand": "constant 21",
+     "a": "0..39"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38293,
+     "completion_tokens": 8574,
+     "reasoning_tokens": 7646,
+     "cost": 0.0081163,
+     "seconds": 36.4,
+     "sample": 1,
+     "conversation": "e65bed73351e7c20da909f7ee76a05810a0b908f129dd0f5291c4aae893f10ee"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006C84C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006C84C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 99.06089897699985,
+ "wall_seconds": 216.45792417099983,
+ "totals": {
+  "cost": 0.01893,
+  "prompt_tokens": 53113,
+  "completion_tokens": 27236,
+  "model_seconds": 117.0,
+  "check_seconds": 99.1,
+  "calls": 2,
+  "wall_seconds": 216.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "port_fixes": [
+   "func_8006C4C4 called directly (@ptrCast(entry)) instead of through a function pointer cast to a private prototype",
+   " re-gated: port_gate seeds 1-3 pass"
+  ],
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / root 5, 0 mismatches"
+ }
+}

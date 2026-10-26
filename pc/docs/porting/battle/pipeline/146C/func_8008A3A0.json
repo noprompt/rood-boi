@@ -1,0 +1,235 @@
+{
+ "function": "func_8008A3A0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the ROOD_PC branch kept (mpdEnemies freed through its guest slot); both ordering-table passes, teardown order as the C; spec sound",
+ "plan": {
+  "name": "func_8008A3A0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008a3a0",
+  "difficulty": "M",
+  "zig_name": "func_8008A3A0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008A3A0",
+  "spec_file": "func_8008A3A0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008A3A0() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "_mpdEnemy"
+  ],
+  "globals": [
+   "D_80055C80",
+   "D_8005E0C0",
+   "D_800F192C",
+   "_zoneContext",
+   "vs_main_frameBuf",
+   "vs_scratch"
+  ],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14590,
+     "completion_tokens": 20862,
+     "reasoning_tokens": 18664,
+     "cost": 0.01189,
+     "seconds": 88.6,
+     "sample": 1,
+     "conversation": "f9afd4009dda5da10f64a714ec1328eb9631aeb5b95e4938d206cf70273e0336"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "enemies-null-ref-null": "3335",
+   "enemies-set-ref-null": "6747",
+   "enemies-null-ref-set": "6658",
+   "enemies-set-ref-set": "13260"
+  },
+  "mutations": [
+   {
+    "name": "M1: the frame's OT address is 0x10 past the wrong offset",
+    "caught": true
+   },
+   {
+    "name": "M2: ClearOTagR clears 0x400 entries, not 0x800",
+    "caught": true
+   },
+   {
+    "name": "M3: the transition's end offset is off by 4",
+    "caught": true
+   },
+   {
+    "name": "M4: the frame loop runs once",
+    "caught": true
+   },
+   {
+    "name": "M5: func_8008A364 call dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: the second heap block freed twice (wrong index)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 24,
+   "lines_hit": 24,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 2; ++i) {",
+     "size": 4,
+     "count": 90000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 30000, > 30000 (signed); < 30000, > 30000 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..2"
+    },
+    {
+     "line": 24,
+     "text": "if (((__typeof__((_zoneContext.mpdEnemies).psx_type_[0]))(long unsigned int)(_zoneContext.mpdEnemies).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15062, < 7482, > 7456 (signed); < 0, > 14938 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..4240128"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37924,
+     "completion_tokens": 11414,
+     "reasoning_tokens": 10493,
+     "cost": 0.0094994,
+     "seconds": 45.7,
+     "sample": 1,
+     "conversation": "e643d87f271b0d928e66ba1b5f52e5e729eef64beed9466f8afe7c53bfae7113"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8008A3A0.zig:17:26: error: @ptrCast increases pointer alignment\n        _ = c.ClearOTagR(@ptrCast(psx.get(v.g.vs_scratch().unk4)), 0x800);\n                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/func_8008A3A0.zig:17:42: note: '?*anyopaque' has alignment '1'\n        _ = c.ClearOTagR(@ptrCast(psx.get(v.g.vs_scratch().unk4)), 0x800);\n                                  ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/func_8008A3A0.zig:17:26: note: '[*c]c_uint' has alignment '4'\ngame/battle/func_8008A3A0.zig:17:26: note: use @alignCast to assert pointer alignment\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39348,
+     "completion_tokens": 2735,
+     "reasoning_tokens": 1796,
+     "cost": 0.0053023,
+     "seconds": 11.9,
+     "sample": 1,
+     "conversation": "cad7ea0f5a79b5e5b8c0519b52b02d807cd822e9865bdb8f40d39fff62233c32"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008A3A0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008A3A0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 90.26827800800129,
+ "wall_seconds": 237.01708475600026,
+ "totals": {
+  "cost": 0.02669,
+  "prompt_tokens": 91862,
+  "completion_tokens": 35011,
+  "model_seconds": 146.2,
+  "check_seconds": 90.3,
+  "calls": 3,
+  "wall_seconds": 237.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

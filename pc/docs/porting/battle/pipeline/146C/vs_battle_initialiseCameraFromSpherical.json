@@ -1,0 +1,255 @@
+{
+ "function": "vs_battle_initialiseCameraFromSpherical",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound; hazard: sp10 left undefined where C leaves dead stack if func_800A1108(0) returns -1 (actor 0 absent), spec stub always fills it",
+ "plan": {
+  "name": "vs_battle_initialiseCameraFromSpherical",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007cd70",
+  "difficulty": "S",
+  "zig_name": "initialiseCameraFromSpherical",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "initialise_camera_from_spherical",
+  "spec_file": "initialiseCameraFromSpherical.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn initialiseCameraFromSpherical(outputPos: ?*v.VECTOR, outputLookAt: ?*v.VECTOR, facing: c_int, mode: c_int) callconv(.c) void",
+  "params": [
+   [
+    "outputPos",
+    "?*v.VECTOR"
+   ],
+   [
+    "outputLookAt",
+    "?*v.VECTOR"
+   ],
+   [
+    "facing",
+    "c_int"
+   ],
+   [
+    "mode",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12544,
+     "completion_tokens": 11952,
+     "reasoning_tokens": 10016,
+     "cost": 0.0072304,
+     "seconds": 49.2,
+     "sample": 1,
+     "conversation": "80102213a5413d3cd5e52028aa48aa67c1f79f15d3eed141dffbff786e067d79"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "mode-1": "4143",
+   "mode-2": "3944",
+   "no-facing": "1115",
+   "facing-negative": "14952",
+   "facing-nonnegative": "15846"
+  },
+  "mutations": [
+   {
+    "name": "F1: rounding constant 8 instead of 7 for negative facing",
+    "caught": true
+   },
+   {
+    "name": "F2: yaw store dropped",
+    "caught": true
+   },
+   {
+    "name": "F3: delta.mode stored as 0 in the mode 2 branch",
+    "caught": true
+   },
+   {
+    "name": "F4: mode 2 distance 0x600 instead of 0x900",
+    "caught": true
+   },
+   {
+    "name": "F5: look-at z shifted by 11 instead of 12",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 24,
+   "lines_hit": 24,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 40000,
+     "text": "32-bit: min -2147234662, max 2147284759, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "if (facing != -1) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 1398, < 18684, > 19918 (signed); < 38602, > 0 (unsigned)",
+     "operand": "constant -1",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 10,
+     "text": "if (facing < 0) {",
+     "size": 4,
+     "count": 38602,
+     "kind": "against a constant",
+     "outcomes": "== 1437, < 18684, > 18481 (signed); < 0, > 37165 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 17,
+     "text": "if (mode == 1) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 4143, < 18046, > 17811 (signed); < 4037, > 31820 (unsigned)",
+     "operand": "constant 1",
+     "a": "-2147234662..2147284759"
+    },
+    {
+     "line": 21,
+     "text": "} else if (mode == 2) {",
+     "size": 4,
+     "count": 35857,
+     "kind": "against a constant",
+     "outcomes": "== 3944, < 18046, > 13867 (signed); < 4037, > 27876 (unsigned)",
+     "operand": "constant 2",
+     "a": "-2147234662..2147284759"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35954,
+     "completion_tokens": 7722,
+     "reasoning_tokens": 6815,
+     "cost": 0.0074564,
+     "seconds": 31.1,
+     "sample": 1,
+     "conversation": "c0d2f0d8dc5e48e7fc09230c898187773259444841402c7a05b7e1b97d5531d2"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/initialiseCameraFromSpherical.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/initialise_camera_from_spherical.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 243.63136914200004,
+ "wall_seconds": 599.9140472149993,
+ "totals": {
+  "cost": 0.01469,
+  "prompt_tokens": 48498,
+  "completion_tokens": 19674,
+  "model_seconds": 80.3,
+  "check_seconds": 243.6,
+  "calls": 2,
+  "wall_seconds": 599.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

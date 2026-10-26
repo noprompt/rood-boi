@@ -1,0 +1,208 @@
+{
+ "function": "vs_battle_copyUiAccessoryStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_copyUiAccessoryStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006badc",
+  "difficulty": "S",
+  "zig_name": "copyUiAccessoryStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_ui_accessory_stats",
+  "spec_file": "copyUiAccessoryStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyUiAccessoryStats(target: ?*v.vs_main_inventoryArmor, source: ?*v.vs_battle_uiAccessory) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_main_inventoryArmor"
+   ],
+   [
+    "source",
+    "?*v.vs_battle_uiAccessory"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiAccessory",
+   "vs_main_inventoryArmor"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11963,
+     "completion_tokens": 6678,
+     "reasoning_tokens": 5231,
+     "cost": 0.0045353,
+     "seconds": 28.4,
+     "sample": 1,
+     "conversation": "2fb5f4fa924d1bd736f9d8372b4360424a55e6f2bb924e68d12e166a696dca8c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "id-zero": "3016",
+   "id-high-bit": "13338",
+   "id-low-nonzero": "13646"
+  },
+  "mutations": [
+   {
+    "name": "A1: bound slips to >= 2 (id 1 is skipped)",
+    "caught": true
+   },
+   {
+    "name": "A2: wrong field tested (subId, a signed byte)",
+    "caught": true
+   },
+   {
+    "name": "A3: the copy call is dropped",
+    "caught": true
+   },
+   {
+    "name": "A4: the copy runs twice",
+    "caught": true
+   },
+   {
+    "name": "A5: the id test is dropped (empty accessories are copied)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if (source->accessory.id != 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3016, < 13338, > 13646 (signed); < 0, > 26984 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32763"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35387,
+     "completion_tokens": 2336,
+     "reasoning_tokens": 2035,
+     "cost": 0.0047067,
+     "seconds": 12.0,
+     "sample": 1,
+     "conversation": "4a62c5f82df11992e26d5a0cc3cf61a9454d48b834ea0efe4670bfd4ba4e2a96"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyUiAccessoryStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_ui_accessory_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 97.01843239600021,
+ "wall_seconds": 236.9825268149998,
+ "totals": {
+  "cost": 0.00924,
+  "prompt_tokens": 47350,
+  "completion_tokens": 9014,
+  "model_seconds": 40.4,
+  "check_seconds": 97.0,
+  "calls": 2,
+  "wall_seconds": 237.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 3, 0 mismatches"
+ }
+}

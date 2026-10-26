@@ -1,0 +1,240 @@
+{
+ "function": "func_800792E4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (the actor slot re-read after _enemyDefeated, as the C); spec sound",
+ "plan": {
+  "name": "func_800792E4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800792e4",
+  "difficulty": "S",
+  "zig_name": "func_800792E4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800792E4",
+  "spec_file": "func_800792E4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800792E4(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13543,
+     "completion_tokens": 13293,
+     "reasoning_tokens": 11278,
+     "cost": 0.0080008,
+     "seconds": 56.7,
+     "sample": 1,
+     "conversation": "573552efc0be33c1701911baf48c8211a71859dbea644d39ca22a6dc3eea43f5"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-actor": "4906",
+   "alive": "29324",
+   "dead-player": "363",
+   "dead-enemy-unk26-zero": "719",
+   "dead-enemy-unk26-set": "4688"
+  },
+  "mutations": [
+   {
+    "name": "F1: player defeat reports the wrong index",
+    "caught": true
+   },
+   {
+    "name": "F2: return value of the player-defeat path is 2",
+    "caught": true
+   },
+   {
+    "name": "F3: enemy removal tests unk26 inverted",
+    "caught": true
+   },
+   {
+    "name": "F4: dropped _removeActorAtIndex call",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong constant in func_800BEC58's first argument",
+    "caught": true
+   },
+   {
+    "name": "F6: _enemyDefeated gets 0 for arg2",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (((__typeof__((vs_battle_actors[arg1]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg1]->unk3C).raw)->currentHP == 0) {",
+     "size": 2,
+     "count": 35094,
+     "kind": "against a constant",
+     "outcomes": "== 5770, < 14658, > 14666 (signed); < 0, > 29324 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 6,
+     "text": "if (arg1 == 0) {",
+     "size": 4,
+     "count": 5770,
+     "kind": "against a constant",
+     "outcomes": "== 363, < 0, > 5407 (signed); < 0, > 5407 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 11,
+     "text": "} else if (vs_battle_actors[arg1]->unk26 == 0) {",
+     "size": 1,
+     "count": 5407,
+     "kind": "against a constant",
+     "outcomes": "== 2714, < 1377, > 1316 (signed); < 0, > 2693 (unsigned)",
+     "operand": "constant 0",
+     "a": "-127..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36923,
+     "completion_tokens": 3294,
+     "reasoning_tokens": 2737,
+     "cost": 0.0053393,
+     "seconds": 16.5,
+     "sample": 1,
+     "conversation": "6ba5efadd510ae85bea75b33eb12e8105a627dfda0d6badfb5402b9d78be46ce"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800792E4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800792E4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 262.36925209200126,
+ "wall_seconds": 652.4974336559972,
+ "totals": {
+  "cost": 0.01334,
+  "prompt_tokens": 50466,
+  "completion_tokens": 16587,
+  "model_seconds": 73.2,
+  "check_seconds": 262.4,
+  "calls": 2,
+  "wall_seconds": 652.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 2 / root 4 / root 10, 0 mismatches"
+ }
+}

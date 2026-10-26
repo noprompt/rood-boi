@@ -1,0 +1,131 @@
+{
+ "function": "_hpHealedFromHealPanel",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: your spec's own code (prepare or classify) failed before the C ran: a Zig safety check (an index past an array's length, an integer th",
+ "plan": {
+  "name": "_hpHealedFromHealPanel",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80082ff4",
+  "difficulty": "M",
+  "zig_name": "hpHealedFromHealPanel",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hp_healed_from_heal_panel",
+  "spec_file": "hpHealedFromHealPanel.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hpHealedFromHealPanel(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, hit: ?*v._hitEntity_t, nHit: c_int, withRandMod: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "hit",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "nHit",
+    "c_int"
+   ],
+   [
+    "withRandMod",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [
+   "_hitIntermediate"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [
+   "_getRoomTrapLevel"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 20152,
+     "completion_tokens": 37365,
+     "reasoning_tokens": 34605,
+     "cost": 0.0206977,
+     "seconds": 155.1,
+     "sample": 1,
+     "conversation": "3c87dd08234395b51ff71de18fba2e45a8fb916af528586f1ad3fadba0df133d"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x407070 [arena] 0x407bc0 [arena] 0x407a70 [arena] 0x1 0 (class no-rand-mod)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 23360,
+     "completion_tokens": 5737,
+     "reasoning_tokens": 2886,
+     "cost": 0.0052045,
+     "seconds": 23.0,
+     "sample": 1,
+     "conversation": "1554b3214e3a9c6ffa7e98aa6e1f96fed130b54ef13408b8a84cad960eb12206"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: your spec's own code (prepare or classify) failed before the C ran: a Zig safety check (an index past an array's length, an integer that does not fit, a null unwrap) or a fault in it:\nzdiff: CRASH (signal 11) in the prepare run, iteration 0, a wild pointer (a non-canonical address: random bytes used as a pointer?)",
+     "(the mutations and the coverage gate are checked once the spec runs)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [],
+  "coverage": null
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 1.6843096659995354,
+ "wall_seconds": 180.44833521800047,
+ "totals": {
+  "cost": 0.0259,
+  "prompt_tokens": 43512,
+  "completion_tokens": 43102,
+  "model_seconds": 178.1,
+  "check_seconds": 1.7,
+  "calls": 2,
+  "wall_seconds": 180.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

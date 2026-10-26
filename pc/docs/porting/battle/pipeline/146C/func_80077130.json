@@ -1,0 +1,320 @@
+{
+ "function": "func_80077130",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 0: memory at 0x40611b [arena] (zdiff_state+0x9b): C 128, Zig 0",
+ "plan": {
+  "name": "func_80077130",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80077130",
+  "difficulty": "S",
+  "zig_name": "func_80077130",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80077130",
+  "spec_file": "func_80077130.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80077130(actor: ?*v.vs_battle_actor, actorId: c_int, wepId: c_int, isShield: c_int, material: c_int) callconv(.c) void",
+  "params": [
+   [
+    "actor",
+    "?*v.vs_battle_actor"
+   ],
+   [
+    "actorId",
+    "c_int"
+   ],
+   [
+    "wepId",
+    "c_int"
+   ],
+   [
+    "isShield",
+    "c_int"
+   ],
+   [
+    "material",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_actor4",
+   "vs_battle_objectData"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12774,
+     "completion_tokens": 10186,
+     "reasoning_tokens": 8730,
+     "cost": 0.0063704,
+     "seconds": 45.0,
+     "sample": 1,
+     "conversation": "1253011021be8dd1fc7e64cc241c6b874a1c8a9d257c877dfbd11c484805d74f"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F1: the shield branch tests isShield == 1: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80077130: 30000 iterations, seed 1, 0 mismatches; classes: wep-0xFF=1572 wep-0=1513 weapon-shield-0=8943 weapon-shield-nonzero=17972",
+     "FAIL: mutation F2: the no-weapon sentinel is 0xFE: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 12: C makes 2 external calls, Zig 0 (first unmatched: func_8009AA84)\nzdiff: CRASH (signal 11) in the Zig run, iteration 17, fault address 0x48 [NULL+0x48: a field of a null pointer]\nzdiff: crashed on arguments: 0 0xffff9472 0xff 0 0xffffffff (class wep-0xFF)",
+     "FAIL: mutation F3: the material store is dropped: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80077130: 30000 iterations, seed 1, 0 mismatches; classes: wep-0xFF=1572 wep-0=1513 weapon-shield-0=8943 weapon-shield-nonzero=17972",
+     "FAIL: mutation F4: the shield unk11 constant is 0xF0: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80077130: 30000 iterations, seed 1, 0 mismatches; classes: wep-0xFF=1572 wep-0=1513 weapon-shield-0=8943 weapon-shield-nonzero=17972"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14934,
+     "completion_tokens": 5792,
+     "reasoning_tokens": 4046,
+     "cost": 0.0043894,
+     "seconds": 24.6,
+     "sample": 1,
+     "conversation": "8acca47f8c7f545b465e4e77ecb9a7cf702668707c724e470886551048ad9bff"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "wep-0xFF": "1572",
+   "wep-0": "1513",
+   "weapon-shield-0": "8943",
+   "weapon-shield-nonzero": "17972"
+  },
+  "mutations": [
+   {
+    "name": "F1: the shield branch tests isShield == 1",
+    "caught": true
+   },
+   {
+    "name": "F2: the weapon-present test is a signed compare",
+    "caught": true
+   },
+   {
+    "name": "F3: the material store is dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: the shield unk11 constant is 0xF0",
+    "caught": true
+   },
+   {
+    "name": "F5: the scratch-slot setup call is dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: signed slip, wepId > 0 instead of != 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 16,
+   "lines_hit": 16,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -1073741824, max 1073676288, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147358863, max 2147307167, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -1, max 2, unsigned 0..4294967295, seen zero/negative/all ones, 4 value(s): 1, 4294967295, 0, 2"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147474752, max 2147472634, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (wepId != 0xFF) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1572, < 16451, > 11977 (signed); < 7515, > 20913 (unsigned)",
+     "operand": "constant 255",
+     "a": "-2147358863..2147307167"
+    },
+    {
+     "line": 8,
+     "text": "if (wepId != 0) {",
+     "size": 4,
+     "count": 28428,
+     "kind": "against a constant",
+     "outcomes": "== 1513, < 8936, > 17979 (signed); < 0, > 26915 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147358863..2147307167"
+    },
+    {
+     "line": 14,
+     "text": "if (isShield == 0) {",
+     "size": 4,
+     "count": 26915,
+     "kind": "against a constant",
+     "outcomes": "== 8943, < 4416, > 13556 (signed); < 0, > 17972 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36262,
+     "completion_tokens": 5201,
+     "reasoning_tokens": 4640,
+     "cost": 0.0062267,
+     "seconds": 21.9,
+     "sample": 1,
+     "conversation": "53a328d24be15cac84e21cf92b1b045eaa9caa75ee59c7a479e465d3c1e14cec"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x406118 [arena] (zdiff_state+0x98): C 0, Zig 170\nzdiff: MISMATCH iteration 1: memory at 0x406118 [arena] (zdiff_state+0x98): C 208, Zig 170\nzdiff: MISMATCH iteration 2: memory at 0x406118 [arena] (zdiff_state+0x98): C 208, Zig 170\nzdiff: func_80077130: 1114 iterations, seed 1, 1000 mismatches; classes: wep-0xFF=65 wep-0=49 weapon-shield-0=360 weapon-shield-nonzero=640"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: memory at 0x406118 (zdiff_state+0x98): C 0, Zig 170"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37108,
+     "completion_tokens": 2296,
+     "reasoning_tokens": 1639,
+     "cost": 0.0048588,
+     "seconds": 10.8,
+     "sample": 1,
+     "conversation": "3b674272b313295bdc57c1d3e83f5c8d91b91d16b26a89ab4dee5236c3c69282"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_80077130.zig:12:40: error: use of undeclared identifier 'std'\n    var sp10: v.vs_battle_objectData = std.mem.zeroes(v.vs_battle_objectData);\n                                       ^~~\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37936,
+     "completion_tokens": 1652,
+     "reasoning_tokens": 1036,
+     "cost": 0.0046196,
+     "seconds": 7.8,
+     "sample": 1,
+     "conversation": "7faa6120ae68856fbcda33ec6b16f86c647313e9fad2aedf7f81eee4e20fd019"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x40611b [arena] (zdiff_state+0x9b): C 128, Zig 0\nzdiff: MISMATCH iteration 1: memory at 0x406118 [arena] (zdiff_state+0x98): C 202, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x406118 [arena] (zdiff_state+0x98): C 202, Zig 0\nzdiff: func_80077130: 1114 iterations, seed 1, 1000 mismatches; classes: wep-0xFF=65 wep-0=49 weapon-shield-0=360 weapon-shield-nonzero=640"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: memory at 0x40611b (zdiff_state+0x9b): C 128, Zig 0"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 29.665009311000176,
+ "wall_seconds": 140.1806350019997,
+ "totals": {
+  "cost": 0.02646,
+  "prompt_tokens": 139014,
+  "completion_tokens": 25127,
+  "model_seconds": 110.1,
+  "check_seconds": 29.7,
+  "calls": 5,
+  "wall_seconds": 140.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

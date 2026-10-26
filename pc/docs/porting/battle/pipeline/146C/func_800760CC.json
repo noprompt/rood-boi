@@ -1,0 +1,241 @@
+{
+ "function": "func_800760CC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (>>31 sign correction kept, setRECT/setRGB0 expanded in order); spec sound",
+ "plan": {
+  "name": "func_800760CC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800760cc",
+  "difficulty": "M",
+  "zig_name": "func_800760CC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800760CC",
+  "spec_file": "func_800760CC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800760CC(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ],
+   [
+    "arg5",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_8005DFD4",
+   "D_8005DFD6",
+   "D_8005DFD8",
+   "D_8005DFDA",
+   "vs_main_dispEnv",
+   "vs_main_drawEnv"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13594,
+     "completion_tokens": 13573,
+     "reasoning_tokens": 11343,
+     "cost": 0.0081459,
+     "seconds": 55.9,
+     "sample": 1,
+     "conversation": "5bef0932f1e1177da68d6bddde29a92bd27acd8b5e7f5ec48b45346d428462c5"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "temp-sign-bit": "11182",
+   "temp-zero": "7523",
+   "temp-positive": "11295"
+  },
+  "mutations": [
+   {
+    "name": "F1: sign correction of temp_s3 dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: SetGeomScreen takes arg1, not arg2",
+    "caught": true
+   },
+   {
+    "name": "F3: second screen rect height 240",
+    "caught": true
+   },
+   {
+    "name": "F4: D_8005DFDA stores arg1 (the -16 dropped)",
+    "caught": true
+   },
+   {
+    "name": "F5: second draw env green from arg5",
+    "caught": true
+   },
+   {
+    "name": "F6: PutDispEnv ignores frameBuf",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 25,
+   "lines_hit": 25,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147268557, max 2146924269, unsigned 0..4294734732, seen zero/negative"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2146543638, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2146108524, max 2147284906, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147268111, max 2147247926, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 5,
+     "count": 30000,
+     "text": "32-bit: min -2147432826, max 2146990206, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37075,
+     "completion_tokens": 6278,
+     "reasoning_tokens": 4987,
+     "cost": 0.0068465,
+     "seconds": 24.2,
+     "sample": 1,
+     "conversation": "66c5de4310c31a3bc8fa649834f8f57cf5ec31b74172b9ef5068e570d20bbfd0"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800760CC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800760CC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 67.09257911900022,
+ "wall_seconds": 160.05412414500006,
+ "totals": {
+  "cost": 0.01499,
+  "prompt_tokens": 50669,
+  "completion_tokens": 19851,
+  "model_seconds": 80.1,
+  "check_seconds": 67.1,
+  "calls": 2,
+  "wall_seconds": 160.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

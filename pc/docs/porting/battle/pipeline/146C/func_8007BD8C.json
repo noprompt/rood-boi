@@ -1,0 +1,196 @@
+{
+ "function": "func_8007BD8C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8007BD8C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007bd8c",
+  "difficulty": "S",
+  "zig_name": "func_8007BD8C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007BD8C",
+  "spec_file": "func_8007BD8C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007BD8C(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11138,
+     "completion_tokens": 3081,
+     "reasoning_tokens": 2174,
+     "cost": 0.0026543,
+     "seconds": 13.7,
+     "sample": 1,
+     "conversation": "47c5991348b61ed495cae3f46390f8b6e2e2ca05ab2f60f82385e3c155c3d656"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero": "1907",
+   "positive": "9058",
+   "negative": "9035"
+  },
+  "mutations": [
+   {
+    "name": "M1: the then-branch clears the flag instead of setting it",
+    "caught": true
+   },
+   {
+    "name": "M2: the else-branch drops its func_800CB654 call",
+    "caught": true
+   },
+   {
+    "name": "M3: returns 0 instead of arg0",
+    "caught": true
+   },
+   {
+    "name": "M4: signed test (arg0 > 0) misses negative arguments",
+    "caught": true
+   },
+   {
+    "name": "M5: wrong argument to func_8008B4C8 in the then-branch",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (arg0 != 0) {",
+     "size": 4,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 1907, < 9035, > 9058 (signed); < 0, > 18093 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34603,
+     "completion_tokens": 1151,
+     "reasoning_tokens": 872,
+     "cost": 0.0040358,
+     "seconds": 5.6,
+     "sample": 1,
+     "conversation": "c855c793018b3e661e0b00141160b1a95d45fe26b0804cf8db5586d1c9314add"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007BD8C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007BD8C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 233.93034980499579,
+ "wall_seconds": 625.9222932440025,
+ "totals": {
+  "cost": 0.00669,
+  "prompt_tokens": 45741,
+  "completion_tokens": 4232,
+  "model_seconds": 19.3,
+  "check_seconds": 233.9,
+  "calls": 2,
+  "wall_seconds": 625.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

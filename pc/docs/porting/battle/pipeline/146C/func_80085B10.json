@@ -1,0 +1,674 @@
+{
+ "function": "func_80085B10",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound (5 mutations, all classes hit); hazards: origin (never written when source unk40 != 0, or when func_800A1AF8 fails) and position (func_80077F14 failure) are dead stack read by func_800E6C34 under flags bit 14 with arg3; port zeroes them. impact is NOT a hazard: func_800E6C34 writes both words of it (pad included) whenever it returns nonzero",
+ "plan": {
+  "name": "func_80085B10",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80085b10",
+  "difficulty": "L",
+  "zig_name": "func_80085B10",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80085B10",
+  "spec_file": "func_80085B10.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80085B10(action: c_int, result: ?*v.D_800F19CC_t2, source: ?*v.D_800F19CC_t2, arg3: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "c_int"
+   ],
+   [
+    "result",
+    "?*v.D_800F19CC_t2"
+   ],
+   [
+    "source",
+    "?*v.D_800F19CC_t2"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_80085A34_t",
+   "vs_battle_actor4"
+  ],
+  "globals": [
+   "D_800F1A00",
+   "D_800F1A04"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "length",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 23513,
+     "completion_tokens": 64000,
+     "reasoning_tokens": 60204,
+     "cost": 0.0343513,
+     "seconds": 264.8,
+     "sample": 1,
+     "conversation": "818c492da0e016e1855249769304c2d9b025fca014a327303470e0ea631bec1c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no ```zig block in the reply",
+     "FAIL: no ```toml block in the reply"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 27371,
+     "completion_tokens": 15149,
+     "reasoning_tokens": 10596,
+     "cost": 0.0103116,
+     "seconds": 59.0,
+     "sample": 1,
+     "conversation": "7a8b1905f25303b6c59d0286ba851bc1d56d79064572ab65e59702ad3e3c4673"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "detached": "10015",
+   "affinity": "22148",
+   "weapon-search": "4036",
+   "no-weapon": "3801"
+  },
+  "mutations": [
+   {
+    "name": "M1: affinity ties go to the later index",
+    "caught": true
+   },
+   {
+    "name": "M2: redirect pad bound off by one",
+    "caught": true
+   },
+   {
+    "name": "M3: wrong hitThreshold constant",
+    "caught": true
+   },
+   {
+    "name": "M4: the attacker's currentRange update dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: source written back on OR instead of AND",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 92,
+   "branches_hit": 92,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 132,
+   "lines_hit": 132,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min 0, max 255, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 40000,
+     "text": "32-bit: min -2147136802, max 2147271304, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 24,
+     "text": "if (result->unk4.unk40 == 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 29985, < 3675, > 6340 (signed); < 0, > 10015 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2144463910..2147376707"
+    },
+    {
+     "line": 34,
+     "text": "for (i = 0; i < source->unk4A; ++i) {",
+     "size": 4,
+     "count": 639165,
+     "kind": "a == b / a < b",
+     "outcomes": "== 40000, < 599165, > 0 (signed); < 599165, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 37,
+     "text": "if (result->unk4C[i].unk40 == 0) {",
+     "size": 4,
+     "count": 599165,
+     "kind": "against a constant",
+     "outcomes": "== 85680, < 192651, > 320834 (signed); < 0, > 513485 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147479898..2147472625"
+    },
+    {
+     "line": 40,
+     "text": "} else if ((u_int)result->unk4C[i].unk40 < 6) {",
+     "size": 4,
+     "count": 513485,
+     "kind": "against a constant",
+     "outcomes": "== 42800, < 235106, > 235579 (signed); < 42455, > 428230 (unsigned)",
+     "operand": "constant 5",
+     "a": "-2147479898..2147472625"
+    },
+    {
+     "line": 48,
+     "text": "if (spec->hitParams[0].affinity != 0) {",
+     "size": 1,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 10481, < 13866, > 15653 (signed); < 0, > 29519 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..96"
+    },
+    {
+     "line": 51,
+     "text": "if ((vs_battle_actors[attacker->unk957]->weaponDrawn & 1)",
+     "size": 4,
+     "count": 7837,
+     "kind": "against a constant",
+     "outcomes": "== 3274, < 0, > 4563 (signed); < 0, > 4563 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 52,
+     "text": "&& attacker->weapon.blade.id) {",
+     "size": 2,
+     "count": 4563,
+     "kind": "against a constant",
+     "outcomes": "== 527, < 2276, > 1760 (signed); < 0, > 4036 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32759"
+    },
+    {
+     "line": 53,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 32288,
+     "kind": "against a constant",
+     "outcomes": "== 4036, < 24216, > 4036 (signed); < 24216, > 4036 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    },
+    {
+     "line": 54,
+     "text": "if (max < attacker->weapon.classAffinityCurrent.affinity[0][i]) {",
+     "size": 2,
+     "count": 28252,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1512, < 7240, > 19500 (signed); < 18963, > 7777 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..32767"
+    },
+    {
+     "line": 66,
+     "text": "if ((params.statCalculator == 2) || (params.statCalculator == 25)) {",
+     "size": 1,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 4290, < 8514, > 27196 (signed); < 8514, > 27196 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..63"
+    },
+    {
+     "line": 66,
+     "text": "if ((params.statCalculator == 2) || (params.statCalculator == 25)) {",
+     "size": 1,
+     "count": 35710,
+     "kind": "against a constant",
+     "outcomes": "== 4346, < 19377, > 11987 (signed); < 19377, > 11987 (unsigned)",
+     "operand": "constant 25",
+     "a": "0..63"
+    },
+    {
+     "line": 67,
+     "text": "if (params.type == 0) {",
+     "size": 1,
+     "count": 8636,
+     "kind": "against a constant",
+     "outcomes": "== 2408, < 0, > 6228 (signed); < 0, > 6228 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..24"
+    },
+    {
+     "line": 68,
+     "text": "if (attacker->weapon.blade.id) {",
+     "size": 2,
+     "count": 2408,
+     "kind": "against a constant",
+     "outcomes": "== 296, < 1225, > 887 (signed); < 0, > 2112 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32708"
+    },
+    {
+     "line": 84,
+     "text": "for (; hit < 2; ++hit) {",
+     "size": 4,
+     "count": 120000,
+     "kind": "against a constant",
+     "outcomes": "== 40000, < 40000, > 40000 (signed); < 40000, > 40000 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..2"
+    },
+    {
+     "line": 85,
+     "text": "switch (spec->hitParams[hit].prerequisiteFunction) {",
+     "size": 4,
+     "count": 80000,
+     "kind": "switch",
+     "outcomes": "== 25468, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..63"
+    },
+    {
+     "line": 93,
+     "text": "if (result->unk4.unk40 != 0) {",
+     "size": 4,
+     "count": 6223,
+     "kind": "against a constant",
+     "outcomes": "== 4665, < 575, > 983 (signed); < 0, > 1558 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2143257810..2147376707"
+    },
+    {
+     "line": 100,
+     "text": "if ((D_800F1A04 != 0) || (arg3 == 0)) {",
+     "size": 4,
+     "count": 4665,
+     "kind": "against a constant",
+     "outcomes": "== 2328, < 0, > 2337 (signed); < 0, > 2337 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 100,
+     "text": "if ((D_800F1A04 != 0) || (arg3 == 0)) {",
+     "size": 4,
+     "count": 2328,
+     "kind": "against a constant",
+     "outcomes": "== 305, < 871, > 1152 (signed); < 0, > 2023 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2138827653..2142234507"
+    },
+    {
+     "line": 102,
+     "text": "if (arg3 && stats->unk956_0) {",
+     "size": 4,
+     "count": 2642,
+     "kind": "against a constant",
+     "outcomes": "== 564, < 872, > 1206 (signed); < 0, > 2078 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145885948..2143542511"
+    },
+    {
+     "line": 102,
+     "text": "if (arg3 && stats->unk956_0) {",
+     "size": 1,
+     "count": 2078,
+     "kind": "against a constant",
+     "outcomes": "== 1016, < 0, > 1062 (signed); < 0, > 1062 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 114,
+     "text": "for (i = 0; i < result->unk4A; ++i) {",
+     "size": 4,
+     "count": 770840,
+     "kind": "a == b / a < b",
+     "outcomes": "== 48290, < 722550, > 0 (signed); < 722550, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 117,
+     "text": "if (arg3 && (*(int*)&spec->flags_0 & 0x4000)) {",
+     "size": 4,
+     "count": 722550,
+     "kind": "against a constant",
+     "outcomes": "== 91974, < 273676, > 356900 (signed); < 0, > 630576 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147136802..2147271304"
+    },
+    {
+     "line": 117,
+     "text": "if (arg3 && (*(int*)&spec->flags_0 & 0x4000)) {",
+     "size": 4,
+     "count": 630576,
+     "kind": "against a constant",
+     "outcomes": "== 314825, < 0, > 315751 (signed); < 0, > 315751 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16384"
+    },
+    {
+     "line": 118,
+     "text": "if (entry->unk40 == 0) {",
+     "size": 4,
+     "count": 315751,
+     "kind": "against a constant",
+     "outcomes": "== 42816, < 98210, > 174725 (signed); < 0, > 272935 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147467371..2147472284"
+    },
+    {
+     "line": 126,
+     "text": "if (redirected) {",
+     "size": 4,
+     "count": 315751,
+     "kind": "against a constant",
+     "outcomes": "== 157918, < 0, > 157833 (signed); < 0, > 157833 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 127,
+     "text": "if (impact.pad == 0) {",
+     "size": 2,
+     "count": 157833,
+     "kind": "against a constant",
+     "outcomes": "== 41509, < 19937, > 96387 (signed); < 0, > 116324 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32764..32766"
+    },
+    {
+     "line": 133,
+     "text": "if ((u_short)impact.pad < 17) {",
+     "size": 2,
+     "count": 116324,
+     "kind": "against a constant",
+     "outcomes": "== 1822, < 49886, > 64616 (signed); < 29949, > 84553 (unsigned)",
+     "operand": "constant 16",
+     "a": "-32764..32766"
+    },
+    {
+     "line": 135,
+     "text": "if ((target - 1) != entry->unk0.targetActor) {",
+     "size": 4,
+     "count": 31771,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1914, < 15588, > 14269 (signed); < 15588, > 14269 (unsigned)",
+     "operand": "b 0..255",
+     "a": "0..15"
+    },
+    {
+     "line": 147,
+     "text": "if (redirected) {",
+     "size": 4,
+     "count": 722550,
+     "kind": "against a constant",
+     "outcomes": "== 681041, < 0, > 41509 (signed); < 0, > 41509 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 150,
+     "text": "if (entry->unk40 != 0) {",
+     "size": 4,
+     "count": 681041,
+     "kind": "against a constant",
+     "outcomes": "== 94497, < 216218, > 370326 (signed); < 0, > 586544 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147479898..2147472625"
+    },
+    {
+     "line": 155,
+     "text": "if (D_800F1A00 != 0) {",
+     "size": 4,
+     "count": 94497,
+     "kind": "against a constant",
+     "outcomes": "== 47681, < 0, > 46816 (signed); < 0, > 46816 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 157,
+     "text": "if ((D_800F1A04 != 0) || (arg3 == 0)) {",
+     "size": 4,
+     "count": 46816,
+     "kind": "against a constant",
+     "outcomes": "== 23530, < 0, > 23286 (signed); < 0, > 23286 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 157,
+     "text": "if ((D_800F1A04 != 0) || (arg3 == 0)) {",
+     "size": 4,
+     "count": 23530,
+     "kind": "against a constant",
+     "outcomes": "== 3227, < 8624, > 11679 (signed); < 0, > 20303 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147136802..2147271304"
+    },
+    {
+     "line": 161,
+     "text": "if ((vs_battle_actors[target]->unk27 == 0x80) && (target != 0)",
+     "size": 1,
+     "count": 26513,
+     "kind": "against a constant",
+     "outcomes": "== 6771, < 0, > 19742 (signed); < 9901, > 9841 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 161,
+     "text": "if ((vs_battle_actors[target]->unk27 == 0x80) && (target != 0)",
+     "size": 4,
+     "count": 6771,
+     "kind": "against a constant",
+     "outcomes": "== 402, < 0, > 6369 (signed); < 0, > 6369 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 162,
+     "text": "&& stats->unk956_0) {",
+     "size": 1,
+     "count": 6369,
+     "kind": "against a constant",
+     "outcomes": "== 3209, < 0, > 3160 (signed); < 0, > 3160 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 169,
+     "text": "if (arg3 && stats->unk956_0) {",
+     "size": 4,
+     "count": 26513,
+     "kind": "against a constant",
+     "outcomes": "== 6406, < 8528, > 11579 (signed); < 0, > 20107 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147136802..2147071993"
+    },
+    {
+     "line": 169,
+     "text": "if (arg3 && stats->unk956_0) {",
+     "size": 1,
+     "count": 20107,
+     "kind": "against a constant",
+     "outcomes": "== 9983, < 0, > 10124 (signed); < 0, > 10124 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 179,
+     "text": "} else if (hit == 0) {",
+     "size": 4,
+     "count": 47681,
+     "kind": "against a constant",
+     "outcomes": "== 24848, < 0, > 22833 (signed); < 0, > 22833 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 188,
+     "text": "for (i = 0; i < result->unk4A; ++i) {",
+     "size": 4,
+     "count": 639165,
+     "kind": "a == b / a < b",
+     "outcomes": "== 40000, < 599165, > 0 (signed); < 599165, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 191,
+     "text": "if ((D_800F19CC->unk0 == 0) && arg3) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 20057, < 9956, > 9987 (signed); < 0, > 19943 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147473398"
+    },
+    {
+     "line": 191,
+     "text": "if ((D_800F19CC->unk0 == 0) && arg3) {",
+     "size": 4,
+     "count": 20057,
+     "kind": "against a constant",
+     "outcomes": "== 2594, < 7472, > 9991 (signed); < 0, > 17463 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147136802..2147271304"
+    },
+    {
+     "line": 194,
+     "text": "if (arg3 && (attacker != 0)) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 5050, < 15040, > 19910 (signed); < 0, > 34950 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147136802..2147271304"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 46893,
+     "completion_tokens": 42880,
+     "reasoning_tokens": 38923,
+     "cost": 0.0261293,
+     "seconds": 162.6,
+     "sample": 1,
+     "conversation": "5e085779ea531308daca75919808bd1af3021e17556a05c682c22d3ae0b5b6b3"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80085B10.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80085B10.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 226.757661499998,
+ "wall_seconds": 754.4217074930002,
+ "totals": {
+  "cost": 0.07079,
+  "prompt_tokens": 97777,
+  "completion_tokens": 122029,
+  "model_seconds": 486.4,
+  "check_seconds": 226.8,
+  "calls": 3,
+  "wall_seconds": 754.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 27 / nested 66 / nested 90, 0 mismatches"
+ }
+}

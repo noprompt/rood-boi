@@ -1,0 +1,276 @@
+{
+ "function": "_loadZndTims",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (u_long stride 4, byteOffset>>2 arithmetic, CLUT unsigned test); spec sound",
+ "plan": {
+  "name": "_loadZndTims",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008a744",
+  "difficulty": "M",
+  "zig_name": "loadZndTims",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_znd_tims",
+  "spec_file": "loadZndTims.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadZndTims(data: ?*anyopaque) callconv(.c) void",
+  "params": [
+   [
+    "data",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "RECT",
+   "TIM_IMAGE"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12683,
+     "completion_tokens": 26722,
+     "reasoning_tokens": 24728,
+     "cost": 0.0146293,
+     "seconds": 118.4,
+     "sample": 1,
+     "conversation": "c1821673b370ca7cb884647434d8c15f45d1726982830c07ac4bef6b3e4d8c23"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _loadZndTims: branches 14/14 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 34/34\n  FLAG +31 eq: boundary equality never occurred (16-bit compare, constant 767: both sides seen; a port's `<` for `<=` could pass): `if (tim.prect->x >= 768) {`\ncoverage _loadZndTims: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (tim.prect->x >= 768) {` (+31): the two sides of this ordered compare were equal 0 time(s) in 37805. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function._loadZndTims.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15052,
+     "completion_tokens": 3493,
+     "reasoning_tokens": 1378,
+     "cost": 0.0032517,
+     "seconds": 13.5,
+     "sample": 1,
+     "conversation": "9b3e691e51eff2e12cf5459c241c5886daedd69e0eb793a8ca2eed24c19985ac"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-tims": "15944",
+   "one-tim": "7893",
+   "several-tims": "16163"
+  },
+  "mutations": [
+   {
+    "name": "T1: table entry offset one word short",
+    "caught": true
+   },
+   {
+    "name": "T2: x == 768 takes the LoadImage side",
+    "caught": true
+   },
+   {
+    "name": "T3: CLUT line 228 included",
+    "caught": true
+   },
+   {
+    "name": "T4: clutIndex signed (lines above 224 wrap negative and pass)",
+    "caught": true
+   },
+   {
+    "name": "T5: LoadImage rect x off by one",
+    "caught": true
+   },
+   {
+    "name": "T6: DrawSync dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 34,
+   "lines_hit": 34,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (*sizePtr > 0) {",
+     "size": 4,
+     "count": 160000,
+     "kind": "against a constant",
+     "outcomes": "== 2431, < 19669, > 137900 (signed); < 0, > 157569 (unsigned)",
+     "operand": "constant 0",
+     "a": "-8..40"
+    },
+    {
+     "line": 20,
+     "text": "} while ((long)sizePtr < ((long)data + 0x10));",
+     "size": 8,
+     "count": 160000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 40000, < 0, > 120000 (signed); < 0, > 120000 (unsigned)",
+     "operand": "b 4239988..4240000",
+     "a": "4240000..4240000"
+    },
+    {
+     "line": 25,
+     "text": "for (i = 0; i < numTims; ++i) {",
+     "size": 4,
+     "count": 88308,
+     "kind": "a == b / a < b",
+     "outcomes": "== 32083, < 48308, > 7917 (signed); < 56225, > 0 (unsigned)",
+     "operand": "b -1..3",
+     "a": "0..3"
+    },
+    {
+     "line": 31,
+     "text": "if (tim.prect->x >= 768) {",
+     "size": 2,
+     "count": 37815,
+     "kind": "against a constant",
+     "outcomes": "== 5850, < 13291, > 18674 (signed); < 6140, > 25825 (unsigned)",
+     "operand": "constant 767",
+     "a": "-32768..32754"
+    },
+    {
+     "line": 35,
+     "text": "while (line < (tim.prect->y + tim.prect->h)) {",
+     "size": 4,
+     "count": 61309,
+     "kind": "a == b / a < b",
+     "outcomes": "== 14399, < 42635, > 4275 (signed); < 42635, > 4275 (unsigned)",
+     "operand": "b -32724..32772",
+     "a": "-32730..32772"
+    },
+    {
+     "line": 37,
+     "text": "if (clutIndex < 4) {",
+     "size": 4,
+     "count": 42635,
+     "kind": "against a constant",
+     "outcomes": "== 2163, < 20340, > 20132 (signed); < 6588, > 33884 (unsigned)",
+     "operand": "constant 3",
+     "a": "-32954..32547"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36165,
+     "completion_tokens": 16811,
+     "reasoning_tokens": 15482,
+     "cost": 0.012022,
+     "seconds": 70.0,
+     "sample": 1,
+     "conversation": "54aa44329cc73a44e8757a66873a8dddc052d3c27d2238f0d35d0a8763203c36"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/loadZndTims.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/load_znd_tims.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 108.87799973399888,
+ "wall_seconds": 311.34777774100075,
+ "totals": {
+  "cost": 0.0299,
+  "prompt_tokens": 63900,
+  "completion_tokens": 47026,
+  "model_seconds": 201.9,
+  "check_seconds": 108.9,
+  "calls": 3,
+  "wall_seconds": 311.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

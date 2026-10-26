@@ -1,0 +1,202 @@
+{
+ "function": "vs_battle_copyInventoryGripStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_copyInventoryGripStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006ac74",
+  "difficulty": "S",
+  "zig_name": "copyInventoryGripStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_inventory_grip_stats",
+  "spec_file": "copyInventoryGripStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyInventoryGripStats(target: ?*v.vs_battle_uiEquipment, source: ?*v.vs_main_inventoryGrip) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiEquipment"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryGrip"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_main_inventoryGrip"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11730,
+     "completion_tokens": 4194,
+     "reasoning_tokens": 3143,
+     "cost": 0.00327,
+     "seconds": 18.2,
+     "sample": 1,
+     "conversation": "fe71ea9e3139393fc60b4c338a808e8115110ebdf5cf5b13b629ed7144453b95"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "source-id-sign-bit": "9926",
+   "source-id-no-sign-bit": "10074"
+  },
+  "mutations": [
+   {
+    "name": "G1: types loop stops at 3 (types[3] not copied)",
+    "caught": true
+   },
+   {
+    "name": "G2: index takes assembledWeaponIndex",
+    "caught": true
+   },
+   {
+    "name": "G3: agility read from intelligence",
+    "caught": true
+   },
+   {
+    "name": "G4: gemSlots store dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 14,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 100000,
+     "kind": "against a constant",
+     "outcomes": "== 20000, < 60000, > 20000 (signed); < 60000, > 20000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35161,
+     "completion_tokens": 2021,
+     "reasoning_tokens": 1608,
+     "cost": 0.0045266,
+     "seconds": 9.6,
+     "sample": 1,
+     "conversation": "77742f055df7742b936a4f22260b97494c16b70412ba9b2f3ac36a6b2fb77dd4"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyInventoryGripStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_inventory_grip_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 158.339407681,
+ "wall_seconds": 440.4132953619992,
+ "totals": {
+  "cost": 0.0078,
+  "prompt_tokens": 46891,
+  "completion_tokens": 6215,
+  "model_seconds": 27.8,
+  "check_seconds": 158.3,
+  "calls": 2,
+  "wall_seconds": 440.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

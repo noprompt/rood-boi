@@ -1,0 +1,211 @@
+{
+ "function": "func_800734C0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_800734C0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800734c0",
+  "difficulty": "S",
+  "zig_name": "func_800734C0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800734C0",
+  "spec_file": "func_800734C0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800734C0() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11142,
+     "completion_tokens": 4076,
+     "reasoning_tokens": 3089,
+     "cost": 0.0031522,
+     "seconds": 17.1,
+     "sample": 1,
+     "conversation": "c4dba5a5c172402fc801f2fa08f15f86a26859664dc1796ca70b8aa4f452a04e"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12180,
+     "completion_tokens": 1830,
+     "reasoning_tokens": 667,
+     "cost": 0.002133,
+     "seconds": 7.5,
+     "sample": 1,
+     "conversation": "3cdc379dda7ba44202acee4b2a7708532de10ce50ddac9e6245e203fc0b60227"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "already-10": "6726",
+   "other-value": "13274"
+  },
+  "mutations": [
+   {
+    "name": "F1: loop stops at 15, one call short",
+    "caught": true
+   },
+   {
+    "name": "F2: loop steps by two, half the calls",
+    "caught": true
+   },
+   {
+    "name": "F3: second callee gets 1, not 2",
+    "caught": true
+   },
+   {
+    "name": "F4: the final store writes 11",
+    "caught": true
+   },
+   {
+    "name": "F5: the final store is dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: the store moved before the loop, across the calls",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 16; ++i) {",
+     "size": 4,
+     "count": 340000,
+     "kind": "against a constant",
+     "outcomes": "== 20000, < 300000, > 20000 (signed); < 300000, > 20000 (unsigned)",
+     "operand": "constant 15",
+     "a": "0..16"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34622,
+     "completion_tokens": 805,
+     "reasoning_tokens": 540,
+     "cost": 0.0038647,
+     "seconds": 4.8,
+     "sample": 1,
+     "conversation": "bb8ff1ddf3da328da697d0b1cce4b642ab2f384c03c597459e37b9249a00c0f0"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800734C0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800734C0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 265.1484005670027,
+ "wall_seconds": 626.4031741159997,
+ "totals": {
+  "cost": 0.00915,
+  "prompt_tokens": 57944,
+  "completion_tokens": 6711,
+  "model_seconds": 29.4,
+  "check_seconds": 265.1,
+  "calls": 3,
+  "wall_seconds": 626.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

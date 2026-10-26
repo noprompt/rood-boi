@@ -1,0 +1,203 @@
+{
+ "function": "_getCollisionMapDimensions",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_getCollisionMapDimensions",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b70c",
+  "difficulty": "S",
+  "zig_name": "getCollisionMapDimensions",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_collision_map_dimensions",
+  "spec_file": "getCollisionMapDimensions.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getCollisionMapDimensions(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "_mpdRoomCollisionMapSection"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12136,
+     "completion_tokens": 4796,
+     "reasoning_tokens": 3678,
+     "cost": 0.0036116,
+     "seconds": 21.2,
+     "sample": 1,
+     "conversation": "abde0cdcea637c3a5c6c64c56fd044201fee0875f671f324b678988ccc25d55a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null": "6008",
+   "negative-height": "10075",
+   "wide-width": "9604",
+   "normal": "4313"
+  },
+  "mutations": [
+   {
+    "name": "G1: null section returns -1",
+    "caught": true
+   },
+   {
+    "name": "G2: height shifted by 19, not 20",
+    "caught": true
+   },
+   {
+    "name": "G3: width scaled by 15, not 16",
+    "caught": true
+   },
+   {
+    "name": "G4: low part read as signed short",
+    "caught": true
+   },
+   {
+    "name": "G5: height read from the width field",
+    "caught": true
+   },
+   {
+    "name": "G6: NULL guard dropped (crashes on null)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147090140, max 2147220541, unsigned 554636..4294919198, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (((__typeof__((vs_battle_roomData.collisionMapSection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.collisionMapSection).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 6008, < 0, > 23992 (signed); < 0, > 23992 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4231792"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35579,
+     "completion_tokens": 2093,
+     "reasoning_tokens": 1686,
+     "cost": 0.0046044,
+     "seconds": 9.4,
+     "sample": 1,
+     "conversation": "744ecab404783d0a2aa278e92a9b8f841734c9593a9c8aabb9e15277fc4de376"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getCollisionMapDimensions.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_collision_map_dimensions.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 113.83676453599946,
+ "wall_seconds": 296.5166282379996,
+ "totals": {
+  "cost": 0.00822,
+  "prompt_tokens": 47715,
+  "completion_tokens": 6889,
+  "model_seconds": 30.6,
+  "check_seconds": 113.8,
+  "calls": 2,
+  "wall_seconds": 296.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

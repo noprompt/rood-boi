@@ -5786,6 +5786,11 @@ void func_800CF7A8(int arg0, int arg1, int arg2, int arg3)
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.effectId = 54;
     sp10.unk2 = 1;
     sp10.unk4 = 5;
@@ -5821,6 +5826,11 @@ void func_800CF8BC(void)
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.effectId = 56;
     sp10.unk2 = 1;
     sp10.unk4 = 4;

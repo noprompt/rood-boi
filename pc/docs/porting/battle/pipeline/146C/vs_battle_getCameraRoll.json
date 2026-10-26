@@ -1,0 +1,173 @@
+{
+ "function": "vs_battle_getCameraRoll",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_getCameraRoll",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007aca0",
+  "difficulty": "S",
+  "zig_name": "getCameraRoll",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_camera_roll",
+  "spec_file": "getCameraRoll.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getCameraRoll() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11364,
+     "completion_tokens": 3341,
+     "reasoning_tokens": 2408,
+     "cost": 0.0028069,
+     "seconds": 13.7,
+     "sample": 1,
+     "conversation": "0f62eb8ed4ff7d0f8caeb704579910128b4b213e7e8c87a007f97488574f5960"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "sign-clear": "12095",
+   "sign-set": "7905"
+  },
+  "mutations": [
+   {
+    "name": "R1: mask drops bit 11",
+    "caught": true
+   },
+   {
+    "name": "R2: wrong field (vy for vz)",
+    "caught": true
+   },
+   {
+    "name": "R3: modulo instead of mask (negative values differ)",
+    "caught": true
+   },
+   {
+    "name": "R4: mask widened to 16 bits",
+    "caught": true
+   },
+   {
+    "name": "R5: wrong field (lookAt for angles)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34821,
+     "completion_tokens": 826,
+     "reasoning_tokens": 620,
+     "cost": 0.0038951,
+     "seconds": 4.8,
+     "sample": 1,
+     "conversation": "fec5250b7640ec40949f9b470998f3e969d31f0371f360787a246199f6f7693a"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getCameraRoll.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_camera_roll.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 101.77749907200086,
+ "wall_seconds": 268.6288022280005,
+ "totals": {
+  "cost": 0.0067,
+  "prompt_tokens": 46185,
+  "completion_tokens": 4167,
+  "model_seconds": 18.5,
+  "check_seconds": 101.8,
+  "calls": 2,
+  "wall_seconds": 268.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 4 / root 10 / nested 30, 0 mismatches"
+ }
+}

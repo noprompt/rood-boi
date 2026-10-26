@@ -76,6 +76,7 @@ import argparse
 import concurrent.futures
 import contextlib
 import dataclasses
+import fcntl
 import hashlib
 import json
 import os
@@ -1361,12 +1362,24 @@ def evaluate_port(plan, unit, views_path, table, args, fdir, entry, spec_path, r
     return ok, errors, details
 
 
+@contextlib.contextmanager
+def tree_lock(args):
+    """One writer into the tree across processes (two runs of different units at once)."""
+    args.work.mkdir(parents=True, exist_ok=True)
+    with open(args.work / "write.lock", "w") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
 def write_function(plan, unit, views_path, entry, spec_path, port_path, args, state, record):
     """3. Into the tree (unless the unit's existing ports break with the widened
     views): one function at a time, against the views as the earlier writes
     left them. Sets the record's status (and `written`)."""
     fdir = args.work / plan.name
-    with state.setdefault("write_lock", threading.Lock()):
+    with state.setdefault("write_lock", threading.Lock()), tree_lock(args):
         started = time.monotonic()
         wide_path, _ = unit.views(plan.types, plan.globals, tag=f"write-{plan.name}")
         current = ownership.load(args.table or OWNERSHIP)

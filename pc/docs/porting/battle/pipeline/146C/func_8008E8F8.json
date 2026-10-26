@@ -1,0 +1,225 @@
+{
+ "function": "func_8008E8F8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8008E8F8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e8f8",
+  "difficulty": "S",
+  "zig_name": "func_8008E8F8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008E8F8",
+  "spec_file": "func_8008E8F8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008E8F8() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11459,
+     "completion_tokens": 4197,
+     "reasoning_tokens": 2961,
+     "cost": 0.0032444,
+     "seconds": 18.9,
+     "sample": 1,
+     "conversation": "88b1b4582dfc7c8acd50c17b5be4a58c5df59401830cee696df0b7ebfee8caad"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "old-null": "14901",
+   "old-set": "15099"
+  },
+  "mutations": [
+   {
+    "name": "H1: free runs when the heap pointer is null",
+    "caught": true
+   },
+   {
+    "name": "H2: the test inverted",
+    "caught": true
+   },
+   {
+    "name": "H3: the free call dropped",
+    "caught": true
+   },
+   {
+    "name": "H4: wrong allocation size",
+    "caught": true
+   },
+   {
+    "name": "H5: the store to the global dropped",
+    "caught": true
+   },
+   {
+    "name": "H6: the global cleared before the free call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34923,
+     "completion_tokens": 1801,
+     "reasoning_tokens": 1532,
+     "cost": 0.0043928,
+     "seconds": 8.2,
+     "sample": 1,
+     "conversation": "e047d819229173b0530b1a1f358f3879a4e4f1b24692283e9bf530f70e493c71"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8008E8F8.zig:12:15: error: @ptrCast increases pointer alignment\n    block.* = @ptrCast(c.vs_main_allocHeap(0x800));\n              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/func_8008E8F8.zig:12:43: note: '?*anyopaque' has alignment '1'\n    block.* = @ptrCast(c.vs_main_allocHeap(0x800));\n                       ~~~~~~~~~~~~~~~~~~~^~~~~~~\ngame/battle/func_8008E8F8.zig:12:15: note: '?*views_146C.D_800F1DD4_t' has alignment '2'\ngame/battle/func_8008E8F8.zig:12:15: note: use @alignCast to assert pointer alignment\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35658,
+     "completion_tokens": 1144,
+     "reasoning_tokens": 738,
+     "cost": 0.0041378,
+     "seconds": 5.7,
+     "sample": 1,
+     "conversation": "8eef55706d159af82941d935158af62d6bb58d692074ae9d3cdd419cab34afa6"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8008E8F8.zig:12:15: error: pointer element type 'anyopaque' cannot coerce into element type 'views_146C.D_800F1DD4_t'\n    block.* = @alignCast(c.vs_main_allocHeap(0x800));\n              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\npc/build/port-pipeline/gen/146C/fn-func_8008E8F8/views_146C.zig:397:33: note: struct declared here\npub const D_800F1DD4_t = extern struct {\n                         ~~~~~~~^~~~~~\ngame/battle/func_8008E8F8.zig:12:15: note: use @ptrCast to cast pointer element type\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36494,
+     "completion_tokens": 1074,
+     "reasoning_tokens": 658,
+     "cost": 0.0041864,
+     "seconds": 5.1,
+     "sample": 1,
+     "conversation": "70e319611d295111d22f77c82704dbaf7f370c55fbf56486e1fd8354200fa5ae"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 3,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008E8F8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008E8F8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 221.46918286599976,
+ "wall_seconds": 599.655734824999,
+ "totals": {
+  "cost": 0.01596,
+  "prompt_tokens": 118534,
+  "completion_tokens": 8216,
+  "model_seconds": 37.9,
+  "check_seconds": 221.5,
+  "calls": 4,
+  "wall_seconds": 599.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

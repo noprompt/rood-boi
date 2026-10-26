@@ -1,0 +1,338 @@
+{
+ "function": "vs_battle_renderMenuItem",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; ROOD_PC_LP64 subText branch checked (psx_get guard, args, scratch); tpage/RGB macros re-derived; spec sound",
+ "plan": {
+  "name": "vs_battle_renderMenuItem",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c9078",
+  "difficulty": "L",
+  "zig_name": "renderMenuItem",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "render_menu_item",
+  "spec_file": "renderMenuItem.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void",
+  "params": [
+   [
+    "menuItem",
+    "?*v.vs_battle_menuItem_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_menuItem_t"
+  ],
+  "globals": [],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14692,
+     "completion_tokens": 23337,
+     "reasoning_tokens": 20743,
+     "cost": 0.0131377,
+     "seconds": 103.0,
+     "sample": 1,
+     "conversation": "24ea75bb8f5561a5ad4df7f099ba0b8d5d886f274a11dfe003e7515d0764a6a4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: input classes never generated: no-subtext"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17332,
+     "completion_tokens": 3594,
+     "reasoning_tokens": 959,
+     "cost": 0.0035302,
+     "seconds": 14.1,
+     "sample": 1,
+     "conversation": "9582ec9adb43d9a01439927771acddc2f32870a173cb1fd7888fda907b265401"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "hidden": "6777",
+   "selected": "11025",
+   "no-subtext": "7421",
+   "subtext": "14777"
+  },
+  "mutations": [
+   {
+    "name": "M1: rowIcon-1 compared as signed (rowIcon 0 takes the icon branch)",
+    "caught": true
+   },
+   {
+    "name": "M2: the gradient call's brightness is 127, not 128",
+    "caught": true
+   },
+   {
+    "name": "M3: the gradientState store is dropped",
+    "caught": true
+   },
+   {
+    "name": "M4: the selected gradient is 7, not 8",
+    "caught": true
+   },
+   {
+    "name": "M5: the scratch word is shifted by 9, not 8",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 20,
+   "branches_hit": 20,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 53,
+   "lines_hit": 53,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (menuItem->state != 0) {",
+     "size": 1,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 6777, < 16581, > 16642 (signed); < 0, > 33223 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 19,
+     "text": "if ((menuItem->selected | menuItem->invertGradient) && !menuItem->unselectable) {",
+     "size": 1,
+     "count": 33223,
+     "kind": "against a constant",
+     "outcomes": "== 16717, < 9043, > 7463 (signed); < 0, > 16506 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 19,
+     "text": "if ((menuItem->selected | menuItem->invertGradient) && !menuItem->unselectable) {",
+     "size": 1,
+     "count": 16506,
+     "kind": "against a constant",
+     "outcomes": "== 11025, < 2666, > 2815 (signed); < 0, > 5481 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 25,
+     "text": "if (color == 0) {",
+     "size": 4,
+     "count": 33223,
+     "kind": "against a constant",
+     "outcomes": "== 5543, < 0, > 27680 (signed); < 0, > 27680 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 34,
+     "text": "if ((menuItem->rowIcon - 1) < 23u) {",
+     "size": 4,
+     "count": 33223,
+     "kind": "against a constant",
+     "outcomes": "== 2421, < 8615, > 22187 (signed); < 6214, > 24588 (unsigned)",
+     "operand": "constant 22",
+     "a": "-1..254"
+    },
+    {
+     "line": 41,
+     "text": "while (c != 0xFF) {",
+     "size": 4,
+     "count": 198158,
+     "kind": "against a constant",
+     "outcomes": "== 33223, < 164935, > 0 (signed); < 164935, > 0 (unsigned)",
+     "operand": "constant 255",
+     "a": "0..255"
+    },
+    {
+     "line": 42,
+     "text": "if (c == vs_char_spacing) {",
+     "size": 4,
+     "count": 164935,
+     "kind": "against a constant",
+     "outcomes": "== 41072, < 123863, > 0 (signed); < 123863, > 0 (unsigned)",
+     "operand": "constant 250",
+     "a": "0..250"
+    },
+    {
+     "line": 54,
+     "text": "if (bgWidth & 7) {",
+     "size": 4,
+     "count": 33223,
+     "kind": "against a constant",
+     "outcomes": "== 9188, < 0, > 24035 (signed); < 0, > 24035 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..7"
+    },
+    {
+     "line": 58,
+     "text": "if (y != 0) {",
+     "size": 4,
+     "count": 33223,
+     "kind": "against a constant",
+     "outcomes": "== 2323, < 0, > 30900 (signed); < 0, > 30900 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 87,
+     "text": "if (((__typeof__((menuItem->subText).psx_type_[0]))(long unsigned int)(menuItem->subText).raw) != 0) {",
+     "size": 4,
+     "count": 33223,
+     "kind": "against a constant",
+     "outcomes": "== 11096, < 0, > 22127 (signed); < 0, > 22127 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4250880"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38150,
+     "completion_tokens": 24287,
+     "reasoning_tokens": 22346,
+     "cost": 0.0159585,
+     "seconds": 98.8,
+     "sample": 1,
+     "conversation": "a141cff66ed88073389ce1ae7f90803c3bfa6bf876894936b81f94f2d615fc47"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/render_menu_item.zig:62:13: error: local variable is never mutated\n        var x: c_int = @as(u16, @bitCast(m.x));\n            ^\ngame/battle/render_menu_item.zig:62:13: note: consider using 'const'\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40267,
+     "completion_tokens": 3002,
+     "reasoning_tokens": 1061,
+     "cost": 0.0055277,
+     "seconds": 11.3,
+     "sample": 1,
+     "conversation": "8ff0a08f6ff33be55ec3de95102140c964b6baf9a9bb1ef0ec7e7c1c7ad56f09"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/renderMenuItem.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/render_menu_item.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 93.62094085800709,
+ "wall_seconds": 470.687875257001,
+ "totals": {
+  "cost": 0.03815,
+  "prompt_tokens": 110441,
+  "completion_tokens": 54220,
+  "model_seconds": 227.2,
+  "check_seconds": 93.6,
+  "calls": 4,
+  "wall_seconds": 470.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 72, 0 mismatches"
+ }
+}

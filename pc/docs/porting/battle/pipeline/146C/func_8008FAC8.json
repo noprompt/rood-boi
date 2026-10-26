@@ -1,0 +1,362 @@
+{
+ "function": "func_8008FAC8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; both PC_GTE_UNNARROWED brackets (pc_gte_anchored incremented around each RotTransPers) and the WEATHER_LEFT/RIGHT margin (pc_gte_widescreen ? 54 : 0) as the C; spec sound",
+ "plan": {
+  "name": "func_8008FAC8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008fac8",
+  "difficulty": "L",
+  "zig_name": "func_8008FAC8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008FAC8",
+  "spec_file": "func_8008FAC8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008FAC8() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "D_800F1DD4_t",
+   "POLY_G4",
+   "P_TAG",
+   "SVECTOR",
+   "vs_scratch_t"
+  ],
+  "globals": [
+   "D_800F1BA4",
+   "D_800F1DC0",
+   "D_800F1DD4",
+   "pc_gte_anchored",
+   "pc_gte_widescreen",
+   "vs_gametime_tickspeed"
+  ],
+  "hooks": [
+   "pc_gte_anchored",
+   "pc_gte_widescreen",
+   "pc_insert_tpage",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15053,
+     "completion_tokens": 23983,
+     "reasoning_tokens": 21617,
+     "cost": 0.0134968,
+     "seconds": 104.0,
+     "sample": 1,
+     "conversation": "f5e010246fd027fc89e20035db2595cc946759dc4865eb66b2aabb6d42ec32e8"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8008FAC8: branches 22/22 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 35/35\n  FLAG +32 eq: boundary equality occurred only 2 time(s) in 40815 (32-bit compare, constant 2047: both sides seen; a port's `<` for `<=` could pass): `|| (prim->x1 >= (320 + (pc_gte_widescreen ? 54 : 0))) || (depth <= 64) || (depth >= 2048)) {`\ncoverage func_8008FAC8: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `|| (prim->x1 >= (320 + (pc_gte_widescreen ? 54 : 0))) || (depth <= 64) || (depth >= 2048)) {` (+32): the two sides of this ordered compare were equal 2 time(s) in 40815. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8008FAC8.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17895,
+     "completion_tokens": 4015,
+     "reasoning_tokens": 1608,
+     "cost": 0.003797,
+     "seconds": 16.2,
+     "sample": 1,
+     "conversation": "3a0489dab617066393c6f6a91785ffd8e6532d58f38eca7f8c1d325a4b29118c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-particles": "2703",
+   "paused": "13564",
+   "widescreen": "11400",
+   "normal": "2333"
+  },
+  "mutations": [
+   {
+    "name": "F1: func_8008FA14 also at unk2 == -1024",
+    "caught": true
+   },
+   {
+    "name": "F2: widescreen right edge is exclusive-wrong (> for >=)",
+    "caught": true
+   },
+   {
+    "name": "F3: depth cull at 2048 one too late",
+    "caught": true
+   },
+   {
+    "name": "F4: signed compare on the y range test (y1 == 0 passes)",
+    "caught": true
+   },
+   {
+    "name": "F5: dx by a shift (wrong for negative differences)",
+    "caught": true
+   },
+   {
+    "name": "F6: wrong ordering-table tpage constant",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 22,
+   "branches_hit": 22,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 35,
+   "lines_hit": 35,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 12,
+     "text": "for (i = 0; i < D_800F1DC0; ++i, ++particle) {",
+     "size": 4,
+     "count": 589957,
+     "kind": "a == b / a < b",
+     "outcomes": "== 27976, < 559957, > 2024 (signed); < 561981, > 0 (unsigned)",
+     "operand": "b -3..40",
+     "a": "0..40"
+    },
+    {
+     "line": 13,
+     "text": "if (particle->unkC != 0) {",
+     "size": 1,
+     "count": 559957,
+     "kind": "against a constant",
+     "outcomes": "== 94246, < 233795, > 231916 (signed); < 0, > 465711 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 16,
+     "text": "if (D_800F1BA4 == 0) {",
+     "size": 2,
+     "count": 94246,
+     "kind": "against a constant",
+     "outcomes": "== 47647, < 23201, > 23398 (signed); < 0, > 46599 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32746"
+    },
+    {
+     "line": 18,
+     "text": "if (particle->unk2 < -1024) {",
+     "size": 2,
+     "count": 47647,
+     "kind": "against a constant",
+     "outcomes": "== 3108, < 19250, > 25289 (signed); < 35622, > 8917 (unsigned)",
+     "operand": "constant -1024",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 31,
+     "text": "if (((u_int)((u_short)prim->y1 - 1) >= 239) || (prim->x1 <= (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 94246,
+     "kind": "against a constant",
+     "outcomes": "== 338, < 87945, > 5963 (signed); < 87593, > 6315 (unsigned)",
+     "operand": "constant 238",
+     "a": "-1..65534"
+    },
+    {
+     "line": 31,
+     "text": "if (((u_int)((u_short)prim->y1 - 1) >= 239) || (prim->x1 <= (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 87931,
+     "kind": "against a constant",
+     "outcomes": "== 14684, < 37434, > 35813 (signed); < 0, > 73247 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147396088..2147040024"
+    },
+    {
+     "line": 31,
+     "text": "if (((u_int)((u_short)prim->y1 - 1) >= 239) || (prim->x1 <= (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 87931,
+     "kind": "a == b / a < b",
+     "outcomes": "== 171, < 85206, > 2554 (signed); < 22276, > 65484 (unsigned)",
+     "operand": "b -60..451",
+     "a": "-54..0"
+    },
+    {
+     "line": 32,
+     "text": "|| (prim->x1 >= (320 + (pc_gte_widescreen ? 54 : 0))) || (depth <= 64) || (depth >= 2048)) {",
+     "size": 4,
+     "count": 85206,
+     "kind": "against a constant",
+     "outcomes": "== 12939, < 36949, > 35318 (signed); < 0, > 72267 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147396088..2147040024"
+    },
+    {
+     "line": 32,
+     "text": "|| (prim->x1 >= (320 + (pc_gte_widescreen ? 54 : 0))) || (depth <= 64) || (depth >= 2048)) {",
+     "size": 4,
+     "count": 85206,
+     "kind": "a == b / a < b",
+     "outcomes": "== 165, < 14781, > 70260 (signed); < 22401, > 62640 (unsigned)",
+     "operand": "b -53..451",
+     "a": "320..374"
+    },
+    {
+     "line": 32,
+     "text": "|| (prim->x1 >= (320 + (pc_gte_widescreen ? 54 : 0))) || (depth <= 64) || (depth >= 2048)) {",
+     "size": 4,
+     "count": 70260,
+     "kind": "against a constant",
+     "outcomes": "== 8175, < 21270, > 40815 (signed); < 0, > 62085 (unsigned)",
+     "operand": "constant 64",
+     "a": "-2147326739..2147366201"
+    },
+    {
+     "line": 32,
+     "text": "|| (prim->x1 >= (320 + (pc_gte_widescreen ? 54 : 0))) || (depth <= 64) || (depth >= 2048)) {",
+     "size": 4,
+     "count": 40815,
+     "kind": "against a constant",
+     "outcomes": "== 3296, < 7667, > 29852 (signed); < 7667, > 29852 (unsigned)",
+     "operand": "constant 2047",
+     "a": "65..2147366201"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38517,
+     "completion_tokens": 25116,
+     "reasoning_tokens": 23254,
+     "cost": 0.0164097,
+     "seconds": 101.8,
+     "sample": 1,
+     "conversation": "520d5458ba837641c7febda44c2fac12149f927e6969ea252a6d9487b0a11264"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 4: call 14 (AddPrim): argument 0: C 0x1e9fa31a4, Zig 0xe9fa31a4\nzdiff: MISMATCH iteration 10: call 4 (AddPrim): argument 0: C 0xffffffff0b8632ec, Zig 0xb8632ec\nzdiff: MISMATCH iteration 18: call 6 (AddPrim): argument 0: C 0x166a51184, Zig 0x66a51184\nzdiff: func_8008FAC8: 6397 iterations, seed 1, 1000 mismatches; classes: no-particles=580 paused=2877 widescreen=2439 normal=501"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 4: call 14 (AddPrim): argument 0: C 0x1e9fa31a4, Zig 0xe9fa31a4"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40668,
+     "completion_tokens": 4725,
+     "reasoning_tokens": 2795,
+     "cost": 0.0064293,
+     "seconds": 18.8,
+     "sample": 1,
+     "conversation": "5b31734ab839f240432ffacfb682703d7c4190214b8d6db3c5a8a20e74178934"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008FAC8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008FAC8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 95.98081057300169,
+ "wall_seconds": 337.17424125099933,
+ "totals": {
+  "cost": 0.04013,
+  "prompt_tokens": 112133,
+  "completion_tokens": 57839,
+  "model_seconds": 240.8,
+  "check_seconds": 96.0,
+  "calls": 4,
+  "wall_seconds": 337.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,210 @@
+{
+ "function": "vs_battle_copyUiGripStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_copyUiGripStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006b6ac",
+  "difficulty": "S",
+  "zig_name": "copyUiGripStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_ui_grip_stats",
+  "spec_file": "copyUiGripStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyUiGripStats(target: ?*v.vs_main_inventoryGrip, source: ?*v.vs_battle_uiEquipment) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_main_inventoryGrip"
+   ],
+   [
+    "source",
+    "?*v.vs_battle_uiEquipment"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_main_inventoryGrip"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11694,
+     "completion_tokens": 5046,
+     "reasoning_tokens": 3789,
+     "cost": 0.0036924,
+     "seconds": 21.8,
+     "sample": 1,
+     "conversation": "f87dd3536c2e81cb46d084ee0df20a7fcba79c261d5e7781f65aa8190089827d"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "subId-negative": "15086",
+   "subId-non-negative": "14914"
+  },
+  "mutations": [
+   {
+    "name": "G1: strength copied from intelligence",
+    "caught": true
+   },
+   {
+    "name": "G2: types loop stops at 3",
+    "caught": true
+   },
+   {
+    "name": "G3: types copied in reverse order",
+    "caught": true
+   },
+   {
+    "name": "G4: id truncated to 8 bits",
+    "caught": true
+   },
+   {
+    "name": "G5: agility store dropped",
+    "caught": true
+   },
+   {
+    "name": "G6: gemSlots taken from the wrong field",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 13,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 150000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 90000, > 30000 (signed); < 90000, > 30000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35140,
+     "completion_tokens": 1565,
+     "reasoning_tokens": 1171,
+     "cost": 0.0042965,
+     "seconds": 7.0,
+     "sample": 1,
+     "conversation": "700196e7c23a7fce55b15a7a961dfb6574a00fa29547d03b8541f230d652771f"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyUiGripStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_ui_grip_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 137.650586931999,
+ "wall_seconds": 365.3473239189989,
+ "totals": {
+  "cost": 0.00799,
+  "prompt_tokens": 46834,
+  "completion_tokens": 6611,
+  "model_seconds": 28.8,
+  "check_seconds": 137.7,
+  "calls": 2,
+  "wall_seconds": 365.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 3, 0 mismatches"
+ }
+}

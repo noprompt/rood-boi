@@ -1,0 +1,233 @@
+{
+ "function": "_setCameraPositionFromAngles",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; the ROOD_PC pc_camera_stick_place hook kept (weak, same guard on the follow camera's values, a full copy placed, then _computeSphericalOffset); spec sound",
+ "plan": {
+  "name": "_setCameraPositionFromAngles",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007aacc",
+  "difficulty": "M",
+  "zig_name": "setCameraPositionFromAngles",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_camera_position_from_angles",
+  "spec_file": "setCameraPositionFromAngles.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn setCameraPositionFromAngles(spherical: ?*v._sphericalValues) callconv(.c) void",
+  "params": [
+   [
+    "spherical",
+    "?*v._sphericalValues"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_sphericalValues"
+  ],
+  "globals": [
+   "vs_battle_cameraCurrentSpherical",
+   "vs_scratch"
+  ],
+  "hooks": [
+   "pc_camera_stick_place",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12267,
+     "completion_tokens": 11691,
+     "reasoning_tokens": 9401,
+     "cost": 0.0070722,
+     "seconds": 51.0,
+     "sample": 1,
+     "conversation": "62a707f7b802f9f02827a81fc7a8f0a07ee9ce0a52889f4be0c935d76f108d8e"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation S4: the camera test is inverted (the hook applies to other spherical blocks): not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x4260e4 [vs_scratch+0x34] (zdiff_state+0x20064): C 50, Zig 140\nzdiff: CRASH (signal 11) in the Zig run, iteration 1, fault address 0x0 [NULL+0x0: a field of a null pointer]\nzdiff: crashed on arguments: 0 (class null-spherical)",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _setCameraPositionFromAngles: branches 3/4 (75.0%), conditions not measured (GCC < 14: branch coverage only), lines 8/8\n  UNCOVERED +8 b1: branch never taken: `if (pc_camera_stick_place`\n  note: waivers no longer needed: +? b0\ncoverage _setCameraPositionFromAngles: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (pc_camera_stick_place` (+8): one way out of this test (+8 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function._setCameraPositionFromAngles.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15135,
+     "completion_tokens": 3064,
+     "reasoning_tokens": 785,
+     "cost": 0.0030455,
+     "seconds": 10.8,
+     "sample": 1,
+     "conversation": "c9261103112bb3219fc05ef3200efbdde79e109f45ff85db4de241e5d1da11d2"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "null-spherical": "7587",
+   "camera-spherical": "11176",
+   "other-spherical": "11237"
+  },
+  "mutations": [
+   {
+    "name": "S1: the right-stick copy is not used (the game's spherical is passed on)",
+    "caught": true
+   },
+   {
+    "name": "S2: the hook reads the position vector, not the look-at",
+    "caught": true
+   },
+   {
+    "name": "S3: the right-stick hook call is dropped",
+    "caught": true
+   },
+   {
+    "name": "S4: the camera test is inverted (the hook applies to other spherical blocks)",
+    "caught": true
+   },
+   {
+    "name": "S5: position and look-at swapped in the offset computation",
+    "caught": true
+   },
+   {
+    "name": "S6: the hook writes the game's own spherical, not the copy",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 3,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [
+    {
+     "id": "+8 b1",
+     "line": 8,
+     "text": "if (pc_camera_stick_place",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+8 b1",
+    "reason": "pc_camera_stick_place is a weak symbol that the harness always links (the spec defines it as a recording stub), so the hook-absent side of its null test is never taken"
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35703,
+     "completion_tokens": 3455,
+     "reasoning_tokens": 2905,
+     "cost": 0.0052978,
+     "seconds": 15.3,
+     "sample": 1,
+     "conversation": "477907fadebe071ea16ca5b64668380d06bc52d5225c2bd114f57bbf9f81ca12"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setCameraPositionFromAngles.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_camera_position_from_angles.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 39.970987783000055,
+ "wall_seconds": 117.65849771700005,
+ "totals": {
+  "cost": 0.01542,
+  "prompt_tokens": 63105,
+  "completion_tokens": 18210,
+  "model_seconds": 77.1,
+  "check_seconds": 40.0,
+  "calls": 3,
+  "wall_seconds": 117.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 108 / root 234 / root 299, 0 mismatches"
+ }
+}

@@ -1,0 +1,248 @@
+{
+ "function": "func_800D6894",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (entry address = base + unk6*4 as u_long* arithmetic, u_long is 4 bytes in the build); spec sound",
+ "plan": {
+  "name": "func_800D6894",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d6894",
+  "difficulty": "M",
+  "zig_name": "func_800D6894",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D6894",
+  "spec_file": "func_800D6894.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D6894(arg0: ?*v.D_800F53B8_t, arg1: ?*v.func_800D5780_t) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ],
+   [
+    "arg1",
+    "?*v.func_800D5780_t"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "D_800F53B8_t",
+   "D_800F53B8_t4",
+   "func_800D5780_t",
+   "func_800D6508_t",
+   "func_800D6894_t"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14337,
+     "completion_tokens": 19799,
+     "reasoning_tokens": 17711,
+     "cost": 0.0113332,
+     "seconds": 82.5,
+     "sample": 1,
+     "conversation": "98da409d232374432df30c79689cf9907498747628c6247404b6a46ee46a692c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800D6894/spec1/build/spec.zig:72:51: error: type '?*views_5BF94.D_800F53B8_t4' does not support field access\n    if (@as(i32, obj.unk0 & 0x1FF) != @as(i32, tbl.unk2)) return 0;\n                                               ~~~^~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:443:36\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16721,
+     "completion_tokens": 4590,
+     "reasoning_tokens": 2499,
+     "cost": 0.0039671,
+     "seconds": 17.5,
+     "sample": 1,
+     "conversation": "8f65a352d3c1a90f64a0acbd07e036e1dbc97c0a473e6563cddc3f1dd6e7f276"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "mismatch": "7513",
+   "match-no-case": "9907",
+   "match-case": "12580"
+  },
+  "mutations": [
+   {
+    "name": "D1: key masked to 8 bits",
+    "caught": true
+   },
+   {
+    "name": "D2: dispatch on unk0 >> 8",
+    "caught": true
+   },
+   {
+    "name": "D3: func_800D6448 arguments swapped",
+    "caught": true
+   },
+   {
+    "name": "D4: final call dropped",
+    "caught": true
+   },
+   {
+    "name": "D5: second byte read from unk2",
+    "caught": true
+   },
+   {
+    "name": "D6: miss returns 0, not 1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 19,
+   "branches_hit": 19,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 56,
+   "lines_hit": 56,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if ((temp_a2->unk0 & 0x1FF) == ((__typeof__((arg0->unkD1C.unk30).psx_type_[0]))(long unsigned int)(arg0->unkD1C.unk30).raw)->unk2) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 22487, < 3532, > 3981 (signed); < 6992, > 521 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..511"
+    },
+    {
+     "line": 8,
+     "text": "switch (temp_a2->unk0 >> 9) {",
+     "size": 4,
+     "count": 22487,
+     "kind": "switch",
+     "outcomes": "== 12580, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37817,
+     "completion_tokens": 7948,
+     "reasoning_tokens": 6902,
+     "cost": 0.0077557,
+     "seconds": 34.2,
+     "sample": 1,
+     "conversation": "683914528f0361e374df2394162bb44b257cb7d3af8740c1299ba5c052250fa4"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D6894.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D6894.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 68.77382298000157,
+ "wall_seconds": 278.6820783059957,
+ "totals": {
+  "cost": 0.02306,
+  "prompt_tokens": 68875,
+  "completion_tokens": 32337,
+  "model_seconds": 134.2,
+  "check_seconds": 68.8,
+  "calls": 3,
+  "wall_seconds": 278.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 84 / nested 192 / nested 15, 0 mismatches"
+ }
+}

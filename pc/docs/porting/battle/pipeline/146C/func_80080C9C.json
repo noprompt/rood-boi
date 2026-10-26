@@ -1,0 +1,433 @@
+{
+ "function": "func_80080C9C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (fall-through 5/7/14 into 6/8/11/12 as two tests); spec sound",
+ "plan": {
+  "name": "func_80080C9C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80080c9c",
+  "difficulty": "M",
+  "zig_name": "func_80080C9C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80080C9C",
+  "spec_file": "func_80080C9C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80080C9C(arg0: ?*v.vs_action_t, arg1: ?*v.vs_battle_actor2, arg2: c_int, arg3: c_int, arg4: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiEquipment"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15977,
+     "completion_tokens": 31802,
+     "reasoning_tokens": 28929,
+     "cost": 0.0174987,
+     "seconds": 136.6,
+     "sample": 1,
+     "conversation": "828a5c7d9dfa00cdcb8fb2fdacee11dc9e621d285bc254ecd51691e150940091"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F6: the random pick ignores the last candidate: not caught as mismatch (exit 3): zdiff: PANIC in the Zig run, iteration 2: division by zero (return address 0x401a44)",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80080C9C: branches 38/38 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 39/39\n  FLAG +53 sign: every value above 255 had the sign bit set (a port testing the sign, `< 0`, for this test would pass): `if (temp_s2 == 0xFF) {`\ncoverage func_80080C9C: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (temp_s2 == 0xFF) {` (+53): this compares a value with 255. Every input where the value was above 255 also had its sign bit set (negative as a signed 32-bit number), so a port that tests the sign instead (`< 0`, or a signed read where the C reads unsigned) would pass your spec. Add inputs where the value is above 255 AND positive (e.g. 256, 511, 2147483647).\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80080C9C.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 19340,
+     "completion_tokens": 8846,
+     "reasoning_tokens": 5667,
+     "cost": 0.006357,
+     "seconds": 37.2,
+     "sample": 1,
+     "conversation": "61b426738de67bb11d78c587d1376326f8af11f0c425c6edb8e4dc3e76c850cd"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "switch-none": "4711",
+   "case-1-4": "9162",
+   "case-5-7-14": "6947",
+   "case-6-8-11-12": "9180"
+  },
+  "mutations": [
+   {
+    "name": "F1: shield class affinity call dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: limb scan stops before limb 5",
+    "caught": true
+   },
+   {
+    "name": "F3: a limb candidate stores 0, not its index",
+    "caught": true
+   },
+   {
+    "name": "F4: weapon affinity change gets the wrong name index",
+    "caught": true
+   },
+   {
+    "name": "F5: a negative maxHp is treated as empty",
+    "caught": true
+   },
+   {
+    "name": "F6: the random pick ignores the last candidate",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 38,
+   "branches_hit": 38,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 39,
+   "lines_hit": 39,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147444066, max 2147387895, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147040739, max 2147421341, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -3, max 511, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "switch (arg0->unk2_4) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 20745, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..15"
+    },
+    {
+     "line": 14,
+     "text": "if ((vs_battle_actors[arg1->unk957]->weaponDrawn & 1)",
+     "size": 4,
+     "count": 9162,
+     "kind": "against a constant",
+     "outcomes": "== 4874, < 0, > 4288 (signed); < 0, > 4288 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 15,
+     "text": "&& (arg1->shield.base.id != 0)) {",
+     "size": 2,
+     "count": 4288,
+     "kind": "against a constant",
+     "outcomes": "== 1417, < 1650, > 1221 (signed); < 0, > 2871 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32735"
+    },
+    {
+     "line": 19,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 64134,
+     "kind": "against a constant",
+     "outcomes": "== 9162, < 45810, > 9162 (signed); < 45810, > 9162 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 20,
+     "text": "if ((arg1->limbs[i].maxHp != 0) && (arg1->limbs[i].armor.armor.id != 0)) {",
+     "size": 2,
+     "count": 54972,
+     "kind": "against a constant",
+     "outcomes": "== 17485, < 18920, > 18567 (signed); < 0, > 37487 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 20,
+     "text": "if ((arg1->limbs[i].maxHp != 0) && (arg1->limbs[i].armor.armor.id != 0)) {",
+     "size": 2,
+     "count": 37487,
+     "kind": "against a constant",
+     "outcomes": "== 4697, < 18694, > 14096 (signed); < 0, > 32790 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32764"
+    },
+    {
+     "line": 30,
+     "text": "if (vs_battle_actors[arg1->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 6947,
+     "kind": "against a constant",
+     "outcomes": "== 3708, < 0, > 3239 (signed); < 0, > 3239 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 31,
+     "text": "if (arg1->shield.base.id != 0) {",
+     "size": 2,
+     "count": 3239,
+     "kind": "against a constant",
+     "outcomes": "== 1172, < 1174, > 893 (signed); < 0, > 2067 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32678"
+    },
+    {
+     "line": 40,
+     "text": "if (arg1->limbs[arg4].maxHp && (arg1->limbs[arg4].armor.armor.id != 0)) {",
+     "size": 2,
+     "count": 16127,
+     "kind": "against a constant",
+     "outcomes": "== 2131, < 3768, > 10228 (signed); < 0, > 13996 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 40,
+     "text": "if (arg1->limbs[arg4].maxHp && (arg1->limbs[arg4].armor.armor.id != 0)) {",
+     "size": 2,
+     "count": 13996,
+     "kind": "against a constant",
+     "outcomes": "== 527, < 3794, > 9675 (signed); < 0, > 13469 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32747"
+    },
+    {
+     "line": 47,
+     "text": "if (var_a0 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9431, < 0, > 20569 (signed); < 0, > 20569 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..7"
+    },
+    {
+     "line": 53,
+     "text": "if (temp_s2 == 0xFF) {",
+     "size": 4,
+     "count": 20569,
+     "kind": "against a constant",
+     "outcomes": "== 2687, < 14886, > 2996 (signed); < 11897, > 5985 (unsigned)",
+     "operand": "constant 255",
+     "a": "-3..511"
+    },
+    {
+     "line": 56,
+     "text": "if (arg1->shield.base.id != 0) {",
+     "size": 2,
+     "count": 2687,
+     "kind": "against a constant",
+     "outcomes": "== 977, < 1006, > 704 (signed); < 0, > 1710 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32734"
+    },
+    {
+     "line": 58,
+     "text": "if (arg2 != 0) {",
+     "size": 4,
+     "count": 1710,
+     "kind": "against a constant",
+     "outcomes": "== 236, < 609, > 865 (signed); < 0, > 1474 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146405705..2140497912"
+    },
+    {
+     "line": 61,
+     "text": "if (arg3 != 0) {",
+     "size": 4,
+     "count": 1710,
+     "kind": "against a constant",
+     "outcomes": "== 196, < 647, > 867 (signed); < 0, > 1514 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2144671175..2146126909"
+    },
+    {
+     "line": 71,
+     "text": "if (equipment->id != 0) {",
+     "size": 2,
+     "count": 17882,
+     "kind": "against a constant",
+     "outcomes": "== 400, < 6956, > 10526 (signed); < 0, > 17482 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32748"
+    },
+    {
+     "line": 72,
+     "text": "if (arg2 != 0) {",
+     "size": 4,
+     "count": 17482,
+     "kind": "against a constant",
+     "outcomes": "== 2151, < 6593, > 8738 (signed); < 0, > 15331 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147444066..2147387895"
+    },
+    {
+     "line": 78,
+     "text": "if (arg3 != 0) {",
+     "size": 4,
+     "count": 17482,
+     "kind": "against a constant",
+     "outcomes": "== 2179, < 6543, > 8760 (signed); < 0, > 15303 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147040739..2147421341"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39350,
+     "completion_tokens": 14247,
+     "reasoning_tokens": 12709,
+     "cost": 0.0110585,
+     "seconds": 55.6,
+     "sample": 1,
+     "conversation": "a8b017bdf606b7d0293dc91111c910235873de351c5ffe380a119e011f3fb341"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80080C9C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80080C9C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 97.42078154200044,
+ "wall_seconds": 327.2343309660009,
+ "totals": {
+  "cost": 0.03491,
+  "prompt_tokens": 74667,
+  "completion_tokens": 54895,
+  "model_seconds": 229.4,
+  "check_seconds": 97.4,
+  "calls": 3,
+  "wall_seconds": 327.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / nested 3 / nested 9, 0 mismatches"
+ }
+}

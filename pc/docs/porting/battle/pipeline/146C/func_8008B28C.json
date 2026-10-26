@@ -1,0 +1,185 @@
+{
+ "function": "func_8008B28C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8008B28C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b28c",
+  "difficulty": "S",
+  "zig_name": "func_8008B28C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008B28C",
+  "spec_file": "func_8008B28C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008B28C() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11181,
+     "completion_tokens": 4106,
+     "reasoning_tokens": 2982,
+     "cost": 0.0031711,
+     "seconds": 16.8,
+     "sample": 1,
+     "conversation": "5664da488c894f9f09f8fec6b10ebc4ef1176f05dbb1e8df028fc7e09f99fbf4"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "ticking": "10077",
+   "paused-low": "6601",
+   "paused-high": "3322"
+  },
+  "mutations": [
+   {
+    "name": "F1: the ticking test inverted",
+    "caught": true
+   },
+   {
+    "name": "F2: the tick stored instead of added",
+    "caught": true
+   },
+   {
+    "name": "F3: the tick doubled",
+    "caught": true
+   },
+   {
+    "name": "F4: the flag read as a signed char",
+    "caught": true
+   },
+   {
+    "name": "F5: the guard dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (D_800F1BA4 == 0) {",
+     "size": 2,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 10077, < 3322, > 6601 (signed); < 0, > 9923 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34654,
+     "completion_tokens": 921,
+     "reasoning_tokens": 633,
+     "cost": 0.0039259,
+     "seconds": 4.5,
+     "sample": 1,
+     "conversation": "c0b3bd54f1ecc35fbd16e5ca19ed91fc91927a4aa77b3c21e2b26cb5404a515d"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008B28C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008B28C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 154.7298527280036,
+ "wall_seconds": 355.6526178150016,
+ "totals": {
+  "cost": 0.0071,
+  "prompt_tokens": 45835,
+  "completion_tokens": 5027,
+  "model_seconds": 21.3,
+  "check_seconds": 154.7,
+  "calls": 2,
+  "wall_seconds": 355.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 248 / root 481 / root 850, 0 mismatches"
+ }
+}

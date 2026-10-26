@@ -1,0 +1,266 @@
+{
+ "function": "func_8006C250",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8006C250",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006c250",
+  "difficulty": "S",
+  "zig_name": "func_8006C250",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006C250",
+  "spec_file": "func_8006C250.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006C250() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11066,
+     "completion_tokens": 4961,
+     "reasoning_tokens": 3842,
+     "cost": 0.0035871,
+     "seconds": 22.7,
+     "sample": 1,
+     "conversation": "25278579586094d8fe4c78450d5e02abcaf3c531bdeff34f13506e0e9112006c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has c_uint: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_8006C250/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12525,
+     "completion_tokens": 1554,
+     "reasoning_tokens": 412,
+     "cost": 0.0020295,
+     "seconds": 6.2,
+     "sample": 1,
+     "conversation": "df567831a99e1bf3652e9e7695333156a43c96f8d7108cb6bec010b9ea254ffe"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "bit2-set": "6708",
+   "bit2-clear": "6596",
+   "mixed": "6696"
+  },
+  "mutations": [
+   {
+    "name": "F1: loop stops at 15 (slot 15 skipped)",
+    "caught": true
+   },
+   {
+    "name": "F2: tests bit 3 instead of bit 2",
+    "caught": true
+   },
+   {
+    "name": "F3: setter gets bit 3 instead of bit 2",
+    "caught": true
+   },
+   {
+    "name": "F4: setter dropped the OR (writes the word unchanged)",
+    "caught": true
+   },
+   {
+    "name": "F5: test inverted (sets bit 2 only where it is already set)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 16; ++i) {",
+     "size": 4,
+     "count": 340000,
+     "kind": "against a constant",
+     "outcomes": "== 20000, < 300000, > 20000 (signed); < 300000, > 20000 (unsigned)",
+     "operand": "constant 15",
+     "a": "0..16"
+    },
+    {
+     "line": 6,
+     "text": "if (!(temp_v0 & 4)) {",
+     "size": 4,
+     "count": 320000,
+     "kind": "against a constant",
+     "outcomes": "== 159382, < 0, > 160618 (signed); < 0, > 160618 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34546,
+     "completion_tokens": 1107,
+     "reasoning_tokens": 842,
+     "cost": 0.0040081,
+     "seconds": 5.3,
+     "sample": 1,
+     "conversation": "bbd6b0db2c4d9c1994922dccbc3c2cbc90e342fc5e4922fdecf1ea32ad4f84ae"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8006C250.zig:9:47: error: expected type 'c_int', found 'c_uint'\n        const temp_v0: c_int = c.func_800A0BE0(i);\n                               ~~~~~~~~~~~~~~~^~~\ngame/battle/func_8006C250.zig:9:47: note: signed 32-bit int cannot represent all possible unsigned 32-bit values\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35116,
+     "completion_tokens": 794,
+     "reasoning_tokens": 532,
+     "cost": 0.0039086,
+     "seconds": 5.4,
+     "sample": 1,
+     "conversation": "6cb134445b3140d1d5a26b99c552b3ac8b67e563a44fb45b88a7a9e2d5bc18a6"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8006C250.zig:11:40: error: expected type 'c_int', found 'c_uint'\n            c.func_800A087C(i, temp_v0 | 4);\n                               ~~~~~~~~^~~\ngame/battle/func_8006C250.zig:11:40: note: signed 32-bit int cannot represent all possible unsigned 32-bit values\npc/build/boot64/zig/c_146C.zig:3916:45: note: parameter type declared here\npub extern fn func_800A087C(actorId: c_int, c_int) void;\n                                            ^~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35746,
+     "completion_tokens": 782,
+     "reasoning_tokens": 510,
+     "cost": 0.0039656,
+     "seconds": 4.0,
+     "sample": 1,
+     "conversation": "e059495b2a8f1eb157e2b2264ebe2e948d2a427e6fb8871678cbd9d8255849dd"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 3,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006C250.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006C250.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 250.931512803003,
+ "wall_seconds": 614.5018706310002,
+ "totals": {
+  "cost": 0.0175,
+  "prompt_tokens": 128999,
+  "completion_tokens": 9198,
+  "model_seconds": 43.6,
+  "check_seconds": 250.9,
+  "calls": 5,
+  "wall_seconds": 614.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 12 / nested 30 / nested 63, 0 mismatches"
+ }
+}

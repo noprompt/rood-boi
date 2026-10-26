@@ -1,0 +1,285 @@
+{
+ "function": "vs_battle_printVariableWidthFontChar",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; ROOD_PC hooks checked: both pc_text_char calls in place (space path before return, glyph path after sprite[4]) with the pc_text_glyph weak test and the <<16 args; space is 143 via vsstring; the hook args are not compared by the spec (linked host function), checked by hand",
+ "plan": {
+  "name": "vs_battle_printVariableWidthFontChar",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c70f8",
+  "difficulty": "M",
+  "zig_name": "printVariableWidthFontChar",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "print_variable_width_font_char",
+  "spec_file": "printVariableWidthFontChar.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn printVariableWidthFontChar(glyphId: c_uint, x: c_int, y: c_int, ot: [*c]c_uint) callconv(.c) c_int",
+  "params": [
+   [
+    "glyphId",
+    "c_uint"
+   ],
+   [
+    "x",
+    "c_int"
+   ],
+   [
+    "y",
+    "c_int"
+   ],
+   [
+    "ot",
+    "[*c]c_uint"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [
+   "pc_text_char",
+   "pc_text_glyph",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [
+   "pc_text_char"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12545,
+     "completion_tokens": 20532,
+     "reasoning_tokens": 18390,
+     "cost": 0.0115205,
+     "seconds": 89.6,
+     "sample": 1,
+     "conversation": "571a13953f645b4118df7d59cf1df0425801317cd447218bd800472b66acbe6e"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: your spec's own code (prepare or classify) failed before the C ran: a Zig safety check (an index past an array's length, an integer that does not fit, a null unwrap) or a fault in it:\nzdiff: CRASH (signal 11) in the prepare run, iteration 0, fault address 0x4025b0 [pc_text_glyph+0x0]",
+     "(the mutations and the coverage gate are checked once the spec runs)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14859,
+     "completion_tokens": 5697,
+     "reasoning_tokens": 3852,
+     "cost": 0.0043344,
+     "seconds": 25.6,
+     "sample": 1,
+     "conversation": "ceb5d8e770e291e130ba4bac6faff20d91483e65ea5f89342dd5902e80f8b06d"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "space": "6006",
+   "glyph": "23994"
+  },
+  "mutations": [
+   {
+    "name": "M1: space test is 142, not 143",
+    "caught": true
+   },
+   {
+    "name": "M2: space advance 5, not 6",
+    "caught": true
+   },
+   {
+    "name": "M3: setSprite gets ot+2 (wrong offset)",
+    "caught": true
+   },
+   {
+    "name": "M4: glyph column stride 13, not 12",
+    "caught": true
+   },
+   {
+    "name": "M5: font brightness bits read with a 5-bit mask",
+    "caught": true
+   },
+   {
+    "name": "M6: x masked to 15 bits (signed/unsigned slip on the xy word)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 379, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -32768, max 32767, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -32768, max 32767, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (glyphId == 143) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 6006, < 14679, > 9315 (signed); < 14679, > 9315 (unsigned)",
+     "operand": "constant 143",
+     "a": "0..379"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+? b1",
+    "reason": "pc_text_glyph is a weak function that is always linked; its null side cannot be taken"
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35895,
+     "completion_tokens": 11062,
+     "reasoning_tokens": 9955,
+     "cost": 0.0091205,
+     "seconds": 45.8,
+     "sample": 1,
+     "conversation": "aad87562b1af0b0671b2aaa5524af139a57502a9355bf3fbc665985d4d41ee67"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/print_variable_width_font_char.zig:29:9: error: local variable is never mutated\n    var glyphId: c_uint = glyph_id +% psx.conv(c_uint, @as(c_int, v.g._fontTable().*) *% 0xBD);\n        ^~~~~~~\ngame/battle/print_variable_width_font_char.zig:29:9: note: consider using 'const'\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37224,
+     "completion_tokens": 1484,
+     "reasoning_tokens": 377,
+     "cost": 0.0044644,
+     "seconds": 5.6,
+     "sample": 1,
+     "conversation": "b1e979311372344adb579e8e3d284b1d2c2d3048316982c32e7336e897342b59"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/printVariableWidthFontChar.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/print_variable_width_font_char.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 53.92774897199706,
+ "wall_seconds": 458.54236117399705,
+ "totals": {
+  "cost": 0.02944,
+  "prompt_tokens": 100523,
+  "completion_tokens": 38775,
+  "model_seconds": 166.6,
+  "check_seconds": 53.9,
+  "calls": 4,
+  "wall_seconds": 458.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 1577 / root 3231 / root 1930, 0 mismatches"
+ }
+}

@@ -1,0 +1,209 @@
+{
+ "function": "_loadMpdEnemySection",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_loadMpdEnemySection",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80089c5c",
+  "difficulty": "S",
+  "zig_name": "loadMpdEnemySection",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_mpd_enemy_section",
+  "spec_file": "loadMpdEnemySection.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadMpdEnemySection(data: ?*anyopaque, dataLen: c_uint) callconv(.c) void",
+  "params": [
+   [
+    "data",
+    "?*anyopaque"
+   ],
+   [
+    "dataLen",
+    "c_uint"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12484,
+     "completion_tokens": 11368,
+     "reasoning_tokens": 10049,
+     "cost": 0.0069324,
+     "seconds": 49.2,
+     "sample": 1,
+     "conversation": "f9f47d7a78224c7e5e9080c851370aa3feb3f025c36a61eb5b80d3b7e819d847"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero-length": "1643",
+   "small-length": "17475",
+   "sign-bit-length": "10882"
+  },
+  "mutations": [
+   {
+    "name": "L1: count divided as signed (sign bit wrong)",
+    "caught": true
+   },
+   {
+    "name": "L2: count store dropped",
+    "caught": true
+   },
+   {
+    "name": "L3: memcpy copies one byte short",
+    "caught": true
+   },
+   {
+    "name": "L4: empty load leaves the count at 1",
+    "caught": true
+   },
+   {
+    "name": "L5: early return dropped (falls into the empty load)",
+    "caught": true
+   },
+   {
+    "name": "L6: heap block sized dataLen + 4",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (dataLen != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1643, < 10882, > 17475 (signed); < 0, > 28357 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35934,
+     "completion_tokens": 4117,
+     "reasoning_tokens": 3656,
+     "cost": 0.0056519,
+     "seconds": 17.0,
+     "sample": 1,
+     "conversation": "af63694d4c0053768e44b6794e0e8f8c9a4819d95f79604a0830e0ed299dfa9a"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/loadMpdEnemySection.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/load_mpd_enemy_section.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 188.6454504770045,
+ "wall_seconds": 494.99580925900227,
+ "totals": {
+  "cost": 0.01258,
+  "prompt_tokens": 48418,
+  "completion_tokens": 15485,
+  "model_seconds": 66.2,
+  "check_seconds": 188.6,
+  "calls": 2,
+  "wall_seconds": 495.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

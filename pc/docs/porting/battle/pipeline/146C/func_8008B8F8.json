@@ -1,0 +1,156 @@
+{
+ "function": "func_8008B8F8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation D1: the null test is inverted: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x426070 [D_800F1CC8+0",
+ "plan": {
+  "name": "func_8008B8F8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b8f8",
+  "difficulty": "S",
+  "zig_name": "func_8008B8F8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008B8F8",
+  "spec_file": "func_8008B8F8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008B8F8(arg0: [*c][12]u8) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "[*c][12]u8"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12085,
+     "completion_tokens": 7336,
+     "reasoning_tokens": 5741,
+     "cost": 0.0048765,
+     "seconds": 30.9,
+     "sample": 1,
+     "conversation": "24fbdab7984c52e1be7f78ab130339dd8bd6b6b8b663eb0f080002b9792601f7"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_8008B8F8/spec1/build/spec.zig:28:30: error: expected type 'usize', found 'c_int'\n        const count: usize = n;\n                             ^\npc/build/port-pipeline/func_8008B8F8/spec1/build/spec.zig:28:30: note: unsigned 64-bit int cannot represent all possible signed 32-bit values\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_8008B8F8/spec1/build/game/common/route.zig:29:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14008,
+     "completion_tokens": 2541,
+     "reasoning_tokens": 939,
+     "cost": 0.0026713,
+     "seconds": 9.3,
+     "sample": 1,
+     "conversation": "2bceee7e7afd196cf7c4499e251f9ca1de5a3fb585228fc99d3bfc04f58d48e4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation D1: the null test is inverted: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x426070 [D_800F1CC8+0x0] (zdiff_state+0x20000): C 141, Zig 0\nzdiff: MISMATCH iteration 1: memory at 0x426070 [D_800F1CC8+0x0] (zdiff_state+0x20000): C 198, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x426070 [D_800F1CC8+0x0] (zdiff_state+0x20000): C 135, Zig 0\nzdiff: PANIC in the Zig run, iteration 10: attempt to use null value (return address 0x4018bf)"
+    ]
+   }
+  ],
+  "classes": {
+   "null": "3758",
+   "self-copy": "4404",
+   "copy": "21838"
+  },
+  "mutations": [
+   {
+    "name": "D1: the null test is inverted",
+    "caught": false
+   },
+   {
+    "name": "D2: the door id is read from byte 7",
+    "caught": true
+   },
+   {
+    "name": "D3: the no-pointer door is 0, not -1",
+    "caught": true
+   },
+   {
+    "name": "D4: memcpy drops the last byte",
+    "caught": true
+   },
+   {
+    "name": "D5: bzero leaves the last byte",
+    "caught": true
+   },
+   {
+    "name": "D6: the door id is narrowed to a signed char",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 17.533292304000497,
+ "wall_seconds": 58.2617503199981,
+ "totals": {
+  "cost": 0.00755,
+  "prompt_tokens": 26093,
+  "completion_tokens": 9877,
+  "model_seconds": 40.2,
+  "check_seconds": 17.5,
+  "calls": 2,
+  "wall_seconds": 58.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

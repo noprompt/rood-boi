@@ -1,0 +1,174 @@
+{
+ "function": "vs_battle_getCurrentRoomId",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_getCurrentRoomId",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007c874",
+  "difficulty": "S",
+  "zig_name": "getCurrentRoomId",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_current_room_id",
+  "spec_file": "getCurrentRoomId.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getCurrentRoomId() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11613,
+     "completion_tokens": 3900,
+     "reasoning_tokens": 2661,
+     "cost": 0.0031113,
+     "seconds": 16.7,
+     "sample": 1,
+     "conversation": "4fd69f5b5cefca014ed8f6a4da2596f4ef310b815901063ecee7f3bbbbd8d7e9"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "an-id-zero": "2457",
+   "an-id-negative": "11230",
+   "ids-positive": "6313"
+  },
+  "mutations": [
+   {
+    "name": "M1: ids passed in swapped order",
+    "caught": true
+   },
+   {
+    "name": "M2: wrong field (musicId for mapId)",
+    "caught": true
+   },
+   {
+    "name": "M3: the call dropped, mapId returned",
+    "caught": true
+   },
+   {
+    "name": "M4: result negated",
+    "caught": true
+   },
+   {
+    "name": "M5: zndId narrowed to unsigned short before the call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 2,
+   "lines_hit": 2,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35056,
+     "completion_tokens": 718,
+     "reasoning_tokens": 514,
+     "cost": 0.0038646,
+     "seconds": 4.6,
+     "sample": 1,
+     "conversation": "7f0a5ef46d976708d61ff70fc69cd15bcb899b05536d9fc5e3ba35fb3b0fd949"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getCurrentRoomId.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_current_room_id.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 163.27810150399455,
+ "wall_seconds": 442.6057103790008,
+ "totals": {
+  "cost": 0.00698,
+  "prompt_tokens": 46669,
+  "completion_tokens": 4618,
+  "model_seconds": 21.3,
+  "check_seconds": 163.3,
+  "calls": 2,
+  "wall_seconds": 442.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 86 / root 125 / root 175, 0 mismatches"
+ }
+}

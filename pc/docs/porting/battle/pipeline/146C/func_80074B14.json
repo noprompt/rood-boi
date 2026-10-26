@@ -1,0 +1,255 @@
+{
+ "function": "func_80074B14",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (bit 18 of _mpdRoomSection3 via byte 2 bit 2 checked); spec sound",
+ "plan": {
+  "name": "func_80074B14",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80074b14",
+  "difficulty": "S",
+  "zig_name": "func_80074B14",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80074B14",
+  "spec_file": "func_80074B14.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80074B14(arg0: c_int, arg1: ?*v.func_8006EBF8_t_fields) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "?*v.func_8006EBF8_t_fields"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11903,
+     "completion_tokens": 14497,
+     "reasoning_tokens": 12604,
+     "cost": 0.0084388,
+     "seconds": 63.7,
+     "sample": 1,
+     "conversation": "576d4870a3e8fcb6043ee4b27d51479ff1b782d51f8d199f59535c26d14498c2"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M6: var_a0 unsigned, so the byte-0 bitfield does not sign-extend: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80074B14: 30000 iterations, seed 1, 0 mismatches; classes: temp-set-bit-clear=13974 temp-set-bit-set-dist-other=5342 temp-set-bit-set-dist-900=5167 temp-clear-bit-clear=3123 temp-clear-bit-set-dist-other=1188 temp-clear-bit-set-dist-900=1206"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14039,
+     "completion_tokens": 4176,
+     "reasoning_tokens": 2287,
+     "cost": 0.0034919,
+     "seconds": 17.4,
+     "sample": 1,
+     "conversation": "a6189cd60ed80649bfce76d30933b4ba594b4d64337a4d0b4c055ec7a2124768"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "temp-set-bit-clear": "13974",
+   "temp-set-bit-set-dist-other": "5342",
+   "temp-set-bit-set-dist-900": "5167",
+   "temp-clear-bit-clear": "3123",
+   "temp-clear-bit-set-dist-other": "1188",
+   "temp-clear-bit-set-dist-900": "1206"
+  },
+  "mutations": [
+   {
+    "name": "M1: temp masked with bit 18 instead of bits 16-18",
+    "caught": true
+   },
+   {
+    "name": "M2: region index shifted by 17, not 16",
+    "caught": true
+   },
+   {
+    "name": "M3: var_a1 read from the wrong bitfield (unk0_24)",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong camera distance constant (0x908)",
+    "caught": true
+   },
+   {
+    "name": "M5: dropped func_8008C40C call",
+    "caught": true
+   },
+   {
+    "name": "M6: callee's flag tested with bit 1 instead of bit 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147358320, max 2147396633, unsigned 13285..4294761632, seen negative, never zero"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (temp_v0 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 5517, < 0, > 24483 (signed); < 0, > 24483 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..458752"
+    },
+    {
+     "line": 17,
+     "text": "if (func_8008B764(var_a0, var_a1, var_a2)->unk0_18 & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15161, < 0, > 14839 (signed); < 0, > 14839 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 18,
+     "text": "func_8008C2C0(arg1->unk0_0, arg1->unk0_16, arg1->unk0_8,",
+     "size": 4,
+     "count": 14839,
+     "kind": "against a constant",
+     "outcomes": "== 7478, < 3692, > 3669 (signed); < 0, > 7361 (unsigned)",
+     "operand": "constant 2304",
+     "a": "-2146563341..2147449670"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35383,
+     "completion_tokens": 5684,
+     "reasoning_tokens": 4910,
+     "cost": 0.0063803,
+     "seconds": 23.1,
+     "sample": 1,
+     "conversation": "04ebb0f93ec6bb7d633ae89e905ec7ed1fb5b889c3355e8732ef332a99f1b0a9"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80074B14.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80074B14.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 188.27321314000073,
+ "wall_seconds": 441.31727680999757,
+ "totals": {
+  "cost": 0.01831,
+  "prompt_tokens": 61325,
+  "completion_tokens": 24357,
+  "model_seconds": 104.2,
+  "check_seconds": 188.3,
+  "calls": 3,
+  "wall_seconds": 441.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 741 / nested 1437 / nested 2529, 0 mismatches"
+ }
+}

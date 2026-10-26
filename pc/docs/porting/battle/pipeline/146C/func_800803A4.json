@@ -1,0 +1,318 @@
+{
+ "function": "func_800803A4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_800803A4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800803a4",
+  "difficulty": "M",
+  "zig_name": "func_800803A4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800803A4",
+  "spec_file": "func_800803A4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800803A4(action: ?*v.vs_action_t, arg1: ?*v.vs_battle_actor2, arg2: ?*v.vs_battle_actor2, arg3: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg2",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15282,
+     "completion_tokens": 21670,
+     "reasoning_tokens": 19289,
+     "cost": 0.0123632,
+     "seconds": 89.7,
+     "sample": 1,
+     "conversation": "449af45ab1eb6824bf0370e19656aa7626c1e232e403929aa551025efa490dff"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "spell": "10333",
+   "weapon-undrawn": "10822",
+   "shield-nine": "5073",
+   "shield-plain": "3772"
+  },
+  "mutations": [
+   {
+    "name": "W1: weapon gem bonus +4, not +5",
+    "caught": true
+   },
+   {
+    "name": "W2: weapon clamp copies currentPp, not maxPp",
+    "caught": true
+   },
+   {
+    "name": "S1: shield gem bonus added, not subtracted",
+    "caught": true
+   },
+   {
+    "name": "S2: shield checks gem 0 only",
+    "caught": true
+   },
+   {
+    "name": "S3: shield PP compare off by one",
+    "caught": true
+   },
+   {
+    "name": "W3: weapon bonus divides arg3 unsigned",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 20,
+   "branches_hit": 20,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 26,
+   "lines_hit": 26,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -189851586, max 189955225, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (action->type != actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 10333, < 2807, > 16860 (signed); < 2807, > 16860 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 12,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 78668,
+     "kind": "against a constant",
+     "outcomes": "== 19667, < 39334, > 19667 (signed); < 39334, > 19667 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 13,
+     "text": "if (arg1->weapon.gems[i].gemEffects == 9) {",
+     "size": 1,
+     "count": 59001,
+     "kind": "against a constant",
+     "outcomes": "== 14660, < 44341, > 0 (signed); < 29624, > 14717 (unsigned)",
+     "operand": "constant 9",
+     "a": "-1..9"
+    },
+    {
+     "line": 18,
+     "text": "if (var_t0 != 0) {",
+     "size": 4,
+     "count": 19667,
+     "kind": "against a constant",
+     "outcomes": "== 8301, < 0, > 11366 (signed); < 0, > 11366 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 23,
+     "text": "if (arg1->weapon.currentPp + var_t1 < arg1->weapon.maxPp) {",
+     "size": 4,
+     "count": 19667,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4028, < 7226, > 8413 (signed); < 3336, > 12303 (unsigned)",
+     "operand": "b 0..65535",
+     "a": "-19884382..20001457"
+    },
+    {
+     "line": 32,
+     "text": "if (vs_battle_actors[arg2->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16644, < 0, > 13356 (signed); < 0, > 13356 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 34,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 53424,
+     "kind": "against a constant",
+     "outcomes": "== 13356, < 26712, > 13356 (signed); < 26712, > 13356 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 35,
+     "text": "if (arg2->shield.gems[i].gemEffects == 9) {",
+     "size": 1,
+     "count": 40068,
+     "kind": "against a constant",
+     "outcomes": "== 9961, < 30107, > 0 (signed); < 20095, > 10012 (unsigned)",
+     "operand": "constant 9",
+     "a": "-1..9"
+    },
+    {
+     "line": 39,
+     "text": "if (var_t0 != 0) {",
+     "size": 4,
+     "count": 13356,
+     "kind": "against a constant",
+     "outcomes": "== 5680, < 0, > 7676 (signed); < 0, > 7676 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 44,
+     "text": "if (arg2->shield.currentPp + var_t1 < arg2->shield.maxPp != 0) {",
+     "size": 4,
+     "count": 13356,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2780, < 4910, > 5666 (signed); < 2287, > 8289 (unsigned)",
+     "operand": "b 0..65535",
+     "a": "-18959340..19057458"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38662,
+     "completion_tokens": 6817,
+     "reasoning_tokens": 5867,
+     "cost": 0.0072747,
+     "seconds": 27.1,
+     "sample": 1,
+     "conversation": "a92525ab03808fca08963529b863ed0002fa2dfcc2ce350a5e2fdd1b94e0c619"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800803A4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800803A4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 86.9510201639996,
+ "wall_seconds": 205.88610592400073,
+ "totals": {
+  "cost": 0.01964,
+  "prompt_tokens": 53944,
+  "completion_tokens": 28487,
+  "model_seconds": 116.8,
+  "check_seconds": 87.0,
+  "calls": 2,
+  "wall_seconds": 205.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 9, 0 mismatches"
+ }
+}

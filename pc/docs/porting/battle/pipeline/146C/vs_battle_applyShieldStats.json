@@ -1,0 +1,240 @@
+{
+ "function": "vs_battle_applyShieldStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_applyShieldStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006a65c",
+  "difficulty": "S",
+  "zig_name": "applyShieldStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "apply_shield_stats",
+  "spec_file": "applyShieldStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn applyShieldStats(target: ?*v.vs_battle_uiShield, source: ?*v.vs_battle_shieldIntermediate) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiShield"
+   ],
+   [
+    "source",
+    "?*v.vs_battle_shieldIntermediate"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12694,
+     "completion_tokens": 12678,
+     "reasoning_tokens": 10765,
+     "cost": 0.0076084,
+     "seconds": 53.4,
+     "sample": 1,
+     "conversation": "83ae8b7384da79bf1496c05fdaf97a8828821ac166eecf6a15d49760134dd369"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "strength-sum-negative": "15457",
+   "index-negative": "6090",
+   "affinity-sum-negative": "4354",
+   "other": "4099"
+  },
+  "mutations": [
+   {
+    "name": "A1: gems[2] not copied (memcpy loop bound 2)",
+    "caught": true
+   },
+   {
+    "name": "A2: base memcpy dropped",
+    "caught": true
+   },
+   {
+    "name": "A3: baseStr not stored",
+    "caught": true
+   },
+   {
+    "name": "A4: gems[1] intelligence read as agility",
+    "caught": true
+   },
+   {
+    "name": "A5: base class summed as unsigned",
+    "caught": true
+   },
+   {
+    "name": "A6: affinity loop runs to 8 (writes unk134[7] and affinity[7])",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 37,
+   "lines_hit": 37,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 120000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 60000, > 30000 (signed); < 60000, > 30000 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 16,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 150000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 90000, > 30000 (signed); < 90000, > 30000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 34,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 42,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 240000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 180000, > 30000 (signed); < 180000, > 30000 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36150,
+     "completion_tokens": 7073,
+     "reasoning_tokens": 5628,
+     "cost": 0.0071515,
+     "seconds": 27.9,
+     "sample": 1,
+     "conversation": "457331fc42db4fc3bac01c6cbb8942c29edf8a8bd5cfe0d0839468d5e46d1740"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/applyShieldStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/apply_shield_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 244.95997939500376,
+ "wall_seconds": 812.103876895002,
+ "totals": {
+  "cost": 0.01476,
+  "prompt_tokens": 48844,
+  "completion_tokens": 19751,
+  "model_seconds": 81.3,
+  "check_seconds": 245.0,
+  "calls": 2,
+  "wall_seconds": 812.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

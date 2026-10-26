@@ -1,0 +1,209 @@
+{
+ "function": "func_8006EBF8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (uninitialised return v -> 0); spec sound. Hazard: sp10 stays dead stack when func_800A1108 returns -1 (no record for actor 0), then feeds position -> camera look-at",
+ "plan": {
+  "name": "func_8006EBF8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006ebf8",
+  "difficulty": "S",
+  "zig_name": "func_8006EBF8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006EBF8",
+  "spec_file": "func_8006EBF8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006EBF8() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11990,
+     "completion_tokens": 10723,
+     "reasoning_tokens": 8972,
+     "cost": 0.0065605,
+     "seconds": 46.4,
+     "sample": 1,
+     "conversation": "3a928060a881027c1b334291f4a2decc635997954123db67bd881bcb30d115f7"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F1: wrong constant in the vy offset: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006EBF8: 30000 iterations, seed 1, 0 mismatches; classes: init-zero=3049 init-nonzero=26951",
+     "FAIL: mutation F2: vx shifted by 11, not 12: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006EBF8: 30000 iterations, seed 1, 0 mismatches; classes: init-zero=3049 init-nonzero=26951",
+     "FAIL: mutation F3: vz takes the vy field: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006EBF8: 30000 iterations, seed 1, 0 mismatches; classes: init-zero=3049 init-nonzero=26951"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14112,
+     "completion_tokens": 3529,
+     "reasoning_tokens": 1694,
+     "cost": 0.0031757,
+     "seconds": 14.8,
+     "sample": 1,
+     "conversation": "675257aae679e13170e704fa567f8427ac7403a9498db5b2e610429c8cf13a09"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "init-zero": "3049",
+   "init-nonzero": "26951"
+  },
+  "mutations": [
+   {
+    "name": "F1: wrong constant in the vy offset",
+    "caught": true
+   },
+   {
+    "name": "F2: vx shifted by 11, not 12",
+    "caught": true
+   },
+   {
+    "name": "F3: vz takes the vy field",
+    "caught": true
+   },
+   {
+    "name": "F4: camera placement call dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: init test inverted",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 10,
+   "lines_hit": 10,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (D_800F1968 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3049, < 13409, > 13542 (signed); < 0, > 26951 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35454,
+     "completion_tokens": 4401,
+     "reasoning_tokens": 3798,
+     "cost": 0.0057459,
+     "seconds": 19.4,
+     "sample": 1,
+     "conversation": "eced2165ece4f8eeb1dbb17178b643bc6ee5f7e16227d9447bf9c6e58c020bdd"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006EBF8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006EBF8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 201.39161281699853,
+ "wall_seconds": 452.87504102299863,
+ "totals": {
+  "cost": 0.01548,
+  "prompt_tokens": 61556,
+  "completion_tokens": 18653,
+  "model_seconds": 80.6,
+  "check_seconds": 201.4,
+  "calls": 3,
+  "wall_seconds": 452.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 86 / root 124 / root 175, 0 mismatches"
+ }
+}

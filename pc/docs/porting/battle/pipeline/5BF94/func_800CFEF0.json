@@ -1,0 +1,328 @@
+{
+ "function": "func_800CFEF0",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (arg0 unwrapped only inside the loop like the C, byte offsets for unk2/unk8 bytes checked, *(int*)&actor store); spec sound",
+ "plan": {
+  "name": "func_800CFEF0",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cfef0",
+  "difficulty": "M",
+  "zig_name": "func_800CFEF0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CFEF0",
+  "spec_file": "func_800CFEF0.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CFEF0(arg0: ?*v.D_800F53B8_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "D_800F53B8_t",
+   "D_800F569C_t",
+   "effectTransformState",
+   "func_800D0B30_t",
+   "pFileBlock9"
+  ],
+  "globals": [
+   "D_800F569C"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15859,
+     "completion_tokens": 19477,
+     "reasoning_tokens": 17502,
+     "cost": 0.0113244,
+     "seconds": 81.5,
+     "sample": 1,
+     "conversation": "a57a7b46d5ea691c8d2d4a1c6170581c0b57c204fd180e95d5c613d635917a3d"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800CFEF0/spec1/build/spec.zig:68:40: error: type '?*views_5BF94.pFileBlock9' does not support field access\n    const count = psx.get(d.block9Data).unk15;\n                  ~~~~~~~~~~~~~~~~~~~~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:443:36\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18123,
+     "completion_tokens": 4838,
+     "reasoning_tokens": 2822,
+     "cost": 0.0042313,
+     "seconds": 18.3,
+     "sample": 1,
+     "conversation": "58a6d3fde5e8f6bfaf4d5e5d2ca4643b6524c95f4c6c92f36d814152e3dc72cd"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "empty": "3463",
+   "over-16": "28683",
+   "actor-src": "3861",
+   "vector-src": "3993"
+  },
+  "mutations": [
+   {
+    "name": "F1: loop bound <= count (one extra effect state)",
+    "caught": true
+   },
+   {
+    "name": "F2: bone read from the wrong byte of the definition",
+    "caught": true
+   },
+   {
+    "name": "F3: facing callee call dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: saved vector taken from the wrong source block",
+    "caught": true
+   },
+   {
+    "name": "F5: target actor masked to 4 bits, not 5",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 26,
+   "branches_hit": 26,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 62,
+   "lines_hit": 62,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "for (i = 0; i < ((__typeof__((D_800F569C->block9Data).psx_type_[0]))(long unsigned int)(D_800F569C->block9Data).raw)->unk15; ++i) {",
+     "size": 4,
+     "count": 3614491,
+     "kind": "a == b / a < b",
+     "outcomes": "== 40000, < 3574491, > 0 (signed); < 3574491, > 0 (unsigned)",
+     "operand": "b 0..255",
+     "a": "0..255"
+    },
+    {
+     "line": 17,
+     "text": "if (definition->unk0 & 2) {",
+     "size": 4,
+     "count": 3574491,
+     "kind": "against a constant",
+     "outcomes": "== 1788227, < 0, > 1786264 (signed); < 0, > 1786264 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 18,
+     "text": "switch (definition->unk0 & 0x18) {",
+     "size": 4,
+     "count": 1786264,
+     "kind": "switch",
+     "outcomes": "== 1339440, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..24"
+    },
+    {
+     "line": 20,
+     "text": "if (arg0->unkD1C.unk24.unk0 == 4) {",
+     "size": 2,
+     "count": 445421,
+     "kind": "against a constant",
+     "outcomes": "== 32514, < 396491, > 16416 (signed); < 380189, > 32718 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32768..32766"
+    },
+    {
+     "line": 30,
+     "text": "if (arg0->unkD1C.unkC.unk0 == 4) {",
+     "size": 2,
+     "count": 446787,
+     "kind": "against a constant",
+     "outcomes": "== 220259, < 112974, > 113554 (signed); < 12, > 226516 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32758..32766"
+    },
+    {
+     "line": 44,
+     "text": "if (!(definition->unk0 & 4))",
+     "size": 4,
+     "count": 1786264,
+     "kind": "against a constant",
+     "outcomes": "== 893428, < 0, > 892836 (signed); < 0, > 892836 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    },
+    {
+     "line": 47,
+     "text": "if (definition->unk0 & 0x80) {",
+     "size": 4,
+     "count": 3574491,
+     "kind": "against a constant",
+     "outcomes": "== 1787198, < 0, > 1787293 (signed); < 0, > 1787293 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..128"
+    },
+    {
+     "line": 48,
+     "text": "switch (definition->unk0 & 0xC00) {",
+     "size": 4,
+     "count": 1787293,
+     "kind": "switch",
+     "outcomes": "== 1339911, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3072"
+    },
+    {
+     "line": 50,
+     "text": "if (arg0->unkD1C.unk24.unk0 == 4) {",
+     "size": 2,
+     "count": 447111,
+     "kind": "against a constant",
+     "outcomes": "== 32844, < 397952, > 16315 (signed); < 381753, > 32514 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32768..32766"
+    },
+    {
+     "line": 59,
+     "text": "if (arg0->unkD1C.unkC.unk0 == 4) {",
+     "size": 2,
+     "count": 446672,
+     "kind": "against a constant",
+     "outcomes": "== 220973, < 112469, > 113230 (signed); < 10, > 225689 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32758..32766"
+    },
+    {
+     "line": 72,
+     "text": "if (!(definition->unk0 & 0x200))",
+     "size": 4,
+     "count": 1787293,
+     "kind": "against a constant",
+     "outcomes": "== 892970, < 0, > 894323 (signed); < 0, > 894323 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..512"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39323,
+     "completion_tokens": 19055,
+     "reasoning_tokens": 17203,
+     "cost": 0.0134598,
+     "seconds": 76.6,
+     "sample": 1,
+     "conversation": "a1fda5a574f73ee8b8491f8573a5da63e74a60f95faa515f67cf0108d967d378"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CFEF0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CFEF0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 329.6542314629987,
+ "wall_seconds": 710.401753088001,
+ "totals": {
+  "cost": 0.02902,
+  "prompt_tokens": 73305,
+  "completion_tokens": 43370,
+  "model_seconds": 176.4,
+  "check_seconds": 329.7,
+  "calls": 3,
+  "wall_seconds": 710.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 6 / nested 12 / nested 15, 0 mismatches"
+ }
+}

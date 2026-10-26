@@ -180,6 +180,13 @@ SVECTOR padding) into its result, the evaluation block `D_800F5900`; with
 in that block on enemy_cast_wait and action_name_window. Found with the
 same watchpoint: the byte's last writer was `func_80085B10`'s copy.
 
+Fixed (wave 4, 146C.c, found by the port reviews and zeroed under ROOD_PC
+with a compound literal, the ports zero theirs too): `func_8006F4B0` (`sp10`,
+the effect-33 request copied whole by `func_800CF3F8`), `func_800771E0`
+(`sp10`, a `vs_battle_objectData` copied whole by
+`vs_battle_populateDataSlot`) and `func_80085B10` (`origin`, `position` and
+`impact` are read where no callee wrote them).
+
 Fixed: `func_800D78F0` (6F014.c) zeroes `sp10.pad` under ROOD_PC (and its
 port, `func_800D78F0.zig`, does too). `vs_battle_lerpVector` writes the
 VECTOR's `vx`..`vz` and `func_800D5260` copies it whole into `D_800F5620`:
@@ -201,20 +208,43 @@ three recipes yet (found by reading the locals of every ported 30DB0
 function); `_parseShp` (30DB0.c, `queued`) is the same pattern when it is
 ported.
 
+Fixed (wave 4 bisect): `func_800AECA0` (44F14.c) zeroes `rotation` under
+ROOD_PC. It writes the 3x3 rotation only and copies the whole MATRIX into
+the scratchpad matrix at 0x1F8003C0, which `D_800F49B8` and then every bone
+`func_800B28A8` prepares copy whole: `rotation.pad` (and `t`) were dead host
+stack. With `battle_146C_port` owned, enemy_kill tick and alternate modes
+differed at tick 0 in the `pad` halfword of 24 bone matrices (0x1F80, the
+high half of a scratchpad pointer a Zig frame left on the stack; 0
+original). Its `D_800F4910 = *(MATRIX*)&source` (the PS1 copies the
+parameter's home slot and the caller's frame; nothing reads it) read 32
+bytes of host stack through the address of a parameter: under ROOD_PC it
+is the pointer word and zeros.
+
+Fixed (same run, tick 96 once the above was fixed): the effect requests,
+`func_800CF0E8_t` (or `func_8006C4C4_t`) locals with a few fields written,
+copied whole into `D_800F53C0`/`D_800F5230` by
+`func_800CF3F8`/`func_800CF0E8`, are zeroed under ROOD_PC with a compound
+literal: 146C.c `func_8006C4C4` (the one the recipe hit, called from the
+owned `func_8006C84C`), `func_8006F450`, `func_8006F848`, `func_800733F8`,
+`func_80073D30`, `func_8007BE20`; 5BF94.c `func_800CF7A8`, `func_800CF8BC`.
+None of them is ported; a port of one zeroes its request too.
+
 Found by watching the bytes: `ROOD_BINARY` can be a wrapper that runs the
 game under `gdb -batch` with a Python script setting access watchpoints on
 the guest addresses (they are host addresses in the 64-bit build) whose
 `stop()` logs a backtrace and returns False; drive the recipe with the
-normal RPC.
+normal RPC. `differ.py` reads `ROOD_BINARY` as an ELF (the field mapper),
+so for the oracle keep the binary and wrap the launch instead: a small
+driver that replaces `subprocess.Popen` with one prefixing `gdb -nx -batch
+-x watch.py --args` when the command is `rood_battle_probe`, then calls
+`differ.main()`. Break at `main`, `run`, then set the watchpoint (the
+scratchpad, 0x1F800000, is mapped by then); a condition on the value
+written (the owned run's byte) skips the original run's writes. One tick
+mode run of enemy_kill under the watch takes about a minute.
 
 Not fixed (no recipe diverges on them yet; zero the local under ROOD_PC
 the same way when one does):
 
-- the other effect requests, `func_800CF0E8_t` locals with a few fields
-  written, passed to `func_800CF3F8`/`func_800CF0E8` (copied whole into
-  `D_800F53C0`/`D_800F5230`): 146C.c `func_8006C4C4`, `func_8006F450`,
-  `func_8006F4B0`, `func_8006F848`, `func_800733F8`, `func_80073D30`,
-  `func_8007BE20`; 5BF94.c `func_800CF7A8`, `func_800CF8BC`;
 - SVECTOR/VECTOR locals whose `pad` is never written, copied whole into
   game memory: 146C.c `func_800719FC` (`origin` into
   `D_800F19CC->unk29B8`), `func_80085B10` (`impact` into a hit entry),

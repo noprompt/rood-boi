@@ -1,0 +1,226 @@
+{
+ "function": "func_8007629C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation M2: the loop break needs both tests: not caught as mismatch (exit None): no result after 300 s (an endless loop?)",
+ "plan": {
+  "name": "func_8007629C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007629c",
+  "difficulty": "L",
+  "zig_name": "func_8007629C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007629C",
+  "spec_file": "func_8007629C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007629C(otag: [*c]c_uint) callconv(.c) c_int",
+  "params": [
+   [
+    "otag",
+    "[*c]c_uint"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "D_8004A52C",
+   "vs_main_buttonsPressed",
+   "vs_main_buttonsPreviousState",
+   "vs_main_buttonsReleased",
+   "vs_main_buttonsState",
+   "vs_main_padBuffer"
+  ],
+  "hooks": [
+   "pc_battle_frame_complete",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13690,
+     "completion_tokens": 17036,
+     "reasoning_tokens": 15470,
+     "cost": 0.009887,
+     "seconds": 72.5,
+     "sample": 1,
+     "conversation": "fe871df6412e1829dc8a2d05548b1aff72ab4b1ada66dd2e92c87b4e7e6070e5"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M2: the loop break needs both tests: not caught as mismatch (exit None): no result after 300 s (an endless loop?)",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8007629C: branches 7/8 (87.5%), conditions not measured (GCC < 14: branch coverage only), lines 29/29\n  UNCOVERED +27 b3: branch never taken: `if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {`\ncoverage func_8007629C: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {` (+27): one way out of this test (+27 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8007629C.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15630,
+     "completion_tokens": 8601,
+     "reasoning_tokens": 6879,
+     "cost": 0.0058635,
+     "seconds": 38.2,
+     "sample": 1,
+     "conversation": "e03e3526533ed96b412425264ee709a34df2802f83f8bc06fbf7f82fe1ac8d94"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M2: the loop break needs both tests: not caught as mismatch (exit None): no result after 300 s (an endless loop?)",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8007629C: branches 7/8 (87.5%), conditions not measured (GCC < 14: branch coverage only), lines 29/29\n  UNCOVERED +27 b3: branch never taken: `if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {`\ncoverage func_8007629C: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {` (+27): one way out of this test (+27 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8007629C.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "no-pad-loop": "7480",
+   "pad-loop-negative": "11261",
+   "pad-loop-positive": "11259"
+  },
+  "mutations": [
+   {
+    "name": "M1: the pad toggle bit is 0x400, not 0x800",
+    "caught": true
+   },
+   {
+    "name": "M2: the loop break needs both tests",
+    "caught": false
+   },
+   {
+    "name": "M3: the second pad is never connected",
+    "caught": true
+   },
+   {
+    "name": "M4: the draw env of buffer 0 is always put",
+    "caught": true
+   },
+   {
+    "name": "M5: released taken from the new state",
+    "caught": true
+   },
+   {
+    "name": "M6: the tick speed argument is the constant 2",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 7,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 29,
+   "lines_hit": 29,
+   "uncovered": [
+    {
+     "id": "+27 b3",
+     "line": 27,
+     "text": "if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "vs_main_frameBuf = vs_main_frameBuf == 0;",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3049, < 13543, > 13408 (signed); < 0, > 26951 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147139368"
+    },
+    {
+     "line": 10,
+     "text": "if (D_8004A52C != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7480, < 11261, > 11259 (signed); < 0, > 22520 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147452368..2146649925"
+    },
+    {
+     "line": 24,
+     "text": "if (temp_a0 & 0x800) {",
+     "size": 4,
+     "count": 67302,
+     "kind": "against a constant",
+     "outcomes": "== 50502, < 0, > 16800 (signed); < 0, > 16800 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2048"
+    },
+    {
+     "line": 27,
+     "text": "if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {",
+     "size": 4,
+     "count": 67302,
+     "kind": "against a constant",
+     "outcomes": "== 44782, < 0, > 22520 (signed); < 0, > 22520 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..256"
+    },
+    {
+     "line": 27,
+     "text": "if ((temp_a0 & 0x100) || (D_8004A52C == 0)) {",
+     "size": 4,
+     "count": 44782,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 22697, > 22085 (signed); < 0, > 44782 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147452368..2146649924"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 646.8274308990003,
+ "wall_seconds": 647.387464245001,
+ "totals": {
+  "cost": 0.01575,
+  "prompt_tokens": 29320,
+  "completion_tokens": 25637,
+  "model_seconds": 110.7,
+  "check_seconds": 646.8,
+  "calls": 2,
+  "wall_seconds": 647.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

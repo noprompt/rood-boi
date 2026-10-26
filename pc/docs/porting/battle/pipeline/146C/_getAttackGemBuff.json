@@ -1,0 +1,267 @@
+{
+ "function": "_getAttackGemBuff",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_getAttackGemBuff",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007e5e0",
+  "difficulty": "S",
+  "zig_name": "getAttackGemBuff",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_attack_gem_buff",
+  "spec_file": "getAttackGemBuff.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getAttackGemBuff(action: ?*v.vs_action_t, actor: ?*v.vs_battle_actor2) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "actor",
+    "?*v.vs_battle_actor2"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14720,
+     "completion_tokens": 10794,
+     "reasoning_tokens": 9324,
+     "cost": 0.006869,
+     "seconds": 46.8,
+     "sample": 1,
+     "conversation": "b30cfdf7ba5bee129dafe8c78027b78e9b27ad233db78726bb8ac139f92d35b8"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "not-drawn": "7588",
+   "spell-buff": "2077",
+   "spell-no-buff": "2168",
+   "weapon-buff": "8867",
+   "weapon-no-buff": "9300"
+  },
+  "mutations": [
+   {
+    "name": "G1: spell test inverted",
+    "caught": true
+   },
+   {
+    "name": "G2: spell gem effect threshold >= 2",
+    "caught": true
+   },
+   {
+    "name": "G3: non-spell gem 2 ignored",
+    "caught": true
+   },
+   {
+    "name": "G4: buff value 21, not 20",
+    "caught": true
+   },
+   {
+    "name": "G5: drawn tested as nonzero, not bit 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 16,
+   "lines_hit": 16,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (vs_battle_actors[actor->unk957]->weaponDrawn & 1) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7588, < 0, > 22412 (signed); < 0, > 22412 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 7,
+     "text": "if (action->type == actionTypeSpell) {",
+     "size": 1,
+     "count": 22412,
+     "kind": "against a constant",
+     "outcomes": "== 4245, < 4174, > 13993 (signed); < 4174, > 13993 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 9,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 16980,
+     "kind": "against a constant",
+     "outcomes": "== 4245, < 8490, > 4245 (signed); < 8490, > 4245 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 10,
+     "text": "if (actor->weapon.gems[i].gemEffects == 2) {",
+     "size": 1,
+     "count": 12735,
+     "kind": "against a constant",
+     "outcomes": "== 2576, < 7578, > 2581 (signed); < 5001, > 5158 (unsigned)",
+     "operand": "constant 2",
+     "a": "-1..3"
+    },
+    {
+     "line": 16,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 72668,
+     "kind": "against a constant",
+     "outcomes": "== 18167, < 36334, > 18167 (signed); < 36334, > 18167 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 17,
+     "text": "if (actor->weapon.gems[i].gemEffects == 1) {",
+     "size": 1,
+     "count": 54501,
+     "kind": "against a constant",
+     "outcomes": "== 10850, < 21680, > 21971 (signed); < 10761, > 32890 (unsigned)",
+     "operand": "constant 1",
+     "a": "-1..3"
+    },
+    {
+     "line": 22,
+     "text": "if (hasGemBuff != 0) {",
+     "size": 4,
+     "count": 22412,
+     "kind": "against a constant",
+     "outcomes": "== 11468, < 0, > 10944 (signed); < 0, > 10944 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38078,
+     "completion_tokens": 3229,
+     "reasoning_tokens": 2611,
+     "cost": 0.0054223,
+     "seconds": 13.1,
+     "sample": 1,
+     "conversation": "d21e99de0fff8b02c8b6e7b0aadda81761df11d946ad4ee894ab1330266e2e95"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getAttackGemBuff.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_attack_gem_buff.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 86.90055859899985,
+ "wall_seconds": 196.76127798499874,
+ "totals": {
+  "cost": 0.01229,
+  "prompt_tokens": 52798,
+  "completion_tokens": 14023,
+  "model_seconds": 59.9,
+  "check_seconds": 86.9,
+  "calls": 2,
+  "wall_seconds": 196.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 18 / nested 48 / nested 90, 0 mismatches"
+ }
+}

@@ -1,0 +1,115 @@
+{
+ "function": "vs_battle_printf",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's bug). The harness fills every global and the arena with r",
+ "plan": {
+  "name": "vs_battle_printf",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c685c",
+  "difficulty": "M",
+  "zig_name": "printf",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "printf",
+  "spec_file": "printf.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn printf(dest: [*c]u8, src: [*c]u8) callconv(.c) [*c]u8",
+  "params": [
+   [
+    "dest",
+    "[*c]u8"
+   ],
+   [
+    "src",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "[*c]u8",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13077,
+     "completion_tokens": 38007,
+     "reasoning_tokens": 35910,
+     "cost": 0.0203112,
+     "seconds": 171.6,
+     "sample": 1,
+     "conversation": "5c8b012769b83fc1dcc7acefac99a21971c3586b61b0f2b5e99d357e00d8619d"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 3, fault address 0x0 [NULL+0x0: a field of a null pointer]\nzdiff: crashed on arguments: 0x4081f0 [arena] 0x4081b0 [arena] (class string)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15595,
+     "completion_tokens": 7200,
+     "reasoning_tokens": 5060,
+     "cost": 0.0051595,
+     "seconds": 30.5,
+     "sample": 1,
+     "conversation": "5d5bc8ee60f5bc444b618e61758e12a9b9759288e4d8598035f0b8b71e0a5e03"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 3, fault address 0x0 [NULL+0x0: a field of a null pointer]\nzdiff: crashed on arguments: 0x4081f0 [arena] 0x4081b0 [arena] (class string)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [],
+  "coverage": null
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 1.4036350730020786,
+ "wall_seconds": 203.83813595299944,
+ "totals": {
+  "cost": 0.02547,
+  "prompt_tokens": 28672,
+  "completion_tokens": 45207,
+  "model_seconds": 202.1,
+  "check_seconds": 1.4,
+  "calls": 2,
+  "wall_seconds": 203.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

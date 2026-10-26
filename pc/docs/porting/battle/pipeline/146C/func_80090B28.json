@@ -1,0 +1,201 @@
+{
+ "function": "func_80090B28",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation F3: unsigned shift on the D[1] store (signed slip): not caught as mismatch (exit 0) (no input made the mutated copy behave di",
+ "plan": {
+  "name": "func_80090B28",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80090b28",
+  "difficulty": "M",
+  "zig_name": "func_80090B28",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80090B28",
+  "spec_file": "func_80090B28.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80090B28() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11673,
+     "completion_tokens": 8598,
+     "reasoning_tokens": 7210,
+     "cost": 0.0054663,
+     "seconds": 37.0,
+     "sample": 1,
+     "conversation": "6d6bb0ec934d2ae6ff7c8de162ebed2952e14993b7640c9dc2d90a915317d7fb"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: input classes never generated: d6-negative",
+     "FAIL: mutation F3: unsigned shift on the D[1] store (signed slip): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80090B28: 30000 iterations, seed 1, 0 mismatches; classes: d5-zero=2138 d4-zero=1990 d6-negative=0 other=25872",
+     "FAIL: mutation F4: wrong shift amount on the D[2] store: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80090B28: 30000 iterations, seed 1, 0 mismatches; classes: d5-zero=2138 d4-zero=1990 d6-negative=0 other=25872",
+     "FAIL: mutation F5: the second product's negation dropped: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80090B28: 30000 iterations, seed 1, 0 mismatches; classes: d5-zero=2138 d4-zero=1990 d6-negative=0 other=25872",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80090B28: branches 5/10 (50.0%), conditions not measured (GCC < 14: branch coverage only), lines 20/25\n  UNCOVERED +9 b0: branch never taken: `if (var_s0 < 0) {`\n  UNCOVERED +13 b0: branch never taken: `if (var_v0 < 0) {`\n  UNCOVERED +21 b0: branch never taken: `if (var_s0 < 0) {`\n  UNCOVERED +25 b0: branch never taken: `if (var_v0 < 0) {`\n  UNCOVERED +30 b0: branch never taken: `if (var_v0 < 0) {`\ncoverage func_80090B28: FAILED (threshold 100%: 5 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (var_s0 < 0) {` (+9): one way out of this test (+9 b0) was never taken; add inputs that take it.\n- `if (var_v0 < 0) {` (+13): one way out of this test (+13 b0) was never taken; add inputs that take it.\n- `if (var_s0 < 0) {` (+21): one way out of this test (+21 b0) was never taken; add inputs that take it.\n- `if (var_v0 < 0) {` (+25): one way out of this test (+25 b0) was never taken; add inputs that take it.\n- `if (var_v0 < 0) {` (+30): one way out of this test (+30 b0) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80090B28.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14077,
+     "completion_tokens": 3801,
+     "reasoning_tokens": 2345,
+     "cost": 0.0033082,
+     "seconds": 16.3,
+     "sample": 1,
+     "conversation": "c8c2fb5af1ecad2bdbab3e2450a5e282fdb0192f22c32f1c5975dfb72d203e53"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F3: unsigned shift on the D[1] store (signed slip): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80090B28: 30000 iterations, seed 1, 0 mismatches; classes: d5-zero=2120 d4-zero=1992 d6-negative=11997 other=13891"
+    ]
+   }
+  ],
+  "classes": {
+   "d5-zero": "2120",
+   "d4-zero": "1992",
+   "d6-negative": "11997",
+   "other": "13891"
+  },
+  "mutations": [
+   {
+    "name": "F1: the first store to D[0] dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: first rsin reads D[4] for D[5]",
+    "caught": true
+   },
+   {
+    "name": "F3: unsigned shift on the D[1] store (signed slip)",
+    "caught": false
+   },
+   {
+    "name": "F4: wrong shift amount on the D[2] store",
+    "caught": true
+   },
+   {
+    "name": "F5: the second product's negation dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: last product uses D[5] for D[6]",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 25,
+   "lines_hit": 25,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (var_s0 < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9075, < 10368, > 10557 (signed); < 0, > 20925 (unsigned)",
+     "operand": "constant 0",
+     "a": "-134213632..134213632"
+    },
+    {
+     "line": 13,
+     "text": "if (var_v0 < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16607, < 6661, > 6732 (signed); < 0, > 13393 (unsigned)",
+     "operand": "constant 0",
+     "a": "-130953662..129480687"
+    },
+    {
+     "line": 21,
+     "text": "if (var_s0 < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9114, < 10484, > 10402 (signed); < 0, > 20886 (unsigned)",
+     "operand": "constant 0",
+     "a": "-134053888..134184960"
+    },
+    {
+     "line": 25,
+     "text": "if (var_v0 < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 16699, < 6762, > 6539 (signed); < 0, > 13301 (unsigned)",
+     "operand": "constant 0",
+     "a": "-130667600..132580800"
+    },
+    {
+     "line": 30,
+     "text": "if (var_v0 < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9260, < 10310, > 10430 (signed); < 0, > 20740 (unsigned)",
+     "operand": "constant 0",
+     "a": "-134217728..134115331"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 36.41780243299945,
+ "wall_seconds": 89.97920505799993,
+ "totals": {
+  "cost": 0.00877,
+  "prompt_tokens": 25750,
+  "completion_tokens": 12399,
+  "model_seconds": 53.3,
+  "check_seconds": 36.4,
+  "calls": 2,
+  "wall_seconds": 90.0
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

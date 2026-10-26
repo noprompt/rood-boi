@@ -1,0 +1,232 @@
+{
+ "function": "func_8008ABF0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 2: call 3 (vs_main_freeHeap): argument 0: C 0x19e3137a, Zig 0x",
+ "plan": {
+  "name": "func_8008ABF0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008abf0",
+  "difficulty": "S",
+  "zig_name": "func_8008ABF0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008ABF0",
+  "spec_file": "func_8008ABF0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008ABF0(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12205,
+     "completion_tokens": 12121,
+     "reasoning_tokens": 10464,
+     "cost": 0.007281,
+     "seconds": 50.5,
+     "sample": 1,
+     "conversation": "25f3ade34416472e9d4cf3f38941e53365ba3241582c642ea34ab9b270a786f9"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "not-active": "7437",
+   "alias-no-match": "2941",
+   "other-room": "9480",
+   "match-no-geometry": "2597",
+   "match-geometry": "7545"
+  },
+  "mutations": [
+   {
+    "name": "M1: unk2 compared as unsigned short (alias -1 vs 65535 matches)",
+    "caught": true
+   },
+   {
+    "name": "M2: bzero clears 0xC0 bytes, not 0xC4",
+    "caught": true
+   },
+   {
+    "name": "M3: func_80091378 call dropped",
+    "caught": true
+   },
+   {
+    "name": "M4: success returns 2",
+    "caught": true
+   },
+   {
+    "name": "M5: geometrySection test inverted (free when null)",
+    "caught": true
+   },
+   {
+    "name": "M6: room check tests unk0 == 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147115553, max 2146525724, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (vs_battle_roomData.unk0 == 1) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22563, < 4957, > 2480 (signed); < 2471, > 4966 (unsigned)",
+     "operand": "constant 1",
+     "a": "-1..2"
+    },
+    {
+     "line": 3,
+     "text": "if (vs_battle_roomData.unk2 == arg0) {",
+     "size": 4,
+     "count": 22563,
+     "kind": "a == b / a < b",
+     "outcomes": "== 10142, < 3895, > 8526 (signed); < 7743, > 4678 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-2147115553..2145999129"
+    },
+    {
+     "line": 7,
+     "text": "if (((__typeof__((vs_battle_roomData.geometrySection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.geometrySection).raw) != 0) {",
+     "size": 4,
+     "count": 10142,
+     "kind": "against a constant",
+     "outcomes": "== 1003, < 4597, > 4542 (signed); < 0, > 9139 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147431873..2147376152"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35669,
+     "completion_tokens": 1686,
+     "reasoning_tokens": 1243,
+     "cost": 0.0044099,
+     "seconds": 7.5,
+     "sample": 1,
+     "conversation": "4e1facdf585cfbdc538c9bfd93926153b3cd2c317eb7bf7eb637950ce98ef50a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 3):\nzdiff: PANIC in the Zig run, iteration 2: incorrect alignment (return address 0x403908)"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 3,
+      "mismatches": null,
+      "first": "PANIC in the Zig run, iteration 2: incorrect alignment (return address 0x403908)"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36202,
+     "completion_tokens": 1565,
+     "reasoning_tokens": 1034,
+     "cost": 0.0044027,
+     "seconds": 7.1,
+     "sample": 1,
+     "conversation": "6e5cf8f8ae47293e2e9944b89edc49d9edbce0c29e4ec26573d2ae6d689b5373"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 2: call 3 (vs_main_freeHeap): argument 0: C 0x19e3137a, Zig 0x4260d4\nzdiff: MISMATCH iteration 11: call 3 (vs_main_freeHeap): argument 0: C 0xb929e911, Zig 0x4260d4\nzdiff: MISMATCH iteration 16: call 3 (vs_main_freeHeap): argument 0: C 0xfeb29d1b, Zig 0x4260d4\nzdiff: func_8008ABF0: 3000 iterations, seed 1, 1000 mismatches; classes: not-active=742 alias-no-match=264 other-room=994 match-no-geometry=255 match-geometry=745"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 2: call 3 (vs_main_freeHeap): argument 0: C 0x19e3137a, Zig 0x4260d4"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 15.215228613004001,
+ "wall_seconds": 80.82769871900018,
+ "totals": {
+  "cost": 0.01609,
+  "prompt_tokens": 84076,
+  "completion_tokens": 15372,
+  "model_seconds": 65.1,
+  "check_seconds": 15.2,
+  "calls": 3,
+  "wall_seconds": 80.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

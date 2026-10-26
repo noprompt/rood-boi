@@ -1,0 +1,334 @@
+{
+ "function": "func_8007FE5C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8007FE5C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007fe5c",
+  "difficulty": "M",
+  "zig_name": "func_8007FE5C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007FE5C",
+  "spec_file": "func_8007FE5C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007FE5C(action: ?*v.vs_action_t, arg1: c_short, arg2: ?*v.vs_battle_actor2, arg3: ?*v.vs_battle_actor2) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "c_short"
+   ],
+   [
+    "arg2",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg3",
+    "?*v.vs_battle_actor2"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14418,
+     "completion_tokens": 8185,
+     "reasoning_tokens": 6835,
+     "cost": 0.0055343,
+     "seconds": 34.7,
+     "sample": 1,
+     "conversation": "58fac1614d91edd4fdb85665484447f217b3fd963e3fa7653247cf405621bcb8"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "spell-weapon-hit": "6329",
+   "spell-no-weapon-hit": "8515",
+   "other-weapon-hit": "6288",
+   "other-no-weapon-hit": "8868"
+  },
+  "mutations": [
+   {
+    "name": "F1: the non-spell penalty is 4, not 5",
+    "caught": true
+   },
+   {
+    "name": "F2: spell weapon gem test uses the non-spell code 3",
+    "caught": true
+   },
+   {
+    "name": "F3: spell shield gem test uses 7 instead of 8",
+    "caught": true
+   },
+   {
+    "name": "F4: the product is taken unsigned before the division",
+    "caught": true
+   },
+   {
+    "name": "F5: the base is 99, not 100",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 24,
+   "branches_hit": 24,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 26,
+   "lines_hit": 26,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "16-bit: min -32768, max 32767, unsigned 0..65535, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (action->type == actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14844, < 2151, > 13005 (signed); < 2151, > 13005 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 12,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 59376,
+     "kind": "against a constant",
+     "outcomes": "== 14844, < 29688, > 14844 (signed); < 29688, > 14844 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 13,
+     "text": "if (arg2->weapon.gems[i].gemEffects == 4) {",
+     "size": 1,
+     "count": 44532,
+     "kind": "against a constant",
+     "outcomes": "== 7524, < 22194, > 14814 (signed); < 14861, > 22147 (unsigned)",
+     "operand": "constant 4",
+     "a": "-1..8"
+    },
+    {
+     "line": 18,
+     "text": "if (var_a0 != 0) {",
+     "size": 4,
+     "count": 14844,
+     "kind": "against a constant",
+     "outcomes": "== 8515, < 0, > 6329 (signed); < 0, > 6329 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 24,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 59376,
+     "kind": "against a constant",
+     "outcomes": "== 14844, < 29688, > 14844 (signed); < 29688, > 14844 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 25,
+     "text": "if (arg3->shield.gems[i].gemEffects == 8) {",
+     "size": 1,
+     "count": 44532,
+     "kind": "against a constant",
+     "outcomes": "== 7441, < 37091, > 0 (signed); < 29694, > 7397 (unsigned)",
+     "operand": "constant 8",
+     "a": "-1..8"
+    },
+    {
+     "line": 34,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 60624,
+     "kind": "against a constant",
+     "outcomes": "== 15156, < 30312, > 15156 (signed); < 30312, > 15156 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 35,
+     "text": "if (arg2->weapon.gems[i].gemEffects == 3) {",
+     "size": 1,
+     "count": 45468,
+     "kind": "against a constant",
+     "outcomes": "== 7497, < 15364, > 22607 (signed); < 7677, > 30294 (unsigned)",
+     "operand": "constant 3",
+     "a": "-1..8"
+    },
+    {
+     "line": 40,
+     "text": "if (var_a0 != 0) {",
+     "size": 4,
+     "count": 15156,
+     "kind": "against a constant",
+     "outcomes": "== 8868, < 0, > 6288 (signed); < 0, > 6288 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 46,
+     "text": "for (i = 0; i < 3; ++i) {",
+     "size": 4,
+     "count": 60624,
+     "kind": "against a constant",
+     "outcomes": "== 15156, < 30312, > 15156 (signed); < 30312, > 15156 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 47,
+     "text": "if (arg3->shield.gems[i].gemEffects == 7) {",
+     "size": 1,
+     "count": 45468,
+     "kind": "against a constant",
+     "outcomes": "== 7528, < 30325, > 7615 (signed); < 22902, > 15038 (unsigned)",
+     "operand": "constant 7",
+     "a": "-1..8"
+    },
+    {
+     "line": 53,
+     "text": "if (var_a0 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 17410, < 0, > 12590 (signed); < 0, > 12590 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37883,
+     "completion_tokens": 3583,
+     "reasoning_tokens": 2791,
+     "cost": 0.0055798,
+     "seconds": 14.5,
+     "sample": 1,
+     "conversation": "684c0216a5adf8bc2f441202db2534721247a84894d4208f304236bb4fb2e833"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007FE5C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007FE5C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 68.82368768999913,
+ "wall_seconds": 118.43321682100031,
+ "totals": {
+  "cost": 0.01111,
+  "prompt_tokens": 52301,
+  "completion_tokens": 11768,
+  "model_seconds": 49.2,
+  "check_seconds": 68.8,
+  "calls": 2,
+  "wall_seconds": 118.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 3 / nested 18 / nested 84, 0 mismatches"
+ }
+}

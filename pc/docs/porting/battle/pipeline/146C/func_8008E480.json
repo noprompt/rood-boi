@@ -1,0 +1,148 @@
+{
+ "function": "func_8008E480",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: no input classes declared (`classes` and `classify`)",
+ "plan": {
+  "name": "func_8008E480",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e480",
+  "difficulty": "S",
+  "zig_name": "func_8008E480",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008E480",
+  "spec_file": "func_8008E480.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008E480(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11053,
+     "completion_tokens": 2687,
+     "reasoning_tokens": 1861,
+     "cost": 0.0024488,
+     "seconds": 12.6,
+     "sample": 1,
+     "conversation": "785357dbc743e92dbade98e044a4684ae912b225c225e66f312974e71f6ad399"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: specs.toml entry: Illegal character '\\n' (at line 12, column 29)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11940,
+     "completion_tokens": 1206,
+     "reasoning_tokens": 377,
+     "cost": 0.001797,
+     "seconds": 4.8,
+     "sample": 1,
+     "conversation": "f248e8c76104970811d3f2055832848bf15acb1632dc79a908b0b7f29eb65835"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [
+   {
+    "name": "F1: first call gets the wrong argument",
+    "caught": true
+   },
+   {
+    "name": "F2: calls in the wrong order",
+    "caught": true
+   },
+   {
+    "name": "F3: second call gets arg0 ^ 1",
+    "caught": true
+   },
+   {
+    "name": "F4: first call made twice",
+    "caught": true
+   },
+   {
+    "name": "F5: second call dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 9.463765925000189,
+ "wall_seconds": 27.292694927999037,
+ "totals": {
+  "cost": 0.00425,
+  "prompt_tokens": 22993,
+  "completion_tokens": 3893,
+  "model_seconds": 17.4,
+  "check_seconds": 9.5,
+  "calls": 2,
+  "wall_seconds": 27.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

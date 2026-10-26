@@ -1,0 +1,218 @@
+{
+ "function": "_computeCameraTransition",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (signed / as divTrunc, wrapping ops); local VECTOR pad unread by VectorNormal, no hazard; spec sound",
+ "plan": {
+  "name": "_computeCameraTransition",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006ef5c",
+  "difficulty": "M",
+  "zig_name": "computeCameraTransition",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "compute_camera_transition",
+  "spec_file": "computeCameraTransition.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn computeCameraTransition(targetPosition: ?*v.VECTOR) callconv(.c) void",
+  "params": [
+   [
+    "targetPosition",
+    "?*v.VECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_cameraTransition_t"
+  ],
+  "globals": [
+   "vs_battle_cameraTransition",
+   "vs_main_nearClip",
+   "vs_main_projectionDistance"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14933,
+     "completion_tokens": 26307,
+     "reasoning_tokens": 24152,
+     "cost": 0.0146468,
+     "seconds": 113.0,
+     "sample": 1,
+     "conversation": "10af979b3c1d8f911ec669e97ecbbe2f08c3f5d0ec297fa188c53e701ff4a81b"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation C5: signed / turned into >> (negative deltas): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _computeCameraTransition: 30000 iterations, seed 1, 0 mismatches; classes: target-below-camera=15142 target-above-camera=6139 target-wide-x=8719"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17247,
+     "completion_tokens": 6377,
+     "reasoning_tokens": 4074,
+     "cost": 0.0049132,
+     "seconds": 26.7,
+     "sample": 1,
+     "conversation": "8b134c7a72bb93f683cbcd90c494a59fe8c81511d5757acaf9380b4da89c69bd"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "target-below-camera": "15142",
+   "target-above-camera": "6139",
+   "target-wide-x": "8719"
+  },
+  "mutations": [
+   {
+    "name": "C1: transitionSpeed stored as 0x81",
+    "caught": true
+   },
+   {
+    "name": "C2: targetPosition.vz copied from vx",
+    "caught": true
+   },
+   {
+    "name": "C3: second vy delta uses camera lookAt",
+    "caught": true
+   },
+   {
+    "name": "C4: targetLookAt.vz uses pitch, not yaw",
+    "caught": true
+   },
+   {
+    "name": "C5: signed / turned into >> (negative deltas)",
+    "caught": true
+   },
+   {
+    "name": "C6: nearClipStep uses projection distance",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 49,
+   "lines_hit": 49,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38400,
+     "completion_tokens": 8149,
+     "reasoning_tokens": 6788,
+     "cost": 0.0079145,
+     "seconds": 30.7,
+     "sample": 1,
+     "conversation": "ed327987500e214380114ba6aa6b721ac957b60afd7db67ee5e8dd791d9ad505"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/computeCameraTransition.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/compute_camera_transition.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 80.50019025799975,
+ "wall_seconds": 251.26006360299925,
+ "totals": {
+  "cost": 0.02747,
+  "prompt_tokens": 70580,
+  "completion_tokens": 40833,
+  "model_seconds": 170.4,
+  "check_seconds": 80.5,
+  "calls": 3,
+  "wall_seconds": 251.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,207 @@
+{
+ "function": "func_8008D594",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8008D594",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008d594",
+  "difficulty": "S",
+  "zig_name": "func_8008D594",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008D594",
+  "spec_file": "func_8008D594.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008D594(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11052,
+     "completion_tokens": 2045,
+     "reasoning_tokens": 969,
+     "cost": 0.0021277,
+     "seconds": 9.0,
+     "sample": 1,
+     "conversation": "a5405356e2b28c205050812f1e28611123ad4b4bdfe9d9c1b56faea3f36fe3a3"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M1: store arg0 plus one: mutation M1: store arg0 plus one: its `from` text occurs 0 times in the C body of func_8008D594 (copy it exactly from the C)",
+     "FAIL: mutation M2: store the second byte (arg0 >> 8): mutation M2: store the second byte (arg0 >> 8): its `from` text occurs 0 times in the C body of func_8008D594 (copy it exactly from the C)",
+     "FAIL: mutation M3: dropped store: mutation M3: dropped store: its `from` text occurs 0 times in the C body of func_8008D594 (copy it exactly from the C)",
+     "FAIL: mutation M4: unsigned byte read (store arg0 & 0x7F): mutation M4: unsigned byte read (store arg0 & 0x7F): its `from` text occurs 0 times in the C body of func_8008D594 (copy it exactly from the C)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12466,
+     "completion_tokens": 1567,
+     "reasoning_tokens": 719,
+     "cost": 0.0020301,
+     "seconds": 6.9,
+     "sample": 1,
+     "conversation": "7a4c71c0fbec7fa83803921195c288247bd22a1e8667c2d42c31393eae2c9626"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "zero": "800",
+   "fits-i8": "3081",
+   "wider-than-i8": "16119"
+  },
+  "mutations": [
+   {
+    "name": "M1: store arg0 plus one",
+    "caught": true
+   },
+   {
+    "name": "M2: store the second byte (arg0 >> 8)",
+    "caught": true
+   },
+   {
+    "name": "M3: dropped store",
+    "caught": true
+   },
+   {
+    "name": "M4: unsigned byte read (store arg0 & 0x7F)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34532,
+     "completion_tokens": 589,
+     "reasoning_tokens": 396,
+     "cost": 0.0037477,
+     "seconds": 3.1,
+     "sample": 1,
+     "conversation": "88368da9c37fd17a8fdb1f468a18ce541704b901bd46e6a4dc7b1325fd38fad1"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008D594.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008D594.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 114.6133182499998,
+ "wall_seconds": 292.15514798000004,
+ "totals": {
+  "cost": 0.00791,
+  "prompt_tokens": 58050,
+  "completion_tokens": 4201,
+  "model_seconds": 19.0,
+  "check_seconds": 114.6,
+  "calls": 3,
+  "wall_seconds": 292.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 6 / nested 15 / nested 36, 0 mismatches"
+ }
+}

@@ -1,0 +1,230 @@
+{
+ "function": "func_8006F4B0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound (stub copies only C-written fields); hazard: sp10 func_800CF0E8_t partly written, copied whole downstream (port zeroes, C leaves residue)",
+ "plan": {
+  "name": "func_8006F4B0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006f4b0",
+  "difficulty": "S",
+  "zig_name": "func_8006F4B0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006F4B0",
+  "spec_file": "func_8006F4B0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006F4B0(arg0: ?*v.func_8006EBF8_t3) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.func_8006EBF8_t3"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_800CF0E8_t"
+  ],
+  "globals": [
+   "D_800F1868"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12295,
+     "completion_tokens": 7370,
+     "reasoning_tokens": 5672,
+     "cost": 0.0049145,
+     "seconds": 31.5,
+     "sample": 1,
+     "conversation": "3934f6e11de4aab7b8a2f6925fd8c348c651e790188c404e33ccdbd8f73eace2"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F1: unk14 reads unk0_16 instead of unk0_0: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006F4B0: 30000 iterations, seed 1, 0 mismatches; classes: bit1-set-pos=9850 bit1-set-neg=6783 bit1-clear-pos=8156 bit1-clear-neg=5211",
+     "FAIL: mutation F2: unk18 shifted by 6, not 7: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006F4B0: 30000 iterations, seed 1, 0 mismatches; classes: bit1-set-pos=9850 bit1-set-neg=6783 bit1-clear-pos=8156 bit1-clear-neg=5211",
+     "FAIL: mutation F5: unk16 takes vx instead of vy: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006F4B0: 30000 iterations, seed 1, 0 mismatches; classes: bit1-set-pos=9850 bit1-set-neg=6783 bit1-clear-pos=8156 bit1-clear-neg=5211"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14476,
+     "completion_tokens": 4348,
+     "reasoning_tokens": 2303,
+     "cost": 0.0036216,
+     "seconds": 17.8,
+     "sample": 1,
+     "conversation": "2392fa7dfec982e85203c5dfbf30741c7aa1f3c39bd911dfb1b5bc51b365812b"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "bit1-set-pos": "9850",
+   "bit1-set-neg": "6783",
+   "bit1-clear-pos": "8156",
+   "bit1-clear-neg": "5211"
+  },
+  "mutations": [
+   {
+    "name": "F1: unk14 reads unk0_16 instead of unk0_0",
+    "caught": true
+   },
+   {
+    "name": "F2: unk18 shifted by 6, not 7",
+    "caught": true
+   },
+   {
+    "name": "F3: flag test uses bit 2 instead of bit 1",
+    "caught": true
+   },
+   {
+    "name": "F4: the call is dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: unk16 takes vx instead of vy",
+    "caught": true
+   },
+   {
+    "name": "F6: the call passes 1 as its second argument",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 13,
+     "text": "if (!(D_800F1868 & 2)) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 13367, < 0, > 16633 (signed); < 0, > 16633 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35759,
+     "completion_tokens": 4446,
+     "reasoning_tokens": 3820,
+     "cost": 0.0057989,
+     "seconds": 18.2,
+     "sample": 1,
+     "conversation": "4783ab3de9a8f9b3d426a5c49c68cc1cd176aff6d0c05431ed474bfd5d077f71"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006F4B0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006F4B0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 237.52852237700063,
+ "wall_seconds": 659.6543345380014,
+ "totals": {
+  "cost": 0.01434,
+  "prompt_tokens": 62530,
+  "completion_tokens": 16164,
+  "model_seconds": 67.5,
+  "check_seconds": 237.5,
+  "calls": 3,
+  "wall_seconds": 659.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

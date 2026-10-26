@@ -1,0 +1,316 @@
+{
+ "function": "func_8008B960",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8008B960",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b960",
+  "difficulty": "M",
+  "zig_name": "func_8008B960",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008B960",
+  "spec_file": "func_8008B960.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008B960(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_mpdRoomDoorSection_t"
+  ],
+  "globals": [
+   "D_800F1CC8",
+   "vs_battle_doorEntered"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14157,
+     "completion_tokens": 23072,
+     "reasoning_tokens": 20244,
+     "cost": 0.0129517,
+     "seconds": 99.2,
+     "sample": 1,
+     "conversation": "712b21f87e2bac3b124561dc5d3ef80312428710184f172dbfc404231ba6729e"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-door-section": "3038",
+   "no-doors": "3887",
+   "break-on-id": "5720",
+   "break-on-geometry": "232",
+   "not-found": "15172",
+   "id-seen-no-geometry": "1951"
+  },
+  "mutations": [
+   {
+    "name": "M1: id break needs arg2 > 2 (C: >= 2)",
+    "caught": true
+   },
+   {
+    "name": "M2: inner geometry scan runs to j <= 9",
+    "caught": true
+   },
+   {
+    "name": "M3: exhausted scan not turned into NULL",
+    "caught": true
+   },
+   {
+    "name": "M4: door id read from unk9, not unk8",
+    "caught": true
+   },
+   {
+    "name": "M5: no-door result stored as 0, not -1",
+    "caught": true
+   },
+   {
+    "name": "M6: dropped bzero of the door buffer",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 22,
+   "branches_hit": 22,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 26,
+   "lines_hit": 26,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147460329, max 2147233401, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147474290, max 2147372019, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147326395, max 2147411936, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "if (((__typeof__((vs_battle_roomData.doorSection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.doorSection).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3038, < 0, > 26962 (signed); < 0, > 26962 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4235888"
+    },
+    {
+     "line": 10,
+     "text": "for (i = 0; i < temp_t4; ++i, ++var_s0) {",
+     "size": 4,
+     "count": 88693,
+     "kind": "a == b / a < b",
+     "outcomes": "== 21010, < 67683, > 0 (signed); < 67683, > 0 (unsigned)",
+     "operand": "b 0..6",
+     "a": "0..6"
+    },
+    {
+     "line": 11,
+     "text": "if ((arg2 >= 2) && ((&var_s0->unk2)->unk0_10 == arg2)) {",
+     "size": 4,
+     "count": 67683,
+     "kind": "against a constant",
+     "outcomes": "== 4081, < 28775, > 34827 (signed); < 4226, > 59376 (unsigned)",
+     "operand": "constant 1",
+     "a": "-2147324320..2147219510"
+    },
+    {
+     "line": 11,
+     "text": "if ((arg2 >= 2) && ((&var_s0->unk2)->unk0_10 == arg2)) {",
+     "size": 4,
+     "count": 34827,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5720, < 2441, > 26666 (signed); < 2441, > 26666 (unsigned)",
+     "operand": "b 0..7",
+     "a": "2..2147219510"
+    },
+    {
+     "line": 14,
+     "text": "if ((&var_s0->unk2)->unk0_10 == arg2) {",
+     "size": 4,
+     "count": 61963,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4708, < 30331, > 26924 (signed); < 5782, > 51473 (unsigned)",
+     "operand": "b 0..7",
+     "a": "-2147324320..2147219510"
+    },
+    {
+     "line": 15,
+     "text": "for (j = 0; j < 9; ++j) {",
+     "size": 4,
+     "count": 46025,
+     "kind": "against a constant",
+     "outcomes": "== 4512, < 37037, > 4476 (signed); < 37037, > 4476 (unsigned)",
+     "operand": "constant 8",
+     "a": "0..9"
+    },
+    {
+     "line": 17,
+     "text": "if (((&var_s0->unk2)->unk0_0",
+     "size": 4,
+     "count": 41549,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2559, < 17172, > 21818 (signed); < 30069, > 8921 (unsigned)",
+     "operand": "b -2134113772..2141351553",
+     "a": "0..31"
+    },
+    {
+     "line": 19,
+     "text": "&& ((&var_s0->unk2)->unk0_5 == ((arg1 - new_var) + (j / 3)))) {",
+     "size": 4,
+     "count": 2559,
+     "kind": "a == b / a < b",
+     "outcomes": "== 232, < 1107, > 1220 (signed); < 1975, > 352 (unsigned)",
+     "operand": "b -2144800215..2123790010",
+     "a": "0..31"
+    },
+    {
+     "line": 23,
+     "text": "if (j != 9) {",
+     "size": 4,
+     "count": 4708,
+     "kind": "against a constant",
+     "outcomes": "== 4476, < 232, > 0 (signed); < 232, > 0 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..9"
+    },
+    {
+     "line": 28,
+     "text": "if (i == temp_t4) {",
+     "size": 4,
+     "count": 26962,
+     "kind": "a == b / a < b",
+     "outcomes": "== 21010, < 5952, > 0 (signed); < 5952, > 0 (unsigned)",
+     "operand": "b 0..6",
+     "a": "0..6"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37637,
+     "completion_tokens": 7650,
+     "reasoning_tokens": 6742,
+     "cost": 0.0075887,
+     "seconds": 33.6,
+     "sample": 1,
+     "conversation": "146ea918b4448e4794e86b8bef60b694c0f17c792388963d87c38246cc02397e"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008B960.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008B960.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 73.39118447600049,
+ "wall_seconds": 207.60854617400037,
+ "totals": {
+  "cost": 0.02054,
+  "prompt_tokens": 51794,
+  "completion_tokens": 30722,
+  "model_seconds": 132.8,
+  "check_seconds": 73.4,
+  "calls": 2,
+  "wall_seconds": 207.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

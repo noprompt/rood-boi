@@ -1,0 +1,207 @@
+{
+ "function": "_loadMpdLbas",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_loadMpdLbas",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80088ce4",
+  "difficulty": "S",
+  "zig_name": "loadMpdLbas",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_mpd_lbas",
+  "spec_file": "loadMpdLbas.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadMpdLbas(arg0: ?*anyopaque, size: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*anyopaque"
+   ],
+   [
+    "size",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_main_CdFile"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12131,
+     "completion_tokens": 9876,
+     "reasoning_tokens": 8700,
+     "cost": 0.0061511,
+     "seconds": 42.4,
+     "sample": 1,
+     "conversation": "12caf3646adaed4aba145ad673374c1a62b47e1d896fcdd83659bdfe6176090f"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "size-zero": "2103",
+   "size-positive": "15909",
+   "size-negative": "11988"
+  },
+  "mutations": [
+   {
+    "name": "L1: nop9 called with 1 instead of 0",
+    "caught": true
+   },
+   {
+    "name": "L2: the size==0 test inverted",
+    "caught": true
+   },
+   {
+    "name": "L3: memcpy copies 0 bytes",
+    "caught": true
+   },
+   {
+    "name": "L4: allocHeap asked for size + 1",
+    "caught": true
+   },
+   {
+    "name": "L5: the block stored in zndCdFile, not mpdLbas",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (size == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2103, < 11988, > 15909 (signed); < 0, > 27897 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35597,
+     "completion_tokens": 2621,
+     "reasoning_tokens": 2260,
+     "cost": 0.0048702,
+     "seconds": 11.5,
+     "sample": 1,
+     "conversation": "0261672dc213217bb16c45191088e2eb81253c3c02e79052e1872a0f96c579ad"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/loadMpdLbas.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/load_mpd_lbas.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 213.74273888899916,
+ "wall_seconds": 567.542880519999,
+ "totals": {
+  "cost": 0.01102,
+  "prompt_tokens": 47728,
+  "completion_tokens": 12497,
+  "model_seconds": 53.9,
+  "check_seconds": 213.7,
+  "calls": 2,
+  "wall_seconds": 567.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,258 @@
+{
+ "function": "_clampPositionToZoneBounds",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation M3: Y band test >= instead of >: mutation M3: Y band test >= instead of >: its `from` text occurs 0 times in the C body of _c",
+ "plan": {
+  "name": "_clampPositionToZoneBounds",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006d9fc",
+  "difficulty": "M",
+  "zig_name": "clampPositionToZoneBounds",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "clamp_position_to_zone_bounds",
+  "spec_file": "clampPositionToZoneBounds.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn clampPositionToZoneBounds(inPos: ?*v.VECTOR, outPos: ?*v.VECTOR) callconv(.c) void",
+  "params": [
+   [
+    "inPos",
+    "?*v.VECTOR"
+   ],
+   [
+    "outPos",
+    "?*v.VECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13627,
+     "completion_tokens": 14191,
+     "reasoning_tokens": 11796,
+     "cost": 0.0084582,
+     "seconds": 58.3,
+     "sample": 1,
+     "conversation": "6e6d9bc3733fa22975801713ff02a7cca78ab0540b7f08567d733e4cbc1ad897"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M1: midpoint by signed division instead of >> 1: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _clampPositionToZoneBounds: 40000 iterations, seed 1, 0 mismatches; classes: x-midpoint=19978 x-clamp-low=6176 x-clamp-high=5937 x-pass=7909",
+     "FAIL: mutation M2: Z high clamp off by one: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _clampPositionToZoneBounds: 40000 iterations, seed 1, 0 mismatches; classes: x-midpoint=19978 x-clamp-low=6176 x-clamp-high=5937 x-pass=7909"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16336,
+     "completion_tokens": 5365,
+     "reasoning_tokens": 2748,
+     "cost": 0.0043161,
+     "seconds": 21.4,
+     "sample": 1,
+     "conversation": "3adf9c94eb6507fc8554a47d02f8eb03fc0a025c86f15df9d6d652d9dee4686c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M3: Y band test >= instead of >: mutation M3: Y band test >= instead of >: its `from` text occurs 0 times in the C body of _clampPositionToZoneBounds (copy it exactly from the C)"
+    ]
+   }
+  ],
+  "classes": {
+   "x-midpoint": "19978",
+   "x-clamp-low": "6176",
+   "x-clamp-high": "5937",
+   "x-pass": "7909"
+  },
+  "mutations": [
+   {
+    "name": "M1: midpoint shifted by 2, not 1",
+    "caught": true
+   },
+   {
+    "name": "M2: Z low clamp off by one",
+    "caught": true
+   },
+   {
+    "name": "M3: Y band test >= instead of >",
+    "caught": false
+   },
+   {
+    "name": "M4: Y offset measured from position.vy, not lookAt.vy",
+    "caught": true
+   },
+   {
+    "name": "M5: unsigned division of a negative distance",
+    "caught": true
+   },
+   {
+    "name": "M6: Y clamp tests the wrong sign",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 18,
+   "branches_hit": 18,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 30,
+   "lines_hit": 30,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (maxBound < bound) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 676, < 19978, > 19346 (signed); < 19919, > 19405 (unsigned)",
+     "operand": "b -537087800..537087800",
+     "a": "-537087800..537087800"
+    },
+    {
+     "line": 15,
+     "text": "if (inPos->vx < bound) {",
+     "size": 4,
+     "count": 20022,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3430, < 10416, > 6176 (signed); < 6419, > 10173 (unsigned)",
+     "operand": "b -1073305103..1073190243",
+     "a": "-537087800..524287640"
+    },
+    {
+     "line": 17,
+     "text": "} else if (maxBound < inPos->vx) {",
+     "size": 4,
+     "count": 13846,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3442, < 5937, > 4467 (signed); < 6890, > 3514 (unsigned)",
+     "operand": "b -537087800..1073190243",
+     "a": "-524288000..537087800"
+    },
+    {
+     "line": 27,
+     "text": "if (maxBound < bound) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 653, < 19902, > 19445 (signed); < 20137, > 19210 (unsigned)",
+     "operand": "b -536563512..537087800",
+     "a": "-536563512..537087800"
+    },
+    {
+     "line": 30,
+     "text": "if (inPos->vz < bound) {",
+     "size": 4,
+     "count": 20098,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3447, < 10609, > 6042 (signed); < 6370, > 10281 (unsigned)",
+     "operand": "b -1073101330..1073671290",
+     "a": "-536563512..523763712"
+    },
+    {
+     "line": 32,
+     "text": "} else if (maxBound < inPos->vz) {",
+     "size": 4,
+     "count": 14056,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3429, < 6122, > 4505 (signed); < 7018, > 3609 (unsigned)",
+     "operand": "b -532893496..1073671290",
+     "a": "-520093696..537087800"
+    },
+    {
+     "line": 45,
+     "text": "if ((bound > (4096 * 96)) || (bound < v)) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 2210, < 30599, > 7191 (signed); < 12664, > 25126 (unsigned)",
+     "operand": "constant 393216",
+     "a": "-1073577357..1073708790"
+    },
+    {
+     "line": 45,
+     "text": "if ((bound > (4096 * 96)) || (bound < v)) {",
+     "size": 4,
+     "count": 32809,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2275, < 7210, > 23324 (signed); < 22084, > 8450 (unsigned)",
+     "operand": "b -393216..-393216",
+     "a": "-1073577357..393216"
+    },
+    {
+     "line": 50,
+     "text": "if (outPos->vy > 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 4987, < 17544, > 17469 (signed); < 0, > 35013 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1073542927..1073708790"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 31.98170554599983,
+ "wall_seconds": 112.11598009000045,
+ "totals": {
+  "cost": 0.01277,
+  "prompt_tokens": 29963,
+  "completion_tokens": 19556,
+  "model_seconds": 79.7,
+  "check_seconds": 32.0,
+  "calls": 2,
+  "wall_seconds": 112.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

@@ -1,0 +1,292 @@
+{
+ "function": "func_8007DFF0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8007DFF0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007dff0",
+  "difficulty": "S",
+  "zig_name": "func_8007DFF0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007DFF0",
+  "spec_file": "func_8007DFF0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007DFF0(arg0: c_uint, arg1: c_uint, arg2: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_uint"
+   ],
+   [
+    "arg1",
+    "c_uint"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11469,
+     "completion_tokens": 14566,
+     "reasoning_tokens": 12484,
+     "cost": 0.0084299,
+     "seconds": 61.3,
+     "sample": 1,
+     "conversation": "24eb2544e1af740ca3f25b00d7284cce2c1371f88bc8a7f8a2243287baa1fb7c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F1: arg0 > 24 becomes arg0 >= 24: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 45: C makes 1 external calls, Zig 0 (first unmatched: vs_main_nop9)\nzdiff: MISMATCH iteration 46: C makes 1 external calls, Zig 0 (first unmatched: vs_main_nop9)\nzdiff: MISMATCH iteration 102: C makes 1 external calls, Zig 0 (first unmatched: vs_main_nop9)\nzdiff: CRASH (signal 11) in the Zig run, iteration 112, fault address 0x4c7000 [memory the harness does not own: a pointer from random bytes?]"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13897,
+     "completion_tokens": 4022,
+     "reasoning_tokens": 1795,
+     "cost": 0.0034007,
+     "seconds": 14.9,
+     "sample": 1,
+     "conversation": "61b1e0aef31c8186bab92edcbcbb5fa1096a05184783da84010149b62709ac7a"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "arg0-low": "11046",
+   "span-past-33": "26014",
+   "span-busy": "1128",
+   "span-clear": "1812"
+  },
+  "mutations": [
+   {
+    "name": "F1: arg0 > 24 becomes arg0 >= 24",
+    "caught": true
+   },
+   {
+    "name": "F2: span bound <= 33 instead of < 33",
+    "caught": true
+   },
+   {
+    "name": "F3: stored value off by one",
+    "caught": true
+   },
+   {
+    "name": "F4: busy flag set to 0 (the busy span is never seen)",
+    "caught": true
+   },
+   {
+    "name": "F5: the nop9 failure call dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: busy test masks the sign bit",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 12,
+   "branches_hit": 12,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -2147366655, max 2147167047, unsigned 0..4294650661, seen zero/negative"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "32-bit: min -2147462413, max 2147375293, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -2147472341, max 2147377348, unsigned 28010..4294818035, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (arg0 > 0x18) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 2959, < 18249, > 18792 (signed); < 8087, > 28954 (unsigned)",
+     "operand": "constant 24",
+     "a": "-2147366655..2147167047"
+    },
+    {
+     "line": 4,
+     "text": "if ((arg0 + arg1) < 0x21) {",
+     "size": 4,
+     "count": 28954,
+     "kind": "against a constant",
+     "outcomes": "== 758, < 14487, > 13709 (signed); < 2182, > 26014 (unsigned)",
+     "operand": "constant 32",
+     "a": "-2147366655..2147129071"
+    },
+    {
+     "line": 6,
+     "text": "for (i = 0; i < arg1; ++i) {",
+     "size": 4,
+     "count": 9881,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2940, < 6941, > 0 (signed); < 6941, > 0 (unsigned)",
+     "operand": "b 0..7",
+     "a": "0..7"
+    },
+    {
+     "line": 7,
+     "text": "if (D_800F19A8[arg0 + i] != 0) {",
+     "size": 1,
+     "count": 6941,
+     "kind": "against a constant",
+     "outcomes": "== 3400, < 1952, > 1589 (signed); < 0, > 3541 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 11,
+     "text": "if (var_a3 == 0) {",
+     "size": 4,
+     "count": 2940,
+     "kind": "against a constant",
+     "outcomes": "== 1812, < 0, > 1128 (signed); < 0, > 1128 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 12,
+     "text": "for (i = 0; i < arg1; ++i) {",
+     "size": 4,
+     "count": 5200,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1812, < 3388, > 0 (signed); < 3388, > 0 (unsigned)",
+     "operand": "b 0..7",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34827,
+     "completion_tokens": 2464,
+     "reasoning_tokens": 1926,
+     "cost": 0.0047147,
+     "seconds": 10.7,
+     "sample": 1,
+     "conversation": "aae4a26d183687e247d4ff6d84b3d2659128279b334dc45aabe38add8b510df5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007DFF0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007DFF0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 241.50965021499724,
+ "wall_seconds": 491.4126512060029,
+ "totals": {
+  "cost": 0.01655,
+  "prompt_tokens": 60193,
+  "completion_tokens": 21052,
+  "model_seconds": 86.9,
+  "check_seconds": 241.5,
+  "calls": 3,
+  "wall_seconds": 491.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 2 / root 6 / nested 3, 0 mismatches"
+ }
+}

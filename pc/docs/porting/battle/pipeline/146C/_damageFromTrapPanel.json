@@ -1,0 +1,131 @@
+{
+ "function": "_damageFromTrapPanel",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's bug). The harness fills every global and the arena with r",
+ "plan": {
+  "name": "_damageFromTrapPanel",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008255c",
+  "difficulty": "M",
+  "zig_name": "damageFromTrapPanel",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "damage_from_trap_panel",
+  "spec_file": "damageFromTrapPanel.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn damageFromTrapPanel(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, hit: ?*v._hitEntity_t, nHit: c_int, withRandMod: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "hit",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "nHit",
+    "c_int"
+   ],
+   [
+    "withRandMod",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [
+   "_hitIntermediate"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [
+   "_getRoomTrapLevel"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 20144,
+     "completion_tokens": 41729,
+     "reasoning_tokens": 38855,
+     "cost": 0.0228789,
+     "seconds": 176.1,
+     "sample": 1,
+     "conversation": "af3222179b3e25eef559bad2ad261abfd3ffdc22fb4e0e6bcfa421bef82a6f24"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x408090 [arena] 0 0x408040 [arena] 0 0 (class affinity-zero)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 23452,
+     "completion_tokens": 8252,
+     "reasoning_tokens": 4963,
+     "cost": 0.0064712,
+     "seconds": 33.2,
+     "sample": 1,
+     "conversation": "c92364f24b05cf3950666c14c8aaf212f3172e9b91fbbe0ee8434b7317536d8d"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x408090 [arena] 0 0x408040 [arena] 0x1 0xffffffff (class type-zero)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [],
+  "coverage": null
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 1.775102555000558,
+ "wall_seconds": 211.89123047500016,
+ "totals": {
+  "cost": 0.02935,
+  "prompt_tokens": 43596,
+  "completion_tokens": 49981,
+  "model_seconds": 209.3,
+  "check_seconds": 1.8,
+  "calls": 2,
+  "wall_seconds": 211.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

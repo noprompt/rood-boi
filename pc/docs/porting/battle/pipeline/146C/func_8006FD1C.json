@@ -1,0 +1,374 @@
+{
+ "function": "func_8006FD1C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_8006FD1C: branches 42/42 (100.0%), conditions not measured (GCC < 14: branch",
+ "plan": {
+  "name": "func_8006FD1C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006fd1c",
+  "difficulty": "M",
+  "zig_name": "func_8006FD1C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006FD1C",
+  "spec_file": "func_8006FD1C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006FD1C() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "D_800F19CC_t2"
+  ],
+  "globals": [
+   "vs_main_artsStatus",
+   "vs_main_battleAbilitiesPointsRequirements"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 20326,
+     "completion_tokens": 41565,
+     "reasoning_tokens": 37857,
+     "cost": 0.0228151,
+     "seconds": 171.1,
+     "sample": 1,
+     "conversation": "035d7fe08f20bd6958719aa33807c1d2f8da552ff16752803428e4b04cc85da4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006FD1C: branches 42/42 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 68/68\n  FLAG +12 eq: boundary equality never occurred (16-bit compare, constant 183: both sides seen; a port's `<` for `<=` could pass): `} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {`\ncoverage func_8006FD1C: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {` (+12): the two sides of this ordered compare were equal 0 time(s) in 33293. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006FD1C.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 24459,
+     "completion_tokens": 5899,
+     "reasoning_tokens": 1897,
+     "cost": 0.0053954,
+     "seconds": 21.7,
+     "sample": 1,
+     "conversation": "b02d83782428b810baa25a355167b00a8a6289269cf594af47cc16cdbc470a97"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006FD1C: branches 42/42 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 68/68\n  FLAG +12 eq: boundary equality never occurred (16-bit compare, constant 183: both sides seen; a port's `<` for `<=` could pass): `} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {`\ncoverage func_8006FD1C: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {` (+12): the two sides of this ordered compare were equal 0 time(s) in 29825. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006FD1C.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "past-999": "8246",
+   "chain-hit": "9527",
+   "chain-target-dead": "1061",
+   "defense": "10730",
+   "idle": "10436"
+  },
+  "mutations": [
+   {
+    "name": "F1: action range upper bound 0xB7 (not 0xB8)",
+    "caught": true
+   },
+   {
+    "name": "F2: fallback past 999 instead of at 999",
+    "caught": true
+   },
+   {
+    "name": "F3: ability-flag threshold 11 instead of 10",
+    "caught": true
+   },
+   {
+    "name": "F4: max chain updated with the wrong counter",
+    "caught": true
+   },
+   {
+    "name": "F5: dropped store of the defense entry count",
+    "caught": true
+   },
+   {
+    "name": "F6: defense HP sum adds MP",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 42,
+   "branches_hit": 42,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 68,
+   "lines_hit": 68,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+12 eq",
+     "line": 12,
+     "text": "} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {",
+     "kind": "eq",
+     "bits": 16,
+     "equal": 0,
+     "count": 29825,
+     "what": "boundary equality never occurred (16-bit compare, constant 183: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if ((action->actionIndex >= 0x8D) && (action->actionIndex < 0xB8)) {",
+     "size": 2,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 5015, < 0, > 34985 (signed); < 0, > 34985 (unsigned)",
+     "operand": "constant 140",
+     "a": "140..225"
+    },
+    {
+     "line": 10,
+     "text": "if ((action->actionIndex >= 0x8D) && (action->actionIndex < 0xB8)) {",
+     "size": 2,
+     "count": 34985,
+     "kind": "against a constant",
+     "outcomes": "== 5081, < 5094, > 24810 (signed); < 5094, > 24810 (unsigned)",
+     "operand": "constant 183",
+     "a": "141..225"
+    },
+    {
+     "line": 12,
+     "text": "} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {",
+     "size": 2,
+     "count": 29825,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 5015, > 24810 (signed); < 5015, > 24810 (unsigned)",
+     "operand": "constant 183",
+     "a": "140..225"
+    },
+    {
+     "line": 12,
+     "text": "} else if ((action->actionIndex >= 0xB8) && (action->actionIndex < 0xE0)) {",
+     "size": 2,
+     "count": 24810,
+     "kind": "against a constant",
+     "outcomes": "== 5177, < 7277, > 12356 (signed); < 7277, > 12356 (unsigned)",
+     "operand": "constant 223",
+     "a": "184..225"
+    },
+    {
+     "line": 16,
+     "text": "if (D_800F19CC->unk0 >= 999) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 1502, < 35260, > 3238 (signed); < 32274, > 6224 (unsigned)",
+     "operand": "constant 998",
+     "a": "-2147483648..1023"
+    },
+    {
+     "line": 21,
+     "text": "if ((D_800F19CC->battleAbilityInputSuccessful == 1)",
+     "size": 1,
+     "count": 33776,
+     "kind": "against a constant",
+     "outcomes": "== 11233, < 5705, > 16838 (signed); < 5705, > 16838 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..3"
+    },
+    {
+     "line": 22,
+     "text": "&& (((__typeof__((vs_battle_actors[action->unk4C[0].unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[action->unk4C[0].unk0.targetActor]->unk3C).raw)->currentHP",
+     "size": 2,
+     "count": 11233,
+     "kind": "against a constant",
+     "outcomes": "== 1135, < 5121, > 4977 (signed); < 0, > 10098 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 31,
+     "text": "if (vs_main_scoredata.maxChain < D_800F19CC->unk0) {",
+     "size": 4,
+     "count": 10098,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1723, < 1264, > 7111 (signed); < 1264, > 7111 (unsigned)",
+     "operand": "b 1..999",
+     "a": "0..65535"
+    },
+    {
+     "line": 34,
+     "text": "if ((u_char)vs_battle_getStateFlag(0x82) >= 10) {",
+     "size": 1,
+     "count": 10098,
+     "kind": "against a constant",
+     "outcomes": "== 2467, < 3930, > 3701 (signed); < 69, > 7562 (unsigned)",
+     "operand": "constant 9",
+     "a": "-125..127"
+    },
+    {
+     "line": 35,
+     "text": "if ((vs_main_artsStatus.kills.battleAbilitiesUnlocked < 22)",
+     "size": 2,
+     "count": 7562,
+     "kind": "against a constant",
+     "outcomes": "== 1198, < 3989, > 2375 (signed); < 3989, > 2375 (unsigned)",
+     "operand": "constant 21",
+     "a": "0..40"
+    },
+    {
+     "line": 36,
+     "text": "&& (vs_main_artsStatus.kills.total",
+     "size": 2,
+     "count": 5187,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2047, < 1534, > 1606 (signed); < 1615, > 1525 (unsigned)",
+     "operand": "b -32708..32751",
+     "a": "-32768..32755"
+    },
+    {
+     "line": 42,
+     "text": "} else if (D_800F19CC->battleAbilityInputSuccessful == 2) {",
+     "size": 1,
+     "count": 23678,
+     "kind": "against a constant",
+     "outcomes": "== 11377, < 6840, > 5461 (signed); < 6840, > 5461 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..3"
+    },
+    {
+     "line": 48,
+     "text": "for (i = 0; i < D_800F19CC->unk8.unk4A; ++i) {",
+     "size": 4,
+     "count": 184899,
+     "kind": "a == b / a < b",
+     "outcomes": "== 11377, < 173522, > 0 (signed); < 173522, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 49,
+     "text": "if ((D_800F19CC->unk8.unk4C[i].unk0.targetActor == 0)",
+     "size": 1,
+     "count": 173522,
+     "kind": "against a constant",
+     "outcomes": "== 57816, < 0, > 115706 (signed); < 0, > 115706 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..5"
+    },
+    {
+     "line": 50,
+     "text": "&& (D_800F19CC->unk8.unk4C[i].hpEffect",
+     "size": 1,
+     "count": 57816,
+     "kind": "against a constant",
+     "outcomes": "== 14708, < 0, > 43108 (signed); < 0, > 43108 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 51,
+     "text": "|| D_800F19CC->unk8.unk4C[i].mpEffect)) {",
+     "size": 1,
+     "count": 14708,
+     "kind": "against a constant",
+     "outcomes": "== 3664, < 0, > 11044 (signed); < 0, > 11044 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 56,
+     "text": "if (!found) {",
+     "size": 4,
+     "count": 11377,
+     "kind": "against a constant",
+     "outcomes": "== 1162, < 0, > 10215 (signed); < 0, > 10215 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 61,
+     "text": "for (i = 0; i < D_800F19CC->unk8.unk4A; ++i) {",
+     "size": 4,
+     "count": 184899,
+     "kind": "a == b / a < b",
+     "outcomes": "== 11377, < 173522, > 0 (signed); < 173522, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 62,
+     "text": "if (D_800F19CC->unk8.unk4C[i].unk0.targetActor",
+     "size": 1,
+     "count": 173522,
+     "kind": "a == b / a < b",
+     "outcomes": "== 58979, < 695, > 113848 (signed); < 695, > 113848 (unsigned)",
+     "operand": "b 0..5",
+     "a": "0..5"
+    },
+    {
+     "line": 82,
+     "text": "if ((vs_main_artsStatus.kills.battleAbilitiesUnlocked < 22)",
+     "size": 2,
+     "count": 11377,
+     "kind": "against a constant",
+     "outcomes": "== 1762, < 5853, > 3762 (signed); < 5853, > 3762 (unsigned)",
+     "operand": "constant 21",
+     "a": "0..40"
+    },
+    {
+     "line": 83,
+     "text": "&& (vs_main_artsStatus.kills.total",
+     "size": 2,
+     "count": 7615,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2979, < 2269, > 2367 (signed); < 2346, > 2290 (unsigned)",
+     "operand": "b -32698..32750",
+     "a": "-32761..32750"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 56.958353480999904,
+ "wall_seconds": 250.15818856199985,
+ "totals": {
+  "cost": 0.02821,
+  "prompt_tokens": 44785,
+  "completion_tokens": 47464,
+  "model_seconds": 192.8,
+  "check_seconds": 57.0,
+  "calls": 2,
+  "wall_seconds": 250.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

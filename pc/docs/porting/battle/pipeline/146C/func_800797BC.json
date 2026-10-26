@@ -1,0 +1,208 @@
+{
+ "function": "func_800797BC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_800797BC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800797bc",
+  "difficulty": "S",
+  "zig_name": "func_800797BC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800797BC",
+  "spec_file": "func_800797BC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800797BC() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11187,
+     "completion_tokens": 6265,
+     "reasoning_tokens": 5110,
+     "cost": 0.0042512,
+     "seconds": 27.9,
+     "sample": 1,
+     "conversation": "a70545113b3cdcb59153cd223e75dd0b719bed7f22fe5e5312f7d09d021e0daf"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "unk0-is-1": "3278",
+   "unk0-not-1": "16722"
+  },
+  "mutations": [
+   {
+    "name": "F1: the test is inverted (== 1)",
+    "caught": true
+   },
+   {
+    "name": "F2: wrong constant in the test (!= 2)",
+    "caught": true
+   },
+   {
+    "name": "F3: first call dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: func_8006C40C dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: func_800CB114 and func_8006F89C swapped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if (func_800CB66C()->unk0 != 1) {",
+     "size": 2,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 9855, < 5144, > 5001 (signed); < 0, > 10145 (unsigned)",
+     "operand": "constant 1",
+     "a": "-32759..32764"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34668,
+     "completion_tokens": 3433,
+     "reasoning_tokens": 3106,
+     "cost": 0.0051833,
+     "seconds": 17.4,
+     "sample": 1,
+     "conversation": "b3d11e0e2fdc0952a38343129872220054965cbfdadc7337a8f0836977679079"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_800797BC.zig:11:77: error: @ptrCast increases pointer alignment\n    const state: *align(4) v.D_800F18EC_t = @alignCast(@as(*v.D_800F18EC_t, @ptrCast(raw)));\n                                                                            ^~~~~~~~~~~~~\ngame/battle/func_800797BC.zig:11:86: note: '*c_146C.D_800F18EC_t' has alignment '1'\n    const state: *align(4) v.D_800F18EC_t = @alignCast(@as(*v.D_800F18EC_t, @ptrCast(raw)));\n                                                                                     ^~~\ngame/battle/func_800797BC.zig:11:77: note: '*views_146C.D_800F18EC_t' has alignment '4'\ngame/battle/func_800797BC.zig:11:77: note: use @alignCast to assert pointer alignment\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35471,
+     "completion_tokens": 1432,
+     "reasoning_tokens": 1016,
+     "cost": 0.0042631,
+     "seconds": 7.2,
+     "sample": 1,
+     "conversation": "08d3ea1a1f6a2d28099586b83f2268f7bbfc432765bd22983e5a08fab2ca3d44"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800797BC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800797BC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 234.74296630899335,
+ "wall_seconds": 782.0676095769959,
+ "totals": {
+  "cost": 0.0137,
+  "prompt_tokens": 81326,
+  "completion_tokens": 11130,
+  "model_seconds": 52.5,
+  "check_seconds": 234.7,
+  "calls": 3,
+  "wall_seconds": 782.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / root 44, 0 mismatches"
+ }
+}

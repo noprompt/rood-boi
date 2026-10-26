@@ -1,0 +1,243 @@
+{
+ "function": "func_80076D50",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_80076D50: branches 10/11 (90.9%), conditions not measured (GCC < 14: branch ",
+ "plan": {
+  "name": "func_80076D50",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80076d50",
+  "difficulty": "M",
+  "zig_name": "func_80076D50",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80076D50",
+  "spec_file": "func_80076D50.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80076D50(id: c_uint, arg1: c_int, arg2: c_int, arg3: c_int, arg4: c_int) callconv(.c) void",
+  "params": [
+   [
+    "id",
+    "c_uint"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_main_CdQueueSlot"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15578,
+     "completion_tokens": 9047,
+     "reasoning_tokens": 7585,
+     "cost": 0.0060813,
+     "seconds": 39.4,
+     "sample": 1,
+     "conversation": "1932759ae4d5698b43a2df334d8071e994fa3a64e271204f0c09d1757cb17a52"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80076D50/spec1/build/spec.zig:21:46: error: expected type 'usize', found 'c_int'\n        const actor = v.g.vs_battle_actors()[id].?;\n                                             ^~\npc/build/port-pipeline/func_80076D50/spec1/build/spec.zig:21:46: note: unsigned 64-bit int cannot represent all possible signed 32-bit values\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_80076D50/spec1/build/game/common/route.zig:34:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17378,
+     "completion_tokens": 2574,
+     "reasoning_tokens": 1078,
+     "cost": 0.0030248,
+     "seconds": 10.3,
+     "sample": 1,
+     "conversation": "b5a02c671171d6ef1b293adf87dc627fc98dae84c72cc6a7e51f3731409f1e64"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80076D50: branches 10/11 (90.9%), conditions not measured (GCC < 14: branch coverage only), lines 63/63\n  UNCOVERED +20 b3: branch never taken: `switch (arg4 & 3) {`\ncoverage func_80076D50: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (arg4 & 3) {` (+20): one way out of this test (+20 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80076D50.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "slot0": "5107",
+   "slot1": "5114",
+   "default-arg4-1": "4946",
+   "default-other": "14833"
+  },
+  "mutations": [
+   {
+    "name": "F1: maxHP off by one",
+    "caught": true
+   },
+   {
+    "name": "F2: weaponDrawn bit set after the call, not before",
+    "caught": true
+   },
+   {
+    "name": "F3: the func_8009D934 call dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: wrong constant for the arg1 == 48 test",
+    "caught": true
+   },
+   {
+    "name": "F5: arg4 mask one bit wide",
+    "caught": true
+   },
+   {
+    "name": "F6: unk954 store dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 11,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 63,
+   "lines_hit": 63,
+   "uncovered": [
+    {
+     "id": "+20 b3",
+     "line": 20,
+     "text": "switch (arg4 & 3) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147477644, max 2147464505, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147342233, max 2146700066, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2146612770, max 2147380909, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147290666, max 2147221782, unsigned 242194..4294526599, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "switch (id) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 10221, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..15"
+    },
+    {
+     "line": 20,
+     "text": "switch (arg4 & 3) {",
+     "size": 4,
+     "count": 19779,
+     "kind": "switch",
+     "outcomes": "== 19779, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 50,
+     "text": "if (arg1 == 41) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2533, < 15108, > 12359 (signed); < 5067, > 22400 (unsigned)",
+     "operand": "constant 41",
+     "a": "-2147477644..2147464505"
+    },
+    {
+     "line": 53,
+     "text": "} else if (arg1 == 48) {",
+     "size": 4,
+     "count": 27467,
+     "kind": "against a constant",
+     "outcomes": "== 2490, < 15108, > 9869 (signed); < 5067, > 19910 (unsigned)",
+     "operand": "constant 48",
+     "a": "-2147477644..2147464505"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 13.537229635000585,
+ "wall_seconds": 63.533441868999944,
+ "totals": {
+  "cost": 0.00911,
+  "prompt_tokens": 32956,
+  "completion_tokens": 11621,
+  "model_seconds": 49.7,
+  "check_seconds": 13.5,
+  "calls": 2,
+  "wall_seconds": 63.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

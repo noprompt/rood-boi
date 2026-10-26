@@ -1,0 +1,195 @@
+{
+ "function": "func_80077F70",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound; hazard: sp10/sp18 left as residue when func_800A1AF8 fails (negative return), only x/y/z read",
+ "plan": {
+  "name": "func_80077F70",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80077f70",
+  "difficulty": "S",
+  "zig_name": "func_80077F70",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80077F70",
+  "spec_file": "func_80077F70.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80077F70() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13433,
+     "completion_tokens": 10966,
+     "reasoning_tokens": 9234,
+     "cost": 0.0068263,
+     "seconds": 45.2,
+     "sample": 1,
+     "conversation": "a2e58e8821336c009a132b0f5054b69a5aa37d09e26379aeb6ffa4b535d1a790"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "unk4A-zero": "10031",
+   "fetch-by-func": "6725",
+   "copy-raw": "13244"
+  },
+  "mutations": [
+   {
+    "name": "F1: the unk40 test inverted (fetch taken for the copy case)",
+    "caught": true
+   },
+   {
+    "name": "F2: the unk4A nonzero test read as > 1",
+    "caught": true
+   },
+   {
+    "name": "F3: the fallback fetch passes limb 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "F4: the z difference uses vy for the x-z term",
+    "caught": true
+   },
+   {
+    "name": "F5: the final sum reuses the x-z term twice",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (temp_s0->unk4A != 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 10031, < 10057, > 9912 (signed); < 0, > 19969 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..2"
+    },
+    {
+     "line": 13,
+     "text": "if (temp_s0->unk4C[0].unk40 == 0) {",
+     "size": 4,
+     "count": 19969,
+     "kind": "against a constant",
+     "outcomes": "== 6725, < 6632, > 6612 (signed); < 0, > 13244 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36913,
+     "completion_tokens": 6728,
+     "reasoning_tokens": 5899,
+     "cost": 0.0070553,
+     "seconds": 27.6,
+     "sample": 1,
+     "conversation": "9f0c74f4df36bf3dfec765201445137d051d01c9428f65a538d401901cc2b35d"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80077F70.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80077F70.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 85.21239041999797,
+ "wall_seconds": 192.46459599300033,
+ "totals": {
+  "cost": 0.01388,
+  "prompt_tokens": 50346,
+  "completion_tokens": 17694,
+  "model_seconds": 72.8,
+  "check_seconds": 85.2,
+  "calls": 2,
+  "wall_seconds": 192.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 3 / nested 9 / nested 15, 0 mismatches"
+ }
+}

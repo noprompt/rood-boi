@@ -57,6 +57,9 @@ with tempfile.TemporaryDirectory() as d:
     problems = table.problems(renamed, {"src/A.c", "src/B.c"})
     check(any("0x80010010" in p and "f_two_renamed" in p for p in problems),
           f"an upstream rename names the new name: {problems}")
+    shared = dict(addresses, overlay_twin=0x80010010)  # a second overlay's name at the same address
+    check(table.problems(shared, {"src/A.c", "src/B.c"}) == [],
+          "two names at one address (ENDING over BATTLE) still validate the table's name")
     check(any("src/B.c" in p for p in table.problems(addresses, {"src/A.c"})),
           "a unit that is not compiled is reported (routing needs its definitions)")
     path.write_text(TOML.replace('default = "owned"', 'default = "mine"'))

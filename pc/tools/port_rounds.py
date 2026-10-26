@@ -18,6 +18,8 @@ ACTION:
              parallel, nice 10); each function advanced (its next request
              queued for the next submit); the tree written for what passed
     status   a summary (stages, batches, spend)
+    cancel   cancel every open batch at the provider and put its functions back to
+             their needs-* stage (to be drafted again, e.g. synchronously)
     run      collect/submit/poll until every function is done, the budget is
              spent or --until HH:MM (then it parks: submitted batches keep
              running at the provider and are collected by the next run)
@@ -62,7 +64,7 @@ import model_client
 import port_pipeline as pp
 import prompt_privacy
 
-ACTIONS = ("submit", "collect", "status", "run")
+ACTIONS = ("submit", "collect", "status", "run", "cancel")
 TERMINAL = "done"
 ITEM_RETRIES = 2  # a request whose result failed this many times stops its function
 MAX_BATCH = 5000  # OpenRouter's limit per batch
@@ -619,6 +621,37 @@ def status(run, out=sys.stdout):
     return stages
 
 
+def cancel(run, endpoint):
+    """Cancel every open batch (POST /batches/{id}/cancel), confirm its status, and reset the
+    functions waiting for it to the stage that sends their request again (no results are used)."""
+    done = 0
+    for bid, b in run.meta["batches"].items():
+        if b.get("collected") or b["transport"] != "batch":
+            continue
+        try:
+            gone = model_client.cancel_batch(bid, endpoint)
+        except model_client.ModelError as error:
+            print(f"port_rounds: {error}", file=sys.stderr)
+            continue
+        print(f"port_rounds: batch {bid}: {'deleted (gone at the provider)' if gone else 'still there'}", file=sys.stderr)
+        if not gone:
+            continue
+        for cid, name in b["ids"].items():
+            f = run.fns.get(name)
+            if not f or not f.get("pending") or f["pending"].get("custom_id") != cid:
+                continue
+            f["pending"] = None
+            f["submissions"] = max(0, f.get("submissions", 1) - 1)
+            f["tries"] = max(0, f.get("tries", 1) - 1)
+            f["stage"] = stage_needs(f["kind"], f["round"])
+            run.save_fn(f)
+            done += 1
+        b["status"], b["collected"], b["cancelled_at"] = "cancelled", True, time.time()
+        run.save()
+    print(f"port_rounds: {done} function(s) reset", file=sys.stderr)
+    return done
+
+
 def deadline_of(until):
     """--until HH:MM (local time) as a timestamp: today, or tomorrow when already past."""
     if not until:
@@ -684,7 +717,9 @@ def main(args):
               file=sys.stderr)
         return 2
     os.nice(10)  # the checker's builds and runs are this process's children
-    if action == "submit":
+    if action == "cancel":
+        cancel(run, endpoint)
+    elif action == "submit":
         submit(run, args, endpoint)
     elif action == "collect":
         collect(run, args, endpoint, deadline_of(args.until))

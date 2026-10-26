@@ -1,0 +1,272 @@
+{
+ "function": "_calculateStatChange",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_calculateStatChange",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800838ec",
+  "difficulty": "M",
+  "zig_name": "calculateStatChange",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "calculate_stat_change",
+  "spec_file": "calculateStatChange.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn calculateStatChange(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, hit: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "hit",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [
+   "_lastValue",
+   "_statCalculators"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15736,
+     "completion_tokens": 18339,
+     "reasoning_tokens": 16401,
+     "cost": 0.0107431,
+     "seconds": 79.8,
+     "sample": 1,
+     "conversation": "a8ae6d1cc9691b7d7f1540f6ddfdce6224baf0c8418747697c0fc87f85a109ae"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_calculateStatChange/spec1/build/spec.zig:29:5: error: redundant inline keyword in comptime scope\n    inline for (0..27) |i| t[i] = @ptrCast(&Calc(i).f);\n    ^~~~~~\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17862,
+     "completion_tokens": 3453,
+     "reasoning_tokens": 1517,
+     "cost": 0.0035127,
+     "seconds": 13.6,
+     "sample": 1,
+     "conversation": "8fb1b69b7323f9eb1a02394614b74f8075980bfe1dac5462ebbea02fa5261d3c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "unk40-nonzero": "10080",
+   "zero-unk40-stat-128": "11038",
+   "zero-unk40-other-stat": "8882"
+  },
+  "mutations": [
+   {
+    "name": "S1: the 999 bypass amount is 998",
+    "caught": true
+   },
+   {
+    "name": "S2: the unk957 test is >= 128, not == 128",
+    "caught": true
+   },
+   {
+    "name": "S3: the calculator index uses hitParams[0], not hit",
+    "caught": true
+   },
+   {
+    "name": "S4: _lastValue takes the amount as unsigned short",
+    "caught": true
+   },
+   {
+    "name": "S5: the unk40 test reads arg1, not arg2",
+    "caught": true
+   },
+   {
+    "name": "S6: hit and arg4 swapped in the calculator call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min 0, max 1, seen zero, never negative, 2 value(s): 0, 1"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147475893, max 2147393951, unsigned 79250..4294808745, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if ((arg2->unk40 == 0)",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 19920, < 4315, > 5765 (signed); < 0, > 10080 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147385975..2147002931"
+    },
+    {
+     "line": 6,
+     "text": "&& (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->unk957 == 128)) {",
+     "size": 1,
+     "count": 19920,
+     "kind": "against a constant",
+     "outcomes": "== 11038, < 0, > 8882 (signed); < 4504, > 4378 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39077,
+     "completion_tokens": 5938,
+     "reasoning_tokens": 5301,
+     "cost": 0.0068767,
+     "seconds": 25.6,
+     "sample": 1,
+     "conversation": "9f1e9e0a8fcef66af8a9de09831e669d109110e91677356556ce9b121d2fa64c"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/calculateStatChange.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/calculate_stat_change.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 66.99346954700013,
+ "wall_seconds": 186.48918575400057,
+ "totals": {
+  "cost": 0.02113,
+  "prompt_tokens": 72675,
+  "completion_tokens": 27730,
+  "model_seconds": 119.0,
+  "check_seconds": 67.0,
+  "calls": 3,
+  "wall_seconds": 186.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 6 / nested 36 / nested 84, 0 mismatches"
+ }
+}

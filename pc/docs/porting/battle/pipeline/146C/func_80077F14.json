@@ -1,0 +1,214 @@
+{
+ "function": "func_80077F14",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80077F14",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80077f14",
+  "difficulty": "S",
+  "zig_name": "func_80077F14",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80077F14",
+  "spec_file": "func_80077F14.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80077F14(arg0: c_int, arg1: c_int, arg2: ?*v.SVECTOR) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "?*v.SVECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11276,
+     "completion_tokens": 6133,
+     "reasoning_tokens": 4725,
+     "cost": 0.0041941,
+     "seconds": 25.6,
+     "sample": 1,
+     "conversation": "1ba8f27e8e6bf3bc95a41a876f6593260c303f4313ce774556f10f4298ca11ad"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "minus-one": "13204",
+   "other-null-arg2": "5369",
+   "other-arg2": "21427"
+  },
+  "mutations": [
+   {
+    "name": "M1: the -1 case passes arg1 instead of 0",
+    "caught": true
+   },
+   {
+    "name": "M2: wrong constant to func_800A152C",
+    "caught": true
+   },
+   {
+    "name": "M3: sentinel test as a sign test",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong trailing constant to func_800A1AF8",
+    "caught": true
+   },
+   {
+    "name": "M5: arg0 and arg1 swapped in the lookup call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (arg1 == -1) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 13204, < 11175, > 15621 (signed); < 26796, > 0 (unsigned)",
+     "operand": "constant -1",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34756,
+     "completion_tokens": 1458,
+     "reasoning_tokens": 1151,
+     "cost": 0.0042046,
+     "seconds": 6.7,
+     "sample": 1,
+     "conversation": "72cfd39fc169b8722c715f76859cec9d5f7fa67cd5466f48ad3c502aa9533b12"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80077F14.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80077F14.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 74.57698386100128,
+ "wall_seconds": 107.15846668599988,
+ "totals": {
+  "cost": 0.0084,
+  "prompt_tokens": 46032,
+  "completion_tokens": 7591,
+  "model_seconds": 32.3,
+  "check_seconds": 74.6,
+  "calls": 2,
+  "wall_seconds": 107.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 42 / nested 84 / nested 141, 0 mismatches"
+ }
+}

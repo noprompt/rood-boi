@@ -1,0 +1,444 @@
+{
+ "function": "func_800CE9B0",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "L",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (all cases, null derefs only where the C has them, sp38 fully written); the func_800CE8F4 arm is waived in the spec (unit static) but the call is checked by hand; spec sound",
+ "plan": {
+  "name": "func_800CE9B0",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ce9b0",
+  "difficulty": "L",
+  "zig_name": "func_800CE9B0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CE9B0",
+  "spec_file": "func_800CE9B0.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CE9B0() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [
+   "D_800F53B8_t",
+   "D_800F569C_t",
+   "pFileBlock9",
+   "pFileCurveBlock",
+   "vs_main_CdFile",
+   "vs_main_CdQueueSlot"
+  ],
+  "globals": [
+   "D_800F5218",
+   "D_800F521C",
+   "D_800F5224",
+   "D_800F5228",
+   "D_800F5230",
+   "D_800F5318",
+   "D_800F531C",
+   "D_800F53B8",
+   "D_800F53BC",
+   "D_800F54A8",
+   "D_800F5684",
+   "D_800F569C",
+   "vs_battle_pFileLoadContext",
+   "vs_battle_pfileBuf"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17103,
+     "completion_tokens": 30387,
+     "reasoning_tokens": 26988,
+     "cost": 0.0169038,
+     "seconds": 129.6,
+     "sample": 1,
+     "conversation": "7ee1cadc848d202de7397853d93b109867e89715d592bc4cf4a55d1117a5cfcf"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation S3: wrong constant in the CD file size: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CE9B0: 30000 iterations, seed 1, 0 mismatches; classes: state0=2493 state2=2466 state3=2534 state4-loop=1847 state4-done=619 state6=2497 state8=2513 state9-slot=1236 state9-idle=1254 other=12541",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800CE9B0: branches 46/48 (95.8%), conditions not measured (GCC < 14: branch coverage only), lines 89/92\n  UNCOVERED +80 b0: branch never taken: `if (func_800D51D8(var_s0) == 0) {`\n  UNCOVERED +132 b3: branch never taken: `if (D_800F569C || var_s2) {`\n  note: waivers no longer needed: +200 b1\ncoverage func_800CE9B0: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (func_800D51D8(var_s0) == 0) {` (+80): one way out of this test (+80 b0) was never taken; add inputs that take it.\n- `if (D_800F569C || var_s2) {` (+132): one way out of this test (+132 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800CE9B0.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 21083,
+     "completion_tokens": 6013,
+     "reasoning_tokens": 2381,
+     "cost": 0.0051148,
+     "seconds": 22.9,
+     "sample": 1,
+     "conversation": "475bd6da8f3ae5484b2cffc61adebebbfdab0e695454362ee79e9966b583164f"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "state0": "2493",
+   "state2": "2466",
+   "state3": "2534",
+   "state4-loop": "1847",
+   "state4-done": "619",
+   "state6": "2497",
+   "state8": "2513",
+   "state9-slot": "1236",
+   "state9-idle": "1254",
+   "other": "12541"
+  },
+  "mutations": [
+   {
+    "name": "S1: the list-head test inverted after the loop",
+    "caught": true
+   },
+   {
+    "name": "S2: loop-done test uses < for <=",
+    "caught": true
+   },
+   {
+    "name": "S3: wrong constant in the CD file size",
+    "caught": true
+   },
+   {
+    "name": "S4: fill loop bound off by one",
+    "caught": true
+   },
+   {
+    "name": "S5: dropped call to func_80046194",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 48,
+   "branches_hit": 46,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 92,
+   "lines_hit": 89,
+   "uncovered": [
+    {
+     "id": "+80 b0",
+     "line": 80,
+     "text": "if (func_800D51D8(var_s0) == 0) {",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+132 b3",
+     "line": 132,
+     "text": "if (D_800F569C || var_s2) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 12,
+     "text": "switch (D_800F531C) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 17459, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-2147483645..9"
+    },
+    {
+     "line": 18,
+     "text": "if (vs_battle_loadEffPurge() == 0) {",
+     "size": 4,
+     "count": 2497,
+     "kind": "against a constant",
+     "outcomes": "== 1204, < 0, > 1293 (signed); < 0, > 1293 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 21,
+     "text": "if ((D_800F5230.effectId != 0) && (vs_battle_pFileLoadContext.lba == 0)) {",
+     "size": 2,
+     "count": 1204,
+     "kind": "against a constant",
+     "outcomes": "== 309, < 608, > 287 (signed); < 0, > 895 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..1"
+    },
+    {
+     "line": 21,
+     "text": "if ((D_800F5230.effectId != 0) && (vs_battle_pFileLoadContext.lba == 0)) {",
+     "size": 2,
+     "count": 895,
+     "kind": "against a constant",
+     "outcomes": "== 287, < 310, > 298 (signed); < 0, > 608 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..1"
+    },
+    {
+     "line": 28,
+     "text": "if (D_800F5684 != 0) {",
+     "size": 4,
+     "count": 1204,
+     "kind": "against a constant",
+     "outcomes": "== 289, < 316, > 599 (signed); < 0, > 915 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 36,
+     "text": "if (func_800D7CFC() == 0) {",
+     "size": 4,
+     "count": 2466,
+     "kind": "against a constant",
+     "outcomes": "== 1220, < 0, > 1246 (signed); < 0, > 1246 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 42,
+     "text": "if (func_800D7EF4() == 0) {",
+     "size": 4,
+     "count": 2513,
+     "kind": "against a constant",
+     "outcomes": "== 1250, < 0, > 1263 (signed); < 0, > 1263 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 49,
+     "text": "if (func_800D7BF8() == 0) {",
+     "size": 4,
+     "count": 2534,
+     "kind": "against a constant",
+     "outcomes": "== 1199, < 0, > 1335 (signed); < 0, > 1335 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 56,
+     "text": "for (i = 0; i < D_800F5224; ++i) {",
+     "size": 4,
+     "count": 11900,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1199, < 10701, > 0 (signed); < 10701, > 0 (unsigned)",
+     "operand": "b 0..30",
+     "a": "0..30"
+    },
+    {
+     "line": 74,
+     "text": "if (((__typeof__((D_800F569C->curveBlock).psx_type_[0]))(long unsigned int)(D_800F569C->curveBlock).raw) != 0) {",
+     "size": 4,
+     "count": 3683,
+     "kind": "against a constant",
+     "outcomes": "== 1860, < 0, > 1823 (signed); < 0, > 1823 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4259104"
+    },
+    {
+     "line": 80,
+     "text": "if (func_800D51D8(var_s0) == 0) {",
+     "size": 4,
+     "count": 3683,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 0, > 3683 (signed); < 0, > 3683 (unsigned)",
+     "operand": "constant 0",
+     "a": "1..1"
+    },
+    {
+     "line": 93,
+     "text": "if (D_800F5224 <= D_800F5228) {",
+     "size": 4,
+     "count": 1397,
+     "kind": "a == b / a < b",
+     "outcomes": "== 289, < 545, > 563 (signed); < 554, > 554 (unsigned)",
+     "operand": "b -1..3",
+     "a": "-1..3"
+    },
+    {
+     "line": 95,
+     "text": "if (((__typeof__((D_800F569C->block12Data).psx_type_[0]))(long unsigned int)(D_800F569C->block12Data).raw) != 0) {",
+     "size": 4,
+     "count": 834,
+     "kind": "against a constant",
+     "outcomes": "== 418, < 0, > 416 (signed); < 0, > 416 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4259152"
+    },
+    {
+     "line": 100,
+     "text": "if (((__typeof__((D_800F569C->block13Data).psx_type_[0]))(long unsigned int)(D_800F569C->block13Data).raw) != 0) {",
+     "size": 4,
+     "count": 834,
+     "kind": "against a constant",
+     "outcomes": "== 417, < 0, > 417 (signed); < 0, > 417 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4259168"
+    },
+    {
+     "line": 114,
+     "text": "if (D_800F5684 != 0) {",
+     "size": 4,
+     "count": 834,
+     "kind": "against a constant",
+     "outcomes": "== 198, < 209, > 427 (signed); < 0, > 636 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 130,
+     "text": "if (D_800F5218->state != 4) {",
+     "size": 2,
+     "count": 1236,
+     "kind": "against a constant",
+     "outcomes": "== 248, < 744, > 244 (signed); < 506, > 482 (unsigned)",
+     "operand": "constant 4",
+     "a": "-1..5"
+    },
+    {
+     "line": 132,
+     "text": "if (D_800F569C || var_s2) {",
+     "size": 4,
+     "count": 658,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 0, > 658 (signed); < 0, > 658 (unsigned)",
+     "operand": "constant 0",
+     "a": "1..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+80 b0",
+    "reason": "func_800D51D8 returns 0 only so the C calls func_800CE8F4, a unit static that c_5BF94 cannot call (a trap); the == 0 arm cannot be reached without that call."
+   },
+   {
+    "id": "+132 b3",
+    "reason": "var_s2 is set to 1 at function entry and nothing on the case-9 path writes it before `D_800F569C || var_s2`, so the false edge of the var_s2 test is unreachable."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40567,
+     "completion_tokens": 17598,
+     "reasoning_tokens": 15606,
+     "cost": 0.0128557,
+     "seconds": 68.3,
+     "sample": 1,
+     "conversation": "2d8132a89a341902f0aa9f3493f67defe091425b603c8285f095402d3d6cca21"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_800CE9B0.zig:55:76: error: expected unsigned integer type, found 'c_int'\n                    v.g.D_800F521C().* |= @as(u32, 1) << @as(u5, @truncate(i));\n                                                                           ^\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 42818,
+     "completion_tokens": 3964,
+     "reasoning_tokens": 1936,
+     "cost": 0.0062638,
+     "seconds": 15.7,
+     "sample": 1,
+     "conversation": "35fb30ba3b96f32bc9a7006d30773f8d5ecf9f1193057e9b74a5b07ce27be271"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CE9B0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CE9B0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 86.73967482600347,
+ "wall_seconds": 461.83701286400174,
+ "totals": {
+  "cost": 0.04114,
+  "prompt_tokens": 121571,
+  "completion_tokens": 57962,
+  "model_seconds": 236.5,
+  "check_seconds": 86.7,
+  "calls": 4,
+  "wall_seconds": 461.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 248 / root 481 / root 850, 0 mismatches"
+ }
+}

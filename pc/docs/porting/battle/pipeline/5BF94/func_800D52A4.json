@@ -1,0 +1,263 @@
+{
+ "function": "func_800D52A4",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (signed division and >> kept, wrapping, byteAt state/attraction views; direction local only read after VectorNormal writes vx..vz); spec sound",
+ "plan": {
+  "name": "func_800D52A4",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d52a4",
+  "difficulty": "M",
+  "zig_name": "func_800D52A4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D52A4",
+  "spec_file": "func_800D52A4.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D52A4(node: ?*v.func_800D2904_t) callconv(.c) void",
+  "params": [
+   [
+    "node",
+    "?*v.func_800D2904_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "VECTOR",
+   "effectAttractionView",
+   "effectMotionState",
+   "func_800D2904_t"
+  ],
+  "globals": [
+   "D_800F5618",
+   "D_800F5620"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13620,
+     "completion_tokens": 22164,
+     "reasoning_tokens": 18851,
+     "cost": 0.012444,
+     "seconds": 94.5,
+     "sample": 1,
+     "conversation": "6c84396c0ede50507adfbbc6e80e6c660132a6ddf97b2af77c33253f9cd33dde"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 8) in the C run, iteration 290\nzdiff: crashed on arguments: 0x409080 [arena] (class no-attraction)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17317,
+     "completion_tokens": 5571,
+     "reasoning_tokens": 2230,
+     "cost": 0.0045172,
+     "seconds": 20.2,
+     "sample": 1,
+     "conversation": "2134c1d823d8181ecc915b746eafec7b599653182e528e77dcd3b0000fdba290"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "null-head": "6706",
+   "no-attraction": "8322",
+   "attraction-on-target": "1092",
+   "attraction-moving": "23880"
+  },
+  "mutations": [
+   {
+    "name": "M1: drag ignored",
+    "caught": true
+   },
+   {
+    "name": "M2: attraction target Y read from targetX",
+    "caught": true
+   },
+   {
+    "name": "M3: attraction scaled by >> 11",
+    "caught": true
+   },
+   {
+    "name": "M4: negative attraction skipped",
+    "caught": true
+   },
+   {
+    "name": "M5: VectorNormal call dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: vz divided by an unsigned 16-bit mass",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 34,
+   "lines_hit": 34,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 23,
+     "text": "if (damping != 0) {",
+     "size": 4,
+     "count": 66819,
+     "kind": "against a constant",
+     "outcomes": "== 16733, < 23570, > 26516 (signed); < 0, > 50086 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 27,
+     "text": "if (direction.vx != 0 || direction.vy != 0 || direction.vz != 0) {",
+     "size": 4,
+     "count": 50086,
+     "kind": "against a constant",
+     "outcomes": "== 8326, < 19461, > 22299 (signed); < 0, > 41760 (unsigned)",
+     "operand": "constant 0",
+     "a": "-557055..557055"
+    },
+    {
+     "line": 27,
+     "text": "if (direction.vx != 0 || direction.vy != 0 || direction.vz != 0) {",
+     "size": 4,
+     "count": 8326,
+     "kind": "against a constant",
+     "outcomes": "== 4208, < 1363, > 2755 (signed); < 0, > 4118 (unsigned)",
+     "operand": "constant 0",
+     "a": "-553849..556984"
+    },
+    {
+     "line": 27,
+     "text": "if (direction.vx != 0 || direction.vy != 0 || direction.vz != 0) {",
+     "size": 4,
+     "count": 4208,
+     "kind": "against a constant",
+     "outcomes": "== 2167, < 670, > 1371 (signed); < 0, > 2041 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37092,
+     "completion_tokens": 9533,
+     "reasoning_tokens": 8387,
+     "cost": 0.0084757,
+     "seconds": 39.1,
+     "sample": 1,
+     "conversation": "dc63ae7b9eddf7e86322ec146679f2eae026a2e409aca7ff4933a6eebfa20d0f"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D52A4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D52A4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 71.65542924298643,
+ "wall_seconds": 380.1419296350068,
+ "totals": {
+  "cost": 0.02544,
+  "prompt_tokens": 68029,
+  "completion_tokens": 37268,
+  "model_seconds": 153.8,
+  "check_seconds": 71.7,
+  "calls": 3,
+  "wall_seconds": 380.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 231 / nested 510 / nested 207, 0 mismatches"
+ }
+}

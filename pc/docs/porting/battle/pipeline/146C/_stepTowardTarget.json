@@ -1,0 +1,229 @@
+{
+ "function": "_stepTowardTarget",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_stepTowardTarget",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006defc",
+  "difficulty": "S",
+  "zig_name": "stepTowardTarget",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "step_toward_target",
+  "spec_file": "stepTowardTarget.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn stepTowardTarget(targetPos: ?*v.SVECTOR, transformFlag: c_int, maxSpeed: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "targetPos",
+    "?*v.SVECTOR"
+   ],
+   [
+    "transformFlag",
+    "c_int"
+   ],
+   [
+    "maxSpeed",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12212,
+     "completion_tokens": 9767,
+     "reasoning_tokens": 7733,
+     "cost": 0.0061047,
+     "seconds": 41.3,
+     "sample": 1,
+     "conversation": "9c30eebb8fb1fc66ad0ff817bd2c9c1e85b140c9dd5c01072a73a5ceedeff7aa"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-target-y-not-positive": "6132",
+   "null-target-y-positive": "3923",
+   "valid-target-y-not-positive": "17963",
+   "valid-target-y-positive": "11982"
+  },
+  "mutations": [
+   {
+    "name": "S1: vz uses displacement.vx in the _addMinDelta call",
+    "caught": true
+   },
+   {
+    "name": "S2: the clamp tests vz, not vy",
+    "caught": true
+   },
+   {
+    "name": "S3: the clamp writes 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "S4: the return reads initialDistance, not speed",
+    "caught": true
+   },
+   {
+    "name": "S5: the _add_min call swaps step and displacement",
+    "caught": true
+   },
+   {
+    "name": "S6: the callee's result is tested as > 0 (negative results take the wrong branch)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 17,
+   "lines_hit": 17,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -2147356339, max 2147408629, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (_computeStepAndDisplacement(",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 13399, < 13327, > 13274 (signed); < 0, > 26601 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147349164..2147387955"
+    },
+    {
+     "line": 22,
+     "text": "if (vs_scratch.camera.lookAt.vy > 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 6245, < 16995, > 16760 (signed); < 0, > 33755 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147478821..2147448008"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35681,
+     "completion_tokens": 3725,
+     "reasoning_tokens": 3067,
+     "cost": 0.0054306,
+     "seconds": 16.2,
+     "sample": 1,
+     "conversation": "5d94f4a6506a55d0e089ee45076042dd3a9bb503feedd3faa0a3423ff0e01ac2"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/stepTowardTarget.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/step_toward_target.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 151.83461931900092,
+ "wall_seconds": 339.84117520400105,
+ "totals": {
+  "cost": 0.01154,
+  "prompt_tokens": 47893,
+  "completion_tokens": 13492,
+  "model_seconds": 57.5,
+  "check_seconds": 151.8,
+  "calls": 2,
+  "wall_seconds": 339.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 8 / root 17 / root 26, 0 mismatches"
+ }
+}

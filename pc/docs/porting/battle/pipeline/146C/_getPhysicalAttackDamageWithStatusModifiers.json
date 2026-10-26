@@ -1,0 +1,155 @@
+{
+ "function": "_getPhysicalAttackDamageWithStatusModifiers",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the harness does not build: <zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_get",
+ "plan": {
+  "name": "_getPhysicalAttackDamageWithStatusModifiers",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008388c",
+  "difficulty": "S",
+  "zig_name": "getPhysicalAttackDamageWithStatusModifiers",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_physical_attack_damage_with_status_modifiers",
+  "spec_file": "getPhysicalAttackDamageWithStatusModifiers.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getPhysicalAttackDamageWithStatusModifiers(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [
+   "_hitIntermediate"
+  ],
+  "globals": [
+   "D_800E82F4",
+   "D_800F1A0C"
+  ],
+  "hooks": [],
+  "statics": [
+   "_getPhysicalAttackDamage"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16432,
+     "completion_tokens": 25536,
+     "reasoning_tokens": 22993,
+     "cost": 0.0144112,
+     "seconds": 114.3,
+     "sample": 1,
+     "conversation": "6c60d99bec35f2ead957fe2b67fb406720950c6021b656baf4c1ac134c5d7914"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_getPhysicalAttackDamageWithStatusModifiers/spec1/build/spec.zig:23:18: error: type '[*]?*views_146C.vs_battle_actor' does not support field access\n    const n = tbl.len;\n              ~~~^~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\npc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has c_short: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 19398,
+     "completion_tokens": 4775,
+     "reasoning_tokens": 2211,
+     "cost": 0.0043273,
+     "seconds": 18.1,
+     "sample": 1,
+     "conversation": "084fe276316e3705e73691abc891e44834dec5e04c155aefe9a031ec8e8167d8"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_getPhysicalAttackDamageWithStatusModifiers/spec2/build/spec.zig:37:21: error: no field named 'unk3C' in struct 'views_146C.vs_battle_actor'\n        psx.put(&a1.unk3C, a2);\n                    ^~~~~\npc/build/port-pipeline/gen/146C/fn-_getPhysicalAttackDamageWithStatusModifiers/views_146C.zig:2250:36: note: struct declared here\npub const vs_battle_actor = extern struct {\n                            ~~~~~~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22346,
+     "completion_tokens": 4012,
+     "reasoning_tokens": 1365,
+     "cost": 0.0042406,
+     "seconds": 13.9,
+     "sample": 1,
+     "conversation": "fe8959d75f90a30f31e0b2701bfc6f23db4c63dfdf2cb3ee28aa61970d78f368"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_getPhysicalAttackDamageWithStatusModifiers/spec3/build/spec.zig:55:12: error: no field named 'type' in struct 'views_146C.vs_action_t_hitParams'\n        hp.@\"type\" = ctx.pick(u8, &.{ 0, 1, 2, 3 });\n           ^~~~~~~\npc/build/port-pipeline/gen/146C/fn-_getPhysicalAttackDamageWithStatusModifiers/views_146C.zig:1831:42: note: struct declared here\npub const vs_action_t_hitParams = extern struct {\n                                  ~~~~~~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [],
+  "coverage": null
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 1.5438135499935015,
+ "wall_seconds": 148.2077416889988,
+ "totals": {
+  "cost": 0.02298,
+  "prompt_tokens": 58176,
+  "completion_tokens": 34323,
+  "model_seconds": 146.3,
+  "check_seconds": 1.5,
+  "calls": 3,
+  "wall_seconds": 148.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

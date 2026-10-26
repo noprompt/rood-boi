@@ -56,14 +56,20 @@ class Table:
     def problems(self, function_addresses, compiled_units):
         """Inconsistencies with the reference ELFs (name -> address) and the
         units this build compiles; [] when the table can be used."""
-        by_address = {a: n for n, a in function_addresses.items() if a is not None}
+        # ENDING loads over BATTLE (0x80068800): two names can share an address
+        # (146C's vs_battle_copyInventoryBladeStats and ENDING's _addRenderer, 0x8006AB44).
+        by_address = {}
+        for n, a in function_addresses.items():
+            if a is not None:
+                by_address.setdefault(a, []).append(n)
         out = []
         for s in self.subsystems:
             if s.unit not in compiled_units:
                 out.append(f"{s.name}: its unit {s.unit} is not compiled in this build")
             for address, name in s.functions:
-                actual = by_address.get(address)
-                if actual != name:
+                names = by_address.get(address, [])
+                if name not in names:
+                    actual = " / ".join(sorted(names))
                     out.append(f"{s.name}: {address:#x} is {actual or 'no function'}, the table says {name}"
                                + (f" (renamed upstream? use {actual})" if actual else ""))
         return out

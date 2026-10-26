@@ -1,0 +1,249 @@
+{
+ "function": "func_8008A4FC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (unk0_16 read as byte 2 bit 0, verified); spec sound",
+ "plan": {
+  "name": "func_8008A4FC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008a4fc",
+  "difficulty": "M",
+  "zig_name": "func_8008A4FC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008A4FC",
+  "spec_file": "func_8008A4FC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008A4FC() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [
+   "_mpdRoomSection9",
+   "func_8006EBF8_t_fields"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12711,
+     "completion_tokens": 18200,
+     "reasoning_tokens": 16139,
+     "cost": 0.0103711,
+     "seconds": 78.4,
+     "sample": 1,
+     "conversation": "c4243d5dc94298f53368da17d086c177980406f990defce3d904b4d25473b0e1"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "scratch-path": "14768",
+   "mask-set": "10119",
+   "obj-bit-clear": "2598",
+   "room-null": "887",
+   "room-not-16": "1045",
+   "room-hit": "583"
+  },
+  "mutations": [
+   {
+    "name": "R1: scratch mask drops bit 16",
+    "caught": true
+   },
+   {
+    "name": "R2: scratch index shifted one too far",
+    "caught": true
+   },
+   {
+    "name": "R3: mask test drops bit 22",
+    "caught": true
+   },
+   {
+    "name": "R4: wrong room field returned",
+    "caught": true
+   },
+   {
+    "name": "R5: header bit test uses bit 1",
+    "caught": true
+   },
+   {
+    "name": "R6: the sp10 fill call dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 18,
+   "lines_hit": 18,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 16,
+     "text": "if (temp_a2 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15232, < 0, > 14768 (signed); < 0, > 14768 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..458752"
+    },
+    {
+     "line": 26,
+     "text": "if ((func_8008B764(var_a0, var_a1, var_a2)->unk0_16 & 1)",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14954, < 0, > 15046 (signed); < 0, > 15046 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 27,
+     "text": "&& (!(temp_v0_2 & 0x504000))) {",
+     "size": 4,
+     "count": 15046,
+     "kind": "against a constant",
+     "outcomes": "== 4996, < 0, > 10050 (signed); < 0, > 10050 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..5259264"
+    },
+    {
+     "line": 29,
+     "text": "if ((room != 0) && (room->unk6 == 16)) {",
+     "size": 2,
+     "count": 3278,
+     "kind": "against a constant",
+     "outcomes": "== 1151, < 1585, > 542 (signed); < 1048, > 1079 (unsigned)",
+     "operand": "constant 16",
+     "a": "-1..17"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36176,
+     "completion_tokens": 9774,
+     "reasoning_tokens": 8890,
+     "cost": 0.0085046,
+     "seconds": 40.3,
+     "sample": 1,
+     "conversation": "c078a9c89de2510c9fb91a41a4908317915b97466aa541a27e51d8d2b892bfb0"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8008A4FC.zig:22:34: error: expected type 'c_uint', found 'c_int'\n    const sec3 = c.func_8008B764(var_a0, var_a1, var_a2).?;\n                                 ^~~~~~\ngame/battle/func_8008A4FC.zig:22:34: note: unsigned 32-bit int cannot represent all possible signed 32-bit values\npc/build/boot64/zig/c_146C.zig:3742:35: note: parameter type declared here\npub extern fn func_8008B764(arg0: u_int, arg1: u_int, arg2: c_int) ?*_mpdRoomSection3;\n                                  ^~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37463,
+     "completion_tokens": 1512,
+     "reasoning_tokens": 543,
+     "cost": 0.0045023,
+     "seconds": 6.3,
+     "sample": 1,
+     "conversation": "d6783255d09a4e14125659b81bbe6daa26ee7aadf55c890e82a2dd55f35d4a90"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008A4FC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008A4FC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 81.10404126700269,
+ "wall_seconds": 206.42048013100066,
+ "totals": {
+  "cost": 0.02338,
+  "prompt_tokens": 86350,
+  "completion_tokens": 29486,
+  "model_seconds": 125.0,
+  "check_seconds": 81.1,
+  "calls": 3,
+  "wall_seconds": 206.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 86 / root 125 / root 175, 0 mismatches"
+ }
+}

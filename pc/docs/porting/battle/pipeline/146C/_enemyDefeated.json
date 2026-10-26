@@ -1,0 +1,250 @@
+{
+ "function": "_enemyDefeated",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_enemyDefeated",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006c1cc",
+  "difficulty": "S",
+  "zig_name": "enemyDefeated",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "enemy_defeated",
+  "spec_file": "enemyDefeated.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn enemyDefeated(arg0: c_int, actorId: c_int, arg2: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "actorId",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12107,
+     "completion_tokens": 11415,
+     "reasoning_tokens": 9832,
+     "cost": 0.0069182,
+     "seconds": 47.6,
+     "sample": 1,
+     "conversation": "c1690b7264c9b99bf21714f5caafcb3a0a2a21c3ce17d00dda336c9d191b37e9"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "dead-unk27": "7562",
+   "already-defeated": "7452",
+   "kill": "2967",
+   "arg0-set": "11683",
+   "no-kill": "336"
+  },
+  "mutations": [
+   {
+    "name": "E1: kill test uses || instead of &&",
+    "caught": true
+   },
+   {
+    "name": "E2: wrong constant for the 0x80 dead check",
+    "caught": true
+   },
+   {
+    "name": "E3: weapon kill streak reset with 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "E4: defeated store moved across _dropLoot",
+    "caught": true
+   },
+   {
+    "name": "E5: defeated stored as 2",
+    "caught": true
+   },
+   {
+    "name": "E6: actor looked up at slot 0, not actorId",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if ((enemy->unk27 == 0x80) || (enemy->defeated != 0)) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7562, < 0, > 22438 (signed); < 12431, > 10007 (unsigned)",
+     "operand": "constant -128",
+     "a": "-128..127"
+    },
+    {
+     "line": 4,
+     "text": "if ((enemy->unk27 == 0x80) || (enemy->defeated != 0)) {",
+     "size": 1,
+     "count": 22438,
+     "kind": "against a constant",
+     "outcomes": "== 14986, < 4336, > 3116 (signed); < 0, > 7452 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 8,
+     "text": "if ((arg2 != 0) && (arg0 == 0)) {",
+     "size": 4,
+     "count": 14986,
+     "kind": "against a constant",
+     "outcomes": "== 1481, < 6750, > 6755 (signed); < 0, > 13505 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 8,
+     "text": "if ((arg2 != 0) && (arg0 == 0)) {",
+     "size": 4,
+     "count": 13505,
+     "kind": "against a constant",
+     "outcomes": "== 2967, < 5201, > 5337 (signed); < 0, > 10538 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35482,
+     "completion_tokens": 2633,
+     "reasoning_tokens": 2226,
+     "cost": 0.0048647,
+     "seconds": 12.5,
+     "sample": 1,
+     "conversation": "03c6f3a7c41b80f84c18a301ea92bb99b7db56ebdf9a7aa99af80915f0670034"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/enemyDefeated.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/enemy_defeated.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 247.21204166000098,
+ "wall_seconds": 807.1175378789994,
+ "totals": {
+  "cost": 0.01178,
+  "prompt_tokens": 47589,
+  "completion_tokens": 14048,
+  "model_seconds": 60.1,
+  "check_seconds": 247.2,
+  "calls": 2,
+  "wall_seconds": 807.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

@@ -1,0 +1,260 @@
+{
+ "function": "_addMinDelta",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_addMinDelta",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006d97c",
+  "difficulty": "S",
+  "zig_name": "addMinDelta",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "add_min_delta",
+  "spec_file": "addMinDelta.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn addMinDelta(base: c_int, a: c_int, b: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "base",
+    "c_int"
+   ],
+   [
+    "a",
+    "c_int"
+   ],
+   [
+    "b",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11114,
+     "completion_tokens": 7699,
+     "reasoning_tokens": 6386,
+     "cost": 0.0049609,
+     "seconds": 33.9,
+     "sample": 1,
+     "conversation": "1f81edc1723b39723fba6e9cd12562b3234b33defbbf4f84fbbaf45f2ec9c44c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "neg-b-a-ge-b-a-nonzero": "14884",
+   "neg-b-a-ge-b-a-zero": "755",
+   "neg-b-a-lt-b": "3179",
+   "nonneg-b-ge-a-a-nonzero": "15814",
+   "else": "5368"
+  },
+  "mutations": [
+   {
+    "name": "M1: the a != 0 test becomes a > 0 (negative a is lost)",
+    "caught": true
+   },
+   {
+    "name": "M2: the b >= a test becomes b <= a",
+    "caught": true
+   },
+   {
+    "name": "M3: unsigned slip in the sign test (b < 0 never holds)",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong constant in the final else (b + 1)",
+    "caught": true
+   },
+   {
+    "name": "M5: the a-add in the b >= a branch dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: the b < 0, a < b branch adds a instead of b",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -536851824, max 536833578, unsigned 833..4294889089, seen negative, never zero"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "32-bit: min -1073741824, max 1073741824, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -1073741824, max 1073741824, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (b < 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 2160, < 18818, > 19022 (signed); < 0, > 37840 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1073741824..1073741824"
+    },
+    {
+     "line": 3,
+     "text": "if (a >= b) {",
+     "size": 4,
+     "count": 18818,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5016, < 3179, > 10623 (signed); < 10612, > 3190 (unsigned)",
+     "operand": "b -1073741824..-1",
+     "a": "-1073741824..1073741824"
+    },
+    {
+     "line": 4,
+     "text": "if (a != 0) {",
+     "size": 4,
+     "count": 15639,
+     "kind": "against a constant",
+     "outcomes": "== 755, < 8206, > 6678 (signed); < 0, > 14884 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1073741824..1073741824"
+    },
+    {
+     "line": 12,
+     "text": "} else if ((b >= a) && (a != 0)) {",
+     "size": 4,
+     "count": 21182,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5669, < 3988, > 11525 (signed); < 11603, > 3910 (unsigned)",
+     "operand": "b -1073741824..1073741824",
+     "a": "0..1073741824"
+    },
+    {
+     "line": 12,
+     "text": "} else if ((b >= a) && (a != 0)) {",
+     "size": 4,
+     "count": 17194,
+     "kind": "against a constant",
+     "outcomes": "== 1380, < 7615, > 8199 (signed); < 0, > 15814 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1073741824..1073741824"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34597,
+     "completion_tokens": 639,
+     "reasoning_tokens": 336,
+     "cost": 0.0037792,
+     "seconds": 3.5,
+     "sample": 1,
+     "conversation": "07de606bbe13db6baa2bb783de1f2947eecba8d9109ee932a1990e333a87c195"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/addMinDelta.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/add_min_delta.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 111.86537103800038,
+ "wall_seconds": 269.2550139699997,
+ "totals": {
+  "cost": 0.00874,
+  "prompt_tokens": 45711,
+  "completion_tokens": 8338,
+  "model_seconds": 37.4,
+  "check_seconds": 111.9,
+  "calls": 2,
+  "wall_seconds": 269.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 135 / nested 261 / nested 1818, 0 mismatches"
+ }
+}

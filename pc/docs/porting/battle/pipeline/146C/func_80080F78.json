@@ -1,0 +1,260 @@
+{
+ "function": "func_80080F78",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80080F78",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80080f78",
+  "difficulty": "S",
+  "zig_name": "func_80080F78",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80080F78",
+  "spec_file": "func_80080F78.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80080F78(action: ?*v.vs_action_t, arg1: ?*v.vs_battle_actor2, arg2: c_int, arg3: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14067,
+     "completion_tokens": 12724,
+     "reasoning_tokens": 10399,
+     "cost": 0.0077687,
+     "seconds": 50.9,
+     "sample": 1,
+     "conversation": "d2af75690c6f8852937962b7b2fed7593168ba1bfff53cfb2bda1af632133bdd"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "spell": "10304",
+   "no-blade": "6568",
+   "both": "5887",
+   "class-only": "2947",
+   "armor-only": "2883",
+   "neither": "1411"
+  },
+  "mutations": [
+   {
+    "name": "F1: arg2 tested with > 0 (negative class indices skipped)",
+    "caught": true
+   },
+   {
+    "name": "F2: wrong mask to the class change",
+    "caught": true
+   },
+   {
+    "name": "F3: armor index off by one",
+    "caught": true
+   },
+   {
+    "name": "F4: temp_s1 points at the grip, not the blade",
+    "caught": true
+   },
+   {
+    "name": "F5: the blade id guard dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: the affinity recalculation dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (action->type != actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 10304, < 2792, > 16904 (signed); < 2792, > 16904 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..14"
+    },
+    {
+     "line": 4,
+     "text": "if (arg1->weapon.blade.id != 0) {",
+     "size": 2,
+     "count": 19696,
+     "kind": "against a constant",
+     "outcomes": "== 6568, < 7597, > 5531 (signed); < 0, > 13128 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32755"
+    },
+    {
+     "line": 5,
+     "text": "if (arg2 != 0) {",
+     "size": 4,
+     "count": 13128,
+     "kind": "against a constant",
+     "outcomes": "== 4294, < 3877, > 4957 (signed); < 0, > 8834 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 8,
+     "text": "if (arg3 != 0) {",
+     "size": 4,
+     "count": 13128,
+     "kind": "against a constant",
+     "outcomes": "== 4358, < 3937, > 4833 (signed); < 0, > 8770 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37547,
+     "completion_tokens": 3252,
+     "reasoning_tokens": 2697,
+     "cost": 0.0053807,
+     "seconds": 13.6,
+     "sample": 1,
+     "conversation": "c7981bb2beeaef01672f9ee18db6bd6f3cf65c1433eb9cee5c5b5075928ea9fd"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80080F78.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80080F78.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 81.94400407399917,
+ "wall_seconds": 184.31366377599988,
+ "totals": {
+  "cost": 0.01315,
+  "prompt_tokens": 51614,
+  "completion_tokens": 15976,
+  "model_seconds": 64.5,
+  "check_seconds": 81.9,
+  "calls": 2,
+  "wall_seconds": 184.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 9, 0 mismatches"
+ }
+}

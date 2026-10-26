@@ -1,0 +1,289 @@
+{
+ "function": "_getActionCost",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage _getActionCost: branches 29/30 (96.7%), conditions not measured (GCC < 14: branch",
+ "plan": {
+  "name": "_getActionCost",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008574c",
+  "difficulty": "M",
+  "zig_name": "getActionCost",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_action_cost",
+  "spec_file": "getActionCost.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getActionCost(actionId: c_uint, actor: ?*v.vs_battle_actor2, updateStat: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "actionId",
+    "c_uint"
+   ],
+   [
+    "actor",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "updateStat",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_main_actions"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15006,
+     "completion_tokens": 27415,
+     "reasoning_tokens": 25102,
+     "cost": 0.0152081,
+     "seconds": 116.3,
+     "sample": 1,
+     "conversation": "578fa7ea7d471e5c390a25a88d231d896338098789e9b99b1dc9c3f1bb95618f"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_getActionCost/spec1/build/spec.zig:43:50: error: expected type 'c_uint', found '@TypeOf(null)'\n    if (defaultType and ctx.chance(4)) return .{ null, id, upd };\n                                                 ^~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17592,
+     "completion_tokens": 4128,
+     "reasoning_tokens": 1811,
+     "cost": 0.0038232,
+     "seconds": 15.6,
+     "sample": 1,
+     "conversation": "47f7a5adf9bb336d263092bc0ada061dd537e3895d0ea278e38c8e58430a0339"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _getActionCost: branches 29/30 (96.7%), conditions not measured (GCC < 14: branch coverage only), lines 67/67\n  UNCOVERED +28 b4: branch never taken: `switch (actor->weapon.actionType) {`\n  note: waivers no longer needed: +? b?\ncoverage _getActionCost: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (actor->weapon.actionType) {` (+28): one way out of this test (+28 b4) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function._getActionCost.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "no-actor": "3718",
+   "other-type": "11410",
+   "spell": "4952",
+   "ability": "4123",
+   "ability-bonus": "1087",
+   "break-art": "4944",
+   "weapon-pp": "5057",
+   "base-attack": "4709"
+  },
+  "mutations": [
+   {
+    "name": "A1: statValue >= cost becomes >",
+    "caught": true
+   },
+   {
+    "name": "A2: the ability bound test on a signed value",
+    "caught": true
+   },
+   {
+    "name": "A3: bonus threshold 11, not 10",
+    "caught": true
+   },
+   {
+    "name": "A4: the spent stat is not subtracted",
+    "caught": true
+   },
+   {
+    "name": "A5: break art stores its HP into MP",
+    "caught": true
+   },
+   {
+    "name": "A6: the ability bonus divided by 11",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 30,
+   "branches_hit": 29,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 67,
+   "lines_hit": 67,
+   "uncovered": [
+    {
+     "id": "+28 b4",
+     "line": 28,
+     "text": "switch (actor->weapon.actionType) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min 0, max 255, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -2147342959, max 2147471025, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "switch (actionType) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 24872, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..7"
+    },
+    {
+     "line": 28,
+     "text": "switch (actor->weapon.actionType) {",
+     "size": 4,
+     "count": 4928,
+     "kind": "switch",
+     "outcomes": "== 4928, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "1..4"
+    },
+    {
+     "line": 50,
+     "text": "if (actionType == actionTypeAbility) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 6225, < 11198, > 22577 (signed); < 11198, > 22577 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..7"
+    },
+    {
+     "line": 51,
+     "text": "if (D_800F19CC->unk4 >= 10) {",
+     "size": 4,
+     "count": 6225,
+     "kind": "against a constant",
+     "outcomes": "== 329, < 2594, > 3302 (signed); < 345, > 5551 (unsigned)",
+     "operand": "constant 9",
+     "a": "-2147483648..2145353237"
+    },
+    {
+     "line": 52,
+     "text": "if ((actionId - 22) < 18) {",
+     "size": 4,
+     "count": 5551,
+     "kind": "against a constant",
+     "outcomes": "== 465, < 1797, > 3289 (signed); < 622, > 4464 (unsigned)",
+     "operand": "constant 17",
+     "a": "-22..233"
+    },
+    {
+     "line": 57,
+     "text": "if (statValue >= cost) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 9126, < 24479, > 6395 (signed); < 17084, > 13790 (unsigned)",
+     "operand": "b 0..429483877",
+     "a": "-65435..65535"
+    },
+    {
+     "line": 58,
+     "text": "if (actionType == actionTypeBreakArt) {",
+     "size": 4,
+     "count": 15521,
+     "kind": "against a constant",
+     "outcomes": "== 3583, < 5494, > 6444 (signed); < 5494, > 6444 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..7"
+    },
+    {
+     "line": 64,
+     "text": "if (actionType == actionTypeAbility) {",
+     "size": 4,
+     "count": 24479,
+     "kind": "against a constant",
+     "outcomes": "== 4868, < 7061, > 12550 (signed); < 7061, > 12550 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..7"
+    },
+    {
+     "line": 72,
+     "text": "if (updateStat != 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 6767, < 16607, > 16626 (signed); < 0, > 33233 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147342959..2147471025"
+    },
+    {
+     "line": 73,
+     "text": "switch (actionType) {",
+     "size": 4,
+     "count": 33233,
+     "kind": "switch",
+     "outcomes": "== 20609, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..7"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 23.00722805999976,
+ "wall_seconds": 155.27415977300006,
+ "totals": {
+  "cost": 0.01903,
+  "prompt_tokens": 32598,
+  "completion_tokens": 31543,
+  "model_seconds": 131.9,
+  "check_seconds": 23.0,
+  "calls": 2,
+  "wall_seconds": 155.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

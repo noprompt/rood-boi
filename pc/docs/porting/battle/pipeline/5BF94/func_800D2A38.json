@@ -1,0 +1,211 @@
+{
+ "function": "func_800D2A38",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful (all int fields, wrapping, ONE=4096); spec sound",
+ "plan": {
+  "name": "func_800D2A38",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d2a38",
+  "difficulty": "M",
+  "zig_name": "func_800D2A38",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D2A38",
+  "spec_file": "func_800D2A38.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D2A38(arg0: ?*v.func_800FA098_arg1, arg1: ?*v.func_800D2904_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.func_800FA098_arg1"
+   ],
+   [
+    "arg1",
+    "?*v.func_800D2904_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_800D2904_t",
+   "func_800FA098_arg1"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12904,
+     "completion_tokens": 7938,
+     "reasoning_tokens": 6217,
+     "cost": 0.0052594,
+     "seconds": 33.4,
+     "sample": 1,
+     "conversation": "d2525388b90880925ea733ef22ef4f57ace34155326c20656df6866ef69d39dc"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "rotate": "14865",
+   "copy": "15135"
+  },
+  "mutations": [
+   {
+    "name": "F1: rotate test uses the wrong flag bit",
+    "caught": true
+   },
+   {
+    "name": "F2: wrong scale constant on the X sum",
+    "caught": true
+   },
+   {
+    "name": "F3: copy path drops the vz store",
+    "caught": true
+   },
+   {
+    "name": "F4: unk10 reads unk98.vz instead of unk98.vy",
+    "caught": true
+   },
+   {
+    "name": "F5: rotation call dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: copy path zero-extends vy (unsigned slip)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 10,
+   "lines_hit": 10,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (arg0->flags & 0x40000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15135, < 0, > 14865 (signed); < 0, > 14865 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..262144"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36376,
+     "completion_tokens": 2956,
+     "reasoning_tokens": 2455,
+     "cost": 0.0051156,
+     "seconds": 12.0,
+     "sample": 1,
+     "conversation": "cf5d90c432d58b7f2050f28d8d8f29d482ce7b4305d165e661a627540e6301d5"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D2A38.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D2A38.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 64.75396361599996,
+ "wall_seconds": 347.6495153080032,
+ "totals": {
+  "cost": 0.01037,
+  "prompt_tokens": 49280,
+  "completion_tokens": 10894,
+  "model_seconds": 45.4,
+  "check_seconds": 64.8,
+  "calls": 2,
+  "wall_seconds": 347.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 1296 / nested 2097 / nested 909, 0 mismatches"
+ }
+}

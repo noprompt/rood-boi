@@ -1,0 +1,221 @@
+{
+ "function": "_updateWeaponKillStreak",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_updateWeaponKillStreak",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006c164",
+  "difficulty": "S",
+  "zig_name": "updateWeaponKillStreak",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "update_weapon_kill_streak",
+  "spec_file": "updateWeaponKillStreak.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn updateWeaponKillStreak(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15121,
+     "completion_tokens": 6966,
+     "reasoning_tokens": 5413,
+     "cost": 0.0049951,
+     "seconds": 28.6,
+     "sample": 1,
+     "conversation": "6b6f112112dc7f8c43cf9221e7f741f2a453071c670a7cffde8134ca08bc6308"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "early-return": "24092",
+   "category-changes": "2905",
+   "streak-counts": "1341",
+   "streak-capped": "1662"
+  },
+  "mutations": [
+   {
+    "name": "W1: the early return fires one action too late (> for >=)",
+    "caught": true
+   },
+   {
+    "name": "W2: the streak cap is inclusive (<= for <)",
+    "caught": true
+   },
+   {
+    "name": "W3: the reset to 0 on a category change is dropped",
+    "caught": true
+   },
+   {
+    "name": "W4: category read from the grip, not the blade",
+    "caught": true
+   },
+   {
+    "name": "W5: the streak counts by two",
+    "caught": true
+   },
+   {
+    "name": "W6: the actionIndex guard is dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147315330, max 2147415618, unsigned 342740..4294887642, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (D_800F19CC->unk8.actionIndex >= 40) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2928, < 13517, > 13555 (signed); < 2980, > 24092 (unsigned)",
+     "operand": "constant 39",
+     "a": "-32767..32761"
+    },
+    {
+     "line": 8,
+     "text": "if (vs_main_scoredata.weaponKillStreakBladeCategory != actor->weapon.blade.category) {",
+     "size": 1,
+     "count": 5908,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3003, < 1482, > 1423 (signed); < 1487, > 1418 (unsigned)",
+     "operand": "b -128..127",
+     "a": "-128..127"
+    },
+    {
+     "line": 13,
+     "text": "} else if (vs_main_scoredata.weaponKillStreak < 100) {",
+     "size": 1,
+     "count": 3003,
+     "kind": "against a constant",
+     "outcomes": "== 275, < 2066, > 662 (signed); < 1066, > 1662 (unsigned)",
+     "operand": "constant 99",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38564,
+     "completion_tokens": 2613,
+     "reasoning_tokens": 2205,
+     "cost": 0.0051629,
+     "seconds": 11.4,
+     "sample": 1,
+     "conversation": "d39beefdd2299ce7751f5fede784c1cf54427a7a2092b15b87c597a381b8e215"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/updateWeaponKillStreak.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/update_weapon_kill_streak.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 97.13965850500063,
+ "wall_seconds": 225.40900172799957,
+ "totals": {
+  "cost": 0.01016,
+  "prompt_tokens": 53685,
+  "completion_tokens": 9579,
+  "model_seconds": 40.0,
+  "check_seconds": 97.1,
+  "calls": 2,
+  "wall_seconds": 225.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

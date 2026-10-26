@@ -1,0 +1,424 @@
+{
+ "function": "_triggerWeaponAffinityChange",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; element outside 0..6 undefined in the C (port: 0), waiver justified; spec sound",
+ "plan": {
+  "name": "_triggerWeaponAffinityChange",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800807e8",
+  "difficulty": "M",
+  "zig_name": "triggerWeaponAffinityChange",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "trigger_weapon_affinity_change",
+  "spec_file": "triggerWeaponAffinityChange.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn triggerWeaponAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_battle_uiEquipment, affinity: c_int, arg3: c_int, suppressNotification: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "equipment",
+    "?*v.vs_battle_uiEquipment"
+   ],
+   [
+    "affinity",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "suppressNotification",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_battle_uiEquipment"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13770,
+     "completion_tokens": 14672,
+     "reasoning_tokens": 12619,
+     "cost": 0.008713,
+     "seconds": 63.7,
+     "sample": 1,
+     "conversation": "4759a646e17632da231aac146199a8c467d50deb469197214ab209d5b137666b"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _triggerWeaponAffinityChange: branches 37/38 (97.4%), conditions not measured (GCC < 14: branch coverage only), lines 66/66\n  UNCOVERED +13 b7: branch never taken: `switch (affinity) {`\n  FLAG +108 eq: boundary equality occurred only 7 time(s) in 4998 (32-bit compare, b 20..76: both sides seen; a port's `<` for `<=` could pass): `if ((((equipment->affinities[opposingAffinity] + 100) / 4) + 20) >= randVal) {`\n  note: waivers no longer needed: switch default (no case matches)\ncoverage _triggerWeaponAffinityChange: FAILED (threshold 100%: 1 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `switch (affinity) {` (+13): one way out of this test (+13 b7) was never taken; add inputs that take it.\n- `if ((((equipment->affinities[opposingAffinity] + 100) / 4) + 20) >= randVal) {` (+108): the two sides of this ordered compare were equal 7 time(s) in 4998. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function._triggerWeaponAffinityChange.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16375,
+     "completion_tokens": 4571,
+     "reasoning_tokens": 2351,
+     "cost": 0.003923,
+     "seconds": 18.8,
+     "sample": 1,
+     "conversation": "9abf16c3c9bffcfdbc93673d2bb2586855ae45862145e30efef4d921e2d448fc"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "capped": "6188",
+   "target-zero": "3379",
+   "target-nonzero-notify": "3395",
+   "target-nonzero-silent": "17038"
+  },
+  "mutations": [
+   {
+    "name": "A1: cap tested with > instead of >=",
+    "caught": true
+   },
+   {
+    "name": "A2: physical decrement hits the target",
+    "caught": true
+   },
+   {
+    "name": "A3: roll rejection bound <= instead of <",
+    "caught": true
+   },
+   {
+    "name": "A4: shift instead of divide on a negative sum",
+    "caught": true
+   },
+   {
+    "name": "A5: target-zero loop stops before affinities[6]",
+    "caught": true
+   },
+   {
+    "name": "A6: wrong opposing affinity for case 1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 38,
+   "branches_hit": 37,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 66,
+   "lines_hit": 66,
+   "uncovered": [
+    {
+     "id": "+13 b7",
+     "line": 13,
+     "text": "switch (affinity) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147468247, max 2147307067, unsigned 0..4294810596, seen zero/negative"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147468476, max 2147472673, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147294367, max 2147464486, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (action->hitParams[0].affinity != 0) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9942, < 11397, > 8661 (signed); < 0, > 20058 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..96"
+    },
+    {
+     "line": 13,
+     "text": "switch (affinity) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 30000, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6"
+    },
+    {
+     "line": 55,
+     "text": "if (equipment->affinities[targetAffinity] >= 100) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2625, < 21187, > 6188 (signed); < 2398, > 24977 (unsigned)",
+     "operand": "constant 99",
+     "a": "-128..127"
+    },
+    {
+     "line": 61,
+     "text": "if ((70 - ((equipment->affinities[targetAffinity] + 100) / 4)) < randVal) {",
+     "size": 4,
+     "count": 23812,
+     "kind": "a == b / a < b",
+     "outcomes": "== 219, < 13301, > 10292 (signed); < 13301, > 10292 (unsigned)",
+     "operand": "b 21..77",
+     "a": "0..255"
+    },
+    {
+     "line": 67,
+     "text": "if (suppressNotification == 0) {",
+     "size": 4,
+     "count": 13520,
+     "kind": "against a constant",
+     "outcomes": "== 2273, < 5547, > 5700 (signed); < 0, > 11247 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147292674..2146431669"
+    },
+    {
+     "line": 71,
+     "text": "if (targetAffinity == 0) {",
+     "size": 4,
+     "count": 13520,
+     "kind": "against a constant",
+     "outcomes": "== 1914, < 0, > 11606 (signed); < 0, > 11606 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..6"
+    },
+    {
+     "line": 72,
+     "text": "for (i = 1; i < 7; ++i) {",
+     "size": 4,
+     "count": 13398,
+     "kind": "against a constant",
+     "outcomes": "== 1914, < 9570, > 1914 (signed); < 9570, > 1914 (unsigned)",
+     "operand": "constant 6",
+     "a": "1..7"
+    },
+    {
+     "line": 73,
+     "text": "if (equipment->affinities[i] > -100) {",
+     "size": 1,
+     "count": 11484,
+     "kind": "against a constant",
+     "outcomes": "== 495, < 1471, > 9518 (signed); < 4543, > 6446 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 77,
+     "text": "if ((((equipment->affinities[i] + 100) / 4) + 20) >= randVal) {",
+     "size": 4,
+     "count": 10013,
+     "kind": "a == b / a < b",
+     "outcomes": "== 393, < 3986, > 5634 (signed); < 3986, > 5634 (unsigned)",
+     "operand": "b 20..76",
+     "a": "0..255"
+    },
+    {
+     "line": 81,
+     "text": "if (suppressNotification == 0) {",
+     "size": 4,
+     "count": 4379,
+     "kind": "against a constant",
+     "outcomes": "== 713, < 1817, > 1849 (signed); < 0, > 3666 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147292674..2138969497"
+    },
+    {
+     "line": 90,
+     "text": "if (equipment->affinities[physical] > -100) {",
+     "size": 1,
+     "count": 11606,
+     "kind": "against a constant",
+     "outcomes": "== 507, < 1471, > 9628 (signed); < 4497, > 6602 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 94,
+     "text": "if ((((equipment->affinities[physical] + 100) / 4) + 20) >= randVal) {",
+     "size": 4,
+     "count": 10135,
+     "kind": "a == b / a < b",
+     "outcomes": "== 398, < 4064, > 5673 (signed); < 4064, > 5673 (unsigned)",
+     "operand": "b 20..76",
+     "a": "0..255"
+    },
+    {
+     "line": 98,
+     "text": "if (suppressNotification == 0) {",
+     "size": 4,
+     "count": 4462,
+     "kind": "against a constant",
+     "outcomes": "== 769, < 1839, > 1854 (signed); < 0, > 3693 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146689219..2146431669"
+    },
+    {
+     "line": 104,
+     "text": "if (equipment->affinities[opposingAffinity] > -100) {",
+     "size": 1,
+     "count": 11606,
+     "kind": "against a constant",
+     "outcomes": "== 526, < 1443, > 9637 (signed); < 4580, > 6500 (unsigned)",
+     "operand": "constant -99",
+     "a": "-128..127"
+    },
+    {
+     "line": 108,
+     "text": "if ((((equipment->affinities[opposingAffinity] + 100) / 4) + 20) >= randVal) {",
+     "size": 4,
+     "count": 10163,
+     "kind": "a == b / a < b",
+     "outcomes": "== 429, < 4033, > 5701 (signed); < 4033, > 5701 (unsigned)",
+     "operand": "b 20..76",
+     "a": "0..255"
+    },
+    {
+     "line": 112,
+     "text": "if (suppressNotification == 0) {",
+     "size": 4,
+     "count": 4462,
+     "kind": "against a constant",
+     "outcomes": "== 750, < 1802, > 1910 (signed); < 0, > 3712 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145825422..2146038195"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+13 b7",
+    "reason": "The switch's default edge needs an argument affinity outside 0..6 with hitParams[0].affinity 0. Then targetAffinity, physical and opposingAffinity are never assigned (indeterminate, UB), and the C indexes equipment->affinities with stack garbage. No defined behaviour exists to compare against, so the default edge cannot be driven by a valid input."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37197,
+     "completion_tokens": 7736,
+     "reasoning_tokens": 6180,
+     "cost": 0.0075877,
+     "seconds": 31.4,
+     "sample": 1,
+     "conversation": "a59605d0fcdc510d83484c4df99eefab52c63226231ef057dd3c4890c07f682e"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/triggerWeaponAffinityChange.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/trigger_weapon_affinity_change.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 125.73563424299937,
+ "wall_seconds": 240.240876285,
+ "totals": {
+  "cost": 0.02022,
+  "prompt_tokens": 67342,
+  "completion_tokens": 26979,
+  "model_seconds": 113.9,
+  "check_seconds": 125.7,
+  "calls": 3,
+  "wall_seconds": 240.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / nested 3 / nested 6, 0 mismatches"
+ }
+}

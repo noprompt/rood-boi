@@ -1,0 +1,252 @@
+{
+ "function": "func_8006FBCC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8006FBCC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006fbcc",
+  "difficulty": "S",
+  "zig_name": "func_8006FBCC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006FBCC",
+  "spec_file": "func_8006FBCC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006FBCC(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13259,
+     "completion_tokens": 8314,
+     "reasoning_tokens": 6907,
+     "cost": 0.0054829,
+     "seconds": 34.3,
+     "sample": 1,
+     "conversation": "cdd1af8f987999c4e590508ec45939d07e184e8f4d3ffb3dac733332b83036aa"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives i32 where the C prototype has c_uint: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_8006FBCC/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15008,
+     "completion_tokens": 2077,
+     "reasoning_tokens": 667,
+     "cost": 0.0025393,
+     "seconds": 7.9,
+     "sample": 1,
+     "conversation": "de6fd2a1ff5a89fca12864b973c53c0faf2d8b011626d1c3e9ab4f325b3585b8"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "target-in-loop": "9971",
+   "target-out-of-loop": "20029"
+  },
+  "mutations": [
+   {
+    "name": "F1: loop stops at 15 (index 15 skipped)",
+    "caught": true
+   },
+   {
+    "name": "F2: the second flag test is bit 1, not bit 0",
+    "caught": true
+   },
+   {
+    "name": "F3: wrong mask for the excluded flag (bit 23, not 24)",
+    "caught": true
+   },
+   {
+    "name": "F4: wrong constant for vs_gametime_tickspeed",
+    "caught": true
+   },
+   {
+    "name": "F5: D_800F18FC store dropped",
+    "caught": true
+   },
+   {
+    "name": "F6: D_800F18FC store moved across func_8007B10C",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147482839, max 2147272806, unsigned 207224..4294712613, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 16; ++i) {",
+     "size": 4,
+     "count": 510000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 450000, > 30000 (signed); < 450000, > 30000 (unsigned)",
+     "operand": "constant 15",
+     "a": "0..16"
+    },
+    {
+     "line": 5,
+     "text": "if ((i != D_800F19CC->unk8.unk4.unk0.targetActor)",
+     "size": 4,
+     "count": 480000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 7414, < 421736, > 50850 (signed); < 421736, > 50850 (unsigned)",
+     "operand": "b 0..255",
+     "a": "0..15"
+    },
+    {
+     "line": 6,
+     "text": "&& !(func_800A0BE0(i) & 0x01000000) && (func_800A0BE0(i) & 1)) {",
+     "size": 4,
+     "count": 472586,
+     "kind": "against a constant",
+     "outcomes": "== 236636, < 0, > 235950 (signed); < 0, > 235950 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..16777216"
+    },
+    {
+     "line": 6,
+     "text": "&& !(func_800A0BE0(i) & 0x01000000) && (func_800A0BE0(i) & 1)) {",
+     "size": 4,
+     "count": 236636,
+     "kind": "against a constant",
+     "outcomes": "== 118339, < 0, > 118297 (signed); < 0, > 118297 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36724,
+     "completion_tokens": 3087,
+     "reasoning_tokens": 2548,
+     "cost": 0.0052159,
+     "seconds": 14.3,
+     "sample": 1,
+     "conversation": "3c34086970bac74284322b35782e1d563c7405d5ea48d473484cf67341ae9a0d"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006FBCC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006FBCC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 168.4694250699995,
+ "wall_seconds": 300.3180933450003,
+ "totals": {
+  "cost": 0.01324,
+  "prompt_tokens": 64991,
+  "completion_tokens": 13478,
+  "model_seconds": 56.5,
+  "check_seconds": 168.5,
+  "calls": 3,
+  "wall_seconds": 300.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 3 / nested 6 / nested 15, 0 mismatches"
+ }
+}

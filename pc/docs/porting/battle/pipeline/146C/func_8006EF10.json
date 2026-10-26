@@ -1,0 +1,212 @@
+{
+ "function": "func_8006EF10",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8006EF10",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006ef10",
+  "difficulty": "S",
+  "zig_name": "func_8006EF10",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8006EF10",
+  "spec_file": "func_8006EF10.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8006EF10() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11958,
+     "completion_tokens": 4282,
+     "reasoning_tokens": 2998,
+     "cost": 0.0033368,
+     "seconds": 18.2,
+     "sample": 1,
+     "conversation": "4ffa06bdee3d07b11e2e15086ec15efaacb43dcdd9cf9f2ad64b63e08c57432a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M2: case 3 also catches mode 4: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 29, fault address 0x2c0c [NULL+0x2c0c: a field of a null pointer]\nzdiff: crashed on arguments: (class other-modes)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13450,
+     "completion_tokens": 1875,
+     "reasoning_tokens": 695,
+     "cost": 0.0022825,
+     "seconds": 7.4,
+     "sample": 1,
+     "conversation": "93d61ce6927d8e6de8fd6705f866366706a8f46e5b5123240f4780b1a68c31fc"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "low-modes": "3773",
+   "high-modes": "3675",
+   "other-modes": "22552"
+  },
+  "mutations": [
+   {
+    "name": "M1: case 0/1 stores 0x700, not 0x600",
+    "caught": true
+   },
+   {
+    "name": "M2: case 3 also catches mode 4",
+    "caught": true
+   },
+   {
+    "name": "M3: mode 1 dropped (its label is wrong)",
+    "caught": true
+   },
+   {
+    "name": "M4: high modes store to unk2C0E, not unk2C0C",
+    "caught": true
+   },
+   {
+    "name": "M5: switch reads values.mode, not delta.mode",
+    "caught": true
+   },
+   {
+    "name": "M6: dropped store in the high-mode case",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 3,
+   "branches_hit": 3,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 2,
+     "text": "switch (vs_battle_cameraCurrentSpherical.delta.mode) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 7448, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35430,
+     "completion_tokens": 932,
+     "reasoning_tokens": 618,
+     "cost": 0.004009,
+     "seconds": 4.9,
+     "sample": 1,
+     "conversation": "9138e77db0d5ac45991cb830f38c3a3d8e517ce87c7bbf295ec02aae3b50d38c"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8006EF10.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006EF10.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 108.92058197300139,
+ "wall_seconds": 230.59052382700065,
+ "totals": {
+  "cost": 0.00963,
+  "prompt_tokens": 60838,
+  "completion_tokens": 7089,
+  "model_seconds": 30.5,
+  "check_seconds": 108.9,
+  "calls": 3,
+  "wall_seconds": 230.6
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 6 / nested 18 / nested 30, 0 mismatches"
+ }
+}

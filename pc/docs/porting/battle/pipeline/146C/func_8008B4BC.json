@@ -1,0 +1,186 @@
+{
+ "function": "func_8008B4BC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_8008B4BC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008b4bc",
+  "difficulty": "S",
+  "zig_name": "func_8008B4BC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008B4BC",
+  "spec_file": "func_8008B4BC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008B4BC(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11079,
+     "completion_tokens": 2810,
+     "reasoning_tokens": 1859,
+     "cost": 0.0025129,
+     "seconds": 11.6,
+     "sample": 1,
+     "conversation": "85cc04a4688d5d0842ef237f9b243a4f4746bab480a9bd9da7b323cbf4b5607c"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero": "1155",
+   "negative": "8358",
+   "above-16-bits": "7086",
+   "u16-range": "3401"
+  },
+  "mutations": [
+   {
+    "name": "S1: off-by-one store",
+    "caught": true
+   },
+   {
+    "name": "S2: store shifted right by one",
+    "caught": true
+   },
+   {
+    "name": "S3: negative argument clamped to 0 (signed slip)",
+    "caught": true
+   },
+   {
+    "name": "S4: store dropped",
+    "caught": true
+   },
+   {
+    "name": "S5: saturate to 0xFFFF instead of truncating",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34544,
+     "completion_tokens": 855,
+     "reasoning_tokens": 631,
+     "cost": 0.0038819,
+     "seconds": 4.0,
+     "sample": 1,
+     "conversation": "b5c68152159a7e0500934aaf01e1eaa38e7cf0723c129d22e9ab44581fa08b27"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008B4BC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008B4BC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 62.33331259499937,
+ "wall_seconds": 78.23014085799878,
+ "totals": {
+  "cost": 0.00639,
+  "prompt_tokens": 45623,
+  "completion_tokens": 3665,
+  "model_seconds": 15.6,
+  "check_seconds": 62.3,
+  "calls": 2,
+  "wall_seconds": 78.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 12 / nested 30 / nested 66, 0 mismatches"
+ }
+}

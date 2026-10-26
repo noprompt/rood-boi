@@ -1,0 +1,277 @@
+{
+ "function": "func_80072BA8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "func_80072BA8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80072ba8",
+  "difficulty": "M",
+  "zig_name": "func_80072BA8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80072BA8",
+  "spec_file": "func_80072BA8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80072BA8(action: c_int) callconv(.c) void",
+  "params": [
+   [
+    "action",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "actionHeaderView"
+  ],
+  "globals": [
+   "D_800E8184",
+   "D_800E8194",
+   "D_800E81C4",
+   "vs_main_actions"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17165,
+     "completion_tokens": 22157,
+     "reasoning_tokens": 20239,
+     "cost": 0.012795,
+     "seconds": 95.0,
+     "sample": 1,
+     "conversation": "454aad456e4727c9212301bb785893616f1fcac4838c5cb7986c090ac57539fb"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "action0": "7613",
+   "no-table": "5689",
+   "b-only": "5447",
+   "a-only-c0": "2794",
+   "a-only-c1": "2784",
+   "a-b-c0": "2838",
+   "a-b-c1": "2835"
+  },
+  "mutations": [
+   {
+    "name": "A1: pad read as vz",
+    "caught": true
+   },
+   {
+    "name": "A2: sign bit of the first table ignored by a mask",
+    "caught": true
+   },
+   {
+    "name": "A3: wrong constant in the third dispatch",
+    "caught": true
+   },
+   {
+    "name": "A4: part > 0 instead of part >= 0",
+    "caught": true
+   },
+   {
+    "name": "A5: camera mode not set",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 50,
+   "lines_hit": 50,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 255, seen zero, never negative"
+    }
+   ],
+   "compares": [
+    {
+     "line": 14,
+     "text": "if (action == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7613, < 0, > 22387 (signed); < 0, > 22387 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 37,
+     "text": "for (limb = 0, count = 0; limb < 6; ++limb) {",
+     "size": 4,
+     "count": 53291,
+     "kind": "against a constant",
+     "outcomes": "== 7613, < 38065, > 7613 (signed); < 38065, > 7613 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 39,
+     "text": "if (part >= 0) {",
+     "size": 4,
+     "count": 45678,
+     "kind": "against a constant",
+     "outcomes": "== 11367, < 16991, > 17320 (signed); < 0, > 34311 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147358565..2147441211"
+    },
+    {
+     "line": 54,
+     "text": "if (D_800E8184[category]) {",
+     "size": 1,
+     "count": 22387,
+     "kind": "against a constant",
+     "outcomes": "== 11136, < 7522, > 3729 (signed); < 0, > 11251 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 55,
+     "text": "if (D_800E8194[category]) {",
+     "size": 1,
+     "count": 11251,
+     "kind": "against a constant",
+     "outcomes": "== 5578, < 3805, > 1868 (signed); < 0, > 5673 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 56,
+     "text": "if (!D_800E81C4[category]) {",
+     "size": 1,
+     "count": 5673,
+     "kind": "against a constant",
+     "outcomes": "== 2838, < 1892, > 943 (signed); < 0, > 2835 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 61,
+     "text": "} else if (!D_800E81C4[category]) {",
+     "size": 1,
+     "count": 5578,
+     "kind": "against a constant",
+     "outcomes": "== 2794, < 1862, > 922 (signed); < 0, > 2784 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 66,
+     "text": "} else if (D_800E8194[category]) {",
+     "size": 1,
+     "count": 11136,
+     "kind": "against a constant",
+     "outcomes": "== 5689, < 3627, > 1820 (signed); < 0, > 5447 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40457,
+     "completion_tokens": 12811,
+     "reasoning_tokens": 11105,
+     "cost": 0.0104512,
+     "seconds": 51.0,
+     "sample": 1,
+     "conversation": "04cf7e450b6b6ac20b7c38766141e12cc6f7628f2e46f55405ed02714a7025a6"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80072BA8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80072BA8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 70.17969275300038,
+ "wall_seconds": 216.54095439500088,
+ "totals": {
+  "cost": 0.02325,
+  "prompt_tokens": 57622,
+  "completion_tokens": 34968,
+  "model_seconds": 146.0,
+  "check_seconds": 70.2,
+  "calls": 2,
+  "wall_seconds": 216.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 3 / nested 9 / nested 15, 0 mismatches"
+ }
+}

@@ -786,6 +786,14 @@ void func_800AECA0(MATRIX* source)
         int angle, unused, zoom;
     }* camera = (void*)0x1F800000;
     int i;
+#ifdef ROOD_PC
+    /* `rotation.pad` and `rotation.t` are never written and the whole
+     * matrix is copied into the scratchpad (0x1F8003C0), then into
+     * D_800F49B8 and every bone of the actors func_800B28A8 prepares: on
+     * the PS1 they are stack residue, here dead host stack, which differs
+     * with owned callers of vs_battle_exec (pc/docs/Oracle.md). */
+    rotation = (MATRIX) { 0 };
+#endif
     for (i = 0; i < 3; ++i) {
         scratch->matrix.m[0][i] = D_8005E218.m[i][0];
         scratch->matrix.m[1][i] = D_8005E218.m[i][1];
@@ -808,7 +816,15 @@ void func_800AECA0(MATRIX* source)
     scratch->scale.vz = i;
     ScaleMatrix(&scratch->matrix, &scratch->scale);
     /* Preserve the original copy from the parameter home area. */
+#ifdef ROOD_PC
+    /* The PS1 copies `source`'s home slot and 28 bytes of the caller's
+     * frame (no reader); a host read through &source is past the
+     * parameter, dead host stack. Here the pointer word, the rest zero. */
+    D_800F4910 = (MATRIX) { 0 };
+    *(u_int*)&D_800F4910 = psx_addr(source);
+#else
     D_800F4910 = *(MATRIX*)&source;
+#endif
     D_800F49B8 = scratch->matrix;
     D_800F49B8.t[0] = source->t[0];
     D_800F49B8.t[1] = source->t[1];

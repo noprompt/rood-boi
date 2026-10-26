@@ -1,0 +1,221 @@
+{
+ "function": "_loadMpdLootSection",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_loadMpdLootSection",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e6a8",
+  "difficulty": "S",
+  "zig_name": "loadMpdLootSection",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_mpd_loot_section",
+  "spec_file": "loadMpdLootSection.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadMpdLootSection(data: ?*anyopaque) callconv(.c) void",
+  "params": [
+   [
+    "data",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_mpdRoomSection13"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12326,
+     "completion_tokens": 12048,
+     "reasoning_tokens": 10714,
+     "cost": 0.0072566,
+     "seconds": 52.6,
+     "sample": 1,
+     "conversation": "7dbef53a978e759dced4ff3cb6a5d7e270e61a57d52516aa875626436873fcb4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L1: null test dropped (memcpy into a null section): not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 3, fault address 0x14 [NULL+0x14: a field of a null pointer]: argument 0 of the call of vs_main_memcpy, which reads through it\nzdiff: crashed on arguments: 0x406070 [arena] (class section13-null)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13901,
+     "completion_tokens": 2017,
+     "reasoning_tokens": 675,
+     "cost": 0.0023986,
+     "seconds": 7.8,
+     "sample": 1,
+     "conversation": "961bae35e68b3fa0cce5fbddded13a1891b57177c6568e5f4e28a83ece7cc473"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "section13-null": "7503",
+   "section13-low-ram": "7489",
+   "section13-arena": "15008"
+  },
+  "mutations": [
+   {
+    "name": "L1: null test dropped (memcpy into a null section)",
+    "caught": true
+   },
+   {
+    "name": "L2: wrong field (unk12 for unk14)",
+    "caught": true
+   },
+   {
+    "name": "L3: memcpy call dropped",
+    "caught": true
+   },
+   {
+    "name": "L4: copy size off by two",
+    "caught": true
+   },
+   {
+    "name": "L5: source is not the data argument",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (((__typeof__((vs_battle_roomData.section13).psx_type_[0]))(long unsigned int)(vs_battle_roomData.section13).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7503, < 7489, > 15008 (signed); < 0, > 22497 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..4231792"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35784,
+     "completion_tokens": 1651,
+     "reasoning_tokens": 1361,
+     "cost": 0.0044039,
+     "seconds": 8.0,
+     "sample": 1,
+     "conversation": "d6cd139f6e387dd3ee9250d366da3a34d90f61ec53d699ad00f68c1b61020839"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/loadMpdLootSection.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/load_mpd_loot_section.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 127.08354327199777,
+ "wall_seconds": 289.5123519099998,
+ "totals": {
+  "cost": 0.01406,
+  "prompt_tokens": 62011,
+  "completion_tokens": 15716,
+  "model_seconds": 68.4,
+  "check_seconds": 127.1,
+  "calls": 3,
+  "wall_seconds": 289.5
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

@@ -1,0 +1,232 @@
+{
+ "function": "_isArtOrAbilityUnlocked",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_isArtOrAbilityUnlocked",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006f760",
+  "difficulty": "S",
+  "zig_name": "isArtOrAbilityUnlocked",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "is_art_or_ability_unlocked",
+  "spec_file": "isArtOrAbilityUnlocked.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn isArtOrAbilityUnlocked() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_main_battleAbilitiesPointsRequirements"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12650,
+     "completion_tokens": 16376,
+     "reasoning_tokens": 14361,
+     "cost": 0.009453,
+     "seconds": 67.6,
+     "sample": 1,
+     "conversation": "f57de0657df1d6a456c9913f4cc7ebdcf4665ef960173281daf90c940942f05e"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "art-unlocked": "6295",
+   "ability-unlocked": "7782",
+   "ability-short": "2883",
+   "abilities-maxed": "13040"
+  },
+  "mutations": [
+   {
+    "name": "A1: artsLearned compared with <= 4",
+    "caught": true
+   },
+   {
+    "name": "A2: ability count bound 21 instead of 22",
+    "caught": true
+   },
+   {
+    "name": "A3: battle ability unlock sets 2",
+    "caught": true
+   },
+   {
+    "name": "A4: signed slip on the weapon kill count",
+    "caught": true
+   },
+   {
+    "name": "A5: total kills read from battleAbilitiesUnlocked",
+    "caught": true
+   },
+   {
+    "name": "A6: category taken mod 9",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 15,
+   "lines_hit": 15,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (artsLearned < 4) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2194, < 6569, > 21237 (signed); < 6569, > 21237 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..255"
+    },
+    {
+     "line": 14,
+     "text": ">= vs_main_artsPointsRequirements[category][artsLearned];",
+     "size": 2,
+     "count": 8763,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3663, < 2915, > 2185 (signed); < 2468, > 2632 (unsigned)",
+     "operand": "b -32760..32766",
+     "a": "-32760..32700"
+    },
+    {
+     "line": 16,
+     "text": "if (unlockArt == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 23705, < 0, > 6295 (signed); < 0, > 6295 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 17,
+     "text": "if (vs_main_artsStatus.kills.battleAbilitiesUnlocked < 22) {",
+     "size": 2,
+     "count": 23705,
+     "kind": "against a constant",
+     "outcomes": "== 3517, < 10614, > 9574 (signed); < 7148, > 13040 (unsigned)",
+     "operand": "constant 21",
+     "a": "-1..23"
+    },
+    {
+     "line": 18,
+     "text": "if (vs_main_artsStatus.kills.total",
+     "size": 2,
+     "count": 10665,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4560, < 3491, > 2614 (signed); < 2883, > 3222 (unsigned)",
+     "operand": "b -32732..32762",
+     "a": "-32732..32749"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35906,
+     "completion_tokens": 4278,
+     "reasoning_tokens": 3540,
+     "cost": 0.0057296,
+     "seconds": 17.2,
+     "sample": 1,
+     "conversation": "3a3a0002e867f6276576c632a24e03053ffc43b5ba27bfa51585d17ed68338a4"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/isArtOrAbilityUnlocked.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/is_art_or_ability_unlocked.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 145.65619501200126,
+ "wall_seconds": 415.3303480399991,
+ "totals": {
+  "cost": 0.01518,
+  "prompt_tokens": 48556,
+  "completion_tokens": 20654,
+  "model_seconds": 84.8,
+  "check_seconds": 145.7,
+  "calls": 2,
+  "wall_seconds": 415.3
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / - / nested 6, 0 mismatches"
+ }
+}

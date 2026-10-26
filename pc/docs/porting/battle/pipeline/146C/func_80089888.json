@@ -1,0 +1,236 @@
+{
+ "function": "func_80089888",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; sp28 fully written (4 bytes), sp10 pad unread by func_800AA698, no hazard; unreachable default waived justly; spec sound",
+ "plan": {
+  "name": "func_80089888",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80089888",
+  "difficulty": "M",
+  "zig_name": "func_80089888",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80089888",
+  "spec_file": "func_80089888.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80089888() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "func_80089888_t"
+  ],
+  "globals": [
+   "D_800F1AB0"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13076,
+     "completion_tokens": 18751,
+     "reasoning_tokens": 16550,
+     "cost": 0.0106831,
+     "seconds": 79.3,
+     "sample": 1,
+     "conversation": "f743243127d75fa2bb15066a7f8b1a15a13d7a17c06fa352fc6e081c9745cd5b"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80089888: branches 6/7 (85.7%), conditions not measured (GCC < 14: branch coverage only), lines 36/39\n  UNCOVERED +14 b4: branch never taken: `switch (D_800F1AB0.unk4_13) {`\n  note: waivers no longer needed: +0 b0\ncoverage func_80089888: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (D_800F1AB0.unk4_13) {` (+14): one way out of this test (+14 b4) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80089888.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15594,
+     "completion_tokens": 2769,
+     "reasoning_tokens": 552,
+     "cost": 0.0029439,
+     "seconds": 9.6,
+     "sample": 1,
+     "conversation": "372ae90f7f453c54487fb734af13bde9d014f382ff7d99015e4e103df454d8a1"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "flag-clear": "14930",
+   "flag-set-sel0": "3760",
+   "flag-set-sel1": "3767",
+   "flag-set-sel2": "3882",
+   "flag-set-sel3": "3661"
+  },
+  "mutations": [
+   {
+    "name": "F1: wrong flag field tested",
+    "caught": true
+   },
+   {
+    "name": "F2: unk0_16 read from the wrong field",
+    "caught": true
+   },
+   {
+    "name": "F3: wrong constant argument to func_800A30A0",
+    "caught": true
+   },
+   {
+    "name": "F4: dropped call to func_800A1108",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong scale of the selector stored to unk0_24",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 7,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 39,
+   "lines_hit": 36,
+   "uncovered": [
+    {
+     "id": "+14 b4",
+     "line": 14,
+     "text": "switch (D_800F1AB0.unk4_13) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 13,
+     "text": "if (D_800F1AB0.unk4_15) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14954, < 15046, > 0 (signed); < 0, > 15046 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..0"
+    },
+    {
+     "line": 14,
+     "text": "switch (D_800F1AB0.unk4_13) {",
+     "size": 4,
+     "count": 15046,
+     "kind": "switch",
+     "outcomes": "== 15046, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+14 b4",
+    "reason": "switch on the 2-bit unk4_13 selector: cases 0-3 cover every value, the default edge is dead"
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36564,
+     "completion_tokens": 7563,
+     "reasoning_tokens": 6657,
+     "cost": 0.0074379,
+     "seconds": 30.7,
+     "sample": 1,
+     "conversation": "4b8198d1386de116cb33c281c0613ed6c42e86297aee74c7c59eeb214e606370"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80089888.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80089888.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 100.47150737700031,
+ "wall_seconds": 220.4012797839987,
+ "totals": {
+  "cost": 0.02106,
+  "prompt_tokens": 65234,
+  "completion_tokens": 29083,
+  "model_seconds": 119.6,
+  "check_seconds": 100.5,
+  "calls": 3,
+  "wall_seconds": 220.4
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

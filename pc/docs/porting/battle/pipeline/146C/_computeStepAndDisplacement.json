@@ -1,0 +1,336 @@
+{
+ "function": "_computeStepAndDisplacement",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage _computeStepAndDisplacement: branches 26/26 (100.0%), conditions not measured (GC",
+ "plan": {
+  "name": "_computeStepAndDisplacement",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006db98",
+  "difficulty": "M",
+  "zig_name": "computeStepAndDisplacement",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "compute_step_and_displacement",
+  "spec_file": "computeStepAndDisplacement.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn computeStepAndDisplacement(targetPos: ?*v.SVECTOR, outStep: ?*v.VECTOR, outDisplacement: ?*v.VECTOR, clampToZone: c_int, maxSpeed: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "targetPos",
+    "?*v.SVECTOR"
+   ],
+   [
+    "outStep",
+    "?*v.VECTOR"
+   ],
+   [
+    "outDisplacement",
+    "?*v.VECTOR"
+   ],
+   [
+    "clampToZone",
+    "c_int"
+   ],
+   [
+    "maxSpeed",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15079,
+     "completion_tokens": 25446,
+     "reasoning_tokens": 22310,
+     "cost": 0.0142309,
+     "seconds": 106.1,
+     "sample": 1,
+     "conversation": "0bdba75dc4864e47df0fe80451bcdb8e22e3d9af24338eaba4283cb9852419c1"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _computeStepAndDisplacement: branches 26/26 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 53/53\n  FLAG +69 eq: boundary equality never occurred (32-bit compare, constant 7: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.speed < 8) {`\ncoverage _computeStepAndDisplacement: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (vs_battle_cameraCurrentSpherical.speed < 8) {` (+69): the two sides of this ordered compare were equal 0 time(s) in 21037. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function._computeStepAndDisplacement.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18629,
+     "completion_tokens": 7192,
+     "reasoning_tokens": 3984,
+     "cost": 0.0054589,
+     "seconds": 28.1,
+     "sample": 1,
+     "conversation": "00017a3395af212616f1f56c57e875223ddec8dadbd23ae40b99cf58c30d460c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _computeStepAndDisplacement: branches 26/26 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 53/53\n  FLAG +69 eq: boundary equality never occurred (32-bit compare, constant 7: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.speed < 8) {`\ncoverage _computeStepAndDisplacement: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (vs_battle_cameraCurrentSpherical.speed < 8) {` (+69): the two sides of this ordered compare were equal 0 time(s) in 23413. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function._computeStepAndDisplacement.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "clamped": "14836",
+   "centred": "411",
+   "far": "1756",
+   "near": "7099",
+   "zero-direction": "5898"
+  },
+  "mutations": [
+   {
+    "name": "S1: centred band lower bound >= 60 (not > 60)",
+    "caught": true
+   },
+   {
+    "name": "S2: band width 200 instead of 199",
+    "caught": true
+   },
+   {
+    "name": "S3: distance test >= 40 instead of > 40",
+    "caught": true
+   },
+   {
+    "name": "S4: speed clamp to 1 instead of 0 (out-of-band branch)",
+    "caught": true
+   },
+   {
+    "name": "S5: lookAt.vy read for the z displacement (wrong field)",
+    "caught": true
+   },
+   {
+    "name": "S6: unsigned speed compare in the near branch (negative speed not clamped)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 26,
+   "branches_hit": 26,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 53,
+   "lines_hit": 53,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+69 eq",
+     "line": 69,
+     "text": "if (vs_battle_cameraCurrentSpherical.speed < 8) {",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 23413,
+     "what": "boundary equality never occurred (32-bit compare, constant 7: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -1, max 2, unsigned 0..4294967295, seen zero/negative/all ones, 4 value(s): 4294967295, 2, 1, 0"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -5, max 1000, unsigned 0..4294967291, seen zero/negative"
+    }
+   ],
+   "compares": [
+    {
+     "line": 14,
+     "text": "if (clampToZone != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15164, < 4945, > 9891 (signed); < 0, > 14836 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
+    },
+    {
+     "line": 26,
+     "text": "if (clampToZone == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15164, < 4945, > 9891 (signed); < 0, > 14836 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
+    },
+    {
+     "line": 28,
+     "text": "if (((sxy - (temp_a0 * 0x10000)) - 61) < 199U) {",
+     "size": 4,
+     "count": 15164,
+     "kind": "against a constant",
+     "outcomes": "== 335, < 9206, > 5623 (signed); < 792, > 14037 (unsigned)",
+     "operand": "constant 198",
+     "a": "-65572..65474"
+    },
+    {
+     "line": 30,
+     "text": "if ((temp_a0 > 60) && (temp_a0 < new_var)) {",
+     "size": 4,
+     "count": 1127,
+     "kind": "against a constant",
+     "outcomes": "== 130, < 262, > 735 (signed); < 262, > 735 (unsigned)",
+     "operand": "constant 60",
+     "a": "0..30973"
+    },
+    {
+     "line": 30,
+     "text": "if ((temp_a0 > 60) && (temp_a0 < new_var)) {",
+     "size": 4,
+     "count": 735,
+     "kind": "a == b / a < b",
+     "outcomes": "== 140, < 411, > 184 (signed); < 411, > 184 (unsigned)",
+     "operand": "b 180..180",
+     "a": "61..30973"
+    },
+    {
+     "line": 51,
+     "text": "if (notCentered) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 411, < 0, > 29589 (signed); < 0, > 29589 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 53,
+     "text": "if (direction.vx != 0) {",
+     "size": 4,
+     "count": 29589,
+     "kind": "against a constant",
+     "outcomes": "== 23723, < 2470, > 3396 (signed); < 0, > 5866 (unsigned)",
+     "operand": "constant 0",
+     "a": "-100..100"
+    },
+    {
+     "line": 55,
+     "text": "} else if (direction.vz != 0) {",
+     "size": 4,
+     "count": 23723,
+     "kind": "against a constant",
+     "outcomes": "== 17782, < 2559, > 3382 (signed); < 0, > 5941 (unsigned)",
+     "operand": "constant 0",
+     "a": "-100..100"
+    },
+    {
+     "line": 57,
+     "text": "} else if (direction.vy != 0) {",
+     "size": 4,
+     "count": 17782,
+     "kind": "against a constant",
+     "outcomes": "== 11822, < 2547, > 3413 (signed); < 0, > 5960 (unsigned)",
+     "operand": "constant 0",
+     "a": "-100..100"
+    },
+    {
+     "line": 62,
+     "text": "if (distanceToTarget > 40) {",
+     "size": 4,
+     "count": 29589,
+     "kind": "against a constant",
+     "outcomes": "== 1787, < 21626, > 6176 (signed); < 15359, > 12443 (unsigned)",
+     "operand": "constant 40",
+     "a": "-198547519..194834396"
+    },
+    {
+     "line": 64,
+     "text": "if (maxSpeed < vs_battle_cameraCurrentSpherical.speed) {",
+     "size": 4,
+     "count": 6176,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1761, < 2662, > 1753 (signed); < 1741, > 2674 (unsigned)",
+     "operand": "b 7..48",
+     "a": "-5..1000"
+    },
+    {
+     "line": 69,
+     "text": "if (vs_battle_cameraCurrentSpherical.speed < 8) {",
+     "size": 4,
+     "count": 23413,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 9417, > 13996 (signed); < 2349, > 21064 (unsigned)",
+     "operand": "constant 7",
+     "a": "-9..32"
+    },
+    {
+     "line": 78,
+     "text": "if (vs_battle_cameraCurrentSpherical.speed < 0) {",
+     "size": 4,
+     "count": 411,
+     "kind": "against a constant",
+     "outcomes": "== 40, < 125, > 246 (signed); < 0, > 371 (unsigned)",
+     "operand": "constant 0",
+     "a": "-9..32"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 58.21032070899946,
+ "wall_seconds": 192.75250593500004,
+ "totals": {
+  "cost": 0.01969,
+  "prompt_tokens": 33708,
+  "completion_tokens": 32638,
+  "model_seconds": 134.2,
+  "check_seconds": 58.2,
+  "calls": 2,
+  "wall_seconds": 192.8
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

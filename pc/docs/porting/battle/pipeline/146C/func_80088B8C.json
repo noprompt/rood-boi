@@ -1,0 +1,290 @@
+{
+ "function": "func_80088B8C",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound (risk-bumped class rare, 29/30000, but all branches and mutations hit)",
+ "plan": {
+  "name": "func_80088B8C",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80088b8c",
+  "difficulty": "S",
+  "zig_name": "func_80088B8C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80088B8C",
+  "spec_file": "func_80088B8C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80088B8C() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800E8498"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15561,
+     "completion_tokens": 14335,
+     "reasoning_tokens": 12263,
+     "cost": 0.0087236,
+     "seconds": 60.0,
+     "sample": 1,
+     "conversation": "fa130c030312a112d511734402d14ba9adc37c304356d0005392f3dae630dde4"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80088B8C/spec1/build/spec.zig:58:52: error: type '?*views_146C.vs_battle_actor2' does not support field access\n    const gate = v.g.D_800E8498().* == 0 and (stats.statuses & 8) != 0 and st.unk8.unk4.unk40 == 0;\n                                              ~~~~~^~~~~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:443:36\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17945,
+     "completion_tokens": 4054,
+     "reasoning_tokens": 1937,
+     "cost": 0.0038215,
+     "seconds": 14.7,
+     "sample": 1,
+     "conversation": "6c3b28a4215398fbe03d0cb5bea16421f689cddfd886a9f23fe253f92c3b02a4"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "camera-off": "17897",
+   "gate-off": "11581",
+   "other-target": "328",
+   "risk-capped": "165",
+   "risk-bumped": "29"
+  },
+  "mutations": [
+   {
+    "name": "M1: risk bound <= 100 instead of < 100",
+    "caught": true
+   },
+   {
+    "name": "M2: tick wraps at 29 instead of 30",
+    "caught": true
+   },
+   {
+    "name": "M3: targetActor compared with 1 instead of 0",
+    "caught": true
+   },
+   {
+    "name": "M4: status mask 12 instead of 8",
+    "caught": true
+   },
+   {
+    "name": "M5: camera bound <= 4 instead of < 4",
+    "caught": true
+   },
+   {
+    "name": "M6: risk increment dropped",
+    "caught": true
+   },
+   {
+    "name": "M7: tick sum taken unsigned (negative ticks wrap)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if ((D_800F196C == 2) && (_cameraMode < 4) && (_cameraMode != 0)) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 27028, < 1488, > 1484 (signed); < 0, > 2972 (unsigned)",
+     "operand": "constant 2",
+     "a": "-2146568512..2144559636"
+    },
+    {
+     "line": 2,
+     "text": "if ((D_800F196C == 2) && (_cameraMode < 4) && (_cameraMode != 0)) {",
+     "size": 4,
+     "count": 27028,
+     "kind": "against a constant",
+     "outcomes": "== 4006, < 13570, > 9452 (signed); < 12205, > 10817 (unsigned)",
+     "operand": "constant 3",
+     "a": "-2146619185..2146748351"
+    },
+    {
+     "line": 2,
+     "text": "if ((D_800F196C == 2) && (_cameraMode < 4) && (_cameraMode != 0)) {",
+     "size": 4,
+     "count": 16211,
+     "kind": "against a constant",
+     "outcomes": "== 4108, < 0, > 12103 (signed); < 0, > 12103 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3"
+    },
+    {
+     "line": 3,
+     "text": "if ((D_800E8498 == 0)",
+     "size": 4,
+     "count": 12103,
+     "kind": "against a constant",
+     "outcomes": "== 6150, < 2966, > 2987 (signed); < 0, > 5953 (unsigned)",
+     "operand": "constant 0",
+     "a": "-40..40"
+    },
+    {
+     "line": 4,
+     "text": "&& (((((__typeof__((vs_battle_actors[D_800F19CC->unk8.unk4.unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[D_800F19CC->unk8.unk4.unk0.targetActor]->unk3C).raw)",
+     "size": 4,
+     "count": 6150,
+     "kind": "against a constant",
+     "outcomes": "== 3102, < 0, > 3048 (signed); < 0, > 3048 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..8"
+    },
+    {
+     "line": 8,
+     "text": "&& (D_800F19CC->unk8.unk4.unk40 == 0)) {",
+     "size": 4,
+     "count": 3048,
+     "kind": "against a constant",
+     "outcomes": "== 522, < 1235, > 1291 (signed); < 0, > 2526 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145253444..2146541588"
+    },
+    {
+     "line": 9,
+     "text": "if (D_800F19CC->unk8.unk4.unk0.targetActor == 0) {",
+     "size": 1,
+     "count": 522,
+     "kind": "against a constant",
+     "outcomes": "== 194, < 0, > 328 (signed); < 0, > 328 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 10,
+     "text": "if (((__typeof__((vs_battle_characterState->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_characterState->unk3C).raw)->risk < 100) {",
+     "size": 2,
+     "count": 194,
+     "kind": "against a constant",
+     "outcomes": "== 14, < 75, > 105 (signed); < 15, > 165 (unsigned)",
+     "operand": "constant 99",
+     "a": "-32511..32730"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38934,
+     "completion_tokens": 4300,
+     "reasoning_tokens": 3735,
+     "cost": 0.0060434,
+     "seconds": 18.7,
+     "sample": 1,
+     "conversation": "848f58e8da2f283748bb3db91a56e5574b9949e3212e306e1a4903853fd405a4"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80088B8C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80088B8C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 138.17295166400072,
+ "wall_seconds": 326.2306878629988,
+ "totals": {
+  "cost": 0.01859,
+  "prompt_tokens": 72440,
+  "completion_tokens": 22689,
+  "model_seconds": 93.4,
+  "check_seconds": 138.2,
+  "calls": 3,
+  "wall_seconds": 326.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: root 162 / root 357 / root 673, 0 mismatches"
+ }
+}

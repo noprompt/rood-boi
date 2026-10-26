@@ -96,7 +96,19 @@ class FakeBatches(http.server.BaseHTTPRequestHandler):
             return self.send(self.obj(m.group(1)))
         self.send({"error": "not found"}, 404)
 
+    def do_DELETE(self):
+        # OpenRouter has no cancel endpoint: DELETE removes a batch that is not finished.
+        m = re.fullmatch(r"/v1/batches/([\w-]+)", self.path)
+        if m and m.group(1) in FakeBatches.batches:
+            if m.group(1) not in FakeBatches.hold:
+                return self.send({"error": "batch is finished"}, 409)
+            del FakeBatches.batches[m.group(1)]
+            return self.send({"deleted": True})
+        self.send({"error": "not found"}, 404)
+
     def do_POST(self):
+        if self.path.endswith("/cancel"):
+            return self.send({"error": "not found"}, 404)  # as the real API answers
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
         if self.path == "/v1/chat/completions":
             FakeBatches.chats.append(body)
@@ -334,6 +346,23 @@ def checks(tmp):
         if statuses(run) != {n: ("done", "passed (not written)") for n in ("S1", "S2")} \
                 or len(FakeBatches.chats) - chats != 5 or abs(run.spent() - 0.005) > 1e-9:
             failures.append(f"sync transport: {statuses(run)} {len(FakeBatches.chats) - chats} calls {run.spent()}")
+
+        # 6a. cancel: the open batch is deleted at the provider, its functions go back to needs-spec
+        # and are asked again (synchronously, say) as if never sent; a finished batch is left alone.
+        FakeBatches.respond = lambda cid, body: "GOOD"
+        run, args = make_run(pr, pp, tmp / "cancel", url, ["X", "Y"])
+        pr.submit(run, args, endpoint)
+        stuck = FakeBatches.posts[-1]
+        FakeBatches.hold.add(stuck)
+        if pr.cancel(run, endpoint) != 2 or stuck in FakeBatches.batches \
+                or any(run.fns[n]["stage"] != "needs-spec" or run.fns[n]["pending"] is not None
+                       or run.fns[n]["submissions"] != 0 for n in "XY") \
+                or not run.meta["batches"][stuck]["collected"]:
+            failures.append(f"cancel: {statuses(run)} {run.meta['batches'][stuck]}")
+        FakeBatches.hold.discard(stuck)
+        drive(pr, run, args, endpoint)
+        if statuses(run) != {n: ("done", "passed (not written)") for n in "XY"}:
+            failures.append(f"cancel: drafted again: {statuses(run)}")
 
         # 6. The reasoning budget.
         budget = mc.Endpoint(reasoning_budget=4000)

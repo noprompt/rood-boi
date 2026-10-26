@@ -1,0 +1,326 @@
+{
+ "function": "_snapLookAtToPosition",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_snapLookAtToPosition",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006dfe0",
+  "difficulty": "S",
+  "zig_name": "snapLookAtToPosition",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "snap_look_at_to_position",
+  "spec_file": "snapLookAtToPosition.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn snapLookAtToPosition(arg0: ?*v.VECTOR) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.VECTOR"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_80077DF0_t"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12229,
+     "completion_tokens": 12477,
+     "reasoning_tokens": 10334,
+     "cost": 0.0074614,
+     "seconds": 52.7,
+     "sample": 1,
+     "conversation": "d308b20aa6b8c1ffc58c77975d8f13e0026e383ce749233754bcbb0abbf81c56"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation S1: x high bound taken at >= (equal case): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _snapLookAtToPosition: 30000 iterations, seed 1, 0 mismatches; classes: xhi-yhi=3700 xhi-ylo=3595 xhi-ymid=4459 xlo-yhi=3674 xlo-ylo=3777 xlo-ymid=4600 xmid-yhi=1895 xmid-ylo=1917 xmid-ymid=2383",
+     "FAIL: mutation S6: x low bound taken at <= (equal case): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _snapLookAtToPosition: 30000 iterations, seed 1, 0 mismatches; classes: xhi-yhi=3700 xhi-ylo=3595 xhi-ymid=4459 xlo-yhi=3674 xlo-ylo=3777 xlo-ymid=4600 xmid-yhi=1895 xmid-ylo=1917 xmid-ymid=2383"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14802,
+     "completion_tokens": 6080,
+     "reasoning_tokens": 3730,
+     "cost": 0.0045202,
+     "seconds": 25.3,
+     "sample": 1,
+     "conversation": "df630e9fd9296233a728ede4ab46d5939363122cbeccf0c71cbe0f656464ce52"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "xhi-yhi": "3700",
+   "xhi-ylo": "3595",
+   "xhi-ymid": "4459",
+   "xlo-yhi": "3674",
+   "xlo-ylo": "3777",
+   "xlo-ymid": "4600",
+   "xmid-yhi": "1895",
+   "xmid-ylo": "1917",
+   "xmid-ymid": "2383"
+  },
+  "mutations": [
+   {
+    "name": "S1: x high bound off by one (0x12001)",
+    "caught": true
+   },
+   {
+    "name": "S2: x step wrong constant",
+    "caught": true
+   },
+   {
+    "name": "S3: y high clamp uses the wrong sign of the excess",
+    "caught": true
+   },
+   {
+    "name": "S4: z lookAt not snapped to position",
+    "caught": true
+   },
+   {
+    "name": "S5: signed/unsigned slip on the negative y test",
+    "caught": true
+   },
+   {
+    "name": "S6: x low bound off by one (new_var - 1)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 16,
+   "branches_hit": 16,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 26,
+   "lines_hit": 26,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 10,
+     "text": "if (sp10.lookAt.vx > 0x12000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 597, < 16543, > 12860 (signed); < 1745, > 27658 (unsigned)",
+     "operand": "constant 73728",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 14,
+     "text": "if (sp10.lookAt.vx < new_var) {",
+     "size": 4,
+     "count": 17140,
+     "kind": "a == b / a < b",
+     "outcomes": "== 566, < 3562, > 13012 (signed); < 1220, > 15354 (unsigned)",
+     "operand": "b -2147483648..73728",
+     "a": "-73728..-73728"
+    },
+    {
+     "line": 20,
+     "text": "if (sp10.lookAt.vz > 0x12000) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 701, < 16693, > 12606 (signed); < 2019, > 27280 (unsigned)",
+     "operand": "constant 73728",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 24,
+     "text": "if (sp10.lookAt.vz < new_var) {",
+     "size": 4,
+     "count": 17394,
+     "kind": "a == b / a < b",
+     "outcomes": "== 721, < 4138, > 12535 (signed); < 1418, > 15255 (unsigned)",
+     "operand": "b -2147483648..73728",
+     "a": "-73728..-73728"
+    },
+    {
+     "line": 30,
+     "text": "if (sp10.lookAt.vy < 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 700, < 14633, > 14667 (signed); < 0, > 29300 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 32,
+     "text": "if (sp10.lookAt.vy < new_var) {",
+     "size": 4,
+     "count": 14633,
+     "kind": "a == b / a < b",
+     "outcomes": "== 681, < 3406, > 10546 (signed); < 3406, > 10546 (unsigned)",
+     "operand": "b -2147483648..-1",
+     "a": "-393216..-393216"
+    },
+    {
+     "line": 35,
+     "text": "} else if (sp10.lookAt.vy > 0x60000) {",
+     "size": 4,
+     "count": 15367,
+     "kind": "against a constant",
+     "outcomes": "== 649, < 4189, > 10529 (signed); < 4189, > 10529 (unsigned)",
+     "operand": "constant 393216",
+     "a": "0..2147483647"
+    },
+    {
+     "line": 38,
+     "text": "if (vs_scratch.camera.lookAt.vy > 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 564, < 14578, > 14858 (signed); < 0, > 29436 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35680,
+     "completion_tokens": 5604,
+     "reasoning_tokens": 4619,
+     "cost": 0.00637,
+     "seconds": 22.5,
+     "sample": 1,
+     "conversation": "7f4b377794784a89a1604cfce9c13873faaf59a967b886495612b50ec45c814c"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/common/psx.zig:230:37: error: access of union field 'pointer' while field 'optional' is active\n    const VT = @typeInfo(@TypeOf(p)).pointer.child;\n               ~~~~~~~~~~~~~~~~~~~~~^~~~~~~~\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/lib/std/lang.zig:640:18: note: union declared here\npub const Type = union(enum) {\n                 ^~~~~\nreferenced by:\n    snapLookAtToPosition: game/battle/snap_look_at_to_position.zig:15:42\n    main: pc/tests/zig_diff/main.zig:469:31\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37033,
+     "completion_tokens": 1943,
+     "reasoning_tokens": 921,
+     "cost": 0.0046748,
+     "seconds": 7.8,
+     "sample": 1,
+     "conversation": "d77d45caac96362f7308277a21c3f59dc71d4141483e1b974c5646cbac8c307f"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/snapLookAtToPosition.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/snap_look_at_to_position.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 194.89311940699918,
+ "wall_seconds": 448.10241542400036,
+ "totals": {
+  "cost": 0.02303,
+  "prompt_tokens": 99744,
+  "completion_tokens": 26104,
+  "model_seconds": 108.3,
+  "check_seconds": 194.9,
+  "calls": 4,
+  "wall_seconds": 448.1
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: nested 258 / nested 372 / nested 525, 0 mismatches"
+ }
+}

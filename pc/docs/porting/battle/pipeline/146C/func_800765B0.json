@@ -1,0 +1,262 @@
+{
+ "function": "func_800765B0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_800765B0: branches 14/14 (100.0%), conditions not measured (GCC < 14: branch",
+ "plan": {
+  "name": "func_800765B0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800765b0",
+  "difficulty": "M",
+  "zig_name": "func_800765B0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800765B0",
+  "spec_file": "func_800765B0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800765B0(index: c_int, actorId: c_int, arg2: ?*v.vs_battle_objectData_flags, material: c_int, arg4: c_int) callconv(.c) ?*v.vs_battle_actor",
+  "params": [
+   [
+    "index",
+    "c_int"
+   ],
+   [
+    "actorId",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "?*v.vs_battle_objectData_flags"
+   ],
+   [
+    "material",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "?*v.vs_battle_actor",
+  "types": [
+   "D_800F4538_unk0",
+   "vs_battle_actor_dat2",
+   "vs_battle_objectData",
+   "vs_battle_objectData_flags",
+   "vs_main_CdQueueSlot"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17715,
+     "completion_tokens": 24677,
+     "reasoning_tokens": 22316,
+     "cost": 0.01411,
+     "seconds": 108.6,
+     "sample": 1,
+     "conversation": "e9e0a0672fb99e667d4ebb0001ff27f565c356f7cfe5671117d6f8938f7791fe"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800765B0/spec1/build/spec.zig:102:3: error: expected ']', found '...'\n[[... see toml ...]]\n  ^~~\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 20231,
+     "completion_tokens": 4408,
+     "reasoning_tokens": 2058,
+     "cost": 0.0042271,
+     "seconds": 15.9,
+     "sample": 1,
+     "conversation": "fae95931988a0b2c5c9ff8ef71a18fc063d6846ef0b6dc70ec6bbb73c4a3c2cc"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800765B0: branches 14/14 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 42/42\n  FLAG +15 eq: boundary equality never occurred (32-bit compare, constant 15: both sides seen; a port's `<` for `<=` could pass): `if (i >= 16) {`\ncoverage func_800765B0: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (i >= 16) {` (+15): the two sides of this ordered compare were equal 0 time(s) in 14989. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800765B0.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "ff-free-slot": "11182",
+   "ff-table-full": "3807",
+   "slot-occupied": "8884",
+   "slot-free-negative-actorId": "3076",
+   "slot-free": "3051"
+  },
+  "mutations": [
+   {
+    "name": "M1: the free slot is stored one past its index",
+    "caught": true
+   },
+   {
+    "name": "M2: the full-table message takes the wrong argument",
+    "caught": true
+   },
+   {
+    "name": "M3: unk11 takes the low byte of the actor id, not the high",
+    "caught": true
+   },
+   {
+    "name": "M4: the actor table is not updated",
+    "caught": true
+   },
+   {
+    "name": "M5: the empty-slot wait runs once",
+    "caught": true
+   },
+   {
+    "name": "M6: the new actor is not announced to func_8007647C",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 42,
+   "lines_hit": 42,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+15 eq",
+     "line": 15,
+     "text": "if (i >= 16) {",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 14989,
+     "what": "boundary equality never occurred (32-bit compare, constant 15: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 255, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147413619, max 2146976914, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147391096, max 2147402326, unsigned 116442..4294920227, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 8,
+     "text": "if (index == 0xFF) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 14989, < 15011, > 0 (signed); < 15011, > 0 (unsigned)",
+     "operand": "constant 255",
+     "a": "0..255"
+    },
+    {
+     "line": 9,
+     "text": "for (i = 2; i < 16; ++i) {",
+     "size": 4,
+     "count": 79516,
+     "kind": "against a constant",
+     "outcomes": "== 3807, < 71902, > 3807 (signed); < 71902, > 3807 (unsigned)",
+     "operand": "constant 15",
+     "a": "2..16"
+    },
+    {
+     "line": 15,
+     "text": "if (i >= 16) {",
+     "size": 4,
+     "count": 14989,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 11182, > 3807 (signed); < 11182, > 3807 (unsigned)",
+     "operand": "constant 15",
+     "a": "2..16"
+    },
+    {
+     "line": 39,
+     "text": "if (actorId < 0) {",
+     "size": 4,
+     "count": 17309,
+     "kind": "against a constant",
+     "outcomes": "== 1045, < 8655, > 7609 (signed); < 0, > 16264 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 48,
+     "text": "while (vs_battle_getEmptyObjectDataSlot() != 0) {",
+     "size": 4,
+     "count": 22911,
+     "kind": "against a constant",
+     "outcomes": "== 17309, < 0, > 5602 (signed); < 0, > 5602 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 18.077259110999876,
+ "wall_seconds": 142.9090704549999,
+ "totals": {
+  "cost": 0.01834,
+  "prompt_tokens": 37946,
+  "completion_tokens": 29085,
+  "model_seconds": 124.5,
+  "check_seconds": 18.1,
+  "calls": 2,
+  "wall_seconds": 142.9
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

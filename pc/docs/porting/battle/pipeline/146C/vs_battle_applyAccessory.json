@@ -1,0 +1,195 @@
+{
+ "function": "vs_battle_applyAccessory",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "vs_battle_applyAccessory",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006b194",
+  "difficulty": "S",
+  "zig_name": "applyAccessory",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "apply_accessory",
+  "spec_file": "applyAccessory.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn applyAccessory(target: ?*v.vs_battle_uiAccessory, source: ?*v.vs_main_inventoryArmor) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiAccessory"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryArmor"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "_accessoryIntermediate"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12535,
+     "completion_tokens": 10052,
+     "reasoning_tokens": 8340,
+     "cost": 0.0062795,
+     "seconds": 43.5,
+     "sample": 1,
+     "conversation": "158422ae095479ffd5a376cba20d2bf4647e7af6e8a7a2d620106617b43b0c4b"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-source": "9908",
+   "with-source": "20092"
+  },
+  "mutations": [
+   {
+    "name": "A1: the copy of the armor stats is dropped",
+    "caught": true
+   },
+   {
+    "name": "A2: index taken from the wrong field",
+    "caught": true
+   },
+   {
+    "name": "A3: the temporary is not zeroed",
+    "caught": true
+   },
+   {
+    "name": "A4: bzero one byte short",
+    "caught": true
+   },
+   {
+    "name": "A5: the source is also required to have a nonzero index",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36000,
+     "completion_tokens": 4245,
+     "reasoning_tokens": 3753,
+     "cost": 0.0057225,
+     "seconds": 17.7,
+     "sample": 1,
+     "conversation": "2c1c7fe9a8cf0200748c39de387b83dc74b23af45d7cb7bcffce541c8f37131c"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/applyAccessory.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/apply_accessory.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 269.4686655470068,
+ "wall_seconds": 775.1917338569983,
+ "totals": {
+  "cost": 0.012,
+  "prompt_tokens": 48535,
+  "completion_tokens": 14297,
+  "model_seconds": 61.2,
+  "check_seconds": 269.5,
+  "calls": 2,
+  "wall_seconds": 775.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow): not reached by the three recipes"
+ }
+}

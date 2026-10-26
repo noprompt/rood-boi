@@ -1,0 +1,447 @@
+{
+ "function": "func_8008C8A8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "port-failed",
+ "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 4): zdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x80068bfa [memory t",
+ "plan": {
+  "name": "func_8008C8A8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008c8a8",
+  "difficulty": "M",
+  "zig_name": "func_8008C8A8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008C8A8",
+  "spec_file": "func_8008C8A8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008C8A8() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [
+   "RoomMotionVectors",
+   "_mpdRoomSection12"
+  ],
+  "globals": [
+   "D_800F1D68",
+   "D_800F1D6E",
+   "D_800F1D6F",
+   "D_800F1D70"
+  ],
+  "hooks": [],
+  "statics": [
+   "D_80068BEC"
+  ],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17456,
+     "completion_tokens": 43533,
+     "reasoning_tokens": 40101,
+     "cost": 0.0235121,
+     "seconds": 185.9,
+     "sample": 1,
+     "conversation": "99668100b079b91bc455e5d57d14b8fa382a8895bd9ecff82968abc52a0ff401"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "guarded": "9361",
+   "countdown": "15551",
+   "empty-room": "703",
+   "objects": "4385"
+  },
+  "mutations": [
+   {
+    "name": "M1: the D70 clamp fires one too late (> 8, not >= 8)",
+    "caught": true
+   },
+   {
+    "name": "M2: the pad test is > where the C has >= (the counter equals the pad)",
+    "caught": true
+   },
+   {
+    "name": "M3: the flip-to-moving flag is the wrong bit (0x8000 for 0x4000)",
+    "caught": true
+   },
+   {
+    "name": "M4: the motion index is not reset when the object comes back to 0",
+    "caught": true
+   },
+   {
+    "name": "M5: the scene X is shifted (>> 12, not / 4096: negative values round down)",
+    "caught": true
+   },
+   {
+    "name": "M6: the collision point's vy loses its negation",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 48,
+   "branches_hit": 48,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 80,
+   "lines_hit": 80,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 8,
+     "text": "if (D_800F1BA4 || ((__typeof__((vs_battle_roomData.section12).psx_type_[0]))(long unsigned int)(vs_battle_roomData.section12).raw) == 0",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 26231, < 2492, > 1277 (signed); < 0, > 3769 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..1"
+    },
+    {
+     "line": 8,
+     "text": "if (D_800F1BA4 || ((__typeof__((vs_battle_roomData.section12).psx_type_[0]))(long unsigned int)(vs_battle_roomData.section12).raw) == 0",
+     "size": 4,
+     "count": 26231,
+     "kind": "against a constant",
+     "outcomes": "== 2638, < 0, > 23593 (signed); < 0, > 23593 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4248176"
+    },
+    {
+     "line": 9,
+     "text": "|| *(u_char*)&D_800F1D6E)",
+     "size": 1,
+     "count": 23593,
+     "kind": "against a constant",
+     "outcomes": "== 20639, < 1962, > 992 (signed); < 0, > 2954 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..1"
+    },
+    {
+     "line": 11,
+     "text": "if (D_800F1D68 > 0) {",
+     "size": 2,
+     "count": 20639,
+     "kind": "against a constant",
+     "outcomes": "== 2014, < 3074, > 15551 (signed); < 0, > 18625 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 13,
+     "text": "if (D_800F1D68 < 30 && vs_main_frameBuf)",
+     "size": 2,
+     "count": 15551,
+     "kind": "against a constant",
+     "outcomes": "== 381, < 7059, > 8111 (signed); < 5874, > 9296 (unsigned)",
+     "operand": "constant 29",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 13,
+     "text": "if (D_800F1D68 < 30 && vs_main_frameBuf)",
+     "size": 4,
+     "count": 7440,
+     "kind": "against a constant",
+     "outcomes": "== 1855, < 1898, > 3687 (signed); < 0, > 5585 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1073741824"
+    },
+    {
+     "line": 14,
+     "text": "func_8008E4DC(D_800F1D6F == 0);",
+     "size": 1,
+     "count": 5585,
+     "kind": "against a constant",
+     "outcomes": "== 1862, < 1878, > 1845 (signed); < 0, > 3723 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 15,
+     "text": "if (D_800F1D68 <= 0) {",
+     "size": 2,
+     "count": 15551,
+     "kind": "against a constant",
+     "outcomes": "== 3064, < 1720, > 10767 (signed); < 0, > 12487 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 23,
+     "text": "for (i = 0; i < count; ++i, ++object) {",
+     "size": 4,
+     "count": 20592,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5088, < 15504, > 0 (signed); < 15504, > 0 (unsigned)",
+     "operand": "b 0..6",
+     "a": "0..6"
+    },
+    {
+     "line": 24,
+     "text": "if (!object->unk0_9) {",
+     "size": 1,
+     "count": 15504,
+     "kind": "against a constant",
+     "outcomes": "== 12387, < 0, > 3117 (signed); < 0, > 3117 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 25,
+     "text": "if (!object->unk0_8 || (*(u_int*)((char*)object + 4) & 0xFE) != 0xFE) {",
+     "size": 1,
+     "count": 12387,
+     "kind": "against a constant",
+     "outcomes": "== 6080, < 0, > 6307 (signed); < 0, > 6307 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 25,
+     "text": "if (!object->unk0_8 || (*(u_int*)((char*)object + 4) & 0xFE) != 0xFE) {",
+     "size": 4,
+     "count": 6307,
+     "kind": "against a constant",
+     "outcomes": "== 2178, < 4129, > 0 (signed); < 4129, > 0 (unsigned)",
+     "operand": "constant 254",
+     "a": "0..254"
+    },
+    {
+     "line": 26,
+     "text": "for (tick = 0; tick < (vs_gametime_tickspeed >> 1); ++tick) {",
+     "size": 4,
+     "count": 21336,
+     "kind": "a == b / a < b",
+     "outcomes": "== 7409, < 11127, > 2800 (signed); < 13927, > 0 (unsigned)",
+     "operand": "b -2..4",
+     "a": "0..4"
+    },
+    {
+     "line": 28,
+     "text": "if (temp < 7) {",
+     "size": 4,
+     "count": 11127,
+     "kind": "against a constant",
+     "outcomes": "== 1141, < 4741, > 5245 (signed); < 4741, > 5245 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    },
+    {
+     "line": 30,
+     "text": "if (D_800F1D70[i] >= 8)",
+     "size": 1,
+     "count": 5882,
+     "kind": "against a constant",
+     "outcomes": "== 827, < 3186, > 1869 (signed); < 3186, > 1869 (unsigned)",
+     "operand": "constant 7",
+     "a": "1..10"
+    },
+    {
+     "line": 33,
+     "text": "if (!object->unk4_0) {",
+     "size": 1,
+     "count": 11127,
+     "kind": "against a constant",
+     "outcomes": "== 6922, < 0, > 4205 (signed); < 0, > 4205 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 43,
+     "text": "if (func_800A4494(i + 2, &point)) {",
+     "size": 4,
+     "count": 6922,
+     "kind": "against a constant",
+     "outcomes": "== 3097, < 0, > 3825 (signed); < 0, > 3825 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 55,
+     "text": "if (object->unk4_16 >= ((RoomMotionVectors*)object)",
+     "size": 4,
+     "count": 3097,
+     "kind": "a == b / a < b",
+     "outcomes": "== 569, < 1269, > 1259 (signed); < 1931, > 597 (unsigned)",
+     "operand": "b -2145692236..2147483647",
+     "a": "0..7"
+    },
+    {
+     "line": 63,
+     "text": "if (object->unk0_27 == object->unk4_8)",
+     "size": 1,
+     "count": 1828,
+     "kind": "a == b / a < b",
+     "outcomes": "== 476, < 714, > 638 (signed); < 714, > 638 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..3"
+    },
+    {
+     "line": 69,
+     "text": "if (object->unk4_16 >= object->unk8[object->unk0_27].pad) {",
+     "size": 4,
+     "count": 4205,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1006, < 1366, > 1833 (signed); < 2047, > 1152 (unsigned)",
+     "operand": "b -1..3",
+     "a": "0..4"
+    },
+    {
+     "line": 75,
+     "text": "if (object->unk0_14 == 0) {",
+     "size": 1,
+     "count": 2839,
+     "kind": "against a constant",
+     "outcomes": "== 687, < 1401, > 751 (signed); < 0, > 2152 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..64"
+    },
+    {
+     "line": 78,
+     "text": "} else if (object->unk0_14 == object->unk0_10)",
+     "size": 1,
+     "count": 2152,
+     "kind": "a == b / a < b",
+     "outcomes": "== 536, < 538, > 1078 (signed); < 538, > 1078 (unsigned)",
+     "operand": "b 0..3",
+     "a": "1..3"
+    },
+    {
+     "line": 80,
+     "text": "if (object->unk0_26)",
+     "size": 1,
+     "count": 2839,
+     "kind": "against a constant",
+     "outcomes": "== 1328, < 0, > 1511 (signed); < 0, > 1511 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40814,
+     "completion_tokens": 27317,
+     "reasoning_tokens": 24546,
+     "cost": 0.0177399,
+     "seconds": 190.9,
+     "sample": 1,
+     "conversation": "f55315d4fbd4b9737bf8efa086550365f5e540624594298d3fb809c31df850bb"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_8008C8A8/port1/build/harness.o: in function `psx.at':\ngame/common/psx.zig:225:(.text.func_8008C8A8.func_8008C8A8+0x45f): undefined reference to `battle_146C__D_80068BEC'\n/usr/bin/ld: pc/build/port-pipeline/func_8008C8A8/port1/build/harness.o:(.debug_info+0x1dff): undefined reference to `battle_146C__D_80068BEC'\n/usr/bin/ld: pc/build/port-pipeline/func_8008C8A8/port1/build/zdiff: hidden symbol `battle_146C__D_80068BEC' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 43916,
+     "completion_tokens": 5547,
+     "reasoning_tokens": 2357,
+     "cost": 0.0071651,
+     "seconds": 22.6,
+     "sample": 1,
+     "conversation": "5a0df3760e98e3f590f65bcd1f7786f9a7ac5ca39022443b48834f26ae20eea1"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_8008C8A8/port2/build/harness.o: in function `psx.at':\ngame/common/psx.zig:225:(.text.func_8008C8A8.func_8008C8A8+0x45f): undefined reference to `battle_146C__D_80068BEC'\n/usr/bin/ld: pc/build/port-pipeline/func_8008C8A8/port2/build/harness.o:(.debug_info+0x1dff): undefined reference to `battle_146C__D_80068BEC'\n/usr/bin/ld: pc/build/port-pipeline/func_8008C8A8/port2/build/zdiff: hidden symbol `battle_146C__D_80068BEC' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 47437,
+     "completion_tokens": 5445,
+     "reasoning_tokens": 2223,
+     "cost": 0.0074662,
+     "seconds": 21.5,
+     "sample": 1,
+     "conversation": "17cdaf0b4f3ee86ea7003060132db26c36615ecc4d12ac15c0d23f65d36b427a"
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 4):\nzdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x80068bfa [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: (class objects)"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 4,
+      "mismatches": null,
+      "first": "CRASH (signal 11) in the Zig run, iteration 0, fault address 0x80068bfa"
+     }
+    ]
+   }
+  ]
+ },
+ "written": [],
+ "check_seconds": 25.488778230997923,
+ "wall_seconds": 446.7276530650015,
+ "totals": {
+  "cost": 0.05588,
+  "prompt_tokens": 149623,
+  "completion_tokens": 81842,
+  "model_seconds": 420.9,
+  "check_seconds": 25.5,
+  "calls": 4,
+  "wall_seconds": 446.7
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25"
+ }
+}

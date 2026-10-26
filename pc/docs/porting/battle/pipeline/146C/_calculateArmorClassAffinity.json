@@ -1,0 +1,218 @@
+{
+ "function": "_calculateArmorClassAffinity",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": "faithful; spec sound",
+ "plan": {
+  "name": "_calculateArmorClassAffinity",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007e200",
+  "difficulty": "S",
+  "zig_name": "calculateArmorClassAffinity",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "calculate_armor_class_affinity",
+  "spec_file": "calculateArmorClassAffinity.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn calculateArmorClassAffinity(arg0: ?*v.vs_battle_actor2, arg1: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13295,
+     "completion_tokens": 7832,
+     "reasoning_tokens": 6647,
+     "cost": 0.0052455,
+     "seconds": 35.2,
+     "sample": 1,
+     "conversation": "de6e099d7bfb6d5a467325bb6084084f2d78151553e93a902cf16aebb5be7510"
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "limb-in-range": "22568",
+   "limb-out-of-range": "7432"
+  },
+  "mutations": [
+   {
+    "name": "A1: class[1] store off by one",
+    "caught": true
+   },
+   {
+    "name": "A2: first loop stops at 5 (wrong bound)",
+    "caught": true
+   },
+   {
+    "name": "A3: class[0] store dropped",
+    "caught": true
+   },
+   {
+    "name": "A4: unk88 not added to affinity[0]",
+    "caught": true
+   },
+   {
+    "name": "A5: affinities read in reverse order",
+    "caught": true
+   },
+   {
+    "name": "A6: second loop stops at 6 (wrong bound)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -1, max 6, unsigned 0..4294967295, seen zero/negative/all ones, 8 value(s): 5, 1, 2, 3, 4, 4294967295, 0, 6"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 10,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 240000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 180000, > 30000 (signed); < 180000, > 30000 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36730,
+     "completion_tokens": 3036,
+     "reasoning_tokens": 2485,
+     "cost": 0.005191,
+     "seconds": 13.6,
+     "sample": 1,
+     "conversation": "8b0a7bd3f5447e3d692f63b2076f15f27fa1fd60201b2a0710290825f7083fe8"
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/calculateArmorClassAffinity.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/calculate_armor_class_affinity.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 160.3630255820026,
+ "wall_seconds": 434.17370754400326,
+ "totals": {
+  "cost": 0.01044,
+  "prompt_tokens": 50025,
+  "completion_tokens": 10868,
+  "model_seconds": 48.8,
+  "check_seconds": 160.4,
+  "calls": 2,
+  "wall_seconds": 434.2
+ },
+ "review": {
+  "by": "Claude Sonnet 5.5 (reviewer)",
+  "date": "2026-10-25",
+  "corpus": "call / tick / alternate (shadow), enemy_cast_wait / action_name_window / enemy_kill: - / nested 3 / nested 6, 0 mismatches"
+ }
+}

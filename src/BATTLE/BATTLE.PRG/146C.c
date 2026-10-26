@@ -1993,6 +1993,11 @@ void func_8006C4C4(int arg0, _hitEntity_t* arg1, int targetLimb)
     func_8006C4C4_t sp10;
     D_800F19CC_t2* temp_s0 = &D_800F19CC->unk854[D_800F19CC->unk0 & 3];
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_8006C4C4_t) { 0 };
+#endif
     sp10.unk0 = arg0;
     sp10.unk2 = 1;
     sp10.unk3 = 0;
@@ -2023,6 +2028,11 @@ int func_8006C5AC(int arg0)
     D_800F19CC_t2* temp_s3;
     int i;
 
+#ifdef ROOD_PC
+    /* sp20.pad is never written and vs_main_panSfx loads the whole word into
+       the GTE (pc/docs/Oracle.md, known hazards). */
+    sp20 = (SVECTOR) { 0 };
+#endif
     temp_s3 = &D_800F19CC->unk854[D_800F19CC->unk0 & 3];
 
     for (i = 0; i < temp_s3->unk4A; ++i) {
@@ -3370,6 +3380,11 @@ void func_8006F450(func_800CF0E8_t* arg0)
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.effectId = 36;
     sp10.unk2 = 1;
     sp10.unk4 = 4;
@@ -3386,6 +3401,11 @@ void func_8006F4B0(func_8006EBF8_t3* arg0)
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.effectId = 33;
     sp10.unk2 = 1;
     sp10.unk4 = 4;
@@ -3499,6 +3519,11 @@ void func_8006F848(void)
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.effectId = 20;
     sp10.unk2 = 1;
     sp10.unk4 = 5;
@@ -4891,6 +4916,11 @@ void func_800733F8(int arg0)
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.effectId = arg0;
     D_800F196C = 4;
     sp10.unk2 = 1;
@@ -5198,6 +5228,11 @@ void func_80073D30(_mpdRoomSectionA* arg0, func_8006EBF8_t* arg1, int targetActo
 {
     func_800CF0E8_t sp10;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     D_800F19CC->unk8.unk4.unk40 = 3;
     D_800F19CC->unk8.unk4A = 1;
     D_800F19CC->unk8.unk4C[0].unk40 = 0;
@@ -6459,6 +6494,11 @@ void func_800771E0(char* arg0, int arg1, int arg2, int arg3)
     vs_battle_objectData sp10;
 
     if (((arg2 != 0) || (arg1 >= 2)) && ((arg1 < 2) || ((arg3 & 3) == 1))) {
+#ifdef ROOD_PC
+        /* Only dataType, index, modelId and actorId are written; the whole
+           record is copied into a slot (pc/docs/Oracle.md, known hazards). */
+        sp10 = (vs_battle_objectData) { 0 };
+#endif
         sp10.dataType = 7;
         sp10.index = arg1;
         sp10.modelId = arg0[37];
@@ -8747,6 +8787,11 @@ void func_8007BE20(int arg0, int arg1)
     int var_a2 = 0;
     vs_battle_actor** var_a3 = vs_battle_actors;
 
+#ifdef ROOD_PC
+    /* Only some fields are written; the whole request is copied into
+       D_800F53C0/D_800F5230 by func_800CF3F8 (pc/docs/Oracle.md, known hazards). */
+    sp10 = (func_800CF0E8_t) { 0 };
+#endif
     sp10.unk2 = 1;
     sp10.unk4 = 5;
     sp10.effectId = arg0;
@@ -13443,6 +13488,13 @@ void func_80085B10(int action, D_800F19CC_t2* result, D_800F19CC_t2* source, int
     int limb;
     __typeof__(spec->hitParams[0]) params;
 
+#ifdef ROOD_PC
+    /* origin and position are read where no callee wrote them (unk40 != 0, or
+       a failed lookup): dead host stack otherwise (pc/docs/Oracle.md). */
+    origin = (SVECTOR) { 0 };
+    position = (SVECTOR) { 0 };
+    impact = (SVECTOR) { 0 };
+#endif
     spec = &vs_main_actions[action];
     func_800856F8(result);
     result->actionIndex = action;
