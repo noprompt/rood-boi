@@ -22,7 +22,9 @@ OpenAI-compatible endpoint, OpenRouter (the default) or a local server
                           reasoning tokens); remote only
 
 A remote call's messages go through pc/tools/prompt_privacy.py and are
-refused if anything local is left; a local call's are sanitised the same
+refused if anything local is left; Endpoint.guard re-checks the exact bytes
+of every remote request (call, batch submit) just before they leave and
+refuses (logged locally) whatever a caller skipped; a local call's are sanitised the same
 way but never refused (nothing leaves the machine). A local call's
 max_tokens is clamped to what the server's context leaves after the prompt
 (its /v1/models max_model_len and its /tokenize count, or an estimate).
@@ -56,6 +58,10 @@ LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 class ModelError(Exception):
     """A call failed (HTTP error, server down, no choices): stop, do not retry the step."""
+
+
+class Refused(ModelError, prompt_privacy.Leak):
+    """The last-line guard found something local in a request that was about to leave."""
 
 
 class ContextError(ModelError):
@@ -126,8 +132,32 @@ class Endpoint:
             headers["X-Title"] = self.title
         return headers
 
+    def guard(self, data, what):
+        """The last line before a request leaves: refuse (and log locally) a remote request whose
+        serialised bytes still hold anything local. Every send goes through here (`call`, `_get`
+        with a body, so batches too), whatever sanitising the caller did or skipped."""
+        if self.local:
+            return data
+        text = data.decode("utf-8", "replace") if isinstance(data, bytes) else data
+        # Both the raw and the JSON-unescaped form (\\/ and \\u002f hide a path from a plain search).
+        views = [text]
+        try:
+            views.append(json.dumps(json.loads(text), ensure_ascii=False))
+        except ValueError:
+            pass
+        found = []
+        for view in views:
+            found += prompt_privacy.problems(view)
+        if found:
+            found = list(dict.fromkeys(found))
+            prompt_privacy.log_refusal(f"{what} to {self.base_url}", found)
+            raise Refused(f"{what}: refused, the request still holds " + ", ".join(found))
+        return data
+
     def _get(self, url, body=None, method=None, timeout=30):
         data = json.dumps(body).encode() if body is not None else None
+        if data is not None:
+            self.guard(data, f"{method or 'POST'} {urllib.parse.urlparse(url).path}")
         request = urllib.request.Request(url, data=data, headers=self._headers(), method=method)
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return json.loads(response.read())
@@ -171,7 +201,8 @@ def request_body(messages, model, max_tokens, endpoint=None):
         messages = [dict(m, content=prompt_privacy.sanitise(m["content"])) for m in messages]
     else:
         # Every message goes through the one sanitiser, and is refused if anything local is left.
-        messages = [dict(m, content=prompt_privacy.check(prompt_privacy.sanitise(m["content"]))) for m in messages]
+        messages = [dict(m, content=prompt_privacy.check(prompt_privacy.sanitise(m["content"]), "message"))
+                    for m in messages]
     body = {"model": model, "messages": messages, "temperature": endpoint.temperature, "max_tokens": max_tokens}
     if endpoint.local:
         context = endpoint.context(model)
@@ -202,7 +233,8 @@ def call(messages, model, max_tokens, endpoint=None):
     """One chat completion: dict(text, finish_reason, model, endpoint, tokens, cost, seconds, ...)."""
     endpoint = endpoint or Endpoint()
     body = request_body(messages, model, max_tokens, endpoint)
-    request = urllib.request.Request(endpoint.base_url + "/chat/completions", data=json.dumps(body).encode(),
+    data_out = endpoint.guard(json.dumps(body).encode(), "chat completion")
+    request = urllib.request.Request(endpoint.base_url + "/chat/completions", data=data_out,
                                      headers=endpoint._headers())
     start = time.monotonic()
     data = None

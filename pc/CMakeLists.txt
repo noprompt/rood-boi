@@ -112,6 +112,9 @@ if(ROOD_ZIG_MISSING EQUAL 0)
         add_test(NAME prompt_tools COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/prompt_tools_test.py
             ${CMAKE_CURRENT_BINARY_DIR}/boot64)
         set_tests_properties(prompt_tools PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 300)
+        # The sanitiser and the last-line send guard on realistic compiler/Zig output, with fakes (no network).
+        add_test(NAME prompt_privacy COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/prompt_privacy_test.py)
+        set_tests_properties(prompt_privacy PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
         # The port pipeline's plan, gates and writers, offline (canned replies, budget 0).
         add_test(NAME port_pipeline COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/port_pipeline_test.py
             ${CMAKE_CURRENT_BINARY_DIR}/boot64)
