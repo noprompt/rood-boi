@@ -8,6 +8,7 @@ layout(location = 1) in vec2 v_uv;
 layout(location = 2) flat in uvec4 v_state; // flags, tpage, clut, window
 layout(location = 3) flat in uvec4 v_bounds;
 layout(location = 4) flat in ivec2 v_ui;
+layout(location = 5) flat in float v_fade;
 layout(push_constant) uniform Push {
     vec4 rect;
     int pass, ui_scale;
@@ -34,5 +35,5 @@ void main() {
     bool semi = (flags & 4u) != 0u && (t & 0x8000u) != 0u;
     if ((pc.pass == 4 && semi) || (pc.pass == 5 && !semi)) discard;
     vec3 c = (flags & 2u) != 0u ? texel / 31.0 : min(texel * v_color * (255.0 / 128.0), 31.0) / 31.0;
-    color = vec4(c, alpha * (pc.pass == 5 ? pc.text_factor : 1.0));
+    color = vec4(c, alpha * (pc.pass == 5 ? pc.text_factor : 1.0) * v_fade);
 }

@@ -125,14 +125,27 @@ TRIAL_CORPUS = [("kill", "battle_146C", "enemy_kill", ["score.zig"]),
                 ("name_window", "battle_5BF94", "action_name_window", ["scene_message.zig"])]
 
 
+# The CTest entries in ctest_long rather than ctest (a ctest -R/-E regex).
+CTEST_LONG = "^(zig_diff|port_pipeline)"
+
+# Game suites safe on the null renderer (CPU only, no pictures). verify.sh's
+# null lane runs them, so the quick lane does not repeat them on Vulkan.
+NULL_SAFE = {"null_backend_smoke", "shadow_battle_smoke", "shadow_battle_smoke_38C1C", "ownership_smoke",
+             "battle_corpus_candidate", "zig_hotswap_smoke", "engine_rewind_smoke", "classic_parity",
+             *(f"trial_corpus_{t[0]}{suffix}" for t in TRIAL_CORPUS for suffix in ("", "_features"))}
+
+
 def suites(args, mode="egl"):
     # Software GL on Xvfb is several times slower than a GPU.
     scale = args.timeout_scale * (3 if mode == "xvfb" else 1)
     return [suite.scaled(scale) if not suite.name.startswith("input:") else suite for suite in [
-        # zig_diff (every spec's self-check, six shards of 1800 s each) grows with
-        # each ported unit: the suite's budget follows it (181 specs after wave 1).
-        Suite("ctest", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4"], 2400, binary=None,
-              note="CMake probes in pc/build", sources=[ROOT / "pc/tools/ownership.py",
+        # zig_diff (every spec's self-check, ten shards) grows with each ported unit
+        # and is most of CTest's time (~35 min): it and the other long CTest
+        # entries are ctest_long, which the quick lane runs only for a change to
+        # the Zig port or its tools (affected.toml [[long]]); ctest is the rest.
+        Suite("ctest", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4",
+                        "-E", CTEST_LONG], 600, binary=None,
+              note="CMake probes in pc/build (but ctest_long's)", sources=[ROOT / "pc/tools/ownership.py",
                   ROOT / "game/ownership.toml", TESTS / "ownership_test.py", TESTS / "routing_probe/run.py",
                   TESTS / "routing_probe/unit.c", TESTS / "routing_probe/owned.c", TESTS / "routing_probe/main.c",
                   TESTS / "owner_switch_probe.c", ROOT / "pc/src/ownership.c",
@@ -144,6 +157,11 @@ def suites(args, mode="egl"):
                   TESTS / "diff/corpus_test.py", TESTS / "diff/corpus.py", TESTS / "diff/differ.py", TESTS / "diff/scenarios.py",
                   TESTS / "state_rewind_test.c", ROOT / "pc/src/state_rewind.c",
                   TESTS / "input_record_test.c", ROOT / "pc/src/input_record.c"]),
+        Suite("ctest_long", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4",
+                             "-R", CTEST_LONG], 2400, binary=None,
+              note="the long CMake tests: zig_diff's shards and coverage lane, the port pipeline",
+              sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py",
+                       TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),
         *([Suite("null_backend_smoke", [PY, str(TESTS / "null_backend_smoke.py")], 300,
                  gpu=False, note="CPU null backend: no display or GPU resources")]
           if args.renderer == "null" else []),
@@ -260,9 +278,13 @@ def suites(args, mode="egl"):
         Suite("movie_smoke", [PY, str(TESTS / "movie_smoke.py")], 300),
         Suite("skip_intro_smoke", [PY, str(TESTS / "skip_intro_smoke.py")], 300,
               note="skip_intro 1: straight to the title (no logos, no movie), same title; off = the original start"),
-        Suite("verify_args_test", [PY, str(TESTS / "verify_args_test.py")], 30, binary=None,
+        Suite("verify_args_test", [PY, str(TESTS / "verify_args_test.py")], 60, binary=None,
               sources=[ROOT / "pc/tools/verify.sh"],
-              note="verify.sh changed revisions stay separate from null suite patterns"),
+              note="verify.sh: its lanes' steps, changed revisions stay separate from null suite patterns"),
+        Suite("affected_test", [PY, str(TESTS / "affected_test.py")], 120, binary=None,
+              sources=[TESTS / "affected.toml"],
+              note="--changed: tracked files only, tool folders ignored, no full-suite fallback, the quick "
+                   "lane per renderer, recent merges select tens of suites"),
         Suite("build_noop_test", [PY, str(TESTS / "build_noop_test.py")], 120, binary=None,
               note="build_boot.py: a second build with nothing changed does nothing (< 2 s); the build "
                    "stamp and object cache notice edits, reverts, new files and option changes"),
@@ -651,6 +673,9 @@ def suites(args, mode="egl"):
         Suite("ui_lines_smoke", [PY, str(TESTS / "ui_lines_smoke.py")], 420,
               note="2D lines: 1x = CPU, 4x scale-thick, joins closed, no light dots along outlines; "
                    "vector talk bubbles follow the game's zoom, all shapes; options saved"),
+        Suite("text_fade_smoke", [PY, str(TESTS / "text_fade_smoke.py")], 300,
+              note="text without a box fading out (type 0 closing, type 6): glyphs at the opacity, no "
+                   "PS1-resolution rectangle (font, original, overlay); the game's upload is seen with it off"),
         Suite("ui_upscale_smoke", [PY, str(TESTS / "ui_upscale_smoke.py"),
                                    *(["--card", str(args.save)] if args.save.exists() else [])], 300,
               note="2D/UI MMPX: only 2D changes, atlas = CPU reference, palette kept, cache, VRAM rewrites"),
@@ -774,6 +799,7 @@ CHECKPOINT_SUITES = {
     "hud_bench_smoke", "classic_hud_smoke",
     "repl_smoke", "photo_foundation_smoke", "photo_engine_reload_smoke", "photo_mode_smoke", "photo_full_room_smoke",
     "cutscene_player_smoke", "cutscene_viewer_smoke", "cutscene_sequencer_smoke", "cutscene_freecam_smoke",
+    "text_fade_smoke",
 }
 
 
@@ -1051,10 +1077,14 @@ def make_parser():
                              "(pc/tools/verify.sh runs it between steps)")
     parser.add_argument("--changed", nargs="?", const="main", metavar="BASE",
                         help="only the suites a change since BASE (default main) can affect "
-                             "(pc/tests/affected.toml; core or unknown files run everything); "
-                             "put -- before suite patterns when omitting BASE")
+                             "(pc/tests/affected.toml; tracked files only; a core file runs the broad set, "
+                             "an unknown one the default set); put -- before suite patterns when omitting BASE")
     parser.add_argument("--changed-files", nargs="+", metavar="PATH",
                         help="as --changed, for these repository paths instead of a diff")
+    parser.add_argument("--quick", action="store_true",
+                        help="verify.sh's quick lane (with --changed): long suites only when the change touches "
+                             "them; Vulkan/null: the selection plus ctest/null_backend_smoke; GL: a sanity subset "
+                             "plus what GL's own files select (affected.toml [quick])")
     parser.add_argument("--nice", type=int, default=int(os.environ.get("ROOD_TEST_NICE", "10")),
                         help="CPU niceness of the suites (default 10; 0 = as is), with idle I/O priority and "
                              "a low GPU priority where the driver has one (ROOD_GPU_PRIORITY=low)")
@@ -1087,6 +1117,18 @@ def make_parser():
     return parser
 
 
+def renderer_suites(args, mode="egl"):
+    """The suites for args.renderer: on null only the CPU-safe ones (NULL_SAFE)
+    and those with no game binary; never screenshots or GPU probes merely
+    because they can launch the game binary."""
+    every = suites(args, mode)
+    if args.renderer == "null":
+        every = [s for s in every if s.binary is None or s.name in NULL_SAFE]
+        for suite in every:
+            suite.gpu = False
+    return every
+
+
 def default_args():
     """The options run.py takes with no arguments (for affected.py)."""
     return make_parser().parse_args([])
@@ -1114,29 +1156,28 @@ def main():
     if args.headless:
         os.environ["ROOD_HEADLESS"] = args.headless
     mode, renderer = rood_rpc.headless_mode()
-    every = suites(args, mode)
+    every = renderer_suites(args, mode)
     if args.renderer == "null":
-        # Only explicitly CPU-safe game suites; never run screenshots or GPU
-        # probes in this lane merely because they can launch the game binary.
-        safe = {"null_backend_smoke", "shadow_battle_smoke", "shadow_battle_smoke_38C1C", "ownership_smoke", "battle_corpus_candidate",
-                "zig_hotswap_smoke", "engine_rewind_smoke", "classic_parity",
-                *(f"trial_corpus_{t[0]}{suffix}" for t in TRIAL_CORPUS for suffix in ("", "_features"))}
-        every = [s for s in every if s.binary is None or s.name in safe]
-        for suite in every:
-            suite.gpu = False
         args.no_snapshots = True
     selected = [s for s in every
                 if (not args.patterns or any(p in s.name for p in args.patterns))
                 and not any(x in s.name for x in args.exclude)]
+    if args.quick and not (args.changed or args.changed_files):
+        print("--quick needs --changed [BASE] or --changed-files")
+        return 2
     if args.changed or args.changed_files:
         import affected
         selection = affected.select(args.changed_files or affected.changed_files(args.changed), every)
-        if not args.no_snapshots and any(name in CHECKPOINT_SUITES for name in selection.reasons):
-            # it makes (or finds) the save states those suites resume
-            selection.reasons.setdefault("snapshot_equivalence", ["the checkpoint suites resume its save states"])
         affected.report(selection, len(every))
-        if not selection.full:
-            selected = [s for s in selected if s.name in selection.reasons]
+        wanted = set(selection.reasons)
+        if args.quick:
+            lane = affected.quick_lane(selection, every, args.renderer, null_safe=NULL_SAFE)
+            print(affected.lane_line(lane, len(every)))
+            wanted = set(lane.names)
+        if not args.no_snapshots and any(name in CHECKPOINT_SUITES for name in wanted):
+            # it makes (or finds) the save states those suites resume
+            wanted.add("snapshot_equivalence")
+        selected = [s for s in selected if s.name in wanted]
     if args.list:
         for s in selected:
             print(f"{s.name:<45} {s.timeout:5.0f}s  {s.note}")
@@ -1157,7 +1198,7 @@ def main():
     print(f"headless: {mode}" + (f" ({renderer})" if renderer else " (software GL on Xvfb)"))
     for warning in stale_binaries(selected):
         print(f"warning: {warning}; rebuild with pc/tools/build_boot.py")
-    if any(s.name == "ctest" for s in selected) and (ROOT / "pc/build/build.ninja").exists():
+    if any(s.name.startswith("ctest") for s in selected) and (ROOT / "pc/build/build.ninja").exists():
         built = subprocess.run(["ninja", "-C", str(ROOT / "pc/build")], capture_output=True, text=True)
         if built.returncode:
             print(built.stdout[-2000:])

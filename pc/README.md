@@ -1576,6 +1576,22 @@ of the target (`gpu_dump`) include it. RPC `ui_text` reports `overlay`
 (triangles held now, -1 when not holding; baked and presented counts; the
 presented view).
 
+**Text fading out (text boxes without a bubble).** Narration and other text
+with no box (text box type 0) fades out when it closes, and type 6 boxes
+draw their text that way all the time: the PS1 reads the box's rectangle of
+the frame buffer back, blends the glyphs into it on the CPU at the fading
+alpha and uploads it again (BATTLE `_renderTextImmediate`). With the
+hardware renderers that frame buffer is the PS1-resolution copy, so the
+upload put a pixelated rectangle of an older picture over the scene with
+the old text faintly inside in the PS1 font. Instead the text is drawn as
+the box's glyph sprites (so `ui_text font` and line layout restyle it as
+they did while it was open) at the fading opacity: 5BF94.c marks the packet
+range (`pc_hw_opacity_packets`) and those primitives are drawn "over" at
+that opacity (`FLAG_FADE`, in the text passes; the window-resolution overlay
+too). The software renderer keeps the game's own path, and
+`ROOD_OPACITY_2D=0` brings it back on the hardware ones (for comparisons).
+Test: `pc/tests/text_fade_smoke.py`.
+
 **Lines (`ui_text_layout line`, the default).** The game sets its text a
 glyph at a time in 12 x 12 cells at its own advances (about 6 pixels a
 letter in menus and the information box, proportional in talk bubbles). A
@@ -2496,11 +2512,16 @@ python3 pc/tests/run.py              # all suites, -j CPUs/4 (at most 6)
 python3 pc/tests/run.py -j 2 input   # suites whose names contain "input"
 python3 pc/tests/run.py --list
 python3 pc/tests/run.py --changed    # only the suites a change since main can affect
-pc/tools/verify.sh [--changed]       # the four builds and both suites, one line per step
+pc/tools/verify.sh                   # QUICK: builds + the change's suites (Vulkan, null, GL sanity)
+pc/tools/verify.sh --full            # FULL: builds + every suite on null, Vulkan and OpenGL
 python3 pc/tests/run.py --clean      # remove this checkout's test outputs (pc/tools/clean_build.py)
 ```
 
-`docs/Testing.md` has the details: what `--changed` picks
+Policy: the quick lane before each publish (under 10 minutes); the full lane
+once a day and before bigger releases; when the daily run finds a break, fix
+it or revert the merge that made it.
+
+`docs/Testing.md` has the details: the two lanes, what `--changed` picks
 (`pc/tests/affected.toml`), the game and CPU lanes (`--gpu-jobs`,
 `--cpu-jobs`, `--heavy-jobs`), the lower priority the suites run at, and
 what limits a full run.
@@ -2508,6 +2529,8 @@ what limits a full run.
 | Suite | Covers |
 | --- | --- |
 | `ctest` | the CMake probes in `pc/build` (configure it once, below); `fixture_catalog` keeps the whole-disc scan and generation result for identical inputs in `pc/build/fixture-check/` (the determinism re-run always runs; `ROOD_FIXTURE_CHECK_CACHE=0` recomputes) |
+| `ctest_long` | the long CMake tests (`zig_diff`'s ten shards, `zig_diff_coverage`, `port_pipeline`; ~35 min of CPU): left out of `ctest`, run by the full lane and by the quick lane for a change to the Zig port or its tools |
+| `affected_test`, `verify_args_test` | the `--changed` selector and the quick lane (`affected.py`, `affected.toml`); `verify.sh`'s lanes and steps |
 | `snapshot_equivalence` | save states resume exactly at every test checkpoint (below; first job) |
 | `snapshot_resume_smoke` | 64-bit: the engine relinked elsewhere resumes a snapshot through RPC `restart` at the same moment and state, and 60 vsyncs on matches the original build; a snapshot of other game code is refused |
 | `rpc_smoke`, `gi_smoke`, `movie_smoke` | RPC control, path tracer, intro movie |

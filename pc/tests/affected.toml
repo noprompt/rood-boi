@@ -1,52 +1,95 @@
 # Which suites a change can affect: python3 pc/tests/run.py --changed [BASE]
-# (pc/tests/affected.py reads this; BASE defaults to main).
+# (pc/tests/affected.py reads this; BASE defaults to main). verify.sh's quick
+# lane (the default before a publish) runs this selection on Vulkan, the [quick]
+# extras below, and nothing else; verify.sh --full runs every suite on every
+# renderer, once a day.
 #
-# Every changed file (git diff BASE, plus uncommitted and untracked files) is
-# matched against the rules below (fnmatch patterns on the repository path:
-# `*` also crosses `/`). A file selects the union of the suites of every rule
-# it matches; suite entries are run.py names or fnmatch patterns of them
-# ("ui_*", "input:*").
+# The changed files are the tracked ones only: the commits since BASE (git diff
+# BASE...HEAD, or BASE..HEAD when BASE is a published snapshot with no shared
+# history) plus uncommitted edits to tracked files. Untracked files never count,
+# and [ignore] drops tool folders even if they get tracked.
 #
-#   [core]        a match runs everything (renderer core, the runtime, RPC,
-#                 snapshots, the test harness itself)
-#   [[rule]]      paths -> suites; `suites = []` means "nothing to run"
+# Each file is matched against the tables below (fnmatch patterns on the
+# repository path: `*` also crosses `/`). A file selects the union of the
+# suites of every rule it matches; suite entries are run.py names, fnmatch
+# patterns of them ("ui_*", "input:*") or "@set" for a [sets] entry.
+#
+#   [core]        files every suite runs through: they select the broad set
+#                 (@broad), a cross-section of the game, never every suite
+#   [[rule]]      paths -> suites; `suites = []` means "nothing to run";
+#                 `exclusive = true` skips the import scan for these paths
 #   [baseline]    suites added whenever any file that goes into the game
 #                 binary changes (game or port source, shaders, assets)
+#   [default]     what a file no rule covers selects, with a warning to add a
+#                 rule here (never the full suite: that is verify.sh --full)
+#   [quick]       the quick lane's fixed extras and the GL renderer's files
+#   [[long]]      suites too slow for the quick lane unless a change touches them
 #
 # Besides the table, three things are derived, so they never go stale:
 #   - a test script (pc/tests/*.py, *.sh) selects the suites that run it or
 #     import it (transitively): changing editor_selection_smoke.py also runs
-#     editor_handles_smoke, which imports it;
+#     editor_handles_smoke, which imports it; a module more than
+#     [shared].max_importers suites import selects @broad instead;
 #   - a pc/tools/*.py module imported by test scripts selects those suites;
 #   - a file named in pc/CMakeLists.txt (a probe or the sources it compiles)
 #     and pc/tests/*_probe.* select ctest.
-# A file that matches nothing at all runs everything: when in doubt, add a
-# rule here rather than guessing in code.
+
+[ignore]
+# Tool folders (agent worktrees, symlinks to other disks): never part of a change.
+paths = [".kameosa/*", ".kameosa", ".claude/*", ".claude", ".kameosa-*", ".worktrees/*", ".cache/*", ".venv/*"]
+
+[sets]
+# A cross-section of the game, one or two suites per subsystem, all short
+# (seconds to a minute each): boot and RPC, the title and opening, a room, a
+# scene, field play into battle, menus and saves, 2D text, widescreen, Lua,
+# the lighting path, the editor, snapshots, the CTest probes.
+broad = ["rpc_smoke", "golden_frames", "room_smoke", "opening_smoke", "scene_smoke", "title_fade_smoke",
+         "snapshot_equivalence", "input:start-through-the-opening", "input:start-select-in-battle",
+         "ui_menus_smoke", "save_menu_smoke", "widescreen_smoke", "ui_text_smoke", "lua_smoke", "gi_smoke",
+         "emissive_smoke", "animation_smoke", "damage_numbers_smoke", "tunables_smoke", "editor_selection_smoke",
+         "ctest"]
+# What every frame goes through (the scaled VRAM target, native meshes, 2D,
+# post, presentation): the suites that compare pictures of each kind.
+render = ["golden_frames", "room_smoke", "opening_smoke", "scene_smoke", "title_fade_smoke", "transition_fade_smoke",
+          "widescreen_smoke", "widescreen_scene_smoke", "interpolation_smoke", "coplanar_order_smoke",
+          "flipped_sprite_smoke", "ui_text_smoke", "ui_lines_smoke", "ui_upscale_smoke", "text_fade_smoke",
+          "hud_label_solid_smoke", "aa_smoke", "post_smoke", "gi_smoke", "emissive_smoke", "material_smoke",
+          "texture_animation_smoke", "photo_full_room_smoke", "rpc_smoke"]
+# The test harness itself: the selector, verify.sh's argv, checkpoints and
+# save states, and a few game suites run through it end to end.
+harness = ["affected_test", "verify_args_test", "checkpoints_test", "snapshot_equivalence", "rpc_smoke",
+           "room_smoke", "opening_smoke", "null_backend_smoke"]
+# A file no rule covers: the builds (verify.sh always runs them), the null
+# backend, the probes and a few broad smokes.
+default = ["null_backend_smoke", "rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "ctest"]
+
+[shared]
+# A test module imported by more suites than this (rood_rpc.py: 144,
+# checkpoints.py: 117, menu_nav.py, golden_frames.py) selects @broad instead
+# of all its importers: any of them would notice a broken helper.
+max_importers = 30
+suites = ["@broad"]
 
 [core]
+# Code every suite runs through. A break here shows in any suite, so the broad
+# set finds it; the daily full verify covers the rest. Each group says why.
 paths = [
-    "pc/tests/run.py", "pc/tests/affected.py", "pc/tests/affected.toml", "pc/tests/checkpoints.py",
-    "pc/tools/rood_rpc.py", "pc/tools/build_boot.py", "pc/tools/build_cache.py", "pc/tools/import_types.py",
-    "pc/tools/gl_shaders.py", "pc/tools/vk_shaders.py", "pc/tools/nrd.py", "pc/tools/nrd/*",
-    "pc/tools/snapshot_layout.py", "pc/tools/shared_cache.py",
-    "pc/CMakeLists.txt", "Makefile", "requirements.txt", "config/*", "include/*", "tools/*", ".gitmodules",
-    "pc/third_party/*", "pc/include/*",
-    # the runtime, guest memory, RPC, snapshots, the window and the shared renderer
+    # the RPC client and the checkpoint/snapshot helpers every game suite drives the game with
+    "pc/tools/rood_rpc.py", "pc/tests/checkpoints.py", "pc/tests/snapshot_diff.py",
+    # what generates parts of the game binary (types, shaders): every suite runs that binary
+    "pc/tools/build_boot.py", "pc/tools/import_types.py", "pc/tools/gl_shaders.py", "pc/tools/vk_shaders.py",
+    # the decomp's shared build inputs: the main executable's splat config, SDK and game headers
+    "Makefile", "config/splat.config.yaml", "config/SLUS_010.40/*", "include/*", "pc/include/*",
+    # vendored libraries every run links (SDL, the PS1 library reimplementations)
+    "pc/third_party/SDL3/*", "pc/third_party/psycross/*", "pc/third_party/psycross-audio/*",
+    # the runtime: guest memory, the boot path, the SDK shims, the disc, the window, save states
     "pc/src/boot_runtime.c", "pc/src/boot_sdk.c", "pc/src/boot_window.c", "pc/src/boot_*.inc",
-    "pc/src/dev_rpc.c", "pc/src/dev_state.*", "pc/src/dev_overlay.cpp", "pc/src/snapshot.*",
-    "pc/src/memory.*", "pc/src/overlay_statics.c", "pc/src/psx_*", "pc/src/platform.h", "pc/src/win_compat.h",
-    "pc/src/pc_paths.h", "pc/src/cd_drive.c", "pc/src/audio*", "pc/src/project_settings.cpp",
-    "pc/src/gpu_hw.c", "pc/src/render.*", "pc/src/render_gl.h", "pc/src/gl_api.h", "pc/src/gl_present.c",
-    "pc/src/scene_submit.inc", "pc/src/scene_capture.*", "pc/src/room_native.c", "pc/src/room_render.c", "pc/src/room_editor.h",
-    "pc/src/room_geometry.c", "pc/src/room_callbacks.inc", "pc/src/actor_*", "pc/src/battle_*",
-    "pc/src/vk_core.*", "pc/src/vk_hw.*", "pc/src/vk_hooks.h", "pc/src/vk_present.c", "pc/src/vk_render.inc",
-    "pc/src/vk_overlay.cpp", "pc/src/input_record.c", "pc/src/navigation.c", "pc/src/materials.*",
-    "pc/shaders/vulkan/hw*", "pc/shaders/vulkan/native*", "pc/shaders/vulkan/vram.glsl",
-    "pc/shaders/vulkan/upload.*", "pc/shaders/vulkan/present_vram.frag", "pc/shaders/vulkan/fullscreen.vert",
-    "pc/shaders/vulkan/scaled.frag", "pc/shaders/vulkan/downsample.*", "pc/shaders/vulkan/brightness.*",
-    # the game itself, shared by every scene
+    "pc/src/snapshot.*", "pc/src/memory.*", "pc/src/overlay_statics.c", "pc/src/psx_*", "pc/src/platform.h",
+    "pc/src/win_compat.h", "pc/src/pc_paths.h", "pc/src/cd_drive.c",
+    # the game's main executable and headers, shared by every scene
     "src/SLUS_010.40/*", "src/include/*", "src/GIM/*", "src/renderTextures.h",
 ]
+suites = ["@broad"]
 
 [baseline]
 # Cheap guards that the game still boots, plays and draws like before, added
@@ -54,14 +97,158 @@ paths = [
 paths = ["pc/src/*", "src/*", "pc/shaders/*", "pc/assets/*", "lighting/*"]
 suites = ["rpc_smoke", "golden_frames"]
 
+[default]
+suites = ["@default"]
+
+[quick]
+# verify.sh's quick lane. Vulkan runs the selection plus `vulkan`; the null
+# renderer runs its CPU-safe share of it plus `null`; GL runs `gl_sanity`
+# (boot and RPC, a room, the opening, the goldens, the title's 2D) plus what
+# the files in `gl_paths` (the OpenGL renderer's own code) select.
+vulkan = ["ctest"]
+null = ["null_backend_smoke"]
+gl_sanity = ["rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "title_fade_smoke"]
+gl_paths = ["pc/src/gl_*", "pc/src/render_gl.h", "pc/src/post_gl.inc", "pc/src/gpu_hw.c", "pc/src/render.c",
+            "pc/src/*_gl.*", "pc/tools/gl_shaders.py"]
+
+# ---- long suites (Vulkan times of the last full verify): the quick lane runs
+# one only when its own script or declared sources change, or a file in its
+# `paths` (what it exists to test) does ----
+[[long]]
+# zig_diff's ten shards, the coverage lane and the port pipeline: ~35 min of CPU
+suites = ["ctest_long"]
+paths = ["game/*", "pc/tools/zig_diff.py", "pc/tools/zig_views.py", "pc/tools/zig_c.py", "pc/tools/ownership.py",
+         "pc/tests/zig_diff/*", "pc/tests/zig_diff_coverage_test.py", "pc/tests/port_pipeline_test.py",
+         "pc/tests/port_pipeline/*", "pc/tools/port_pipeline.py", "pc/tools/model_client.py", "pc/tools/spec_bakeoff.py"]
+
+[[long]]
+# 431 s and 128 s: the charge skip played out
+suites = ["skip_charging_smoke", "charge_skip_soak"]
+paths = ["pc/src/charge_skip.*"]
+
+[[long]]
+# 3000 vsyncs of play each
+suites = ["soak", "soak:save"]
+paths = []
+
+[[long]]
+# 180 s: every room's emissive glows and generated window lights
+suites = ["emissive_catalog"]
+paths = ["pc/assets/emissive/*", "pc/tools/generate_lighting.py", "lighting/default/generated/*"]
+
+[[long]]
+# the story viewer: every chapter's scenes (900 s budget)
+suites = ["cutscene_viewer_smoke"]
+paths = ["pc/src/cutscene*", "pc/src/story_boot.c", "pc/assets/cutscenes/*", "pc/tools/story_*.py",
+         "pc/tools/cutscene_*.py"]
+
+[[long]]
+# 126 s: the data menu five times, then a walk
+suites = ["input:data-menu-five-times-then-walk"]
+paths = ["pc/src/memory_card.c", "src/MENU/*"]
+
+[[long]]
+# the Zig trial port's corpus runs (~100 s each, six of them): run in the null lane
+suites = ["trial_corpus_*"]
+paths = ["game/*", "pc/tests/diff/*", "pc/tools/field_map.py", "pc/src/shadow.*", "pc/docs/porting/battle/MEANINGS.tsv"]
+
 # ---- documentation and repository chores: nothing to run ----
 [[rule]]
 paths = ["*.md", "docs/*", "pc/docs/*", "LICENSE", "THIRD_PARTY.md", ".github/*", ".vscode/*",
-         ".gitignore", "Dockerfile", "pc/tools/publish.sh", "pc/tools/where.sh", "pc/tools/verify.sh", "pc/tools/dev_loop.sh", "pc/tools/memcap",
+         ".gitignore", "Dockerfile", "pc/tools/publish.sh", "pc/tools/where.sh", "pc/tools/dev_loop.sh", "pc/tools/memcap",
          "pc/tools/new_worktree.sh", "pc/tools/remove_worktree.sh", "pc/tools/clean_build.py",
          "pc/tests/profile_report.py", "pc/tests/enemy_soak_report.py", "pc/run-game.sh", "pc/run-boot.sh",
-         "assets/*"]
+         "pc/tools/steam-launch.sh", "assets/*"]
 suites = []
+exclusive = true
+
+# ---- the test harness: the selector and verify.sh select their own tests;
+# run.py (suite definitions, the runner) the harness set ----
+[[rule]]
+paths = ["pc/tests/affected.py", "pc/tests/affected.toml", "pc/tests/affected_test.py", "pc/tools/verify.sh",
+         "pc/tests/verify_args_test.py"]
+suites = ["affected_test", "verify_args_test"]
+exclusive = true
+
+[[rule]]
+paths = ["pc/tests/run.py"]
+suites = ["@harness"]
+exclusive = true
+
+# ---- the build: verify.sh always builds; these test the build's caches ----
+[[rule]]
+paths = ["pc/tools/build_cache.py", "pc/tools/shared_cache.py", "pc/tools/build_stamp.py"]
+suites = ["build_cache", "build_noop_test", "verify_args_test"]
+
+[[rule]]
+paths = ["pc/CMakeLists.txt"]
+suites = ["ctest"]
+
+# ---- the decomp's own tooling and Python deps (splat outputs feed the PC build) ----
+[[rule]]
+paths = ["tools/*", "requirements.txt", ".gitmodules"]
+suites = ["@default"]
+
+# ---- save states and the engine boundary ----
+[[rule]]
+paths = ["pc/tools/snapshot_layout.py", "pc/src/snapshot.*", "pc/src/snapshot_context.h", "pc/src/savestate_*"]
+suites = ["snapshot_equivalence", "snapshot_resume_smoke", "engine_saved_state_test", "engine_reload_smoke",
+          "engine_rewind_smoke", "ownership_smoke"]
+
+# ---- the renderer every frame goes through (both renderers; GL's own files
+# also run on GL in the quick lane: [quick] gl_paths) ----
+[[rule]]
+paths = ["pc/src/gpu_hw.c", "pc/src/render.*", "pc/src/render_gl.h", "pc/src/gl_api.h", "pc/src/gl_present.c",
+         "pc/src/post_gl.inc", "pc/src/scene_submit.inc", "pc/src/room_native.c", "pc/src/room_render.c",
+         "pc/src/room_geometry.c", "pc/src/room_callbacks.inc", "pc/src/room_editor.h",
+         "pc/src/vk_core.*", "pc/src/vk_hw.*", "pc/src/vk_hooks.h", "pc/src/vk_present.c", "pc/src/vk_render.inc",
+         "pc/src/vk_overlay.cpp", "pc/src/materials.*", "pc/src/render_state.*", "pc/shaders/vulkan/vram_from_target.comp",
+         "pc/shaders/vulkan/hw*", "pc/shaders/vulkan/native*", "pc/shaders/vulkan/vram.glsl",
+         "pc/shaders/vulkan/upload.*", "pc/shaders/vulkan/present_vram.frag", "pc/shaders/vulkan/fullscreen.vert",
+         "pc/shaders/vulkan/scaled.frag", "pc/shaders/vulkan/downsample.*", "pc/shaders/vulkan/brightness.*",
+         "pc/third_party/glslang/*"]
+suites = ["@render"]
+
+# ---- scene capture (the room in world space for lighting) ----
+[[rule]]
+paths = ["pc/src/scene_capture.*"]
+suites = ["gi_smoke", "probe_gi_smoke", "fixture_lighting_smoke", "light_actors_smoke", "emissive_smoke",
+          "material_survey_smoke", "photo_full_room_smoke", "ctest"]
+
+# ---- RPC, the developer state and the overlay's panels ----
+[[rule]]
+paths = ["pc/src/dev_rpc.c"]
+suites = ["rpc_smoke", "rpc_tcp_token_smoke", "repl_smoke", "lua_smoke", "tunables_smoke", "player_state_smoke"]
+
+[[rule]]
+paths = ["pc/src/dev_state.*"]
+suites = ["rpc_smoke", "tunables_smoke", "editor_selection_smoke", "room_browser_smoke", "player_state_smoke"]
+
+[[rule]]
+paths = ["pc/src/dev_overlay.cpp", "pc/src/vk_overlay.cpp", "pc/third_party/imgui/*", "pc/third_party/ImGuizmo/*"]
+suites = ["editor_*", "tunables_smoke", "room_browser_smoke", "photo_mode_smoke", "lua_smoke", "rpc_smoke"]
+
+# ---- settings (settings.cfg, the Option and System pages' storage) ----
+[[rule]]
+paths = ["pc/src/project_settings.cpp"]
+suites = ["system_settings_smoke", "ui_system_smoke", "options_*", "window_mode_smoke", "tunables_smoke",
+          "camera_options_smoke", "skip_intro_smoke", "rpc_smoke"]
+
+# ---- sound ----
+[[rule]]
+paths = ["pc/src/audio*"]
+suites = ["heal_audio_smoke", "heal_audio_noirq_smoke", "room_entry_sound_smoke", "movie_smoke", "skip_intro_smoke",
+          "rpc_smoke"]
+
+# ---- input recording and replay (rewind marks, the oracle's replays) ----
+[[rule]]
+paths = ["pc/src/input_record.c"]
+suites = ["ctest", "ownership_smoke", "engine_rewind_smoke", "cutscene_player_smoke", "input:start-through-the-opening"]
+
+# ---- fonts ----
+[[rule]]
+paths = ["pc/third_party/fonts/*"]
+suites = ["ui_text_smoke", "button_prompts_smoke", "button_roles_symbols_smoke", "options_classic_smoke"]
 
 # ---- the engine library and its reload (build_boot.py --engine-library) ----
 [[rule]]
@@ -74,7 +261,7 @@ suites = ["engine_reload_smoke", "photo_engine_reload_smoke"]
 [[rule]]
 paths = ["game/*", "pc/tools/game_lib.py", "pc/src/game_host.inc", "pc/src/engine_host.c",
          "pc/tools/ownership.py", "pc/src/ownership.*", "pc/src/shadow.*", "pc/src/dev_rpc.c",
-         "pc/src/lua/lua_rpc.cpp", "pc/tools/rood_rpc.py", "pc/tools/dev_loop.sh"]
+         "pc/src/lua/lua_rpc.cpp", "pc/tools/dev_loop.sh"]
 suites = ["zig_hotswap_smoke"]
 
 # ---- the Zig trial port: its corpus runs (pc/docs/porting/battle/TRIAL.md) ----
@@ -83,11 +270,23 @@ paths = ["game/*", "pc/tools/ownership.py", "pc/tools/zig_views.py", "pc/tools/z
          "pc/docs/porting/battle/MEANINGS.tsv", "pc/tests/diff/*", "pc/src/shadow.*"]
 suites = ["trial_corpus_*"]
 
-# ---- owned-code generators and the differential harness (ctest zig_c, zig_views, zig_diff) ----
+# ---- owned-code generators and the differential harness (ctest zig_c, zig_views; ctest_long zig_diff) ----
 [[rule]]
 paths = ["game/*", "pc/tools/ownership.py", "pc/tools/zig_views.py", "pc/tools/zig_c.py", "pc/tools/zig_diff.py",
          "pc/tests/zig_diff/*", "pc/tests/zig_c_test.py", "pc/tests/zig_views_test.py"]
-suites = ["ctest"]
+suites = ["ctest", "ctest_long"]
+
+# ---- the port pipeline and the model bake-off (ctest port_pipeline, bakeoff_tools, prompt_tools) ----
+[[rule]]
+paths = ["pc/tools/port_pipeline.py", "pc/tools/model_client.py", "pc/tools/spec_bakeoff.py", "pc/tools/bakeoff*.py",
+         "pc/tools/porting_tables.py",
+         "pc/tools/prompt_*.py", "pc/tests/port_pipeline/*"]
+suites = ["ctest", "ctest_long"]
+
+# ---- the oracle's shared declarations (shadow and owned runs) ----
+[[rule]]
+paths = ["pc/src/oracle.h"]
+suites = ["ownership_smoke", "shadow_battle_smoke*", "battle_corpus_candidate", "ctest"]
 
 # ---- frame cost counters (ROOD_PERF) ----
 [[rule]]
@@ -102,8 +301,8 @@ suites = ["lua_smoke", "ctest", "hud_bench_smoke", "repl_smoke", "options_classi
 
 # ---- the photo mode foundation (rood.game.pause, rood.camera, rood.post, rood.ui, rood.capture, rood.input) ----
 [[rule]]
-paths = ["pc/src/photo*", "pc/src/lua/lua_api_photo.cpp", "pc/src/lua/lua_photo*", "pc/tests/lua/plugins/test.photo/*",
-         "pc/src/state_rewind.c",
+paths = ["pc/src/photo*", "pc/src/*_photo.inc", "pc/src/lua/lua_api_photo.cpp", "pc/src/lua/lua_photo*",
+         "pc/tests/lua/plugins/test.photo/*", "pc/src/state_rewind.c",
          "pc/src/editor_view.cpp", "pc/src/post_profile.cpp", "pc/src/post.h"]
 suites = ["photo_foundation_smoke", "photo_engine_reload_smoke", "photo_mode_smoke", "photo_full_room_smoke", "ctest"]
 
@@ -120,10 +319,10 @@ paths = ["pc/src/cutscene*", "pc/assets/cutscenes/*", "pc/src/state_rewind.c", "
          "pc/src/boot_controller.*", "pc/src/photo_capture.cpp", "pc/src/photo.cpp", "pc/src/story_boot.c"]
 suites = ["cutscene_player_smoke", "cutscene_viewer_smoke", "cutscene_sequencer_smoke", "ctest"]
 
-# ---- the event's screen images (stills, the credits' tear wipe: widened in 16:9) ----
+# ---- the event's screen images (stills, the credits' tear wipe: widened in 16:9); text fading out ----
 [[rule]]
 paths = ["src/BATTLE/BATTLE.PRG/5BF94.c"]
-suites = ["cutscene_player_smoke", "widescreen_smoke"]
+suites = ["cutscene_player_smoke", "widescreen_smoke", "text_fade_smoke"]
 
 # ---- the cutscene player's offline tools (catalog scan, opcode names) ----
 [[rule]]
@@ -171,14 +370,15 @@ paths = ["pc/src/display_confirm.*", "pc/src/host_format.*"]
 suites = ["options_*", "ui_system_smoke", "system_settings_smoke", "window_mode_smoke", "ctest"]
 
 [[rule]]
-paths = ["src/MENU/*"]
+paths = ["src/MENU/*", "config/MENU/*"]
 suites = ["ui_*", "menu0_levelled_smoke", "save_menu_smoke", "fast_travel_*", "weapon_slots_smoke",
           "button_roles_*", "interp_menu_2d_smoke", "input:data-menu*", "widescreen_smoke", "snapshot_equivalence",
           "hud_label_solid_smoke", "skip_charging_smoke", "options_*", "narrowed_2d_smoke", "quit_smoke"]
 
-# ---- the battle overlay (field play too) ----
+# ---- the battle overlay (field play too), its split config, the actors and the native helpers it calls ----
 [[rule]]
-paths = ["src/BATTLE/*", "pc/src/charge_skip.*", "pc/src/gameplay_walls.*"]
+paths = ["src/BATTLE/*", "config/BATTLE/*", "pc/src/charge_skip.*", "pc/src/gameplay_walls.*", "pc/src/actor_*",
+         "pc/src/battle_*", "pc/src/navigation.c"]
 suites = ["tunables_smoke", "skip_charging_smoke", "charge_skip_soak", "soak", "soak:save", "two_model_enemy_smoke",
           "route_continuation_smoke", "damage_numbers_smoke", "narrowed_2d_smoke", "menu0_levelled_smoke", "input:*",
           "animation_smoke",
@@ -191,18 +391,23 @@ paths = ["pc/src/occlusion.*", "pc/tests/occlusion_smoke.py"]
 suites = ["occlusion_smoke", "ctest", "tunables_smoke"]
 
 [[rule]]
-paths = ["src/EFFECT/*", "pc/src/effect_*"]
+paths = ["src/EFFECT/*", "config/EFFECT/*", "pc/src/effect_*"]
 suites = ["glow_stability_smoke", "damage_numbers_smoke", "skip_charging_smoke", "charge_skip_soak",
           "particles_smoke", "save_point_glow_smoke", "ctest", "soak:save"]
 
 [[rule]]
-paths = ["src/TITLE/*"]
+paths = ["src/TITLE/*", "config/TITLE/*"]
 suites = ["title_fade_smoke", "skip_intro_smoke", "opening_smoke", "input:*", "snapshot_equivalence",
           "interp_menu_2d_smoke", "widescreen_smoke", "save_menu_smoke", "movie_smoke"]
 
 [[rule]]
-paths = ["src/ENDING/*"]
+paths = ["src/ENDING/*", "config/ENDING/*"]
 suites = ["ending_smoke"]
+
+# ---- the small overlays' split config (no source of their own here) ----
+[[rule]]
+paths = ["config/SMALL/*", "config/GIM/*"]
+suites = ["@broad"]
 
 # ---- the editor ----
 [[rule]]
@@ -213,13 +418,13 @@ suites = ["editor_*", "barn_doors_smoke", "emissive_entries_smoke", "emissive_to
 
 [[rule]]
 paths = ["pc/src/emissive*", "pc/assets/emissive/*", "pc/assets/materials/*", "pc/shaders/vulkan/emissive.glsl",
-         "pc/tools/check_material_maps.py"]
+         "pc/tools/check_material_maps.py", "pc/src/window_pattern*", "pc/shaders/vulkan/window_pattern*"]
 suites = ["emissive_smoke", "emissive_entries_smoke", "emissive_tools_smoke", "emissive_metadata", "editor_selection_smoke", "editor_undo_smoke",
           "editor_schema_smoke", "material_smoke", "material_relief_smoke", "material_survey_smoke", "material_catalog"]
 
 # Material response (pc/docs/Materials.md): the catalog, the editor, the shading and reflections.
 [[rule]]
-paths = ["pc/src/material*", "pc/shaders/vulkan/material.glsl", "pc/shaders/vulkan/rt_reflect*",
+paths = ["pc/src/material*", "pc/shaders/vulkan/material*", "pc/shaders/vulkan/rt_reflect*",
          "pc/shaders/vulkan/rt_paths.glsl", "pc/tools/material_survey.py"]
 suites = ["material_smoke", "material_relief_smoke", "material_survey_smoke", "material_catalog", "emissive_smoke", "gi_smoke"]
 
@@ -256,11 +461,11 @@ suites = ["lighting_lint", "fixture_lighting_smoke", "light_actors_smoke", "sky_
 paths = ["pc/src/lighting_quality.*"]
 suites = ["lighting_presets_smoke", "gi_smoke", "probe_gi_smoke", "ui_system_smoke", "system_settings_smoke"]
 
-# ---- global illumination, ray tracing, shadows ----
+# ---- global illumination, ray tracing, shadows (NRD's build helper too) ----
 [[rule]]
 paths = ["pc/src/ptgi.c", "pc/src/probe_*", "pc/src/vk_rt.inc", "pc/src/vk_probes.inc", "pc/src/vk_nrd.*",
          "pc/src/vk_shadows.c", "pc/src/shadows.c", "pc/src/room_shadows.inc", "pc/shaders/vulkan/rt_*",
-         "pc/shaders/vulkan/probe_*", "pc/shaders/vulkan/menu_studio.glsl"]
+         "pc/shaders/vulkan/probe_*", "pc/shaders/vulkan/menu_studio.glsl", "pc/tools/nrd.py", "pc/tools/nrd/*"]
 suites = ["gi_smoke", "probe_gi_smoke", "nrd_smoke", "rt_camera_smoke", "gi_lag_smoke", "sky_smoke",
           "lighting_presets_smoke", "emissive_smoke", "ui_ashley_*", "platform_shadow_smoke",
           "save_point_glow_smoke", "barn_doors_smoke", "light_actors_smoke", "camera_stick_smoke"]
@@ -282,19 +487,19 @@ suites = ["particles_smoke", "ctest"]
 # ---- post-processing, anti-aliasing ----
 [[rule]]
 paths = ["pc/src/post*", "pc/src/post_*.inc", "pc/assets/post/*", "pc/shaders/vulkan/bloom*",
-         "pc/shaders/vulkan/post_*", "pc/shaders/vulkan/blur.frag"]
+         "pc/shaders/vulkan/post_*", "pc/shaders/vulkan/blur.frag", "pc/shaders/vulkan/dof*"]
 suites = ["post_smoke", "dof_smoke", "dof_subject_smoke", "aa_smoke", "transition_fade_smoke", "tunables_smoke"]
 
 [[rule]]
 paths = ["pc/src/antialias.*", "pc/shaders/vulkan/smaa*", "pc/shaders/vulkan/fxaa.frag",
-         "pc/shaders/vulkan/aa_geometry.glsl", "pc/shaders/vulkan/ms_*"]
+         "pc/shaders/vulkan/aa_geometry.glsl", "pc/shaders/vulkan/ms_*", "pc/third_party/smaa/*"]
 suites = ["aa_smoke", "ui_lines_smoke", "ui_text_smoke", "post_smoke", "flipped_sprite_smoke"]
 
 # ---- 2D: text, fonts, bubbles, prompts, upscaling ----
 [[rule]]
 paths = ["pc/src/ui_text.*", "pc/src/fixed_font.c", "pc/src/text_lines.c", "pc/src/ui_labels.h",
          "pc/shaders/vulkan/text_*"]
-suites = ["ui_text_smoke", "hud_label_solid_smoke", "damage_numbers_smoke", "button_prompts_smoke",
+suites = ["text_fade_smoke", "ui_text_smoke", "hud_label_solid_smoke", "damage_numbers_smoke", "button_prompts_smoke",
           "button_roles_symbols_smoke", "ui_manual_smoke", "ui_score_smoke", "ctest", "classic_hud_smoke"]
 
 [[rule]]

@@ -4,49 +4,92 @@ How to verify a change without waiting for everything, and what the test
 runner does to stay quick and out of a player's way. The suites themselves
 are listed in `pc/README.md` (Running the tests) and by `run.py --list`.
 
-## The standard verify
+## The standard verify: two lanes
 
 ```sh
-pc/tools/verify.sh                    # 4 builds + the 32-bit GL and 64-bit Vulkan suites
-pc/tools/verify.sh --changed          # the same builds, only the suites the change can affect
-pc/tools/verify.sh --changed my-base  # ... since another base than main
-pc/tools/verify.sh -- -j 8            # more run.py options for both suites
+pc/tools/verify.sh                    # QUICK: the change since the last publish (on main) or main
+pc/tools/verify.sh --changed my-base  # QUICK, since another base
+pc/tools/verify.sh --full             # FULL: every suite on null, Vulkan and OpenGL
+pc/tools/verify.sh -- -j 8            # more run.py options for every suite
 ```
 
-It builds `build_boot.py`, `--battle`, `--arch 64` and `--target windows`
-(`--no-windows` skips that one), then runs both suites, and prints one line
-per step (result, seconds, the suite's pass count, the log under
-`pc/build/verify/`). With `ROOD_HEAVY_LOCK` set, every step holds that lock
-(`flock`) for its own duration only, so parallel sessions interleave.
+**Policy.** Run the quick lane before each publish. Run the full lane once a
+day (at the start of a session) and before bigger releases. When the daily
+full run finds a break, fix it or revert the merge that made it (the merge
+log names the branch); publishing is cheap to undo.
+
+**Quick** (the default; target under 10 minutes). The builds (`build_boot.py`,
+`--battle`, `--arch 64`; Windows only with `--windows`), then on 64-bit:
+
+- Vulkan: the suites the change can affect (`run.py --changed BASE --quick`,
+  below) plus `ctest` (its fast part);
+- null renderer: the CPU-safe share of them (`NULL_SAFE` in `run.py`: the
+  oracle, shadow and trial-corpus runs) plus `null_backend_smoke`; they do not
+  run again on Vulkan;
+- OpenGL: a sanity subset (`rpc_smoke`, `room_smoke`, `opening_smoke`,
+  `golden_frames`, `title_fade_smoke`), plus what the OpenGL renderer's own
+  files select when one of them changed (`[quick] gl_paths`);
+- long suites (`[[long]]`: `ctest_long` with zig_diff's ten shards, the
+  charge skip, the soaks, `emissive_catalog`, the story viewer, the five-time
+  data menu, the trial corpus) only when the change touches them: their own
+  script or sources, or the paths their entry lists.
+
+A documentation-only change runs no suite. The base on main is the `public`
+branch (the last published snapshot); elsewhere it is main. verify.sh prints
+the lane first, e.g. `quick: 78 suites (Vulkan 52, null 2, GL sanity 5, GL for
+its own files 19), skipped 112 of 165 (full lane)`.
+
+**Full** (`--full`). The builds including Windows (`--no-windows` skips it),
+then every suite: null (the CPU-safe ones), Vulkan and OpenGL, long suites
+included.
+
+Each step prints one line (result, seconds, the suite's pass count, the log
+under `pc/build/verify/`). With `ROOD_HEAVY_LOCK` set, every step holds that
+lock (`flock`) for its own duration only, so parallel sessions interleave;
+builds hold `ROOD_BUILD_LOCK` when it is set.
 
 ## Only the affected suites: `--changed`
 
 ```sh
 python3 pc/tests/run.py --changed            # what changed since main
 python3 pc/tests/run.py --changed=HEAD~3 ui  # since HEAD~3, and only suites matching "ui"
+python3 pc/tests/run.py --changed public --quick --renderer vulkan   # the quick lane's Vulkan share
 python3 pc/tests/affected.py --files pc/src/emissive.cpp   # what would this run?
+python3 pc/tests/affected.py public --quick  # the quick lane per renderer, suite by suite
 python3 pc/tests/run.py --changed-files pc/src/emissive.cpp # ... and run it
 python3 pc/tests/affected.py --all-files     # tracked files no rule covers
 ```
 
-The changed files (commits since the merge base with BASE, uncommitted and
-untracked files) are mapped to suites by the table `pc/tests/affected.toml`:
+The changed files are the tracked ones only: the commits since BASE (from the
+merge base; for a published snapshot, which shares no recent history with
+main, the tree diff) and uncommitted edits to tracked files. Untracked files
+never count, and `[ignore]` drops tool folders (`.kameosa/`, `.claude/`) even
+when tracked. They are mapped to suites by the table `pc/tests/affected.toml`:
 
-- `[core]`: the runtime, RPC, snapshots, the shared renderer, the build and
-  the harness itself (`run.py`, `checkpoints.py`, `rood_rpc.py`...); one of
-  them runs everything.
+- `[core]`: code every suite runs through (the runtime and guest memory, the
+  SDK shims, the disc, the window, save states, the RPC client, the build's
+  generators, the decomp's shared headers and the main executable). One of
+  them selects the broad set (`@broad`: ~20 short suites, one or two per
+  subsystem), not every suite: a break there shows in any suite.
 - `[[rule]]`: paths to suites (`pc/src/lua/*` to `lua_smoke` and `ctest`,
-  `pc/src/ui/*` to the menu suites, `src/BATTLE/*` to the battle, charging and
-  soak suites, docs to nothing...).
+  `pc/src/ui/*` to the menu suites, `src/BATTLE/*` and `config/BATTLE/*` to the
+  battle suites, the shared renderer to `@render`, `run.py` to `@harness`,
+  docs to nothing...). Suites are names, patterns (`ui_*`) or sets (`@broad`,
+  `@render`, `@harness`, `@default`, defined in `[sets]`).
 - `[baseline]`: `rpc_smoke` and `golden_frames` for any change to what the
   game is built from or loads.
 - Derived from the tree: a test script selects the suites that run it or
-  import it (transitively); a file `pc/CMakeLists.txt` names, or a probe,
-  selects `ctest`; suites resuming a checkpoint bring `snapshot_equivalence`.
-- A file nothing covers runs everything. Add a rule rather than guessing.
+  import it (transitively; a module more than 30 suites import, such as
+  `menu_nav.py`, selects `@broad` instead); a file `pc/CMakeLists.txt` names,
+  or a probe, selects `ctest`; suites resuming a checkpoint bring
+  `snapshot_equivalence`.
+- A file nothing covers selects the default set (`@default`: the null backend,
+  a few broad smokes, `ctest`) and prints a warning. Add a rule for it.
 
-The runner prints why each suite was chosen (or which file forced the full
-suite).
+Nothing selects every suite; that is `verify.sh --full`. The runner prints
+why each suite was chosen. `affected_test.py` checks the selector (scratch
+repositories, the rules, the lanes) and that the last 25 merges on main each
+select tens of suites, not all.
 
 ## What limits the suites, and the lanes
 

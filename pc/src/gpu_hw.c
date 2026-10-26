@@ -57,7 +57,10 @@ typedef struct {
 /* FLAG_CLAMP: 2D, texels kept inside the primitive's [uv_min, uv_max - 1]. */
 /* FLAG_COVER: untextured 2D shape with coverage (anti-aliased edges, ui_bubbles.c):
  * U is the coverage, 0..256, blended over what is drawn (BLEND_COVER). */
-enum { FLAG_TEXTURED = 1, FLAG_RAW = 2, FLAG_SEMI = 4, FLAG_MASK = 8, FLAG_UI = 16, FLAG_CLAMP = 32, FLAG_COVER = 64 };
+/* FLAG_FADE: 2D drawn at an opacity (pc_hw_opacity_packets), nx its opacity
+ * (0..127: 0..1), in a text batch (BLEND_TEXT, or BLEND_TEXT_TARGET). */
+enum { FLAG_TEXTURED = 1, FLAG_RAW = 2, FLAG_SEMI = 4, FLAG_MASK = 8, FLAG_UI = 16, FLAG_CLAMP = 32, FLAG_COVER = 64,
+    FLAG_FADE = 128 };
 /* Batch blend for FLAG_COVER: colour over the target by coverage, the
  * target's mask bit kept (above the PS1 modes 0-3 and their 2D + 4). */
 #define BLEND_COVER 12
@@ -66,6 +69,10 @@ enum { FLAG_TEXTURED = 1, FLAG_RAW = 2, FLAG_SEMI = 4, FLAG_MASK = 8, FLAG_UI = 
  * coverage at the target's pixels (draw_batch: the solid pixels' G-buffer
  * and depth as UI, then the colour over by coverage, the mask bit kept). */
 #define BLEND_TEXT 16
+/* The same passes for 2D at an opacity that is not text from distance texels
+ * (FLAG_FADE: the PS1's glyphs, sprites): + the PS1 mode or 4, drawn into the
+ * target, never held for the overlay (whose shader draws distance texels only). */
+#define BLEND_TEXT_TARGET (BLEND_TEXT + 8)
 /* Batch blend for a screen fade (pc_hw_triangle: a full-screen flat
  * subtractive 2D quad, the door fade of BATTLE _drawScreenTransition): it
  * subtracts from the 2D under it (depth "UI") and from what fills and uploads
@@ -105,6 +112,7 @@ static int primitive_uv_shift[2]; /* pc_hw_set_flipped_uv */
 enum { PC_ANCHOR_NONE, PC_ANCHOR_LEFT, PC_ANCHOR_RIGHT, PC_ANCHOR_FILL, PC_ANCHOR_SCENE, PC_ANCHOR_COVER,
     PC_ANCHOR_PROJECTED };
 static int primitive_anchor; /* of the packet being drawn (pc_hw_anchor_packet) */
+static int primitive_opacity = 256; /* of the packet being drawn (pc_hw_opacity_packets): 0..256 */
 void pc_hw_set_2d(int is_2d)
 {
     primitive_2d = is_2d;
@@ -694,6 +702,38 @@ int pc_hw_anchor_of(const void* packet)
     }
     return anchor;
 }
+/* Opacity: packet ranges of 2D drawn at an opacity the PS1 composites on the
+ * CPU (BATTLE _renderTextImmediate: a text box's text fading out, read back
+ * from the frame buffer, blended and uploaded again; the port draws it as
+ * glyph sprites instead, 5BF94.c ROOD_PC), recorded while an OT is built and
+ * made active at its DrawOTag like the anchor ranges. Their primitives are
+ * drawn "over" at that opacity (FLAG_FADE). */
+#define MAX_OPACITY_RANGES 16
+typedef struct {
+    uintptr_t start, end;
+    int opacity; /* 0..256 */
+} opacity_range;
+static opacity_range pending_opacities[MAX_OPACITY_RANGES], active_opacities[MAX_OPACITY_RANGES];
+static int pending_opacity_count, active_opacity_count;
+/* Whether 2D at an opacity is drawn as primitives (the hardware renderer;
+ * ROOD_OPACITY_2D=0: the game's own read-back and upload, for comparisons). */
+int pc_hw_opacity_on(void)
+{
+    static int off = -1;
+    if (off < 0)
+        off = getenv("ROOD_OPACITY_2D") && *getenv("ROOD_OPACITY_2D") == '0';
+    return pc_hw_active && !off;
+}
+/* The packets [start, end) drawn at `opacity` (16.16: 0x10000 opaque). */
+void pc_hw_opacity_packets(const void* start, const void* end, int opacity)
+{
+    if (pending_opacity_count < MAX_OPACITY_RANGES && end > start) {
+        opacity_range* r = &pending_opacities[pending_opacity_count++];
+        r->start = (uintptr_t)start;
+        r->end = (uintptr_t)end;
+        r->opacity = opacity <= 0 ? 0 : opacity >= 0x10000 ? 256 : opacity >> 8;
+    }
+}
 /* Scanline fills drawn as one shape (ui_lines joined, upscaled): a fill the
  * game draws as a horizontal line per row (the area-targeting floor fill,
  * map_view.c) steps by a whole native row at its slanted edges, 4 pixels
@@ -761,6 +801,10 @@ void pc_hw_anchor_packet(const void* p, int screen_x, int screen_w)
             primitive_exact = r->exact;
         }
     }
+    primitive_opacity = 256;
+    for (int i = 0; i < active_opacity_count; i++)
+        if ((uintptr_t)p >= active_opacities[i].start && (uintptr_t)p < active_opacities[i].end)
+            primitive_opacity = active_opacities[i].opacity;
     anchor_left = (float)screen_x;
     anchor_right = (float)(screen_x + screen_w);
 }
@@ -887,6 +931,9 @@ void pc_hw_begin_ot(void)
     memcpy(active_anchors, pending_anchors, sizeof active_anchors);
     active_anchor_count = pending_anchor_count;
     pending_anchor_count = 0;
+    memcpy(active_opacities, pending_opacities, sizeof active_opacities);
+    active_opacity_count = pending_opacity_count;
+    pending_opacity_count = 0;
     memcpy(active_spans, pending_spans, (size_t)pending_span_count * sizeof *active_spans);
     active_span_count = pending_span_count;
     pending_span_count = 0;
@@ -894,6 +941,7 @@ void pc_hw_begin_ot(void)
     anchor_packet = 0;
     primitive_anchor = PC_ANCHOR_NONE;
     primitive_exact = 0;
+    primitive_opacity = 256;
     pc_hw_suppress = 0;
     ++edge_generation;
     if (pc_ui_bubbles_frame)
@@ -1157,10 +1205,12 @@ static const char* draw_fragment_source =
      * covered and more), 4 its opaque texels' colour, 5 its translucent
      * texels' colour, by coverage (texels of a recorded frame redrawn with
      * ui_text original: whole). */
-    "    if ((pass == 3 && (semi || (text_alpha >= 0.0 && text_alpha < 0.5))) || (pass == 4 && semi)\n"
+    /* FLAG_FADE (2D at an opacity, text batches): v_normal.x the opacity. */
+    "    float fade = (flags & 128u) != 0u ? clamp(v_normal.x, 0.0, 1.0) : 1.0;\n"
+    "    if ((pass == 3 && (semi || fade < 0.5 || (text_alpha >= 0.0 && text_alpha < 0.5))) || (pass == 4 && semi)\n"
     "        || (pass == 5 && !semi)) discard;\n"
     "    color = vec4(c, float(mask));\n"
-    "    if (pass >= 4) color.a = (text_alpha < 0.0 ? 1.0 : text_alpha) * (pass == 5 ? text_factor : 1.0);\n"
+    "    if (pass >= 4) color.a = (text_alpha < 0.0 ? 1.0 : text_alpha) * (pass == 5 ? text_factor : 1.0) * fade;\n"
     /* FLAG_COVER (untextured 2D shapes, BLEND_COVER): U is the coverage. */
     "    if ((flags & 65u) == 64u) {\n"
     "        float cover = clamp(v_uv.x / 256.0, 0.0, 1.0);\n"
@@ -1822,7 +1872,7 @@ static void draw_batch(GLuint fbo, const hw_vertex* vertices, int count, int ble
          * covered and more) mark the G-buffer and depth as UI, as 2D does;
          * then its colour over the target by coverage (the mask bit kept),
          * opaque texels "over", translucent ones by the PS1 mode. */
-        int mode = blend - BLEND_TEXT;
+        int mode = (blend - BLEND_TEXT) & 7;
         gl_ColorMaski(0, GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         gl_Uniform1i(u_draw_pass, 3);
         gl_DrawArrays(GL_TRIANGLES, 0, count);
@@ -1924,7 +1974,7 @@ static void flush(void)
         text_run_flush(); /* buffered text first: it was drawn before what follows */
     if (batch_count) {
         pc_ui_upscale_prepare(); /* the magnified 2D regions it samples */
-        if (overlay_on && batch_blend >= BLEND_TEXT)
+        if (overlay_on && batch_blend >= BLEND_TEXT && batch_blend < BLEND_TEXT_TARGET)
             overlay_hold(); /* text: at the window's resolution, unless something comes over it */
         else {
             overlay_bake_under(batch, batch_count, batch_clip);
@@ -2448,6 +2498,11 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
         blend = BLEND_FADE; /* recorded with where it lands (below) */
     if (distance)
         blend = BLEND_TEXT + (semi ? (int)((tpage >> 5) & 3) : 4);
+    /* 2D at an opacity (pc_hw_opacity_packets): over what is drawn by it, in
+     * the text passes (the target's: not text from distance texels). */
+    int fade = primitive_opacity < 256 && primitive_2d && !(depth[0] | depth[1] | depth[2]) && !exact_cover;
+    if (fade && !distance)
+        blend = BLEND_TEXT_TARGET + (semi ? (int)((tpage >> 5) & 3) : 4);
     if (blend != batch_blend || memcmp(area, batch_clip, sizeof batch_clip)
         || batch_count + (blend == BLEND_FADE ? 6 : 3) > MAX_VERTICES) {
         flush();
@@ -2468,7 +2523,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
     }
     uint8_t flags = (uint8_t)((textured ? FLAG_TEXTURED : 0) | (textured && (code & 1) ? FLAG_RAW : 0)
         | (semi || exact_cover ? FLAG_SEMI : 0) | (mask_set ? FLAG_MASK : 0) | (exact_cover ? FLAG_COVER : 0)
-        | ui_flags);
+        | (fade ? FLAG_FADE : 0) | ui_flags);
     /* Positions: unrounded for projected 3D vertices, else the packet's. */
     float pos[6];
     for (int i = 0; i < 6; i++)
@@ -2550,6 +2605,8 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
             normal[3] = primitive_room ? 127 : 100; /* lit; room or moving (G-buffer alpha) */
         }
     }
+    if (fade)
+        normal[0] = (int8_t)((primitive_opacity * 127 + 128) >> 8);
     record_triangle(has_world ? world : NULL, code, tpage, clut, uv);
     if (primitive_2d && !has_exact && !has_text_xy && !(depth[0] | depth[1] | depth[2]))
         for (int i = 0; i < 3; i++)
@@ -2621,7 +2678,7 @@ typedef struct {
     pc_ui_text_piece_info info;
     unsigned rgb, code, window;
     int mask_set, mask_check;
-    int is_2d, room, cover, extend, narrowed, anchor, uv_shift[2];
+    int is_2d, room, cover, extend, narrowed, anchor, opacity, uv_shift[2];
     float span[2];
     int sprite; /* a sprite (else a scaled quad) */
 } text_piece;
@@ -2665,6 +2722,7 @@ static void text_emit(int count, const pc_ui_text_quad* quads)
         const pc_ui_text_quad* q = &quads[i];
         primitive_2d = p->is_2d, primitive_room = p->room, primitive_cover = p->cover;
         primitive_extend = p->extend, primitive_narrowed = p->narrowed, primitive_anchor = p->anchor;
+        primitive_opacity = p->opacity;
         primitive_uv_shift[0] = p->uv_shift[0], primitive_uv_shift[1] = p->uv_shift[1];
         primitive_span[0] = p->span[0], primitive_span[1] = p->span[1];
         has_line_x = has_exact = exact_cover = has_pending_depth = has_pending_precise = 0;
@@ -2703,6 +2761,7 @@ static void text_run_flush(void)
     /* The state of whatever is being drawn now, restored after. */
     int was_2d = primitive_2d, was_room = primitive_room, was_cover = primitive_cover, was_extend = primitive_extend;
     int was_narrowed = primitive_narrowed, was_anchor = primitive_anchor, was_suppress = pc_hw_suppress;
+    int was_opacity = primitive_opacity;
     int was_shift[2] = { primitive_uv_shift[0], primitive_uv_shift[1] };
     float was_span[2] = { primitive_span[0], primitive_span[1] };
     uintptr_t was_packet = current_packet;
@@ -2729,6 +2788,7 @@ static void text_run_flush(void)
     triangle_tag = 0;
     primitive_2d = was_2d, primitive_room = was_room, primitive_cover = was_cover, primitive_extend = was_extend;
     primitive_narrowed = was_narrowed, primitive_anchor = was_anchor, pc_hw_suppress = was_suppress;
+    primitive_opacity = was_opacity;
     primitive_uv_shift[0] = was_shift[0], primitive_uv_shift[1] = was_shift[1];
     primitive_span[0] = was_span[0], primitive_span[1] = was_span[1];
     current_packet = was_packet;
@@ -2757,7 +2817,7 @@ static void text_piece_add(const pc_ui_text_piece_info* info, int sprite, unsign
     p->sprite = sprite;
     p->rgb = rgb, p->code = code, p->window = window, p->mask_set = mask_set, p->mask_check = mask_check;
     p->is_2d = primitive_2d, p->room = primitive_room, p->cover = primitive_cover, p->extend = primitive_extend;
-    p->narrowed = primitive_narrowed, p->anchor = primitive_anchor;
+    p->narrowed = primitive_narrowed, p->anchor = primitive_anchor, p->opacity = primitive_opacity;
     p->uv_shift[0] = primitive_uv_shift[0], p->uv_shift[1] = primitive_uv_shift[1];
     p->span[0] = primitive_span[0], p->span[1] = primitive_span[1];
     text_emitting = 1; /* (the original does not end the run) */
@@ -5521,6 +5581,7 @@ static const char* overlay_vertex_source =
     "layout(location = 2) in uvec2 a_uv;\n"
     "layout(location = 3) in uvec2 a_page;\n"
     "layout(location = 4) in uint a_window;\n"
+    "layout(location = 5) in vec4 a_normal;\n"
     "layout(location = 6) in uvec4 a_bounds;\n"
     "layout(location = 7) in ivec2 a_ui;\n"
     "uniform vec4 rect;\n" /* the presented area: x, y, width, height (VRAM pixels) */
@@ -5529,7 +5590,9 @@ static const char* overlay_vertex_source =
     "flat out uvec4 v_state;\n"
     "flat out uvec4 v_bounds;\n"
     "flat out ivec2 v_ui;\n"
+    "flat out float v_fade;\n" /* FLAG_FADE: the opacity */
     "void main() {\n"
+    "    v_fade = (a_color.a & 128u) != 0u ? clamp(a_normal.x, 0.0, 1.0) : 1.0;\n"
     "    v_color = vec3(a_color.rgb) / 255.0;\n"
     "    v_uv = vec2(a_uv);\n"
     "    v_state = uvec4(a_color.a, a_page, a_window);\n"
@@ -5545,6 +5608,7 @@ static const char* overlay_fragment_source =
     "flat in uvec4 v_state;\n"
     "flat in uvec4 v_bounds;\n"
     "flat in ivec2 v_ui;\n"
+    "flat in float v_fade;\n"
     "uniform usampler2D vram;\n"
     "uniform usampler2D ui_atlas;\n"
     "uniform int ui_scale;\n"
@@ -5570,7 +5634,7 @@ static const char* overlay_fragment_source =
     "    bool semi = (flags & 4u) != 0u && (t & 0x8000u) != 0u;\n"
     "    if ((pass == 4 && semi) || (pass == 5 && !semi)) discard;\n"
     "    vec3 c = (flags & 2u) != 0u ? texel / 31.0 : min(texel * v_color * (255.0 / 128.0), 31.0) / 31.0;\n"
-    "    color = vec4(c, alpha * (pass == 5 ? text_factor : 1.0));\n"
+    "    color = vec4(c, alpha * (pass == 5 ? text_factor : 1.0) * v_fade);\n"
     "}\n";
 static GLuint overlay_program;
 static GLint u_overlay_rect, u_overlay_scale, u_overlay_pass, u_overlay_factor;

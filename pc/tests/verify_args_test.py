@@ -46,7 +46,7 @@ class VerifyArgsTest(unittest.TestCase):
             result = subprocess.run(["bash", str(script), *options], env=env,
                                     capture_output=True, text=True)
             self.assertEqual(stale.read_bytes(), b"old binary fixture")
-            return result, [json.loads(line) for line in log.read_text().splitlines()]
+            return result, [json.loads(line) for line in (log.read_text() if log.exists() else "").splitlines()]
 
     def verify_calls(self, options):
         result, calls = self.invoke_verify(options)
@@ -56,11 +56,11 @@ class VerifyArgsTest(unittest.TestCase):
 
     def test_failed_build64_skips_dependent_suites(self):
         build = "pc/tools/build_boot.py"
-        for options, windows, gl in [([], True, False),
-                                     (["--gl"], True, True),
-                                     (["--changed"], False, True),
-                                     (["--changed", "--windows"], True, True),
-                                     (["--no-windows", "--gl"], False, True)]:
+        for options, windows in [([], False),
+                                 (["--full"], True),
+                                 (["--changed"], False),
+                                 (["--changed", "--windows"], True),
+                                 (["--full", "--no-windows"], False)]:
             with self.subTest(options=options):
                 result, calls = self.invoke_verify(options, [[build, "--arch", "64"]])
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
@@ -71,13 +71,12 @@ class VerifyArgsTest(unittest.TestCase):
                                   and "--wait-cool" not in c])
                 skipped = [line.split()[1] for line in result.stdout.splitlines()
                            if line.startswith("SKIP")]
-                self.assertEqual(skipped, ["suite-64null", "suite-64vk"]
-                                 + (["suite-64gl"] if gl else []))
+                self.assertEqual(skipped, ["suite-64null", "suite-64vk", "suite-64gl"])
                 self.assertIn("1 failed", result.stdout)
 
     def test_independent_failures_are_counted(self):
         build = "pc/tools/build_boot.py"
-        result, calls = self.invoke_verify(["--gl"],
+        result, calls = self.invoke_verify(["--full"],
                                           [[build], [build, "--battle"],
                                            [build, "--target", "windows"]])
         self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
@@ -86,14 +85,17 @@ class VerifyArgsTest(unittest.TestCase):
                          ["null", "vulkan", "gl"])
         self.assertIn("3 failed", result.stdout)
 
-        result, calls = self.invoke_verify([], [[build, "--arch", "64"],
+        result, calls = self.invoke_verify(["--full"], [[build, "--arch", "64"],
                                                 [build, "--target", "windows"]])
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         self.assertIn([build, "--target", "windows"], calls)
         self.assertIn("2 failed", result.stdout)
 
     def test_changed_null_patterns(self):
-        for options, base in [(["--changed"], "main"),
+        # Outside a checkout with a public branch (this scratch tree) the
+        # default base is main.
+        for options, base in [([], "main"),
+                              (["--changed"], "main"),
                               (["--changed", "HEAD~1"], "HEAD~1"),
                               (["--changed", "--", "-j", "2"], "main")]:
             with self.subTest(options=options):
@@ -102,6 +104,7 @@ class VerifyArgsTest(unittest.TestCase):
                 for argv in calls:
                     args = run.make_parser().parse_args(argv)
                     self.assertEqual(args.changed, base)
+                    self.assertTrue(args.quick)
                     self.assertEqual(args.patterns,
                                      NULL_SUITES if args.renderer == "null" else [])
                     # A docs-only diff must be empty in every lane, and the
@@ -113,10 +116,29 @@ class VerifyArgsTest(unittest.TestCase):
                     changed.assert_called_once_with(base)
                     self.assertIn("nothing to run for this change", output.getvalue())
 
+    def test_full_lane_runs_every_suite(self):
+        calls = self.verify_calls(["--full"])
+        self.assertEqual(len(calls), 3)
+        for argv in calls:
+            args = run.make_parser().parse_args(argv)
+            self.assertIsNone(args.changed)
+            self.assertFalse(args.quick)
+            self.assertEqual(args.patterns, NULL_SUITES if args.renderer == "null" else [])
+        result, _ = self.invoke_verify(["--full", "--changed", "main"])
+        self.assertEqual(result.returncode, 2)
+
+    def test_lane_is_announced(self):
+        result, calls = self.invoke_verify([])
+        self.assertIn("lane: quick", result.stdout)
+        self.assertIn(["pc/tests/affected.py", "main", "--quick-summary"], calls)
+        self.assertRegex(result.stdout, r"quick: all passed in \d+s")
+        result, _ = self.invoke_verify(["--full"])
+        self.assertIn("lane: full", result.stdout)
+
     def test_suite_failure_does_not_stop_other_checks(self):
-        _, calls = self.invoke_verify(["--gl"])
+        _, calls = self.invoke_verify(["--full"])
         null_call = next(c for c in calls if "--renderer" in c and "null" in c)
-        result, failed_calls = self.invoke_verify(["--gl"], [null_call])
+        result, failed_calls = self.invoke_verify(["--full"], [null_call])
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertEqual(failed_calls, calls)
         self.assertIn("1 failed", result.stdout)

@@ -2099,6 +2099,53 @@ void func_800C7EBC(u_short* destination, u_int glyph, int stride, u_int alpha)
     }
 }
 
+#ifdef ROOD_PC
+/* _renderTextImmediate with the hardware renderer: the frame buffer read back
+ * there is the PS1-resolution mirror, so compositing the text into it and
+ * uploading it again would put a pixelated rectangle of an older picture over
+ * the scene (the original font faintly inside) while a box closes. The text is
+ * drawn as glyph sprites of the box instead, in its colours, at the fading
+ * opacity (pc/src/gpu_hw.c pc_hw_opacity_packets; ui_text restyles them as the
+ * text was drawn while the box was open). The PS1 build has none of this
+ * (blocks kept short there: a long skipped one makes a line marker the
+ * vsstring pass mangles). */
+extern int pc_hw_opacity_on(void) __attribute__((weak));
+extern void pc_hw_opacity_packets(const void*, const void*, int) __attribute__((weak));
+static u_long* _pcFadeOt;
+static void* _pcFadeStart;
+static int _pcFadeColor, _pcFadeBrightness;
+
+/* 1 when the box's text is drawn as glyph sprites (then nothing is read back). */
+static int _pcFadeBegin(vs_battle_textBox* box)
+{
+    if (!pc_hw_opacity_on || !pc_hw_opacity_on())
+        return 0;
+    _pcFadeOt = D_800F51B8 + D_800F4E80 * 4;
+    _pcFadeStart = psx_get(vs_scratch.unk0);
+    _pcFadeColor = D_800F4CB8;
+    _pcFadeBrightness = _fontBrightness;
+    D_800F4CB8 = (1 - (*((char*)box) & 1)) * 4; /* as _printVariableWidthFont */
+    _fontBrightness = box->brightness;
+    return 1;
+}
+
+/* One character (its code in the current font table; spaces too: the glyphs
+ * of the string stay one line for ui_text) with its top-left at x, y. */
+static void _pcFadeGlyph(u_int character, int x, int y)
+{
+    vs_battle_printVariableWidthFontChar(character, x, y, _pcFadeOt);
+}
+
+/* The glyphs drawn since _pcFadeBegin at `alpha` (16.16). */
+static void _pcFadeEnd(int alpha)
+{
+    if (pc_hw_opacity_packets)
+        pc_hw_opacity_packets(_pcFadeStart, psx_get(vs_scratch.unk0), alpha);
+    D_800F4CB8 = _pcFadeColor;
+    _fontBrightness = _pcFadeBrightness;
+}
+#endif
+
 #pragma vsstring(start)
 void _renderTextImmediate(vs_battle_textBox* arg0, int arg1)
 {
@@ -2124,14 +2171,21 @@ void _renderTextImmediate(vs_battle_textBox* arg0, int arg1)
         return;
     }
 
+#ifdef ROOD_PC
+    buf = _pcFadeBegin(arg0) ? NULL : vs_main_allocHeapR(width * height * 2);
+#else
     buf = vs_main_allocHeapR(width * height * 2);
+#endif
 
     if ((arg1 >> 0x10) != 0) {
         arg1 = 0x10000;
     }
 
     setRECT(&rect, x + vs_main_frameBuf * 320, y, width, height);
-    StoreImage(&rect, (void*)buf);
+#ifdef ROOD_PC
+    if (buf != NULL)
+#endif
+        StoreImage(&rect, (void*)buf);
 
     _fontTable = 1;
 
@@ -2143,10 +2197,20 @@ void _renderTextImmediate(vs_battle_textBox* arg0, int arg1)
                 if (currentChar != ' ') {
                     currentChar += _fontTable * 21 * 9;
                     if (((width - 12) >= printX) && ((height - 12) >= printY)) {
-                        func_800C7EBC(buf + ((printX + (printY * width))), currentChar,
-                            width, arg1);
+#ifdef ROOD_PC
+                        if (buf == NULL)
+                            _pcFadeGlyph(currentChar - _fontTable * 21 * 9, x + printX,
+                                y + printY);
+                        else
+#endif
+                            func_800C7EBC(buf + ((printX + (printY * width))),
+                                currentChar, width, arg1);
                     }
                 }
+#ifdef ROOD_PC
+                else if (buf == NULL)
+                    _pcFadeGlyph(' ', x + printX, y + printY);
+#endif
                 printX += vs_battle_characterWidths[currentChar];
             } else {
                 switch (currentChar - '\f') {
@@ -2204,6 +2268,12 @@ void _renderTextImmediate(vs_battle_textBox* arg0, int arg1)
             }
         }
     }
+#ifdef ROOD_PC
+    if (buf == NULL) {
+        _pcFadeEnd(arg1);
+        return;
+    }
+#endif
     vs_battle_renderImage(
         (x + (vs_main_frameBuf * 320)) | (_y << 0x10), buf, width | (height << 0x10));
     DrawSync(0);

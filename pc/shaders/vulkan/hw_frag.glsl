@@ -119,10 +119,12 @@ void main() {
     }
     if ((pc.pass == 1 && semi) || (pc.pass == 2 && !semi)) discard;
     // (texels of a recorded frame redrawn with ui_text original: whole)
-    if ((pc.pass == 3 && (semi || (text_alpha >= 0.0 && text_alpha < 0.5))) || (pc.pass == 4 && semi)
+    // FLAG_FADE (2D at an opacity, gpu_hw.c text batches): v_normal.x the opacity.
+    float fade = (flags & 128u) != 0u ? clamp(v_normal.x, 0.0, 1.0) : 1.0;
+    if ((pc.pass == 3 && (semi || fade < 0.5 || (text_alpha >= 0.0 && text_alpha < 0.5))) || (pc.pass == 4 && semi)
         || (pc.pass == 5 && !semi)) discard;
     color = vec4(c, float(mask));
-    if (pc.pass >= 4) color.a = (text_alpha < 0.0 ? 1.0 : text_alpha) * (pc.pass == 5 ? pc.text_factor : 1.0);
+    if (pc.pass >= 4) color.a = (text_alpha < 0.0 ? 1.0 : text_alpha) * (pc.pass == 5 ? pc.text_factor : 1.0) * fade;
     // FLAG_COVER (untextured 2D shapes, gpu_hw.c BLEND_COVER): U is the coverage.
     if ((flags & 65u) == 64u) {
         float cover = clamp(v_uv.x / 256.0, 0.0, 1.0);

@@ -8,6 +8,7 @@ layout(location = 1) in uvec4 a_color;
 layout(location = 2) in uvec2 a_uv;
 layout(location = 3) in uvec2 a_page;
 layout(location = 4) in uint a_window;
+layout(location = 5) in vec4 a_normal;
 layout(location = 6) in uvec4 a_bounds;
 layout(location = 7) in ivec2 a_ui;
 layout(push_constant) uniform Push {
@@ -20,7 +21,9 @@ layout(location = 1) out vec2 v_uv;
 layout(location = 2) flat out uvec4 v_state;
 layout(location = 3) flat out uvec4 v_bounds;
 layout(location = 4) flat out ivec2 v_ui;
+layout(location = 5) flat out float v_fade; // FLAG_FADE: the opacity
 void main() {
+    v_fade = (a_color.a & 128u) != 0u ? clamp(a_normal.x, 0.0, 1.0) : 1.0;
     v_color = vec3(a_color.rgb) / 255.0;
     v_uv = vec2(a_uv);
     v_state = uvec4(a_color.a, a_page, a_window);

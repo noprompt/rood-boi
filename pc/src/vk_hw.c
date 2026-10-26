@@ -438,8 +438,8 @@ void pc_vk_hw_draw_batch(unsigned fbo, const void* vertices, int count, int blen
     if (ms)
         for (int i = 0; i < count && !centre; i++)
             centre = ((const hw_vertex*)vertices)[i].z <= 0.0f;
-    if (blend >= 16) { /* BLEND_TEXT (+ the PS1 mode, 4: opaque): text from distance texels */
-        int mode = blend - 16;
+    if (blend >= 16) { /* BLEND_TEXT (+ the PS1 mode, 4: opaque): text from distance texels; + 8: 2D at an opacity */
+        int mode = (blend - 16) & 7;
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, ms ? ms_text_solid : text_solid_pipeline);
         vk_descriptors_push(&d, VK_PIPELINE_BIND_POINT_GRAPHICS, draw_layout);
         push.pass = 3;
