@@ -260,8 +260,36 @@ def craftbook_check(s, check, crafts):
         g.call("ui_menu", modern=look == "modern")
         g.run(40)
         g.wait_presents(4)
-        text = json.dumps(g.call("hud", action="stats"))
-        check(want in text and "Craftbook" in text, f"craftbook: its panel in the {look} look lists {want!r}")
+        stats = g.call("hud", action="stats")
+        packets = stats["panel_packets"]
+        if look == "modern":
+            text = json.dumps(stats["last"])
+            check(want in text and "Craftbook" in text, f"craftbook: its panel in the modern look lists {want!r}")
+            check(packets["end"] == packets["start"], "craftbook: the modern look draws no classic packets "
+                  f"({packets})")
+        else:
+            # the classic look: the game's frame draws it, the game's window and prompt sprites, its font
+            cmds = stats["panel_last"]
+            texts = json.dumps([c.get("text") for c in cmds])
+            check(want in texts and "Craftbook" in texts, f"craftbook: its panel in the classic look lists {want!r}")
+            check(any(c["type"] == "window" for c in cmds) and any(c["type"] == "glyph" for c in cmds),
+                  "craftbook: the classic panel is a game window and a button glyph: "
+                  + json.dumps([c["type"] for c in cmds]))
+            check(not stats["last"], "craftbook: the classic look draws nothing in the modern pass")
+            n = packets["end"] - packets["start"]
+            check(n > 0, f"craftbook: the classic panel left packets in the frame ({packets})")
+            if n > 0:
+                walk = g.call("packets", start=packets["start"], end=packets["end"])
+                words = [int(w, 16) for p in walk["packets"] for w in p["words"]]
+                # the window's body: a textured quad (code 0x2c) with the game's window CLUT (992, 220) =
+                # 0x373e; the menu font's glyph sprites: CLUT (896, 222) = 0x37b8; the button: the field page
+                # (768, 0) CLUT (944, 223) = 0x37fb
+                check(any(p["code"] == "0x2c" for p in walk["packets"]) and any(w >> 16 == 0x373E for w in words),
+                      "craftbook: the window body is the game's (textured, CLUT 0x373e)")
+                check(any(w >> 16 == 0x37B8 for w in words),
+                      "craftbook: its text is the menu font's glyphs (CLUT 0x37b8)")
+                check(any(w >> 16 == 0x37FB for w in words),
+                      "craftbook: its prompt is the game's button sprite (CLUT 0x37fb)")
         s.shot(f"craftbook-{look}")
     run = g.lua_test(plugin="rood.craftbook")
     check(run["failed"] == 0 and run["passed"] >= 3, f"craftbook: its Lua tests ({run['passed']} passed, "

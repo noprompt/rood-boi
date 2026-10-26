@@ -184,6 +184,10 @@ int pc_hud_classic_draw(const pc_hud_classic_cmd** out) __attribute__((weak));
  * although the game draws it (the parity mode); its commands, or -1 (none made for the classic flavour, it
  * failed: why in *why). */
 int pc_hud_classic_parity_draw(const pc_hud_classic_cmd** out, const char** why) __attribute__((weak));
+/* Plugins' classic panels (rood.draw.panel(fn, {classic = true}), the classic look): the panel from *cursor on
+ * draws now, at the game's frame (hud_bridge.c pc_hud_panels_classic); its commands, their count (or -1: no more),
+ * *cursor moved past it, *anchor the range's placement (PC_HUD_ANCHOR_*). */
+int pc_hud_classic_panel(int* cursor, const pc_hud_classic_cmd** out, int* anchor) __attribute__((weak));
 /* The anchor the last classic draw placed its commands by (d.anchor: PC_HUD_ANCHOR_*), -1: the element's. */
 int pc_hud_classic_anchor(void) __attribute__((weak));
 /* hud_bridge.c: the game's font's width and height of text (font PC_UI_TEXT_*), and a
@@ -195,6 +199,11 @@ int pc_hud_classic_glyph(int button) __attribute__((weak));
 /* Presented frame (dev_overlay.cpp, the ImGui frame open): claims draw the
  * live elements, then the renderer draws their commands. */
 void pc_hud_frame(void);
+/* hud_bridge.c, the game's frame just before it draws the ordering table `otag` (BATTLE func_8007629C): the
+ * classic panels' packets, linked into it. */
+void pc_hud_panels_classic(void* otag);
+/* Their packets' guest range in the last frame ([first, last), 0, 0: none): RPC hud stats panel_packets. */
+void pc_hud_panel_range(unsigned* first, unsigned* last) __attribute__((weak));
 /* Then, whatever rood.ui.hide hides: plugins' panels (rood.draw.panel) over the picture (its size in pixels). */
 void pc_hud_panels(float dt, int view_w, int view_h);
 /* RPC hud (dev_rpc.c): the params object's text; JSON in out, or < 0 with the error. */

@@ -244,7 +244,7 @@ drawing is the claims'.
 | `d.value(font, x, y, value) -> x, y`, `d.digit(font, x, y, digit)` | classic only: the HUD's digits (`vs_battle_renderValue`: the rightmost at `x, y`; font 0 small, 1 large; returns the pen the game's call leaves) and one digit (`_renderDigit`; font 2 the separator) |
 | `d.xy(x, y, delta) -> x, y` | the game's packed position arithmetic: `x, y` packed as the game packs them plus `delta` written as the game writes its steps (`56 \| (-8 << 16)`), so x's carry or borrow reaches y as in the game |
 | `d.anchor(where)` | where the draw's commands sit in 16:9: `"left"`, `"right"`, `"centre"`, `"element"` (its own, the default), `"screen"` (a panel's: the picture's square pixels, 240 high; not in the classic flavour); in the classic flavour the range is placed exactly (`PC_ANCHOR_EXACT`: no edge extension, cover or side-paint guesses) |
-| `rood.draw.panel(fn \| nil)` | the plugin's own layer over the picture (one a plugin; nil removes it): `fn(d, view)` every presented frame, in the modern pass whatever the look, after the HUD and the menus, whatever `rood.ui.hide` hides; `view`: `width` (240 times the picture's aspect), `height` 240, `aspect`, `look` (`classic`, `modern`), `dt`. Coordinates are the picture's square pixels from its top-left (`d.anchor("screen")`, its default); the classic-only primitives raise. Never in a photo (captured before the overlay). A draw over its budget is drawn again next frame; one that raises an error stops it until the plugin sets it again or reloads (a shipped plugin's: for `plugin_fault_cooldown` seconds). While one is set its commands replace the HUD's in RPC `hud {stats}`'s last frame |
+| `rood.draw.panel(fn \| nil[, {classic = true}])` | the plugin's own layer over the picture (one a plugin; nil removes it): `fn(d, view)` every presented frame, in the modern pass whatever the look, after the HUD and the menus, whatever `rood.ui.hide` hides; `view`: `width` (240 times the picture's aspect), `height` 240, `aspect`, `look` (`classic`, `modern`), `flavour` (`modern`, or `classic`: below), `dt`. Coordinates are the picture's square pixels from its top-left (`d.anchor("screen")`, its default); the classic-only primitives raise. Never in a photo (captured before the overlay). A draw over its budget is drawn again next frame; one that raises an error stops it until the plugin sets it again or reloads (a shipped plugin's: for `plugin_fault_cooldown` seconds). While one is set its commands replace the HUD's in RPC `hud {stats}`'s last frame. **`{classic = true}`: the panel in the classic look is drawn by the game's own frame, with the classic primitives** (`view.flavour == "classic"`: `d.window`, `d.sprite`, `d.cursor`, `d.text_raw`, `d.glyph`'s button sprites, the game's fonts; below), and not in the modern pass; with the modern look on it is the modern pass's as before. Not a claim (nothing of the game's is suppressed; no packet parity); the game's 320 x 240 pixels (`view.width` 240 times the aspect: more in 16:9), placed from the left edge exactly (`d.anchor("left" \| "right" \| "centre")`, `"screen"` raises; the commands link where the menus' windows do, over the HUD, under nothing). It is drawn with the game's frame (30 Hz, `dt` the last presented frame's) and only where the game draws the field's ordering table (the field, battle, the original menus; not the title or a movie), never in a photo (its packets lie in the hidden game 2D layer). RPC `hud {stats}`: `panel_last` (its first 16 commands), `panel_packets` (`start`, `end`: the guest range of its packets in the last frame, for RPC `packets {start, end}`) |
 | `rood.dev.show(kind, {...})` | dev mode only (`ROOD_RPC` set or `ROOD_DEV=1`): in the field the game's own spawner (status: `timing`, `variant`; chain: `count`; buff: `slot`, `stat`, `value`, `sign`; damage on Ashley: `value`, `heal` or `sign`, `pool`, `stat`; travel: the prompt without a Circle of Magic; name_window: `index` (184), `message` (11), the game's own `vs_battle_displaySceneMessage`), held at `age` (10) until `rood.dev.clear([kind])` (`hold = false`: it plays out; a name window closes after 120 vsyncs); elsewhere a synthetic element (the name window's `text`) only modern claims draw. `rood.dev.list()` (with `drawn`, `suppressed`) |
 | `rood.dev.bench.save(name)`, `list()`, `load(name)`, `current()` | the gallery (below) |
 
@@ -271,7 +271,7 @@ not the style's), `d.fit` places without scaling, `d.glyph` is the game's
 the button prompts setting and the Circle/Cross roles redraw it as they do
 the game's), `d.rect` and `d.gradient` are tiles and Gouraud quads (alpha
 below 1: the PS1's half blending), and the classic-only `d.sprite`,
-`d.window`, `d.cursor`, `d.bar` exist (in the modern flavour they raise).
+`d.window`, `d.cursor`, `d.bar` exist (in the modern flavour they raise). A plugin panel can draw in this flavour too (`rood.draw.panel(fn, {classic = true})`: "A panel in the classic look" below).
 So the classic look gains only what a plugin draws with the game's own
 pieces; the Travel prompt has no classic flavour (its classic look is the
 game's), and synthetic elements are drawn only in the modern look. A draw that raises counts a fault; over its budget (a slow
@@ -456,6 +456,45 @@ rood.hud.claim("status", function(e, d) d.text(w, e.text, e.x, e.y, e.rgb) end) 
 rood.hud.release("status")   -- rood.hud's again
 rood.dev.clear()
 ```
+
+### A panel in the classic look: `rood.draw.panel(fn, {classic = true})`
+
+With the modern UI off, new prompts and HUD keep the game's own button sprites
+and layout; only typography may be upgraded. A plugin's panel can follow that
+rule with the primitives rood.classic draws with, not an imitation of them:
+declare it `classic` and, with the classic look, the game's frame calls it with
+`view.flavour == "classic"` and the classic-only `d` primitives work (`d.window`
+the game's text box: stone body, frame and shadow; `d.glyph` its 16 x 16 button
+sprites, redrawn per the button prompts setting and pad family as the game's;
+`d.text`, `d.fit` and `d.measure` the menus' font through ui_text, so the
+typography settings and `rood.hud.typography` apply; `d.sprite`, `d.cursor`,
+`d.text_raw`, `d.bar`, `d.value`, `d.layer`). With the modern look the same
+function is drawn in the modern pass (`view.flavour == "modern"`), so one
+function draws both, branching where the looks differ (the window against a
+rect, the metrics: the menus' font is 12 pixels high, the game's 320 wide).
+
+```lua
+rood.draw.panel(function(d, view)
+  if view.flavour == "classic" then
+    d.window(8, 42, 200, 40, 0.5)                      -- the game's own window
+    d.fit(menu, "Craftbook", 16, 50, 184, 12)           -- the game's font
+    local w = d.glyph("triangle", 16, 70, 14, menu)     -- the game's button sprite
+    d.fit(menu, "Combine", 16 + w + 2, 64, 160, 12)
+  else
+    d.rect(8, 42, 168, 40, 0x0E1014, 0.8)               -- the modern panel
+    d.fit(label, "Craftbook", 12, 46, 160, 9)
+  end
+end, { classic = true })
+```
+
+Panels are new drawing, not claims: no kind is suppressed, nothing is compared
+by the parity gate, `rood.classic`'s claims are unaffected. See
+`pc/plugins/rood.craftbook`. The game side is one hook under `ROOD_PC` in
+`BATTLE.PRG/146C.c` func_8007629C (before `DrawOTag`), `hud_bridge.c`
+`pc_hud_panels_classic`; the test is player_state_smoke's craftbook checks (the
+window's body is the game's textured quad with the window's CLUT, the text the
+menu font's glyph sprites, the prompt the button sprite, nothing of it in the
+modern pass or the modern look).
 
 ### The classic look in Lua: rood.classic (shipped, on)
 

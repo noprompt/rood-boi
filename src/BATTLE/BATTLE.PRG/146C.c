@@ -5984,6 +5984,13 @@ int func_8007629C(u_long* otag)
     PutDispEnv(&vs_main_dispEnv[vs_main_frameBuf]);
     PutDrawEnv(&vs_main_drawEnv[vs_main_frameBuf]);
     vs_main_commitClut();
+#ifdef ROOD_PC
+    {
+        extern void pc_hud_panels_classic(void* otag) __attribute__((weak));
+        if (pc_hud_panels_classic)
+            pc_hud_panels_classic(otag);
+    }
+#endif
     DrawOTag(otag);
 #ifdef ROOD_PC
     {

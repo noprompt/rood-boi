@@ -989,6 +989,7 @@ struct Panel {
     int ref;
     bool failed;
     double retry_at; // a shipped plugin's failed panel is drawn again from then (fault_cooldown_s)
+    bool classic;    // {classic = true}: in the classic look the game's frame draws it, with the game's own pieces
 };
 std::vector<Panel> panels;
 const Panel* panel_job;
@@ -1003,17 +1004,26 @@ void drop_panel(Plugin* p, lua_State* L)
             ++it;
         }
 }
-// rood.draw.panel(fn | nil): fn(d, view) every presented frame (view: width, height, aspect, look, dt).
+// rood.draw.panel(fn | nil[, {classic = bool}]): fn(d, view) every presented frame (view: width, height, aspect,
+// look, flavour, dt). classic: with the classic look the game's frame draws it in the classic flavour
+// (panels_classic_next), the classic primitives and the game's own coordinates (d.window, d.sprite, ...).
 int api_panel(lua_State* L)
 {
     Plugin* p = plugin_of(L);
     if (!lua_isnoneornil(L, 1))
         luaL_checktype(L, 1, LUA_TFUNCTION);
+    bool classic = false;
+    if (!lua_isnoneornil(L, 2)) {
+        luaL_checktype(L, 2, LUA_TTABLE);
+        lua_getfield(L, 2, "classic");
+        classic = lua_toboolean(L, -1) != 0;
+        lua_pop(L, 1);
+    }
     drop_panel(p, L);
     if (lua_isnoneornil(L, 1))
         return 0;
-    lua_settop(L, 1);
-    panels.push_back({ p, p->generation, luaL_ref(L, LUA_REGISTRYINDEX), false, 0 });
+    lua_pushvalue(L, 1);
+    panels.push_back({ p, p->generation, luaL_ref(L, LUA_REGISTRYINDEX), false, 0, classic });
     return 0;
 }
 
@@ -1711,57 +1721,117 @@ int hud_pass()
     return command_used;
 }
 
-// The panels' draws (rood.draw.panel) into the command buffer, after the HUD's pass drew its own.
+// The panels' draws (rood.draw.panel). Modern: into the command buffer, after the HUD's pass drew its own.
+// Classic ({classic = true} panels with the classic look): at the game's frame (panels_classic_next), into the
+// classic commands, a panel at a time.
 double panel_dt;
+float panel_width = 320; // the picture's width in square pixels (the last presented frame's)
+constexpr int PANEL_LAYER = -12; // classic panels link where the menus' windows do (bytes from vs_scratch.unk4)
+bool panel_runs(Panel& pn)
+{
+    Plugin* p = pn.plugin;
+    if (pn.failed && pn.retry_at > 0 && now_seconds() >= pn.retry_at)
+        pn.failed = false, pn.retry_at = 0;
+    return !(pn.failed || !p->L || p->state != PLUGIN_LOADED || p->generation != pn.generation
+        || !p->disable_reason.empty());
+}
+void draw_panel(size_t i, float width, float height, bool classic)
+{
+    Panel& pn = panels[i];
+    Plugin* p = pn.plugin;
+    panel_job = &pn;
+    drawing.anchor = drawing.element_anchor = PC_HUD_ANCHOR_SCREEN;
+    in_draw = true;
+    classic_pass = classic;
+    std::string error;
+    bool ok = run(p, "panel draw", BUDGET_CALL, [&](lua_State* L) {
+        lua_rawgeti(L, LUA_REGISTRYINDEX, panel_job->ref);
+        lua_getfield(L, LUA_REGISTRYINDEX, "rood.hud.draw");
+        lua_createtable(L, 0, 6);
+        lua_pushnumber(L, width);
+        lua_setfield(L, -2, "width");
+        lua_pushnumber(L, height);
+        lua_setfield(L, -2, "height");
+        lua_pushnumber(L, height > 0 ? width / height : 4.0 / 3.0);
+        lua_setfield(L, -2, "aspect");
+        lua_pushstring(L, hud::classic_look() ? "classic" : "modern");
+        lua_setfield(L, -2, "look");
+        lua_pushstring(L, classic ? "classic" : "modern");
+        lua_setfield(L, -2, "flavour");
+        lua_pushnumber(L, panel_dt);
+        lua_setfield(L, -2, "dt");
+        lua_call(L, 2, 0);
+    }, &error);
+    in_draw = classic_pass = false;
+    if (i < panels.size() && &panels[i] == panel_job && !ok) {
+        if (p->budget.killed) {
+            // Over its budget (a slow frame): drawn again next frame; one that keeps overrunning is
+            // disabled by the fault policy (fault_limit within fault_window_s).
+        } else {
+            // an error: until the plugin reloads or sets its panel again (shipped: or the cool-down)
+            panels[i].failed = true;
+            bool retry = p->shipped && config.fault_cooldown_s > 0;
+            panels[i].retry_at = retry ? now_seconds() + config.fault_cooldown_s : 0;
+            log(LOG_WARN, p->id(), retry ? "its panel draw failed: not drawn for a while (the cool-down)"
+                                         : "its panel draw failed: not drawn until the plugin reloads or sets it again");
+        }
+    }
+    panel_job = nullptr;
+}
 int panels_pass(float width, float height)
 {
     command_used = 0;
     arena_used = 0;
+    bool classic = hud::classic_look();
     for (size_t i = 0; i < panels.size(); ++i) {
-        Panel& pn = panels[i];
-        Plugin* p = pn.plugin;
-        if (pn.failed && pn.retry_at > 0 && now_seconds() >= pn.retry_at)
-            pn.failed = false, pn.retry_at = 0;
-        if (pn.failed || !p->L || p->state != PLUGIN_LOADED || p->generation != pn.generation
-            || !p->disable_reason.empty())
+        if ((classic && panels[i].classic) || !panel_runs(panels[i]))
             continue;
-        panel_job = &pn;
-        drawing.anchor = drawing.element_anchor = PC_HUD_ANCHOR_SCREEN;
-        in_draw = true;
-        std::string error;
-        bool ok = run(p, "panel draw", BUDGET_CALL, [&](lua_State* L) {
-            lua_rawgeti(L, LUA_REGISTRYINDEX, panel_job->ref);
-            lua_getfield(L, LUA_REGISTRYINDEX, "rood.hud.draw");
-            lua_createtable(L, 0, 5);
-            lua_pushnumber(L, width);
-            lua_setfield(L, -2, "width");
-            lua_pushnumber(L, height);
-            lua_setfield(L, -2, "height");
-            lua_pushnumber(L, height > 0 ? width / height : 4.0 / 3.0);
-            lua_setfield(L, -2, "aspect");
-            lua_pushstring(L, hud::classic_look() ? "classic" : "modern");
-            lua_setfield(L, -2, "look");
-            lua_pushnumber(L, panel_dt);
-            lua_setfield(L, -2, "dt");
-            lua_call(L, 2, 0);
-        }, &error);
-        in_draw = false;
-        if (i < panels.size() && &panels[i] == panel_job && !ok) {
-            if (p->budget.killed) {
-                // Over its budget (a slow frame): drawn again next frame; one that keeps overrunning is
-                // disabled by the fault policy (fault_limit within fault_window_s).
-            } else {
-                // an error: until the plugin reloads or sets its panel again (shipped: or the cool-down)
-                panels[i].failed = true;
-                bool retry = p->shipped && config.fault_cooldown_s > 0;
-                panels[i].retry_at = retry ? now_seconds() + config.fault_cooldown_s : 0;
-                log(LOG_WARN, p->id(), retry ? "its panel draw failed: not drawn for a while (the cool-down)"
-                                             : "its panel draw failed: not drawn until the plugin reloads or sets it again");
-            }
-        }
+        draw_panel(i, width, height, false);
     }
-    panel_job = nullptr;
     return command_used;
+}
+// The last classic panels' first commands, for RPC hud stats (classic_buffer is the HUD claims' by then).
+struct PanelSnapshot {
+    int count;
+    pc_hud_classic_cmd cmd[16];
+    char text[16][96];
+} panel_snapshot;
+void panel_remember(int index)
+{
+    if (index == 0)
+        panel_snapshot.count = 0;
+    for (int i = 0; i < classic_used && panel_snapshot.count < 16; ++i) {
+        pc_hud_classic_cmd& c = panel_snapshot.cmd[panel_snapshot.count];
+        c = classic_buffer[i];
+        if (c.text) {
+            char* t = panel_snapshot.text[panel_snapshot.count];
+            std::snprintf(t, sizeof panel_snapshot.text[0], "%.*s", c.length, c.text);
+            c.text = t;
+            c.length = (int)std::strlen(t);
+        }
+        ++panel_snapshot.count;
+    }
+}
+// The next classic panel from *cursor (a panel's index): its commands in classic_buffer and its anchor, or -1
+// when there is none.
+int panels_classic_next(int* cursor, int* anchor)
+{
+    if (!hud::classic_look())
+        return -1;
+    for (size_t i = (size_t)*cursor; i < panels.size(); ++i) {
+        if (!panels[i].classic || !panel_runs(panels[i]))
+            continue;
+        classic_used = 0;
+        classic_arena_used = 0;
+        classic_anchor = -1;
+        classic_layer = PANEL_LAYER;
+        draw_panel(i, panel_width, 240.0f, true);
+        panel_remember(*cursor);
+        *cursor = (int)i + 1;
+        *anchor = classic_anchor >= 0 ? classic_anchor : PC_HUD_ANCHOR_LEFT;
+        return classic_used;
+    }
+    return -1;
 }
 
 // The classic flavour: the claim on the element just recorded draws now, at the game's hook (pc_hud_classic_draw).
@@ -1950,9 +2020,13 @@ std::string stats_json()
     }
     static const char* const CLASSIC_TYPES[] = { "text", "rect", "gradient", "glyph", "sprite", "window", "cursor",
         "bar", "text_raw", "value", "digit" };
+    unsigned panel_first = 0, panel_last = 0; // the classic panels' packets of the last game frame
+    if (pc_hud_panel_range)
+        pc_hud_panel_range(&panel_first, &panel_last);
+    auto classic_json = [&](const pc_hud_classic_cmd* buffer, int used) {
     std::string classic_cmds;
-    for (int i = 0; i < classic_used && i < 16; ++i) {
-        const pc_hud_classic_cmd& c = classic_buffer[i];
+    for (int i = 0; i < used && i < 16; ++i) {
+        const pc_hud_classic_cmd& c = buffer[i];
         classic_cmds += std::string(i ? "," : "") + "{\"type\":"
             + q(CLASSIC_TYPES[c.type >= 0 && c.type <= PC_HUD_CMD_DIGIT ? c.type : 0]) + ",\"x\":"
             + std::to_string(c.x) + ",\"y\":" + std::to_string(c.y) + ",\"w\":" + std::to_string(c.w) + ",\"h\":"
@@ -1963,6 +2037,10 @@ std::string stats_json()
                     : std::string())
             + "}";
     }
+    return classic_cmds;
+    };
+    std::string classic_cmds = classic_json(classic_buffer, classic_used);
+    std::string panel_cmds = classic_json(panel_snapshot.cmd, panel_snapshot.count);
     int styles_used = 0;
     for (const StyleSlot& s : style_slots)
         styles_used += s.used;
@@ -1983,7 +2061,8 @@ std::string stats_json()
         + ",\"commands\":" + std::to_string(command_used) + ",\"text_bytes\":" + std::to_string(arena_used)
         + ",\"dropped\":" + std::to_string(dropped) + ",\"styles\":" + std::to_string(styles_used)
         + ",\"claim_memory_kb\":" + num(memory / 1024.0) + ",\"classic_override\":" + std::to_string(pc_hud_classic_override)
-        + ",\"last\":[" + cmds + "],\"classic_last\":[" + classic_cmds + "]}";
+        + ",\"panel_packets\":{\"start\":" + std::to_string(panel_first) + ",\"end\":" + std::to_string(panel_last)
+        + "},\"panel_last\":[" + panel_cmds + "],\"last\":[" + cmds + "],\"classic_last\":[" + classic_cmds + "]}";
 }
 } // namespace
 } // namespace rl
@@ -2000,6 +2079,11 @@ extern "C" int pc_hud_classic_parity_draw(const pc_hud_classic_cmd** out, const 
     return rl::initialized() ? rl::classic_draw(true, why) : -1;
 }
 extern "C" int pc_hud_classic_anchor(void) { return rl::classic_anchor; }
+extern "C" int pc_hud_classic_panel(int* cursor, const pc_hud_classic_cmd** out, int* anchor)
+{
+    *out = rl::classic_buffer;
+    return rl::initialized() && !rl::panels.empty() ? rl::panels_classic_next(cursor, anchor) : -1;
+}
 
 /* dev_overlay.cpp, every presented frame after the HUD and the menus, whatever is hidden: plugins' panels
  * over the picture (pc_gl_view's size). */
@@ -2009,6 +2093,7 @@ extern "C" void pc_hud_panels(float dt, int view_w, int view_h)
         return;
     rl::panel_dt = dt;
     float height = 240.0f, width = 240.0f * (float)view_w / (float)view_h;
+    rl::panel_width = width;
     if (rl::panels_pass(width, height) > 0 && hud::render)
         hud::render(rl::command_buffer, rl::command_used, rl::arena);
 }

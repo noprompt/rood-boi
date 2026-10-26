@@ -160,8 +160,12 @@ def suites(args, mode="egl"):
         Suite("ctest_long", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4",
                              "-R", CTEST_LONG], 2400, binary=None,
               note="the long CMake tests: zig_diff's shards and coverage lane, the port pipeline",
-              sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py",
-                       TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),
+              sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py"]),
+        Suite("ctest_pipeline", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure",
+                                 "-R", "^port_pipeline"], 600, binary=None,
+              note="the port pipeline's CMake test alone (~2.5 min): what a pipeline or model-client change needs, "
+                   "without ctest_long's zig_diff shards",
+              sources=[TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),
         *([Suite("null_backend_smoke", [PY, str(TESTS / "null_backend_smoke.py")], 300,
                  gpu=False, note="CPU null backend: no display or GPU resources")]
           if args.renderer == "null" else []),

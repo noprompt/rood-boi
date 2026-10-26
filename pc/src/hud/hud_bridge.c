@@ -1026,3 +1026,34 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
                                                     : PC_ANCHOR_CENTRE)
                 | PC_ANCHOR_EXACT);
 }
+
+/* The classic panels (rood.draw.panel with {classic = true}, the classic look): at the game's frame, just
+ * before its ordering table is drawn, each panel's commands become packets in the menus' slot (unk4 - 12) of
+ * the table, placed by their anchor (default the left edge: the game's 320 x 240, as the menus). Not a claim:
+ * nothing of the game's is suppressed. Only where the table is the scene's (vs_scratch.unk4 below its top),
+ * and not in a photo's render. */
+extern int pc_photo_rendering __attribute__((weak));
+static unsigned panel_first, panel_last; /* the last frame's panel packets (guest addresses), RPC hud stats */
+void pc_hud_panel_range(unsigned* first, unsigned* last)
+{
+    *first = panel_first, *last = panel_last;
+}
+void pc_hud_panels_classic(void* otag)
+{
+    const pc_hud_classic_cmd* cmds;
+    int cursor = 0, anchor, count;
+    unsigned long scene = (unsigned long)psx_get(vs_scratch.unk4), top = (unsigned long)otag;
+    void* start = psx_get(vs_scratch.unk0);
+    if (!pc_hud_classic_panel || (&pc_photo_rendering && pc_photo_rendering))
+        return;
+    if (!(scene <= top && top - scene < 0x4000u))
+        return;
+    while ((count = pc_hud_classic_panel(&cursor, &cmds, &anchor)) >= 0)
+        if (count > 0)
+            classic_packets(cmds, count, anchor, PC_HUD_STATUS, 0);
+    panel_first = panel_last = 0;
+    if (psx_get(vs_scratch.unk0) != start) {
+        panel_first = (unsigned)psx_addr(start);
+        panel_last = (unsigned)psx_addr(psx_get(vs_scratch.unk0));
+    }
+}
