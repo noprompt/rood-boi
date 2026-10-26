@@ -40,20 +40,35 @@ for the modern menu work.
 ## Whose unlock
 
 - **The game's**: `vs_main_stateFlags.unkB5 != 0` (the Lich's event sets it
-  to 1). Everything is the game's then, settings or not: its costs, its
-  `magicUsed`, and `unkB5 == 2` (the spirit paling) refusing travel.
+  to 1). The game's then: its `magicUsed`, and `unkB5 == 2` (the spirit
+  paling) refusing travel.
 - **The port's**: otherwise, while `qol_fast_travel` is on and `introState >= 3`
   (the prologue is over). MENU0 reads 1 for `unkB5` then
   (`pc_fast_travel_unlock`).
 - Neither: MENU0 reads 0, as the stock game.
+
+The settings do not stop at the game's unlock: while `qol_fast_travel` is
+on, the cost mode (and free mode's MP 0) and the port's refusals R1 and R7
+apply under either unlock (`pc_ft_applies`; the RPC report's `applies`).
+Before 2026-10-26 everything became the game's at the Lich, so a player who
+had learned the spell found the cost settings ignored (reported by a player).
+Only before the game's unlock:
+
+- `qol_fast_travel` off means the stock game: no travel until the Lich, and
+  then the game's own spell with its own cost (15 MP plus 4 per Circle
+  between) and no port refusals. It cannot take the learned spell away.
+- R3's `unkA7` refusal ("cannot save here") is the port's own: the game's
+  spell never checked it, so it is not added after the Lich.
+- `magicUsed` follows the unlock, not the cost: the game's spell forfeits the
+  "no magic" title as it always did, whatever it costs.
 
 Time attacks need no rule of their own: a boss fight sets `unkA7` ("Cannot
 save during battle"), which refuses travel (R3).
 
 ## Cost and magic
 
-While the port's unlock is in effect, `qol_fast_travel_cost` decides the
-cost: 0 free (the default), 1 flat (`qol_fast_travel_flat` MP, 15), 2 scaled
+While either unlock is in effect and `qol_fast_travel` is on,
+`qol_fast_travel_cost` decides the cost: 0 free (the default), 1 flat (`qol_fast_travel_flat` MP, 15), 2 scaled
 (`qol_fast_travel_scale` times the game's cost, 0.5, rounded), 3 the game's
 (15 MP plus 4 per Circle between). The value is clamped to the 12 bits the
 hand-off packs it in (in float before rounding, so a huge scale from a
@@ -218,7 +233,7 @@ destination + 1, the room record the destination. No sidecar file.
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `qol_fast_travel` | 1 | offer Teleportation from the first Circle once the prologue is over |
-| `qol_fast_travel_cost` | 0 | before the game's own unlock: 0 free, 1 flat, 2 scaled, 3 the game's |
+| `qol_fast_travel_cost` | 0 | 0 free, 1 flat, 2 scaled, 3 the game's (also after the game's own unlock) |
 | `qol_fast_travel_flat` | 15 | flat mode's MP |
 | `qol_fast_travel_scale` | 0.5 | scaled mode's factor on the game's cost |
 | `qol_fast_travel_prompt` | 1 | the Travel prompt on a Circle |
@@ -236,7 +251,7 @@ RPC `fast_travel {set, press, audit}`: `set` takes `enabled`, `cost` (0..3 or
 `free` / `flat` / `scaled` / `game`), `flat`, `scale`, `prompt`; `press`
 presses the Travel button once (taken by the field loop's next frame, within
 4 s); `audit` adds each destination's Circle read from the disc. The reply:
-the settings, `whose` (`off` / `port` / `game`),
+the settings, `whose` (`off` / `port` / `game`), `applies` (the settings apply now),
 `unlock` (what MENU0 reads), `menu_bits`, `prompt`, the state the rules
 read, `blocked` (the port's refusal of the row) and `why` (the Travel
 button's reason, "" when it opens the list), each point's state, raw and
@@ -258,7 +273,7 @@ and its arrival.
   `savePointStates`), `save` (travel, save as file 2, decode, Continue),
   `refuse` (the prologue, R3, R1, an event, MP with the game's cost, free at
   MP 0, off the Circle; with the modern menus each through Magick >
-  Teleport's own refusal), `game` (`unkB5` 1 and 2), `here` (the Circle you
+  Teleport's own refusal), `game` (`unkB5` 1: each cost mode, MP 0, a trip charged the flat cost, `qol_fast_travel` off the stock cost; `unkB5` 2), `here` (the Circle you
   stand on), `button` (the default binding on a virtual gamepad, RPC system
   `virtual_pad`; a key shared with Select; the RPC press; Cross; a refused
   press), `prompt` (original mode too), `settings` (the settings file),

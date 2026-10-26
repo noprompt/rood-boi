@@ -1684,7 +1684,7 @@ static void handle_method(int fd, const char* request)
         extern int pc_vk_menu_backdrop_kept(void) __attribute__((weak));
         extern void pc_ui_ashley_backdrop_built(int* kept, int* need); /* ui/ashley_bridge.c */
         size_t len = strlen(result);
-        if (len > 1 && result[len - 1] == '}' && len + 96 < sizeof result) {
+        if (len > 1 && result[len - 1] == '}' && len + 160 < sizeof result) {
             /* (only the active presenter keeps one) */
             int kept = (pc_gl_menu_backdrop_kept && pc_gl_menu_backdrop_kept() != 0)
                     || (pc_vk_menu_backdrop_kept && pc_vk_menu_backdrop_kept() != 0);
@@ -1693,9 +1693,16 @@ static void handle_method(int fd, const char* request)
             /* at_rest: the last drawn frame's glides all at their targets (ui/ui_draw.cpp; real time) */
             extern int pc_ui_draw_at_rest(void) __attribute__((weak));
             int at_rest = !pc_ui_draw_at_rest || pc_ui_draw_at_rest();
+            /* mainmenu: MAINMENU.PRG drives the top level now; the shell's ticks waiting for it (ui/menu_bridge.c) */
+            extern void pc_ui_menu_mainmenu(int* resident, int* waited, int* longest, int* restarts) __attribute__((weak));
+            int mm_resident = 0, mm_waited = 0, mm_longest = 0, mm_restarts = 0;
+            if (pc_ui_menu_mainmenu)
+                pc_ui_menu_mainmenu(&mm_resident, &mm_waited, &mm_longest, &mm_restarts);
             snprintf(result + len - 1, sizeof result - len + 1,
-                ",\"backdrop_kept\":%d,\"backdrop_built\":[%d,%d],\"at_rest\":%s}", kept, built_kept, built_need,
-                at_rest ? "true" : "false");
+                ",\"backdrop_kept\":%d,\"backdrop_built\":[%d,%d],\"at_rest\":%s,"
+                "\"mainmenu\":{\"resident\":%s,\"waited\":%d,\"longest\":%d,\"restarts\":%d}}", kept, built_kept,
+                built_need, at_rest ? "true" : "false", mm_resident ? "true" : "false", mm_waited, mm_longest,
+                mm_restarts);
         }
         reply(fd, id, result);
     } else if (!strcmp(method, "loot")) {

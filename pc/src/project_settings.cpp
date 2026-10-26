@@ -97,8 +97,9 @@ float pc_qol_skip_charging_hold_mine = 0.0f, pc_qol_skip_charging_hold_enemy = 0
 int pc_qol_confirm_cross, pc_qol_field_cross_attack;
 /* Fast travel (fast_travel.h, pc/docs/Fast_Travel.md): qol_fast_travel offers
  * the game's Teleportation from the first Circle of Magic once the prologue is
- * over (on by default; the game's own unlock always applies); before the
- * game's own unlock it costs qol_fast_travel_cost 0 free (default), 1 flat
+ * over (on by default; the game's own unlock always applies); while it is
+ * on, before and after the game's own unlock, a trip costs
+ * qol_fast_travel_cost 0 free (default), 1 flat
  * (qol_fast_travel_flat MP), 2 scaled (qol_fast_travel_scale x the game's), 3
  * the game's. The Travel prompt on a Circle: qol_fast_travel_prompt, its
  * place in the game picture (fast_travel_prompt.cpp): the anchor (0 top left,

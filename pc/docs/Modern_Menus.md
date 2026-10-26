@@ -32,6 +32,18 @@ cancel back to the shell, Search, Discard with the quantity picker, Discard
 all, Sort by the original's stats; Move: swap, misc stacks merge), its
 changes and cursor memories equal to the original Items menu's
 (`ui_items_smoke`). Phase 6 is complete.
+Items, Abilities and Magick say "Loading..." and refuse what needs
+MAINMENU.PRG until it is resident (2 or 3 frames after an open: BATTLE ticks
+the top level itself while `vs_battle_loadMenuPrg(0)` waits for the file's CD
+queue slot). A player reported Items stuck there after pickups, until a save
+was reloaded; not reproduced (loot, chests, a full bag organized, item
+shortcuts, Travel, equips, every tab, battles: MAINMENU always resident within
+3 ticks, the CD queue clean). The one way found to stay there is a menu load
+whose slot is lost (freed or reused: nothing will load it), so
+`menu_bridge.c` starts such a load over after 30 ticks (logged `[ui]
+MAINMENU's load lost its CD slot`), and logs the load's state once a session
+after 240 ticks of any other wait; RPC `ui_menu` reports `mainmenu
+{resident, waited, longest, restarts}` (`ui_items_pickup_smoke`).
 Phase 7a: the native Loot screen (after a battle with drops and at a chest:
 the game's direct entry 12, MENUB, handed to the shell by the
 `pc_ui_direct_tick` hook in MAINMENU). Take, Take all, Leave, keys, the

@@ -599,6 +599,11 @@ def suites(args, mode="egl"):
                  note="Items tab: same inventory bytes as the original MENU3 for discard (refused, gems, quantity, "
                       "all), sort, move/merge; Use's hand-off, completed and cancelled; keys; quick slot; mouse")]
           if args.save.exists() else []),
+        *([Suite("ui_items_pickup_smoke", [PY, str(TESTS / "ui_items_pickup_smoke.py"), "--card", str(args.save)],
+                 600, note="Items tab after pickups (loot lists, the save room's chest, a full misc bag organized): "
+                           "no row on Loading..., MAINMENU resident, the CD queue clean; a menu load whose CD slot "
+                           "is lost starts over")]
+          if args.save.exists() else []),
         *([Suite("ui_loot_smoke", [PY, str(TESTS / "ui_loot_smoke.py"), "--card", str(args.save)], 300,
                  note="Loot screen (direct entry 12): same bag, indices, key flags, result, heap, HUD / world flags "
                       "and Items memories as the original MENUB for take, take all, keys, leave, the save room's "
@@ -794,7 +799,7 @@ CHECKPOINT_SUITES = {
     "void_fog_smoke",
     "fog_sim_smoke", "fog_volume_smoke", "particles_smoke", "save_point_glow_smoke", "emissive_smoke", "ui_ashley_smoke", "ui_ashley_stability_smoke",
     "ui_equip_smoke",
-    "ui_system_smoke", "ui_abilities_smoke", "ui_items_smoke", "menu0_levelled_smoke", "fast_travel_smoke", "fast_travel_shell_smoke", "post_smoke", "dof_smoke", "dof_subject_smoke", "occlusion_smoke",
+    "ui_system_smoke", "ui_abilities_smoke", "ui_items_smoke", "ui_items_pickup_smoke", "menu0_levelled_smoke", "fast_travel_smoke", "fast_travel_shell_smoke", "post_smoke", "dof_smoke", "dof_subject_smoke", "occlusion_smoke",
     "transition_fade_smoke", "title_fade_smoke", "ui_loot_smoke", "ui_workshop_smoke", "player_state_smoke", "window_mode_smoke",
     "options_classic_smoke", "options_confirm_smoke", "quit_smoke",
     "ui_map_smoke", "ui_manual_smoke", "hud_label_solid_smoke", "damage_numbers_smoke", "platform_shadow_smoke",

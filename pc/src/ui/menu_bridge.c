@@ -24,9 +24,11 @@
 #include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
 #include "../../../src/SLUS_010.40/main.h"
 #include "../../../src/MENU/MAINMENU.PRG/58EC.h"
+#include "build/src/include/lbas.h"
 #include "ui_shell.h"
 #include "../fast_travel.h"
 #include "../oracle.h"
+#include "../host_format.h"
 #include <libetc.h>
 
 static int shell_open; /* the shell owns the top level (ticks in func_800C930C(0)) */
@@ -51,6 +53,92 @@ static int mainmenu_resident(void)
 {
     return _loadedSubMenu > 0
         || (_loadedSubMenu == 0 && !vs_battle_menuState.loading && _menuBgUnpackedBuf == NULL);
+}
+
+/* How long the shell's top level has waited for MAINMENU (pc_ui_menu_top's
+ * ticks in a row without it; its load takes 2 or 3 frames from the open).
+ * Until it is resident the Items, Abilities and Magick screens say
+ * "Loading..." and refuse what needs it, so a load that never ends leaves
+ * them locked: a player reported Items stuck on "Loading..." after pickups
+ * (not reproduced here; ui_items_pickup_smoke guards the pickup paths and
+ * this recovery).
+ *
+ * vs_battle_loadMenuPrg(0) waits for its CD queue slot to be loaded. A wait
+ * past MAINMENU_CHECK ticks whose slot is no longer that load (not a queue
+ * slot, free, or holding another file: nothing will ever load it) cannot
+ * end: the load starts over (_loadedSubMenu -1, as the menu's open sets it;
+ * the next vs_battle_loadMenuPrg(0) queues MAINMENU again), logged. A wait
+ * past MAINMENU_STALL ticks logs, once a session, the load's state (the menu
+ * load flags, its slot, the queue's counts) for the next report. RPC ui_menu
+ * reports mainmenu {resident, waited, longest, restarts}. */
+#define MAINMENU_CHECK 30
+#define MAINMENU_STALL 240
+extern vs_main_CdQueueSlot _cdQueue[32];
+extern struct {
+    short processing;
+    short queued;
+} _cdQueueCount;
+static int mainmenu_waited;  /* top-level ticks in a row without MAINMENU */
+static int mainmenu_longest; /* the longest such wait since the game started (RPC) */
+static int mainmenu_restarts; /* loads started over (RPC) */
+
+/* The menu load's slot can still be loaded: a queue slot, allocated, queued,
+ * reading or loaded, holding MAINMENU.PRG. */
+static int mainmenu_slot_live(const vs_main_CdQueueSlot* slot)
+{
+    return slot >= _cdQueue && slot < _cdQueue + 32 && slot->state >= vs_main_CdQueueStateAllocated
+        && slot->state <= vs_main_CdQueueStateLoaded && slot->cdFile.lba == VS_MAINMENU_PRG_LBA;
+}
+static void mainmenu_wait(int resident)
+{
+    vs_main_CdQueueSlot* slot;
+    char line[320];
+    int i, n, used = 0;
+    if (resident) {
+        mainmenu_waited = 0;
+        return;
+    }
+    if (++mainmenu_waited > mainmenu_longest)
+        mainmenu_longest = mainmenu_waited;
+    slot = psx_get(vs_battle_menuState.cdQueue);
+    if (mainmenu_waited >= MAINMENU_CHECK && _loadedSubMenu == 0 && vs_battle_menuState.loading
+        && !mainmenu_slot_live(slot)) {
+        pc_format(line, sizeof line,
+            "[ui] MAINMENU's load lost its CD slot (%s, after %d menu ticks): loading it again",
+            slot >= _cdQueue && slot < _cdQueue + 32 ? "freed or reused" : "no queue slot", mainmenu_waited);
+        pc_log_line(line);
+        _loadedSubMenu = -1;
+        ++mainmenu_restarts;
+        return;
+    }
+    if (mainmenu_waited != MAINMENU_STALL)
+        return;
+    for (i = 0; i < 32; ++i)
+        used += _cdQueue[i].state != vs_main_CdQueueStateFree;
+    n = pc_format(line, sizeof line,
+        "[ui] MAINMENU not resident after %d menu ticks: loadedSubMenu %d, loading %d, background %s; ",
+        mainmenu_waited, _loadedSubMenu, vs_battle_menuState.loading, _menuBgUnpackedBuf ? "kept" : "none");
+    if (n >= (int)sizeof line)
+        n = sizeof line - 1;
+    if (slot >= _cdQueue && slot < _cdQueue + 32)
+        n += pc_format(line + n, (int)sizeof line - n, "its CD slot %d: state %d, priority %d, lba %d; ",
+            (int)(slot - _cdQueue), slot->state, slot->priority, slot->cdFile.lba);
+    else
+        n += pc_format(line + n, (int)sizeof line - n, "its CD slot pointer is no queue slot; ");
+    if (n >= (int)sizeof line)
+        n = sizeof line - 1;
+    pc_format(line + n, (int)sizeof line - n, "queue: %d queued, %d reading, %d slots in use", _cdQueueCount.queued,
+        _cdQueueCount.processing, used);
+    pc_log_line(line);
+}
+
+/* RPC ui_menu: MAINMENU's residency now, the current wait, the longest, the loads started over. */
+void pc_ui_menu_mainmenu(int* resident, int* waited, int* longest, int* restarts)
+{
+    *resident = mainmenu_resident();
+    *waited = mainmenu_waited;
+    *longest = mainmenu_longest;
+    *restarts = mainmenu_restarts;
 }
 
 /* The field HUD (HP/MP/RISK, limb silhouette; BATTLE func_800CA2DC) slides
@@ -530,6 +618,7 @@ int pc_ui_menu_top(void)
     int r;
     int busy;
     int resident = mainmenu_resident();
+    mainmenu_wait(resident);
     top_frame = frames;
     busy = pc_ui_equip_begin(resident);
     pc_ui_ashley_fill();

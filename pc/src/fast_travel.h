@@ -2,8 +2,9 @@
  * own Teleportation (MENU0 _teleportMenu, BATTLE func_800735F8 case 10,
  * func_8007C694, the door's room load), offered from the first Circle once the
  * prologue is over (setting qol_fast_travel) instead of only once the game has
- * set vs_main_stateFlags.unkB5. When the game itself has set it, everything is
- * the game's.
+ * set vs_main_stateFlags.unkB5. The settings (cost mode, the port's
+ * refusals) apply whoever unlocked it, while qol_fast_travel is on; with it
+ * off, the game's own spell is the stock game's.
  *
  * fast_travel_rules.c: the rules, plain C with no game headers
  * (pc/tests/fast_travel_probe.c). fast_travel.c (battle builds) fills
@@ -73,6 +74,9 @@ int pc_ft_here(int location);             /* this room's point (MENU0's search: 
 int pc_ft_raw_cost(int here, int target); /* _getTeleportCost */
 int pc_ft_whose(const pc_ft_settings* c, const pc_ft_state* s);
 int pc_ft_unlock(const pc_ft_settings* c, const pc_ft_state* s); /* what MENU0 reads for unkB5 */
+/* The port's settings apply now: qol_fast_travel on and either unlock in effect
+ * (the port's, or the game's own once the Lich has taught Teleportation). */
+int pc_ft_applies(const pc_ft_settings* c, const pc_ft_state* s);
 int pc_ft_cost(const pc_ft_settings* c, const pc_ft_state* s, int raw);
 unsigned pc_ft_mask(const pc_ft_settings* c, const pc_ft_state* s, unsigned bits);
 unsigned pc_ft_menu_bits(const pc_ft_settings* c, const pc_ft_state* s); /* menuFlags bits to show (bit 0 Magic) */

@@ -145,9 +145,21 @@ static void costs(void)
     CHECK(pc_ft_cost(&c, &s, 23) == 0, "flat: a negative MP is free");
     c = on(PC_FT_COST_GAME);
     CHECK(pc_ft_cost(&c, &s, 23) == 23, "game");
-    c = on(PC_FT_COST_FREE);
+    /* the game's own unlock (the Lich): the settings still decide */
     s.game = 1;
-    CHECK(pc_ft_cost(&c, &s, 23) == 23, "the game's unlock: its own cost whatever the mode");
+    c = on(PC_FT_COST_FREE);
+    CHECK(pc_ft_applies(&c, &s), "the game's unlock: the settings apply");
+    CHECK(pc_ft_cost(&c, &s, 23) == 0, "the game's unlock: free");
+    c = on(PC_FT_COST_FLAT);
+    c.flat = 7;
+    CHECK(pc_ft_cost(&c, &s, 23) == 7, "the game's unlock: flat 7");
+    c = on(PC_FT_COST_SCALED);
+    CHECK(pc_ft_cost(&c, &s, 23) == 12, "the game's unlock: scaled x0.5");
+    c = on(PC_FT_COST_GAME);
+    CHECK(pc_ft_cost(&c, &s, 23) == 23, "the game's unlock: game");
+    c = on(PC_FT_COST_FREE);
+    c.enabled = 0;
+    CHECK(!pc_ft_applies(&c, &s) && pc_ft_cost(&c, &s, 23) == 23, "fast travel off: the stock spell's cost");
 }
 
 static void unlock(void)
@@ -183,7 +195,11 @@ static void masks(void)
     CHECK(pc_ft_mask(&c, &s, PC_FT_MAGIC_MASK) == PC_FT_MAGIC_MASK, "a cost: MP 0 greys");
     c = on(PC_FT_COST_FREE);
     s.game = 1;
-    CHECK(pc_ft_mask(&c, &s, PC_FT_MAGIC_MASK) == PC_FT_MAGIC_MASK, "the game's unlock: the game's mask");
+    CHECK(pc_ft_mask(&c, &s, PC_FT_MAGIC_MASK) == (PC_FT_MAGIC_MASK & ~PC_FT_NO_MP),
+        "the game's unlock, free: MP 0 greys nothing either");
+    c.enabled = 0;
+    CHECK(pc_ft_mask(&c, &s, PC_FT_MAGIC_MASK) == PC_FT_MAGIC_MASK, "the game's unlock, fast travel off: the game's mask");
+    c.enabled = 1;
     s = circle2();
     CHECK(pc_ft_menu_bits(&c, &s) == 1, "the Magic command on a Circle");
     s.circle = 0;
@@ -211,7 +227,19 @@ static void refusals(void)
     CHECK(pc_ft_blocked(&c, &s) != NULL, "R1: no Circle in MENU0's table for this room");
     s = circle2();
     s.no_save = 1, s.game = 1;
-    CHECK(!pc_ft_blocked(&c, &s), "the game's unlock: the game's rules only");
+    CHECK(!pc_ft_blocked(&c, &s), "the game's unlock: unkA7 is the port's own refusal only");
+    s = circle2();
+    s.warped = 1, s.game = 1;
+    CHECK(pc_ft_blocked(&c, &s) != NULL, "the game's unlock: R7 too");
+    c.enabled = 0;
+    CHECK(!pc_ft_blocked(&c, &s), "the game's unlock, fast travel off: the stock spell");
+    c.enabled = 1;
+    s = circle2();
+    s.game = 1, s.mp = 0, s.mask |= PC_FT_NO_MP;
+    CHECK(!pc_ft_refused(&c, &s, 1), "the game's unlock, free: MP 0 refuses nothing");
+    c = on(PC_FT_COST_GAME);
+    CHECK(pc_ft_refused(&c, &s, 1) != NULL, "the game's unlock, game cost: MP 0 refuses");
+    c = on(PC_FT_COST_FREE);
     s = circle2();
     CHECK(!pc_ft_refused(&c, &s, 0) && !pc_ft_refused(&c, &s, 1), "found Circles");
     CHECK(pc_ft_refused(&c, &s, 3) != NULL, "R4: not found");

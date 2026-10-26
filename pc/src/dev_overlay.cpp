@@ -1140,10 +1140,11 @@ static void gameplay_panel()
         pc_qol_fast_travel = travel;
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("Settings qol_fast_travel. The game's own Teleportation between the Circles found, offered\n"
-                          "once the prologue is over; the game's own unlock (the Lich) always applies as the game has it.");
+                          "once the prologue is over. Its cost applies after the game's own unlock (the Lich) too;\n"
+                          "off, the game's own spell is the stock game's.");
     ImGui::Combo("Travel cost", &pc_qol_fast_travel_cost, "Free\0Flat\0Scaled\0Game\0");
     if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Settings qol_fast_travel_cost, before the game's own unlock: free, a flat MP\n"
+        ImGui::SetTooltip("Settings qol_fast_travel_cost, before and after the game's own unlock: free, a flat MP\n"
                           "(qol_fast_travel_flat), the game's cost scaled (qol_fast_travel_scale) or the game's.");
     if (pc_qol_fast_travel_cost == PC_FT_COST_FLAT)
         ImGui::SliderInt("Flat cost (MP)", &pc_qol_fast_travel_flat, 0, 99);

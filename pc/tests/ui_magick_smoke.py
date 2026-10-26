@@ -49,7 +49,8 @@ Shell-only checks (process b):
   - silence (vs_battle_actor2.statuses 0x1000): every spell greyed with the
     silence reason, Circle refused
   - mouse: hover a spell row focuses it, a sub-tab click switches the school
-  - Teleport (vs_main_stateFlags.unkB5 1, savePointStates set in RAM): costs
+  - Teleport (vs_main_stateFlags.unkB5 1, savePointStates set in RAM, the
+    fast travel cost mode Game): costs
     = MENU0 _getTeleportCost re-implemented here from the tables in
     src/MENU/MENU0.PRG/84.c and the room id (vs_main_locationZoneMapIds), the
     circle the player stands on marked current (and focused), a state-2
@@ -778,6 +779,9 @@ def teleport_checks(b, check):
     if not check(here is not None, f"the save room (location {room:#x}) has a Circle of Magic in MENU0's table"):
         return
     g.write(flags + UNK_B5, bytes([1]))
+    # the settings' cost mode applies after the game's own unlock too (pc/docs/Fast_Travel.md):
+    # Game, the costs checked here (the default, Free, would make every trip 0)
+    g.call("fast_travel", set={"cost": "game"})
     pts = bytearray(g.read(flags + SAVE_POINTS, 48))
     others = [p for p in (0, 1, 3, 10, 30) if p != here]
     for p in others + [here]:

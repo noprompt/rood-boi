@@ -806,11 +806,12 @@ void build()
     };
     p.push_back(toggle("qol_fast_travel", "Fast travel",
         "Teleport between the Circles of Magic you have found, from the first one after the prologue: stand on a "
-        "Circle and press Travel, or Magic > Teleportation. The game's own spell, once learned, works as always.",
+        "Circle and press Travel, or Magic > Teleportation. Off: no travel until the game teaches Teleportation, "
+        "then the game's own spell as on the PS1.",
         &pc_qol_fast_travel));
     p.push_back(choice("qol_fast_travel_cost", "Travel cost",
-        "Until the game teaches Teleportation: Free, Flat (a set MP), Scaled (part of the game's cost) or Game (15 MP "
-        "plus 4 per Circle between). Once it has, the game's own cost.",
+        "Free, Flat (a set MP), Scaled (part of the game's cost) or Game (15 MP plus 4 per Circle between); also "
+        "once the game has taught Teleportation.",
         &pc_qol_fast_travel_cost, travel_costs, 4)
                     .grey(need_travel));
     p.push_back(islider("qol_fast_travel_flat", "Flat cost", "The MP each trip costs.", &pc_qol_fast_travel_flat, 0, 99,

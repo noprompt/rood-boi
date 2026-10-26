@@ -49,10 +49,15 @@ int pc_ft_unlock(const pc_ft_settings* c, const pc_ft_state* s)
     return s->game ? s->game : pc_ft_whose(c, s) == PC_FT_PORT;
 }
 
+int pc_ft_applies(const pc_ft_settings* c, const pc_ft_state* s)
+{
+    return c->enabled && pc_ft_whose(c, s) != PC_FT_OFF;
+}
+
 int pc_ft_cost(const pc_ft_settings* c, const pc_ft_state* s, int raw)
 {
     float f;
-    if (pc_ft_whose(c, s) != PC_FT_PORT)
+    if (!pc_ft_applies(c, s))
         return raw;
     switch (c->cost) {
     case PC_FT_COST_FREE:
@@ -75,7 +80,7 @@ int pc_ft_cost(const pc_ft_settings* c, const pc_ft_state* s, int raw)
 
 unsigned pc_ft_mask(const pc_ft_settings* c, const pc_ft_state* s, unsigned bits)
 {
-    if (pc_ft_whose(c, s) == PC_FT_PORT && c->cost == PC_FT_COST_FREE && s->circle)
+    if (pc_ft_applies(c, s) && c->cost == PC_FT_COST_FREE && s->circle)
         return bits & ~(unsigned)PC_FT_NO_MP;
     return bits;
 }
@@ -87,11 +92,12 @@ unsigned pc_ft_menu_bits(const pc_ft_settings* c, const pc_ft_state* s)
 
 const char* pc_ft_blocked(const pc_ft_settings* c, const pc_ft_state* s)
 {
-    if (pc_ft_whose(c, s) != PC_FT_PORT)
+    if (!pc_ft_applies(c, s))
         return NULL;
     if (s->warped)
         return "Leave the Room Browser warp first.";
-    if (s->no_save)
+    /* (unkA7: the port's own refusal; the game's spell never checked it) */
+    if (s->no_save && pc_ft_whose(c, s) == PC_FT_PORT)
         return "Cannot travel from here now.";
     if (s->here >= PC_FT_POINTS || !s->states[s->here])
         return "This Circle of Magic is not recorded yet.";
@@ -186,8 +192,8 @@ int pc_ft_json(const pc_ft_report* r, char* out, int size)
         c->enabled, c->cost >= 0 && c->cost < PC_FT_COST_MODES ? pc_ft_cost_names[c->cost] : "game", c->flat,
         (double)c->scale, r->prompt_on, r->prompt_anchor, (double)r->prompt_offset[0], (double)r->prompt_offset[1],
         (double)r->prompt_scale, r->prompt_hold);
-    PUT("\"whose\":\"%s\",\"unlock\":%d,\"menu_bits\":%u,\"prompt\":%s,\"prompt_drawn\":%u,",
-        whose_names[pc_ft_whose(c, s)], pc_ft_unlock(c, s), pc_ft_menu_bits(c, s), r->prompt ? "true" : "false",
+    PUT("\"whose\":\"%s\",\"applies\":%d,\"unlock\":%d,\"menu_bits\":%u,\"prompt\":%s,\"prompt_drawn\":%u,",
+        whose_names[pc_ft_whose(c, s)], pc_ft_applies(c, s), pc_ft_unlock(c, s), pc_ft_menu_bits(c, s), r->prompt ? "true" : "false",
         r->prompt_drawn);
     PUT("\"prompt_box\":[%g,%g,%g,%g],\"picture\":[%g,%g,%g,%g],\"prompt_font\":\"%s\",\"prompt_backdrop\":%s,"
         "\"prompt_stroke\":%g,", (double)r->prompt_box[0],

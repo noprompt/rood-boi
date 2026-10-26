@@ -35,8 +35,10 @@ audit share the first):
           event, MP short (game cost), off the Circle: refused (the row greyed,
           or the modern Magick > Teleport page refusing with the reason; the
           button ignored, the room kept); MP 0 free: offered in both menus
-  game    unkB5 1: the game's own (raw cost charged, magicUsed set) whatever the
-          settings; unkB5 2: everything refused
+  game    unkB5 1 (the game's own spell learned): the settings still apply
+          (each cost mode, MP 0 free / flat, a trip charged the flat cost,
+          magicUsed set as the game's spell does); qol_fast_travel 0: the stock
+          spell's cost; unkB5 2: everything refused
   here    (off) choosing the Circle Ashley stands on: back to the field
   button  the Travel button: the default binding (a virtual gamepad's back)
           and a key bound to it and shared with Select, then the RPC press:
@@ -826,23 +828,43 @@ def case_refuse(t, check, args):
 
 
 def case_game(t, check, args):
+    """The game's own Teleportation learned (unkB5 1, as the Lich's event sets it): the
+    settings still decide (a YouTube player's report: they stopped mattering)."""
     g, off = t.g, args.menus == "off"
     t.set_flag(UNK_B5, 1)
     t.set_flag(MAGIC_USED, 0)
     t.set_mp(99, 99)
     s = t.ft()
     target = nearest_other(s)
-    check(s["whose"] == "game" and s["unlock"] == 1, f"game: unkB5 1: the game's unlock ({s['whose']})")
+    check(s["whose"] == "game" and s["unlock"] == 1 and s["applies"] == 1,
+          f"game: unkB5 1: the game's unlock, the settings apply ({s['whose']}, applies {s['applies']})")
     if target is None:
         skipped(check, args, "game: no other Circle found (skipped)")
         return
     raw = s["points"][target]["raw"]
-    check(s["points"][target]["cost"] == raw, f"game: the game's cost {raw} whatever qol_fast_travel_cost (free)")
+    check(s["points"][target]["cost"] == 0, f"game: free (the default) after the game's unlock too "
+          f"({s['points'][target]['cost']}, raw {raw})")
+    for mode, want in (("flat", 7), ("scaled", int(raw * 0.5 + 0.5)), ("game", raw)):
+        got = t.ft(set={"cost": mode, "flat": 7})["points"][target]["cost"]
+        check(got == want, f"game: unkB5 1, cost {mode}: Circle {target} {got} MP ({want})")
+    s = t.ft(set={"enabled": False})
+    check(s["whose"] == "game" and s["applies"] == 0 and s["points"][target]["cost"] == raw and s["why"] == "",
+          f"game: qol_fast_travel 0: the stock spell (its cost {s['points'][target]['cost']}, '{s['why']}')")
+    t.ft(set={"enabled": True, "cost": "free"})
+    t.set_mp(0, 99)
+    s = t.ft()
+    check(s["points"][target]["refused"] == "" and s["why"] == "",
+          f"game: free at MP 0: offered ('{s['points'][target]['refused']}', '{s['why']}')")
+    t.ft(set={"cost": "flat", "flat": 7})
+    s = t.ft()
+    check(s["points"][target]["refused"] != "", f"game: flat 7 at MP 0: refused ('{s['points'][target]['refused']}')")
+    t.set_mp(99, 99)
     s, drop = travel_to(t, check, args, target, "game")
     check(s["last"]["arrived"] and s["last"]["whose"] == "game" and s["last"]["counted"] == 1,
           f"game: arrived, the game's trip ({s['last']})")
-    check(drop == raw, f"game: MP charged {drop} ({raw}, _getTeleportCost)")
+    check(drop == 7, f"game: MP charged {drop} (flat 7, not the game's {raw})")
     check(t.flags()[MAGIC_USED] == 1, "game: magicUsed set, as the game's Teleportation does")
+    t.ft(set={"cost": "free"})
     t.set_flag(UNK_B5, 2)
     g.run(2)
     s = t.ft()

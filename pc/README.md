@@ -481,17 +481,18 @@ item and art once.
 
 The game's own Teleportation between the Circles of Magic, offered from the
 first Circle once the prologue is over (**on by default**; the game's own
-unlock, from the Lich, applies as the game has it). Stand on a Circle and
+unlock, from the Lich, applies too, and these settings keep deciding the cost
+after it; with fast travel off the learned spell is the stock game's). Stand on a Circle and
 press Travel (Select on a gamepad; no key until you bind one: a prompt shows
 when it is available), or Magic > TELEPORTATION (Magick > Teleport with the
-modern menus). Free until the game teaches the spell; it does not count as
-using magic until then. Nothing new reaches the memory card.
+modern menus). Free by default (also after the game teaches the spell); it
+does not count as using magic until the game teaches it. Nothing new reaches the memory card.
 [docs/Fast_Travel.md](docs/Fast_Travel.md) has the rules and the tests.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `qol_fast_travel` | 1 | offer Teleportation from the first Circle once the prologue is over |
-| `qol_fast_travel_cost` | 0 | before the game's own unlock: 0 free, 1 flat, 2 scaled, 3 the game's (15 MP plus 4 per Circle between) |
+| `qol_fast_travel_cost` | 0 | before and after the game's own unlock: 0 free, 1 flat, 2 scaled, 3 the game's (15 MP plus 4 per Circle between) |
 | `qol_fast_travel_flat` | 15 | flat mode's MP |
 | `qol_fast_travel_scale` | 0.5 | scaled mode: the game's cost times this |
 | `qol_fast_travel_prompt` | 1 | the Travel prompt on a Circle |
