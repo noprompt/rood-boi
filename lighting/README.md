@@ -129,8 +129,8 @@ env sky zenith=0.07,0.09,0.16 horizon=0.17,0.18,0.23 ground=0.03,0.03,0.035 sun_
   the hemisphere term that stands in for the sky where nothing traces it).
   `source` (`game`: the colours the game draws behind the room, live,
   where it draws any (its background sphere's rings, the forest's flat
-  backdrop, the prologue's panorama), else the three above; `manual`: the
-  three above), `game_scale` (0.25: the game's 0..255 colours over 255
+  backdrop, the prologue's panorama) for `zenith` and `horizon`, `ground`
+  always the room's own; else the three above; `manual`: the three above), `game_scale` (0.25: the game's 0..255 colours over 255
   times this, then `intensity`). pc/docs/Vulkan_Renderer.md "The game's
   sky".
 - A sky radiance of 0.15 adds about 0.15 x the surface's albedo to an open

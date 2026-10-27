@@ -170,8 +170,9 @@ def suites(args, mode="egl"):
                   TESTS / "diff/corpus_test.py", TESTS / "diff/corpus.py", TESTS / "diff/differ.py", TESTS / "diff/scenarios.py",
                   TESTS / "state_rewind_test.c", ROOT / "pc/src/state_rewind.c",
                   TESTS / "input_record_test.c", ROOT / "pc/src/input_record.c"]),
+        # ten zig_diff shards of ~15-20 min, four at a time, beside the port pipeline's ~15 min
         Suite("ctest_long", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4",
-                             "-R", CTEST_LONG], 2400, binary=None,
+                             "-R", CTEST_LONG], 4800, binary=None,
               note="the long CMake tests: zig_diff's shards and coverage lane, the port pipeline",
               sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py",
                        TESTS / "zig_diff_changed.py"]),
@@ -1135,6 +1136,9 @@ def make_parser():
                              "for a while at a chosen moment, as the thermal guard does), e.g. "
                              "--stall \"--seconds 5 --write settings.cfg\"")
     parser.add_argument("--exclude", action="append", default=[], help="skip suites containing this")
+    parser.add_argument("--game-only", action="store_true",
+                        help="only suites that run the game (no CTest, lints or unit tests: the renderer does "
+                             "not change them; verify.sh --full runs those once, on Vulkan)")
     parser.add_argument("--out", help="output directory (default pc/build/tests); one runner per directory")
     parser.add_argument("--arch", choices=["32", "64"], default=os.environ.get("ROOD_ARCH", "64"),
                         help="game binary: 64 (pc/build/boot64, default) or 32 (pc/build/boot); sets ROOD_ARCH")
@@ -1157,6 +1161,8 @@ def renderer_suites(args, mode="egl"):
         every = [s for s in every if s.binary is None or s.name in NULL_SAFE]
         for suite in every:
             suite.gpu = False
+    if getattr(args, "game_only", False):
+        every = [s for s in every if s.binary is not None]
     return every
 
 

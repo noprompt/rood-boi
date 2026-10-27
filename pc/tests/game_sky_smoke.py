@@ -164,10 +164,12 @@ def main():
                   f"plausible: a blue-leaning zenith brighter than the horizon (zenith {z}, horizon {h})")
             check(sky["source"] == "game" and sky["using"] == "game",
                   f"the sky takes the game's colours by default (source {sky['source']}, using {sky['using']})")
-            want = [expected(g[k], sky["game_scale"], sky["intensity"]) for k in ("zenith", "horizon", "ground")]
+            want = [expected(g[k], sky["game_scale"], sky["intensity"]) for k in ("zenith", "horizon")]
+            want.append(expected(sky["ground"], 1, sky["intensity"]))  # the ground is always the room's own
             got = [e["gpu"][k][:3] for k in ("zenith", "horizon", "ground")]
             check(all(close(a, b) for a, b in zip(want, got)) and e["gpu"]["zenith"][3] == 1,
-                  f"the record is the game's colours x game_scale {sky['game_scale']} x intensity ({got})")
+                  f"the record is the game's colours x game_scale {sky['game_scale']} x intensity, the room's "
+                  f"ground ({got})")
             game_hash = e["hash"]
             after_full = view_mean(shot("town-game", 150))
             game.call("graphics", gi_debug=1)  # the indirect light alone

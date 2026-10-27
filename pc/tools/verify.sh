@@ -11,7 +11,8 @@
 #   the change affects (pc/tools/zig_diff_select.py), unless its shared
 #   infrastructure changed.
 #   FULL (--full; once a day, and before bigger releases): every suite on the
-#   null renderer, Vulkan and OpenGL, long suites included, and the Windows build.
+#   null renderer, Vulkan and OpenGL, long suites included (the suites without a
+#   game, CTest and lints, once: on Vulkan), and the Windows build.
 #
 #   Policy: quick before each publish; full once a day; when the daily full run
 #   finds a break, fix it or revert the merge that made it (the merge log names
@@ -112,7 +113,10 @@ if step build build-64 python3 pc/tools/build_boot.py --arch 64; then
     step cpu suite-64null python3 pc/tests/run.py --arch 64 --renderer null --out "$out/t64null" \
         "${select[@]}" "${extra[@]}" -- "${null_suites[@]}"
     step test suite-64vk python3 pc/tests/run.py --arch 64 --renderer vulkan --out "$out/t64vk" "${select[@]}" "${extra[@]}"
-    step test suite-64gl python3 pc/tests/run.py --arch 64 --renderer gl --out "$out/t64gl" "${select[@]}" "${extra[@]}"
+    # Full: the suites without a game (CTest, ctest_long, lints) ran on Vulkan; OpenGL runs the game's only.
+    gl_only=(); [ $lane = full ] && gl_only=(--game-only)
+    step test suite-64gl python3 pc/tests/run.py --arch 64 --renderer gl --out "$out/t64gl" "${gl_only[@]}" \
+        "${select[@]}" "${extra[@]}"
 else
     # Failed builds preserve old binaries; never test those as this build.
     printf 'SKIP  %-12s build-64 failed\n' suite-64null suite-64vk suite-64gl

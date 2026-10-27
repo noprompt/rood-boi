@@ -596,8 +596,10 @@ imports `D_800F1D78`, `D_800F1DC6`, `D_800F1BB0`, `D_800F1DC9`,
 - else the sphere's five rings from `D_800F1D78`;
 - all black: no game sky.
 
-zenith = the first ring, horizon = the third, ground = the mean of the
-fourth and fifth (`env_sky` reaches the ground colour 14.5 degrees down).
+zenith = the first ring, horizon = the third; the ground stays the room's
+own `ground` (light from below the horizon is the terrain's: the lower rings
+are only what the game draws past the set, and the forest's flat grey there
+lit shadowed air from below and washed out its sun shafts).
 The 26.5-degree ring is what `env_sky`'s zenith -> horizon blend
 (`sqrt(up)`) gives there within about 10 % in the town; the directional map
 below would keep it exactly. Radiance = colour / 255 x `game_scale` (0.25)

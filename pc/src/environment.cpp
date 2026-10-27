@@ -255,7 +255,10 @@ const char* game_sky_kind(int kind)
 {
     return kind == 1 ? "sphere" : kind == 2 ? "flat" : kind == 3 ? "panorama" : "none";
 }
-/* The colours the sky uses (before intensity): the game's (times game_scale) or the room's own. */
+/* The colours the sky uses (before intensity): the game's (times game_scale) or the room's own.
+ * The ground is always the room's own: light from below the horizon is the terrain's, and the
+ * game's lower rings are only what it draws past the set (the forest's flat grey lit shadowed
+ * air from below and washed out its shafts). */
 bool sky_colours(float zenith[3], float horizon[3], float ground[3], GameSky* game = nullptr)
 {
     GameSky g;
@@ -266,7 +269,7 @@ bool sky_colours(float zenith[3], float horizon[3], float ground[3], GameSky* ga
     for (int k = 0; k < 3; k++) {
         zenith[k] = g.kind ? g.zenith[k] * sky.game_scale : sky.zenith[k];
         horizon[k] = g.kind ? g.horizon[k] * sky.game_scale : sky.horizon[k];
-        ground[k] = g.kind ? g.ground[k] * sky.game_scale : sky.ground[k];
+        ground[k] = sky.ground[k];
     }
     return g.kind != 0;
 }
@@ -658,8 +661,8 @@ extern "C" bool pc_environment_page(void)
             }
             tooltip("The game's sky: the colours of the background the game draws behind this room (its gradient\n"
                     "sphere, or the flat backdrop of the forest), live (the scripts' fades change them), times\n"
-                    "Game scale. Where the room draws no sky (black) the manual colours are used.\n"
-                    "Manual: the three colours below.");
+                    "Game scale; the ground stays the room's own. Where the room draws no sky (black) the\n"
+                    "manual colours are used. Manual: the three colours below.");
             float gz[3], gh[3], gg[3];
             GameSky game;
             bool from_game = sky_colours(gz, gh, gg, &game);
@@ -693,8 +696,9 @@ extern "C" bool pc_environment_page(void)
             ImGui::BeginDisabled(from_game);
             changed |= color_row("Zenith", sky.zenith);
             changed |= color_row("Horizon", sky.horizon);
-            changed |= color_row("Ground", sky.ground);
             ImGui::EndDisabled();
+            changed |= color_row("Ground", sky.ground);
+            tooltip("Light from below the horizon (the terrain's): the room's own, with either source.");
             changed |= ImGui::SliderFloat("Intensity##sky", &sky.intensity, 0, 4, "%.3f");
             changed |= ImGui::SliderFloat("Sun tint", &sky.sun_tint, 0, 1, "%.2f");
             tooltip("How much the sky around the sun takes its colour.");
