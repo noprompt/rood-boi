@@ -581,8 +581,8 @@ static void merge()
             merged.entries.back().origin = ORIGIN_USER;
         }
     }
-    if (merged.entries.size() > MAX_SLOTS - 1)
-        merged.entries.resize(MAX_SLOTS - 1);
+    if (merged.entries.size() > MAX_ENTRIES)
+        merged.entries.resize(MAX_ENTRIES); /* (the last slot is the review's highlight) */
     ++catalog_generation;
 }
 namespace {
@@ -792,6 +792,14 @@ std::vector<uint8_t> the_map(PC_EMISSIVE_MAP_W * PC_EMISSIVE_MAP_H);
 int dirty_row0 = 0, dirty_row1 = PC_EMISSIVE_MAP_H; /* the first upload clears the GPU image */
 uint32_t map_generation = 1;
 int marked_uses, marked_cells;
+/* The Material review's highlight (set_highlight). */
+struct Highlight {
+    std::string clut, key;
+    int w = 0, h = 0;
+    float rgb[3] = { 1, 0.3f, 1 };
+    float strength = 0;
+    int cells = 0;
+} highlight;
 
 /* Native meshes the scopes know (room_native.c, actor_native.c): a mesh of
  * the current room's geometry (its block's byte offset and triangle count:
@@ -995,6 +1003,13 @@ static void write_params(float strength)
         s[13] = (uint8_t)slot_scope_bit[i + 1]; /* 0: everywhere marked; else bit + 1 (emissive.glsl) */
         memcpy(s + 16, e.mask.indices, 32);
     }
+    if (!highlight.clut.empty() || !highlight.key.empty()) { /* not a light, no filters, everywhere */
+        uint8_t* s = p + HIGHLIGHT_SLOT * 64;
+        for (int k = 0; k < 3; k++)
+            s[k] = (uint8_t)std::clamp((int)lroundf(highlight.rgb[k] * 255.0f), 0, 255);
+        s[3] = (uint8_t)std::clamp((int)lroundf(std::clamp(highlight.strength, 0.0f, 4.0f) * 63.75f), 0, 255);
+        s[8] = s[9] = s[7] = 31, s[11] = 255;
+    }
 }
 /* Which entries are marked in this room, and the scope bits of those limited
  * to some surfaces or models (16 at once; more are left unmarked). */
@@ -1036,6 +1051,7 @@ static void write_marks()
     applied_materials = materials::generation();
     const Catalog& c = catalog();
     marked_uses = marked_cells = 0;
+    highlight.cells = 0;
     any_marks = false;
     light_pages = marked_pages = 0;
     current_room(&scope_zone, &scope_room);
@@ -1094,7 +1110,49 @@ static void write_marks()
             }
     }
     any_marks = marked_uses > 0;
+    if (highlight.clut.empty() && highlight.key.empty())
+        return;
+    for (auto& kv : uses) {
+        Use& u = kv.second;
+        int w = u.box[2] - u.box[0] + 1, h = u.box[3] - u.box[1] + 1;
+        int depth = std::min((int)((u.page >> 7) & 3), 2);
+        if (!highlight.clut.empty()) {
+            if (depth == 2 || clut_key(u.page, u.clut) != highlight.clut)
+                continue;
+        } else {
+            if (w != highlight.w || h != highlight.h)
+                continue;
+            if (u.key.empty())
+                u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
+            if (u.key != highlight.key)
+                continue;
+        }
+        int tx = (int)(u.page & 15) * 64, ty = (int)((u.page >> 4) & 1) * 256;
+        for (int v = u.box[1]; v <= u.box[3]; v++)
+            for (int x = u.box[0]; x <= u.box[2]; x++) {
+                size_t at = (size_t)(ty + v) * PC_EMISSIVE_MAP_W + ((tx * 4 + (x << depth)) & 4095);
+                highlight.cells += the_map[at] != HIGHLIGHT_SLOT;
+                the_map[at] = HIGHLIGHT_SLOT;
+                the_map[(size_t)PC_EMISSIVE_AMOUNT_ROW * PC_EMISSIVE_MAP_W + at] = 255;
+            }
+    }
+    any_marks |= highlight.cells > 0;
 }
+void set_highlight(const std::string& clut, const std::string& key, int w, int h, const float rgb[3], float strength)
+{
+    if (clut != highlight.clut || key != highlight.key || w != highlight.w || h != highlight.h)
+        marks_changed = true;
+    for (int k = 0; k < 3; k++)
+        if (rgb[k] != highlight.rgb[k])
+            params_changed = true;
+    if (strength != highlight.strength)
+        params_changed = true;
+    highlight.clut = clut, highlight.key = key, highlight.w = w, highlight.h = h;
+    for (int k = 0; k < 3; k++)
+        highlight.rgb[k] = rgb[k];
+    highlight.strength = strength;
+}
+int highlight_cells() { return highlight.cells; }
 /* The VRAM a use's keys read (Use::seen), visited as runs of halfwords:
  * the rows of its texels, then the CLUT (16 or 256 entries; none at 16 bits). */
 template <typename F> static void use_vram(const Use& u, F run)
@@ -1622,6 +1680,8 @@ extern "C" int pc_emissive_pending(void)
     if (loaded && ((pc_specular != 0) != material_on || materials::generation() != applied_material_maps
                       || relief_changed()))
         return 1;
+    if (loaded && (marks_changed || params_changed))
+        return 1; /* (the review's highlight) */
     /* (the material catalog: two stat calls; edits in the editor bump it at once) */
     if (loaded && materials::catalog_generation() != applied_material_catalog)
         return 1;

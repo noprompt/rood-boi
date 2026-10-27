@@ -933,6 +933,7 @@ void pc_lighting_file_menu(void);
 }
 #include "room_warp.h"
 extern bool pc_room_browser_open;
+#include "material_editor.h" /* the Material review window */
 extern "C" void pc_lights_viewport(void);
 extern "C" {
 extern int pc_glow_shadows;
@@ -1484,6 +1485,7 @@ static void menu_bar(float* height)
         if (ImGui::MenuItem("Library", "Shift+1", place_tab_shown || !rood_library::docked()))
             outliner_tab_request = 1;
         ImGui::MenuItem("Room Browser", "Ctrl+R", &pc_room_browser_open);
+        ImGui::MenuItem("Material review", nullptr, &pc_material_review_open);
         ImGui::MenuItem("Cutscene", cutscene::replay_key_name().c_str(), &cutscene::window_open);
         pc_lua_console_menu_item();
         ImGui::MenuItem("Keyboard shortcuts", nullptr, &show_help);
@@ -2372,6 +2374,7 @@ extern "C" void pc_overlay_frame(int width, int height)
         pc_undo_frame_begin();
     }
     pc_room_browser_frame(); /* a warp arriving: the free camera and pause come back */
+    pc_material_review_frame(); /* the Material review's preview and highlight follow its window */
     if (visible) {
         float bar = 0, tools = 0;
         menu_bar(&bar);
@@ -2399,6 +2402,7 @@ extern "C" void pc_overlay_frame(int width, int height)
         rood_details::ladder_frame(); /* a value ladder being dragged (editor_details.cpp) */
         pc_lights_editor_windows();
         pc_room_browser_window();
+        pc_material_review_window();
         pc_cutscene_window();
         help_window();
         memory_cards_window();

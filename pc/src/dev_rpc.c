@@ -3698,6 +3698,26 @@ static void handle_method(int fd, const char* request)
             return;
         }
         reply(fd, id, result);
+    } else if (!strcmp(method, "material_review")) {
+        /* The Material review (material_review.cpp parses the params object). */
+        extern int pc_material_review_rpc(const char* params, char* out, int size) __attribute__((weak));
+        if (!pc_material_review_rpc) {
+            fail(fd, id, -32000, "material_review needs the hardware renderer");
+            return;
+        }
+        static char args[LINE_MAX_BYTES];
+        const char* end = params ? value_end(params) : NULL;
+        if (params && end && (size_t)(end - params) < sizeof args) {
+            memcpy(args, params, (size_t)(end - params));
+            args[end - params] = 0;
+        } else {
+            strcpy(args, "{}");
+        }
+        if (pc_material_review_rpc(args, result, sizeof result) < 0) {
+            fail(fd, id, -32000, result);
+            return;
+        }
+        reply(fd, id, result);
     } else if (!strcmp(method, "ending")) {
         /* Developer jump: the field's next frame plays the ending (credits,
          * score and rank) and returns to the title (room_warp.c). The game

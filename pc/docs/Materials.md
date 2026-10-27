@@ -106,7 +106,9 @@ lighting directory wins per entry id (`$ROOD_MATERIAL_CATALOG_USER` overrides).
 `bump` (a multiple of the global relief depth, 0..4, default 1). An entry's
 `preset` selects one; explicit fields override it. Its `match` has a 10-digit content
 `key`, `size: [width,height]`, and optional palette `clut` hash. Optional
-`scope: {"room": [zone,room]}` restricts it to that room. `id` identifies
+`scope: {"room": [zone,room]}` restricts it to that room, `scope: {"rooms":
+[[zone,room], ...]}` to those rooms (one or more, no repeats; one of the
+two, not both). `id` identifies
 user overrides; `name`, `where`, and `review: "new"` support curation. The
 runtime parser rejects invalid keys, size, fractions, palette and scope.
 A **palette entry** has no `key` (and usually no `size`): `"match": {"clut":
@@ -133,7 +135,11 @@ smoother and flatter), `plaster` (0.9, specular 0.8, auto_height, bump 0.4),
 `wet stone` (0.32, specular 0.5, auto_height), `worn wood` (0.8,
 auto_height), `cloth` (0.95, specular 0.5), `worn iron` (0.55, metal,
 auto_height), `polished metal` (0.3, metal), `glass` (0.1), `gel` (0.35,
-specular 0.5).
+specular 0.5); organic: `foliage` (0.7, specular 0.7: leaves, a faint waxy
+sheen, no relief: they are cut-outs), `grass` (0.9, specular 0.6,
+auto_height, bump 0.5), `earth` (0.95, specular 0.7, auto_height, bump
+0.6), `bark` (0.88, specular 0.8, auto_height, bump 1.2: deep furrows),
+`moss` (0.97, specular 0.5, auto_height, bump 0.4).
 
 The seeded entries (M001-M011) are provisional (`review: "new"`): wet stone
 in the rain (the manor courtyard 2/0, Snowfly Forest 40/13), a damp cellar
@@ -236,9 +242,19 @@ the proposals, then apply the accepted ones to the catalog.
    confidence, from the texels' look (luminance, contrast, saturation, hue,
    dark seams, bright specks, grain direction), the survey's hints (how much
    of it faces up, sideways or down, how much object lists draw: props and
-   characters) and the rooms' names (rain, water; cellars, catacombs). It
-   writes `proposals.json` and `review.html`, sorted by coverage.
-3. Open `pc/build/material_rollout/review.html` in a browser (a local file:
+   characters) and the rooms' names (rain, water; cellars, catacombs;
+   forest, garden). Organic looks come first: a green cut-out is `foliage`,
+   green floors `grass`, green walls `moss` (jointed green blocks only low:
+   mossy stone?), and in rooms named for a forest a streaked wall `bark`
+   and an earthy floor `earth`; near black, cut-outs that are not green and
+   textures mostly drawn by object lists are `none`; stone guesses on weak
+   cues (low contrast, no seams; mixed facing; a forest) are low
+   confidence. The thresholds and the room-name words are tunables in
+   `pc/tools/material_rollout_rules.json` (`--rules`). It writes
+   `proposals.json` and `review.html`, sorted by coverage, and prints the
+   preset distribution.
+3. Review in the game (below: Window > Material review), or open
+   `pc/build/material_rollout/review.html` in a browser (a local file:
    no server, nothing uploaded): each proposal with its thumbnails, the
    rooms and their views, the hints; Accept, Reject or change the preset
    (and for a 15-bit texture the scope), then **Export review JSON**. The
@@ -246,12 +262,65 @@ the proposals, then apply the accepted ones to the catalog.
 4. `python3 pc/tools/material_rollout_apply.py material_review.json
    [--dry-run]` adds the accepted decisions to
    `pc/assets/materials/catalog.json` (`--catalog`, `--out`): a palette
-   becomes one palette entry per room it was surveyed in, scoped to that
-   room (palette entries stay scoped: a palette can be reused for other art
-   elsewhere); a 15-bit texture its key and size, per room or everywhere.
+   becomes ONE palette entry scoped to the rooms it was surveyed in (`scope:
+   {"rooms": [...]}`, or `{"room"}` for one; palette entries stay scoped: a
+   palette can be reused for other art elsewhere); a 15-bit texture its key
+   and size, scoped to its rooms or everywhere.
    Fresh ids after the catalog's highest, `review: "new"`, a `where` naming
    the room and the proposal; entries the catalog already has are skipped,
    and the file keeps its layout.
+
+### Reviewing in the game
+
+The proposals are judged where they are drawn: **Window > Material review**
+(or **Material review...** in Details > Material). It loads
+`pc/build/material_rollout/proposals.json` (the path field and **Load** take
+another; `$ROOD_MATERIAL_REVIEW` sets the default) and lists the proposals
+by coverage, filtered by decision (undecided, accepted, rejected), preset,
+confidence and zone. For the selected one:
+
+- its rooms by share, each with **Go** (the room is loaded as the survey
+  saw it: without enemies or scripts unless ticked; a room no door leads
+  into is entered at the middle of its floor grid) and **Next room**;
+- the preview: its preset (or the one chosen in the dropdown, fine-tuned
+  with Details > Material's own controls under **Fine-tune**) is live at
+  once on every texture of the palette (or the 15-bit texture) in its
+  rooms, as a temporary entry that is never saved; **Preview** off shows
+  the surfaces without a material (before / after);
+- **Highlight** pulses the palette's surfaces (they glow with their own
+  colour times the highlight colour; Glowing surfaces must be on), so it is
+  clear which surfaces the proposal is about; colour, strength and pulse
+  rate are tunables (**Highlight look**, RPC `settings`);
+- **Accept** writes ONE entry into the user material layer (`materials.json`,
+  where Details > Material saves): id `R<palette>` (`R<key>-<w>x<h>` for a
+  texture), the palette (or the texture's key and size), scoped to all the
+  proposal's rooms (`scope: {"rooms": [...]}`), the preset and the
+  fine-tuning, `review: "accepted"`; accepting `none` writes nothing.
+  **Reject** is recorded (and removes an entry an earlier accept wrote);
+  **Clear decision** forgets it. **Open in Details > Material** selects an
+  accepted entry there (its maps can be painted as any entry's).
+- Keys (while the window has focus): N / P next / previous, U next
+  undecided, A accept, R reject, B before / after, H highlight, G next
+  room; pad L1 / R1 previous / next, R2 before / after, L2 highlight. After
+  a decision the next undecided proposal is selected (a setting).
+
+The decisions, the selection and the settings are kept in
+`review_state.json` beside `proposals.json` (game art's folder: local), so
+a session resumes where it stopped. It is a review in
+`material_rollout_apply.py`'s format, so the same decisions can also be
+applied to a catalog copy.
+
+RPC `material_review`: `status` (default: the path, counts, preview,
+highlight and its marked texels, the settings, the room, the selected
+proposal and its entry), `open {open}`, `load {path}`, `list {status,
+preset, confidence, zone, offset, limit}`, `select {id | stable | index |
+next | previous | undecided}`, `preview {on, highlight}`, `preset
+{preset}`, `tune {roughness, specular, metal, auto_height, bump}`, `go
+{room: [zone, room]}` (or the next room), `decide {decision: accept |
+reject | clear}`, `settings {highlight_rgb, highlight_strength,
+highlight_rate, enemies, scripts, advance, auto_go}` (saved in the state
+file). No Lua binding yet (Lua has no material or dev-tool calls to
+follow). `material_review_smoke` checks it headless.
 
 The survey's hints come from RPC `material survey`: per texture, `facing`
 (its cells whose triangles face up, sideways and down as seen from the eye)

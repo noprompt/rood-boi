@@ -53,7 +53,14 @@ sys.path.insert(0, str(ROOT / "pc/tests"))
 OUT = ROOT / "pc/build/material_rollout"
 CATALOG = ROOT / "pc/assets/materials/catalog.json"
 PRESETS = ["rough stone", "flagstone", "stone", "wet stone", "plaster", "worn wood", "worn iron", "polished metal",
-           "glass", "gel", "cloth"]
+           "glass", "gel", "cloth", "foliage", "grass", "earth", "bark", "moss"]
+RULES = ROOT / "pc/tools/material_rollout_rules.json"  # the proposals' tunables (thresholds, room-name words)
+
+
+def load_rules(path=RULES):
+    rules = json.loads(pathlib.Path(path).read_text())
+    rules.pop("about", None)
+    return rules
 NONE = "none"  # no entry: the texture stays as it is (matte, no relief)
 THUMB_LIMIT = 0.001  # textures below this mean share of a room's views get no thumbnail from that room
 ROOM_TIMEOUT = 120  # seconds a room may take before the game is taken for stalled
@@ -356,45 +363,89 @@ def blend(stats, weights):
     return out
 
 
-WET_WORDS = ("rain", "sewer", "water", "drain", "flood", "well", "cistern", "waterway")
-DAMP_WORDS = ("cellar", "catacomb", "undercity", "cave", "mine", "crypt", "tunnel", "quarry")
-WOOD_WORDS = ("tavern", "inn", "workshop", "shop", "house", "ship", "storeroom")
+_RULES = None
 
 
-def propose(look, hints, names=()):
+def default_rules():
+    global _RULES
+    if _RULES is None:
+        _RULES = load_rules()
+    return _RULES
+
+
+def propose(look, hints, names=(), rules=None):
     """A preset for a palette (or texture) with a short reason and a
     confidence (high, medium, low): heuristics, suggestions for review.
     look: blended texture stats; hints: floor/wall/ceiling/object shares of
-    its coverage (fractions summing to about 1, object separate)."""
+    its coverage (fractions summing to about 1, object separate); rules:
+    the tunables (material_rollout_rules.json)."""
+    R = rules or default_rules()
     floor, wall, ceil, obj = (hints.get(k, 0) for k in ("floor", "wall", "ceiling", "object"))
     # (no thumbnail: a mid-grey, even look, so the facing decides)
     lum, con, sat, hue = look.get("lum", 0.3), look.get("contrast", 0), look.get("sat", 0), look.get("hue", 0)
     streak, specks, seams, rough = look.get("streak", 0.5), look.get("specks", 0), look.get("seams", 0), \
         look.get("rough", 0)
+    opaque = look.get("opaque", 1)
+
     def most(vocabulary):  # at least half its rooms are named so (whole words, plurals)
         hits = 0
         for name in names:
             words = set(re.findall(r"[a-z]+", name.lower()))
             hits += any(w in words or w + "s" in words for w in vocabulary)
         return bool(names) and hits * 2 >= len(names)
-    wet, damp, woody = most(WET_WORDS), most(DAMP_WORDS), most(WOOD_WORDS)
+    words = R["words"]
+    wet, damp, woody, forest = (most(words[k]) for k in ("wet", "damp", "wood", "forest"))
     brown = 15 <= hue <= 50 and 0.2 <= sat <= 0.75
-    greenish = 70 <= hue <= 170 and sat >= 0.3
+    veg = R["vegetation_hue"][0] <= hue <= R["vegetation_hue"][1] and sat >= R["vegetation_sat"] and look != {}
+    earthy = R["earth_hue"][0] <= hue <= R["earth_hue"][1] and sat >= R["earth_sat"]
+    grain = streak > R["grain_streak"] or streak < 1 - R["grain_streak"]
+    weak = con < R["weak_contrast"] and seams < R["weak_seams"]
     alts = []
     where = "floor" if floor >= 0.6 else "ceiling" if ceil >= 0.6 else "wall" if wall >= 0.6 else "mixed"
-    if obj >= 0.6:
+    if obj >= R["object_share"]:
         return NONE, "low", (f"{obj:.0%} drawn by object lists (props, characters): actor materials are a later "
                              "step; review case by case"), ["worn wood", "worn iron", "cloth"]
-    if look.get("opaque", 1) < 0.3:
-        return NONE, "medium", "mostly transparent texels (foliage, grilles, cut-outs)", ["worn iron"]
-    if lum < 0.04:
-        return NONE, "medium", "near black (the void beyond the walls, shadow fill)", []
-    if greenish and con > 0.08 and where != "floor":
-        return NONE, "low", "green and busy: foliage or moss; matte as it is", ["rough stone", "wet stone"]
+    if look and lum < R["void_lum"]:
+        return NONE, "medium", f"near black (luminance {lum:.2f}: the void beyond the walls, shadow fill)", []
+    place = " in a forest or garden (most of its rooms)" if forest else ""
+    if look and opaque < R["cutout"] and (veg or (forest and earthy)):
+        if veg:
+            return "foliage", "high" if forest else "medium", \
+                f"a green cut-out ({opaque:.0%} opaque, hue {hue:.0f}, saturation {sat:.2f}): leaves{place}", \
+                ["grass", NONE]
+        return "bark", "low", f"a brown cut-out ({opaque:.0%} opaque){place}: branches, twigs", ["foliage", NONE]
+    if look and opaque < R["transparent"]:
+        return NONE, "medium", "mostly transparent texels (grilles, cut-outs)", ["worn iron", "foliage"]
+    if look and opaque < R["cutout"]:
+        return NONE, "low", f"a cut-out ({opaque:.0%} opaque): leaves, grilles, railings? not a solid surface", \
+            ["foliage", "worn iron", "worn wood"]
+    if veg:
+        if seams > R["vegetation_max_seams"]:  # green stone: blocks with moss, or tinted stone
+            return ("moss" if where != "floor" else "grass"), "low", \
+                f"green (hue {hue:.0f}, {sat:.2f}) but jointed (seams {seams:.0%}): mossy stone or tinted blocks?", \
+                ["flagstone" if where == "floor" else "rough stone", "moss", "wet stone"]
+        if where == "floor" or (where == "mixed" and floor >= wall):
+            return "grass", "high" if forest else "medium", \
+                f"green and saturated (hue {hue:.0f}, {sat:.2f}) facing up ({floor:.0%}){place}: grass, undergrowth", \
+                ["earth", "moss", "foliage"]
+        return "moss", "medium" if forest else "low", \
+            f"green and saturated (hue {hue:.0f}, {sat:.2f}) facing sideways or down{place}: moss, ivy, mossy rock", \
+            ["foliage", "rough stone", "wet stone"]
+    if forest and (earthy or sat < R["earth_sat"]) and not (seams > R["stone_seams"] and sat < 0.2):
+        if where == "floor":
+            return "earth", "medium" if earthy else "low", \
+                f"faces up ({floor:.0%}){place}, earthy (hue {hue:.0f}, saturation {sat:.2f}): soil, a path", \
+                ["grass", "flagstone", "wet stone" if wet else "moss"]
+        if grain:
+            return "bark", "medium", f"directional grain ({streak:.2f} of the edges one way){place}: tree trunks, roots", \
+                ["worn wood", "rough stone", "moss"]
+        return "rough stone", "low", f"faces sideways{place}, no grain: rock? (contrast {con:.2f})", \
+            ["earth", "moss", "bark"]
     if sat < 0.18 and specks > 0.01 and con > 0.12 and lum < 0.45:
         return "worn iron", "low", (f"grey with bright specks ({specks:.1%}): riveted or worn metal?"), \
             ["polished metal", "rough stone"]
-    if brown and (streak > 0.75 or streak < 0.25) and sat > 0.3:
+    strong = streak > R["strong_grain"] or streak < 1 - R["strong_grain"]
+    if brown and ((grain and sat > 0.3) or strong):
         conf = "medium" if woody else "low"
         return "worn wood", conf, (f"brown (hue {hue:.0f}) with directional grain ({streak:.2f} of the edges one "
                                    f"way): planks, beams"), ["rough stone", "flagstone"]
@@ -403,12 +454,17 @@ def propose(look, hints, names=()):
             return "wet stone", "medium", "a floor in rooms named for rain or water (most of its rooms)", ["flagstone"]
         if lum > 0.62 and con < 0.07 and sat < 0.2:
             return "stone", "low", "a pale, even floor: smooth or polished stone?", ["flagstone", "plaster"]
-        conf = "high" if floor >= 0.85 and not brown else "medium"
+        if earthy and sat >= R["earth_floor_sat"] and seams < R["floor_seams"]:
+            return "earth", "low", f"a strongly coloured earthy floor without joints (hue {hue:.0f}, " \
+                f"saturation {sat:.2f}): soil, sand?", ["flagstone", "rough stone"]
+        cued = seams > R["floor_seams"] or con > R["floor_contrast"]
+        conf = "high" if floor >= 0.85 and not brown and cued and not forest else "low" if weak else "medium"
         reason = f"faces up ({floor:.0%} of its coverage): a worn floor"
+        reason += "" if cued else f" (weak cues: contrast {con:.2f}, seams {seams:.0%})"
         if damp:
             reason += "; damp area (cellar, catacombs, undercity): consider wet stone"
             alts.append("wet stone")
-        return "flagstone", conf, reason, alts + ["rough stone", "worn wood"]
+        return "flagstone", conf, reason, alts + ["rough stone", "worn wood", "earth"]
     if lum > 0.55 and con < 0.08 and sat < 0.25:
         return "plaster", "medium" if where in ("wall", "ceiling") else "low", \
             f"pale and even (luminance {lum:.2f}, contrast {con:.2f}): plaster, render", ["stone"]
@@ -417,12 +473,12 @@ def propose(look, hints, names=()):
             ["plaster"]
     if wet and where != "ceiling":
         return "wet stone", "low", "a wall in rooms named for rain or water (most of its rooms)", ["rough stone"]
-    conf = "high" if where in ("wall", "ceiling") and (seams > 0.05 or rough > 0.06) else "medium" \
-        if where in ("wall", "ceiling") else "low"
+    blocks = seams > R["stone_seams"] and rough > R["stone_edges"] and sat < R["stone_max_sat"]
+    conf = "high" if where in ("wall", "ceiling") and blocks and not forest else "low" if weak or where == "mixed" else "medium"
     reason = f"faces sideways ({wall:.0%})" if where == "wall" else f"faces down ({ceil:.0%})" \
         if where == "ceiling" else f"mixed facing (floor {floor:.0%}, wall {wall:.0%})"
-    reason += f"; blocks and mortar (seams {seams:.0%}, edge contrast {rough:.2f})" if seams > 0.05 \
-        else f"; contrast {con:.2f}"
+    reason += f"; blocks and mortar (seams {seams:.0%}, edge contrast {rough:.2f})" if seams > R["stone_seams"] \
+        else f"; weak cues (contrast {con:.2f}, seams {seams:.0%})"
     return "rough stone", conf, reason, ["stone", "plaster", "flagstone"]
 
 
@@ -475,7 +531,7 @@ def hints_of(where, coverage):
     return {"floor": where[0] / c, "wall": where[1] / c, "ceiling": where[2] / c, "object": where[3] / c}
 
 
-def build(out, catalog=CATALOG):
+def build(out, catalog=CATALOG, rules=None):
     """proposals.json from the rooms surveyed (and the thumbnails' looks)."""
     out = pathlib.Path(out)
     names = {}
@@ -502,7 +558,7 @@ def build(out, catalog=CATALOG):
         with_look = [t for t in members if t["id"] in looks]
         look = blend([looks[t["id"]] for t in with_look], [t["coverage"] for t in with_look]) if with_look else {}
         room_names = [names.get(r, "") for r in room_shares]
-        preset, confidence, reason, alts = propose(look, hints, room_names)
+        preset, confidence, reason, alts = propose(look, hints, room_names, rules)
         if not look:
             confidence, reason = "low", reason + " (no thumbnail: facing only)"
         covered = sorted({i for t in members for i in t["entries"]})
@@ -693,7 +749,7 @@ def page(data):
 
 def cmd_report(args):
     out = pathlib.Path(args.out)
-    data = build(out, args.catalog)
+    data = build(out, args.catalog, load_rules(args.rules))
     (out / "review.html").write_text(page(data))
     q = data["proposals"]
     print(f"{data['rooms_surveyed']} rooms, {data['textures']} textures, {data['palettes']} palettes, "
@@ -703,6 +759,15 @@ def cmd_report(args):
         what = p["clut"] if p["kind"] == "palette" else f"{p['key']} {p['size'][0]}x{p['size'][1]}"
         print(f"{p['id']:6} {p['coverage']:6.2f} {len(p['rooms']):5d}  {what:22} {p['preset']:14} "
               f"{p['confidence']:6} {','.join(p['in_catalog']) or '-'}")
+    dist = {}
+    for p in q:
+        d = dist.setdefault(p["preset"], {"n": 0, "coverage": 0.0, "high": 0, "medium": 0, "low": 0})
+        d["n"] += 1
+        d["coverage"] += p["coverage"]
+        d[p["confidence"]] += 1
+    print("presets (proposals, coverage, high/medium/low):")
+    for name, d in sorted(dist.items(), key=lambda kv: -kv[1]["coverage"]):
+        print(f"  {name:14} {d['n']:4d} {d['coverage']:7.2f}  {d['high']}/{d['medium']}/{d['low']}")
     print(f"wrote {out / 'proposals.json'} and {out / 'review.html'} (game art: keep local)")
     return 0
 
@@ -725,6 +790,7 @@ def main(argv=None):
     r = sub.add_parser("report", help="aggregate, propose, write the review page")
     r.add_argument("--catalog", default=str(CATALOG))
     r.add_argument("--top", type=int, default=25)
+    r.add_argument("--rules", default=str(RULES), help="the proposals' tunables (default pc/tools/material_rollout_rules.json)")
     args = parser.parse_args(argv)
     return cmd_survey(args) if args.cmd == "survey" else cmd_report(args)
 

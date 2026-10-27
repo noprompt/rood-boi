@@ -22,6 +22,7 @@
 #include "emissive_internal.h"
 #include "materials.h"
 #include "material_survey.h"
+#include "material_editor.h"
 
 using prefab::Json;
 using emissive::TexturePick;
@@ -232,7 +233,7 @@ Json entry_info(const materials::Entry& e)
     Json j;
     std::string error;
     prefab::json_parse(materials::entry_json(e).c_str(), j, &error);
-    j.set("origin", Json::str(e.user ? "user" : "curated"));
+    j.set("origin", Json::str(e.preview ? "preview" : e.user ? "user" : "curated"));
     Json v = Json::object();
     v.set("roughness", Json::num(e.value.roughness));
     v.set("specular", Json::num(e.value.specular));
@@ -401,9 +402,11 @@ bool apply_fields(materials::Entry& e, const Json& f, std::string* error)
     }
     if (const Json* v = f.get("room"); v && v->type == Json::Bool) {
         if (v->boolean) {
-            if (!emissive::current_room(&e.zone, &e.room)) e.zone = e.room = -1;
+            int z = -1, r = -1;
+            if (!emissive::current_room(&z, &r)) z = r = -1;
+            e.set_room(z, r);
         } else
-            e.zone = e.room = -1;
+            e.set_room(-1, -1);
     }
     if (const Json* v = f.get("clut"); v && v->type == Json::Bool) {
         if (!v->boolean)
@@ -542,25 +545,11 @@ void texture_canvas(const TexturePick& t, const materials::Entry* e)
         stroking = false;
 }
 
-void entry_editor(const materials::Entry& original)
+/* The entry's response: preset, roughness, specular, metal, the height
+ * estimate and the relief (Details > Material, the Material review). */
+bool entry_fields(materials::Entry& e)
 {
-    materials::Entry e = original;
     bool changed = false;
-    ImGui::PushID(e.id.c_str());
-    ImGui::SeparatorText(e.id.c_str());
-    if (e.key.empty())
-        ImGui::TextDisabled("%s, every texture with palette %s%s", e.user ? "your entry" : "curated", e.clut.c_str(),
-            e.zone >= 0 ? ", one room" : ", every room");
-    else
-        ImGui::TextDisabled("%s, texture %s %d x %d%s%s", e.user ? "your entry" : "curated", e.key.c_str(), e.w, e.h,
-            e.clut.empty() ? "" : ", this palette", e.zone >= 0 ? ", one room" : ", every room");
-    char name[128], where[256];
-    snprintf(name, sizeof name, "%s", e.name.c_str());
-    snprintf(where, sizeof where, "%s", e.where.c_str());
-    if (ImGui::InputText("Name", name, sizeof name))
-        e.name = name, changed = true;
-    if (ImGui::InputText("Where", where, sizeof where))
-        e.where = where, changed = true;
     std::vector<std::pair<std::string, materials::Surface>> presets = materials::catalog_presets();
     if (ImGui::BeginCombo("Preset", e.preset.empty() ? "(none)" : e.preset.c_str())) {
         if (ImGui::Selectable("(none)", e.preset.empty()))
@@ -609,12 +598,38 @@ void entry_editor(const materials::Entry& original)
             ImGui::SetTooltip("bump: this surface's multiple of the global relief depth (bump_strength)%s",
                 own ? "" : "\n(from the preset)");
     }
+    return changed;
+}
+static std::string scope_text(const materials::Entry& e)
+{
+    if (!e.rooms.empty()) return ", " + std::to_string(e.rooms.size()) + " rooms";
+    return e.zone >= 0 ? ", one room" : ", every room";
+}
+void entry_editor(const materials::Entry& original)
+{
+    materials::Entry e = original;
+    bool changed = false;
+    ImGui::PushID(e.id.c_str());
+    ImGui::SeparatorText(e.id.c_str());
+    if (e.key.empty())
+        ImGui::TextDisabled("%s, every texture with palette %s%s", e.user ? "your entry" : "curated", e.clut.c_str(),
+            scope_text(e).c_str());
+    else
+        ImGui::TextDisabled("%s, texture %s %d x %d%s%s", e.user ? "your entry" : "curated", e.key.c_str(), e.w, e.h,
+            e.clut.empty() ? "" : ", this palette", scope_text(e).c_str());
+    char name[128], where[256];
+    snprintf(name, sizeof name, "%s", e.name.c_str());
+    snprintf(where, sizeof where, "%s", e.where.c_str());
+    if (ImGui::InputText("Name", name, sizeof name))
+        e.name = name, changed = true;
+    if (ImGui::InputText("Where", where, sizeof where))
+        e.where = where, changed = true;
+    changed |= entry_fields(e);
     bool room = e.zone >= 0;
     if (ImGui::Checkbox("This room only", &room)) {
-        if (room)
-            emissive::current_room(&e.zone, &e.room);
-        else
-            e.zone = e.room = -1;
+        int z = -1, r = -1;
+        if (room && !emissive::current_room(&z, &r)) z = r = -1;
+        e.set_room(z, r);
         changed = true;
     }
     bool palette = !e.clut.empty();
@@ -958,6 +973,9 @@ void survey_section()
 
 } // namespace
 
+bool material_entry_fields(materials::Entry& e) { return entry_fields(e); }
+void material_editor_select(const std::string& id) { selected = id; }
+
 /* The view was clicked (lights.cpp): picks a texture when the panel asked. */
 extern "C" int pc_material_viewport_click(float x, float y)
 {
@@ -996,6 +1014,9 @@ extern "C" void pc_material_panel(void)
         emissive::material_cell_count(), pc_material_active() ? "" : " (none lit)");
     if (ImGui::Button(pick_armed ? "Click a surface in the view..." : "Pick texture"))
         pick_armed = !pick_armed;
+    ImGui::SameLine();
+    if (ImGui::Button("Material review..."))
+        pc_material_review_open = true; /* the rollout's proposals, room by room (material_review.cpp) */
     if (materials::pending_dirty()) {
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(1, 0.8f, 0.3f, 1), "unsaved");
@@ -1019,6 +1040,8 @@ extern "C" void pc_material_panel(void)
     if (ImGui::BeginListBox("##materials", ImVec2(-1, ImGui::GetTextLineHeightWithSpacing() * 6))) {
         std::vector<emissive::MaterialUse> uses = emissive::material_use_list();
         for (const materials::Entry& e : all) {
+            if (e.preview)
+                continue; /* the Material review's preview (not an entry to edit) */
             int here = 0;
             for (const emissive::MaterialUse& u : uses)
                 here += u.entry == e.id;

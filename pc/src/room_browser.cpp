@@ -53,6 +53,46 @@ extern "C" int pc_room_browser_go(int zone, int room, int entry, char* why, int 
     return 1;
 }
 
+/* Go to a room whatever leads into it (the Material review's Go, as the
+ * material rollout's survey goes): with or without its enemies and scripts;
+ * a room no door leads into is entered at the middle of its floor grid (a
+ * made-up door onto that cell, as RPC room_goto {cell} makes). */
+extern "C" int pc_room_warp_cell[4] __attribute__((weak));
+extern "C" int pc_room_browser_go_anywhere(int zone, int room, int enemies, int scripts, char* why, int size)
+{
+    if (!pc_rooms_count || !pc_room_warp_request) {
+        snprintf(why, size, "rooms need the battle build");
+        return 0;
+    }
+    const pc_room_info* info = nullptr;
+    for (int i = 0, n = pc_rooms_count(); i < n; i++) {
+        const pc_room_info* r = pc_rooms_get(i);
+        if (r && r->zone == zone && r->room == room)
+            info = r;
+    }
+    if (!info) {
+        snprintf(why, size, "no room %d/%d on the disc", zone, room);
+        return 0;
+    }
+    if (&pc_room_warp_enemies)
+        pc_room_warp_enemies = enemies != 0;
+    if (&pc_room_warp_scripts)
+        pc_room_warp_scripts = scripts != 0;
+    if (!info->entries && pc_room_warp_cell) {
+        if (info->floor_w <= 0 || info->floor_h <= 0) {
+            snprintf(why, size, "room %d/%d has no door and no floor grid", zone, room);
+            return 0;
+        }
+        pc_room_warp_cell[0] = info->floor_w / 2, pc_room_warp_cell[1] = 0;
+        pc_room_warp_cell[2] = info->floor_h / 2, pc_room_warp_cell[3] = 0;
+        if (pc_room_warp_cell_valid && !pc_room_warp_cell_valid(zone, room, why, size)) {
+            pc_room_warp_cell[0] = -1;
+            return 0;
+        }
+    }
+    return pc_room_browser_go(zone, room, 0, why, size);
+}
+
 /* Every overlay frame (shown or not): finish a warp. */
 extern "C" void pc_room_browser_frame(void)
 {

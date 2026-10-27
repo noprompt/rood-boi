@@ -15,7 +15,8 @@ shipped catalog and a scratch user layer.
 - matching: an entry in the shipped catalog marks the floor's texture
   (RPC material: its use, texels, the picked texel's roughness, specular,
   metal); the user layer's entry of the same id wins; an entry limited to
-  another room or another palette marks nothing; an unsaved edit (set) is
+  another room (or a room list without this one) or another palette marks
+  nothing, a room list with this room marks it; an unsaved edit (set) is
   live and Save writes it into the user file;
 - roughness maps: a rect painted over RPC changes the texel's roughness
   there and only there, and is written as the user layer's roughness.png
@@ -176,7 +177,15 @@ def main():
         at = game.call("material", action="pick", world=floor).get("material")
         check(at and at[:3] == [153, 128, 0], f"the user layer's entry of the same id wins: {at} (expected [153, 128, 0])")
         user.unlink()
+        both = dict(entry, scope={"rooms": [[zone, (room + 1) % 256], [zone, room]]})
+        write_json(shipped, dict(EMPTY, presets=PRESETS, entries=[both]))
+        settle(game)
+        uses = [u for u in game.call("material")["uses"] if u["key"] == key]
+        check(uses and uses[0]["entry"] == "T001", f"an entry scoped to a room list with this room marks the floor "
+              f"({len(uses)} uses)")
         for name, scoped in (("another room", dict(entry, scope={"room": [zone, (room + 1) % 256]})),
+                             ("other rooms (a list)", dict(entry, scope={"rooms": [[zone, (room + 1) % 256],
+                                                                                    [zone, (room + 2) % 256]]})),
                              ("another palette", dict(entry, match=dict(entry["match"], clut="0123456789")))):
             write_json(shipped, dict(EMPTY, presets=PRESETS, entries=[scoped]))
             settle(game)

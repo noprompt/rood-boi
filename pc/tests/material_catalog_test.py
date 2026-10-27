@@ -10,7 +10,25 @@ CATALOG = ROOT / "pc/assets/materials/catalog.json"
 GUARD = ROOT / "pc/tools/check_material_maps.py"
 
 
+def room_pair(value):
+    return type(value) is list and len(value) == 2 and all(type(n) is int and 0 <= n <= 255 for n in value)
+
+
+def scope_ok(scope):
+    """{"room": [zone, room]} or {"rooms": [[zone, room], ...]} (one or more, no repeats), never both."""
+    if type(scope) is not dict or ("room" in scope) == ("rooms" in scope):
+        return False
+    if "room" in scope:
+        return room_pair(scope["room"])
+    rooms = scope["rooms"]
+    return (type(rooms) is list and rooms and all(room_pair(r) for r in rooms)
+            and len({tuple(r) for r in rooms}) == len(rooms))
+
+
 def main():
+    assert scope_ok({"room": [29, 3]}) and scope_ok({"rooms": [[29, 3], [40, 13]]})
+    assert not scope_ok({"rooms": []}) and not scope_ok({"rooms": [[1, 2], [1, 2]]})
+    assert not scope_ok({"room": [1, 2], "rooms": [[1, 2]]}) and not scope_ok({"rooms": [[1, 256]]})
     spec = importlib.util.spec_from_file_location("material_guard", GUARD)
     guard = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(guard)
@@ -29,6 +47,8 @@ def main():
             assert len(m["key"]) == 10 and set(m["key"]) <= set("0123456789abcdef")
         else:  # a palette entry: every texture with the palette (a texture's own entry wins); scope it to rooms
             assert "clut" in m and "scope" in entry, entry["id"]
+        if "scope" in entry:
+            assert scope_ok(entry["scope"]), entry["id"]
         if "key" in m or "size" in m:
             assert len(m["size"]) == 2 and all(type(n) is int and 1 <= n <= 256 for n in m["size"])
         if "clut" in m:

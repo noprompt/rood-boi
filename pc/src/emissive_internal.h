@@ -13,6 +13,9 @@ namespace emissive {
 
 enum { ORIGIN_CURATED = 0, ORIGIN_OVERRIDE = 1, ORIGIN_USER = 2 };
 enum { MAX_SLOTS = 256 };
+/* The last slot is the Material review's highlight (set_highlight): the
+ * catalog keeps MAX_ENTRIES. */
+enum { HIGHLIGHT_SLOT = MAX_SLOTS - 1, MAX_ENTRIES = MAX_SLOTS - 2 };
 
 /* A texture the entry applies to: the content key of a polygon's UV box
  * (fixture_lib.py ikey), its size in texels, optionally its CLUT's colours
@@ -191,6 +194,15 @@ std::vector<MaterialUse> material_use_list();
 int material_cell_count();
 /* The planes at a texel (emissive.h PC_MATERIAL_*: roughness, specular, metal, slopes u and v, cavity). */
 bool material_at(unsigned u, unsigned v, unsigned tpage, int out[PC_MATERIAL_PLANES]);
+
+/* The Material review's highlight: every drawn texture with palette `clut`
+ * (or, with no palette, the texture `key` of w x h) glows with its own colour
+ * times `rgb` x `strength` (0..4; not a light, no glows) in the reserved
+ * slot, over any emissive mask there; clut and key both empty: none. Only
+ * while emissive surfaces are on (setting emissive > 0). Changing only the
+ * strength rewrites the slot's parameters (a pulse is cheap). */
+void set_highlight(const std::string& clut, const std::string& key, int w, int h, const float rgb[3], float strength);
+int highlight_cells(); /* cells marked by the highlight at the last write (0: none) */
 
 /* Scopes */
 bool current_room(int* zone, int* room); /* the room the player is in (dev_state.c) */

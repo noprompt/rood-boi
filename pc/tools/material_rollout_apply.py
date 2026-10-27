@@ -9,12 +9,13 @@ Every accepted decision (with its preset, the proposed one or the one the
 reviewer changed it to; "none" adds nothing) becomes catalog entries, review
 "new", with fresh ids (M###, after the catalog's highest):
 
-- a palette, scope "rooms": one palette entry ({"match": {"clut"}}) per room
-  it was surveyed in, scoped to that room (a palette can be reused elsewhere
-  for other art, so the catalog keeps palette entries scoped: a "global"
-  palette decision is applied per room too);
-- a texture (15-bit, no palette): its key and size, per room, or one
-  unscoped entry for scope "global".
+- a palette: ONE palette entry ({"match": {"clut"}}) scoped to the rooms it
+  was surveyed in (scope {"rooms": [[zone, room], ...]}, or {"room": [zone,
+  room]} for a single room). A palette can be reused elsewhere for other
+  art, so the catalog keeps palette entries scoped: a "global" palette
+  decision is scoped to its rooms too;
+- a texture (15-bit, no palette): its key and size, scoped to its rooms the
+  same way, or one unscoped entry for scope "global".
 
 An entry that the catalog already has (the same match and scope) is
 skipped, so applying a review twice adds nothing. The catalog keeps its
@@ -33,11 +34,26 @@ CATALOG = ROOT / "pc/assets/materials/catalog.json"
 HEX10 = re.compile(r"^[0-9a-f]{10}$")
 
 
+def scope_rooms(rooms):
+    """The scope for a list of (zone, room): {"room"} for one, {"rooms"} for more."""
+    rooms = [list(r) for r in rooms]
+    return {"room": rooms[0]} if len(rooms) == 1 else {"rooms": rooms}
+
+
+def rooms_of(entry):
+    """The rooms an entry is scoped to (a frozenset of (zone, room)), or None (everywhere)."""
+    scope = entry.get("scope")
+    if not scope:
+        return None
+    if "room" in scope:
+        return frozenset([tuple(scope["room"])])
+    return frozenset(tuple(r) for r in scope["rooms"])
+
+
 def ident(entry):
     """What an entry matches, and where: duplicates share it."""
     m = entry.get("match", {})
-    scope = entry.get("scope", {}).get("room")
-    return (m.get("key", ""), tuple(m.get("size", [])), m.get("clut", ""), tuple(scope) if scope else None)
+    return (m.get("key", ""), tuple(m.get("size", [])), m.get("clut", ""), rooms_of(entry))
 
 
 def next_id(ids):
@@ -85,11 +101,16 @@ def entries_for(decision, presets):
         where = f"{base}; everywhere (surveyed in {len(rooms)} rooms, coverage {decision.get('coverage', 0):.2f})"
         out.append({"name": name, "where": where, "match": match, "preset": preset, "review": "new"})
     else:
+        rooms = list(dict.fromkeys(rooms))
+        labels = []
         for zone, room in rooms:
             label = names.get(f"{zone}-{room}", "")
-            where = f"zone {zone} room {room}" + (f" ({label})" if label else "") + f"; {base}"
-            out.append({"name": name, "where": where, "match": dict(match), "scope": {"room": [zone, room]},
-                        "preset": preset, "review": "new"})
+            labels.append(f"{zone}/{room}" + (f" ({label})" if label else ""))
+        where = ("zone %d room %d" % rooms[0] + (f" ({names[f'{rooms[0][0]}-{rooms[0][1]}']})"
+                 if names.get(f"{rooms[0][0]}-{rooms[0][1]}") else "")) if len(rooms) == 1 else \
+            f"{len(rooms)} rooms: " + ", ".join(labels)
+        out.append({"name": name, "where": f"{where}; {base}", "match": dict(match), "scope": scope_rooms(rooms),
+                    "preset": preset, "review": "new"})
     return out
 
 
@@ -99,7 +120,8 @@ def render(entry):
     match = json.dumps(entry["match"], separators=(", ", ": ")).replace("{", "{ ").replace("}", " }")
     tail = []
     if "scope" in entry:
-        tail.append('"scope": { "room": ' + json.dumps(entry["scope"]["room"], separators=(", ", ": ")) + " }")
+        (field, value), = entry["scope"].items()
+        tail.append('"scope": { ' + json.dumps(field) + ": " + json.dumps(value, separators=(", ", ": ")) + " }")
     tail += [f"{json.dumps(k)}: {json.dumps(entry[k])}" for k in ("preset", "review") if k in entry]
     return f"    {{\n      {head},\n      \"match\": {match},\n      {', '.join(tail)}\n    }}"
 
@@ -146,8 +168,8 @@ def check(data, count):
         if "preset" in e:
             assert e["preset"] in data["presets"], e["id"]
         if "scope" in e:
-            z, r = e["scope"]["room"]
-            assert 0 <= z <= 255 and 0 <= r <= 255, e["id"]
+            rooms = rooms_of(e)
+            assert rooms and all(0 <= z <= 255 and 0 <= r <= 255 for z, r in rooms), e["id"]
 
 
 def main(argv=None):

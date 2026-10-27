@@ -376,6 +376,7 @@ struct CatalogState {
 CatalogState catalog_cache;
 std::vector<Entry> pending_list; /* unsaved editor entries (set_pending) */
 std::vector<std::string> pending_removed;
+std::vector<Entry> preview_list; /* set_preview: temporary, never saved */
 uint32_t pending_serial = 1, applied_pending = 0;
 std::string catalog_path()
 {
@@ -452,19 +453,35 @@ bool parse_entry(const Json& j, const std::map<std::string, Surface>& presets, E
         || size->items[0].number != e.w || size->items[1].number != e.h || e.id.empty()) return false;
     return parse_scope(j, e);
 }
-/* The entry's optional scope: {"room": [zone, room]}. */
+/* The entry's optional scope: {"room": [zone, room]} or {"rooms": [[zone,
+ * room], ...]} (one or more rooms, no repeats). */
+static bool room_pair(const Json& v, int* zone, int* room)
+{
+    if (v.type != Json::Array || v.items.size() != 2 || v.items[0].type != Json::Number
+        || v.items[1].type != Json::Number) return false;
+    for (const Json& n : v.items)
+        if (!std::isfinite(n.number) || n.number < 0 || n.number > 255 || n.number != (int)n.number) return false;
+    *zone = (int)v.items[0].number, *room = (int)v.items[1].number;
+    return true;
+}
 bool parse_scope(const Json& j, Entry& e)
 {
-    if (const Json* scope = j.get("scope")) {
-        const Json* room = scope->type == Json::Object ? scope->get("room") : nullptr;
-        if (!room || room->type != Json::Array || room->items.size() != 2
-            || room->items[0].type != Json::Number || room->items[1].type != Json::Number) return false;
-        if (!std::isfinite(room->items[0].number) || !std::isfinite(room->items[1].number)
-            || room->items[0].number < 0 || room->items[0].number > 255
-            || room->items[1].number < 0 || room->items[1].number > 255) return false;
-        e.zone = (int)room->items[0].number, e.room = (int)room->items[1].number;
-        if (e.zone != room->items[0].number || e.room != room->items[1].number) return false;
+    const Json* scope = j.get("scope");
+    if (!scope) return true;
+    if (scope->type != Json::Object) return false;
+    const Json* room = scope->get("room");
+    const Json* rooms = scope->get("rooms");
+    if ((room != nullptr) == (rooms != nullptr)) return false;
+    if (room) return room_pair(*room, &e.zone, &e.room);
+    if (rooms->type != Json::Array || rooms->items.empty()) return false;
+    for (const Json& item : rooms->items) {
+        int z, r;
+        if (!room_pair(item, &z, &r)) return false;
+        if (std::find(e.rooms.begin(), e.rooms.end(), std::make_pair(z, r)) != e.rooms.end()) return false;
+        e.rooms.push_back({ z, r });
     }
+    e.zone = e.rooms[0].first, e.room = e.rooms[0].second;
+    if (e.rooms.size() == 1) e.rooms.clear();
     return true;
 }
 void read_catalog(const std::string& path, std::vector<Entry>& entries, std::map<std::string, Surface>& presets,
@@ -521,6 +538,12 @@ const std::vector<Entry>& current_catalog()
             if (old == catalog_cache.entries.end()) catalog_cache.entries.push_back(p);
             else *old = p;
         }
+        for (const Entry& p : preview_list) {
+            auto old = std::find_if(catalog_cache.entries.begin(), catalog_cache.entries.end(),
+                [&](const Entry& e) { return e.id == p.id; });
+            if (old == catalog_cache.entries.end()) catalog_cache.entries.push_back(p);
+            else *old = p;
+        }
         catalog_cache.palette_entries = false;
         for (const Entry& e : catalog_cache.entries) {
             if (e.w > 0) catalog_cache.sizes[(e.w - 1) << 8 | (e.h - 1)] = true;
@@ -542,7 +565,7 @@ const Entry* find_match(const std::string& key, int w, int h, const std::string&
     const Entry* found = nullptr;
     const Entry* palette = nullptr; /* a palette entry: only where no entry names the texture itself */
     for (const Entry& e : current_catalog()) {
-        if (e.zone >= 0 && (e.zone != zone || e.room != room)) continue;
+        if (!e.in_scope(zone, room)) continue;
         if (e.key.empty()) {
             if (!clut.empty() && e.clut == clut && (e.w == 0 || (e.w == w && e.h == h))) palette = &e;
         } else if (e.key == key && e.w == w && e.h == h && (e.clut.empty() || e.clut == clut))
@@ -594,7 +617,18 @@ static Json entry_to_json(const Entry& e)
     }
     if (!e.clut.empty()) m.set("clut", Json::str(e.clut));
     j.set("match", m);
-    if (e.zone >= 0) {
+    if (!e.rooms.empty()) {
+        Json rooms = Json::array();
+        for (const auto& p : e.rooms) {
+            Json room = Json::array();
+            room.items.push_back(Json::num(p.first));
+            room.items.push_back(Json::num(p.second));
+            rooms.items.push_back(room);
+        }
+        Json scope = Json::object();
+        scope.set("rooms", rooms);
+        j.set("scope", scope);
+    } else if (e.zone >= 0) {
         Json room = Json::array();
         room.items.push_back(Json::num(e.zone));
         room.items.push_back(Json::num(e.room));
@@ -690,6 +724,13 @@ void remove_pending(const std::string& id)
     ++pending_serial;
 }
 std::vector<Entry> pending_entries() { return pending_list; }
+void set_preview(const std::vector<Entry>& entries)
+{
+    preview_list = entries;
+    for (Entry& e : preview_list) e.preview = true;
+    ++pending_serial;
+}
+std::vector<Entry> preview_entries() { return preview_list; }
 void reload()
 {
     forget();

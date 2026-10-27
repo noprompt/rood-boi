@@ -58,6 +58,9 @@ extern int pc_room_warp_block_saves __attribute__((weak)); /* refuse card writes
 
 /* room_browser.cpp */
 int pc_room_browser_go(int zone, int room, int entry, char* why, int size);
+/* Any room, also one no door leads into (the middle of its floor grid), with
+ * or without its enemies and scripts (the Material review's Go). */
+int pc_room_browser_go_anywhere(int zone, int room, int enemies, int scripts, char* why, int size);
 void pc_room_browser_frame(void);
 void pc_room_browser_window(void);
 

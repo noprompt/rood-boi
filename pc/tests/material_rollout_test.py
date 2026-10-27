@@ -9,13 +9,17 @@ material_rollout_apply.py), on made-up surveys and textures:
 - the proposals: a floor is flagstone (wet stone in a room named for rain,
   whole words only), blocks facing sideways rough stone, brown streaked
   planks worn wood, pale even walls plaster, saturated even walls cloth
-  (not dark ones), near black and object-drawn textures none;
+  (not dark ones), near black and object-drawn textures none; organic
+  surfaces: green cut-outs foliage, green floors grass, green walls moss,
+  in rooms named for a forest streaked walls bark and earthy floors earth;
+  stone on weak cues low confidence; the rules are tunables;
 - aggregation by palette over rooms (coverage, rooms, facing hints), the
   catalog marks, proposals sorted by coverage, and the review page carries
   the data and its export;
-- applying a review to a copy of the shipped catalog: accepted palette
-  decisions become one room-scoped palette entry per room (even when the
-  reviewer chose "global": palette entries stay scoped), a texture's global
+- applying a review to a copy of the shipped catalog: an accepted palette
+  decision becomes ONE palette entry scoped to its rooms (scope rooms, or
+  room for one; even when the reviewer chose "global": palette entries stay
+  scoped), a texture's global
   decision one unscoped entry,
   changed presets and textures, rejected and "none" add nothing, ids follow
   the catalog's, a second apply adds nothing, the catalog keeps its layout
@@ -110,7 +114,43 @@ def main():
     check(p[0] == mr.NONE, f"near black: none ({p})")
     p = mr.propose(stone, dict(wall, object=0.9))
     check(p[0] == mr.NONE and p[1] == "low", f"object lists: none, low ({p})")
-    check(all(mr.propose(s, h)[0] in mr.PRESETS + [mr.NONE] for s in (flat, wood, stone) for h in (floor, wall)),
+    # Organic surfaces: green cut-outs are foliage, green floors grass, green walls moss; in a forest a brown
+    # streaked wall is bark and an earthy floor earth; stone guesses on weak cues are low; near black is none.
+    forest = ["Snowfly Forest: The Hunt Begins", "Snowfly Forest: Which Way Home"]
+    leaves = dict(stone, hue=60, sat=0.8, lum=0.2, contrast=0.07, seams=0.01, opaque=0.68)
+    p = mr.propose(leaves, floor, forest)
+    check(p[0] == "foliage" and p[1] == "high", f"a green cut-out in a forest: foliage, high ({p})")
+    p = mr.propose(leaves, wall)
+    check(p[0] == "foliage", f"a green cut-out anywhere: foliage ({p})")
+    turf = dict(leaves, opaque=1.0, lum=0.4, sat=0.77, hue=54)
+    p = mr.propose(turf, floor, forest)
+    check(p[0] == "grass" and p[1] == "high", f"a green floor in a forest: grass, high ({p})")
+    p = mr.propose(turf, floor)
+    check(p[0] == "grass" and p[1] == "medium", f"a green floor elsewhere: grass, medium ({p})")
+    p = mr.propose(turf, wall)
+    check(p[0] == "moss", f"a green wall: moss ({p})")
+    trunk = dict(stone, hue=38, sat=0.23, lum=0.31, contrast=0.12, streak=0.85, seams=0.02)
+    p = mr.propose(trunk, wall, forest)
+    check(p[0] == "bark", f"a streaked wall in a forest: bark ({p})")
+    soil = dict(stone, hue=45, sat=0.72, lum=0.36, contrast=0.1, seams=0.02)
+    p = mr.propose(soil, floor, forest)
+    check(p[0] == "earth", f"an earthy floor in a forest: earth ({p})")
+    p = mr.propose(stone, floor, forest)
+    check(p[0] == "flagstone" and p[1] != "high", f"grey blocks in a forest stay stone, not high ({p})")
+    even = dict(stone, contrast=0.03, seams=0.0, rough=0.02)
+    p = mr.propose(even, wall)
+    check(p[0] == "rough stone" and p[1] == "low", f"a wall with weak cues: rough stone, low ({p})")
+    p = mr.propose(even, floor)
+    check(p[0] == "flagstone" and p[1] == "low", f"a floor with weak cues: flagstone, low ({p})")
+    p = mr.propose(dict(stone, lum=0.05), floor)
+    check(p[0] == mr.NONE, f"near black (0.05): none ({p})")
+    p = mr.propose(stone, dict(floor, object=0.55))
+    check(p[0] == mr.NONE, f"mostly object lists: none ({p})")
+    tight = dict(mr.load_rules(), void_lum=0.01)
+    p = mr.propose(dict(stone, lum=0.05), floor, rules=tight)
+    check(p[0] != mr.NONE, f"the rules are tunables: void_lum 0.01 keeps 0.05 ({p})")
+    check(all(mr.propose(s, h, n)[0] in mr.PRESETS + [mr.NONE] for s in (flat, wood, stone, leaves, turf, trunk, soil)
+              for h in (floor, wall) for n in ((), forest)),
           "every proposal is a shipped preset or none")
     shipped = json.loads((ROOT / "pc/assets/materials/catalog.json").read_text())["presets"]
     check(set(mr.PRESETS) <= set(shipped), "the rollout's presets are the catalog's")
@@ -183,12 +223,13 @@ def main():
     new, added, skipped = ma.apply(review, text)
     after = json.loads(new)
     top = max(int(e["id"][1:]) for e in before["entries"])
-    check(len(added) == 4 and skipped == 1, f"4 entries added, the shipped one skipped ({len(added)}, {skipped})")
-    check([e["id"] for e in added] == [f"M{top + i:03d}" for i in range(1, 5)], f"ids follow the catalog's: "
+    check(len(added) == 3 and skipped == 1, f"3 entries added, the shipped one skipped ({len(added)}, {skipped})")
+    check([e["id"] for e in added] == [f"M{top + i:03d}" for i in range(1, 4)], f"ids follow the catalog's: "
           f"{[e['id'] for e in added]}")
-    a, b, g, t = added
-    check(a["match"] == {"clut": "2222222222"} and a["scope"] == {"room": [29, 3]} and b["scope"] == {"room": [9, 2]}
-          and "Wine Cellar" in b["where"], "a palette per room: one scoped palette entry each")
+    a, g, t = added
+    check(a["match"] == {"clut": "2222222222"} and a["scope"] == {"rooms": [[29, 3], [9, 2]]}
+          and "Wine Cellar" in a["where"] and "2 rooms" in a["where"],
+          f"a palette in two rooms: one palette entry with the room list ({a.get('scope')})")
     check(g["preset"] == "wet stone" and g["scope"] == {"room": [9, 1]} and g["name"] == "Cellar floor" and
           "over flagstone" in g["where"], "a changed preset named by the note; a global palette stays room-scoped")
     check(t["match"] == {"key": "dddddddddd", "size": [32, 32]} and "scope" not in t and "everywhere" in t["where"],
@@ -197,7 +238,7 @@ def main():
           "the catalog's entries and layout are kept")
     check(all(e["review"] == "new" and e["where"] for e in added), "added entries are review new, with where")
     again, added2, skipped2 = ma.apply(review, new)
-    check(again == new and not added2 and skipped2 == 5, "a second apply adds nothing")
+    check(again == new and not added2 and skipped2 == 4, "a second apply adds nothing")
     # material_catalog_test's rules on the result.
     with tempfile.TemporaryDirectory() as tmp:
         (pathlib.Path(tmp) / "pc/assets/materials").mkdir(parents=True)

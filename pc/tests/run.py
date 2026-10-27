@@ -225,7 +225,7 @@ def suites(args, mode="egl"):
               note="material catalog schema, presets and grayscale publish guard"),
         Suite("material_rollout", [PY, str(TESTS / "material_rollout_test.py")], 60, binary=None,
               sources=[ROOT / "pc/tools/material_rollout.py", ROOT / "pc/tools/material_rollout_apply.py",
-                       ROOT / "pc/assets/materials/catalog.json"],
+                       ROOT / "pc/tools/material_rollout_rules.json", ROOT / "pc/assets/materials/catalog.json"],
               note="material rollout: resumable room targets, texture looks, preset proposals, palette "
                    "aggregation, the review page, applying a review to a catalog copy"),
         Suite("emissive_metadata", [PY, str(TESTS / "emissive_metadata_test.py")], 60, binary=None,
@@ -432,6 +432,10 @@ def suites(args, mode="egl"):
             Suite("material_survey_smoke", [PY, str(TESTS / "material_survey_smoke.py"), "--card", str(args.save)], 300,
                   note="material survey: the textures in view by share, agreeing with the picker; the one-click "
                        "preset makes a texture or palette entry, live, saved and read back"),
+            Suite("material_review_smoke", [PY, str(TESTS / "material_review_smoke.py"), "--card", str(args.save)], 300,
+                  note="material review: proposals loaded, a palette's preset previewed in place, before / after, "
+                       "tuned, highlighted; accept writes one user entry with the room list, reject recorded, the "
+                       "session resumes; Go into a room with a door and one without"),
             Suite("save_point_glow_smoke", [PY, str(TESTS / "save_point_glow_smoke.py"), "--card", str(args.save)], 300,
                   note="standing in a save point keeps its light (its glow is the column's side); Ashley still "
                        "shadows the floor behind him (High, Ultra)")]

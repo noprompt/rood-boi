@@ -40,11 +40,27 @@ struct Surface {
 struct Entry {
     std::string id, name, where, review, preset, key, clut;
     int w = 0, h = 0, zone = -1, room = -1;
+    /* scope {"rooms": [[zone, room], ...]}: the rooms when it names more
+     * than one (zone/room are then the first); empty for one room or none. */
+    std::vector<std::pair<int, int>> rooms;
     Surface value;
     /* Which fields the entry sets itself (1 roughness, 2 specular, 4
      * metal, 8 auto_height, 16 bump); the rest come from its preset. */
     unsigned explicit_fields = 0;
     bool user = false; /* from the user layer (materials.json) */
+    bool preview = false; /* a temporary preview (set_preview): never saved */
+    /* Whether the entry applies in this room (unscoped: everywhere). */
+    bool in_scope(int z, int r) const
+    {
+        if (!rooms.empty()) {
+            for (const auto& p : rooms)
+                if (p.first == z && p.second == r) return true;
+            return false;
+        }
+        return zone < 0 || (zone == z && room == r);
+    }
+    /* Scope it to one room (zone < 0: everywhere). */
+    void set_room(int z, int r) { zone = z, room = z < 0 ? -1 : r, rooms.clear(); }
 };
 std::vector<Entry> catalog_entries();
 Surface match(const std::string& key, int w, int h, const std::string& clut, int zone, int room);
@@ -75,6 +91,10 @@ bool pending_dirty();
 bool save_pending(std::string* error);
 void revert_pending();
 bool put_user_entry(const Entry& e, std::string* error);
+/* Temporary preview entries (the Material review window): over both files
+ * and the unsaved edits, live at once, never saved (empty: none). */
+void set_preview(const std::vector<Entry>& entries);
+std::vector<Entry> preview_entries();
 bool remove_user_entry(const std::string& id, std::string* error);
 std::string entry_json(const Entry& e);
 

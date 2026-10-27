@@ -1,0 +1,28 @@
+{
+  "about": "Tunables of material_rollout.py's proposals (pc/docs/Materials.md, Rolling out): room-name vocabularies (whole words, plurals too; a cue counts when at least half a proposal's rooms are named so), hue ranges in degrees, fractions of the texels or of the coverage. Edit and re-run `material_rollout.py report` (or pass --rules).",
+  "words": {
+    "wet": ["rain", "sewer", "water", "drain", "flood", "well", "cistern", "waterway"],
+    "damp": ["cellar", "catacomb", "undercity", "cave", "mine", "crypt", "tunnel", "quarry"],
+    "wood": ["tavern", "inn", "workshop", "shop", "house", "ship", "storeroom"],
+    "forest": ["forest", "snowfly", "garden", "grove", "woods", "glade", "faerie", "orchard", "meadow", "hunt"]
+  },
+  "object_share": 0.5,
+  "void_lum": 0.06,
+  "transparent": 0.3,
+  "cutout": 0.85,
+  "vegetation_hue": [48, 170],
+  "vegetation_sat": 0.4,
+  "vegetation_max_seams": 0.15,
+  "earth_hue": [15, 50],
+  "earth_sat": 0.3,
+  "earth_floor_sat": 0.5,
+  "grain_streak": 0.7,
+  "strong_grain": 0.85,
+  "stone_seams": 0.05,
+  "stone_edges": 0.06,
+  "stone_max_sat": 0.45,
+  "floor_seams": 0.03,
+  "floor_contrast": 0.08,
+  "weak_contrast": 0.05,
+  "weak_seams": 0.02
+}

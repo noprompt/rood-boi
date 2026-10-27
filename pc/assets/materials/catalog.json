@@ -12,7 +12,12 @@
     "rough stone": { "roughness": 0.82, "specular": 1, "metal": 0, "auto_height": true },
     "flagstone": { "roughness": 0.62, "specular": 1, "metal": 0, "auto_height": true, "bump": 0.7 },
     "plaster": { "roughness": 0.9, "specular": 0.8, "metal": 0, "auto_height": true, "bump": 0.4 },
-    "cloth": { "roughness": 0.95, "specular": 0.5, "metal": 0 }
+    "cloth": { "roughness": 0.95, "specular": 0.5, "metal": 0 },
+    "foliage": { "roughness": 0.7, "specular": 0.7, "metal": 0 },
+    "grass": { "roughness": 0.9, "specular": 0.6, "metal": 0, "auto_height": true, "bump": 0.5 },
+    "earth": { "roughness": 0.95, "specular": 0.7, "metal": 0, "auto_height": true, "bump": 0.6 },
+    "bark": { "roughness": 0.88, "specular": 0.8, "metal": 0, "auto_height": true, "bump": 1.2 },
+    "moss": { "roughness": 0.97, "specular": 0.5, "metal": 0, "auto_height": true, "bump": 0.4 }
   },
   "entries": [
     {

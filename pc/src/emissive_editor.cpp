@@ -636,7 +636,7 @@ void keep_button(const char* name)
 }
 /* A copy of an entry (curated or yours) in your layer: a new id, " copy"
  * after its name; selected. "" when there is no such entry. */
-bool catalog_full() { return catalog().entries.size() >= (size_t)(MAX_SLOTS - 1); } /* merge() keeps MAX_SLOTS - 1 */
+bool catalog_full() { return catalog().entries.size() >= (size_t)MAX_ENTRIES; } /* merge() keeps MAX_ENTRIES */
 std::string duplicate_entry(const std::string& id, std::string* why = nullptr)
 {
     const Entry* e = find(id);
@@ -647,7 +647,7 @@ std::string duplicate_entry(const std::string& id, std::string* why = nullptr)
     }
     if (catalog_full()) { /* a copy past the last slot would not be in the catalog */
         if (why)
-            *why = "the catalog is full (" + std::to_string(MAX_SLOTS - 1) + " entries)";
+            *why = "the catalog is full (" + std::to_string(MAX_ENTRIES) + " entries)";
         return std::string();
     }
     Entry copy = *e;
