@@ -165,7 +165,7 @@ exclusive = true
 # run.py (suite definitions, the runner) the harness set ----
 [[rule]]
 paths = ["pc/tests/affected.py", "pc/tests/affected.toml", "pc/tests/affected_test.py", "pc/tools/verify.sh",
-         "pc/tests/verify_args_test.py"]
+         "pc/tests/verify_args_test.py", "pc/tools/zig_diff_select.py"]
 suites = ["affected_test", "verify_args_test"]
 exclusive = true
 
@@ -278,7 +278,8 @@ suites = ["ctest", "ctest_long"]
 # ---- the port pipeline and the model bake-off (ctest port_pipeline, bakeoff_tools, prompt_tools) ----
 [[rule]]
 paths = ["pc/tools/port_pipeline.py", "pc/tools/model_client.py", "pc/tools/spec_bakeoff.py", "pc/tools/bakeoff*.py",
-         "pc/tools/porting_tables.py",
+         "pc/tools/porting_tables.py", "pc/tools/port_rounds.py",
+         "pc/tools/ownership.py", "game/ownership.toml",
          "pc/tools/prompt_*.py", "pc/tests/port_pipeline/*"]
 suites = ["ctest", "ctest_pipeline"]
 

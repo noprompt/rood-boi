@@ -128,6 +128,17 @@ TRIAL_CORPUS = [("kill", "battle_146C", "enemy_kill", ["score.zig"]),
 # The CTest entries in ctest_long rather than ctest (a ctest -R/-E regex).
 CTEST_LONG = "^(zig_diff|port_pipeline)"
 
+
+def zig_diff_changed(functions, scale=1.0):
+    """ctest_long in the quick lane: zig_diff on the specs the change affects
+    (affected.py Lane.zig) and ctest_long's other entries, not the ten shards."""
+    # ~25 s a spec with its mutations and coverage, three at a time; zig_diff_coverage ~1.5 min beside them
+    timeout = max(900, 300 + 25 * -(-len(functions) // 3))
+    return Suite("zig_diff_changed", [PY, str(TESTS / "zig_diff_changed.py"), *functions], timeout * scale,
+                 binary=None, note=f"quick ctest_long: zig_diff on {len(functions)} changed spec(s), "
+                                   "zig_diff_coverage",
+                 sources=[TESTS / "zig_diff_changed.py"])
+
 # Game suites safe on the null renderer (CPU only, no pictures). verify.sh's
 # null lane runs them, so the quick lane does not repeat them on Vulkan.
 NULL_SAFE = {"null_backend_smoke", "shadow_battle_smoke", "shadow_battle_smoke_38C1C", "ownership_smoke",
@@ -142,7 +153,9 @@ def suites(args, mode="egl"):
         # zig_diff (every spec's self-check, ten shards) grows with each ported unit
         # and is most of CTest's time (~35 min): it and the other long CTest
         # entries are ctest_long, which the quick lane runs only for a change to
-        # the Zig port or its tools (affected.toml [[long]]); ctest is the rest.
+        # the Zig port or its tools (affected.toml [[long]]), and then as
+        # zig_diff_changed: zig_diff on the specs the change affects only, unless
+        # shared infrastructure changed (pc/tools/zig_diff_select.py); ctest is the rest.
         Suite("ctest", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4",
                         "-E", CTEST_LONG], 600, binary=None,
               note="CMake probes in pc/build (but ctest_long's)", sources=[ROOT / "pc/tools/ownership.py",
@@ -160,10 +173,11 @@ def suites(args, mode="egl"):
         Suite("ctest_long", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure", "-j", "4",
                              "-R", CTEST_LONG], 2400, binary=None,
               note="the long CMake tests: zig_diff's shards and coverage lane, the port pipeline",
-              sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py"]),
+              sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py",
+                       TESTS / "zig_diff_changed.py"]),
         Suite("ctest_pipeline", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure",
                                  "-R", "^port_pipeline"], 1500, binary=None,
-              note="the port pipeline's CMake test alone (~2.5 min): what a pipeline or model-client change needs, "
+              note="the port pipeline's CMake test alone (~10-15 min): what a pipeline or model-client change needs, "
                    "without ctest_long's zig_diff shards",
               sources=[TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),
         *([Suite("null_backend_smoke", [PY, str(TESTS / "null_backend_smoke.py")], 300,
@@ -1180,9 +1194,15 @@ def main():
         affected.report(selection, len(every))
         wanted = set(selection.reasons)
         if args.quick:
-            lane = affected.quick_lane(selection, every, args.renderer, null_safe=NULL_SAFE)
+            lane = affected.quick_lane(selection, every, args.renderer, null_safe=NULL_SAFE,
+                                       base=None if args.changed_files else args.changed)
             print(affected.lane_line(lane, len(every)))
             wanted = set(lane.names)
+            if lane.zig and lane.zig.functions is not None:
+                # the specs the change affects, not every spec's shard
+                quick_long = zig_diff_changed(lane.zig.functions, args.timeout_scale)
+                selected = [quick_long if s.name == "ctest_long" else s for s in selected]
+                wanted.add(quick_long.name)
         if not args.no_snapshots and any(name in CHECKPOINT_SUITES for name in wanted):
             # it makes (or finds) the save states those suites resume
             wanted.add("snapshot_equivalence")
@@ -1207,7 +1227,7 @@ def main():
     print(f"headless: {mode}" + (f" ({renderer})" if renderer else " (software GL on Xvfb)"))
     for warning in stale_binaries(selected):
         print(f"warning: {warning}; rebuild with pc/tools/build_boot.py")
-    if any(s.name.startswith("ctest") for s in selected) and (ROOT / "pc/build/build.ninja").exists():
+    if any(s.name.startswith(("ctest", "zig_diff_changed")) for s in selected) and (ROOT / "pc/build/build.ninja").exists():
         built = subprocess.run(["ninja", "-C", str(ROOT / "pc/build")], capture_output=True, text=True)
         if built.returncode:
             print(built.stdout[-2000:])

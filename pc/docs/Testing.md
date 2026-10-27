@@ -32,7 +32,9 @@ log names the branch); publishing is cheap to undo.
 - long suites (`[[long]]`: `ctest_long` with zig_diff's ten shards, the
   charge skip, the soaks, `emissive_catalog`, the story viewer, the five-time
   data menu, the trial corpus) only when the change touches them: their own
-  script or sources, or the paths their entry lists.
+  script or sources, or the paths their entry lists. `ctest_long` then runs
+  as `zig_diff_changed`: zig_diff on the specs the change affects only, not
+  the ten shards of every spec (below, "zig_diff in the quick lane").
 
 A documentation-only change runs no suite. The base on main is the `public`
 branch (the last published snapshot); elsewhere it is main. verify.sh prints
@@ -90,6 +92,40 @@ Nothing selects every suite; that is `verify.sh --full`. The runner prints
 why each suite was chosen. `affected_test.py` checks the selector (scratch
 repositories, the rules, the lanes) and that the last 25 merges on main each
 select tens of suites, not all.
+
+## zig_diff in the quick lane
+
+The full lane's `ctest_long` runs every zig_diff spec (~700 ported
+functions, fuzzed against the C with their mutations and coverage) in ten
+CTest shards: over 40 minutes. In the quick lane a change runs zig_diff on
+the specs it affects only (`pc/tools/zig_diff_select.py`), through
+`pc/tests/zig_diff_changed.py` (suite `zig_diff_changed`: those specs in
+three parallel shards, beside `zig_diff_coverage`; `port_pipeline`, ~15 minutes, runs as suite
+`ctest_pipeline` only when the pipeline's files or `game/ownership.toml` change). A zig_diff run reads its spec, its
+route and the port file alone (with `game/common`), so:
+
+| Changed | Specs run |
+|---|---|
+| `game/<overlay>/<file>.zig` | the functions routed to that file (`game/battle/root.zig`: none) |
+| `pc/tests/zig_diff/<spec>.zig` | the functions whose entry names it |
+| `pc/tests/zig_diff/specs.toml` | the entries that differ from the base, or are new |
+| `game/ownership.toml` | the functions whose route differs (zig path, overlay, unit, or the views of their unit) |
+| `pc/docs/porting/battle/pipeline/**/F.json` | F |
+| `src/**/UNIT.c` (with a Zig change) | the functions of that unit |
+| the harness and shared code: `zig_diff.py`, `ownership.py`, `bakeoff_context.py`, `zig_toolchain.py`, `zig_views.py`, `zig_c.py`, `MEANINGS.tsv`, `main.zig`, `zdiff.zig`, `zdiff_cov.c`, `game/common` reachable from `common.zig` | every spec: the ten shards, as in the full lane |
+
+The base is the one `--changed` diffs against (`affected.base_revision`:
+the merge base with BASE, or a published snapshot itself). With
+`--changed-files` there is none, so a changed `specs.toml` or
+`ownership.toml` means every spec. The lane says what it chose, e.g.
+`zig_diff: 12 changed specs (of 707): ...`, or
+`zig_diff: every spec (707): pc/tools/zig_diff.py changed (the zig_diff harness)`.
+
+```sh
+python3 pc/tools/zig_diff_select.py public                    # the specs the change since public affects
+python3 pc/tools/zig_diff_select.py --files game/battle/score.zig
+python3 pc/tests/zig_diff_changed.py --no-ctest _updateEnemyKills   # run those specs (no CTest entries)
+```
 
 ## What limits the suites, and the lanes
 

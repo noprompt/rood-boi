@@ -58,19 +58,29 @@ def changed_files(base="main", table=None):
     with main, so its merge base is ancient; there the tree diff BASE..HEAD is
     the change. When BASE is not an ancestor, the smaller of the two is used:
     for a branch behind main the merge-base diff, for a snapshot the tree diff."""
-    names = None
+    rev = base_revision(base)
+    names = set(git("diff", "--name-only", "--no-renames", rev, "HEAD").split())
+    names |= set(git("diff", "--name-only", "--no-renames", "HEAD").split())  # staged and unstaged
+    table = table or load_table()
+    return sorted(p for p in names if not ignored(p, table))
+
+
+def base_revision(base="main"):
+    """The commit changed_files diffs HEAD against: the merge base with BASE,
+    or BASE itself when that diff is smaller (a published snapshot) or there
+    is no shared history."""
+    names = fork = None
     try:
         fork = git("merge-base", base, "HEAD").strip()
         names = set(git("diff", "--name-only", "--no-renames", fork, "HEAD").split())
     except subprocess.CalledProcessError:
-        fork = None  # no shared history at all
-    if fork != git("rev-parse", base + "^{commit}").strip():
-        tree = set(git("diff", "--name-only", "--no-renames", base, "HEAD").split())
+        pass  # no shared history at all
+    commit = git("rev-parse", base + "^{commit}").strip()
+    if fork != commit:
+        tree = set(git("diff", "--name-only", "--no-renames", commit, "HEAD").split())
         if names is None or len(tree) < len(names):
-            names = tree
-    names |= set(git("diff", "--name-only", "--no-renames", "HEAD").split())  # staged and unstaged
-    table = table or load_table()
-    return sorted(p for p in names if not ignored(p, table))
+            return commit
+    return fork
 
 
 def _imports(path):
@@ -261,17 +271,31 @@ def touches_long(sel, name, paths):
 
 
 class Lane:
-    """One renderer's share of the quick lane."""
-    def __init__(self, renderer, names, skipped_long, extras, gl_files=()):
+    """One renderer's share of the quick lane. zig: with ctest_long in it, the
+    zig_diff specs the change affects (pc/tools/zig_diff_select.py): run.py
+    runs those (zig_diff_changed) in place of the ten shards unless it is a
+    fallback to every spec."""
+    def __init__(self, renderer, names, skipped_long, extras, gl_files=(), zig=None):
         self.renderer, self.names = renderer, names
         self.skipped_long, self.extras, self.gl_files = skipped_long, extras, list(gl_files)
+        self.zig = zig
 
 
-def quick_lane(sel, suites, renderer, table=None, null_safe=()):
+def zig_selection(files, base=None):
+    """The zig_diff specs `files` affect; base: what changed_files diffed
+    (specs.toml and ownership.toml are compared entry by entry against it)."""
+    sys.path.insert(0, str(ROOT / "pc/tools"))
+    import zig_diff_select
+    old = zig_diff_select.base_text(base_revision(base), ROOT) if base else None
+    return zig_diff_select.select(files, old, ROOT)
+
+
+def quick_lane(sel, suites, renderer, table=None, null_safe=(), base=None):
     """The quick lane's suites for `renderer` (run.py --quick): Vulkan runs the
     selection (less what the null lane runs) plus [quick] vulkan; null its
     CPU-safe share plus [quick] null; GL the sanity subset plus what GL's own
-    files select. Long suites only when the change touches them. Nothing at
+    files select. Long suites only when the change touches them; ctest_long's
+    zig_diff only on the specs the change affects (Lane.zig). Nothing at
     all when the change selects nothing (documentation)."""
     table = table or load_table()
     quick = table.get("quick", {})
@@ -299,7 +323,8 @@ def quick_lane(sel, suites, renderer, table=None, null_safe=()):
     long = long_suites(list(by_name), table)
     skipped_long = sorted(n for n in wanted if n in long and not touches_long(sel, n, long[n]))
     names = sorted(wanted - set(skipped_long))
-    return Lane(renderer, names, skipped_long, extras, gl_files)
+    zig = zig_selection(sel.files, base) if "ctest_long" in names else None
+    return Lane(renderer, names, skipped_long, extras, gl_files, zig)
 
 
 def report(sel, total, out=print):
@@ -325,6 +350,8 @@ def lane_line(lane, total):
         text += f" (GL sanity {sanity}, GL's own files {len(lane.names) - sanity})"
     if lane.skipped_long:
         text += f"; long, left to the full lane: {', '.join(lane.skipped_long)}"
+    if lane.zig:
+        text += "; " + lane.zig.summary()
     return text
 
 
@@ -333,7 +360,9 @@ def quick_summary(base=None, files=None, out=print):
     sys.path.insert(0, str(ROOT / "pc/tests"))
     import run
     table = load_table()
-    files = files if files is not None else changed_files(base, table)
+    if files is None:
+        base = base or "main"
+        files = changed_files(base, table)
     lanes, every = {}, None
     for renderer in ("null", "vulkan", "gl"):
         args = run.default_args()
@@ -342,7 +371,7 @@ def quick_summary(base=None, files=None, out=print):
         if renderer == "vulkan":
             every = suites
         sel = select(files, suites, table)
-        lanes[renderer] = quick_lane(sel, suites, renderer, table, run.NULL_SAFE)
+        lanes[renderer] = quick_lane(sel, suites, renderer, table, run.NULL_SAFE, base)
     vk, gl, null = lanes["vulkan"], lanes["gl"], lanes["null"]
     ran = set(vk.names) | set(gl.names) | set(null.names)
     sanity = len([n for n in gl.extras if n in gl.names])
@@ -350,6 +379,9 @@ def quick_summary(base=None, files=None, out=print):
         f"null {len(null.names)}, GL sanity {sanity}"
         + (f", GL for its own files {len(gl.names) - sanity}" if len(gl.names) > sanity else "")
         + f"), skipped {len([s for s in every if s.name not in ran])} of {len(every)} (full lane)")
+    if vk.zig:
+        out(vk.zig.summary() + ("" if vk.zig.fallback else
+            ": " + " ".join(vk.zig.functions[:12]) + (" ..." if len(vk.zig.functions) > 12 else "")))
     sel = select(files, every, table)
     for path in sel.unknown:
         out(f"warning: no rule in pc/tests/affected.toml covers {path}: add one")
@@ -374,10 +406,10 @@ def main():
         return 0
     files = args.files or changed_files(args.base)
     if args.quick_summary:
-        quick_summary(files=files)
+        quick_summary(None if args.files else args.base, files=files)
         return 0
     if args.quick:
-        lanes = quick_summary(files=files)
+        lanes = quick_summary(None if args.files else args.base, files=files)
         for lane in lanes.values():
             print(lane_line(lane, len(suites)))
             print("  " + " ".join(lane.names))

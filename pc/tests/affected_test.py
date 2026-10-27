@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 """The --changed selector (affected.py, affected.toml) and the quick lane:
 tracked files only, tool folders ignored, no full-suite fallback, long suites
-only when touched, and recent merges selecting tens of suites, not all."""
+only when touched, zig_diff only on the specs a change affects (every spec
+when shared infrastructure changed), and recent merges selecting tens of
+suites, not all."""
 import contextlib
 import io
 import pathlib
 import statistics
 import subprocess
+import sys
 import tempfile
+import tomllib
 import unittest
 from unittest.mock import patch
 
 import affected
 import run
+import zig_diff_changed
+
+sys.path.insert(0, str(run.ROOT / "pc/tools"))
+import zig_diff_select  # noqa: E402
 
 
 def all_suites(renderer="vulkan"):
@@ -84,6 +92,16 @@ class ChangedFilesTest(unittest.TestCase):
         self.git("branch", "public", snapshot)
         self.commit({"pc/src/a.c": "after publish\n"}, "unpublished")
         self.assertEqual(affected.changed_files("public"), ["pc/src/a.c"])
+        self.assertEqual(affected.base_revision("public"), snapshot)
+
+    def test_base_revision_of_a_branch_is_the_merge_base(self):
+        fork = self.git("rev-parse", "HEAD").strip()
+        self.git("checkout", "-q", "-b", "work")
+        self.commit({"pc/src/a.c": "work\n"}, "work")
+        self.git("checkout", "-q", "main")
+        self.commit({"pc/src/b.c": "main moved\n"}, "main moves on")
+        self.git("checkout", "-q", "work")
+        self.assertEqual(affected.base_revision("main"), fork)
 
 
 class SelectTest(unittest.TestCase):
@@ -157,6 +175,85 @@ class SelectTest(unittest.TestCase):
         self.assertLess(len(sel.reasons), len(self.broad) + 10)
 
 
+class ZigDiffSelectTest(unittest.TestCase):
+    """pc/tools/zig_diff_select.py on the checked-in tables (old texts made up)."""
+    @classmethod
+    def setUpClass(cls):
+        root = run.ROOT
+        cls.specs_text = (root / zig_diff_select.SPECS_TOML).read_text()
+        cls.own_text = (root / zig_diff_select.OWNERSHIP).read_text()
+        cls.total = len(tomllib.loads(cls.specs_text)["function"])
+
+    def select(self, *files, old=None):
+        return zig_diff_select.select(list(files), old)
+
+    def test_port_and_spec_files(self):
+        sel = self.select("game/battle/score.zig")
+        self.assertEqual(sel.functions, ["_updateEnemyKills"])
+        self.assertEqual(sel.summary(), f"zig_diff: 1 changed spec (of {self.total})")
+        sel = self.select("pc/tests/zig_diff/findAnimation.zig", "game/battle/actor_transform.zig")
+        self.assertEqual(sel.functions, ["func_800AD494", "func_800B07DC"])
+        self.assertEqual(sel.why["func_800B07DC"], ["game/battle/actor_transform.zig"])
+        self.assertRegex(sel.summary(), r"^zig_diff: 2 changed specs \(of \d+\)$")
+
+    def test_files_no_run_reads(self):
+        sel = self.select("game/battle/root.zig", "game/core/root.zig", "game/common/route_test.zig",
+                          "pc/tests/zig_diff/bakeoff.toml", "pc/tests/zig_diff_coverage_test.py")
+        self.assertEqual(sel.functions, [])
+        self.assertIsNone(sel.fallback)
+
+    def test_infrastructure_falls_back_to_every_spec(self):
+        for path in [*zig_diff_select.INFRA, "game/common/common.zig", "game/common/route.zig"]:
+            with self.subTest(path=path):
+                sel = self.select(path, "game/battle/score.zig")
+                self.assertIsNone(sel.functions)
+                self.assertIn(path, sel.fallback)
+                self.assertTrue(sel.summary().startswith(f"zig_diff: every spec ({self.total}): {path}"))
+
+    def test_specs_toml_entries_diffed(self):
+        changed = self.specs_text.replace('[function._updateEnemyKills]\nspec = "updateEnemyKills.zig"\n'
+                                          'iterations = 40000', '[function._updateEnemyKills]\n'
+                                          'spec = "updateEnemyKills.zig"\niterations = 30000')
+        self.assertNotEqual(changed, self.specs_text)
+        old = {zig_diff_select.SPECS_TOML: changed}.get
+        self.assertEqual(self.select(zig_diff_select.SPECS_TOML, old=old).functions, ["_updateEnemyKills"])
+        same = {zig_diff_select.SPECS_TOML: "# a comment only\n" + self.specs_text}.get
+        self.assertEqual(self.select(zig_diff_select.SPECS_TOML, old=same).functions, [])
+        new_file = self.select(zig_diff_select.SPECS_TOML, old=lambda path: None)  # added since the base
+        self.assertEqual(len(new_file.functions), self.total)
+        self.assertIsNotNone(self.select(zig_diff_select.SPECS_TOML).fallback)  # no base: every spec
+
+    def test_ownership_routes_diffed(self):
+        own = zig_diff_select.OWNERSHIP
+        moved = self.own_text.replace('zig = "score.updateEnemyKills"', 'zig = "score_old.updateEnemyKills"')
+        self.assertNotEqual(moved, self.own_text)
+        self.assertEqual(self.select(own, old={own: moved}.get).functions, ["_updateEnemyKills"])
+        # a unit's views are every function of the unit's
+        views = self.own_text.replace('globals = ["vs_main_scoredata"]', 'globals = []', 1)
+        self.assertNotEqual(views, self.own_text)
+        sel = self.select(own, old={own: views}.get)
+        routes = zig_diff_select._routes(self.own_text)
+        unit = routes["_updateEnemyKills"][1]
+        self.assertIn("_updateEnemyKills", sel.functions)
+        self.assertTrue(all(routes[f][1] == unit for f in sel.functions))
+        self.assertGreater(len(sel.functions), 1)
+        self.assertEqual(self.select(own, old={own: self.own_text}.get).functions, [])
+
+    def test_pipeline_records_and_units(self):
+        sel = self.select("pc/docs/porting/battle/pipeline/146C/_addMinDelta.json")
+        self.assertEqual(sel.functions, ["_addMinDelta"])
+        sel = self.select("src/BATTLE/BATTLE.PRG/44F14.c")
+        self.assertIn("func_800B07DC", sel.functions)
+        self.assertNotIn("_updateEnemyKills", sel.functions)
+
+    def test_runner_shards(self):
+        cmds = zig_diff_changed.commands(["a", "b", "c", "d"], 3, pathlib.Path("build"), ctest=False)
+        self.assertEqual([c[-5] for _, c in cmds], ["0/3", "1/3", "2/3"])
+        self.assertTrue(all(c[2:6] == ["a", "b", "c", "d"] for _, c in cmds))
+        self.assertEqual(len(zig_diff_changed.commands(["a"], 3, pathlib.Path("build"), ctest=False)), 1)
+        self.assertEqual(zig_diff_changed.commands([], 3, pathlib.Path("build"), ctest=False), [])
+
+
 class QuickLaneTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -196,6 +293,24 @@ class QuickLaneTest(unittest.TestCase):
         self.assertIn("soak", self.lane("vulkan", "pc/tests/soak.py").names)
         self.assertIn("ctest_long", self.lane("vulkan", "game/battle/score.zig").names)
 
+    def test_zig_change_runs_only_its_specs(self):
+        vk = self.lane("vulkan", "game/battle/score.zig")
+        self.assertEqual(vk.zig.functions, ["_updateEnemyKills"])
+        self.assertRegex(affected.lane_line(vk, 100), r"zig_diff: 1 changed spec \(of \d+\)")
+        self.assertIsNone(self.lane("vulkan", "src/MENU/MENU0.PRG/A.c").zig)  # no ctest_long, no zig_diff
+        suite = run.zig_diff_changed(vk.zig.functions)
+        self.assertEqual(suite.name, "zig_diff_changed")
+        self.assertIn("_updateEnemyKills", suite.command)
+
+    def test_zig_infrastructure_runs_every_spec(self):
+        for path in ("pc/tools/zig_diff.py", "game/common/common.zig", "pc/tests/zig_diff/main.zig"):
+            with self.subTest(path=path):
+                vk = self.lane("vulkan", path, "game/battle/score.zig")
+                self.assertIn("ctest_long", vk.names)
+                self.assertIsNone(vk.zig.functions)
+                self.assertIn(path, vk.zig.summary())
+                self.assertIn("every spec", affected.lane_line(vk, 100))
+
     def test_null_safe_suites_run_on_null_not_vulkan(self):
         files = ("game/battle/score.zig",)
         self.assertIn("trial_corpus_kill", self.lane("null", *files).names)
@@ -203,17 +318,22 @@ class QuickLaneTest(unittest.TestCase):
 
     def test_recent_merges_select_tens_not_all(self):
         """The last merges on main (none in a published snapshot's history):
-        each quick Vulkan lane well under the full suite, most of them tens."""
+        each quick Vulkan lane well under the full suite, most of them tens.
+        A merge that changes the test runner or the selector itself selects
+        most suites by design, so it is left out."""
         log = subprocess.run(["git", "-C", str(run.ROOT), "log", "--merges", "--first-parent", "-25",
                               "--format=%H", "HEAD"], capture_output=True, text=True)
         merges = log.stdout.split()
         if log.returncode or len(merges) < 5:
             self.skipTest("no merge history here")
+        runner = {"pc/tests/run.py", "pc/tests/affected.py", "pc/tests/affected.toml"}
         total = len(self.lanes["vulkan"])
         counts = []
         for merge in merges:
             files = subprocess.run(["git", "-C", str(run.ROOT), "diff", "--name-only", "--no-renames",
                                     f"{merge}^1", merge], capture_output=True, text=True, check=True).stdout.split()
+            if runner & set(files):
+                continue
             counts.append(len(self.lane("vulkan", *files).names))
         self.assertLess(max(counts), total * 0.7, counts)
         self.assertLess(statistics.median(counts), 80, counts)
