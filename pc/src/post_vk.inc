@@ -45,12 +45,12 @@ static int post_vk_ready(void)
             .pPushConstantRanges = &range };
         vk_check(vkCreatePipelineLayout(vk.device, &info, NULL, &fft_layout), "vkCreatePipelineLayout");
     }
-    VkShaderModule vs = vk_shader(vk_spv_fullscreen_vert, vk_spv_fullscreen_vert_size),
-                   grade = vk_shader(vk_spv_post_grade_frag, vk_spv_post_grade_frag_size),
-                   bloom = vk_shader(vk_spv_bloom_frag, vk_spv_bloom_frag_size),
-                   rows = vk_shader(vk_spv_bloom_fft_rows_comp, vk_spv_bloom_fft_rows_comp_size),
-                   cols = vk_shader(vk_spv_bloom_fft_cols_comp, vk_spv_bloom_fft_cols_comp_size),
-                   inverse = vk_shader(vk_spv_bloom_fft_rows_inverse_comp, vk_spv_bloom_fft_rows_inverse_comp_size);
+    VkShaderModule vs = VK_SHADER(fullscreen_vert),
+                   grade = VK_SHADER(post_grade_frag),
+                   bloom = VK_SHADER(bloom_frag),
+                   rows = VK_SHADER(bloom_fft_rows_comp),
+                   cols = VK_SHADER(bloom_fft_cols_comp),
+                   inverse = VK_SHADER(bloom_fft_rows_inverse_comp);
     grade_to_view = fullscreen(vs, grade, grade_layout, VIEW_FORMAT);
     grade_to_window = fullscreen(vs, grade, grade_layout, WINDOW_FORMAT);
     bloom_pipeline = fullscreen(vs, bloom, bloom_layout, VIEW_FORMAT);
@@ -317,8 +317,8 @@ static int dof_vk_ready(void)
         return state > 0;
     state = -1;
     dof_layout = make_layout(triple_set, sizeof(pc_post_dof_gpu));
-    VkShaderModule vs = vk_shader(vk_spv_fullscreen_vert, vk_spv_fullscreen_vert_size),
-                   fs = vk_shader(vk_spv_dof_frag, vk_spv_dof_frag_size);
+    VkShaderModule vs = VK_SHADER(fullscreen_vert),
+                   fs = VK_SHADER(dof_frag);
     dof_pipeline = fullscreen(vs, fs, dof_layout, VIEW_FORMAT);
     dof_to_window = fullscreen(vs, fs, dof_layout, WINDOW_FORMAT);
     if (vs)

@@ -96,6 +96,91 @@ VRAM row in both, so `gl_FragCoord` and texel fetches agree); the window
 passes use top-down rows, and FXAA and the blur mirror their sample
 patterns in y so the result equals GL's.
 
+### Hot reload (`shader_reload.cpp`, `shader_compiler.cpp`, `vk_core.c`)
+
+Saving a stage (`.vert`, `.geom`, `.frag`, `.comp`) or an included `.glsl`
+under `pc/shaders/vulkan` (or `$ROOD_SHADERS`) shows in the running game,
+with no rebuild or restart. glslang is linked into the game as a library
+(`vk_shaders.glslang_libraries`: the vendored source, the standalone's
+options, built once into the shared build cache; MinGW for Windows), and
+`shader_compiler::compile` runs it as `vk_shaders.py` runs the standalone
+(`-V --target-env vulkan1.3`, includes from the stage's folder and
+`pc/third_party/smaa`): every stage compiles to the build's SPIR-V byte for
+byte (suite `shader_compiler`).
+
+- **What reloads**: the source folder is polled every
+  `shader_reload_poll_ms`; a file (a stage, or a file a stage's last
+  compile read, includes of includes too) is acted on once it differs from
+  the version last compiled and has stayed the same for one poll (an editor
+  saving in several writes is compiled once, complete). What a stage reads
+  is found at start from its `#include` lines (followed into the includes;
+  no compile) and then taken from each compile. A change compiles the
+  stages that read the file, one job at a time on an SDL thread; a job whose inputs changed again meanwhile is dropped and the
+  newer version's job follows, so a stale result never lands after a newer
+  one.
+- **How it applies**: every shader module the renderer makes goes through
+  `VK_SHADER(name)` (`vk_shader_named`), which takes the override set for
+  the name (`vk_shader_lookup.c`), else the embedded SPIR-V (`vk_shaders.h`,
+  now one definition with a table by name). Each pipeline made from named
+  stages (`vk_pipeline`, `vk_compute_pipeline`) keeps its recipe; between
+  frames (after the present) the pipelines that use a changed stage are
+  made again from their recipes and bound wherever the original is
+  (`vkCmdBindPipeline`), destroyed with it (`vkDestroyPipeline`). The passes
+  that own the pipelines do not know; nothing else is torn down (the GI's
+  history, the overlay, the device all stay). A stage whose SPIR-V is the
+  embedded one again drops its override, and a pipeline whose stages are
+  all built-in again is the original pipeline again: restoring a file gives
+  the first frame back byte for byte. A comment changes no SPIR-V and makes
+  nothing again.
+- **Errors**: a stage that fails to compile keeps the code it had (the game
+  never blacks out); its errors (`file:line: message`) stay until it
+  compiles, in RPC `shaders` and a banner at the bottom of the window
+  (overlay open or not) with the first one and the count.
+- **The layout contract**: the descriptor set layouts, push constant ranges
+  and attachments are the C code's, made for the built-in stage. Before a
+  stage applies, its SPIR-V is read (`shader_compiler::reflect`: set,
+  binding and kind of each resource, the push constant block's size, vertex
+  input and fragment output locations) and compared with the built-in
+  stage's: it may use less, never more or other. A stage that needs a
+  binding the layout lacks (or another kind at one), larger push constants
+  or an output with no attachment is refused with the reason as its error,
+  and the last good code stays. A pipeline made later (a pass made lazily:
+  brightness, MSAA) that fails with an edited stage is made from the
+  built-in code instead, so the pass never turns itself off.
+- **Reset** (RPC `reset`, Back to built-in) drops every override, any
+  compile running and any save not compiled yet: the built-in shaders until
+  the next save.
+- **Off**: with no stage files in the source folder (a shipped build, or
+  `ROOD_SHADERS` pointing at an empty folder) the service never starts, no
+  recipes are kept and binds go straight through; `shader_reload 0` stops
+  polling. With no edits the frames are the ones without the service.
+- **Settings** (settings.cfg, Graphics > Shader hot reload, RPC `settings`):
+  `shader_reload` 0/1 (default 1), `shader_reload_poll_ms` (default 500,
+  100..5000).
+- **RPC `shaders`**: `{action: "status"}` (default) gives `on`, `dir`,
+  `generation` (applied jobs), `pending`, `scanned`, `last_ms` (the last
+  job's compile and apply), `errors` [{stage, file, line, message}],
+  `overridden` [names], `last_stages` (what the last applied job compiled)
+  and `pipelines` {recipes, replaced, live, live_modules}; `reload`
+  compiles every stage now and applies them only if all compile; `reset`
+  drops every override (the built-in shaders and the original pipelines
+  again, until the next save). Lua gets these with the `rood.imgui` /
+  dev-RPC bridge. Graphics > Shader hot reload shows the same as lines (the
+  folder watched, reloads and the last one's time, the edited stages in
+  use, the errors).
+- **Cost** (RTX PRO 6000, 2026-10-27): glslang compiles a stage in about
+  20 ms and the pipelines are made again in a few; from the save to the
+  picture is one to two polls, 0.35 s at a 200 ms poll and 0.6-1.0 s at the
+  default 500 ms. A new variant of a large stage costs the driver's
+  pipeline compile on the main thread, which the persistent pipeline cache
+  does not have yet: about 3.6 s for an edit to `scaled.frag`'s lighting
+  (once per variant; a variant seen before is cached). Making the
+  replacement pipelines on the compile thread would hide that (next).
+- **Leaks**: `pipelines.live` and `live_modules` count what the device has
+  made minus destroyed while recipes are kept; `shader_reload_smoke`
+  checks they stay the same over 5 reloads and that `reset` leaves none
+  over.
+
 ### Anti-aliasing
 
 `pc/README.md` "Anti-aliasing" describes the methods. On Vulkan: MSAA's

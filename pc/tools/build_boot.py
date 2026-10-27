@@ -597,8 +597,17 @@ if arch64:
     if win and nrd and not win_nrd:
         nrd = None  # both builds with it, or neither
     print("NRD: " + ("linked (" + nrd["libraries"][0] + ")" if nrd else "off (the GI keeps its own filter)"))
+    # glslang as static libraries, for shader hot reload (pc/src/shader_compiler.cpp):
+    # built once per machine into the shared build cache, as the standalone compiler.
+    import vk_shaders
+
+    glslang_key = vk_shaders.glslang_key()
+    glslang_libraries = [] if coff else [str(p) for p in vk_shaders.glslang_libraries(glslang_key)]
+    win_glslang_libraries = [str(p) for p in vk_shaders.glslang_libraries(glslang_key, "windows",
+                                                                          (MINGW_GCC, MINGW_GXX))] if win else []
 else:
     nrd = win_nrd = None
+    glslang_libraries = win_glslang_libraries = []
 i386 = pathlib.Path("/usr/lib/i386-linux-gnu")
 host_libs = pathlib.Path("/usr/lib/x86_64-linux-gnu") if arch64 else i386
 sdl_args = [
@@ -708,6 +717,7 @@ build_stamp = Stamp(root, out, {
     "engine_library": engine_library,
     "debug_compress": debug_compress,
     "nrd": [nrd and nrd["libraries"], win_nrd and win_nrd["libraries"]], "toolchain": toolchain,
+    "glslang": [glslang_libraries, win_glslang_libraries],
 })
 stamp_trees = [("src", None), ("include", None), ("config", None), ("build", None), ("pc/src", None),
                ("pc/include", None), ("pc/shaders", None), ("pc/third_party", None), ("tools/etc", ".py"),
@@ -718,8 +728,8 @@ stamp_trees = [("src", None), ("include", None), ("config", None), ("build", Non
                                                    "zig_views", "zig_c"]]
 stamp_files = [root / "data/SLUS_010.40", root / "data/BATTLE/BATTLE.PRG", root / "data/ENDING/ENDING.PRG",
                root / "pc/docs/porting/battle/MEANINGS.tsv",  # the views' readable names (zig_views.py)
-               sdl_library, *(nrd["libraries"] if nrd else []),
-               *([win_sdl_library, *(win_nrd["libraries"] if win_nrd else [])] if win else []),
+               sdl_library, *(nrd["libraries"] if nrd else []), *glslang_libraries,
+               *([win_sdl_library, *(win_nrd["libraries"] if win_nrd else []), *win_glslang_libraries] if win else []),
                # the host libraries whose symbols the import classification reads
                "/usr/lib/x86_64-linux-gnu/libstdc++.so.6", "/lib/x86_64-linux-gnu/libc.so.6",
                "/lib/x86_64-linux-gnu/libm.so.6", "/usr/lib/x86_64-linux-gnu/libc_nonshared.a",
@@ -1152,7 +1162,7 @@ for name in ["runtime", "window", "controller", "gamepad"]:
             and name in STATE_HOST_UNITS:
         state_sections(obj)
     objects.append(obj)
-for name in ["ownership", "audio_libspu", "audio_output", "input_record", "cd_drive", "xa_audio", "mdec", "memory_card", "dev_rpc", "charge_skip", "camera_stick", "gl_present", "gpu_hw", "render", "render_state", "room_native", "gameplay_walls", "occlusion", "room_effects", "actor_native", "effect_native", "scene_capture", "floor_grid", "shadows", "ptgi", "glows", "overlay_statics", "ui_upscale", "antialias", "ui_text", "button_prompts", "ui_bubbles", "ui_emotes", "room_catalog", "fast_travel_rules", "ui/item_names", "ui/vs_encode", "ui/manual_parse", "ui/manual_cache", "ui/data_plan", "ui/score_format", "ui/score_nav", "ui/mon_parse", "ui/score_mon", "snapshot", "state_diff", "state_rewind", "savestate_slots", "shadow", "frame_cost", "display_confirm", "quit_options", "ui/option_actions", "ui/options_nav", "ui/option_style", "ui/option_peek", "host_format", "classic/classic_parity"] + (["vk_core", "vk_hw", "vk_present", "vk_shadows"] if arch64 else []) \
+for name in ["ownership", "audio_libspu", "audio_output", "input_record", "cd_drive", "xa_audio", "mdec", "memory_card", "dev_rpc", "charge_skip", "camera_stick", "gl_present", "gpu_hw", "render", "render_state", "room_native", "gameplay_walls", "occlusion", "room_effects", "actor_native", "effect_native", "scene_capture", "floor_grid", "shadows", "ptgi", "glows", "overlay_statics", "ui_upscale", "antialias", "ui_text", "button_prompts", "ui_bubbles", "ui_emotes", "room_catalog", "fast_travel_rules", "ui/item_names", "ui/vs_encode", "ui/manual_parse", "ui/manual_cache", "ui/data_plan", "ui/score_format", "ui/score_nav", "ui/mon_parse", "ui/score_mon", "snapshot", "state_diff", "state_rewind", "savestate_slots", "shadow", "frame_cost", "display_confirm", "quit_options", "ui/option_actions", "ui/options_nav", "ui/option_style", "ui/option_peek", "host_format", "classic/classic_parity"] + (["vk_core", "vk_shader_lookup", "vk_hw", "vk_present", "vk_shadows"] if arch64 else []) \
         + (["engine_host", "engine_reload"] if engine_library else []):
     obj = out / (name.replace("/", "_") + ".o")
     # ui_text rasterizes fonts with the stb_truetype that Dear ImGui vendors.
@@ -1408,6 +1418,15 @@ if arch64:
     obj = out / "vk_nrd.o"
     compile_object(["g++", *cxx_flags, *sdl_flags, *(["-DROOD_NRD", "-I" + nrd["include"]] if nrd else []),
         "-c", "pc/src/vk_nrd.cpp", "-o", str(obj)], "pc/src/vk_nrd.cpp", "c++")
+    objects.append(obj)
+    # Shader hot reload's compiler (glslang's C++ API; its headers are the vendored source).
+    obj = out / "shader_compiler.o"
+    compile_object(["g++", *cxx_flags, *sdl_flags, "-I" + str(root / "pc/third_party/glslang"),
+        "-c", "pc/src/shader_compiler.cpp", "-o", str(obj)], "pc/src/shader_compiler.cpp", "c++")
+    objects.append(obj)
+    obj = out / "shader_reload.o"
+    compile_object(["g++", *cxx_flags, *sdl_flags, "-c", "pc/src/shader_reload.cpp", "-o", str(obj)],
+        "pc/src/shader_reload.cpp", "c++")
     objects.append(obj)
 # Lua 5.4 (vendored, MIT; pc/third_party/lua) for plugins (pc/docs/Extensions.md):
 # the core and its safe libraries only (no io, os, package or debug, no
@@ -1795,7 +1814,7 @@ if coff:
     host_libraries = [mingw_library(f"lib{n}.a") for n in [
         "stdc++", "gcc", "gcc_eh", "mingw32", "mingwex", "msvcrt", "moldname", "pthread", "winpthread",
         "kernel32", *WIN_SYSTEM_LIBS]] + [mingw_library(n) for n in ["crt2.o", "crtbegin.o", "crtend.o"]] \
-        + [str(win_sdl_library)] + (win_nrd["libraries"] if win_nrd else [])
+        + [str(win_sdl_library)] + (win_nrd["libraries"] if win_nrd else []) + win_glslang_libraries
 else:
     def gcc_library(name, *flags):
         result = subprocess.run(
@@ -1815,7 +1834,7 @@ else:
             "libstdc++.so.6", "libc.so.6", "libm.so.6",
             "libgcc.a", "libgcc_s.so.1",
         )
-    ]) + [str(sdl_library)] + (nrd["libraries"] if nrd else [])
+    ]) + [str(sdl_library)] + (nrd["libraries"] if nrd else []) + glslang_libraries
     host_libraries = [library for library in host_libraries if library]
 for library in host_libraries:
     if os.path.exists(library):
@@ -2281,6 +2300,7 @@ if win:
         str(out / "weak_defs.ld"),
         str(win_sdl_library),
         *(win_nrd["libraries"] if win_nrd else []),
+        *win_glslang_libraries,
         *[f"-l{n}" for n in WIN_SYSTEM_LIBS],
         "-o", str(exe),
     ], out / "link.rsp")
@@ -2324,7 +2344,8 @@ if engine_library:
     # SDL is the host's (the window, audio and input outlive the library);
     # NRD the library's (hidden symbols: the host could not export them).
     archives = {str(sdl_library): query(["nm", "--defined-only", str(sdl_library)])}
-    own_archives = [query(["nm", "--defined-only", str(a)]) for a in (nrd["libraries"] if nrd else [])]
+    own_archives = [query(["nm", "--defined-only", str(a)]) for a in [*(nrd["libraries"] if nrd else []),
+                                                                       *glslang_libraries]]
     shared = set()  # symbols provided by the host's shared libraries and available archives
     for library in (
         gcc_library("libstdc++.so.6"),
@@ -2374,7 +2395,7 @@ if engine_library:
     # in the non-PIE static build.
     library_link = ["g++", "-m64", "-shared", "-Wl,-Ttext-segment=0x64000000",
                     "-Wl,--version-script=" + str(out / "engine.map"), "-Wl,--gc-sections",
-                    *[str(o) for o in engine_objects], *(nrd["libraries"] if nrd else []),
+                    *[str(o) for o in engine_objects], *(nrd["libraries"] if nrd else []), *glslang_libraries,
                     "-l:libstdc++.so.6", "-l:libgcc_s.so.1", "-lm", "-lpthread", "-ldl", "-o", str(library)]
     staged = library.with_name(library.name + ".new")
     run([*library_link[:-1], str(staged)])
@@ -2426,6 +2447,7 @@ link = (
         str(out / "imports.ld"),
         str(sdl_library),
         *(nrd["libraries"] if nrd else []),
+        *glslang_libraries,
         *([] if arch64 else ["-L/usr/lib32"]),
         "-l:libstdc++.so.6",
         "-l:libgcc_s.so.1",  # C++ unwinding (Lua errors are exceptions: pc/docs/Extensions.md)

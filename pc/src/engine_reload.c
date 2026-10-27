@@ -37,6 +37,7 @@ extern void pc_rpc_unload(void);
 extern void pc_rpc_resume(void);
 extern int pc_lights_busy(void);
 extern int pc_fixture_regen_busy(void);
+extern void pc_shader_reload_settle(void); /* shader_reload.cpp */
 extern void pc_atmosphere_settle(void);
 extern int pc_ui_shell_drawn(void);
 extern int pc_ui_loot_visible(void);
@@ -95,6 +96,7 @@ int rood_engine_unload(char* why, int size)
     if (pc_photo_engine_unload(why, size))
         return -1;
     pc_atmosphere_settle();
+    pc_shader_reload_settle(); /* a compile running on its thread finishes first (its result is dropped) */
     size_t n = 0;
     char* text = pc_capture_file(pc_settings_write, &n);
     if (text)

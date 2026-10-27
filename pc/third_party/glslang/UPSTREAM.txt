@@ -4,6 +4,6 @@ Vendored subset: glslang/, SPIRV/, StandAlone/, External/ (CMake only), CMakeLis
 build_info.*, gen_extension_headers.py, parse_version.cmake, CHANGES.md (read by build_info.py),
 LICENSE.txt, LICENSES/, README.md. Tests, gtests, kokoro, ndk_test and Test/ are left out.
 License: BSD-3-Clause, BSD-2-Clause, MIT, Apache-2.0 and others per file (LICENSE.txt);
-all permissive. Only the glslang compiler binary is built (pc/tools/vk_shaders.py, no SPIRV-Tools
-optimizer); its output (SPIR-V) is generated from our own shaders, so nothing of glslang is
-linked into the game.
+all permissive. Built (pc/tools/vk_shaders.py, no SPIRV-Tools optimizer) as the compiler binary
+for the build's SPIR-V, and as static libraries (glslang, glslang-default-resource-limits) that the
+64-bit game links for shader hot reload (pc/src/shader_compiler.cpp).

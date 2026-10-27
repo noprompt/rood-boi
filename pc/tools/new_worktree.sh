@@ -29,7 +29,9 @@ case "$name" in
 esac
 common=$(git -C "$(dirname "$0")" rev-parse --path-format=absolute --git-common-dir)
 main=$(dirname "$common")
-dir=$main/.claude/worktrees/$name
+# The real path (.claude/worktrees may be a link to another disk): edits under
+# .claude/ ask for permission each time, edits at the real path do not.
+dir=$(readlink -f "$main/.claude/worktrees")/$name
 if [ -e "$dir" ]; then
     echo "new_worktree.sh: $dir already exists" >&2
     exit 1

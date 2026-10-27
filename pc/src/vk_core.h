@@ -22,6 +22,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "vk_shader_lookup.h" /* VK_SHADER: overrides by name */
 
 #define VK_GLOBAL_FUNCTIONS(X)                                                                                         \
     X(vkCreateInstance)                                                                                                \
@@ -275,6 +276,21 @@ void vk_on_frame_done(vk_frame_callback callback, void* context);
 /* ---- pipelines ---- */
 
 VkShaderModule vk_shader(const uint32_t* code, size_t bytes);
+/* The renderer's own shaders by name (shader hot reload): `name`'s override
+ * when one is set (vk_shader_lookup.h), else the embedded `code`.
+ * VK_SHADER(scaled_frag) is the module of pc/shaders/vulkan/scaled.frag. */
+VkShaderModule vk_shader_named(const char* name, const uint32_t* code, size_t bytes);
+#define VK_SHADER(name) vk_shader_named(#name, vk_spv_##name, vk_spv_##name##_size)
+/* Shader hot reload: every pipeline made (vk_pipeline, vk_compute_pipeline)
+ * from a stage named in `names` is made again from the stages' current code
+ * (vk_shader_lookup.h) and bound in its place from now on. Waits for the
+ * device; call between frames. Returns how many were replaced, or -1 with
+ * `error` set when one could not be made (then none is replaced). */
+int vk_pipelines_rebuild(const char* const* names, int count, char* error, int size);
+/* Pipelines with a recipe kept, how many of those are replaced now, and the
+ * live pipelines and shader modules (counted while recipes are kept). */
+void vk_pipelines_hot_counts(int* recipes, int* replaced, int* live_pipelines, int* live_modules);
+int vk_is_recording(void); /* a frame's commands are being recorded (not between frames) */
 /* A descriptor set layout of push descriptors: one type per binding (stage
  * flags ALL). */
 VkDescriptorSetLayout vk_push_layout(const VkDescriptorType* types, int count);

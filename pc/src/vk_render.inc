@@ -198,10 +198,10 @@ static VkPipeline vk_native_opaque[2], vk_native_depth_only[2], vk_native_blend[
 static int vk_native_ready = -1, vk_native_ms_samples;
 static int vk_native_pipelines(int set, int samples)
 {
-    VkShaderModule vs = vk_shader(vk_spv_native_vert, vk_spv_native_vert_size),
-                   gs = vk_shader(vk_spv_native_geom, vk_spv_native_geom_size),
-                   fs = set ? vk_shader(vk_spv_native_ms_frag, vk_spv_native_ms_frag_size) /* surfaces multisampled */
-                            : vk_shader(vk_spv_native_frag, vk_spv_native_frag_size);
+    VkShaderModule vs = VK_SHADER(native_vert),
+                   gs = VK_SHADER(native_geom),
+                   fs = set ? VK_SHADER(native_ms_frag) /* surfaces multisampled */
+                            : VK_SHADER(native_frag);
     static const VkVertexInputBindingDescription binding = { 0, sizeof(mesh_vertex), VK_VERTEX_INPUT_RATE_VERTEX };
     static const VkVertexInputAttributeDescription attributes[8] = {
         { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(mesh_vertex, position) },

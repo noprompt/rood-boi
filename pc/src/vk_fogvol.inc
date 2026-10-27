@@ -66,13 +66,13 @@ static int vfv_init(void)
     vfv.light_layout = vrt_layout(vfv.light_set, 0);
     vfv.march_layout = vrt_layout(vfv.march_set, 0);
     vfv.temporal_layout = vrt_layout(vfv.temporal_set, 0);
-    vfv.light = vrt_compute(vk_spv_fogvol_light_comp, vk_spv_fogvol_light_comp_size, vfv.light_layout);
-    vfv.march = vrt_compute(vk_spv_fogvol_march_comp, vk_spv_fogvol_march_comp_size, vfv.march_layout);
-    vfv.temporal = vrt_compute(vk_spv_fogvol_temporal_comp, vk_spv_fogvol_temporal_comp_size, vfv.temporal_layout);
+    vfv.light = vrt_compute(VK_SHADER(fogvol_light_comp), vfv.light_layout);
+    vfv.march = vrt_compute(VK_SHADER(fogvol_march_comp), vfv.march_layout);
+    vfv.temporal = vrt_compute(VK_SHADER(fogvol_temporal_comp), vfv.temporal_layout);
     if (vk.ray_query) {
         vfv.light_rt_set = vk_push_layout(light_rt, 10);
         vfv.light_rt_layout = vrt_layout(vfv.light_rt_set, 0);
-        vfv.light_rt = vrt_compute(vk_spv_fogvol_light_rt_comp, vk_spv_fogvol_light_rt_comp_size, vfv.light_rt_layout);
+        vfv.light_rt = vrt_compute(VK_SHADER(fogvol_light_rt_comp), vfv.light_rt_layout);
     }
     if (!vfv.light || !vfv.march || !vfv.temporal) {
         fprintf(stderr, "[fog] the fog volumes' renderer could not be created\n");

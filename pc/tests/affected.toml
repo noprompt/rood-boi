@@ -422,6 +422,16 @@ paths = ["pc/src/emissive*", "pc/assets/emissive/*", "pc/assets/materials/*", "p
 suites = ["emissive_smoke", "emissive_entries_smoke", "emissive_tools_smoke", "emissive_metadata", "editor_selection_smoke", "editor_undo_smoke",
           "editor_schema_smoke", "material_smoke", "material_relief_smoke", "material_survey_smoke", "material_catalog"]
 
+# Shader hot reload (pc/docs/Vulkan_Renderer.md "Hot reload"): the in-process compiler.
+[[rule]]
+paths = ["pc/src/shader_compiler.*", "pc/src/vk_shader_lookup.*", "pc/shaders/vulkan/*", "pc/tools/vk_shaders.py"]
+suites = ["shader_compiler", "shader_reload_smoke"]
+
+# Shader hot reload's service, the pipelines it replaces (vk_core.c), its RPC and banner.
+[[rule]]
+paths = ["pc/src/shader_reload.*", "pc/src/vk_core.*"]
+suites = ["shader_reload_smoke", "shader_compiler"]
+
 # Material response (pc/docs/Materials.md): the catalog, the editor, the shading and reflections.
 [[rule]]
 paths = ["pc/src/material*", "pc/shaders/vulkan/material*", "pc/shaders/vulkan/rt_reflect*",

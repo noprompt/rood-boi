@@ -50,6 +50,7 @@
 extern "C" int pc_keyboard_replay(SDL_Keycode key); /* boot_controller.c */
 #ifdef ROOD_VULKAN
 #include "vk_hooks.h" /* ROOD_RENDERER=vulkan: drawn by vk_overlay.cpp */
+#include "shader_reload.h" /* the Graphics tab's Shader hot reload, the error banner */
 #endif
 
 extern "C" {
@@ -690,6 +691,51 @@ static void occlusion_panel()
         ImGui::Text("slot %d%s: fade %.2f hidden %.2f rays %d/5", s[i].slot, s[i].enemy ? " (enemy)" : "",
             s[i].fade, s[i].hidden, s[i].rays_blocked);
 }
+
+#ifdef ROOD_VULKAN
+/* Shader hot reload (shader_reload.cpp): its settings and state, the RPC
+ * shaders' actions. */
+static void shader_reload_panel()
+{
+    bool on = pc_shader_reload != 0;
+    if (ImGui::Checkbox("Reload shaders when saved", &on))
+        pc_shader_reload = on;
+    ImGui::SetNextItemWidth(ImGui::GetFontSize() * 10);
+    ImGui::SliderInt("Poll (ms)", &pc_shader_reload_poll_ms, 100, 5000, "%d", ImGuiSliderFlags_AlwaysClamp);
+    static char reply[16384]; /* (the actions' replies: the state below says the same) */
+    if (ImGui::Button("Reload all"))
+        pc_shader_reload_rpc("{\"action\":\"reload\"}", reply, sizeof reply);
+    ImGui::SameLine();
+    if (ImGui::Button("Back to built-in"))
+        pc_shader_reload_rpc("{\"action\":\"reset\"}", reply, sizeof reply);
+    char summary[2048], first[512] = "";
+    pc_shader_reload_summary(summary, sizeof summary);
+    ImGui::TextWrapped("%s", summary);
+    int errors = pc_shader_reload_errors(first, sizeof first);
+    if (errors)
+        ImGui::TextColored(ImVec4(1, 0.45f, 0.4f, 1), "%d error%s (the last good shader stays): %s", errors,
+            errors == 1 ? "" : "s", first);
+    else
+        ImGui::TextDisabled("No errors");
+}
+/* A shader that failed to compile: its first error over the picture (the
+ * game keeps the last good shader), shown with the overlay open or not. */
+static void shader_error_banner()
+{
+    char first[512];
+    int errors = pc_shader_reload_errors(first, sizeof first);
+    if (!errors)
+        return;
+    char text[640];
+    snprintf(text, sizeof text, "Shader error%s (%d): %s", errors == 1 ? "" : "s", errors, first);
+    ImDrawList* draw = ImGui::GetForegroundDrawList();
+    ImVec2 size = ImGui::CalcTextSize(text);
+    float pad = ImGui::GetFontSize() * 0.4f;
+    ImVec2 at(pad, ImGui::GetIO().DisplaySize.y - size.y - 3 * pad);
+    draw->AddRectFilled(at, ImVec2(at.x + size.x + 2 * pad, at.y + size.y + 2 * pad), IM_COL32(120, 20, 20, 220), pad);
+    draw->AddText(ImVec2(at.x + pad, at.y + pad), IM_COL32(255, 235, 230, 255), text);
+}
+#endif
 
 static void graphics_panel()
 {
@@ -2152,6 +2198,10 @@ static void details(float x, float y, float w, float h, double frame_ms)
                 graphics_panel();
             if (pc_hw_active && ImGui::CollapsingHeader("Occlusion (see-through walls)"))
                 occlusion_panel();
+#ifdef ROOD_VULKAN
+            if (pc_vk_on() && ImGui::CollapsingHeader("Shader hot reload"))
+                shader_reload_panel();
+#endif
             rood_details::kind_section("menu_model_light", "Menu model light"); /* ui/menu_light_kind.cpp */
             if (ImGui::CollapsingHeader("Controls")) {
                 camera_stick_panel();
@@ -2431,6 +2481,10 @@ extern "C" void pc_overlay_frame(int width, int height)
         pc_fast_travel_prompt_draw(); /* the Travel prompt on a Circle of Magic (not over the editor) */
     pc_hud_panels((float)dt, pc_gl_view[2], pc_gl_view[3]); /* plugins' panels (a photo mode's card): over everything but the editor's */
     shell_text_input();
+#ifdef ROOD_VULKAN
+    if (pc_vk_on())
+        shader_error_banner();
+#endif
     ImGui::Render();
 #ifdef ROOD_VULKAN
     if (pc_vk_on())

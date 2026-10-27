@@ -140,9 +140,9 @@ static VkPipelineLayout vrt_layout(VkDescriptorSetLayout set, uint32_t push)
     vk_check(vkCreatePipelineLayout(vk.device, &info, NULL, &layout), "vkCreatePipelineLayout");
     return layout;
 }
-static VkPipeline vrt_compute(const uint32_t* code, size_t bytes, VkPipelineLayout layout)
+/* A compute pipeline from a module (VK_SHADER), which it destroys. */
+static VkPipeline vrt_compute(VkShaderModule module, VkPipelineLayout layout)
 {
-    VkShaderModule module = vk_shader(code, bytes);
     VkPipeline pipeline = module ? vk_compute_pipeline(module, layout) : VK_NULL_HANDLE;
     if (module)
         vkDestroyShaderModule(vk.device, module, NULL);
@@ -173,35 +173,35 @@ static int vrt_init(void)
     vrt.surface_layout = vrt_layout(vrt.surface_set, 0);
     vrt.temporal_layout = vrt_layout(vrt.temporal_set, 0);
     vrt.atrous_layout = vrt_layout(vrt.atrous_set, 32);
-    vrt.trace = vrt_compute(vk_spv_rt_trace_comp, vk_spv_rt_trace_comp_size, vrt.trace_layout);
-    vrt.reflect = vrt_compute(vk_spv_rt_reflect_comp, vk_spv_rt_reflect_comp_size, vrt.trace_layout);
+    vrt.trace = vrt_compute(VK_SHADER(rt_trace_comp), vrt.trace_layout);
+    vrt.reflect = vrt_compute(VK_SHADER(rt_reflect_comp), vrt.trace_layout);
     VkDescriptorType reflect_filter[10] = { U, S, S, S, S, S, S, S, S, S };
     vrt.reflect_filter_set = vk_push_layout(reflect_filter, 10);
     vrt.reflect_filter_layout = vrt_layout(vrt.reflect_filter_set, 0);
-    vrt.reflect_filter = vrt_compute(vk_spv_rt_reflect_filter_comp, vk_spv_rt_reflect_filter_comp_size,
+    vrt.reflect_filter = vrt_compute(VK_SHADER(rt_reflect_filter_comp),
         vrt.reflect_filter_layout);
-    vrt.surface = vrt_compute(vk_spv_rt_surface_comp, vk_spv_rt_surface_comp_size, vrt.surface_layout);
-    vrt.temporal = vrt_compute(vk_spv_rt_temporal_comp, vk_spv_rt_temporal_comp_size, vrt.temporal_layout);
-    vrt.atrous = vrt_compute(vk_spv_rt_atrous_comp, vk_spv_rt_atrous_comp_size, vrt.atrous_layout);
+    vrt.surface = vrt_compute(VK_SHADER(rt_surface_comp), vrt.surface_layout);
+    vrt.temporal = vrt_compute(VK_SHADER(rt_temporal_comp), vrt.temporal_layout);
+    vrt.atrous = vrt_compute(VK_SHADER(rt_atrous_comp), vrt.atrous_layout);
     VkDescriptorType skin[5] = { B, B, B, B, B };
     vrt.skin_set = vk_push_layout(skin, 5);
     vrt.skin_layout = vrt_layout(vrt.skin_set, 32);
-    vrt.skin = vrt_compute(vk_spv_rt_skin_comp, vk_spv_rt_skin_comp_size, vrt.skin_layout);
+    vrt.skin = vrt_compute(VK_SHADER(rt_skin_comp), vrt.skin_layout);
     VkDescriptorType haze[12] = { U, A, B, T, U, S, T, S, S, B, B, T }; /* 10: the light list; 11: the medium's texture */
     VkDescriptorType integrate[3] = { U, S, S };
     vrt.haze_set = vk_push_layout(haze, 12);
     vrt.integrate_set = vk_push_layout(integrate, 3);
     vrt.haze_layout = vrt_layout(vrt.haze_set, 0);
     vrt.integrate_layout = vrt_layout(vrt.integrate_set, 0);
-    vrt.haze = vrt_compute(vk_spv_rt_haze_comp, vk_spv_rt_haze_comp_size, vrt.haze_layout);
-    vrt.integrate = vrt_compute(vk_spv_rt_haze_integrate_comp, vk_spv_rt_haze_integrate_comp_size, vrt.integrate_layout);
+    vrt.haze = vrt_compute(VK_SHADER(rt_haze_comp), vrt.haze_layout);
+    vrt.integrate = vrt_compute(VK_SHADER(rt_haze_integrate_comp), vrt.integrate_layout);
     VkDescriptorType nrd_in[10] = { S, S, S, S, S, S, S, S, S, S }, nrd_out[4] = { S, S, S, S };
     vrt.nrd_in_set = vk_push_layout(nrd_in, 10);
     vrt.nrd_out_set = vk_push_layout(nrd_out, 4);
     vrt.nrd_in_layout = vrt_layout(vrt.nrd_in_set, 48);
     vrt.nrd_out_layout = vrt_layout(vrt.nrd_out_set, 16);
-    vrt.nrd_in = vrt_compute(vk_spv_rt_nrd_in_comp, vk_spv_rt_nrd_in_comp_size, vrt.nrd_in_layout);
-    vrt.nrd_out = vrt_compute(vk_spv_rt_nrd_out_comp, vk_spv_rt_nrd_out_comp_size, vrt.nrd_out_layout);
+    vrt.nrd_in = vrt_compute(VK_SHADER(rt_nrd_in_comp), vrt.nrd_in_layout);
+    vrt.nrd_out = vrt_compute(VK_SHADER(rt_nrd_out_comp), vrt.nrd_out_layout);
     if (!vrt.trace || !vrt.surface || !vrt.temporal || !vrt.atrous || !vrt.skin || !vrt.haze || !vrt.integrate
         || !vrt.nrd_in || !vrt.nrd_out || !vrt.reflect || !vrt.reflect_filter)
         return 0;

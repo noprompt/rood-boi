@@ -294,14 +294,14 @@ static int make_pipelines(void)
     vram_layout = make_layout(single_set, 32);
     smaa_layout = make_layout(triple_set, sizeof(smaa_push));
     downsample_layout = make_layout(single_set, sizeof(downsample_push));
-    VkShaderModule vs = vk_shader(vk_spv_fullscreen_vert, vk_spv_fullscreen_vert_size),
-                   scaled = vk_shader(vk_spv_scaled_frag, vk_spv_scaled_frag_size),
-                   fxaa = vk_shader(vk_spv_fxaa_frag, vk_spv_fxaa_frag_size),
-                   vram = vk_shader(vk_spv_present_vram_frag, vk_spv_present_vram_frag_size),
-                   edges = vk_shader(vk_spv_smaa_edges_frag, vk_spv_smaa_edges_frag_size),
-                   weights = vk_shader(vk_spv_smaa_weights_frag, vk_spv_smaa_weights_frag_size),
-                   blend = vk_shader(vk_spv_smaa_blend_frag, vk_spv_smaa_blend_frag_size),
-                   down = vk_shader(vk_spv_downsample_frag, vk_spv_downsample_frag_size);
+    VkShaderModule vs = VK_SHADER(fullscreen_vert),
+                   scaled = VK_SHADER(scaled_frag),
+                   fxaa = VK_SHADER(fxaa_frag),
+                   vram = VK_SHADER(present_vram_frag),
+                   edges = VK_SHADER(smaa_edges_frag),
+                   weights = VK_SHADER(smaa_weights_frag),
+                   blend = VK_SHADER(smaa_blend_frag),
+                   down = VK_SHADER(downsample_frag);
     scaled_to_window = fullscreen(vs, scaled, scaled_layout, WINDOW_FORMAT);
     scaled_to_view = fullscreen(vs, scaled, scaled_layout, VIEW_FORMAT);
     fxaa_pipeline = fullscreen(vs, fxaa, fxaa_layout, WINDOW_FORMAT);
@@ -608,10 +608,10 @@ static int brightness_on(int view_w, int view_h)
     if (pc_present_brightness == 50 || state < 0 || view_w <= 0 || view_h <= 0)
         return 0;
     if (!state) {
-        VkShaderModule vs = vk_shader(vk_spv_fullscreen_vert, vk_spv_fullscreen_vert_size),
-                       fs = vk_shader(vk_spv_brightness_frag, vk_spv_brightness_frag_size),
-                       down = vk_shader(vk_spv_downsample_frag, vk_spv_downsample_frag_size),
-                       vram = vk_shader(vk_spv_present_vram_frag, vk_spv_present_vram_frag_size);
+        VkShaderModule vs = VK_SHADER(fullscreen_vert),
+                       fs = VK_SHADER(brightness_frag),
+                       down = VK_SHADER(downsample_frag),
+                       vram = VK_SHADER(present_vram_frag);
         brightness_layout = make_layout(single_set, 16);
         if (vs && fs && down && vram && brightness_layout) {
             brightness_pipeline = fullscreen(vs, fs, brightness_layout, WINDOW_FORMAT);

@@ -228,6 +228,12 @@ def suites(args, mode="egl"):
                        ROOT / "pc/tools/material_rollout_rules.json", ROOT / "pc/assets/materials/catalog.json"],
               note="material rollout: resumable room targets, texture looks, preset proposals, palette "
                    "aggregation, the review page, applying a review to a catalog copy"),
+        Suite("shader_compiler", [PY, str(TESTS / "shader_compiler_test.py")], 600, binary=None,
+              sources=[TESTS / "shader_compiler_probe.cpp", ROOT / "pc/src/shader_compiler.cpp",
+                       ROOT / "pc/src/shader_compiler.h", ROOT / "pc/src/vk_shader_lookup.c",
+                       ROOT / "pc/src/vk_shader_lookup.h", ROOT / "pc/tools/vk_shaders.py"],
+              note="shader hot reload's compiler: every Vulkan stage compiled in process equals the build's "
+                   "SPIR-V byte for byte, the includes it read are reported, a broken stage fails with its line"),
         Suite("emissive_metadata", [PY, str(TESTS / "emissive_metadata_test.py")], 60, binary=None,
               note="lossless emissive scope metadata: duplicate/empty groups, repeated round trips and membership edits"),
         Suite("emissive_catalog", [PY, str(TESTS / "emissive_catalog_test.py")], 300, binary=None,
@@ -436,6 +442,12 @@ def suites(args, mode="egl"):
                   note="material review: proposals loaded, a palette's preset previewed in place, before / after, "
                        "tuned, highlighted; accept writes one user entry with the room list, reject recorded, the "
                        "session resumes; Go into a room with a door and one without"),
+            Suite("shader_reload_smoke", [PY, str(TESTS / "shader_reload_smoke.py"), "--card", str(args.save)], 300,
+                  sources=[ROOT / "pc/src/shader_reload.cpp", ROOT / "pc/src/shader_compiler.cpp",
+                           ROOT / "pc/src/vk_shader_lookup.c"],
+                  note="Vulkan shader hot reload: an edit shows within 3 s, an include reloads the stages that "
+                       "read it, a broken stage keeps the last good one and names its line, restored is byte "
+                       "exact, a save in two writes applies once, 5 reloads leak nothing, no sources: off"),
             Suite("save_point_glow_smoke", [PY, str(TESTS / "save_point_glow_smoke.py"), "--card", str(args.save)], 300,
                   note="standing in a save point keeps its light (its glow is the column's side); Ashley still "
                        "shadows the floor behind him (High, Ultra)")]

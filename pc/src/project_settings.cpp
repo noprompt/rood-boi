@@ -164,6 +164,9 @@ int pc_ui_menu_tint_custom[3] = { 8, 7, 7 }; /* Custom's colour, 0..31 per chann
 #include "lua/lua_runtime.h" /* plugins_elevated, plugin_enabled, plugin_order, plugin_grant, plugin_budget_* */
 #include "editor_fit_window.h" /* editor_fit_window_offset, _kelvin */
 #include "editor_library.h" /* editor_library_view, _docked, _window, _favourites */
+#ifdef ROOD_VULKAN
+#include "shader_reload.h" /* shader_reload, shader_reload_poll_ms */
+#endif
 extern bool pc_lights_show_gizmos;
 extern "C" int pc_save_states; /* savestate_slots.c: the save state slots' keys act (0 off, default) */
 namespace rood_lights {
@@ -393,6 +396,10 @@ const Entry entries[] = {
     I("hud_classic_battle_mode", pc_hud_classic_battle_mode),
     I("hud_classic_ability_icons", pc_hud_classic_ability_icons),
     I("save_states", pc_save_states), /* the save state slots (savestate_slots.c), 0 off */
+#ifdef ROOD_VULKAN
+    I("shader_reload", pc_shader_reload), /* shader hot reload (shader_reload.cpp), 0 off */
+    I("shader_reload_poll_ms", pc_shader_reload_poll_ms),
+#endif
     F("ui_menu_opacity", pc_ui_menu_opacity),
 };
 const char* path()

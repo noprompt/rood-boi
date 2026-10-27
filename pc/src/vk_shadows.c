@@ -42,8 +42,8 @@ static void init(void)
         .pPushConstantRanges = &range };
     if (!vk_check(vkCreatePipelineLayout(vk.device, &info, NULL, &layout), "vkCreatePipelineLayout"))
         return;
-    VkShaderModule vs = vk_shader(vk_spv_shadow_vert, vk_spv_shadow_vert_size),
-                   fs = vk_shader(vk_spv_shadow_frag, vk_spv_shadow_frag_size);
+    VkShaderModule vs = VK_SHADER(shadow_vert),
+                   fs = VK_SHADER(shadow_frag);
     static const VkVertexInputBindingDescription binding = { 0, 12, VK_VERTEX_INPUT_RATE_VERTEX };
     static const VkVertexInputAttributeDescription attribute = { 0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0 };
     static const VkFormat format = VK_FORMAT_R32_SFLOAT;

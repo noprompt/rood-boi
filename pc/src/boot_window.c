@@ -15,6 +15,7 @@
 #include "ui/ui_settings.h" /* binding capture: PC_UI_CAPTURE_* */
 #ifdef ROOD_VULKAN
 #include "vk_hooks.h" /* ROOD_RENDERER=vulkan: vk_present.c */
+#include "shader_reload.h"
 #endif
 static int focused = 1;
 static SDL_Window* window;
@@ -444,6 +445,7 @@ void pc_window_frame(const uint16_t* vram, int x, int y, int w, int h)
 #ifdef ROOD_VULKAN
     if (pc_vk_on()) {
         pc_vk_present(vram, x, y, w, h);
+        pc_shader_reload_poll(); /* between frames: shader hot reload */
         return;
     }
 #endif

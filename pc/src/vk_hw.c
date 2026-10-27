@@ -280,8 +280,8 @@ int pc_vk_hw_init(int scale, size_t vertex_size)
     if (!vk_check(vkCreatePipelineLayout(vk.device, &layout, NULL, &upload_layout), "vkCreatePipelineLayout"))
         return 0;
 
-    VkShaderModule vs = vk_shader(vk_spv_hw_vert, vk_spv_hw_vert_size),
-                   fs = vk_shader(vk_spv_hw_frag, vk_spv_hw_frag_size);
+    VkShaderModule vs = VK_SHADER(hw_vert),
+                   fs = VK_SHADER(hw_frag);
     opaque_pipeline = target_pipeline(vs, fs, draw_layout, &binding, attributes, 8,
         VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, -1, 0xfffff);
     for (int m = 0; m < 4; m++)
@@ -297,8 +297,8 @@ int pc_vk_hw_init(int scale, size_t vertex_size)
         VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 5, 0x0007);
     text_sub_pipeline = target_pipeline(vs, fs, draw_layout, &binding, attributes, 8,
         VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 6, 0x0007);
-    VkShaderModule uvs = vk_shader(vk_spv_upload_vert, vk_spv_upload_vert_size),
-                   ufs = vk_shader(vk_spv_upload_frag, vk_spv_upload_frag_size);
+    VkShaderModule uvs = VK_SHADER(upload_vert),
+                   ufs = VK_SHADER(upload_frag);
     upload_pipeline = target_pipeline(uvs, ufs, upload_layout, NULL, NULL, 0, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
         -1, 0x000f);
     vkDestroyShaderModule(vk.device, vs, NULL);
@@ -524,8 +524,8 @@ static int overlay_ready(void)
         .pPushConstantRanges = &range };
     if (!vk_check(vkCreatePipelineLayout(vk.device, &info, NULL, &overlay_layout), "vkCreatePipelineLayout"))
         return 0;
-    VkShaderModule vs = vk_shader(vk_spv_text_overlay_vert, vk_spv_text_overlay_vert_size),
-                   fs = vk_shader(vk_spv_text_overlay_frag, vk_spv_text_overlay_frag_size);
+    VkShaderModule vs = VK_SHADER(text_overlay_vert),
+                   fs = VK_SHADER(text_overlay_frag);
     /* The presenters' formats (vk_present.c): the window image, the 16-bit brightness input. */
     static const VkFormat formats[2] = { VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R16G16B16A16_SFLOAT };
     static const int blends[3] = { 4, 5, 6 };
@@ -804,7 +804,7 @@ int pc_vk_hw_vram_from_target(int replay, int x0, int y0, int x1, int y1)
             vram_storage = 0;
             return 0;
         }
-        VkShaderModule cs = vk_shader(vk_spv_vram_from_target_comp, vk_spv_vram_from_target_comp_size);
+        VkShaderModule cs = VK_SHADER(vram_from_target_comp);
         vram_copy_pipeline = vk_compute_pipeline(cs, vram_copy_layout);
         vkDestroyShaderModule(vk.device, cs, NULL);
         if (!vram_copy_pipeline) {
@@ -892,13 +892,13 @@ static int ms_make_pipelines(int samples)
             return 0;
     }
     /* hw_ms.frag: the native surfaces' depth (occlusion) read from its twin. */
-    VkShaderModule vs = vk_shader(vk_spv_hw_vert, vk_spv_hw_vert_size),
-                   fs = vk_shader(vk_spv_hw_ms_frag, vk_spv_hw_ms_frag_size),
-                   fullscreen = vk_shader(vk_spv_fullscreen_vert, vk_spv_fullscreen_vert_size),
-                   load = vk_shader(vk_spv_ms_load_frag, vk_spv_ms_load_frag_size),
-                   depth = vk_shader(vk_spv_ms_depth_frag, vk_spv_ms_depth_frag_size),
-                   resolve = vk_shader(vk_spv_ms_resolve_frag, vk_spv_ms_resolve_frag_size),
-                   sync = vk_shader(vk_spv_ms_sync_frag, vk_spv_ms_sync_frag_size);
+    VkShaderModule vs = VK_SHADER(hw_vert),
+                   fs = VK_SHADER(hw_ms_frag),
+                   fullscreen = VK_SHADER(fullscreen_vert),
+                   load = VK_SHADER(ms_load_frag),
+                   depth = VK_SHADER(ms_depth_frag),
+                   resolve = VK_SHADER(ms_resolve_frag),
+                   sync = VK_SHADER(ms_sync_frag);
     int ok = 1;
     for (int c = 0; c < 2; c++) {
         ms_opaque[c] = target_pipeline_ms(vs, fs, draw_layout, &binding, attributes, 8,

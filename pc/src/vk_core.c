@@ -167,6 +167,7 @@ static VKAPI_ATTR void VKAPI_CALL track_destroy_pipeline(VkDevice device, VkPipe
     real_destroy_pipeline(device, pipeline, allocator);
 }
 extern int pc_engine_reload_request(void) __attribute__((weak)); /* engine_host.c (--engine-library) */
+static void hot_install(void); /* shader hot reload, below */
 /* After the device's entry points are loaded: hand out the tracking ones. */
 static void track_install(void)
 {
@@ -697,6 +698,7 @@ int vk_core_init(const char* const* instance_extensions, uint32_t extension_coun
 #undef LOAD_OPTIONAL
     if (pc_engine_reload_request) /* only where the engine can be reloaded (engine_host.c) */
         track_install();
+    hot_install();
     if (!vkCmdPushDescriptorSetKHR)
         return 0;
     vkGetDeviceQueue(vk.device, vk.queue_family, 0, &vk.queue);
@@ -1448,15 +1450,349 @@ void vk_frame_submit(VkSemaphore wait, VkPipelineStageFlags wait_stage, VkSemaph
     f->chunk_current = 0;
 }
 
+/* ---- shader hot reload ---- */
+
+/* Shader hot reload (shader_reload.cpp; pc/docs/Vulkan_Renderer.md "Hot
+ * reload"): each pipeline made from the renderer's named shaders
+ * (VK_SHADER) keeps its recipe (the description, the stages' names), so a
+ * stage compiled anew replaces the pipelines that use it at a safe point,
+ * between frames, without the passes that own them knowing: the replacement
+ * is bound wherever the original is (vkCmdBindPipeline) and destroyed with
+ * it (vkDestroyPipeline). The original stays alive until then (its handle,
+ * which the passes hold, is never reused meanwhile). Recipes are kept only
+ * where shader sources are there to reload (pc_shader_reload_available);
+ * with nothing replaced, binds go straight through. */
+extern int pc_shader_reload_available(void) __attribute__((weak)); /* shader_reload.cpp */
+typedef struct {
+    VkShaderModule module;
+    const char* name; /* a literal (VK_SHADER's #name) */
+    const uint32_t* code; /* the embedded SPIR-V */
+    size_t bytes;
+    int overridden; /* made from an override, not the embedded code */
+} hot_module;
+typedef struct {
+    VkPipeline original, current; /* current: what is bound in its place (the original when not replaced) */
+    int compute;
+    vk_pipeline_desc desc; /* its arrays are the recipe's own */
+    hot_module stages[3]; /* vertex, geometry, fragment; compute: [0] */
+    int original_builtin; /* the original was made from the built-in code of every stage */
+} hot_recipe;
+static int hot_on = -1; /* -1 not decided, 0 off, 1 recipes kept */
+static hot_module* hot_modules;
+static int hot_module_count, hot_module_capacity;
+static hot_recipe* hot_recipes;
+static int hot_recipe_count, hot_recipe_capacity, hot_replaced;
+static PFN_vkDestroyPipeline hot_real_destroy;
+static PFN_vkCmdBindPipeline hot_real_bind;
+/* Live pipelines and shader modules (made minus destroyed, through the
+ * device's entry points): repeated reloads must leave them as they were. */
+static PFN_vkCreateGraphicsPipelines hot_real_graphics;
+static PFN_vkCreateComputePipelines hot_real_compute;
+static PFN_vkCreateShaderModule hot_real_create_module;
+static PFN_vkDestroyShaderModule hot_real_destroy_module;
+static int hot_live_pipelines, hot_live_modules;
+
+static int hot_enabled(void)
+{
+    if (hot_on < 0)
+        hot_on = pc_shader_reload_available && pc_shader_reload_available();
+    return hot_on;
+}
+/* The named module `module` was made (name NULL: an unnamed one reused the handle). */
+static void hot_name(VkShaderModule module, const char* name, const uint32_t* code, size_t bytes, int overridden)
+{
+    if (!module || !hot_enabled())
+        return;
+    for (int i = 0; i < hot_module_count; i++)
+        if (hot_modules[i].module == module) {
+            if (name)
+                hot_modules[i] = (hot_module){ module, name, code, bytes, overridden };
+            else
+                hot_modules[i] = hot_modules[--hot_module_count];
+            return;
+        }
+    if (!name)
+        return;
+    if (hot_module_count == hot_module_capacity) {
+        /* Modules live only until their pipelines are made: the oldest half goes when full. */
+        if (hot_module_capacity >= 4096) {
+            memmove(hot_modules, hot_modules + 2048, (size_t)(hot_module_count - 2048) * sizeof *hot_modules);
+            hot_module_count -= 2048;
+        } else {
+            int capacity = hot_module_capacity ? hot_module_capacity * 2 : 256;
+            hot_module* grown = realloc(hot_modules, (size_t)capacity * sizeof *grown);
+            if (!grown)
+                return;
+            hot_modules = grown, hot_module_capacity = capacity;
+        }
+    }
+    hot_modules[hot_module_count++] = (hot_module){ module, name, code, bytes, overridden };
+}
+static const hot_module* hot_find_module(VkShaderModule module)
+{
+    for (int i = module ? hot_module_count : 0; i-- > 0;)
+        if (hot_modules[i].module == module)
+            return &hot_modules[i];
+    return NULL;
+}
+static void hot_free_recipe(hot_recipe* r)
+{
+    free((void*)r->desc.binding);
+    free((void*)r->desc.attributes);
+    free((void*)r->desc.color_formats);
+}
+/* `pipeline` was made from `d` (compute: from `compute_module`). */
+static void hot_record(VkPipeline pipeline, const vk_pipeline_desc* d, VkShaderModule compute_module)
+{
+    if (!hot_enabled())
+        return;
+    hot_recipe r = { .original = pipeline, .current = pipeline, .compute = compute_module != VK_NULL_HANDLE, .desc = *d };
+    VkShaderModule modules[3] = { compute_module, VK_NULL_HANDLE, VK_NULL_HANDLE };
+    if (!r.compute)
+        modules[0] = d->vertex, modules[1] = d->geometry, modules[2] = d->fragment;
+    int named = 0;
+    r.original_builtin = 1;
+    for (int i = 0; i < 3; i++) {
+        const hot_module* m = hot_find_module(modules[i]);
+        if (m)
+            r.stages[i] = *m, ++named, r.original_builtin &= !m->overridden;
+        else if (modules[i])
+            return; /* a stage not made by VK_SHADER: never replaced */
+    }
+    if (!named)
+        return;
+    r.desc.vertex = r.desc.geometry = r.desc.fragment = VK_NULL_HANDLE;
+    r.desc.binding = NULL, r.desc.attributes = NULL, r.desc.color_formats = NULL;
+    if (d->binding) {
+        VkVertexInputBindingDescription* binding = malloc(sizeof *binding);
+        VkVertexInputAttributeDescription* attributes = malloc((size_t)(d->attribute_count + 1) * sizeof *attributes);
+        if (!binding || !attributes) {
+            free(binding), free(attributes);
+            return;
+        }
+        *binding = *d->binding;
+        memcpy(attributes, d->attributes, (size_t)d->attribute_count * sizeof *attributes);
+        r.desc.binding = binding, r.desc.attributes = attributes;
+    }
+    if (d->color_count && d->color_formats) {
+        VkFormat* formats = malloc((size_t)d->color_count * sizeof *formats);
+        if (!formats) {
+            hot_free_recipe(&r);
+            return;
+        }
+        memcpy(formats, d->color_formats, (size_t)d->color_count * sizeof *formats);
+        r.desc.color_formats = formats;
+    }
+    if (hot_recipe_count == hot_recipe_capacity) {
+        int capacity = hot_recipe_capacity ? hot_recipe_capacity * 2 : 128;
+        hot_recipe* grown = realloc(hot_recipes, (size_t)capacity * sizeof *grown);
+        if (!grown) {
+            hot_free_recipe(&r);
+            return;
+        }
+        hot_recipes = grown, hot_recipe_capacity = capacity;
+    }
+    hot_recipes[hot_recipe_count++] = r;
+}
+static VKAPI_ATTR void VKAPI_CALL hot_destroy_pipeline(VkDevice device, VkPipeline pipeline,
+    const VkAllocationCallbacks* allocator)
+{
+    for (int i = pipeline ? hot_recipe_count : 0; i-- > 0;)
+        if (hot_recipes[i].original == pipeline) {
+            hot_recipe* r = &hot_recipes[i];
+            if (r->current != r->original) {
+                hot_real_destroy(device, r->current, allocator);
+                --hot_replaced, --hot_live_pipelines;
+            }
+            hot_free_recipe(r);
+            hot_recipes[i] = hot_recipes[--hot_recipe_count];
+            break;
+        }
+    if (pipeline)
+        --hot_live_pipelines;
+    hot_real_destroy(device, pipeline, allocator);
+}
+static VKAPI_ATTR VkResult VKAPI_CALL hot_graphics_pipelines(VkDevice device, VkPipelineCache cache, uint32_t count,
+    const VkGraphicsPipelineCreateInfo* infos, const VkAllocationCallbacks* allocator, VkPipeline* out)
+{
+    VkResult result = hot_real_graphics(device, cache, count, infos, allocator, out);
+    for (uint32_t i = 0; i < count; i++)
+        hot_live_pipelines += out[i] != VK_NULL_HANDLE;
+    return result;
+}
+static VKAPI_ATTR VkResult VKAPI_CALL hot_compute_pipelines(VkDevice device, VkPipelineCache cache, uint32_t count,
+    const VkComputePipelineCreateInfo* infos, const VkAllocationCallbacks* allocator, VkPipeline* out)
+{
+    VkResult result = hot_real_compute(device, cache, count, infos, allocator, out);
+    for (uint32_t i = 0; i < count; i++)
+        hot_live_pipelines += out[i] != VK_NULL_HANDLE;
+    return result;
+}
+static VKAPI_ATTR VkResult VKAPI_CALL hot_create_module(VkDevice device, const VkShaderModuleCreateInfo* info,
+    const VkAllocationCallbacks* allocator, VkShaderModule* out)
+{
+    VkResult result = hot_real_create_module(device, info, allocator, out);
+    hot_live_modules += result == VK_SUCCESS && *out;
+    return result;
+}
+static VKAPI_ATTR void VKAPI_CALL hot_destroy_module(VkDevice device, VkShaderModule module,
+    const VkAllocationCallbacks* allocator)
+{
+    hot_live_modules -= module != VK_NULL_HANDLE;
+    hot_real_destroy_module(device, module, allocator);
+}
+static VKAPI_ATTR void VKAPI_CALL hot_bind_pipeline(VkCommandBuffer cmd, VkPipelineBindPoint point, VkPipeline pipeline)
+{
+    if (hot_replaced)
+        for (int i = 0; i < hot_recipe_count; i++)
+            if (hot_recipes[i].original == pipeline) {
+                pipeline = hot_recipes[i].current;
+                break;
+            }
+    hot_real_bind(cmd, point, pipeline);
+}
+static void hot_install(void)
+{
+    if (!hot_enabled() || hot_real_bind)
+        return;
+    hot_real_destroy = vkDestroyPipeline, vkDestroyPipeline = hot_destroy_pipeline;
+    hot_real_bind = vkCmdBindPipeline, vkCmdBindPipeline = hot_bind_pipeline;
+    hot_real_graphics = vkCreateGraphicsPipelines, vkCreateGraphicsPipelines = hot_graphics_pipelines;
+    hot_real_compute = vkCreateComputePipelines, vkCreateComputePipelines = hot_compute_pipelines;
+    hot_real_create_module = vkCreateShaderModule, vkCreateShaderModule = hot_create_module;
+    hot_real_destroy_module = vkDestroyShaderModule, vkDestroyShaderModule = hot_destroy_module;
+}
+static int hot_uses(const hot_recipe* r, const char* const* names, int count)
+{
+    for (int s = 0; s < 3; s++)
+        for (int n = 0; r->stages[s].name && n < count; n++)
+            if (!strcmp(r->stages[s].name, names[n]))
+                return 1;
+    return 0;
+}
+static VkShaderModule make_module(const uint32_t* code, size_t bytes);
+static VkPipeline create_graphics(const vk_pipeline_desc* d);
+static VkPipeline create_compute(VkShaderModule module, VkPipelineLayout layout);
+int vk_pipelines_rebuild(const char* const* names, int count, char* error, int size)
+{
+    if (error && size)
+        *error = 0;
+    if (!vk.device || !hot_on || !hot_real_bind)
+        return 0;
+    int wanted = 0;
+    for (int i = 0; i < hot_recipe_count; i++)
+        wanted += hot_uses(&hot_recipes[i], names, count);
+    if (!wanted)
+        return 0;
+    VkPipeline* made = calloc((size_t)hot_recipe_count, sizeof *made);
+    if (!made) {
+        snprintf(error, (size_t)size, "out of memory");
+        return -1;
+    }
+    /* Every replacement made first: one that fails leaves all as they were. */
+    int failed = 0;
+    for (int i = 0; i < hot_recipe_count && !failed; i++) {
+        hot_recipe* r = &hot_recipes[i];
+        if (!hot_uses(r, names, count))
+            continue;
+        /* Every stage back to its built-in code: the original pipeline again, when it was made from it. */
+        int builtin = r->original_builtin;
+        for (int s = 0; s < 3 && builtin; s++)
+            if (r->stages[s].name) {
+                size_t bytes = r->stages[s].bytes;
+                builtin = vk_shader_code(r->stages[s].name, r->stages[s].code, &bytes) == r->stages[s].code;
+            }
+        if (builtin) {
+            made[i] = r->original;
+            continue;
+        }
+        VkShaderModule modules[3] = { 0 };
+        for (int s = 0; s < 3; s++)
+            if (r->stages[s].name) {
+                size_t bytes = r->stages[s].bytes;
+                const uint32_t* code = vk_shader_code(r->stages[s].name, r->stages[s].code, &bytes);
+                modules[s] = make_module(code, bytes);
+                failed |= !modules[s];
+            }
+        if (!failed) {
+            vk_pipeline_desc d = r->desc;
+            d.vertex = modules[0], d.geometry = modules[1], d.fragment = modules[2];
+            made[i] = r->compute ? create_compute(modules[0], d.layout) : create_graphics(&d);
+            failed |= !made[i];
+            if (failed)
+                snprintf(error, (size_t)size, "the pipeline of %s%s%s could not be made", r->stages[0].name ? r->stages[0].name : "",
+                    r->stages[2].name ? " " : "", r->stages[2].name ? r->stages[2].name : "");
+        } else
+            snprintf(error, (size_t)size, "a shader module could not be made");
+        for (int s = 0; s < 3; s++)
+            if (modules[s])
+                vkDestroyShaderModule(vk.device, modules[s], NULL);
+    }
+    /* Between frames, and nothing in flight uses what is replaced. */
+    vkDeviceWaitIdle(vk.device);
+    int rebuilt = 0;
+    for (int i = 0; i < hot_recipe_count; i++) {
+        if (!made[i])
+            continue;
+        hot_recipe* r = &hot_recipes[i];
+        if (failed) {
+            if (made[i] != r->original) {
+                hot_real_destroy(vk.device, made[i], NULL);
+                --hot_live_pipelines;
+            }
+            continue;
+        }
+        if (r->current != r->original) {
+            hot_real_destroy(vk.device, r->current, NULL);
+            --hot_live_pipelines, --hot_replaced;
+        }
+        hot_replaced += made[i] != r->original;
+        r->current = made[i];
+        ++rebuilt;
+    }
+    free(made);
+    fprintf(stderr, "[vk] shader hot reload: %d pipeline%s made again (%s%s)\n", rebuilt, rebuilt == 1 ? "" : "s",
+        count ? names[0] : "", count > 1 ? ", ..." : "");
+    return failed ? -1 : rebuilt;
+}
+void vk_pipelines_hot_counts(int* recipes, int* replaced, int* live_pipelines, int* live_modules)
+{
+    *recipes = hot_recipe_count;
+    *replaced = hot_replaced;
+    *live_pipelines = hot_live_pipelines;
+    *live_modules = hot_live_modules;
+}
+int vk_is_recording(void) { return recording; }
+
 /* ---- pipelines ---- */
 
-VkShaderModule vk_shader(const uint32_t* code, size_t bytes)
+static VkShaderModule make_module(const uint32_t* code, size_t bytes)
 {
     VkShaderModuleCreateInfo info = { .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = bytes,
         .pCode = code };
     VkShaderModule module = VK_NULL_HANDLE;
     vk_check(vkCreateShaderModule(vk.device, &info, NULL, &module), "vkCreateShaderModule");
+    return module;
+}
+VkShaderModule vk_shader(const uint32_t* code, size_t bytes)
+{
+    VkShaderModule module = make_module(code, bytes);
+    hot_name(module, NULL, NULL, 0, 0); /* a handle reused: no longer a named shader's */
+    return module;
+}
+VkShaderModule vk_shader_named(const char* name, const uint32_t* code, size_t bytes)
+{
+    size_t used = bytes;
+    const uint32_t* chosen = vk_shader_code(name, code, &used);
+    VkShaderModule module = make_module(chosen, used);
+    if (!module && chosen != code) {
+        /* An override the device refuses: the built-in code (the pass keeps working). */
+        fprintf(stderr, "[vk] shader hot reload: %s refused by the device; the built-in code instead\n", name);
+        chosen = code;
+        module = make_module(code, bytes);
+    }
+    hot_name(module, name, code, bytes, chosen != code);
     return module;
 }
 VkDescriptorSetLayout vk_push_layout(const VkDescriptorType* types, int count)
@@ -1513,7 +1849,7 @@ static VkPipelineColorBlendAttachmentState blend_state(int blend, unsigned mask)
     }
     return s;
 }
-VkPipeline vk_pipeline(const vk_pipeline_desc* d)
+static VkPipeline create_graphics(const vk_pipeline_desc* d)
 {
     VkPipelineShaderStageCreateInfo stages[3];
     int stage_count = 0;
@@ -1599,7 +1935,7 @@ VkPipeline vk_pipeline(const vk_pipeline_desc* d)
     vk_pipeline_cache_note(SDL_GetTicksNS() - start);
     return pipeline;
 }
-VkPipeline vk_compute_pipeline(VkShaderModule module, VkPipelineLayout layout)
+static VkPipeline create_compute(VkShaderModule module, VkPipelineLayout layout)
 {
     VkComputePipelineCreateInfo info = { .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
         .stage = { .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -1612,6 +1948,74 @@ VkPipeline vk_compute_pipeline(VkShaderModule module, VkPipelineLayout layout)
     vk_check(vkCreateComputePipelines(vk.device, vk.pipeline_cache, 1, &info, NULL, &pipeline),
         "vkCreateComputePipelines");
     vk_pipeline_cache_note(SDL_GetTicksNS() - start);
+    return pipeline;
+}
+/* A pipeline that fails with an overridden stage is made again from the
+ * built-in code of its stages: a pass made lazily (brightness, MSAA) never
+ * disables itself for an edited shader. Returns the replacement modules
+ * made (to destroy after), or 0. */
+static int hot_fallback(VkShaderModule* modules, int count)
+{
+    int any = 0;
+    for (int i = 0; i < count; i++) {
+        const hot_module* m = hot_find_module(modules[i]);
+        any |= m && m->overridden;
+    }
+    if (!any)
+        return 0;
+    for (int i = 0; i < count; i++) {
+        const hot_module* m = hot_find_module(modules[i]);
+        if (!m)
+            continue;
+        hot_module named = *m;
+        modules[i] = make_module(named.code, named.bytes);
+        hot_name(modules[i], named.name, named.code, named.bytes, 0);
+        fprintf(stderr, "[vk] shader hot reload: a pipeline with %s failed; made from the built-in code\n", named.name);
+    }
+    return 1;
+}
+VkPipeline vk_pipeline(const vk_pipeline_desc* d)
+{
+    VkPipeline pipeline = create_graphics(d);
+    if (!pipeline && hot_on > 0) {
+        VkShaderModule given[3] = { d->vertex, d->geometry, d->fragment }, modules[3] = { d->vertex, d->geometry,
+            d->fragment };
+        if (hot_fallback(modules, 3)) {
+            vk_pipeline_desc built_in = *d;
+            built_in.vertex = modules[0], built_in.geometry = modules[1], built_in.fragment = modules[2];
+            pipeline = create_graphics(&built_in);
+            if (pipeline)
+                hot_record(pipeline, &built_in, VK_NULL_HANDLE);
+            for (int i = 0; i < 3; i++)
+                if (modules[i] && modules[i] != given[i])
+                    vkDestroyShaderModule(vk.device, modules[i], NULL);
+            return pipeline;
+        }
+    }
+    if (pipeline)
+        hot_record(pipeline, d, VK_NULL_HANDLE);
+    return pipeline;
+}
+VkPipeline vk_compute_pipeline(VkShaderModule module, VkPipelineLayout layout)
+{
+    VkPipeline pipeline = create_compute(module, layout);
+    if (!pipeline && hot_on > 0) {
+        VkShaderModule built_in = module;
+        if (hot_fallback(&built_in, 1)) {
+            pipeline = create_compute(built_in, layout);
+            if (pipeline) {
+                vk_pipeline_desc d = { .layout = layout };
+                hot_record(pipeline, &d, built_in);
+            }
+            if (built_in != module)
+                vkDestroyShaderModule(vk.device, built_in, NULL);
+            return pipeline;
+        }
+    }
+    if (pipeline) {
+        vk_pipeline_desc d = { .layout = layout };
+        hot_record(pipeline, &d, module);
+    }
     return pipeline;
 }
 

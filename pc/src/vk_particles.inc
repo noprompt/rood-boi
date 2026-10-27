@@ -28,11 +28,11 @@ static int vpt_init(void)
     VkDescriptorType rt[10] = { U, A, B, T, B, S, S, U, U, B }; /* rt_common.glsl: 1 tlas, 2 tris, 3 vram, 9 movers */
     vpt.set = vk_push_layout(plain, 7);
     vpt.layout = vrt_layout(vpt.set, 0);
-    vpt.plain = vrt_compute(vk_spv_particles_comp, vk_spv_particles_comp_size, vpt.layout);
+    vpt.plain = vrt_compute(VK_SHADER(particles_comp), vpt.layout);
     if (vk.ray_query) {
         vpt.rt_set = vk_push_layout(rt, 10);
         vpt.rt_layout = vrt_layout(vpt.rt_set, 0);
-        vpt.rt = vrt_compute(vk_spv_particles_rt_comp, vk_spv_particles_rt_comp_size, vpt.rt_layout);
+        vpt.rt = vrt_compute(VK_SHADER(particles_rt_comp), vpt.rt_layout);
     }
     VkImageUsageFlags usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
         | VK_IMAGE_USAGE_TRANSFER_DST_BIT;

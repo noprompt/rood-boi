@@ -3698,6 +3698,26 @@ static void handle_method(int fd, const char* request)
             return;
         }
         reply(fd, id, result);
+    } else if (!strcmp(method, "shaders")) {
+        /* Shader hot reload (shader_reload.cpp): status, reload, reset. */
+        extern int pc_shader_reload_rpc(const char* params, char* out, int size) __attribute__((weak));
+        if (!pc_shader_reload_rpc) {
+            fail(fd, id, -32000, "shaders needs the Vulkan renderer's build (64-bit)");
+            return;
+        }
+        static char args[LINE_MAX_BYTES];
+        const char* end = params ? value_end(params) : NULL;
+        if (params && end && (size_t)(end - params) < sizeof args) {
+            memcpy(args, params, (size_t)(end - params));
+            args[end - params] = 0;
+        } else {
+            strcpy(args, "{}");
+        }
+        if (pc_shader_reload_rpc(args, result, sizeof result) < 0) {
+            fail(fd, id, -32000, result);
+            return;
+        }
+        reply(fd, id, result);
     } else if (!strcmp(method, "material_review")) {
         /* The Material review (material_review.cpp parses the params object). */
         extern int pc_material_review_rpc(const char* params, char* out, int size) __attribute__((weak));
@@ -5076,7 +5096,11 @@ static void poll_requests(void)
                  * the picture: drawn again (a paused game draws no frame). */
                 extern int pc_material_review_redraw(void) __attribute__((weak));
                 extern int pc_hw_redraw_present(void) __attribute__((weak));
-                if (pc_material_review_redraw && pc_material_review_redraw() && pc_hw_redraw_present)
+                /* So does a shader hot reload (shader_reload.cpp). */
+                extern int pc_shader_reload_redraw(void) __attribute__((weak));
+                int review = pc_material_review_redraw && pc_material_review_redraw();
+                int shaders = pc_shader_reload_redraw && pc_shader_reload_redraw();
+                if ((review || shaders) && pc_hw_redraw_present)
                     pc_hw_redraw_present();
                 pc_window_redraw();
             }

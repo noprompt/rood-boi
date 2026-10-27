@@ -58,12 +58,12 @@ static int probe_vk_init(void)
     VkDescriptorType types[18] = { U, pvk.bvh ? B : A, B, T, S, S, S, S, B, B, B, B, U, T, T, T, T, T };
     pvk.set = vk_push_layout(types, 18);
     pvk.layout = vrt_layout(pvk.set, 0);
-    pvk.trace = pvk.bvh ? vrt_compute(vk_spv_probe_trace_bvh_comp, vk_spv_probe_trace_bvh_comp_size, pvk.layout)
-                        : vrt_compute(vk_spv_probe_trace_rq_comp, vk_spv_probe_trace_rq_comp_size, pvk.layout);
-    pvk.blend = vrt_compute(vk_spv_probe_blend_comp, vk_spv_probe_blend_comp_size, pvk.layout);
-    pvk.apply = vrt_compute(vk_spv_probe_apply_comp, vk_spv_probe_apply_comp_size, pvk.layout);
-    pvk.surface = vrt_compute(vk_spv_probe_surface_comp, vk_spv_probe_surface_comp_size, pvk.layout);
-    pvk.status = vrt_compute(vk_spv_probe_state_comp, vk_spv_probe_state_comp_size, pvk.layout);
+    pvk.trace = pvk.bvh ? vrt_compute(VK_SHADER(probe_trace_bvh_comp), pvk.layout)
+                        : vrt_compute(VK_SHADER(probe_trace_rq_comp), pvk.layout);
+    pvk.blend = vrt_compute(VK_SHADER(probe_blend_comp), pvk.layout);
+    pvk.apply = vrt_compute(VK_SHADER(probe_apply_comp), pvk.layout);
+    pvk.surface = vrt_compute(VK_SHADER(probe_surface_comp), pvk.layout);
+    pvk.status = vrt_compute(VK_SHADER(probe_state_comp), pvk.layout);
     if (!pvk.trace || !pvk.blend || !pvk.status || !pvk.apply || !pvk.surface) {
         fprintf(stderr, "[gi] probe GI: Vulkan pipelines failed\n");
         return 0;

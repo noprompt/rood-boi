@@ -87,6 +87,7 @@ def main():
         ("ImGuizmo.txt", "pc/third_party/ImGuizmo/LICENSE"),
         ("lua.txt", "pc/third_party/lua/LICENSE"),
         ("smaa.txt", "pc/third_party/smaa/LICENSE.txt"),
+        ("glslang.txt", "pc/third_party/glslang/LICENSE.txt"),  # linked for shader hot reload
         ("psycross.txt", "pc/third_party/psycross/LICENSE"),
         ("psycross-audio.txt", "pc/third_party/psycross-audio/LICENSE"),
         ("NRD.txt", f"{nrd_entry}/_deps/nrd-src/LICENSE.txt"),

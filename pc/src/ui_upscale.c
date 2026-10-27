@@ -422,7 +422,7 @@ static int make_atlas(int factor)
                 .pushConstantRangeCount = 1,
                 .pPushConstantRanges = &range };
             if (vk_check(vkCreatePipelineLayout(vk.device, &info, NULL, &vk_layout), "vkCreatePipelineLayout")) {
-                VkShaderModule cs = vk_shader(vk_spv_ui_mmpx_comp, vk_spv_ui_mmpx_comp_size);
+                VkShaderModule cs = VK_SHADER(ui_mmpx_comp);
                 vk_pipe = vk_compute_pipeline(cs, vk_layout);
                 vkDestroyShaderModule(vk.device, cs, NULL);
             }
