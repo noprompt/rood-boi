@@ -798,7 +798,10 @@ struct Highlight {
     int w = 0, h = 0;
     float rgb[3] = { 1, 0.3f, 1 };
     float strength = 0;
+    bool flat = false;
+    float dim = 0, grey = 0; /* Isolate (set_isolate): what everything else loses */
     int cells = 0;
+    bool on() const { return !clut.empty() || !key.empty(); }
 } highlight;
 
 /* Native meshes the scopes know (room_native.c, actor_native.c): a mesh of
@@ -1003,12 +1006,16 @@ static void write_params(float strength)
         s[13] = (uint8_t)slot_scope_bit[i + 1]; /* 0: everywhere marked; else bit + 1 (emissive.glsl) */
         memcpy(s + 16, e.mask.indices, 32);
     }
-    if (!highlight.clut.empty() || !highlight.key.empty()) { /* not a light, no filters, everywhere */
+    if (highlight.on()) { /* not a light, no filters, everywhere */
         uint8_t* s = p + HIGHLIGHT_SLOT * 64;
         for (int k = 0; k < 3; k++)
             s[k] = (uint8_t)std::clamp((int)lroundf(highlight.rgb[k] * 255.0f), 0, 255);
         s[3] = (uint8_t)std::clamp((int)lroundf(std::clamp(highlight.strength, 0.0f, 4.0f) * 63.75f), 0, 255);
         s[8] = s[9] = s[7] = 31, s[11] = 255;
+        s[12] = highlight.flat ? 8 : 0; /* 8: the tint itself, not the texel's colour x the tint */
+        /* Isolate (emissive.glsl emissive_apply): every other texel dimmed, greyed. */
+        s[14] = (uint8_t)std::clamp((int)lroundf(highlight.dim * 255.0f), 0, 255);
+        s[15] = (uint8_t)std::clamp((int)lroundf(highlight.grey * 255.0f), 0, 255);
     }
 }
 /* Which entries are marked in this room, and the scope bits of those limited
@@ -1057,12 +1064,11 @@ static void write_marks()
     current_room(&scope_zone, &scope_room);
     std::vector<char> active;
     assign_scopes(active);
-    if (!marks_on)
-        return; /* the setting is 0: nothing glows (matches are kept) */
-    /* Entry order: a later entry wins where two cover the same texel. */
+    /* The setting 0: no entry glows (matches are kept); the review's
+     * highlight is marked all the same (it is not a glow). */
     std::vector<const Use*> order;
     for (auto& kv : uses)
-        if (kv.second.entry >= 0 && kv.second.entry < (int)active.size() && active[(size_t)kv.second.entry])
+        if (marks_on && kv.second.entry >= 0 && kv.second.entry < (int)active.size() && active[(size_t)kv.second.entry])
             order.push_back(&kv.second);
     std::sort(order.begin(), order.end(), [](const Use* a, const Use* b) {
         return a->entry != b->entry ? a->entry < b->entry
@@ -1110,7 +1116,7 @@ static void write_marks()
             }
     }
     any_marks = marked_uses > 0;
-    if (highlight.clut.empty() && highlight.key.empty())
+    if (!highlight.on())
         return;
     for (auto& kv : uses) {
         Use& u = kv.second;
@@ -1138,21 +1144,83 @@ static void write_marks()
     }
     any_marks |= highlight.cells > 0;
 }
-void set_highlight(const std::string& clut, const std::string& key, int w, int h, const float rgb[3], float strength)
+void set_highlight(const std::string& clut, const std::string& key, int w, int h, const float rgb[3], float strength,
+    bool flat)
 {
     if (clut != highlight.clut || key != highlight.key || w != highlight.w || h != highlight.h)
         marks_changed = true;
     for (int k = 0; k < 3; k++)
         if (rgb[k] != highlight.rgb[k])
             params_changed = true;
-    if (strength != highlight.strength)
+    if (strength != highlight.strength || flat != highlight.flat)
         params_changed = true;
     highlight.clut = clut, highlight.key = key, highlight.w = w, highlight.h = h;
     for (int k = 0; k < 3; k++)
         highlight.rgb[k] = rgb[k];
     highlight.strength = strength;
+    highlight.flat = flat;
+}
+void set_isolate(float dim, float grey)
+{
+    if (dim != highlight.dim || grey != highlight.grey)
+        params_changed = true;
+    highlight.dim = dim, highlight.grey = grey;
 }
 int highlight_cells() { return highlight.cells; }
+
+/* The Material review's Focus: the captured room's triangles drawn with the
+ * palette (its CLUT's colours, any texture) or with the 15-bit texture `key`
+ * of w x h (a drawn use with that content key whose UV box holds the
+ * triangle's UVs). */
+std::vector<std::array<float, 9>> texture_triangles(const std::string& clut, const std::string& key, int w, int h)
+{
+    std::vector<std::array<float, 9>> out;
+    if (clut.empty() && key.empty())
+        return out;
+    std::unordered_map<uint32_t, bool> palette; /* tpage & 0x19f << 16 | clut: its CLUT is the palette */
+    std::unordered_map<uint32_t, std::vector<std::array<uint8_t, 4>>> boxes; /* the same: the texture's UV boxes */
+    if (clut.empty())
+        for (auto& kv : uses) {
+            Use& u = kv.second;
+            if (u.box[2] - u.box[0] + 1 != w || u.box[3] - u.box[1] + 1 != h)
+                continue;
+            if (u.key.empty())
+                u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
+            if (u.key == key)
+                boxes[(uint32_t)u.page << 16 | u.clut].push_back({ u.box[0], u.box[1], u.box[2], u.box[3] });
+        }
+    int count = 0;
+    const scene_triangle* tris = pc_scene_triangle_data(&count);
+    for (int i = 0; i < count; i++) {
+        const scene_triangle* t = &tris[i];
+        if (!(t->code & 4))
+            continue; /* untextured */
+        uint32_t id = (uint32_t)(t->tpage & 0x19f) << 16 | t->clut;
+        if (!clut.empty()) {
+            auto found = palette.find(id);
+            if (found == palette.end())
+                found = palette.emplace(id, clut_key(t->tpage & 0x19f, t->clut) == clut).first;
+            if (!found->second)
+                continue;
+        } else {
+            auto found = boxes.find(id);
+            if (found == boxes.end())
+                continue;
+            float cu = (t->vertex[0].u + t->vertex[1].u + t->vertex[2].u) / 3.0f;
+            float cv = (t->vertex[0].v + t->vertex[1].v + t->vertex[2].v) / 3.0f;
+            bool inside = false;
+            for (const auto& b : found->second)
+                inside |= cu >= b[0] && cu <= b[2] + 1 && cv >= b[1] && cv <= b[3] + 1;
+            if (!inside)
+                continue;
+        }
+        std::array<float, 9> w9;
+        for (int j = 0; j < 3; j++)
+            memcpy(&w9[(size_t)j * 3], t->vertex[j].position, sizeof(float) * 3);
+        out.push_back(w9);
+    }
+    return out;
+}
 /* The VRAM a use's keys read (Use::seen), visited as runs of halfwords:
  * the rows of its texels, then the CLUT (16 or 256 entries; none at 16 bits). */
 template <typename F> static void use_vram(const Use& u, F run)
@@ -1662,7 +1730,7 @@ extern "C" int pc_emissive_sync(int* row0, int* row1)
     marks_changed = params_changed = false;
     *row0 = dirty_row0, *row1 = dirty_row1;
     dirty_row0 = PC_EMISSIVE_MAP_H, dirty_row1 = 0;
-    return any_marks && strength > 0;
+    return any_marks && (strength > 0 || highlight.cells > 0);
 }
 extern "C" const uint8_t* pc_emissive_map(void) { return the_map.data(); }
 extern "C" int pc_emissive_pending(void)

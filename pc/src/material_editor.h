@@ -17,5 +17,11 @@ extern bool pc_material_review_open;
 void pc_material_review_window(void);
 void pc_material_review_frame(void); /* every overlay frame: the preview and the highlight follow the window */
 int pc_material_review_rpc(const char* params, char* out, int size);
+/* Its window has the keyboard (focused, nothing typed): its keys win over
+ * the editor's H, F and Ctrl+Z. */
+int pc_material_review_keys(void);
+/* A paused game's picture must be drawn again (dev_rpc.c's paused loop): the
+ * highlight, Isolate or the preview changed since it was drawn. */
+int pc_material_review_redraw(void);
 }
 #endif

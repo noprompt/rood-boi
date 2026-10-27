@@ -2054,10 +2054,8 @@ static const char* fragment_source =
     "        albedo = texel / 31.0;\n"
     "        shade = (code & 1u) != 0u ? vec4(vec3(128.0 / 255.0), 1.0) : vec4(v_color, 1.0);\n"
     /* Emissive texels (emissive.glsl): never darkened; the shade carries the emission. */
-    "        if (emissive_on != 0) {\n"
-    "            vec3 em = emissive_texel(at.x & 255u, at.y & 255u, tpage, window, t, v_state.w >> 16);\n"
-    "            if (any(greaterThan(em, vec3(0.0)))) { c = max(c, min(em, vec3(1.0))); shade = vec4(min(em * 0.5, vec3(1.0)), 0.25); }\n"
-    "        }\n"
+    "        if (emissive_on != 0)\n"
+    "            emissive_apply(at.x & 255u, at.y & 255u, tpage, window, t, v_state.w >> 16, c, albedo, shade);\n"
     "    }\n"
     "    if ((semi_pass == 1 && semi) || (semi_pass == 2 && !semi)) discard;\n"
     "    uint occl_blend = (tpage >> 5) & 3u;\n" /* additive light (B + F, B + F/4) hides nothing: never faded */

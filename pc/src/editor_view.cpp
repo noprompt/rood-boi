@@ -960,6 +960,7 @@ extern "C" int pc_editor_pick(float x, float y, float world[3], float normal[3])
 }
 
 extern "C" int pc_editor_handle_drag(void); /* editor_handles.cpp: a handle is dragged (Alt keeps a rect symmetric) */
+extern "C" int pc_material_review_keys(void); /* material_review.cpp: its window has the keyboard */
 /* Camera input (called each overlay frame while the editor is active). */
 extern "C" void pc_editor_input(void)
 {
@@ -1023,8 +1024,9 @@ extern "C" void pc_editor_input(void)
         }
     }
     float focus[3], radius;
-    if (!typing && !ImGui::IsAnyItemActive() && !io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_F, false)
-        && pc_lights_selected_position(focus, &radius)) {
+    /* (the Material review's window, when it has the keyboard, takes F for its own Focus) */
+    if (!typing && !ImGui::IsAnyItemActive() && !io.KeyCtrl && !pc_material_review_keys()
+        && ImGui::IsKeyPressed(ImGuiKey_F, false) && pc_lights_selected_position(focus, &radius)) {
         float distance = fmaxf(radius * 1.2f, 300);
         memcpy(pivot, focus, sizeof pivot);
         for (int k = 0; k < 3; k++)
@@ -1288,6 +1290,27 @@ extern "C" void pc_editor_grid(void)
     ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
     ImGuizmo::SetRect(last_rect[0], last_rect[1], last_rect[2], last_rect[3]);
     ImGuizmo::DrawGrid(last_view, last_projection, grid, 64.0f);
+}
+
+/* The Material review's Focus: the free camera (turned on) at `from`,
+ * looking at `at`, which becomes the orbit's pivot. Returns its vertical
+ * field of view (degrees) when `from` is NULL (nothing moves). */
+extern "C" float pc_editor_look_at(const float from[3], const float at[3])
+{
+    if (!from)
+        return fov_y;
+    if (!active)
+        pc_editor_toggle();
+    float d[3] = { at[0] - from[0], at[1] - from[1], at[2] - from[2] };
+    float l = sqrtf(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+    if (l < 1e-3f)
+        return fov_y;
+    memcpy(eye, from, sizeof eye);
+    memcpy(pivot, at, sizeof pivot);
+    yaw = atan2f(d[0], d[2]);
+    pitch = asinf(fmaxf(-1.0f, fminf(1.0f, -d[1] / l)));
+    pitch = pitch > 1.55f ? 1.55f : pitch < -1.55f ? -1.55f : pitch;
+    return fov_y;
 }
 
 /* RPC editor_camera: read or set the free camera (world units, degrees);

@@ -2212,8 +2212,11 @@ static void editor_shortcuts()
         else
             save_area();
     }
+    /* The Material review's window, when it has the keyboard, takes Ctrl+Z
+     * (its decisions' undo) and H (its highlight). */
+    bool review = pc_material_review_keys();
     /* Undo: Ctrl+Z; redo: Ctrl+Y or Ctrl+Shift+Z (held: repeats). */
-    if (io.KeyCtrl && !io.KeyAlt) {
+    if (io.KeyCtrl && !io.KeyAlt && !review) {
         if (ImGui::IsKeyPressed(ImGuiKey_Z, true))
             io.KeyShift ? pc_undo_redo() : pc_undo_undo();
         else if (ImGui::IsKeyPressed(ImGuiKey_Y, true))
@@ -2226,7 +2229,7 @@ static void editor_shortcuts()
         rood_scene::delete_selection();
     /* Hiding, wherever the pointer is (editor state, never saved in the room):
      * H the selection, Shift+H everything else, Ctrl+H shows everything. */
-    if (!io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_H, false)) {
+    if (!io.KeyAlt && !review && ImGui::IsKeyPressed(ImGuiKey_H, false)) {
         if (io.KeyCtrl)
             rood_scene::unhide_all();
         else if (io.KeyShift)

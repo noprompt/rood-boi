@@ -11,10 +11,13 @@
 //  - rows 512-515: per slot 64 parameter bytes (slot s at byte s * 64):
 //    0-2 tint, 3 strength x 63.75 (the setting folded in), 4-6 / 7-9 colour
 //    range (5-bit), 10-11 luminance range x 255, 12 flags (1 CLUT index set,
-//    2 colour range, 4 a light), 13 scope: 0 everywhere the cells are
+//    2 colour range, 4 a light, 8 flat: the tint itself, not the texel's
+//    colour x the tint), 13 scope: 0 everywhere the cells are
 //    marked, else bit + 1 of the polygon's scope bits that must be set (the
 //    entry is limited to some surfaces or models: emissive.cpp
-//    render_mesh_emissive_scope), 16-47 the index set (256 bits).
+//    render_mesh_emissive_scope), 16-47 the index set (256 bits). The last
+//    slot (255) is the Material review's highlight; its bytes 14-15 are
+//    Isolate's (emissive_apply): every other texel's dimming and greying x 255.
 //  - rows 516-1027: per cell its amount (a painted map's value, else 255),
 //    the emission's factor / 255.
 // Texels the shapes cover still pass the slot's filters here, per drawn
@@ -47,7 +50,7 @@ vec3 emissive_texel(uint u, uint v, uint tpage, uint win, uint t, uint scope)
         if (((em_param(s, 16u + (index >> 3)) >> (index & 7u)) & 1u) == 0u)
             return vec3(0.0);
     }
-    uvec3 c = uvec3(t & 31u, (t >> 5) & 31u, (t >> 10) & 31u);
+    uvec3 c = (flags & 8u) != 0u ? uvec3(31u) : uvec3(t & 31u, (t >> 5) & 31u, (t >> 10) & 31u);
     if ((flags & 2u) != 0u) {
         uvec3 lo = uvec3(em_param(s, 4u), em_param(s, 5u), em_param(s, 6u));
         uvec3 hi = uvec3(em_param(s, 7u), em_param(s, 8u), em_param(s, 9u));
@@ -60,5 +63,34 @@ vec3 emissive_texel(uint u, uint v, uint tpage, uint win, uint t, uint scope)
     vec3 tint = vec3(em_param(s, 0u), em_param(s, 1u), em_param(s, 2u)) / 255.0;
     float amount = float(texelFetch(emissive_map, ivec2((tx * 4 + int(u << depth)) & 4095, 516 + ty + int(v)), 0).r) / 255.0;
     return vec3(c) / 31.0 * tint * (float(em_param(s, 3u)) / 63.75 * amount);
+}
+// The slot of texel (u, v) of `tpage` (0: none), as emissive_texel reads it.
+uint emissive_slot(uint u, uint v, uint tpage, uint win)
+{
+    uint mx = (win & 31u) * 8u, my = ((win >> 5) & 31u) * 8u;
+    u = ((u & ~mx) | ((((win >> 10) & 31u) * 8u) & mx)) & 255u;
+    v = ((v & ~my) | ((((win >> 15) & 31u) * 8u) & my)) & 255u;
+    int tx = int(tpage & 15u) * 64, ty = int((tpage >> 4) & 1u) * 256;
+    uint depth = min((tpage >> 7) & 3u, 2u);
+    return texelFetch(emissive_map, ivec2((tx * 4 + int(u << depth)) & 4095, ty + int(v)), 0).r;
+}
+// A lit texel's emission (emissive_texel: never darkened; the G-buffer's
+// shade carries it, a 0.25, rgb / 2), then the Material review's Isolate:
+// every texel outside the highlight (slot 255) dimmed and greyed (its
+// bytes 14, 15), the colour and the albedo the lighting starts from alike.
+void emissive_apply(uint u, uint v, uint tpage, uint win, uint t, uint scope, inout vec3 c, inout vec3 albedo,
+    inout vec4 shade)
+{
+    vec3 em = emissive_texel(u, v, tpage, win, t, scope);
+    if (any(greaterThan(em, vec3(0.0)))) { c = max(c, min(em, vec3(1.0))); shade = vec4(min(em * 0.5, vec3(1.0)), 0.25); }
+    uint dim = em_param(255u, 14u), grey = em_param(255u, 15u);
+    if (dim + grey == 0u || emissive_slot(u, v, tpage, win) == 255u)
+        return;
+    float keep = 1.0 - float(dim) / 255.0, g = float(grey) / 255.0;
+    const vec3 luma = vec3(0.299, 0.587, 0.114);
+    c = mix(c, vec3(dot(c, luma)), g) * keep;
+    albedo = mix(albedo, vec3(dot(albedo, luma)), g) * keep;
+    if (abs(shade.a - 0.25) < 0.05)
+        shade.rgb *= keep; /* (another glow) */
 }
 #endif

@@ -5071,8 +5071,15 @@ static void poll_requests(void)
             /* An armed present_dump burst takes stepped presents only: paused
              * redraws (as many as the wall clock allows between RPC calls)
              * would put repeated images into it. */
-            if (!&pc_present_burst || pc_present_burst <= 0)
+            if (!&pc_present_burst || pc_present_burst <= 0) {
+                /* The Material review's highlight, Isolate and preview change
+                 * the picture: drawn again (a paused game draws no frame). */
+                extern int pc_material_review_redraw(void) __attribute__((weak));
+                extern int pc_hw_redraw_present(void) __attribute__((weak));
+                if (pc_material_review_redraw && pc_material_review_redraw() && pc_hw_redraw_present)
+                    pc_hw_redraw_present();
                 pc_window_redraw();
+            }
             now = rpc_now_ms();
             next_redraw = now + paused_redraw_ms();
         }

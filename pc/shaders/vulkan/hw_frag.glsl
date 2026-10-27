@@ -109,8 +109,7 @@ void main() {
         // darkened; the G-buffer's shade carries the emission (a 0.25, rgb / 2).
         if (pc.emissive != 0 && v_normal.w > 0.5 && (flags & 16u) == 0u) {
             ivec2 eq = ivec2(floor(v_uv + 0.0001));
-            vec3 em = emissive_texel(uint(eq.x) & 255u, uint(eq.y) & 255u, tpage, win, t, 0u); // (no scope bits: packets)
-            if (any(greaterThan(em, vec3(0.0)))) { c = max(c, min(em, vec3(1.0))); shade = vec4(min(em * 0.5, vec3(1.0)), 0.25); }
+            emissive_apply(uint(eq.x) & 255u, uint(eq.y) & 255u, tpage, win, t, 0u, c, albedo, shade); // (no scope bits: packets)
         }
         if (pc.materials != 0 && v_normal.w > 0.5 && (flags & 16u) == 0u) {
             ivec2 mq = ivec2(floor(v_uv + 0.0001));

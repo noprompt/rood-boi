@@ -277,32 +277,70 @@ The proposals are judged where they are drawn: **Window > Material review**
 `pc/build/material_rollout/proposals.json` (the path field and **Load** take
 another; `$ROOD_MATERIAL_REVIEW` sets the default) and lists the proposals
 by coverage, filtered by decision (undecided, accepted, rejected), preset,
-confidence and zone. For the selected one:
+confidence and zone. The window's first line is the routine: 1. pick a
+proposal, 2. **Focus** to see its surfaces, 3. compare before / after,
+4. tune the preset, 5. **Accept** or **Reject**. Under the proposal's
+description three lines say where the review stands: the room (one of the
+proposal's rooms, with its share, or not, and where Focus would go), what
+the surfaces show (PROPOSED preset or BEFORE, without a material) and the
+decision (undecided, accepted with its entry, rejected). For the selected
+proposal:
 
+- **Focus** (F) points the free camera at its surfaces: the room's
+  triangles drawn with the palette (or the 15-bit texture) are joined into
+  patches (vertices closer than *Join within*), and the largest patch by
+  area is framed (its radius x *Margin* fills the view's height, between
+  *Nearest* and *Farthest*), seen from between the surfaces' normal and the
+  player's side (*View from*: 0 straight on, 1 from the player). When the
+  player is in none of its rooms, Focus goes to its top room first and
+  frames it on arrival. The editor's **Cut to focus** aims at the framed
+  surfaces while the review is open (*Cut to focus aims at the surfaces*).
+  A paused game is stepped two vsyncs so the picture follows the camera.
+- **Highlight** (H) pulses the surfaces in the highlight colour (flat by
+  default; *Flat colour* off: the texel's own colour times it), from
+  *Pulse low point* to *Strength* at *Pulses a second*. It is not a glow:
+  it shows whatever Glowing surfaces is set to.
+- **Isolate** (O) dims and greys everything else (*Dim the rest*, *Grey the
+  rest*): only the proposal's surfaces keep their colour, with the
+  previewed material on them. It works with or without the highlight.
 - its rooms by share, each with **Go** (the room is loaded as the survey
   saw it: without enemies or scripts unless ticked; a room no door leads
-  into is entered at the middle of its floor grid) and **Next room**;
+  into is entered at the middle of its floor grid) and **Next room** (G);
 - the preview: its preset (or the one chosen in the dropdown, fine-tuned
   with Details > Material's own controls under **Fine-tune**) is live at
   once on every texture of the palette (or the 15-bit texture) in its
-  rooms, as a temporary entry that is never saved; **Preview** off shows
-  the surfaces without a material (before / after);
-- **Highlight** pulses the palette's surfaces (they glow with their own
-  colour times the highlight colour; Glowing surfaces must be on), so it is
-  clear which surfaces the proposal is about; colour, strength and pulse
-  rate are tunables (**Highlight look**, RPC `settings`);
-- **Accept** writes ONE entry into the user material layer (`materials.json`,
-  where Details > Material saves): id `R<palette>` (`R<key>-<w>x<h>` for a
-  texture), the palette (or the texture's key and size), scoped to all the
-  proposal's rooms (`scope: {"rooms": [...]}`), the preset and the
-  fine-tuning, `review: "accepted"`; accepting `none` writes nothing.
-  **Reject** is recorded (and removes an entry an earlier accept wrote);
-  **Clear decision** forgets it. **Open in Details > Material** selects an
-  accepted entry there (its maps can be painted as any entry's).
-- Keys (while the window has focus): N / P next / previous, U next
-  undecided, A accept, R reject, B before / after, H highlight, G next
-  room; pad L1 / R1 previous / next, R2 before / after, L2 highlight. After
-  a decision the next undecided proposal is selected (a setting).
+  rooms, as a temporary entry that is never saved; **Proposed material**
+  off (B) shows the surfaces without a material (before / after);
+- **Accept** (Ctrl+Enter) writes ONE entry into the user material layer
+  (`materials.json`, where Details > Material saves): id `R<palette>`
+  (`R<key>-<w>x<h>` for a texture), the palette (or the texture's key and
+  size), scoped to all the proposal's rooms (`scope: {"rooms": [...]}`),
+  the preset and the fine-tuning, `review: "accepted"`; accepting `none`
+  writes nothing. **Reject** (Ctrl+Backspace) is recorded (and removes an
+  entry an earlier accept wrote); **Clear decision** forgets it. **Undo**
+  (Ctrl+Z, the last 64) puts the last decision back: the proposal's
+  decision as it was, its user-layer entry restored or removed, and the
+  selection back on it. **Open in Details > Material** selects an accepted
+  entry there (its maps can be painted as any entry's). After a decision
+  the next undecided proposal is selected (a setting).
+- Keys, while the window has the keyboard (the line at the bottom says
+  whether it has): N / P next / previous, U next undecided, F focus, B
+  before / after, H highlight, O isolate, G next room, Ctrl+Enter accept,
+  Ctrl+Backspace reject, Ctrl+Z undo; pad L1 / R1 previous / next, R2
+  before / after, L2 highlight. None fires while the camera flies (the
+  right mouse held: WASD, Q and E move it while the window keeps the
+  keyboard), while a control is held or a field typed in, and decisions are
+  never a bare letter. While the window has the keyboard its F, H and
+  Ctrl+Z win over the editor's (frame the selected light, hide the
+  selection, the editor's undo).
+
+The look and behaviour (**Look and behaviour**: the highlight's colour,
+flat, strength, rate and low point; Isolate's dimming and greying; Focus's
+margin, join distance, view, nearest and farthest distance and cut; the
+next undecided after a decision; Go on selection) are tunables, saved in
+the state file and set by RPC `settings`. A paused game draws no frame of
+its own, so while the review's highlight, Isolate or preview change, the
+paused loop draws the newest frame again (`pc_material_review_redraw`).
 
 The decisions, the selection and the settings are kept in
 `review_state.json` beside `proposals.json` (game art's folder: local), so
@@ -311,16 +349,24 @@ a session resumes where it stopped. It is a review in
 applied to a catalog copy.
 
 RPC `material_review`: `status` (default: the path, counts, preview,
-highlight and its marked texels, the settings, the room, the selected
-proposal and its entry), `open {open}`, `load {path}`, `list {status,
-preset, confidence, zone, offset, limit}`, `select {id | stable | index |
-next | previous | undecided}`, `preview {on, highlight}`, `preset
-{preset}`, `tune {roughness, specular, metal, auto_height, bump}`, `go
-{room: [zone, room]}` (or the next room), `decide {decision: accept |
-reject | clear}`, `settings {highlight_rgb, highlight_strength,
-highlight_rate, enemies, scripts, advance, auto_go}` (saved in the state
-file). No Lua binding yet (Lua has no material or dev-tool calls to
-follow). `material_review_smoke` checks it headless.
+highlight, isolate and the marked texels, `showing` proposed or before,
+`in_room`, `keys` (the window has the keyboard), `undo` (newest first),
+`focus` (pending, ok, triangles, cluster, clusters, centre, eye, radius,
+distance), the settings, the room, the selected proposal and its entry),
+`open {open, focus}` (focus: the window takes the keyboard), `load
+{path}`, `list {status, preset, confidence, zone, offset, limit}`, `select
+{id | stable | index | next | previous | undecided}`, `preview {on,
+highlight, isolate, pulse}` (pulse: the pulse held at 0..1 of its wave, -1
+running), `preset {preset}`, `tune {roughness, specular, metal,
+auto_height, bump}`, `go {room: [zone, room]}` (or the next room),
+`focus`, `decide {decision: accept | reject | clear}`, `undo`, `settings
+{highlight_rgb, highlight_strength, highlight_rate, highlight_floor,
+highlight_flat, isolate_dim, isolate_grey, focus_margin, focus_join,
+focus_view, focus_min, focus_max, focus_cut, enemies, scripts, advance,
+auto_go}` (saved in the state file). No Lua binding yet (Lua has no
+material or dev-tool calls to follow). `material_review_smoke` checks it
+headless (the highlight's pulse on screen, a paused game's picture, Isolate,
+Focus here and from another room, Undo, the keys).
 
 The survey's hints come from RPC `material survey`: per texture, `facing`
 (its cells whose triangles face up, sideways and down as seen from the eye)

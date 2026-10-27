@@ -197,12 +197,21 @@ bool material_at(unsigned u, unsigned v, unsigned tpage, int out[PC_MATERIAL_PLA
 
 /* The Material review's highlight: every drawn texture with palette `clut`
  * (or, with no palette, the texture `key` of w x h) glows with its own colour
- * times `rgb` x `strength` (0..4; not a light, no glows) in the reserved
- * slot, over any emissive mask there; clut and key both empty: none. Only
- * while emissive surfaces are on (setting emissive > 0). Changing only the
- * strength rewrites the slot's parameters (a pulse is cheap). */
-void set_highlight(const std::string& clut, const std::string& key, int w, int h, const float rgb[3], float strength);
+ * times `rgb` x `strength` (flat: `rgb` x `strength` itself, the texel's
+ * colour left out; 0..4; not a light, no glows) in the reserved slot, over
+ * any emissive mask there; clut and key both empty: none. Marked whatever
+ * the setting emissive (strength 0: marked, nothing glows: for Isolate).
+ * Changing only the strength rewrites the slot's parameters (a pulse is
+ * cheap). */
+void set_highlight(const std::string& clut, const std::string& key, int w, int h, const float rgb[3], float strength,
+    bool flat);
+/* Isolate: every texel drawn outside the highlight loses `dim` of its
+ * brightness and `grey` of its colour (0..1 each; 0, 0: off). */
+void set_isolate(float dim, float grey);
 int highlight_cells(); /* cells marked by the highlight at the last write (0: none) */
+/* The captured room's triangles (world space, 3 x xyz) drawn with the
+ * palette `clut`, or with no palette the texture `key` of w x h. */
+std::vector<std::array<float, 9>> texture_triangles(const std::string& clut, const std::string& key, int w, int h);
 
 /* Scopes */
 bool current_room(int* zone, int* room); /* the room the player is in (dev_state.c) */

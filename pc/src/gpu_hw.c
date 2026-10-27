@@ -1196,8 +1196,7 @@ static const char* draw_fragment_source =
      * darkened; the G-buffer's shade carries the emission (a 0.25, rgb / 2). */
     "        if (emissive_on != 0 && v_normal.w > 0.5 && (flags & 16u) == 0u) {\n"
     "            ivec2 eq = ivec2(floor(v_uv + 0.0001));\n"
-    "            vec3 em = emissive_texel(uint(eq.x) & 255u, uint(eq.y) & 255u, tpage, win, t, 0u);\n" /* packets: no scope bits */
-    "            if (any(greaterThan(em, vec3(0.0)))) { c = max(c, min(em, vec3(1.0))); shade = vec4(min(em * 0.5, vec3(1.0)), 0.25); }\n"
+    "            emissive_apply(uint(eq.x) & 255u, uint(eq.y) & 255u, tpage, win, t, 0u, c, albedo, shade);\n" /* packets: no scope bits */
     "        }\n"
     "    }\n"
     "    if ((pass == 1 && semi) || (pass == 2 && !semi)) discard;\n"

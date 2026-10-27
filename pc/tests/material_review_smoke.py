@@ -12,15 +12,26 @@ up from the save room's own textures, with scratch catalogs:
   roughness the preset's), never in the user layer; before (preview off):
   the texel has no material; tune changes the previewed roughness;
 - highlight: the palette's texels are marked (cells > 0) and the frame
-  changes (Vulkan), off again: the frame is the one before;
+  changes, off again: the frame is the one before; the pulse's two ends
+  (pulse held at 0 and at 1) differ on screen; in a paused game the
+  picture follows the highlight without a redraw request (the paused
+  loop's pc_material_review_redraw);
+- isolate: the palette's surfaces keep their colour, the rest of the
+  picture darkens;
+- focus: the free camera turns on and the window's centre shows the
+  palette (RPC material pick there);
 - decide accept: ONE entry in the scratch user layer (materials.json): the
   palette, scope rooms (both of the proposal's rooms), review "accepted",
   the tuned roughness; the review moves on to the next undecided proposal;
-  reject: recorded, nothing written; review_state.json holds both, in
+  undo: the entry gone, undecided, the selection back; reject: recorded,
+  nothing written; review_state.json holds both, in
   material_rollout_apply.py's review format;
 - resume: loading again reads the decisions and the selection back;
+- keys (the overlay shown, the window with the keyboard): a bare A decides
+  nothing; Ctrl+Enter accepts; Ctrl+Z undoes it;
 - go: to another room (a door) and to a room no door leads into (the
-  middle of its floor grid), arriving there;
+  middle of its floor grid), arriving there; focus from a room that is none
+  of the proposal's goes to its top room first, then frames it;
 - closing the window drops the preview.
 """
 import argparse
@@ -51,6 +62,16 @@ def frame(game, path):
     game.wait_presents(6)
     game.present_screenshot(str(path))
     return np.asarray(Image.open(path).convert("RGB")).astype(np.int32)
+
+
+def shown(game, path):  # the next presented image, no redraw asked for
+    game.wait_presents(8)
+    game.present_screenshot(str(path))
+    return np.asarray(Image.open(path).convert("RGB")).astype(np.int32)
+
+
+def differ(x, y):
+    return int((np.abs(x - y).max(2) > 8).sum())
 
 
 def settle(game):
@@ -182,20 +203,58 @@ def main():
         check((pick.get("material") or [0])[0] == 77, f"tune: roughness 0.3 previewed ({pick.get('material')})")
 
         lit = frame(game, out / "preview.png")
-        st = game.call("material_review", action="preview", highlight=True)
-        game.call("material_review", action="settings", highlight_rate=0, highlight_strength=4)
+        st = game.call("material_review", action="preview", highlight=True, pulse=1)
+        game.call("material_review", action="settings", highlight_rate=1.5, highlight_strength=1,
+                  highlight_floor=0.15, highlight_flat=True)
         settle(game)
         st = game.call("material_review")
         flashed = frame(game, out / "highlight.png")
-        changed = int((np.abs(flashed - lit).max(2) > 8).sum())
+        changed = differ(flashed, lit)
         check(st["highlight_cells"] > 0, f"highlight: {st['highlight_cells']} texels of the palette marked")
-        if vulkan:
-            check(changed > 500, f"highlight: the palette's surfaces light up ({changed} pixels change)")
+        check(changed > 500, f"highlight: the palette's surfaces light up ({changed} pixels change)")
+        game.call("material_review", action="preview", pulse=0)
+        settle(game)
+        low = frame(game, out / "highlight-low.png")
+        check(differ(low, flashed) > 500, f"the pulse shows: its low and high points differ "
+              f"({differ(low, flashed)} pixels)")
         game.call("material_review", action="preview", highlight=False)
         settle(game)
         back = frame(game, out / "unhighlighted.png")
         check(np.array_equal(back, lit), "highlight off: the frame is the preview's again "
               f"({int((back != lit).any(2).sum())} pixels differ)")
+        # A paused game (this one) draws no frame: the review asks for the picture again.
+        game.call("material_review", action="preview", highlight=True, pulse=1)
+        paused = shown(game, out / "highlight-paused.png")
+        check(differ(paused, lit) > 500, f"paused: the highlight shows without a redraw ({differ(paused, lit)} pixels)")
+        game.call("material_review", action="preview", highlight=False, pulse=-1)
+        settle(game)
+
+        # Isolate: the palette's texel as it was, the rest of the picture darker.
+        game.call("material_review", action="preview", isolate=True)
+        settle(game)
+        alone = frame(game, out / "isolate.png")
+        ax, ay = int(at_a[0]), int(at_a[1])
+        kept = int(np.abs(alone[ay, ax] - lit[ay, ax]).max())
+        check(alone.mean() < lit.mean() * 0.85 and kept <= 24,
+              f"isolate: the rest darker (mean {alone.mean():.1f} < {lit.mean():.1f}), the palette's texel kept "
+              f"({kept})")
+        game.call("material_review", action="preview", isolate=False)
+        settle(game)
+
+        # Focus: the free camera at the palette's surfaces (paused: Focus steps the game two vsyncs).
+        st = game.call("material_review", action="focus")
+        game.run(4)
+        settle(game)
+        cam = game.call("editor_camera")
+        centre = game.call("material", action="pick", x=640, y=480)
+        f = st["focus"]
+        check(f["ok"] and f["triangles"] > 0 and cam["active"] and centre.get("clut") == a,
+              f"focus: {f['cluster']} of {f['triangles']} triangles framed, {f['distance']} units away, "
+              f"the free camera on ({cam['active']}), the centre shows palette {centre.get('clut')}")
+        frame(game, out / "focus.png")
+        game.call("editor_camera", off=1)
+        game.run(4)
+        settle(game)
 
         st = game.call("material_review", action="decide", decision="accept")
         written = json.loads(user.read_text()) if user.exists() else {}
@@ -210,6 +269,15 @@ def main():
         pick = game.call("material", action="pick", x=at_a[0], y=at_a[1])
         check(pick.get("entry") == f"R{a}" or pick.get("entry") == "review",
               f"the accepted entry is live ({pick.get('entry')})")
+        st = game.call("material_review", action="undo")
+        written = json.loads(user.read_text()) if user.exists() else {}
+        check(not written.get("entries") and st["selected"]["id"] == "P0001" and not st["selected"]["decision"],
+              f"undo: the entry gone ({written.get('entries')}), P0001 undecided and selected "
+              f"({st['selected']['id']}, {st['selected']['decision']!r})")
+        game.call("material_review", action="tune", roughness=0.3)
+        st = game.call("material_review", action="decide", decision="accept")
+        check(st["selected"]["id"] == "P0002" and len(json.loads(user.read_text()).get("entries", [])) == 1,
+              "accepted again after the undo")
         st = game.call("material_review", action="decide", decision="reject")
         written = json.loads(user.read_text()) if user.exists() else {}
         check(len(written.get("entries", [])) == 1 and st["selected"]["id"] == "P0003",
@@ -229,6 +297,27 @@ def main():
         check(st["decided"] == 2 and st.get("selected", {}).get("id") == "P0003",
               f"resume: decisions and the selection read back ({st['decided']}, {st.get('selected', {}).get('id')})")
 
+        # Keys: the overlay shown, the window with the keyboard (P0003 selected).
+        game.call("editor_ui", visible=True)
+        game.call("material_review", action="open", open=True, focus=True)
+        game.wait_presents(6)
+        st = game.call("material_review")
+        decided = st["decided"]
+        game.call("editor_input", keys=["a"])
+        game.wait_presents(6)
+        bare = game.call("material_review")
+        game.call("editor_input", keys=["enter"], ctrl=True)
+        game.wait_presents(6)
+        chord = game.call("material_review")
+        game.call("editor_input", keys=["z"], ctrl=True)
+        game.wait_presents(6)
+        undone = game.call("material_review")
+        check(st["keys"] and bare["decided"] == decided and chord["decided"] == decided + 1
+              and chord["undo"][:1] == ["P0003 accepted"] and undone["decided"] == decided,
+              f"keys: the window has them ({st['keys']}); bare A decides nothing ({bare['decided']} = {decided}), "
+              f"Ctrl+Enter accepts ({chord['decided']}, {chord['undo'][:1]}), Ctrl+Z undoes it ({undone['decided']})")
+        game.call("editor_ui", visible=False)
+
         st = game.call("material_review", action="go", room=list(other))
         check(arrive(game, *other), f"go: arrived in {other[0]}/{other[1]}")
         if doorless:
@@ -240,6 +329,19 @@ def main():
                 ok = False
                 print(f"go {dz}/{dr}: {error}")
             check(ok and arrive(game, dz, dr), f"go: into {dz}/{dr}, which no door leads into (its floor's middle)")
+        # Focus from a room none of P0001's: to its top room (the save room), then framed.
+        game.call("material_review", action="select", id="P0001")
+        st = game.call("material_review", action="focus")
+        pending = st["focus"]["pending"]
+        arrived = arrive(game, zone, room)
+        for _ in range(40):
+            game.run(10)
+            st = game.call("material_review")
+            if not st["focus"]["pending"]:
+                break
+        check(pending and arrived and st["focus"]["ok"] and game.call("editor_camera")["active"],
+              f"focus elsewhere: went to {zone}/{room} first ({pending}, {arrived}), then framed ({st['focus']})")
+        game.call("editor_camera", off=1)
 
         game.call("material_review", action="open", open=False)
         listing = game.call("material")
