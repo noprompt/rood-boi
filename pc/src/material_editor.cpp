@@ -754,6 +754,11 @@ Json survey_json(const material_survey::Result& r, bool with_map)
         }
         x.set("boxes", boxes);
         x.set("cells", Json::num(t.cells));
+        Json facing = Json::array(); /* floor, wall, ceiling cells */
+        for (int v : { t.floor, t.wall, t.ceiling })
+            facing.items.push_back(Json::num(v));
+        x.set("facing", facing);
+        x.set("object", Json::num(t.object));
         x.set("share", Json::num(round(t.cells / cells * 1e5) / 1e5));
         x.set("entry", Json::str(t.entry));
         list.items.push_back(x);

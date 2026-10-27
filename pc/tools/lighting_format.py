@@ -49,6 +49,8 @@ SCHEMA = {
         ("shadows", 0, "1", False), ("zenith", 3, "0.1,0.12,0.2", False),
         ("horizon", 3, "0.25,0.25,0.3", False), ("ground", 3, "0.05,0.05,0.05", False),
         ("sun_tint", 3, "0", False), ("ambient", 3, "0.5", False),
+        # The sky's colours: the game's background sphere (game) or the three above (manual).
+        ("source", -1, "game", False), ("game_scale", 3, "0.25", False),
         # The ground fog ("env fog"): pc/src/atmosphere.cpp.
         ("density", 5, "0.003", False), ("height", 1, "48", False), ("offset", 1, "0", False),
         ("noise", 2, "0.6", False), ("scale", 1, "160", False), ("wind", 1, "4,0,1.5", False),
@@ -97,7 +99,7 @@ COUNTS = {"pos": 3, "dir": 3, "color": 3, "rot": 3, "glow": 3, "fixture": 3, "ti
           "zenith": 3, "horizon": 3, "ground": 3, "wind": 3, "fill": 3, "drift": 3}
 # The env items a room may have, and the fields each takes.
 ENV_FIELDS = {"sun": ("enabled", "azimuth", "elevation", "color", "intensity", "angle", "shadows"),
-              "sky": ("enabled", "zenith", "horizon", "ground", "intensity", "sun_tint", "ambient"),
+              "sky": ("enabled", "zenith", "horizon", "ground", "intensity", "sun_tint", "ambient", "source", "game_scale"),
               "fog": ("enabled", "density", "height", "offset", "noise", "scale", "wind", "color", "fill", "sky")}
 LIGHT_TYPES = ("point", "spot", "rect")
 FOG_SHAPES = ("box", "sphere")

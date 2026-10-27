@@ -14,7 +14,8 @@ Continues from the card's save room with empty scratch catalogs:
   > 0, together the textured share), each with key, size, palette and boxes;
   its attribution map agrees with RPC material pick at sampled pixels (the
   back-face rule and the depth test); the survey with both faces drawn
-  covers at least as much;
+  covers at least as much; each texture's cells split by facing (floor,
+  wall, ceiling) and those drawn by object lists (the rollout's hints);
 - texture: a listed texture's texels (RGBA, its size);
 - new {key, palette, preset}: an entry with the preset's values, this room,
   this palette, review "new", matched at once (RPC material list uses, the
@@ -103,6 +104,9 @@ def main():
         check(all(len(x["key"]) == 10 and x["size"][0] > 0 and x["boxes"] for x in textures),
               "each texture has its key, size and boxes")
         check(len(s["map"]) == gw * gh and max(s["map"]) == len(textures) - 1, "the attribution map")
+        check(all(sum(x["facing"]) == x["cells"] and 0 <= x["object"] <= x["cells"] for x in textures)
+              and sum(x["facing"][0] for x in textures) > 0 and sum(x["facing"][1] for x in textures) > 0,
+              "the rollout's hints: each texture's cells split by facing (some floor, some wall), object cells")
         agree = total = 0
         for gy in range(4, gh, 9):
             for gx in range(4, gw, 9):

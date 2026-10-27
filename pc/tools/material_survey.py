@@ -154,9 +154,16 @@ def survey_room(game, args, out):
                     m["boxes"].append(b)
             m["views"][v] = round(t["cells"] / cells, 5)
             m["entry"] = m["entry"] or t["entry"]
+            # Hints (older binaries lack them): its cells facing up, sideways, down; drawn by object lists.
+            acc = m.setdefault("_where", [0.0, 0.0, 0.0, 0.0])
+            for i, n in enumerate(list(t.get("facing", [0, 0, 0])) + [t.get("object", 0)]):
+                acc[i] += n / cells
     textures = list(merged.values())
     for t in textures:
         t["share"] = round(sum(t["views"].get(v, 0) for v in views) / len(views), 5)
+        acc = t.pop("_where")
+        t["facing"] = [round(n / len(views), 5) for n in acc[:3]]  # floor, wall, ceiling: mean shares of the views
+        t["object"] = round(acc[3] / len(views), 5)
     textures.sort(key=lambda t: -t["share"])
     for i, (t, g) in enumerate(zip(textures, groups(textures))):
         t["rank"], t["group"] = i, g

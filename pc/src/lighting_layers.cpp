@@ -64,6 +64,9 @@ const std::vector<KindSpec>& kinds()
                 { "shadows", 0, "1", false }, { "zenith", 3, "0.1,0.12,0.2", false },
                 { "horizon", 3, "0.25,0.25,0.3", false }, { "ground", 3, "0.05,0.05,0.05", false },
                 { "sun_tint", 3, "0", false }, { "ambient", 3, "0.5", false },
+                /* The sky's colours from the game's own background sphere (source=game, where the room
+                 * has one) or the three above (manual); game_scale: the game's 0..255 colours over 255 x this. */
+                { "source", -1, "game", false }, { "game_scale", 3, "0.25", false },
                 /* The ground fog ("env fog"): atmosphere.cpp. */
                 { "density", 5, "0.003", false }, { "height", 1, "48", false }, { "offset", 1, "0", false },
                 { "noise", 2, "0.6", false }, { "scale", 1, "160", false }, { "wind", 1, "4,0,1.5", false },

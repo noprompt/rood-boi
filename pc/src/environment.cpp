@@ -5,6 +5,7 @@
 #include "environment.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,41 @@ extern int pc_lights_enabled;
 void pc_lights_mark_dirty(void);
 /* Room weather (2842C.c); scripts can turn rain on/off mid-scene. */
 int pc_weather_raining(void);
+/* The game's sky (BATTLE 146C.c; pc/docs/Vulkan_Renderer.md "The game's sky"): the
+ * background sphere's five ring colours (0x00BBGGRR: zenith, 26.5 degrees up, the
+ * horizon, 26.5 down, the nadir), set from the room's section B by func_8008E938 and
+ * animated by the scripts' background fades (main.c func_800474DC); the flag of a
+ * room whose five are equal (D_800F1DC6: a flat backdrop, one texel of VRAM tinted by
+ * D_800F1BB0, instead of the sphere). Weak: builds without BATTLE have no sky. */
+extern int D_800F1D78[5] __attribute__((weak));
+extern char D_800F1DC6 __attribute__((weak));
+typedef struct {
+    signed char unk0;
+    signed char unk1;
+    signed char unk2;
+    char unk3;
+    short unk4;
+    short unk6;
+} D_800F1BB0_t;
+extern D_800F1BB0_t D_800F1BB0 __attribute__((weak));
+/* The sky panorama (2842C.h; func_8009147C), drawn instead of the sphere while a
+ * script has it on (D_800F1DC9) and its layout is loaded (D_800F1DCC): tiles of 32 x
+ * 32 screen pixels, each a texture rectangle of tpage D_800F1DC8 | (colors[1].cd << 7)
+ * through CLUT 0x3BB0, its corners' colours modulating it; a black TILE behind. */
+typedef struct {
+    short x, y, w, h; /* RECT uv */
+    unsigned char colors[4][4]; /* CVECTOR r, g, b, cd */
+} vs_battle_backgroundTile;
+typedef struct {
+    int width;
+    int height;
+    int unk8;
+    vs_battle_backgroundTile tiles[];
+} vs_battle_backgroundLayout;
+extern char D_800F1DC8 __attribute__((weak));
+extern unsigned char D_800F1DC9 __attribute__((weak));
+extern vs_battle_backgroundLayout* D_800F1DCC __attribute__((weak));
+const uint16_t* pc_native_vram(void);
 }
 
 int pc_env_global = 1;
@@ -47,6 +83,8 @@ struct Sky {
     float intensity = 1;
     float sun_tint = 0;
     float ambient = 0.5f; /* the non-traced fallback's strength */
+    bool manual = false; /* source=manual: the three colours above; game: the game's sky where the room has one */
+    float game_scale = 0.25f; /* the game's colours (0..255 over 255) times this */
 };
 Sun sun;
 Sky sky;
@@ -75,6 +113,162 @@ void direction(float azimuth, float elevation, float out[3])
     out[0] = cosf(e) * sinf(a);
     out[1] = -sinf(e); /* y is down */
     out[2] = cosf(e) * cosf(a);
+}
+/* The game's own sky this frame (see the externs above). Colours 0..1 as the PS1
+ * draws them (255 = full), before the sky's game_scale and intensity. */
+struct GameSky {
+    int kind = 0; /* 0 none (no data, or all black: the room draws no sky), 1 the sphere, 2 the flat backdrop,
+                   * 3 the panorama */
+    float ring[5][3] = {}; /* the sphere's rings, zenith to nadir (the flat backdrop: all five its colour; the
+                            * panorama: its top, middle and bottom tile rows' means, then black) */
+    float zenith[3] = {}, horizon[3] = {}, ground[3] = {};
+};
+GameSky game_sky()
+{
+    GameSky g;
+    if (!&D_800F1D78[0] || !&D_800F1DC6)
+        return g;
+    if (&D_800F1DC9 && &D_800F1DCC && D_800F1DC9 && D_800F1DCC) {
+        /* The panorama (func_8008EC48 draws it instead of the sphere): each tile row's mean
+         * colour as drawn (texels through the CLUT times the corners' colours / 128). The top
+         * row is the zenith's, the bottom row the horizon's; below it the black TILE. */
+        const vs_battle_backgroundLayout* layout = D_800F1DCC;
+        if ((unsigned)(layout->width - 1) >= 31 || (unsigned)(layout->height - 1) >= 31)
+            return g;
+        const uint16_t* vram = pc_native_vram();
+        float rows[32][3] = {};
+        int filled[32] = {};
+        for (int r = 0; r < layout->height; r++) {
+            double sum[3] = { 0, 0, 0 };
+            int n = 0;
+            for (int c = 0; c < layout->width; c++) {
+                const vs_battle_backgroundTile& t = layout->tiles[r * layout->width + c];
+                if (!t.w && !t.h)
+                    continue;
+                unsigned tpage = (unsigned char)D_800F1DC8 | (t.colors[1][3] << 7);
+                int base_x = (tpage & 15) * 64, base_y = ((tpage >> 4) & 1) * 256, depth = (tpage >> 7) & 3;
+                double tex[3] = { 0, 0, 0 };
+                int texels = 0;
+                for (int v = t.y; v < t.y + t.h; v += 2)
+                    for (int u = t.x; u < t.x + t.w; u += 2) {
+                        uint16_t col;
+                        if (depth == 0) {
+                            uint16_t w = vram[((base_y + v) & 511) * 1024 + ((base_x + u / 4) & 1023)];
+                            col = vram[238 * 1024 + 768 + ((w >> ((u & 3) * 4)) & 15)];
+                        } else if (depth == 1) {
+                            uint16_t w = vram[((base_y + v) & 511) * 1024 + ((base_x + u / 2) & 1023)];
+                            col = vram[238 * 1024 + 768 + ((w >> ((u & 1) * 8)) & 255)];
+                        } else
+                            col = vram[((base_y + v) & 511) * 1024 + ((base_x + u) & 1023)];
+                        if (!col)
+                            continue; /* transparent */
+                        tex[0] += (col & 31) * 8, tex[1] += ((col >> 5) & 31) * 8, tex[2] += ((col >> 10) & 31) * 8;
+                        ++texels;
+                    }
+                if (!texels)
+                    continue;
+                for (int k = 0; k < 3; k++) {
+                    float corner = (t.colors[0][k] + t.colors[1][k] + t.colors[2][k] + t.colors[3][k]) / 4.0f;
+                    sum[k] += fmin(tex[k] / texels * corner / 128.0, 255.0) / 255.0;
+                }
+                ++n;
+            }
+            if (n) {
+                for (int k = 0; k < 3; k++)
+                    rows[r][k] = (float)(sum[k] / n);
+                filled[r] = 1;
+            }
+        }
+        int top = -1, bottom = -1;
+        for (int r = 0; r < layout->height; r++)
+            if (filled[r]) {
+                if (top < 0)
+                    top = r;
+                bottom = r;
+            }
+        if (top < 0)
+            return g;
+        int mid = (top + bottom) / 2;
+        memcpy(g.ring[0], rows[top], sizeof rows[top]);
+        memcpy(g.ring[1], rows[mid], sizeof rows[mid]);
+        memcpy(g.ring[2], rows[bottom], sizeof rows[bottom]);
+        g.kind = 3;
+    } else if (D_800F1DC6) {
+        /* func_8008EC48: a 320 x 240 POLY_FT4 at u,v 248..249 of tpage 0x11 (4-bit, texture
+         * page x 64, y 256) through CLUT 0x38B1 (x 784, y 226), tinted 128 + 4 x D_800F1BB0. */
+        const uint16_t* vram = pc_native_vram();
+        float texel[3] = { 0, 0, 0 };
+        int seen = 0;
+        for (int v = 248; v < 250; v++)
+            for (int u = 248; u < 250; u++) {
+                uint16_t word = vram[(256 + v) * 1024 + 64 + u / 4];
+                int index = (word >> ((u & 3) * 4)) & 15;
+                uint16_t c = vram[226 * 1024 + 784 + index];
+                if (!c)
+                    continue; /* transparent: not drawn */
+                texel[0] += (c & 31) * 8, texel[1] += ((c >> 5) & 31) * 8, texel[2] += ((c >> 10) & 31) * 8;
+                ++seen;
+            }
+        if (!seen)
+            return g;
+        int tint[3] = { 128, 128, 128 };
+        if (&D_800F1BB0 && D_800F1BB0.unk6) {
+            tint[0] = 128 + D_800F1BB0.unk0 * 4, tint[1] = 128 + D_800F1BB0.unk1 * 4, tint[2] = 128 + D_800F1BB0.unk2 * 4;
+            for (int& t : tint)
+                t = t < 0 ? 0 : t > 255 ? 255 : t;
+        }
+        float rgb[3];
+        for (int k = 0; k < 3; k++)
+            rgb[k] = fminf(texel[k] / seen * tint[k] / 128.0f, 255.0f) / 255.0f;
+        for (int r = 0; r < 5; r++)
+            memcpy(g.ring[r], rgb, sizeof rgb);
+        g.kind = 2;
+    } else {
+        unsigned any = 0;
+        for (int r = 0; r < 5; r++) {
+            unsigned c = (unsigned)D_800F1D78[r] & 0xffffff;
+            any |= c;
+            g.ring[r][0] = (c & 255) / 255.0f, g.ring[r][1] = ((c >> 8) & 255) / 255.0f, g.ring[r][2] = (c >> 16) / 255.0f;
+        }
+        if (!any)
+            return g;
+        g.kind = 1;
+    }
+    if (!(g.ring[0][0] + g.ring[0][1] + g.ring[0][2] + g.ring[1][0] + g.ring[1][1] + g.ring[1][2] + g.ring[2][0]
+            + g.ring[2][1] + g.ring[2][2] + g.ring[3][0] + g.ring[3][1] + g.ring[3][2] + g.ring[4][0] + g.ring[4][1]
+            + g.ring[4][2] > 0.0f)) {
+        g.kind = 0; /* drawn black: no sky to light with */
+        return g;
+    }
+    /* The gradient's three: the zenith ring, the horizon ring, and below it the mean of the
+     * lower ring and the nadir (env_sky reaches the ground colour 14.5 degrees down). The
+     * ring 26.5 degrees up is what the zenith -> horizon blend gives there (within ~10 %
+     * in the town's sky); a directional map would keep it exactly (the doc's design). */
+    for (int k = 0; k < 3; k++) {
+        g.zenith[k] = g.ring[0][k];
+        g.horizon[k] = g.ring[2][k];
+        g.ground[k] = 0.5f * (g.ring[3][k] + g.ring[4][k]);
+    }
+    return g;
+}
+const char* game_sky_kind(int kind)
+{
+    return kind == 1 ? "sphere" : kind == 2 ? "flat" : kind == 3 ? "panorama" : "none";
+}
+/* The colours the sky uses (before intensity): the game's (times game_scale) or the room's own. */
+bool sky_colours(float zenith[3], float horizon[3], float ground[3], GameSky* game = nullptr)
+{
+    GameSky g;
+    if (!sky.manual)
+        g = game_sky();
+    if (game)
+        *game = g;
+    for (int k = 0; k < 3; k++) {
+        zenith[k] = g.kind ? g.zenith[k] * sky.game_scale : sky.zenith[k];
+        horizon[k] = g.kind ? g.horizon[k] * sky.game_scale : sky.horizon[k];
+        ground[k] = g.kind ? g.ground[k] * sky.game_scale : sky.ground[k];
+    }
+    return g.kind != 0;
 }
 } // namespace
 
@@ -121,6 +315,9 @@ bool apply_item(const lighting::Item& it)
         sky.intensity = get1(it, "intensity");
         sky.sun_tint = get1(it, "sun_tint");
         sky.ambient = get1(it, "ambient");
+        const std::string* src = it.get("source");
+        sky.manual = src && *src == "manual";
+        sky.game_scale = get1(it, "game_scale");
         return true;
     }
     return false;
@@ -151,6 +348,8 @@ void add_items(lighting::State& s)
         it.set("intensity", num(sky.intensity, 3));
         it.set("sun_tint", num(sky.sun_tint, 3));
         it.set("ambient", num(sky.ambient, 3));
+        it.set("source", sky.manual ? "manual" : "game");
+        it.set("game_scale", num(sky.game_scale, 3));
         lighting::canonicalize(it);
         s[it.id()] = it;
     }
@@ -235,10 +434,14 @@ extern "C" int pc_env_gpu_get(pc_env_gpu* out)
         on = 1;
     }
     if (sky.defined && sky.enabled && sky.intensity > 0) {
+        /* The game's sky where the room has one (source=game), else the manual colours: a
+         * room without game sky data gives exactly the record it gave before. */
+        float zenith[3], horizon[3], ground[3];
+        sky_colours(zenith, horizon, ground);
         for (int k = 0; k < 3; k++) {
-            out->zenith[k] = fmaxf(sky.zenith[k], 0.0f) * sky.intensity;
-            out->horizon[k] = fmaxf(sky.horizon[k], 0.0f) * sky.intensity;
-            out->ground[k] = fmaxf(sky.ground[k], 0.0f) * sky.intensity;
+            out->zenith[k] = fmaxf(zenith[k], 0.0f) * sky.intensity;
+            out->horizon[k] = fmaxf(horizon[k], 0.0f) * sky.intensity;
+            out->ground[k] = fmaxf(ground[k], 0.0f) * sky.intensity;
         }
         out->zenith[3] = 1;
         out->horizon[3] = fmaxf(sky.sun_tint, 0.0f);
@@ -448,9 +651,50 @@ extern "C" bool pc_environment_page(void)
             tooltip("Light from the open sky: rays of the indirect light that leave the room bring the sky's\n"
                     "radiance (zenith -> horizon -> ground gradient); what blocks it occludes it.");
             ImGui::BeginDisabled(!sky.enabled);
+            int source = sky.manual ? 1 : 0;
+            if (ImGui::Combo("Colours from", &source, "The game's sky\0Manual\0")) {
+                sky.manual = source == 1;
+                changed = true;
+            }
+            tooltip("The game's sky: the colours of the background the game draws behind this room (its gradient\n"
+                    "sphere, or the flat backdrop of the forest), live (the scripts' fades change them), times\n"
+                    "Game scale. Where the room draws no sky (black) the manual colours are used.\n"
+                    "Manual: the three colours below.");
+            float gz[3], gh[3], gg[3];
+            GameSky game;
+            bool from_game = sky_colours(gz, gh, gg, &game);
+            if (!sky.manual) {
+                if (from_game) {
+                    ImGui::Text("Game sky: %s", game.kind == 1 ? "gradient sphere" : game.kind == 2 ? "flat backdrop" : "panorama");
+                    ImGui::SameLine();
+                    for (int r = 0; r < 5; r++) {
+                        char id[16];
+                        snprintf(id, sizeof id, "##ring%d", r);
+                        ImGui::ColorButton(id, ImVec4(game.ring[r][0], game.ring[r][1], game.ring[r][2], 1),
+                            ImGuiColorEditFlags_NoTooltip, ImVec2(14, 14));
+                        if (r < 4)
+                            ImGui::SameLine(0, 2);
+                    }
+                    tooltip("As the game draws it: the sphere's five rings (zenith, 26.5 degrees up, horizon, 26.5 down, nadir);\n"
+                            "the panorama's top, middle and bottom tile rows (their mean colours), then black.");
+                    changed |= ImGui::SliderFloat("Game scale", &sky.game_scale, 0, 2, "%.3f");
+                    tooltip("The game's colours (0..1) times this are the sky's radiance (then times Intensity).");
+                    if (ImGui::SmallButton("Copy to manual")) {
+                        memcpy(sky.zenith, gz, sizeof gz);
+                        memcpy(sky.horizon, gh, sizeof gh);
+                        memcpy(sky.ground, gg, sizeof gg);
+                        sky.manual = changed = true;
+                        pc_undo_hint("Sky colours from the game");
+                    }
+                    tooltip("Sets the manual colours to these and switches to them (to edit from here).");
+                } else
+                    ImGui::TextDisabled("No game sky here (the room draws none): the manual colours.");
+            }
+            ImGui::BeginDisabled(from_game);
             changed |= color_row("Zenith", sky.zenith);
             changed |= color_row("Horizon", sky.horizon);
             changed |= color_row("Ground", sky.ground);
+            ImGui::EndDisabled();
             changed |= ImGui::SliderFloat("Intensity##sky", &sky.intensity, 0, 4, "%.3f");
             changed |= ImGui::SliderFloat("Sun tint", &sky.sun_tint, 0, 1, "%.2f");
             tooltip("How much the sky around the sun takes its colour.");
@@ -512,9 +756,12 @@ void read_bool(const prefab::Json& o, const char* key, bool* out)
 
 /* params: {sun: {enabled, azimuth, elevation, color, intensity, angle,
  * shadows}, sky: {enabled, zenith, horizon, ground, intensity, sun_tint,
- * ambient}, remove: "sun" | "sky" | "all", global: bool}. Setting a field
- * of a sun or sky the room does not have adds it (from the defaults). The
- * reply: the room's sun and sky and the renderers' packed record. Save with
+ * ambient, source: "game" | "manual", game_scale}, remove: "sun" | "sky" |
+ * "all", global: bool}. Setting a field of a sun or sky the room does not have
+ * adds it (from the defaults). The reply: the room's sun and sky (sky.game:
+ * the game's sky this frame, kind "sphere" | "flat" | "panorama" | "none", its five rings
+ * and the zenith/horizon/ground they give, 0..1; sky.using: "game" when the
+ * record takes them) and the renderers' packed record. Save with
  * lighting {action: "save"}. */
 extern "C" int pc_environment_rpc(const char* params_text, char* out, int size)
 {
@@ -557,6 +804,9 @@ extern "C" int pc_environment_rpc(const char* params_text, char* out, int size)
         read_num(*s, "intensity", &sky.intensity);
         read_num(*s, "sun_tint", &sky.sun_tint);
         read_num(*s, "ambient", &sky.ambient);
+        if (const prefab::Json* src = s->get("source"))
+            sky.manual = src->string == "manual";
+        read_num(*s, "game_scale", &sky.game_scale);
         changed = true;
     }
     changed |= rood_atmo::rpc(params); /* fog, volumes, fog_time (atmosphere.cpp) */
@@ -570,6 +820,16 @@ extern "C" int pc_environment_rpc(const char* params_text, char* out, int size)
                 (int)r->items[2].number));
     pc_env_gpu g;
     int active = pc_env_gpu_get(&g);
+    /* The game's sky (whatever the source): its kind, rings (0..1) and the three it gives. */
+    GameSky game = game_sky();
+    std::string rings;
+    for (int r = 0; r < 5; r++)
+        rings += (r ? "," : "") + jvec(game.ring[r], 3);
+    float uz[3], uh[3], ug[3];
+    bool using_game = sky_colours(uz, uh, ug);
+    std::string game_json = ",\"game\":{\"kind\":\"" + std::string(game_sky_kind(game.kind)) + "\",\"rings\":[" + rings
+        + "],\"zenith\":" + jvec(game.zenith, 3) + ",\"horizon\":" + jvec(game.horizon, 3) + ",\"ground\":"
+        + jvec(game.ground, 3) + "},\"using\":\"" + (using_game ? "game" : "manual") + "\"";
     std::string s = "{\"zone\":" + std::to_string(rood_lights::zone) + ",\"room\":" + std::to_string(rood_lights::room)
         + ",\"global\":" + jbool(pc_env_global) + ",\"active\":" + jbool(active) + ",\"sun\":{\"defined\":"
         + jbool(sun.defined) + ",\"enabled\":" + jbool(sun.enabled) + ",\"azimuth\":" + num(sun.azimuth, 2)
@@ -578,7 +838,8 @@ extern "C" int pc_environment_rpc(const char* params_text, char* out, int size)
         + ",\"shadows\":" + jbool(sun.shadows) + "},\"sky\":{\"defined\":" + jbool(sky.defined)
         + ",\"enabled\":" + jbool(sky.enabled) + ",\"zenith\":" + jvec(sky.zenith, 3) + ",\"horizon\":"
         + jvec(sky.horizon, 3) + ",\"ground\":" + jvec(sky.ground, 3) + ",\"intensity\":" + num(sky.intensity, 3)
-        + ",\"sun_tint\":" + num(sky.sun_tint, 3) + ",\"ambient\":" + num(sky.ambient, 3) + "},\"gpu\":{\"sun_dir\":"
+        + ",\"sun_tint\":" + num(sky.sun_tint, 3) + ",\"ambient\":" + num(sky.ambient, 3) + ",\"source\":\""
+        + (sky.manual ? "manual" : "game") + "\",\"game_scale\":" + num(sky.game_scale, 3) + game_json + "},\"gpu\":{\"sun_dir\":"
         + jvec(g.sun_dir, 4) + ",\"sun_col\":" + jvec(g.sun_col, 4) + ",\"zenith\":" + jvec(g.zenith, 4)
         + ",\"horizon\":" + jvec(g.horizon, 4) + ",\"ground\":" + jvec(g.ground, 4) + "},\"hash\":"
         + std::to_string(pc_env_hash()) + ",\"raining\":" + jbool(pc_weather_raining()) + probe + ","

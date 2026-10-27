@@ -202,12 +202,60 @@ Boxes of the same texture (same key and palette, anywhere in VRAM) merge.
 at sampled pixels.
 
 RPC `material`: `survey {grid, map, cull}` (the view's textures: key, size,
-palette key `clut`, `tpage`, `palette`, `boxes`, `cells`, `share`, `entry`;
+palette key `clut`, `tpage`, `palette`, `boxes`, `cells`, `share`, `entry`,
+`facing` [floor, wall, ceiling] cells, `object` cells;
 `textured` and `untextured` shares, the view's `eye` and `forward`, `map`:
 the cells' texture index, -1 nothing, -2 untextured; `cull` 0 draws both
 faces), `texture {key, palette}` (a texture in view as base64 RGBA), and
 `new {key, palette, preset, share, whole_palette}` (an entry for a texture
 in view by key, as the panel's one click).
+
+## Rolling out
+
+The game-wide pass: survey every room, propose a preset per palette, review
+the proposals, then apply the accepted ones to the catalog.
+
+1. `python3 pc/tools/material_rollout.py survey [--until 21:30]` runs ONE
+   headless game (as the room survey above) through the game's own room
+   table (RPC `rooms`: every room read from the disc, with its area and
+   name), warping into each (no enemies, no scripts; a room no door leads
+   into is entered at the middle of its floor grid) and surveying it from
+   the same four views. It is resumable: each room's survey lands in
+   `pc/build/material_rollout/rooms/<zone>-<room>.json` and `state.json`
+   notes it done or failed (a failed room is tried once more on a later
+   run). `--until HH:MM` parks it (no room is started after then);
+   `--zone`, `--rooms Z/R,...` and `--max` narrow it. A game that dies or
+   stalls is killed by its PID and relaunched. Each texture's texels are
+   kept once (`tex/`), each room's game view small (`views/`): game art, local.
+2. `python3 pc/tools/material_rollout.py report` aggregates the rooms: every
+   texture and every palette (what a palette entry covers), the rooms each
+   is in, its coverage (the sum over rooms of its mean share of the views:
+   rooms' worth of screen) and whether the catalog already has it. One
+   proposal per palette (per texture for 15-bit textures, which have none)
+   names a preset (or `none`: leave it as it is) with a reason and a
+   confidence, from the texels' look (luminance, contrast, saturation, hue,
+   dark seams, bright specks, grain direction), the survey's hints (how much
+   of it faces up, sideways or down, how much object lists draw: props and
+   characters) and the rooms' names (rain, water; cellars, catacombs). It
+   writes `proposals.json` and `review.html`, sorted by coverage.
+3. Open `pc/build/material_rollout/review.html` in a browser (a local file:
+   no server, nothing uploaded): each proposal with its thumbnails, the
+   rooms and their views, the hints; Accept, Reject or change the preset
+   (and for a 15-bit texture the scope), then **Export review JSON**. The
+   decisions are kept in the browser between visits.
+4. `python3 pc/tools/material_rollout_apply.py material_review.json
+   [--dry-run]` adds the accepted decisions to
+   `pc/assets/materials/catalog.json` (`--catalog`, `--out`): a palette
+   becomes one palette entry per room it was surveyed in, scoped to that
+   room (palette entries stay scoped: a palette can be reused for other art
+   elsewhere); a 15-bit texture its key and size, per room or everywhere.
+   Fresh ids after the catalog's highest, `review: "new"`, a `where` naming
+   the room and the proposal; entries the catalog already has are skipped,
+   and the file keeps its layout.
+
+The survey's hints come from RPC `material survey`: per texture, `facing`
+(its cells whose triangles face up, sideways and down as seen from the eye)
+and `object` (its cells drawn by object lists).
 
 ## The data path
 

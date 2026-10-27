@@ -4796,6 +4796,17 @@ static void wait_for_requests(int ms)
 #endif
 }
 
+extern void pc_vk_shutdown(void) __attribute__((weak)); /* vk_present.c, 64-bit only */
+/* Exit for a quit: the Vulkan device torn down first (it waits for the GPU),
+ * so the driver's threads are not still at work while exit() runs the
+ * destructors (a segfault in an NVIDIA thread after "[rpc] quit requested"). */
+static void quit_exit(void)
+{
+    if (pc_vk_shutdown)
+        pc_vk_shutdown();
+    exit(0);
+}
+
 /* A pending RPC snapshot save, taken here on the game stack (between
  * frames, in pc_tick). In the process that resumes the file the call
  * returns again (pc_snapshot_point gives 1): no request is pending there,
@@ -4823,7 +4834,7 @@ static void take_snapshot(void)
         rpc_set_blocking(c->fd, 0);
     }
     if (snapshot_then == THEN_EXIT)
-        exit(0);
+        quit_exit();
     if (snapshot_then == THEN_RESTART && status == 0)
         pc_snapshot_restart(snapshot_path, restart_paused); /* returns only when the exec failed */
 }
@@ -4862,7 +4873,7 @@ void pc_quit(void)
 {
     const char* autosnap = getenv("ROOD_AUTOSNAP");
     if (!autosnap || !*autosnap || !pc_snapshot_available())
-        exit(0);
+        quit_exit();
     snprintf(snapshot_path, sizeof snapshot_path, "%s", autosnap);
     snapshot_client = NULL; /* a pending request is answered by the exit */
     snapshot_pending = 1;

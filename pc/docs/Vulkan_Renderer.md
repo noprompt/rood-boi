@@ -537,6 +537,118 @@ off in the same room):
 
 NRD, the filters and the haze are unchanged (same images, same counts).
 
+### The game's sky (`environment.cpp` `game_sky`)
+
+The sky's colours come from what the game itself draws behind the room
+(`env sky source=game`, the default) instead of hand-picked gradients; the
+generated and authored zenith / horizon / ground stay as the `manual`
+colours, used where the game draws no sky or when a room picks
+`source=manual`.
+
+**What the game has, per room.** Every room's MPD section B
+(`_mpdRoomSectionB`, 146C.h) starts with five colour words (`0x00BBGGRR`)
+and a rotation (`unk14`, three angles; zero in every room). On room load
+`func_8008E938` sorts the room into one of:
+
+- **the gradient sphere** (the five not all equal): `func_8008EB30` copies
+  them to `D_800F1D78` and writes them into the 34-vertex mesh `D_80068C1C`
+  as five rings: the zenith pole (y -409), a ring of 8 at 26.5 degrees up,
+  16 on the horizon, 8 at 26.5 down, the nadir pole. `func_8008EC48` places
+  it about the eye each frame and `pc_background_packets` (boot_sdk.c) draws
+  it as 64 Gouraud triangles, untextured, without perspective, behind
+  everything: the field's only clear. Colours are 0..255 as drawn.
+- **a flat backdrop** (all five equal and non-zero): a 320 x 240 `POLY_FT4`
+  of one texel (u,v 248, tpage 0x11, CLUT 0x38B1), tinted `128 + 4 x
+  D_800F1BB0` while `D_800F1BB0.unk6` is set.
+- **nothing** (all five black): the black sphere; the set fills the view.
+
+Scripts change the colours at run time: the background fades of main.c
+(`func_800474DC` / the `_clutState.bg*` animation) rewrite `D_800F1D78`
+through `func_8008EB30`, frame by frame. A **panorama** replaces the sphere
+while a script turns it on (`func_8008EAF8` sets `D_800F1DC9`) and its two
+files (section 0x10: a TIM uploaded at texture page `D_800F1DC8`, its CLUT
+at row 238 (0x3BB0), and a tile layout, `D_800F1DCC`) are loaded:
+`func_8009147C` draws up to 31 x 31 tiles of 32 x 32 screen pixels, each a
+texture rectangle (`uv`) modulated by four corner colours, wrapping every
+1024 pixels across, scrolled by the camera's yaw and pitch (x: yaw x
+`D_800F1DB8` / 4096 - `D_800F1DB4`, y: `D_800F1DB6` - pitch x `D_800F1DBA` /
+4096; scripts set those with `func_8008EAE4` / `func_80091468`), rolled
+with the camera, over a black TILE.
+
+Measured over the disc (all 421 room files; `env sky` = the 82 rooms the
+generator finds open to the sky):
+
+| Game sky | Rooms | Of them with `env sky` | Where |
+| --- | --- | --- | --- |
+| gradient sphere | 48 | 32 | the town (zone 32: light blue above, black from the horizon down; 39/0), 23 and 25 (orange-brown), 29, 97-99 (the ending's blues and greens), the prologue 1-8 (dark); a few roofed rooms (13/12, 21/0, 58/0, 70/0) |
+| flat backdrop | 29 | 29 | Snowfly Forest (zone 40, 41: grey 128) |
+| black | 344 | 21 | roofed rooms; open ones whose set covers the view (13/7, 15/9, 22/1-3, 22/5, 23/0,2,4, 24/2,5, 29/1, 32/14, 32/20-23, 61/0, 63/0, 68/0, 96/0) |
+| panorama files | 6 | 3 | the prologue (1/0-1, 2/0-1, 7/0, 8/0), all also with a sphere; shown while the opening's scripts turn it on (1/0 at the opening checkpoint: the burning town through the window) |
+
+**Derived sky.** `game_sky()` reads the live state each frame (weak
+imports `D_800F1D78`, `D_800F1DC6`, `D_800F1BB0`, `D_800F1DC9`,
+`D_800F1DC8`, `D_800F1DCC`; VRAM through `pc_native_vram`):
+
+- the panorama when it is on: the mean colour, as drawn (CLUT texels x
+  corner colours / 128), of its top, middle and bottom tile rows (zenith,
+  26.5 degrees, horizon), black below;
+- else the flat backdrop: its texel through the CLUT, tinted, for all five;
+- else the sphere's five rings from `D_800F1D78`;
+- all black: no game sky.
+
+zenith = the first ring, horizon = the third, ground = the mean of the
+fourth and fifth (`env_sky` reaches the ground colour 14.5 degrees down).
+The 26.5-degree ring is what `env_sky`'s zenith -> horizon blend
+(`sqrt(up)`) gives there within about 10 % in the town; the directional map
+below would keep it exactly. Radiance = colour / 255 x `game_scale` (0.25)
+x `intensity`: 0.25 puts the town's cosine-weighted sky about where the
+generated night sky was (Rue Vermillion's zenith 0.17,0.22,0.22 against the
+generated 0.07,0.09,0.16, its horizon 0.016,0.012,0 against 0.17,0.18,0.23).
+The sun, `sun_tint` and `ambient` are unchanged.
+
+Everything downstream is the existing record: `pc_env_gpu_get` fills
+`zenith/horizon/ground` from the derived colours, so the path tracer, the
+probes, the haze, the non-traced ambient and OpenGL all take it, and
+`pc_env_hash` (NRD's and the probes' history keys) changes exactly when the
+derived colours do (a script fade restarts history each frame it changes
+them, as an edit does). A room without `env sky` gets zeros whatever the
+game draws; one with `env sky` but no game sky gets its manual colours: the
+record is bit-identical to before.
+
+Tunable: `env sky source=game|manual game_scale=0.25` in the lighting
+layers (lighting/README.md "Environment"), the Atmosphere tab (Colours
+from, the game's rings as swatches, Game scale, Copy to manual), RPC
+`environment {sky: {source, game_scale}}` (the reply's `sky.game`: kind
+`sphere | flat | panorama | none`, its rings and the derived three;
+`sky.using`). Test: `pc/tests/game_sky_smoke.py`.
+
+Measured (`game_sky_smoke`, Vulkan Ultra, Rue Vermillion at the warp's
+camera): the indirect light view's mean 8.9 (manual night sky) -> 10.4 (the
+game's sky); the picture 47.5 -> 47.8 (the baked shadow keeps most of the
+town's surfaces under the added light, as before).
+
+**Design, not built: a directional sky map (Vulkan).** The gradient keeps
+three colours; the game's sky has five rings and, in the prologue, a
+textured panorama whose light comes from one side (the burning town).
+Plan: a 64 x 32 lat-long (or 32 x 32 octahedral) RGBA16F map in world
+directions, rebuilt on the CPU when the game sky changes (its inputs hash:
+the five colours, the panorama's scroll/scale and tile data, the VRAM
+rows it samples): for the sphere, its 64 triangles' Gouraud colours by
+direction (rotation `unk14`); for the panorama, each texel's (yaw, pitch)
+mapped through `func_8009147C`'s scroll (x = yaw x `D_800F1DB8` / 4096 -
+`D_800F1DB4` + column, wrapping at 1024; y from pitch and the 32-pixel
+rows, the camera's projection distance turning screen pixels into angle)
+to tile texels, black below the last row; then a separable blur of about
+15 degrees so a GI ray's single sample stays low-noise, and x
+`game_scale`. One combined image sampler more in the trace descriptor
+sets (`rt_trace.comp`, the probe trace pair, `rt_haze`), `env_sky(d)`
+sampling it when a flag in `horizon.w`'s spare bits (or a sixth vec4) says
+the map is live; its content hash folded into `pc_env_hash`. OpenGL and the
+non-traced ambient keep the three-colour gradient (its mean is the map's
+cosine-weighted average). Left for later: today's capture already takes
+the panorama's rows into the gradient, and only 6 rooms (the prologue)
+have one.
+
 ### The baked shadow (`scaled.frag` / `gl_present.c` `baked_shadow`)
 
 It applies only in rooms open to the sky (the environment defines a sun/moon or a sky, `pc_env_open_sky`): there the traced light has nothing above to stop it and the baked darkness stands in for the missing occluders. Indoors the ceiling already shadows the sky, GI and glows, and a glow's light on a dark-baked floor stays (emissive_smoke).

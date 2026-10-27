@@ -36,6 +36,9 @@ struct Raster {
     float hand; /* sign relating the world-space facing to the screen's (nclip, y down) */
     std::vector<float> depth; /* 1/w, larger is nearer */
     std::vector<int> use; /* per cell: index into uses, -1 nothing, -2 untextured */
+    std::vector<uint8_t> where; /* per cell: its facing (FLOOR, WALL, CEILING) | OBJECT */
+    uint8_t cur = 0; /* the triangle being filled's */
+    int kind = 0; /* the list being walked: render_list_objects */
     std::unordered_map<uint64_t, int> use_index;
     struct Use {
         unsigned page, clut;
@@ -84,6 +87,23 @@ float world_facing(const float* a, const float* b, const float* c, const float e
         e1[k] = b[k] - a[k], e2[k] = c[k] - a[k];
     n[0] = e1[1] * e2[2] - e1[2] * e2[1], n[1] = e1[2] * e2[0] - e1[0] * e2[2], n[2] = e1[0] * e2[1] - e1[1] * e2[0];
     return n[0] * (eye[0] - a[0]) + n[1] * (eye[1] - a[1]) + n[2] * (eye[2] - a[2]);
+}
+/* A triangle's facing as seen from the eye: its normal turned towards the
+ * eye, mostly up (the world's y points down) a floor, mostly down a ceiling,
+ * else a wall. */
+enum { WALL = 0, FLOOR = 1, CEILING = 2, OBJECT = 4 };
+uint8_t facing(const float* a, const float* b, const float* c, const float eye[3])
+{
+    float e1[3], e2[3], n[3];
+    for (int k = 0; k < 3; k++)
+        e1[k] = b[k] - a[k], e2[k] = c[k] - a[k];
+    n[0] = e1[1] * e2[2] - e1[2] * e2[1], n[1] = e1[2] * e2[0] - e1[0] * e2[2], n[2] = e1[0] * e2[1] - e1[1] * e2[0];
+    float len = sqrtf(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
+    if (len < 1e-12f)
+        return WALL;
+    float towards = n[0] * (eye[0] - a[0]) + n[1] * (eye[1] - a[1]) + n[2] * (eye[2] - a[2]);
+    float up = (towards < 0 ? n[1] : -n[1]) / len;
+    return up > 0.7f ? FLOOR : up < -0.7f ? CEILING : WALL;
 }
 /* Grid position of a clip-space point in front of the near plane. */
 void to_grid(const Raster& r, const Vec4& p, float* x, float* y)
@@ -134,6 +154,7 @@ void fill(Raster& r, const Vec4* v, int value)
                     continue;
                 r.depth[cell] = d;
                 r.use[cell] = value;
+                r.where[cell] = r.cur;
             }
     }
 }
@@ -151,6 +172,7 @@ void sink(void* context, const float w[9], const uint8_t* /*rgb*/, const uint8_t
     Vec4 v[3];
     for (int i = 0; i < 3; i++)
         v[i] = transform(r.m, &w[i * 3]);
+    r.cur = facing(&w[0], &w[3], &w[6], r.eye) | (r.kind == 1 ? OBJECT : 0);
     if (v[0].w < NEAR_W && v[1].w < NEAR_W && v[2].w < NEAR_W)
         return;
     int value = -2;
@@ -227,12 +249,14 @@ bool survey(Result& out, int grid_w, int cull)
     }
     r.depth.assign((size_t)r.gw * r.gh, 0.0f);
     r.use.assign((size_t)r.gw * r.gh, -1);
+    r.where.assign((size_t)r.gw * r.gh, 0);
     uint32_t lists[64];
     int n = pc_hw_present_all_lists(lists, 64);
     for (int i = 0; i < n; i++) {
         int kind = render_list_objects(lists[i]);
         if (kind < 0 || kind == 3)
             continue; /* gone, or an effects list (shadows, sprites) */
+        r.kind = kind;
         render_list_triangles(lists[i], sink, &r);
     }
     emissive::current_room(&out.zone, &out.room);
@@ -242,10 +266,15 @@ bool survey(Result& out, int grid_w, int cull)
     memcpy(out.forward, f, sizeof out.forward);
     /* Cells per use, then per texture (key, size, palette). */
     std::vector<int> per_use(r.uses.size(), 0);
-    for (int u : r.use) {
-        if (u >= 0)
+    std::vector<std::array<int, 4>> per_use_where(r.uses.size(), { 0, 0, 0, 0 });
+    for (size_t c = 0; c < r.use.size(); c++) {
+        int u = r.use[c];
+        if (u >= 0) {
             per_use[(size_t)u]++, out.textured++;
-        else if (u == -2)
+            per_use_where[(size_t)u][r.where[c] & 3]++;
+            if (r.where[c] & OBJECT)
+                per_use_where[(size_t)u][3]++;
+        } else if (u == -2)
             out.untextured++;
     }
     std::map<std::string, int> by_texture;
@@ -275,6 +304,8 @@ bool survey(Result& out, int grid_w, int cull)
         Texture& t = out.textures[(size_t)it->second];
         t.boxes.push_back({ u.box[0], u.box[1], u.box[2], u.box[3] });
         t.cells += per_use[i];
+        t.floor += per_use_where[i][FLOOR], t.wall += per_use_where[i][WALL];
+        t.ceiling += per_use_where[i][CEILING], t.object += per_use_where[i][3];
         if (per_use[i] > best_box[(size_t)it->second]) { /* where it shows most */
             best_box[(size_t)it->second] = per_use[i];
             t.tpage = u.page, t.clut = u.clut;

@@ -47,8 +47,10 @@ CARD = 4200  # the hall's take: the credits card "Art Direction ... / Character 
 CLOSE_UP = 1150  # the courtyard's take: Ashley close up, the far floor slab behind her
 # The courtyard's moon and sky as the lighting packs' generated layer gives them (2/0 is open to the sky).
 MOON = {"azimuth": 279, "elevation": 35, "color": [0.582, 0.655, 0.886], "intensity": 0.7, "angle": 2}
+# source manual: these colours, not the game's own (dark) sky of the courtyard, so the baked shadow is
+# measured against a known sky (environment.cpp game_sky).
 SKY = {"zenith": [0.074, 0.091, 0.149], "horizon": [0.18, 0.182, 0.214], "ground": [0.032, 0.03, 0.033],
-       "sun_tint": 0.25, "ambient": 0.6}
+       "sun_tint": 0.25, "ambient": 0.6, "source": "manual"}
 # vs_battle_roomData (_mpdRoomSection, 146C.h): geometrySection, a 4-byte guest pointer.
 ROOM_GEOMETRY = 0x64
 

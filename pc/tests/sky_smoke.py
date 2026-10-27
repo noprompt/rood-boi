@@ -58,7 +58,7 @@ SUN_ONLY = {"sun": {"enabled": True, "azimuth": 200, "elevation": 50, "color": [
                     "angle": 1, "shadows": True}, "sky": {"enabled": False}}
 SKY_ONLY = {"sun": {"enabled": False}, "sky": {"enabled": True, "zenith": [0.25, 0.3, 0.45],
                                                "horizon": [0.45, 0.45, 0.5], "ground": [0.05, 0.05, 0.05],
-                                               "intensity": 1, "sun_tint": 0}}
+                                               "intensity": 1, "sun_tint": 0, "source": "manual"}}
 
 
 def main():

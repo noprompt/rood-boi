@@ -23,6 +23,10 @@ struct Texture {
     uint8_t box[4] = { 0, 0, 0, 0 };
     std::vector<std::array<uint8_t, 4>> boxes; /* every box drawing it (u0, v0, u1, v1) */
     int cells = 0; /* grid cells it covers */
+    /* of them, where its triangles face up (floor), sideways (wall) or down
+     * (ceiling) as seen from the eye, and drawn by an object list (props,
+     * characters) rather than the room's: hints for the material rollout */
+    int floor = 0, wall = 0, ceiling = 0, object = 0;
     std::string entry; /* the material entry that applies here ("": none) */
 };
 struct Result {

@@ -870,7 +870,9 @@ camera has). The photo camera also writes its yaw and pitch to the scratch
 camera angles in `func_8007ACB0`'s hook (as its roll), so what is placed
 from them that frame follows it (the sky panorama of `func_8009147C`,
 sprites turned to the camera); renders are rewound, so the game never keeps
-them. (`env sky` is light only, never drawn as pixels.)
+them. (`env sky` is light only, never drawn as pixels; its colours come from this
+sphere, the flat backdrop or the panorama by default: Vulkan_Renderer.md
+"The game's sky".)
 `pc/tests/photo_full_room_smoke.py` checks all of it on GL and Vulkan.
 
 The editor's viewport overlays (`editor_overlays.cpp`: room edges and points,

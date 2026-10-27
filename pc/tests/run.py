@@ -222,6 +222,11 @@ def suites(args, mode="egl"):
               sources=[ROOT / "pc/assets/materials/catalog.json", ROOT / "pc/src/materials.cpp",
                        ROOT / "pc/tools/check_material_maps.py"],
               note="material catalog schema, presets and grayscale publish guard"),
+        Suite("material_rollout", [PY, str(TESTS / "material_rollout_test.py")], 60, binary=None,
+              sources=[ROOT / "pc/tools/material_rollout.py", ROOT / "pc/tools/material_rollout_apply.py",
+                       ROOT / "pc/assets/materials/catalog.json"],
+              note="material rollout: resumable room targets, texture looks, preset proposals, palette "
+                   "aggregation, the review page, applying a review to a catalog copy"),
         Suite("emissive_metadata", [PY, str(TESTS / "emissive_metadata_test.py")], 60, binary=None,
               note="lossless emissive scope metadata: duplicate/empty groups, repeated round trips and membership edits"),
         Suite("emissive_catalog", [PY, str(TESTS / "emissive_catalog_test.py")], 300, binary=None,
@@ -386,6 +391,9 @@ def suites(args, mode="egl"):
             Suite("sky_smoke", [PY, str(TESTS / "sky_smoke.py"), "--card", str(args.save)], 300,
                   note="sun and sky: roofed room unchanged, outdoor room's generated sun shadows and sky fill, "
                        "energy, NRD, probes, shadow-map fallback, save/load, generated tags stable"),
+            Suite("game_sky_smoke", [PY, str(TESTS / "game_sky_smoke.py"), "--card", str(args.save)], 300,
+                  note="the sky's light from the game's own sky: the town's sphere, the forest's backdrop, "
+                       "source game/manual, game_scale, save; a roofed room and a black-sky room unchanged"),
             Suite("atmosphere_smoke", [PY, str(TESTS / "atmosphere_smoke.py"), "--card", str(args.save)], 300,
                   note="haze, ground fog, fog volumes: fog follows height, volumes keep to their bounds, save/load, "
                        "generated forest fog, the moon's shafts in the haze, steady frame to frame"),
@@ -807,7 +815,7 @@ def stale_binaries(selected):
 CHECKPOINT_SUITES = {
     "probe_gi_smoke", "animation_smoke", "editor_cutaway_smoke", "editor_undo_smoke", "editor_selection_smoke", "editor_schema_smoke", "editor_transform_smoke", "barn_doors_smoke", "editor_handles_smoke", "facing_cutaway_smoke",
     "camera_stick_smoke", "camera_stick_menus_smoke", "editor_snap_smoke", "editor_roomload_smoke", "room_browser_smoke", "room_entry_sound_smoke", "route_continuation_smoke", "ending_smoke",
-    "light_actors_smoke", "fixture_lighting_smoke", "sky_smoke", "glow_stability_smoke", "lighting_presets_smoke",
+    "light_actors_smoke", "fixture_lighting_smoke", "sky_smoke", "game_sky_smoke", "glow_stability_smoke", "lighting_presets_smoke",
     "gi_lag_smoke", "texture_animation_smoke", "save_menu_smoke", "narrowed_2d_smoke", "weapon_slots_smoke", "ui_menus_smoke",
     "ui_lines_smoke", "ui_text_smoke", "button_prompts_smoke", "button_roles_symbols_smoke", "coplanar_order_smoke", "atmosphere_smoke",
     "void_fog_smoke",
@@ -833,7 +841,7 @@ CHECKPOINT_SUITES = {
 # summed time / --heavy-jobs is a floor for the run's wall time).
 HEAVY_SUITES = {
     "glow_stability_smoke", "save_point_glow_smoke", "probe_gi_smoke", "gi_smoke", "gi_lag_smoke", "nrd_smoke",
-    "rt_camera_smoke", "sky_smoke", "lighting_presets_smoke", "emissive_smoke", "ui_ashley_stability_smoke",
+    "rt_camera_smoke", "sky_smoke", "game_sky_smoke", "lighting_presets_smoke", "emissive_smoke", "ui_ashley_stability_smoke",
 }
 
 

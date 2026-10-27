@@ -5,6 +5,9 @@
  * Per room, from the lighting layers: `env sun` and `env sky` items
  * (generated for rooms open to the sky by pc/tools/generate_lighting.py,
  * overridden by id like any item). A room without them has neither.
+ * The sky's colours are the game's own sky where it draws one (`source`
+ * game: its background sphere, flat backdrop or panorama, read live), else
+ * the item's (pc/docs/Vulkan_Renderer.md "The game's sky").
  *
  * Renderers read one packed record per frame (pc_env_gpu_get): five vec4s
  * appended to the trace UBOs (rt_lights.glsl `Trace`, probe_gi.inc
