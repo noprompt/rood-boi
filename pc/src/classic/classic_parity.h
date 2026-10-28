@@ -47,8 +47,11 @@ enum {
     PC_CLASSIC_TEXT_BAND = 17, /* a text box's band: the name window's (func_800CD158) */
     PC_CLASSIC_BOX_TEXT = 18, /* a text box's text as _printVariableWidthFont sets it (its glyphs) */
     PC_CLASSIC_IMAGE = 19, /* a portrait or still (func_800CCA90) */
-    PC_CLASSIC_STATUS_PANEL = 20, /* the whole status display (func_800CA2DC): captured only */
-    PC_CLASSIC_KINDS = 21
+    PC_CLASSIC_TARGET_ROW = 20, /* a target row: a part's name and its plate (58578.c func_800C1DC4) */
+    PC_CLASSIC_TARGET_LINE = 21, /* a selected row's leader lines (func_800C16FC, func_800C1A40) */
+    PC_CLASSIC_TARGET_MARKER = 22, /* the area target's marker (func_800C28AC) */
+    PC_CLASSIC_STATUS_PANEL = 23, /* the whole status display (func_800CA2DC): captured only */
+    PC_CLASSIC_KINDS = 24
 };
 const char* pc_classic_kind_name(int kind); /* "status", ...; "" for none */
 int pc_classic_kind_of(const char* name);   /* 0 unknown */

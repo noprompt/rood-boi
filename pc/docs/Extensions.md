@@ -223,6 +223,9 @@ decides how it looks. The kinds:
 | `text_band` | the classic look's only: a text box's band across the screen, the name window's (5BF94.c func_800CD158: the picture behind darkened row by row, black past it, the action's icon once settled); the game opens and closes it (`rood.dev.show("name_window")` shows one) | `box`, `top` (grown from the top), `edge` (the rows grown), `lines`, `settled`, `icon` (the box's icon field) |
 | `box_text` | the classic look's only: a text box's text as the game's printer sets it this frame (5BF94.c `_printVariableWidthFont`: its glyphs, recorded as it sets them; the typewriter, pages, the continuation arrow, sounds and button reads stay the game's) | `box`, `glyphs` (6 integers a glyph, in the order set: code, font table, colour style, x, y, brightness; one table, reused), `value` (the glyphs' count) |
 | `image` | the classic look's only: a portrait or still (5BF94.c func_800CCA90: New Game's opening cards; its tiled drawer, D_800EC25C[0]: the other drawers, the credits' wipes and such, stay the game's until a scene the gate plays shows them); the game decides (no show) | `image` (0..2), `drawer`, `clut` (its CLUT word) |
+| `target_row` | the classic look's only: a row of the targeting list (58578.c func_800C1DC4: a part's name by the raw printer on its plate, a gradient with a black shadow), in the slot the game linked it into (`vs_scratch.unk8 + 8`, the selected `+ 4`); the targeting decides which rows, their slide and the plate's fade (no show) | `text` (the name as the game's string: `#` right-aligns), `call_x`, `call_y` (the row's place, the list's offset in y), `selected`, `fade` (the plate's step 0..8, before the game steps it), `bank` (its colours: 0, 1) |
+| `target_line` | the classic look's only: the selected row's leader lines (58578.c func_800C1DC4's func_800C16FC, on the left half func_800C1A40: from the part's point to the row, swept in by their age; from age 18 a second behind), in `vs_scratch.unk8`; the targeting decides (no show) | `call_x`, `call_y` (the line's start: the part's point projected), `row_x`, `row_y` (the row's place), `age` (the sweep: the row's unk3) |
+| `target_marker` | the classic look's only: the area target's marker (58578.c func_800C28AC: three sprites of the field UI page, one pulsing; with the pitch free, the brackets' two quads), slot -4; the targeting decides (no show) | `call_x`, `call_y` (the point projected), `lock` (the call's arg1: the pitch locked, no brackets, the other sprites), `step` (the pulse's brightness step, 0..15) |
 
 Every element: `kind, id, text, x, y, w, h` (the game's drawing's box in its
 screen, 320 x 224 in the field, `x, y` its centre; a damage number: where the
@@ -252,6 +255,8 @@ drawing is the claims'.
 | `d.frame(x, y, w, h, {box, shape, flip?, tail?})` | classic only: a text box's frame by the game's own routine (func_800CD3E4) on a copy of box `box` (0..7: it links into that box's entries of the text boxes' ordering table): its place, size, shape, flip and tail as given, the rest the box's. The vector talk bubbles (`ui_bubbles vector`, an option) redraw it as they redraw the game's |
 | `d.band(box, {top, edge, lines, settled?, icon?})` | classic only: a text box's band across the screen by the game's own routine (func_800CD158, the name window's) on a copy of box `box`: from the top or the bottom, `edge` rows grown, its lines, its icon when settled |
 | `d.char(code, x, y, font, style, brightness)` | classic only (box_text's): one glyph of the text boxes' font by the game's printer (vs_battle_printVariableWidthFontChar) in the element's box, its font table, colour style and brightness set for it; ui_text sets it as the game's (the dialogue and menu styles, `ui_text_layout`, `ui_text_bubble_align`: the settings stay the source) |
+| `d.plate(x, y, w, h, left, right, shadow_x, shadow_y, shadow_w, shadow_h)` | classic only (target_row's): a target row's plate as func_800C1DC4 builds it, one packet: a black tile (the shadow), then a dithered gradient across `x, y, w x h` from the colour word `left` to `right` (`0xBBGGRR`, `0x80` full) |
+| `d.leader(x0, y0, x1, y1, count, left)` | classic only (target_line's): a leader line by the game's own routine (func_800C16FC; `left` true: func_800C1A40) as func_800C1DC4 calls it: from `x0, y0` to `x1, y1`, `count` its sweep; in the kind's slot |
 | `d.image(image, drawer, clut)` | classic only (image's): a portrait or still by the game's own drawer (D_800EC25C[drawer], as func_800CCA90 calls it), in the kind's slot; the drawer's own widescreen placement (a full-screen still fills 16:9) applies as to the game's |
 | `d.window(x, y, w, h[, brightness])` | classic only: the game's text box window (its stone body, frame and shadow); brightness 1 a selected box, 0.5 the others |
 | `d.cursor(x, y[, step])` | classic only: the menus' pointing hand, its brightness animation at `step` (0..15; default: the game's) |
@@ -579,6 +584,16 @@ game's raw printer), and what it may change is a table:
   links at the head of the box's entry), placed as the game's; its typography is ui_text's, from
   the settings;
 - `look.image`: the portraits and stills by `d.image`, placed as the game's;
+- `look.target_row`: a target row: its name (`d.text_raw` at `left` or `right` from the row by the
+  screen's half, grey or the selected white), its plate (`d.plate`: `w x h`, the banks' `near` and
+  `far` colours lerped by the fade step as vs_battle_uiGradientStop does, mirrored on the left half)
+  and the plate's shadow; placed as the game's (anchor `game`);
+- `look.target_line`: the selected row's leader lines by `d.leader`, to the row's `ring` point by the
+  screen's half, their count the age less `lag`, and from `trail` a second (the age plus `step`,
+  wrapped at `cycle`);
+- `look.target_marker`: the area target's marker: its sprites (`d.sprite`: the game's packed steps,
+  sizes and texels; the locked set from `locked`; `pulse_at` by the brightness step's `pulse`) and,
+  unless locked, the brackets (`d.quad`s with corners packed as the game adds them);
 - `look.timer`: the time attack's timer, the game's string (`e.text`, composed by `_renderTimer`)
   through its raw printer at 128, 200, grey, slot -4;
 - `look.typeset`: how ui_text sets the words (`blanks = "one"`: a run of
@@ -610,7 +625,7 @@ game draws until the plugin reloads), a kind's `hud_classic_<kind>` off,
 or Lua off: the game's own drawing (its typography ui_text's defaults,
 which keep the same fixes). Settings: `hud_classic_status`,
 `hud_classic_chain`, `hud_classic_gauges`, `hud_classic_figure`, `hud_classic_status_icons`, `hud_classic_battle_mode`, `hud_classic_ability_icons`, `hud_classic_buff`,
-`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer`, `hud_classic_emote`, `hud_classic_text_frame`, `hud_classic_text_band`, `hud_classic_box_text`, `hud_classic_image` (all on); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
+`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer`, `hud_classic_emote`, `hud_classic_text_frame`, `hud_classic_text_band`, `hud_classic_box_text`, `hud_classic_image`, `hud_classic_target_row`, `hud_classic_target_line`, `hud_classic_target_marker` (all on); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
 
 **The parity gate** (`pc/src/classic/classic_parity.c`; plan §3). The
 hooks (`PC_CLASSIC`, `pc/src/classic/classic_hook.h`; `PC_HUD` is one)
@@ -629,7 +644,7 @@ them as the buffer held them).
 
 | RPC | |
 |---|---|
-| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `emote`, `text_frame`, `text_band`, `box_text`, `image`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
+| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `emote`, `text_frame`, `text_band`, `box_text`, `image`, `target_row`, `target_line`, `target_marker`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
 | `packets {start, end}` | the packets of a guest range in allocation order |
 | `classic {parity, reset}` | per kind: frames compared, matched, mismatched (by field), skipped (why), the first difference with both packets |
 
@@ -674,7 +689,15 @@ lives, then held from the top and the bottom with one to four lines and each ico
 compared too: it links into `vs_scratch.unk8`); state parity holds it. The bubble's text at the
 opening: the duke's line, its box as other kinds (font table, colour style) and selections
 (brightness), the next line typed out glyph by glyph; state parity there; the name window's
-text, in the save room, is compared with its band. The images play in a third game, New Game
+text, in the save room, is compared with its band. The target rows, in the save room with targeting up (no
+enemy about: the gate writes the rows as func_800C5798 does): every part's name on a row's whole life
+from either side (its slide, the plate's fade 8..0, its slide out), four rows at once on each side and
+bank with one selected, a deselected row's fade; the selected row's leader lines from points about
+Ashley in every direction to a row on either side, at their sweep's ages (every age 0..33 once);
+default, fallback and state parity with targeting up. The area target's marker in a fourth game from the
+save room (Explosion's target through the original menus): moved about with the d-pad, every
+brightness step locked and with its brackets, Square held; its default, fallback and state parity
+there. The part details are text box 7 (the band, its text): compared as those kinds. The images play in a third game, New Game
 from the title: from the first card's first frame (a mark) the default and fallback and state
 parity, then back to the mark and the opening cards' whole lives compared (a routine's own
 widescreen range in the shadow is noted, not recorded, and compared as the anchor). It
@@ -687,7 +710,8 @@ Result 2026-10-20: status 576 frames, chain 558, gauges 1192, 0
 mismatches; state parity 120 of 120 vsyncs. 2026-10-28: buff 2,103 frames
 (35 states), damage 1,224 frames (36 states), actor_word 1,920 frames (61
 states), timer 60 frames (14 states), emote 134 frames (44 states), text_frame 917 frames (146 states), text_band 216 frames (43 states), box_text 878 frames (6 states; and the
-name window's text in the save room, 124), image 717 frames, 0 mismatches.
+name window's text in the save room, 124), image 717 frames, target_row 474 frames (37
+states), target_line 502 frames (36 states), target_marker 150 frames (15 states), 0 mismatches.
 
 ## Photo mode foundation
 

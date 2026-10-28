@@ -67,9 +67,10 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
  * words and the chain count -16 (func_800958A4, func_80095A4C), a buff +8 (func_8009695C), a number -20
  * (func_80094B0C) and a word over an actor -20, the timer -4 (_renderTimer), an emote its own (its actor's
  * depth: element_slot) (func_8009506C, func_80095258, its arrow func_800957D0), the
- * gauges -12 (their bars, labels and separators; their digits -16). A classic draw links its packets there
- * too, unless it names another (d.layer). */
-static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4, PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT };
+ * gauges -12 (their bars, labels and separators; their digits -16), a target row its own (vs_scratch.unk8 + 8, the
+ * selected + 4: element_slot) and its leader lines vs_scratch.unk8, the area target's marker -4. A classic draw links its packets there too, unless it names another (d.layer). */
+static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4,
+    PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, -4 };
 static int element_slot; /* PC_HUD_LAYER_ELEMENT: the slot the element just recorded was linked into */
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
@@ -80,7 +81,8 @@ typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC
             && PC_CLASSIC_ACTOR_WORD == PC_HUD_ACTOR_WORD && PC_CLASSIC_TIMER == PC_HUD_TIMER
             && PC_CLASSIC_EMOTE == PC_HUD_EMOTE && PC_CLASSIC_TEXT_FRAME == PC_HUD_TEXT_FRAME
             && PC_CLASSIC_TEXT_BAND == PC_HUD_TEXT_BAND && PC_CLASSIC_BOX_TEXT == PC_HUD_BOX_TEXT
-            && PC_CLASSIC_IMAGE == PC_HUD_IMAGE
+            && PC_CLASSIC_IMAGE == PC_HUD_IMAGE && PC_CLASSIC_TARGET_ROW == PC_HUD_TARGET_ROW
+            && PC_CLASSIC_TARGET_LINE == PC_HUD_TARGET_LINE && PC_CLASSIC_TARGET_MARKER == PC_HUD_TARGET_MARKER
         ? 1
         : -1];
 
@@ -501,6 +503,67 @@ void pc_hud_image(void* record, void* first, void* end)
     element_slot = image->slot;
     image_records[image->image] = image->gim;
     classic_finish(PC_HUD_IMAGE, &f, first, end, &image->slot, 1, 0);
+}
+
+/* A target row (58578.c func_800C1DC4): its name (copied), place, selected, the plate's fade (before the game steps
+ * it) and colour bank, and the slot it linked into. One element per row. */
+void pc_hud_target_row(void* record, void* first, void* end)
+{
+    static pc_hud_fields f;
+    const pc_classic_target_row* row = record;
+    if (!row || first == end)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_TARGET_ROW;
+    f.key = row->row;
+    if (row->text)
+        append(f.text, f.text + sizeof f.text, row->text);
+    f.row_selected = row->selected != 0, f.row_fade = row->fade, f.row_bank = row->bank;
+    f.call_x = row->x, f.call_y = row->y;
+    f.x = (float)row->x + 36, f.y = (float)row->y + 4, f.w = 72, f.h = 8; /* (the plate's box) */
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    element_slot = row->slot;
+    classic_finish(PC_HUD_TARGET_ROW, &f, first, end, &row->slot, 1, 0);
+}
+
+/* A selected row's leader lines (func_800C1DC4): their start, the row's place and their age. One element per row. */
+void pc_hud_target_line(void* record, void* first, void* end)
+{
+    static pc_hud_fields f;
+    const pc_classic_target_line* line = record;
+    int slot;
+    if (!line || first == end)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_TARGET_LINE;
+    f.key = line->row;
+    f.call_x = line->x, f.call_y = line->y;
+    f.row_x = line->row_x, f.row_y = line->row_y;
+    f.age = line->age;
+    f.x = (float)line->x, f.y = (float)line->y;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    append(f.text, f.text + sizeof f.text, "line");
+    slot = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
+    classic_finish(PC_HUD_TARGET_LINE, &f, first, end, &slot, 1, 0);
+}
+
+/* The area target's marker (func_800C28AC): its place, lock and brightness step. */
+void pc_hud_target_marker(void* record, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static const int slots[] = { -4 };
+    const pc_classic_target_marker* marker = record;
+    if (!marker || first == end)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_TARGET_MARKER;
+    f.key = &f;
+    f.call_x = marker->x, f.call_y = marker->y;
+    f.marker_lock = marker->lock, f.marker_step = marker->step;
+    f.x = (float)marker->x, f.y = (float)marker->y;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    append(f.text, f.text + sizeof f.text, "marker");
+    classic_finish(PC_HUD_TARGET_MARKER, &f, first, end, slots, 1, 0);
 }
 
 /* A text box's text (_printVariableWidthFont): the glyphs it set this frame (recorded as it set them); the box. */
@@ -1210,6 +1273,39 @@ static void quad_ft4(u_long* ot, const pc_hud_classic_cmd* c)
     p[8] = u1 | v1 << 8;
 }
 
+/* A target row's plate as func_800C1DC4 builds it: one packet of a black tile (its shadow), a draw mode (dithered),
+ * the gradient across (POLY_G4: the left colour, the right) and the draw mode back. */
+static void plate_packets(u_long* ot, const pc_hud_classic_cmd* c)
+{
+    u_long* p = packet(ot, 13);
+    p[0] = 0x60000000;
+    p[1] = xy(c->a, c->b);
+    p[2] = xy(c->c, c->d);
+    p[3] = 0xE1000200;
+    p[4] = (c->color & 0xFFFFFF) | 0x38000000;
+    p[5] = xy(c->x, c->y);
+    p[6] = c->color2 & 0xFFFFFF;
+    p[7] = xy(c->x + c->w, c->y);
+    p[8] = c->color & 0xFFFFFF;
+    p[9] = xy(c->x, c->y + c->h);
+    p[10] = c->color2 & 0xFFFFFF;
+    p[11] = xy(c->x + c->w, c->y + c->h);
+    p[12] = 0xE1000000;
+}
+
+/* A target row's leader line by the game's own routine (func_800C16FC, the left half's func_800C1A40) as
+ * func_800C1DC4 calls it: it links into vs_scratch.unk8, so that is the kind's slot (the shadow's, for the parity
+ * gate) for the call and given back after. */
+void func_800C16FC(int x0, int x1, int count); /* 58578.c */
+void func_800C1A40(int x0, int x1, int count);
+static void leader_packets(u_long* ot, const pc_hud_classic_cmd* c)
+{
+    u_long* slot = psx_get(vs_scratch.unk8);
+    psx_set(vs_scratch.unk8, ot);
+    (c->b ? func_800C1A40 : func_800C16FC)((int)xy(c->x, c->y), (int)xy(c->c, c->d), c->a);
+    psx_set(vs_scratch.unk8, slot);
+}
+
 /* A text box's frame by the game's own routine (func_800CD3E4) on a copy of the box: the box's place, size, shape,
  * flip and tail set for the call and given back after it (nothing else of the box is read); its packets link into
  * the box's entries of the text boxes' table, or of box_shadow for the parity gate (the vector bubbles,
@@ -1374,6 +1470,12 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
         }
         case PC_HUD_CMD_QUAD:
             quad_ft4(ot, c);
+            break;
+        case PC_HUD_CMD_PLATE:
+            plate_packets(ot, c);
+            break;
+        case PC_HUD_CMD_LEADER:
+            leader_packets(ot, c);
             break;
         case PC_HUD_CMD_FRAME:
             frame_packets(c, shadowed);

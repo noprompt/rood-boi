@@ -545,7 +545,188 @@ def tour_text_band(g, check, counters):
     return covered
 
 
-KEEP = {"actor_word": keep_word, "emote": lambda g: keep_emotes(g), "text_band": keep_band}  # kinds without a show
+def targeting(g, on=True):
+    """Targeting up (Circle, Circle in the save room: battle mode, then the target sphere; with no enemy about the
+    information box says so, D_800EABAA 16) or left (Cross: out of it, then the weapon sheathed). The rows are the
+    gate's to write (target_row)."""
+    symbols = rood_rpc.symbols()
+
+    def up():
+        return int.from_bytes(g.read(symbols["D_800EB9B8"], 4), "little") != 0
+    if up() != on:
+        g.call("input", buttons=[], vsyncs=2)  # (a fixture's held L2 + R2 let go first)
+        g.run(4)
+    for _ in range(6):
+        if up() == on and (on or not g.call("weapon_slots")["weapon_drawn"]):
+            return True
+        g.press("circle" if on else "cross", vsyncs=3, settle=40)
+    return up() == on
+
+
+ROW = 0x990  # D_800EB9B8's rows (unk990: 24 of 20 bytes)
+
+
+def limb_names(g):
+    """The parts' names as the rows show them (vs_battle_limbNames: guest addresses; '#' right-aligns)."""
+    symbols = rood_rpc.symbols()
+    pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4  # (ELF class)
+    names = []
+    for i in range(16):
+        at = int.from_bytes(g.read(symbols["vs_battle_limbNames"] + pointer * i, pointer), "little")
+        if at >> 24 != 0x80:
+            break
+        names.append((at, g.read(at, 16).split(b"\0")[0].decode("latin-1")))
+    return names
+
+
+def write_row(g, i, state=1, selected=0, fade=8, age=0, x=248, y=32, bank=0, text=0):
+    """Row i as func_800C5798 writes one (state 1 shown, 2 coming in from the right / going out to the left, 3 the
+    other way; the 3D point the origin), and the fields the targeting steps (selected, the plate's fade, the line's
+    age)."""
+    import struct
+    base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
+    g.write(base + ROW + 20 * i, struct.pack("<BBBBhbbhhhhI", state, selected, fade, age, x, y, bank, 0, 0, 0, 0,
+                                             text))
+
+
+def row_state(g, i):
+    base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
+    return g.read(base + ROW + 20 * i, 1)[0]
+
+
+def clear_rows(g):
+    base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
+    if base:
+        g.write(base + ROW, bytes(24 * 20))
+
+
+def tour_target_row(g, check, counters):
+    """Every part's name on a row's whole life from either side (its slide in, the plate's fade from 8 to 0, its
+    slide out), selected (the full plate, white) on both sides and banks, the list's rows at once."""
+    covered = []
+    if not check(targeting(g), "target_row: targeting up"):
+        return covered
+    names = limb_names(g)
+    check(len(names) >= 6, f"target_row: the parts' names ({[n for _, n in names]})")
+    fades, sides = set(), set()
+    try:
+        for k, (at, name) in enumerate(names):
+            for side, (state, x, out) in enumerate(((2, 320, 3), (3, -72, 2))):
+                clear_rows(g)
+                bank = (k + side) & 1
+                before = counters("target_row")["frames"]
+                write_row(g, 0, state=state, x=x, y=32 + 11 * (k % 8), bank=bank, text=at)
+                seen = set()
+
+                def faded():  # (slid in, its plate's fade down to 0)
+                    seen.update(e["fade"] for e in g.call("hud", action="list")["elements"]
+                                if e["kind"] == "target_row" and e["live"])
+                    return row_state(g, 0) == 1 and 0 in seen
+                g.until(faded, step=1, guard=40)
+                base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
+                g.write(base + ROW, bytes([out]))  # (as func_800C56C0 sends them off)
+                gone = g.until(lambda: row_state(g, 0) == 0, step=1, guard=40)
+                frames = counters("target_row")["frames"] - before
+                check(bool(gone) and frames >= 8, f"target_row {name!r} from the {('right', 'left')[side]}, bank "
+                                                   f"{bank}: its life, {frames} frames compared")
+                fades |= seen
+                sides.add(side)
+                covered.append({"name": name, "side": ("right", "left")[side], "bank": bank, "frames": frames})
+        for side, x in ((0, 248), (1, -4)):
+            for bank in (0, 1):
+                clear_rows(g)
+                before = counters("target_row")["frames"]
+                for i in range(4):
+                    write_row(g, i, selected=int(i == 1), x=x, y=32 + 11 * i, bank=bank ^ (i & 1),
+                              text=names[1 + i % (len(names) - 1)][0])
+                g.run(12)
+                elements = [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "target_row"
+                            and e["live"]]
+                frames = counters("target_row")["frames"] - before
+                check(frames >= 16 and any(e["selected"] for e in elements),
+                      f"target_row: four rows on the {('right', 'left')[side]}, bank {bank}, one selected: {frames} "
+                      f"frames compared")
+                covered.append({"rows": 4, "side": ("right", "left")[side], "bank": bank, "selected": 1})
+        # deselected: the plate fades from the selected row's 7 to 0
+        clear_rows(g)
+        write_row(g, 0, selected=1, text=names[1][0])
+        g.run(4)
+        base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
+        g.write(base + ROW + 1, b"\0")
+        seen = set()
+        g.until(lambda: seen.update(e["fade"] for e in g.call("hud", action="list")["elements"]
+                                    if e["kind"] == "target_row" and e["live"]) or 0 in seen, step=1, guard=30)
+        check(set(range(8)) <= seen, f"target_row: deselected, the plate faded 7..0 ({sorted(seen)})")
+        covered.append({"deselected": sorted(seen)})
+    finally:
+        clear_rows(g)
+        check(targeting(g, False), "target_row: targeting left")
+    check(sides == {0, 1} and set(range(9)) <= fades, f"target_row: both sides, every fade 0..8 ({sorted(fades)})")
+    return covered
+
+
+LINE_AGES = [0, 1, 2, 3, 9, 16, 17, 18, 19, 25, 31, 33]  # (the sweep in; from 18 the second line, its count wrapped)
+
+
+def tour_target_line(g, check, counters):
+    """A selected row's leader lines from points about Ashley (in front, behind, to either side, above: the lines'
+    every direction and odd and even lengths) to a row on either side, at the ages of their sweep (every age 0..33
+    for the first point: the game's own run, 0x22 wrapping to 0x12 in its state 19)."""
+    import struct
+    covered, ages, sides = [], set(), set()
+    if not check(targeting(g), "target_line: targeting up"):
+        return covered
+    names = limb_names(g)
+    base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
+    cx, cy, cz = struct.unpack("<hhh", g.read(base + 8, 6))  # (the sphere's centre: Ashley)
+    points = [(cx + dx, cy + dy, cz + dz) for dx in (-768, 0, 768) for dy in (-512, 0) for dz in (-768, 0, 768)]
+    try:
+        for side, x in ((0, 248), (1, -4)):
+            for k, point in enumerate(points):
+                clear_rows(g)
+                write_row(g, 0, selected=1, x=x, y=32 + 11 * (k % 8), bank=k & 1, text=names[1 + k % (len(names) - 1)][0])
+                g.write(base + ROW + 8, struct.pack("<hhh", *point))
+                before = counters("target_line")["frames"]
+                for age in (range(34) if k == 0 else LINE_AGES):
+                    g.write(base + ROW + 3, bytes([age]))
+                    at = counters("target_line")["frames"]
+                    if g.until(lambda: counters("target_line")["frames"] >= at + 1, step=1, guard=20):
+                        e = next((e for e in g.call("hud", action="list")["elements"]
+                                  if e["kind"] == "target_line" and e["live"]), None)
+                        if e and e["age"] == age:
+                            ages.add(age)
+                frames = counters("target_line")["frames"] - before
+                states = 34 if k == 0 else len(LINE_AGES)
+                check(frames >= states, f"target_line from {point} to a row on the {('right', 'left')[side]}: "
+                                        f"{frames} frames compared ({states} ages)")
+                sides.add(side)
+                covered.append({"point": point, "side": ("right", "left")[side], "frames": frames})
+    finally:
+        clear_rows(g)
+        check(targeting(g, False), "target_line: targeting left")
+    check(sides == {0, 1} and set(range(34)) <= ages, f"target_line: both sides, every age 0..33 "
+                                                       f"(missing {sorted(set(range(34)) - ages)})")
+    return covered
+
+
+def keep_line(g):
+    """The default and fallback checks' lines: targeting up, a selected row at age 20 (both lines) kept."""
+    if not targeting(g):
+        return
+    if not any(e["kind"] == "target_line" and e["live"] for e in g.call("hud", action="list")["elements"]):
+        write_row(g, 0, selected=1, age=20, text=limb_names(g)[1][0])
+
+
+def keep_row(g):
+    """The default and fallback checks' row: targeting up, a selected row kept (written when gone)."""
+    if not targeting(g):
+        return
+    if not any(e["kind"] == "target_row" and e["live"] for e in g.call("hud", action="list")["elements"]):
+        write_row(g, 0, selected=1, text=limb_names(g)[1][0])
+
+
+KEEP = {"actor_word": keep_word, "emote": lambda g: keep_emotes(g), "text_band": keep_band,
+        "target_row": keep_row, "target_line": keep_line}  # kinds without a show
 
 EMOTES = [1, 2, 3, 4, 5, 6, 7, 0x10]  # the dots, the shout's '!', the heart, the surprise, '?' alone; 0x10 a balloon
 # with no case of its own (func_80095C18's switch has none: the balloon alone)
@@ -744,7 +925,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -926,6 +1107,112 @@ def run_new_game(out, env, check, waivers, kinds):
         g.close()
 
 
+def area_target(g):
+    """Explosion's area target from the save room (the original menus: Triangle, Magick, Warlock, Explosion; the
+    spells learned and MP full as ui_magick_smoke's prepare writes them): the sphere opened and the marker up."""
+    import ui_magick_smoke
+    symbols = rood_rpc.symbols()
+
+    class Caster(ui_magick_smoke.Session):
+        def __init__(self, game):
+            self.name, self.out, self.shots, self.g, self.sym = "marker", None, False, game, symbols
+    b = Caster(g)
+    b.prepare()
+    g.press("triangle", vsyncs=3, settle=10)
+    b.wait_ready(0)
+    b.nav(range(0, 10), 0)
+    g.press("circle", vsyncs=3, settle=10)
+    b.wait_ready(10)
+    b.nav(range(10, 15), 10)
+    g.press("circle", vsyncs=3, settle=10)
+    b.wait_ready(20)
+    g.run(10)
+    warlock = [i for i in g.read(symbols["vs_battle_warlockSpellIds"], 18) if b.learned(i)]
+    b.nav(range(20, 20 + len(warlock)), 20 + warlock.index(ui_magick_smoke.EXPLOSION))
+    for _ in range(4):
+        g.press("circle", vsyncs=3, settle=1)
+        if b.wait(lambda: b.targeting() and b.menu() == ui_magick_smoke.CLOSED, 120, "", step=2, quiet=True) is not None:
+            break
+    return g.until(lambda: any(e["kind"] == "target_marker" and e["live"]
+                               for e in g.call("hud", action="list")["elements"]), step=2, guard=120)
+
+
+def run_marker(out, card, env, check, waivers):
+    """The area target's marker (func_800C28AC), its own game from the save room: Explosion's target, the marker
+    moved about (the d-pad: pitch and turn; the stick), every brightness step, locked (the first stage, or Square
+    held) and with its brackets (Circle: the second stage); default, fallback and state parity there."""
+    g = launch_at("save_room", card=card, fast=True, log=out / "game-marker.log", extra_env=env)
+    kind = "target_marker"
+    try:
+        def counters():
+            return g.call("classic")["kinds"][kind]
+
+        def marker():
+            return next((e for e in g.call("hud", action="list")["elements"] if e["kind"] == kind and e["live"]), None)
+        g.call("classic", parity=True, reset=True)
+        if not check(bool(area_target(g)), "target_marker: Explosion's area target up"):
+            return
+        covered, steps, places = [], {}, set()
+
+        def watch(lock, vsyncs, buttons=()):
+            before = counters()["frames"]
+            for _ in range(vsyncs // 2):
+                if buttons:
+                    g.hold(list(buttons), 2)
+                else:
+                    g.run(2)
+                e = marker()
+                if e and e["lock"] == lock:
+                    steps.setdefault(lock, set()).add(e["step"])
+                    places.add((e["call_x"], e["call_y"]))
+            frames = counters()["frames"] - before
+            covered.append({"lock": lock, "buttons": list(buttons), "frames": frames})
+            return frames
+        for stage, lock in ((0, True), (1, False)):
+            if stage == 1:
+                g.press("circle", vsyncs=3, settle=4)  # (the second stage: the brackets)
+            frames = watch(lock, 40)
+            for buttons in (["up"], ["down"], ["left"], ["right"], ["up", "left"], ["down", "right"]):
+                frames += watch(lock, 16, buttons)
+            check(frames >= 60 and set(range(16)) <= steps.get(lock, set()),
+                  f"target_marker {'locked' if lock else 'with its brackets'}: {frames} frames compared, steps "
+                  f"{sorted(steps.get(lock, set()))}")
+        frames = watch(True, 20, ["square"])  # (Square held: locked in the second stage too)
+        check(frames >= 8, f"target_marker, Square held: locked, {frames} frames compared")
+        check(len(places) >= 8, f"target_marker: moved about ({len(places)} places)")
+        report = opening_report(g, check, waivers, kind, covered, set())
+        g.call("classic", parity=False)
+        default_and_fallback(g, kind, check)
+        # state parity (§3.4): from a mark with the brackets up
+        masks = state_masks(g)
+        g.run(2)
+        g.pause()
+        g.mark()
+        g.rewind()
+        drawn = g.call("hud", action="stats")["kinds"][kind]["drawn"]
+        g.digest("record", ticks=120, masks=masks)
+        g.until(lambda: g.digest("result")["recorded"] >= 120, guard=120, what="the digest recorded")
+        drawn = g.call("hud", action="stats")["kinds"][kind]["drawn"] - drawn
+        g.rewind()
+        g.call("settings", apply=f"hud_classic_{kind} 0")
+        fallback = g.call("hud", action="stats")["kinds"][kind]["fallback"]
+        g.digest("compare")
+        g.until(lambda: g.digest("result")["ticks"] >= 120, guard=120, what="the digest compared")
+        result = g.digest("result")
+        fallback = g.call("hud", action="stats")["kinds"][kind]["fallback"] - fallback
+        g.call("settings", apply=f"hud_classic_{kind} 1")
+        check(drawn > 0 and fallback > 0 and result.get("error") == 0 and result.get("first_tick") == -1
+              and result.get("ticks") == result.get("recorded"),
+              f"state parity target_marker: {result.get('ticks')} of {result.get('recorded')} vsyncs the same "
+              f"(rood.classic drew {drawn}, the game {fallback}; first difference {result.get('first_tick')} "
+              f"{result.get('first_pages')})")
+        (out / f"{kind}.json").write_text(json.dumps(report, indent=1))
+        print(f"report: {out / (kind + '.json')}: {report['frames']} frames, {report['states']} states, "
+              f"{'green' if report['green'] else 'RED'}")
+    finally:
+        g.close()
+
+
 def opening_report(g, check, waivers, kind, covered, extra):
     c = g.call("classic")["kinds"][kind]
     declared = sorted(n for n in str(repl(g, "rood.classic", f"return table.concat(M.look.overrides.{kind} or {{}}, ',')"))
@@ -1057,6 +1344,12 @@ def run(out, card, renderer, kinds, candidate=False):
         if not kinds:
             print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
             return 1 if failures else 0
+    if "target_marker" in kinds:
+        run_marker(out, card, env, check, waivers)
+        kinds = [k for k in kinds if k != "target_marker"]
+        if not kinds:
+            print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
+            return 1 if failures else 0
     if any(k in OPENING for k in kinds):
         run_opening(out, env, check, waivers, [k for k in kinds if k in OPENING])
         kinds = [k for k in kinds if k not in OPENING]
@@ -1106,6 +1399,10 @@ def run(out, card, renderer, kinds, candidate=False):
                 covered = tour_timer(g, check, counters)
             elif kind == "text_band":
                 covered = tour_text_band(g, check, counters)
+            elif kind == "target_row":
+                covered = tour_target_row(g, check, counters)
+            elif kind == "target_line":
+                covered = tour_target_line(g, check, counters)
             for show, text in states(kind):
                 # held (rood.dev.show: the game's own spawner, the age pinned) until the gate compared two of
                 # its frames showing this element's text
@@ -1169,6 +1466,12 @@ def run(out, card, renderer, kinds, candidate=False):
         timer_fixture(g, 12, 34, 56)  # the timer up for fallback and the state proofs
         for kind in kinds:
             default_and_fallback(g, kind, check)
+        if any(k in TARGETING for k in kinds):
+            target_state_parity(g, check)
+        check(targeting(g, False), "targeting left")
+        ability_icons_fixture(g)  # (again: leaving battle mode ended them)
+        battle_mode_fixture(g)
+        status_icons_fixture(g)
         state_parity(g, check)
         # The doubled tick path and supplemental-glyph carousel get the same state proof too.
         speed_at = rood_rpc.symbols()["vs_gametime_tickspeed"]
@@ -1275,12 +1578,9 @@ def packet_masks(symbols, pointer):
     return masks + [[a, pointer] for a in rows.values()]
 
 
-def state_parity(g, check, ticks=120, ability_hold=True):
-    """§3.4: SLOW! held (and the gauges up), from one mark: rood.classic drawing them, then the game; every
-    vsync's state
-    (guest memory, the native game state, VRAM) the same but for the packets (the primitive buffers,
-    the ordering tables, the packet pointer) and the host clock (last_vsync, as snapshot_diff and the
-    oracle's own proof mask it). Both runs start from a rewind (the mark's)."""
+def state_masks(g):
+    """What a state proof leaves out: the packet pointer, the frame's primitive buffers and ordering tables, the host
+    clock, packet_masks'."""
     symbols = rood_rpc.symbols()
     pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4  # (ELF class: the arrays' pointers)
     masks = [[0x1F800000, 4]]  # vs_scratch.unk0, the packet pointer
@@ -1289,7 +1589,58 @@ def state_parity(g, check, ticks=120, ability_hold=True):
             address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
             masks.append([address, size])
     masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
-    masks += packet_masks(symbols, pointer)
+    return masks + packet_masks(symbols, pointer)
+
+
+TARGETING = ("target_row", "target_line")  # (the kinds whose state proof runs with targeting up)
+
+
+def target_state_parity(g, check, ticks=120):
+    """§3.4 for targeting: from one mark in targeting, rows coming in from both sides (their plates fading) and a
+    selected one with its leader lines, drawn by rood.classic, then by the game: every vsync's state the same but for the packets."""
+    masks = state_masks(g)
+    if not check(targeting(g), "targeting state parity: targeting up"):
+        return
+    names = limb_names(g)
+    clear_rows(g)
+    write_row(g, 0, state=2, x=320, y=32, text=names[1][0])
+    write_row(g, 1, state=3, x=-72, y=43, bank=1, text=names[2][0])
+    write_row(g, 2, selected=1, age=20, y=54, text=names[3][0])  # (its leader lines, both)
+    g.run(2)
+    g.pause()
+    g.mark()
+    g.rewind()
+    stats = lambda: g.call("hud", action="stats")["kinds"]  # noqa: E731
+    drawn = {k: stats()[k]["drawn"] for k in TARGETING}
+    g.call("input", buttons=[], vsyncs=ticks + 20)
+    g.digest("record", ticks=ticks, masks=masks)
+    g.until(lambda: g.digest("result")["recorded"] >= ticks, guard=120, what="the digest recorded")
+    drawn = {k: stats()[k]["drawn"] - n for k, n in drawn.items()}
+    g.rewind()
+    g.call("settings", apply=[f"hud_classic_{k} 0" for k in TARGETING])
+    fallback = {k: stats()[k]["fallback"] for k in TARGETING}
+    g.call("input", buttons=[], vsyncs=ticks + 20)
+    g.digest("compare")
+    g.until(lambda: g.digest("result")["ticks"] >= ticks, guard=120, what="the digest compared")
+    result = g.digest("result")
+    fallback = {k: stats()[k]["fallback"] - n for k, n in fallback.items()}
+    g.call("settings", apply=[f"hud_classic_{k} 1" for k in TARGETING])
+    for k in TARGETING:
+        check(drawn[k] > 0 and fallback[k] > 0, f"targeting state parity {k}: Lua drew {drawn[k]}, game drew "
+                                                f"{fallback[k]}")
+    check(result.get("error") == 0 and result.get("first_tick") == -1 and result.get("ticks") == result.get("recorded"),
+          f"targeting state parity: {result.get('ticks')} of {result.get('recorded')} vsyncs the same (first difference "
+          f"{result.get('first_tick')} {result.get('first_pages')})")
+    clear_rows(g)
+
+
+def state_parity(g, check, ticks=120, ability_hold=True):
+    """§3.4: SLOW! held (and the gauges up), from one mark: rood.classic drawing them, then the game; every
+    vsync's state
+    (guest memory, the native game state, VRAM) the same but for the packets (the primitive buffers,
+    the ordering tables, the packet pointer) and the host clock (last_vsync, as snapshot_diff and the
+    oracle's own proof mask it). Both runs start from a rewind (the mark's)."""
+    masks = state_masks(g)
     g.call("hud", action="show", kind="status", hold=True, timing="slow", age=10)
     for kind in ("buff", "damage"):  # (held beside it: both drawn by rood.classic, then by the game)
         g.call("hud", action="show", kind=kind, hold=True, **SHOW[kind])

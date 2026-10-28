@@ -874,6 +874,47 @@ int api_image(lua_State* L)
     return 1;
 }
 
+// d.plate(x, y, w, h, left, right, shadow_x, shadow_y, shadow_w, shadow_h): classic only (target_row's): a target
+// row's plate as func_800C1DC4 builds it, one packet: a black tile (shadow_x, shadow_y, shadow_w x shadow_h), then a
+// gradient across x, y, w x h from the colour word left to right (PS1 BGR, 0x80 full), dithered.
+int api_plate(lua_State* L)
+{
+    const char* fn = "rood.draw.plate";
+    float x = coordinate(L, 1, fn), y = coordinate(L, 2, fn), w = coordinate(L, 3, fn), h = coordinate(L, 4, fn);
+    lua_Integer left = luaL_checkinteger(L, 5), right = luaL_checkinteger(L, 6);
+    float sx = coordinate(L, 7, fn), sy = coordinate(L, 8, fn), sw = coordinate(L, 9, fn), sh = coordinate(L, 10, fn);
+    if (left < 0 || left > 0xFFFFFF || right < 0 || right > 0xFFFFFF)
+        return luaL_error(L, "%s: the colours are PS1 colour words (0..0xFFFFFF)", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_PLATE);
+    if (k) {
+        k->x = pixel(x), k->y = pixel(y), k->w = pixel(w), k->h = pixel(h);
+        k->color = (unsigned)left, k->color2 = (unsigned)right;
+        k->a = pixel(sx), k->b = pixel(sy), k->c = pixel(sw), k->d = pixel(sh);
+    }
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
+// d.leader(x0, y0, x1, y1, count, left): classic only (target_line's): a target row's leader line by the game's own
+// routine (func_800C16FC; left true: func_800C1A40, the left half's) as func_800C1DC4 calls it: from x0, y0 (the
+// part's point) to x1, y1 (the row), count its sweep (the segments lit, their fade); in the kind's slot.
+int api_leader(lua_State* L)
+{
+    const char* fn = "rood.draw.leader";
+    float x0 = coordinate(L, 1, fn), y0 = coordinate(L, 2, fn), x1 = coordinate(L, 3, fn), y1 = coordinate(L, 4, fn);
+    lua_Integer count = luaL_checkinteger(L, 5);
+    bool left = lua_toboolean(L, 6);
+    if (count < -64 || count > 64)
+        return luaL_error(L, "%s: count -64..64", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_LEADER);
+    if (k)
+        k->x = pixel(x0), k->y = pixel(y0), k->c = pixel(x1), k->d = pixel(y1), k->a = (int)count, k->b = left;
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
 // d.window(x, y, w, h[, brightness]): the game's text box window (its frame, body and shadow; classic
 // only); brightness 1 as a selected box, 0.5 as the others.
 int api_window(lua_State* L)
@@ -1657,12 +1698,38 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
             if ((k != PC_HUD_STATUS_ICONS && k != PC_HUD_BATTLE_MODE) || strcmp(g, "slide"))
                 set_nil(L, g);
     }
-    if (((k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE) || k == PC_HUD_ACTOR_WORD || k == PC_HUD_TIMER || k == PC_HUD_EMOTE) && !e.synthetic) { // where the game's call put it
+    if (((k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE) || k == PC_HUD_ACTOR_WORD || k == PC_HUD_TIMER || k == PC_HUD_EMOTE
+            || k == PC_HUD_TARGET_ROW || k == PC_HUD_TARGET_LINE || k == PC_HUD_TARGET_MARKER) && !e.synthetic) { // where the game's call put it
         set_int(L, "call_x", f.call_x);
         set_int(L, "call_y", f.call_y);
     } else {
         set_nil(L, "call_x");
         set_nil(L, "call_y");
+    }
+    if (k == PC_HUD_TARGET_ROW) { // the row as func_800C1DC4 reads it (fade: before the game steps it)
+        set_bool(L, "selected", f.row_selected != 0);
+        set_int(L, "fade", f.row_fade);
+        set_int(L, "bank", f.row_bank);
+    } else {
+        if (k != PC_HUD_STATUS_ICONS)
+            set_nil(L, "selected");
+        set_nil(L, "fade");
+        set_nil(L, "bank");
+    }
+    if (k == PC_HUD_TARGET_LINE) { // the row the lines lead to (call_x, call_y their start; age their sweep)
+        set_int(L, "row_x", f.row_x);
+        set_int(L, "row_y", f.row_y);
+    } else {
+        set_nil(L, "row_x");
+        set_nil(L, "row_y");
+    }
+    if (k == PC_HUD_TARGET_MARKER) { // func_800C28AC's lock (arg1) and the brightness step it stepped
+        set_bool(L, "lock", f.marker_lock != 0);
+        set_int(L, "step", f.marker_step);
+    } else {
+        set_nil(L, "lock");
+        if (k != PC_HUD_BATTLE_MODE)
+            set_nil(L, "step");
     }
     if (k == PC_HUD_CHAIN || k == PC_HUD_BUFF || k == PC_HUD_DAMAGE)
         set_int(L, "value", f.value);
@@ -1863,6 +1930,8 @@ void open_hud(lua_State* L, Plugin* p)
     set_cfunction(L, -1, "band", api_band);
     set_cfunction(L, -1, "char", api_char);
     set_cfunction(L, -1, "image", api_image);
+    set_cfunction(L, -1, "plate", api_plate);
+    set_cfunction(L, -1, "leader", api_leader);
     set_cfunction(L, -1, "window", api_window);
     set_cfunction(L, -1, "cursor", api_cursor);
     set_cfunction(L, -1, "bar", api_bar);
@@ -2229,6 +2298,14 @@ std::string element_json(const hud::Element& e)
             + ",\"side\":" + std::to_string(e.f.emote_side) + ",\"z\":" + std::to_string(e.f.emote_z)
             + ",\"direction\":" + std::to_string(e.f.emote_direction) + ",\"frame\":" + std::to_string(e.f.emote_frame)
             + ",\"call_x\":" + std::to_string(e.f.call_x) + ",\"call_y\":" + std::to_string(e.f.call_y);
+    if (e.f.kind == PC_HUD_TARGET_MARKER)
+        icons = std::string(",\"lock\":") + (e.f.marker_lock ? "true" : "false")
+            + ",\"step\":" + std::to_string(e.f.marker_step);
+    if (e.f.kind == PC_HUD_TARGET_LINE)
+        icons = ",\"row_x\":" + std::to_string(e.f.row_x) + ",\"row_y\":" + std::to_string(e.f.row_y);
+    if (e.f.kind == PC_HUD_TARGET_ROW)
+        icons = std::string(",\"selected\":") + (e.f.row_selected ? "true" : "false")
+            + ",\"fade\":" + std::to_string(e.f.row_fade) + ",\"bank\":" + std::to_string(e.f.row_bank);
     if (e.f.kind == PC_HUD_TIMER)
         icons = ",\"minutes\":" + std::to_string(e.f.minutes) + ",\"seconds\":" + std::to_string(e.f.seconds)
             + ",\"hundredths\":" + std::to_string(e.f.hundredths);
@@ -2328,7 +2405,7 @@ std::string stats_json()
         cmds += "}";
     }
     static const char* const CLASSIC_TYPES[] = { "text", "rect", "gradient", "glyph", "sprite", "window", "cursor",
-        "bar", "text_raw", "value", "digit", "frame", "band", "char", "image", "quad" };
+        "bar", "text_raw", "value", "digit", "frame", "band", "char", "image", "plate", "leader", "quad" };
     unsigned panel_first = 0, panel_last = 0; // the classic panels' packets of the last game frame
     if (pc_hud_panel_range)
         pc_hud_panel_range(&panel_first, &panel_last);

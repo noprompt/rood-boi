@@ -7,8 +7,10 @@
 -- are the buffs (buff: WEAPON HUMAN +1), the numbers over the actors (damage) and the words over them (actor_word:
 -- MISS, the ailments' and buffs' words), quads as the game builds them, the time attack's timer (timer) and the
 -- emote balloons over the actors (emote), the text boxes' frames and the name window's band (text_frame, text_band:
--- the game's routines on copies), their text (box_text: each glyph by the game's printer) and the portraits and
--- stills (image: the game's tiled drawer).
+-- the game's routines on copies), their text (box_text: each glyph by the game's printer), the portraits and
+-- stills (image: the game's tiled drawer) and the targeting list's rows (target_row: a part's name on its plate) and
+-- the selected row's leader lines (target_line: the game's line routines), and the area target's marker
+-- (target_marker).
 -- Ability groups leave pc_weapon_slots_label's weapon-mode names/markers and side effects in C.
 -- Each draw function below is a copy of the game's own, made of the game's own pieces (d.text_raw is
 -- its raw printer, d.value its digits, d.bar its gauge), so by default it emits exactly the game's
@@ -265,6 +267,50 @@ local function make_look()
     -- A portrait or still (func_800CCA90; the opening's cards), by the game's own tiled drawer as the game calls it,
     -- placed as the game's (its full-screen stills fill 16:9 as the drawer itself decides).
     image = { place = { anchor = "game" } },
+    -- A row of the targeting list (58578.c func_800C1DC4): the part's name by the raw printer (dx from the row's x:
+    -- `left` on the screen's left half, `right` on the other; one up), grey or, selected, white; under it the plate:
+    -- a gradient across w x h between two colours of a bank (vs_battle_uiGradientStop: each bank's `near` and `far`
+    -- by _lerpColor, the row's fade step between them, selected the last step; mirrored on the left half), and its
+    -- black shadow (dx, dy from the plate; on the left half `wider` more to the left).
+    target_row = {
+      place = { anchor = "game", dx = 0, dy = 0 }, -- (as the game's own 2D: rows slide in from the screen's edges)
+      half = 160,
+      name = { left = 66, right = 6, dy = -1, colour = 0x404040, selected = 0x808080 },
+      plate = { w = 72, h = 8, steps = 8, brightness = 0x80 },
+      near = { 0x6B4100, 0x6C8219 }, far = { 0x330500, 0x262801 }, -- (bank 0's, bank 1's: PS1 colour words)
+      shadow = { dx = 2, dy = 2, wider = 2 },
+    },
+    -- A selected row's leader lines (func_800C16FC, on the left half func_800C1A40): from the part's point to the row
+    -- (`ring`: from the row's place, by the screen's half), swept in by their age (the count `lag` behind it), and
+    -- from `trail` on a second one behind (its count the age plus `step`, wrapped at `cycle`).
+    target_line = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      half = 160,
+      ring = { left = 71, right = 0, dy = 4 },
+      lag = 2, trail = 18, step = 14, cycle = 32,
+    },
+    -- The area target's marker (func_800C28AC) at the point the game projected: unless the pitch is locked (`lock`),
+    -- the brackets (`brackets`: two quads of the field UI page, mirrored, their corners packed as the game adds
+    -- them), then three sprites (`sprites`: the step packed, w, h, u, v; D_800EA670, D_800EA684, D_800EA698: from
+    -- the first, or locked from the third), the one at `pulse_at` by the brightness step (`pulse`:
+    -- vs_battle_cursorBrightnessAnimation), the others at `brightness`. Slot -4.
+    target_marker = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      layer = -4,
+      brackets = {
+        { deltas = { 0xFFF7FFF3, 0xFFF7FFFD, 0xFFFEFFF3, 0xFFFEFFFD }, uvs = { 241, 56, 231, 56, 241, 63, 231, 63 } },
+        { deltas = { 0x0001FFF3, 0x0001FFFD, 0x0008FFF3, 0x0008FFFD }, uvs = { 241, 64, 231, 64, 241, 71, 231, 71 } },
+      },
+      bracket = { page_x = 768, page_y = 0, bits = 4, clut_x = 976, clut_y = 223, bgr = 0x808080,
+        corners = { 0, 0, 0, 0, 0, 0, 0, 0 }, uvs = { 0, 0, 0, 0, 0, 0, 0, 0 } },
+      sprites = { { 0xFFF80004, 10, 7, 232, 56 }, { 0x00020004, 10, 7, 232, 64 }, { 0xFFFCFFFD, 7, 7, 232, 48 },
+        { 0xFFF0FFFC, 9, 11, 220, 48 }, { 0x0004FFFC, 9, 11, 220, 60 } },
+      locked = 2, -- (the sprites' first index when locked)
+      sprite = { page_x = 768, page_y = 0, bits = 4, clut_x = 976, clut_y = 223, u = 0, v = 0, w = 0, h = 0,
+        bgr = 0x808080 },
+      brightness = 0x80, pulse_at = 3,
+      pulse = { 128, 184, 240, 232, 224, 216, 208, 200, 192, 184, 176, 168, 160, 152, 144, 136 },
+    },
     -- How ui_text sets both (with ui_text font; the packets stay the game's): the status style,
     -- typeset as one word centred where the game centres it.
     typeset = {
@@ -730,8 +776,78 @@ M.draw.image = function(e, d)
   d.image(e.image, e.drawer, e.clut)
 end
 
+-- target_row: func_800C1DC4's name and plate for the row as the game read it (its fade before the game steps it). The
+-- game links the plate after the name at the head of the row's slot: the plate's command first.
+local function lerp(c0, c1, brightness, f) -- (_lerpColor: each of a colour word's three bytes)
+  local out = 0
+  for shift = 16, 0, -8 do
+    out = (out << 8) + ((((c0 >> shift) & 255) * (8 - f) + ((c1 >> shift) & 255) * f) * brightness >> 10)
+  end
+  return out
+end
+M.draw.target_row = function(e, d)
+  local r = look.target_row
+  local p, n, plate, sh = r.place, r.name, r.plate, r.shadow
+  local step, bank = e.selected and plate.steps or e.fade, e.bank * plate.steps
+  if bank > plate.steps or step < 0 or step > plate.steps then return end
+  local near = lerp(r.near[1], r.near[2], plate.brightness, bank)
+  local far = lerp(r.far[1], r.far[2], plate.brightness, bank)
+  local left_c, right_c = lerp(near, far, plate.brightness, plate.steps - step), lerp(near, far, plate.brightness, step)
+  local left = e.call_x < r.half
+  if left then left_c, right_c = right_c, left_c end
+  local x, y = e.call_x + p.dx, e.call_y + p.dy
+  local wider = left and sh.wider or 0
+  d.anchor(p.anchor)
+  d.plate(x, y, plate.w, plate.h, left_c, right_c, x + sh.dx - wider, y + sh.dy, plate.w + wider, plate.h)
+  d.text_raw(e.text, x + (left and n.left or n.right), y + n.dy, e.selected and n.selected or n.colour)
+end
+
+-- target_line: func_800C1DC4's leader lines for the selected row. Each links at the head of vs_scratch.unk8: the
+-- second (from `trail` on) is drawn first, so its command goes first.
+M.draw.target_line = function(e, d)
+  local l = look.target_line
+  local p, r = l.place, l.ring
+  local left = e.row_x < l.half
+  local x0, y0 = e.call_x + p.dx, e.call_y + p.dy
+  local x1, y1 = e.row_x + (left and r.left or r.right) + p.dx, e.row_y + r.dy + p.dy
+  d.anchor(p.anchor)
+  if e.age >= l.trail then d.leader(x0, y0, x1, y1, (e.age + l.step) % l.cycle, left) end
+  d.leader(x0, y0, x1, y1, e.age - l.lag, left)
+end
+
+-- target_marker: func_800C28AC's sprites and brackets. Each links at the head of the slot: the last sprite's command
+-- first, the brackets' last.
+M.draw.target_marker = function(e, d)
+  local m = look.target_marker
+  local x, y = e.call_x + m.place.dx, e.call_y + m.place.dy
+  local first = e.lock and m.locked or 0
+  d.anchor(m.place.anchor)
+  d.layer(m.layer)
+  local s = m.sprite
+  for i = 2, 0, -1 do
+    local k = i + first + 1
+    local t = m.sprites[k]
+    local sx, sy = xy(x, y, t[1])
+    s.w, s.h, s.u, s.v = t[2], t[3], t[4], t[5]
+    s.bgr = (k == m.pulse_at and m.pulse[e.step + 1] or m.brightness) * 0x010101
+    d.sprite(sx, sy, s)
+  end
+  if e.lock then return end
+  local q = m.bracket
+  for b = #m.brackets, 1, -1 do
+    local br = m.brackets[b]
+    for c = 1, 4 do
+      local cx, cy = xy(x, y, br.deltas[c])
+      q.corners[2 * c - 1], q.corners[2 * c] = cx - x, cy - y
+    end
+    q.uvs = br.uvs
+    d.quad(x, y, 0, 0, q)
+  end
+end
+
 for _, kind in ipairs({ "status", "chain", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "buff",
-                        "damage", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image" }) do
+                        "damage", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image",
+                        "target_row", "target_line", "target_marker" }) do
   rood.hud.claim(kind, function(e, d) return M.draw[kind](e, d) end, { flavour = "classic" })
 end
 

@@ -11,6 +11,7 @@
 #include "vs_inline_c.h"
 #include "pc/src/psx_types.h"
 #ifdef ROOD_PC
+#include "pc/src/classic/classic_hook.h"
 #include "pc/src/widescreen.h"
 #endif
 
@@ -679,6 +680,11 @@ void func_800C1DC4(D_800EB9B8_unk990* arg0)
     int color;
     u_long* prim;
     u_long* nextPrim;
+#ifdef ROOD_PC
+    pc_classic_target_row pcRow;
+    pc_classic_target_line pcLine;
+    void* pcRowFirst;
+#endif
 
     gradient = arg0->unk2;
     nextPrim = psx_get(vs_scratch.unk8) - (arg0->unk1 * 4 - 8);
@@ -708,6 +714,15 @@ void func_800C1DC4(D_800EB9B8_unk990* arg0)
     if (arg0->unk1 != 0) {
         color = 0x808080;
     }
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the row's name and plate, from what the game reads
+     * here (its fade before it is stepped below). */
+    pcRow.row = arg0, pcRow.text = psx_get(arg0->unk10);
+    pcRow.x = arg0->unk4, pcRow.y = y;
+    pcRow.selected = arg0->unk1, pcRow.fade = arg0->unk2, pcRow.bank = arg0->unk7;
+    pcRow.slot = (char*)nextPrim - (char*)psx_get(vs_scratch.unk4);
+    pcRowFirst = psx_load(void*, (u_int*)0x1F800000);
+#endif
     vs_battle_renderTextRawColor(psx_get(arg0->unk10), textXy, color, nextPrim);
 
     prim = psx_get(vs_scratch.unk0);
@@ -733,6 +748,11 @@ void func_800C1DC4(D_800EB9B8_unk990* arg0)
     *nextPrim = (psx_to_int(u_long, prim) << 8) >> 8;
     prim += 14;
     psx_set(vs_scratch.unk0, prim);
+#ifdef ROOD_PC
+    if (pc_classic_site)
+        pc_classic_site(PC_CLASSIC_SITE_TARGET_ROW, &pcRow, pcRow.x, pcRow.y, pcRowFirst,
+            psx_load(void*, (u_int*)0x1F800000));
+#endif
 
     if (arg0->unk1 != 0) {
         y += 4;
@@ -746,6 +766,13 @@ void func_800C1DC4(D_800EB9B8_unk990* arg0)
 #endif
         gte_stsxy(&sxy);
         gte_stotz(&otz);
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the leader lines, from the projected point to
+         * the row, swept in by its age. */
+        pcLine.row = arg0, pcLine.x = (short)sxy, pcLine.y = sxy >> 16;
+        pcLine.row_x = arg0->unk4, pcLine.row_y = y - 4, pcLine.age = arg0->unk3;
+        pcRowFirst = psx_load(void*, (u_int*)0x1F800000);
+#endif
         if (arg0->unk4 < 160) {
             x = (x + 0x47) & 0xFFFF;
             ringXy = x | (y << 16);
@@ -760,6 +787,11 @@ void func_800C1DC4(D_800EB9B8_unk990* arg0)
                 func_800C16FC(sxy, ringXy, (arg0->unk3 + 14) & 0x1F);
             }
         }
+#ifdef ROOD_PC
+        if (pc_classic_site)
+            pc_classic_site(PC_CLASSIC_SITE_TARGET_LINE, &pcLine, pcLine.x, pcLine.y,
+                pcRowFirst, psx_load(void*, (u_int*)0x1F800000));
+#endif
     }
 }
 
@@ -1008,6 +1040,10 @@ void func_800C28AC(SVECTOR* position, int arg1)
     int brightness;
     u_long* prim;
     u_long* ot = psx_get(vs_scratch.unk4) - 4;
+#ifdef ROOD_PC
+    pc_classic_target_marker pcMarker;
+    void* pcMarkerFirst;
+#endif
 
     gte_ldv0(position);
 #ifdef ROOD_PC
@@ -1019,6 +1055,12 @@ void func_800C28AC(SVECTOR* position, int arg1)
     gte_stsxy(&xy);
 
     D_800EA6AC = (D_800EA6AC + 1) & 0xF;
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the marker's place, lock and the step just taken. */
+    pcMarker.x = (short)xy, pcMarker.y = xy >> 16, pcMarker.lock = arg1;
+    pcMarker.step = D_800EA6AC;
+    pcMarkerFirst = psx_load(void*, (u_int*)0x1F800000);
+#endif
 
     if (arg1 == 0) {
         prim = psx_get(vs_scratch.unk0);
@@ -1056,6 +1098,11 @@ void func_800C28AC(SVECTOR* position, int arg1)
             xy + D_800EA670[index], D_800EA684[index], ot);
         prim[4] = D_800EA698[index];
     }
+#ifdef ROOD_PC
+    if (pc_classic_site)
+        pc_classic_site(PC_CLASSIC_SITE_TARGET_MARKER, &pcMarker, pcMarker.x, pcMarker.y,
+            pcMarkerFirst, psx_load(void*, (u_int*)0x1F800000));
+#endif
 }
 
 int _getCollisionMapDimensions(int arg0);

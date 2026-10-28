@@ -47,7 +47,27 @@ typedef struct {
     void* gim; /* its record (gim_t: identity, for the drawer) */
 } pc_classic_image;
 #define PC_CLASSIC_SITE_IMAGE 19
-#define PC_CLASSIC_SITE_STATUS_PANEL 20 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* A target row (58578.c func_800C1DC4: a part's name and its plate), as the game reads it before it draws: the row
+ * (identity only), its name, place (x the row's, y with the list's offset), selected, the plate's fade step
+ * (before the call steps it), its colour bank and its ordering-table slot (bytes from vs_scratch.unk4). */
+typedef struct {
+    const void* row;
+    const char* text;
+    int x, y, selected, fade, bank, slot;
+} pc_classic_target_row;
+#define PC_CLASSIC_SITE_TARGET_ROW 20
+/* A selected row's leader lines (func_800C1DC4's func_800C16FC / func_800C1A40 calls): the row (identity only), the
+ * line's start (its 3D point projected), the row's place and the line's age (unk3: the lines' sweep). */
+typedef struct {
+    const void* row;
+    int x, y, row_x, row_y, age;
+} pc_classic_target_line;
+#define PC_CLASSIC_SITE_TARGET_LINE 21
+/* The area target's marker (58578.c func_800C28AC): its place (the point projected), lock (the call's arg1: the
+ * pitch locked, the brackets' quads off and the other sprites) and its brightness step (D_800EA6AC, stepped). */
+typedef struct { int x, y, lock, step; } pc_classic_target_marker;
+#define PC_CLASSIC_SITE_TARGET_MARKER 22
+#define PC_CLASSIC_SITE_STATUS_PANEL 23 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end) __attribute__((weak));
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \

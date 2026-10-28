@@ -34,7 +34,7 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
  * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
@@ -47,7 +47,11 @@ enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAM
  * behind darkened in steps, black past it, the action's icon), likewise. box_text: a text box's text as
  * _printVariableWidthFont sets it this frame (its glyphs: code, font table, colour style, place, brightness; the
  * typewriter, pages, arrow, sounds and buttons stay the game's), in the box's entry 3. image: a portrait or still
- * (func_800CCA90; its tiled drawer, D_800EC25C[0]: the others stay the game's). The kinds from gauges on
+ * (func_800CCA90; its tiled drawer, D_800EC25C[0]: the others stay the game's). target_row: a row of the
+ * targeting list (58578.c func_800C1DC4: a part's name by the raw printer, its plate; its fade stepped by the
+ * game), in the slot the game linked it into. target_line: a selected row's leader lines (func_800C16FC, func_800C1A40:
+ * from the part's point to the row, swept in by their age), in vs_scratch.unk8. target_marker: the area target's
+ * marker (func_800C28AC: the brackets' quads, its sprites, one pulsing), in vs_scratch.unk4 - 4. The kinds from gauges on
  * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
 #define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
@@ -105,6 +109,9 @@ typedef struct {
     int image_index, image_mode, image_clut; /* image: which (0..2), its drawer, its CLUT word */
     int band_top, band_edge, band_lines, band_settled, band_icon; /* text_band: the box's (read only) */
     int emote_draw, emote_kind, emote_side, emote_z, emote_direction, emote_frame; /* emote: pc_classic_emote's */
+    int row_selected, row_fade, row_bank; /* target_row: pc_classic_target_row's (the fade before the game steps it) */
+    int row_x, row_y;     /* target_line: the row's place (call_x, call_y the line's start; age the lines' sweep) */
+    int marker_lock, marker_step; /* target_marker: the call's lock (arg1), the brightness step (call_x, call_y its place) */
     int word_miss, word_label, word_lowered; /* actor_word: MISS (1) or a combat label (D_800690B4's index; lowered:
                                               * a lowered stat's, with the arrow) */
     int icon_previous, icon_current, icon_next, icon_count, icon_selected, icon_offset;
@@ -135,7 +142,8 @@ extern int pc_hud_classic_override;
 extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_hud_classic_damage,
     pc_hud_classic_gauges, pc_hud_classic_figure, pc_hud_classic_status_icons, pc_hud_classic_battle_mode, pc_hud_classic_ability_icons,
     pc_hud_classic_actor_word, pc_hud_classic_timer, pc_hud_classic_emote,
-    pc_hud_classic_text_frame, pc_hud_classic_text_band, pc_hud_classic_box_text, pc_hud_classic_image;
+    pc_hud_classic_text_frame, pc_hud_classic_text_band, pc_hud_classic_box_text, pc_hud_classic_image,
+    pc_hud_classic_target_row, pc_hud_classic_target_line, pc_hud_classic_target_marker;
 /* hud_bridge.c: the glyphs the last box_text element set (6 ints each: code, font table, colour style, x, y,
  * brightness), their count. */
 int pc_hud_box_text_glyphs(const int** out) __attribute__((weak));
@@ -195,6 +203,12 @@ enum {
                           * x, y */
     PC_HUD_CMD_IMAGE,    /* an image by the game's drawer (D_800EC25C[b]) as func_800CCA90 calls it: a the image
                           * (0..2), c its CLUT word; in the kind's slot */
+    PC_HUD_CMD_PLATE,    /* a target row's plate as func_800C1DC4 builds it (one packet: a black tile, then a POLY_G4
+                          * across): x, y, w x h the gradient's, color its left colour word, color2 its right (PS1 BGR);
+                          * a, b the tile's place, c, d its size */
+    PC_HUD_CMD_LEADER,   /* a target row's leader line by the game's routine (func_800C16FC; b 1: func_800C1A40, the left
+                          * half's) as func_800C1DC4 calls it: x, y its start, c, d where it meets the row, a the count
+                          * (its sweep); in the kind's slot (the routine's vs_scratch.unk8) */
     PC_HUD_CMD_QUAD      /* a textured four-point polygon as the label loop's draws build theirs (POLY_FT4: the
                           * numbers, buffs): a the page word (with its blending), b the CLUT word, c, d its u, v;
                           * x, y, w x h on the screen; font, align the texels' w x h; color the colour word (PS1

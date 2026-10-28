@@ -3,14 +3,82 @@
 Status: in progress. Phase 0 done; phase 1's battle-status-panel drawing
 migration is done (2026-10-23, branch `classic-lua-step4`), and so are buff
 and damage (step 5), step 7's actor words, timer and emotes (2026-10-28,
-branch `classic-lua-step5`), and step 6's frames, band, text and images
-(same day; see "Progress" below), with the remaining phase
-1 work listed separately. It
+branch `classic-lua-step5`), step 6's frames, band, text and images
+and step 8's targeting (same day, branch `classic-lua-step8`; see "Progress"
+below), with the remaining phase 1 work listed separately. It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
 `2026-10-18-freedom-and-fast-iteration.md` (the lint).
 
 ## Progress
+
+2026-10-28, later (branch `classic-lua-step8`, from main `23855d99`; no merge or publication):
+
+- **Step 8 (targeting), done:** the rows, their leader lines and the area
+  target's marker; the range shapes stay the game's (3D); the part details are
+  text box 7, already step 6's kinds. Same gates as steps 4-7: each kind passed
+  packet parity (zero mismatches, zero skips, no packet waivers) and state
+  parity before its default went on and before the next was started; the
+  fallback (setting off, a raising draw, the plugin off, recovery) is tested
+  for each. Counts from the final null-renderer run:
+
+  | Element / HUD kind | Commit | Frames | Scenarios |
+  |---|---|---:|---:|
+  | Target rows (a part's name on its plate) / `target_row` | `a94fe3b8` | 474 | 37 |
+  | Their leader lines / `target_line` | `4448c263` | 502 | 36 |
+  | Area target's marker / `target_marker` | `2299862b` | 150 | 15 |
+
+  - **Hooks and model:** `ROOD_PC`-only ranges in 58578.c (it now includes
+    `classic_hook.h`): func_800C1DC4's name and plate emit (the row's name,
+    place, selected, the plate's fade before the game steps it, its colour
+    bank, the slot it linked into: `unk8 + 8`, the selected `+ 4`), its two
+    line calls (the projected start, the row's place, the lines' age, unk3) and
+    func_800C28AC's emit (the projected place, lock = arg1, the brightness step
+    just taken). The fade, the step and the sweep stay the game's; every kind
+    is classic-only and the HUD's (hidden by the photo's hide{hud}).
+  - **Primitives:** `d.plate` (the row's one packet: a black tile, a dithered
+    POLY_G4; no game routine builds it alone, so a hand copy as `d.quad` is)
+    and `d.leader` (the game's own func_800C16FC / func_800C1A40 on Lua's
+    arguments, vs_scratch.unk8 pointed at the kind's slot for the call). The
+    marker is `d.sprite` and `d.quad` (its corners packed as the game adds
+    them, `d.xy`). Look tables `look.target_row` (the name's places and
+    colours, the plate's size and the banks' colours lerped as
+    vs_battle_uiGradientStop does), `look.target_line` (the ring point, lag,
+    trail), `look.target_marker` (D_800EA670/684/698, the brackets, the pulse
+    table). All placed with anchor `game` (16:9 as today).
+  - **Coverage:** in the save room with targeting up (no enemy about: the
+    gate writes rows as func_800C5798 does): every part's name (16) on a
+    row's whole life from either side (slide in, the plate's fade 8..0, slide
+    out), four rows at once with one selected on each side and bank, a
+    deselected row's fade 7..0; the selected row's lines from 18 points about
+    Ashley to a row on either side at their sweep's ages (every age 0..33
+    once). The marker in its own game from the save room (Explosion's target
+    through the original menus, spells written as ui_magick_smoke's prepare
+    does): moved with the d-pad, every brightness step locked and with its
+    brackets (Circle: the second stage), Square held. State parity 120/120 for
+    rows and lines together (targeting up) and for the marker. Text box 7 in
+    targeting (the band and its text) compares under `text_band` and
+    `box_text`, 0 mismatches.
+  - **Defaults on:** `hud_classic_target_row`, `hud_classic_target_line`,
+    `hud_classic_target_marker`.
+  - **Verification:** 64-bit and 32-bit (`--battle`) builds; probes
+    `classic_parity_probe` and `lua_probe`; `run.py classic_parity hud classic
+    cutscene_player_smoke widescreen_smoke` 7/7 on GL and 7/7 on Vulkan (every
+    earlier kind green with the same counts); Docker `make commit-check`: **All
+    files match** after each src change (formatter-only changes to unrelated
+    code discarded). The gate leaves targeting after its tours (`3d99bc69`: the
+    other kinds' fallback checks had run with it up).
+  - **Not toured:** rows and lines over a real fight (the targeting's own
+    state 19: the sweep's 0x22 wrap, part HP and status lines in box 7 with
+    `_renderTextImmediate`'s icons, if any); the game's fixed tables are the
+    gate's own rows. The 16:9 place of the rows (today centre-compressed: they
+    slide in from the 4:3 edges) is a look decision left open.
+- **Still outside this drawing migration:** step 6's remainders (the closing
+  text, `_renderTextImmediate`, image drawers 1..3, a far actor's emote
+  sprite); the live-fight packet-parity tour (HP changes, targeting over real
+  enemies); step 1's remaining hand-written primitives (`d.window`, `d.rect`,
+  `d.gradient`, `d.glyph`, `d.cursor`, `d.text`); the per-frame budget
+  measured; per-range typography and the look lint.
 
 2026-10-28 (branch `classic-lua-step5`, from main; no merge or publication):
 

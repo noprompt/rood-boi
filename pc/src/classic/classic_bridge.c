@@ -22,7 +22,9 @@ typedef char pc_classic_sites_agree[PC_CLASSIC_SITE_GAUGES == PC_CLASSIC_GAUGES
             && PC_CLASSIC_SITE_ACTOR_WORD == PC_CLASSIC_ACTOR_WORD && PC_CLASSIC_SITE_TIMER == PC_CLASSIC_TIMER
             && PC_CLASSIC_SITE_EMOTE == PC_CLASSIC_EMOTE && PC_CLASSIC_SITE_TEXT_FRAME == PC_CLASSIC_TEXT_FRAME
             && PC_CLASSIC_SITE_TEXT_BAND == PC_CLASSIC_TEXT_BAND && PC_CLASSIC_SITE_BOX_TEXT == PC_CLASSIC_BOX_TEXT
-            && PC_CLASSIC_SITE_IMAGE == PC_CLASSIC_IMAGE
+            && PC_CLASSIC_SITE_IMAGE == PC_CLASSIC_IMAGE && PC_CLASSIC_SITE_TARGET_ROW == PC_CLASSIC_TARGET_ROW
+            && PC_CLASSIC_SITE_TARGET_LINE == PC_CLASSIC_TARGET_LINE
+            && PC_CLASSIC_SITE_TARGET_MARKER == PC_CLASSIC_TARGET_MARKER
         ? 1
         : -1];
 
@@ -41,6 +43,9 @@ void pc_hud_text_frame(void* record, int id, void* first, void* end);
 void pc_hud_text_band(void* record, int id, void* first, void* end);
 void pc_hud_box_text(void* record, int id, void* first, void* end);
 void pc_hud_image(void* record, void* first, void* end);
+void pc_hud_target_row(void* record, void* first, void* end);
+void pc_hud_target_line(void* record, void* first, void* end);
+void pc_hud_target_marker(void* record, void* first, void* end);
 void pc_hud_gauges(void* record, void* first, void* end); /* hud_bridge.c */
 extern unsigned pc_vsync_count(void) __attribute__((weak));
 
@@ -98,6 +103,18 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
     if (kind >= PC_CLASSIC_STATUS && kind <= PC_CLASSIC_DAMAGE) {
         pc_hud_element(kind, record, x, y, first, end);
         if (hide) /* (a classic claim's own packets too: allocated after the game's) */
+            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        return;
+    }
+    if (kind == PC_CLASSIC_TARGET_ROW || kind == PC_CLASSIC_TARGET_LINE || kind == PC_CLASSIC_TARGET_MARKER) {
+        /* (targeting is the HUD's: hidden with it) */
+        if (kind == PC_CLASSIC_TARGET_ROW)
+            pc_hud_target_row(record, first, end);
+        else if (kind == PC_CLASSIC_TARGET_LINE)
+            pc_hud_target_line(record, first, end);
+        else
+            pc_hud_target_marker(record, first, end);
+        if (hide)
             pc_classic_suppress(first, psx_get(vs_scratch.unk0));
         return;
     }

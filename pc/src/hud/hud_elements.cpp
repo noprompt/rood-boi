@@ -25,13 +25,15 @@ extern "C" {
 int pc_hud_classic_override;
 // Per kind (hud.h): on for the kinds whose classic Lua draw passes the parity gate
 // (pc/tests/classic_parity.py): the timing word, the chain count, the gauges, Ashley's figure, the status carousel,
-// BATTLE MODE, ability icons, the buffs, the numbers and the words over the actors, the timer.
+// BATTLE MODE, ability icons, the buffs, the numbers and the words over the actors, the timer, the emotes, the text
+// boxes' frames, band, text and images, the target rows, their leader lines and the area target's marker.
 int pc_hud_classic_status = 1, pc_hud_classic_chain = 1, pc_hud_classic_buff = 1, pc_hud_classic_damage = 1,
     pc_hud_classic_gauges = 1, pc_hud_classic_figure = 1, pc_hud_classic_status_icons = 1, pc_hud_classic_battle_mode = 1, pc_hud_classic_ability_icons = 1,
     pc_hud_classic_actor_word = 1, pc_hud_classic_timer = 1,
     pc_hud_classic_emote = 1, pc_hud_classic_text_frame = 1,
     pc_hud_classic_text_band = 1, pc_hud_classic_box_text = 1,
-    pc_hud_classic_image = 1;
+    pc_hud_classic_image = 1, pc_hud_classic_target_row = 1, pc_hud_classic_target_line = 1,
+    pc_hud_classic_target_marker = 1;
 int pc_hud_classic_default(int kind)
 {
     switch (kind) {
@@ -51,6 +53,9 @@ int pc_hud_classic_default(int kind)
     case PC_HUD_TEXT_BAND: return pc_hud_classic_text_band != 0;
     case PC_HUD_BOX_TEXT: return pc_hud_classic_box_text != 0;
     case PC_HUD_IMAGE: return pc_hud_classic_image != 0;
+    case PC_HUD_TARGET_ROW: return pc_hud_classic_target_row != 0;
+    case PC_HUD_TARGET_LINE: return pc_hud_classic_target_line != 0;
+    case PC_HUD_TARGET_MARKER: return pc_hud_classic_target_marker != 0;
     }
     return 0;
 }
@@ -81,7 +86,7 @@ Hold holds[PC_HUD_KINDS];
 #define RESPAWN_VSYNCS 15
 
 const char* const KINDS[PC_HUD_KINDS] = { "", "status", "chain", "buff", "damage", "travel", "notice",
-    "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image" };
+    "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker" };
 const char* const TIMINGS[] = { "too_fast", "fast", "success", "slow", "too_slow" };
 // BATTLE.PRG func_800958A4's words and colours (PS1 BGR, 0x80 full).
 const char* const TIMING_WORDS[] = { "TOO FAST!", "FAST!", "", "SLOW!", "TOO SLOW!" };
@@ -113,10 +118,10 @@ unsigned full(unsigned bgr)
 bool single(int kind)
 {
     // ability_icons deliberately is not single: its nine independently hooked groups have stable keys; nor are the
-    // actor words (one per label record) and the emotes (one per actor).
+    // actor words (one per label record), the emotes (one per actor) and the target rows and lines (one per row).
     return kind == PC_HUD_STATUS || kind == PC_HUD_CHAIN || kind == PC_HUD_TRAVEL || kind == PC_HUD_NOTICE
         || kind == PC_HUD_NAME_WINDOW || kind == PC_HUD_GAUGES || kind == PC_HUD_FIGURE || kind == PC_HUD_STATUS_ICONS || kind == PC_HUD_BATTLE_MODE
-        || kind == PC_HUD_TIMER;
+        || kind == PC_HUD_TIMER || kind == PC_HUD_TARGET_MARKER;
 }
 
 Appearance appeared[64];
