@@ -65,15 +65,17 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
 
 /* The ordering-table slot each kind's game drawing links into (bytes from vs_scratch.unk4): the status
  * words and the chain count -16 (func_800958A4, func_80095A4C), a buff +8 (func_8009695C), a number -20
- * (func_80094B0C), the gauges -12 (their bars, labels and separators; their digits -16). A classic draw
- * links its packets there too, unless it names another (d.layer). */
-static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8 };
+ * (func_80094B0C) and a word over an actor -20, the timer -4 (_renderTimer) (func_8009506C, func_80095258, its arrow func_800957D0), the
+ * gauges -12 (their bars, labels and separators; their digits -16). A classic draw links its packets there
+ * too, unless it names another (d.layer). */
+static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4 };
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
 typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC_CLASSIC_CHAIN == PC_HUD_CHAIN
             && PC_CLASSIC_BUFF == PC_HUD_BUFF && PC_CLASSIC_DAMAGE == PC_HUD_DAMAGE && PC_CLASSIC_GAUGES == PC_HUD_GAUGES
             && PC_CLASSIC_FIGURE == PC_HUD_FIGURE && PC_CLASSIC_STATUS_ICONS == PC_HUD_STATUS_ICONS
             && PC_CLASSIC_BATTLE_MODE == PC_HUD_BATTLE_MODE && PC_CLASSIC_ABILITY_ICONS == PC_HUD_ABILITY_ICONS
+            && PC_CLASSIC_ACTOR_WORD == PC_HUD_ACTOR_WORD && PC_CLASSIC_TIMER == PC_HUD_TIMER
         ? 1
         : -1];
 
@@ -396,6 +398,58 @@ void pc_hud_ability_icons(void* record, void* first, void* end)
     classic_finish(PC_HUD_ABILITY_ICONS, f, first, end, NULL, 0, 0);
 }
 
+/* A word over an actor (2842C.c's label loop): which draw the game chose and its inputs, copied at the call;
+ * x, y the place the loop gave it. One element per label record. */
+void pc_hud_actor_word(void* record, int x, int y, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static const int slots[] = { -20 };
+    const pc_classic_actor_word* word = record;
+    if (!word || first == end)
+        return; /* nothing drawn (no pieces, off the screen) */
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_ACTOR_WORD;
+    f.key = word->label;
+    f.age = word->age;
+    f.call_x = x, f.call_y = y;
+    f.x = (float)x, f.y = (float)y;
+    f.word_miss = word->miss;
+    f.word_label = word->miss ? 0 : word->index;
+    f.word_lowered = !word->miss && word->lowered;
+    append(f.text, f.text + sizeof f.text, word->miss ? "MISS" : "");
+    if (!word->miss)
+        number(append(f.text, f.text + sizeof f.text, "label "), f.text + sizeof f.text, f.word_label);
+    f.life = DAMAGE_LIFE;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    classic_finish(PC_HUD_ACTOR_WORD, &f, first, end, slots, 1, 0);
+}
+
+/* The time attack's timer: the string _renderTimer composed (its digits the game's: 59:59:99 at most) and
+ * the call's place. */
+void pc_hud_timer(void* record, int x, int y, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static const int slots[] = { -4 };
+    const char* text = record;
+    int i;
+    if (!text || first == end)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_TIMER;
+    f.key = &f;
+    for (i = 0; i < PC_HUD_TEXT - 1 && text[i]; ++i)
+        f.text[i] = text[i];
+    f.text[i] = 0;
+    if (i >= 8) /* (mm:ss:hh) */
+        f.minutes = (text[0] - '0') * 10 + text[1] - '0', f.seconds = (text[3] - '0') * 10 + text[4] - '0',
+        f.hundredths = (text[6] - '0') * 10 + text[7] - '0';
+    f.call_x = x, f.call_y = y;
+    f.x = (float)x, f.y = (float)y;
+    f.rgb = 0xFFFFFF;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    classic_finish(PC_HUD_TIMER, &f, first, end, slots, 1, 0);
+}
+
 void pc_hud_battle_mode(void* record, void* first, void* end)
 {
     static pc_hud_fields f;
@@ -487,6 +541,7 @@ void pc_hud_element(int kind, void* record, int x, int y, void* first, void* end
         f.stat = (u_char)p->unkA < 13 ? (u_char)p->unkA : 0;
         f.sign = p->unkC & 0x8000 ? -1 : 1;
         f.value = p->unkC & 0x7FFF;
+        f.rise = p->unk12;
         number(digits, digits + sizeof digits, f.value);
         at = append(append(append(f.text, text_end, slot_words[f.slot]), text_end, " "), text_end, stat_words[f.stat]);
         append(append(at, text_end, f.sign < 0 ? " -" : " +"), text_end, digits);
@@ -706,6 +761,7 @@ void pc_hud_bridge_release(int kind, const pc_hud_spawn* s)
  *            (944, 223): button_prompts.c and button_roles.c redraw them as
  *            they do the game's
  *   sprite   any VRAM rectangle (its page and CLUT words)
+ *   quad     a textured four-point polygon (POLY_FT4) as the label loop builds its numbers and buffs
  *   window   the text boxes' window (func_800CD3E4 for a rectangle): its
  *            shadow 2 pixels down and right, its body (page (448, 256), CLUT
  *            (992, 220), a 64-texel tile: texture window 0x318), its frame
@@ -949,6 +1005,27 @@ static void quad_packets(u_long* ot, const pc_hud_classic_cmd* c)
     }
 }
 
+/* A textured quad as func_80094B0C and func_8009695C build theirs (setPolyFT4, setXY4, setUV4, setTPage,
+ * setClut, AddPrim): the code 0x2C, raw (setShadeTex 1) and semi-transparent (setSemiTrans) bits, the colour
+ * word as given; the texels' u0 + w wrap as the game's bytes do. The pads after the last two texel pairs are
+ * left 0 (the game leaves whatever the buffer held: the GPU reads neither, nor a raw quad's colour). */
+static void quad_ft4(u_long* ot, const pc_hud_classic_cmd* c)
+{
+    u_long* p = packet(ot, 9);
+    u_long u0 = (u_long)c->c & 255, v0 = (u_long)c->d & 255;
+    u_long u1 = (u0 + (u_long)c->font) & 255, v1 = (v0 + (u_long)c->align) & 255;
+    int x1 = c->x + c->w, y1 = c->y + c->h;
+    p[0] = (c->color & 0xFFFFFF) | (u_long)(0x2C | (c->anchor ? 1 : 0) | (semi(c->alpha) ? 2 : 0)) << 24;
+    p[1] = xy(c->x, c->y);
+    p[2] = u0 | v0 << 8 | ((u_long)c->b & 0xFFFF) << 16;
+    p[3] = xy(x1, c->y);
+    p[4] = u1 | v0 << 8 | ((u_long)c->a & 0xFFFF) << 16;
+    p[5] = xy(c->x, y1);
+    p[6] = u0 | v1 << 8;
+    p[7] = xy(x1, y1);
+    p[8] = u1 | v1 << 8;
+}
+
 /* The commands as packets in the kind's slot (shadow: into that word instead, for the parity gate:
  * nothing reported to ui_text or widescreen), the range anchored exactly (PC_ANCHOR_EXACT) where
  * `anchor` says (PC_HUD_ANCHOR_*; d.anchor's, else the element's). */
@@ -1002,6 +1079,9 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
                 *color = (*color & 0xFF000000) | c->color;
             break;
         }
+        case PC_HUD_CMD_QUAD:
+            quad_ft4(ot, c);
+            break;
         case PC_HUD_CMD_WINDOW:
             window_packets(ot, c);
             break;

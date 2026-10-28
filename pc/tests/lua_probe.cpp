@@ -1184,7 +1184,10 @@ static void classic_claims()
     pc_ui_menus = 0;
     pc_hud_classic_override = 0;
     CHECK(pc_hud_honoured(PC_HUD_STATUS) && hud::claimed_classic(PC_HUD_STATUS)); // on by default (status)
+    CHECK(pc_hud_honoured(PC_HUD_BUFF));                                      // on by default (buff)
+    pc_hud_classic_buff = 0;
     CHECK(!pc_hud_honoured(PC_HUD_BUFF));                                     // hud_classic_buff 0
+    pc_hud_classic_buff = 1;
     pc_hud_classic_status = 0;
     CHECK(!pc_hud_honoured(PC_HUD_STATUS) && record_status() == 0);
     pc_hud_classic_status = 1;

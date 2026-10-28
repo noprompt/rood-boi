@@ -697,6 +697,58 @@ int api_sprite(lua_State* L)
     return 1;
 }
 
+// d.quad(x, y, w, h, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, raw?, abr?}[, alpha]): a textured
+// four-point polygon as the label loop's draws build theirs (classic only; POLY_FT4: the numbers over the actors,
+// the buffs): x, y its top-left and w x h on the screen, the texels u, v w x h in the page (their own size:
+// a quad may squash them), bgr the colour word (PS1 BGR, 0x80 full; default 0x808080), raw true: the texture
+// unmodulated (setShadeTex 1), abr the page's blending (0..3, the game's setTPage), alpha below 1
+// semi-transparent.
+int api_quad(lua_State* L)
+{
+    const char* fn = "rood.draw.quad";
+    float x = coordinate(L, 1, fn), y = coordinate(L, 2, fn), w = coordinate(L, 3, fn), h = coordinate(L, 4, fn);
+    luaL_checktype(L, 5, LUA_TTABLE);
+    int px = int_field(L, 5, "page_x", 0, 1023, fn), py = int_field(L, 5, "page_y", 0, 256, fn);
+    int bits = int_field(L, 5, "bits", 4, 15, fn);
+    int u = int_field(L, 5, "u", 0, 255, fn), v = int_field(L, 5, "v", 0, 255, fn);
+    int tw = int_field(L, 5, "w", 0, 256, fn), th = int_field(L, 5, "h", 0, 256, fn);
+    int cx = 0, cy = 0, abr = 0;
+    unsigned colour = 0x808080;
+    if (bits != 15)
+        cx = int_field(L, 5, "clut_x", 0, 1023, fn), cy = int_field(L, 5, "clut_y", 0, 511, fn);
+    if (px % 64 || (py != 0 && py != 256) || (bits != 4 && bits != 8 && bits != 15) || cx % 16)
+        return luaL_error(L, "%s: page_x a multiple of 64, page_y 0 or 256, bits 4, 8 or 15, clut_x a multiple of 16",
+            fn);
+    lua_getfield(L, 5, "bgr");
+    bool has_bgr = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+    if (has_bgr)
+        colour = (unsigned)int_field(L, 5, "bgr", 0, 0xFFFFFF, fn);
+    lua_getfield(L, 5, "abr");
+    bool has_abr = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+    if (has_abr)
+        abr = int_field(L, 5, "abr", 0, 3, fn);
+    lua_getfield(L, 5, "raw");
+    if (!lua_isnil(L, -1) && !lua_isboolean(L, -1))
+        return luaL_error(L, "%s: raw must be boolean", fn);
+    bool raw = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+    float alpha = optional_alpha(L, 6, 1);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_QUAD);
+    if (k) {
+        k->x = pixel(x), k->y = pixel(y), k->w = pixel(w), k->h = pixel(h);
+        k->a = (px / 64) | (py / 256) << 4 | abr << 5 | (bits == 4 ? 0 : bits == 8 ? 1 : 2) << 7; // setTPage's word
+        k->b = (cx / 16) | cy << 6;                                                                 // setClut's
+        k->c = u, k->d = v, k->font = tw, k->align = th;
+        k->anchor = raw;
+        k->color = colour, k->alpha = alpha;
+    }
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
 // d.window(x, y, w, h[, brightness]): the game's text box window (its frame, body and shadow; classic
 // only); brightness 1 as a selected box, 0.5 as the others.
 int api_window(lua_State* L)
@@ -1059,7 +1111,7 @@ int api_claim(lua_State* L)
             return luaL_error(L, "rood.hud.claim: '%s' has no classic flavour (the port's own: drawn over the picture)",
                 hud::kind_name(kind));
     }
-    if ((kind == PC_HUD_GAUGES || kind == PC_HUD_FIGURE || kind == PC_HUD_STATUS_ICONS || kind == PC_HUD_BATTLE_MODE || kind == PC_HUD_ABILITY_ICONS) && flavours != FLAVOUR_CLASSIC)
+    if (PC_HUD_CLASSIC_ONLY(kind) && flavours != FLAVOUR_CLASSIC)
         return luaL_error(L, "rood.hud.claim: '%s' is the classic look's only: { flavour = \"classic\" }", hud::kind_name(kind));
     Plugin* p = plugin_of(L);
     const Claim* had = owner(kind);
@@ -1170,7 +1222,7 @@ int api_kinds(lua_State* L)
     lua_createtable(L, PC_HUD_KINDS, 0);
     int n = 0;
     for (int k = 1; k < PC_HUD_KINDS; ++k)
-        if (PC_HUD_CLAIMABLE(k) && (classic ? k != PC_HUD_TRAVEL && k != PC_HUD_NOTICE : k != PC_HUD_GAUGES && k != PC_HUD_FIGURE && k != PC_HUD_STATUS_ICONS && k != PC_HUD_BATTLE_MODE && k != PC_HUD_ABILITY_ICONS)) {
+        if (PC_HUD_CLAIMABLE(k) && (classic ? k != PC_HUD_TRAVEL && k != PC_HUD_NOTICE : !PC_HUD_CLASSIC_ONLY(k))) {
             lua_pushstring(L, hud::kind_name(k));
             lua_rawseti(L, -2, ++n);
         }
@@ -1355,6 +1407,24 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
         set_nil(L, "group");
         set_nil(L, "availability");
     }
+    if (k == PC_HUD_TIMER) { // as the game's string shows them
+        set_int(L, "minutes", f.minutes);
+        set_int(L, "seconds", f.seconds);
+        set_int(L, "hundredths", f.hundredths);
+    } else {
+        set_nil(L, "minutes");
+        set_nil(L, "seconds");
+        set_nil(L, "hundredths");
+    }
+    if (k == PC_HUD_ACTOR_WORD) { // which draw the game chose (MISS or a combat label) and its inputs
+        set_str(L, "word", f.word_miss ? "miss" : "label");
+        set_int(L, "label", f.word_label);
+        set_bool(L, "lowered", f.word_lowered != 0);
+    } else {
+        set_nil(L, "word");
+        set_nil(L, "label");
+        set_nil(L, "lowered");
+    }
     if (k == PC_HUD_BATTLE_MODE) {
         set_int(L, "step", f.battle_step);
         set_int(L, "pulse", f.battle_pulse);
@@ -1387,7 +1457,7 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
             if ((k != PC_HUD_STATUS_ICONS && k != PC_HUD_BATTLE_MODE) || strcmp(g, "slide"))
                 set_nil(L, g);
     }
-    if (k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE && !e.synthetic) { // where the game's call put it
+    if (((k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE) || k == PC_HUD_ACTOR_WORD || k == PC_HUD_TIMER) && !e.synthetic) { // where the game's call put it
         set_int(L, "call_x", f.call_x);
         set_int(L, "call_y", f.call_y);
     } else {
@@ -1414,13 +1484,16 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
     if (k == PC_HUD_BUFF) {
         set_str(L, "slot", hud::slot_word(f.slot));
         set_str(L, "stat", hud::stat_word(f.stat));
+        set_int(L, "rise", f.rise);
     } else if (k == PC_HUD_DAMAGE && f.pool == 2) {
         set_nil(L, "slot");
+        set_nil(L, "rise");
         set_int(L, "stat", f.stat);
     } else {
         if (k != PC_HUD_NOTICE)
             set_nil(L, "slot");
         set_nil(L, "stat");
+        set_nil(L, "rise");
     }
     if (k == PC_HUD_DAMAGE) {
         set_str(L, "pool", hud::pool_name(f.pool));
@@ -1585,6 +1658,7 @@ void open_hud(lua_State* L, Plugin* p)
     set_cfunction(L, -1, "glyph_width", api_glyph_width);
     set_cfunction(L, -1, "gradient", api_gradient);
     set_cfunction(L, -1, "sprite", api_sprite);
+    set_cfunction(L, -1, "quad", api_quad);
     set_cfunction(L, -1, "window", api_window);
     set_cfunction(L, -1, "cursor", api_cursor);
     set_cfunction(L, -1, "bar", api_bar);
@@ -1932,6 +2006,12 @@ std::string element_json(const hud::Element& e)
             + ",\"offset\":" + std::to_string(e.f.ability_offset)
             + ",\"group\":" + std::to_string(e.f.ability_group)
             + ",\"availability\":" + std::to_string(e.f.ability_availability);
+    if (e.f.kind == PC_HUD_TIMER)
+        icons = ",\"minutes\":" + std::to_string(e.f.minutes) + ",\"seconds\":" + std::to_string(e.f.seconds)
+            + ",\"hundredths\":" + std::to_string(e.f.hundredths);
+    if (e.f.kind == PC_HUD_ACTOR_WORD)
+        icons = std::string(",\"word\":") + (e.f.word_miss ? "\"miss\"" : "\"label\"")
+            + ",\"label\":" + std::to_string(e.f.word_label) + ",\"lowered\":" + (e.f.word_lowered ? "true" : "false");
     if (e.f.kind == PC_HUD_BATTLE_MODE)
         icons = ",\"step\":" + std::to_string(e.f.battle_step)
             + ",\"pulse\":" + std::to_string(e.f.battle_pulse)
@@ -1957,7 +2037,7 @@ std::string element_json(const hud::Element& e)
         + ",\"variant\":" + std::to_string(e.f.variant) + ",\"value\":" + std::to_string(e.f.value)
         + ",\"sign\":" + std::to_string(e.f.sign) + ",\"pool\":" + q(hud::pool_name(e.f.pool))
         + ",\"stat\":" + std::to_string(e.f.stat) + ",\"slot\":" + std::to_string(e.f.slot)
-        + ",\"bounce\":" + num(e.f.bounce) + ",\"unit\":" + num(e.f.unit) + ",\"anchor\":" + std::to_string(e.f.anchor)
+        + ",\"bounce\":" + num(e.f.bounce) + ",\"rise\":" + std::to_string(e.f.rise) + ",\"unit\":" + num(e.f.unit) + ",\"anchor\":" + std::to_string(e.f.anchor)
         + ",\"call_x\":" + std::to_string(e.f.call_x) + ",\"call_y\":" + std::to_string(e.f.call_y)
         + (e.f.kind == PC_HUD_GAUGES ? ",\"hp\":" + std::to_string(e.f.hp) + ",\"max_hp\":" + std::to_string(e.f.max_hp)
                     + ",\"mp\":" + std::to_string(e.f.mp) + ",\"max_mp\":" + std::to_string(e.f.max_mp)
@@ -2025,7 +2105,7 @@ std::string stats_json()
         cmds += "}";
     }
     static const char* const CLASSIC_TYPES[] = { "text", "rect", "gradient", "glyph", "sprite", "window", "cursor",
-        "bar", "text_raw", "value", "digit" };
+        "bar", "text_raw", "value", "digit", "quad" };
     unsigned panel_first = 0, panel_last = 0; // the classic panels' packets of the last game frame
     if (pc_hud_panel_range)
         pc_hud_panel_range(&panel_first, &panel_last);
@@ -2034,7 +2114,7 @@ std::string stats_json()
     for (int i = 0; i < used && i < 16; ++i) {
         const pc_hud_classic_cmd& c = buffer[i];
         classic_cmds += std::string(i ? "," : "") + "{\"type\":"
-            + q(CLASSIC_TYPES[c.type >= 0 && c.type <= PC_HUD_CMD_DIGIT ? c.type : 0]) + ",\"x\":"
+            + q(CLASSIC_TYPES[c.type >= 0 && c.type <= PC_HUD_CMD_QUAD ? c.type : 0]) + ",\"x\":"
             + std::to_string(c.x) + ",\"y\":" + std::to_string(c.y) + ",\"w\":" + std::to_string(c.w) + ",\"h\":"
             + std::to_string(c.h) + ",\"color\":" + std::to_string(c.color)
             + (c.type == PC_HUD_CMD_TEXT || c.type == PC_HUD_CMD_TEXT_RAW

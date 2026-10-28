@@ -4129,7 +4129,13 @@ void func_800CB83C(void)
     D_800F51B8 = &D_800F4CD0 + D_800EB9CE * 34;
     ClearOTag(D_800F51B8, 34);
     if (vs_battle_lowerScreenUiState == 1)
+#ifdef ROOD_PC
+        /* PC_CLASSIC: the time attack's timer (classic_hook.h); its string the game's. */
+        PC_CLASSIC(
+            PC_CLASSIC_SITE_TIMER, D_800EC258, 128, 200, _renderTimer(&D_8005046C));
+#else
         _renderTimer(&D_8005046C);
+#endif
     func_800CB708();
     vs_battle_keystreamBits(0);
 }

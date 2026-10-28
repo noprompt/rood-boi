@@ -1735,6 +1735,17 @@ INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/2842C", D_8006917C);
 
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/2842C", D_800691E4);
 
+#ifdef ROOD_PC
+/* PC_CLASSIC: a word over an actor (MISS or a combat label) for the classic layer
+ * (classic_hook.h): the draw the label loop chose and its inputs, copied before it runs.
+ */
+#define PC_ACTOR_WORD(miss, call)                                                                       \
+    do {                                                                                                \
+        pc_classic_actor_word pc_word = { label, miss, label->unkB, label->unkC, label->unkE & 1 };    \
+        PC_CLASSIC(PC_CLASSIC_SITE_ACTOR_WORD, &pc_word, screen[0], screen[1], call);                  \
+    } while (0)
+#endif
+
 void func_800941FC(void)
 {
     SVECTOR position;
@@ -1823,7 +1834,11 @@ void func_800941FC(void)
                 screen[1] += 8;
                 func_80094844(screen, label);
                 if (label->unkE == 2) {
+#ifdef ROOD_PC
+                    PC_ACTOR_WORD(1, func_8009506C(screen[0], screen[1], label));
+#else
                     func_8009506C(screen[0], screen[1], label);
+#endif
                 } else {
 #ifdef ROOD_PC
                     /* PC_HUD: a plugin may draw the number instead (hud_hook.h). */
@@ -1857,9 +1872,17 @@ void func_800941FC(void)
             screen[1] -= label->displayTextLen;
             if (label->unk8.u8[1] != 0 || D_800F227A == 0) {
                 if (label->unkE == 2) {
+#ifdef ROOD_PC
+                    PC_ACTOR_WORD(1, func_8009506C(screen[0], screen[1], label));
+#else
                     func_8009506C(screen[0], screen[1], label);
+#endif
                 } else {
+#ifdef ROOD_PC
+                    PC_ACTOR_WORD(0, func_80095258(screen[0], screen[1], label));
+#else
                     func_80095258(screen[0], screen[1], label);
+#endif
                 }
             }
             label->unkB += vs_gametime_tickspeed / 2;
@@ -1878,7 +1901,11 @@ void func_800941FC(void)
             }
             break;
         case 3:
+#ifdef ROOD_PC
+            PC_ACTOR_WORD(1, func_8009506C(screen[0], screen[1], label));
+#else
             func_8009506C(screen[0], screen[1], label);
+#endif
             label->unkB += vs_gametime_tickspeed / 2;
             if (label->unkB >= 31) {
                 label->unk8.u8[0] = 0;

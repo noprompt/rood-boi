@@ -19,3 +19,11 @@ fields = []
 [gauges.typography]
 reason = "the gauges' digits set with rood.classic's look.typography.digits (descender_lift: playtest fix 1d2f20c5)"
 fields = []
+
+[buff.typography]
+reason = "the buffs' digits are the digits style's: set with rood.classic's look.typography.digits as the gauges' are"
+fields = []
+
+[damage.typography]
+reason = "the numbers over the actors are the digits style's (ui_text popups): set with look.typography.digits"
+fields = []

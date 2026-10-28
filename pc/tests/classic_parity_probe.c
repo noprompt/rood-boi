@@ -149,6 +149,25 @@ int main(void)
     sp[5] = 0x00090010u;
     CHECK(pc_classic_suppress(sp, sp + 6) == 1 && (sp[0] >> 24) == 0);
 
+    /* what the GPU never reads is normalised away: a raw quad's colour (func_80094E18's stat icon leaves the
+     * buffer's) and a POLY_FT4's pads after its last two texel pairs; a modulated quad's colour still counts */
+    unsigned q0 = 0xFFFFFF, q1 = 0xFFFFFF, *qa = ram + 940, *qb = ram + 960;
+    unsigned* qp = add(&qa, &q0, 9);
+    unsigned* qq = add(&qb, &q1, 9);
+    static const unsigned quad[9] = { 0x2D123456u, 0x00100010u, 0x37BC0010u, 0x00100018u, 0x001C0018u, 0x001C0010u,
+        0xBEEF1C10u, 0x001C0018u, 0xF00D1C18u };
+    memcpy(qp, quad, sizeof quad);
+    memcpy(qq, quad, sizeof quad);
+    qq[0] = 0x2D000000u, qq[6] &= 0xFFFFu, qq[8] &= 0xFFFFu;
+    pc_classic_packet qg[1], ql[1];
+    CHECK(pc_classic_walk(&walker, &q0, ram, ram + 1024, qg, 1) == 1
+        && pc_classic_walk(&walker, &q1, ram, ram + 1024, ql, 1) == 1);
+    CHECK(pc_classic_compare(qg, 1, ql, 1, &d) == 0);
+    qp[0] = 0x2C123456u, qq[0] = 0x2C000000u; /* (modulated: its colour drawn) */
+    CHECK(pc_classic_walk(&walker, &q0, ram, ram + 1024, qg, 1) == 1
+        && pc_classic_walk(&walker, &q1, ram, ram + 1024, ql, 1) == 1);
+    CHECK(pc_classic_compare(qg, 1, ql, 1, &d) == 1 && d.field == PC_CLASSIC_FIELD_COLOUR);
+
     /* the dump */
     char json[4096];
     int len = pc_classic_packets_json(game, n, json, sizeof json);

@@ -50,9 +50,15 @@ TIMINGS = ["too_fast", "fast", "slow", "too_slow"]
 SUCCESS = ["COOL!", "GOOD!", "EXCELLENT!", "RIGHT ON!", "PERFECT!", "WELL TIMED!", "NICE!", "GREAT!"]
 WORDS = {"too_fast": "TOO FAST!", "fast": "FAST!", "slow": "SLOW!", "too_slow": "TOO SLOW!"}
 CHAIN_COUNTS = [1, 2, 3, 9, 10, 99]
+SLOTS = ["WEAPON", "SHIELD", "R.ARM", "L.ARM", "HEAD", "BODY", "LEGS"]
+STATS = ["HUMAN", "BEAST", "UNDEAD", "PHANTOM", "DRAGON", "EVIL", "PHYSICS", "AIR", "FIRE", "EARTH", "WATER", "LIGHT",
+         "DARKNESS"]
+VALUES = [1, 9, 10, 99, 100, 999]  # one to three figures (the spawners cap at 999)
 # The ages each kind's whole life must have shown: its slide in and out (func_800958A4: 64, 16, 4, 1 pixels
-# at ages 0..3 and 45..42; func_80095A4C: the first chain's 0..3, every count's 90..87).
-SLIDES = {"status": {0, 1, 2, 3, 42, 43, 44, 45}, "chain": {0, 1, 2, 3, 87, 88, 89, 90}}
+# at ages 0..3 and 45..42; func_80095A4C: the first chain's 0..3, every count's 90..87); a number's bounce
+# (func_80094B0C: frames 0..15, then held at 15) and a stat's drift (half its age, to 30).
+SLIDES = {"status": {0, 1, 2, 3, 42, 43, 44, 45}, "chain": {0, 1, 2, 3, 87, 88, 89, 90},
+          "damage": set(range(17)) | {30}}
 # The gauges' states (Ashley's HUD record written: hp, max_hp, mp, max_mp, risk): digits of one to four
 # figures, empty and full bars, RISK ZERO and RISK's bar; then the display's slide out and back.
 GAUGES = [(157, 253, 50, 50, 0), (1, 253, 0, 50, 0), (253, 253, 50, 50, 1), (9, 9, 7, 7, 55), (999, 999, 999, 999, 100),
@@ -70,6 +76,26 @@ def states(kind):
     elif kind == "chain":
         for count in CHAIN_COUNTS:
             yield {"count": count}, f"{count} CHAIN" + ("" if count == 1 else "S")
+    elif kind == "buff":
+        # every equipment word and every class / affinity word, both signs, digits of one to three figures
+        for i, slot in enumerate(SLOTS):
+            yield {"slot": slot, "stat": STATS[i], "value": 1 + i, "sign": 1}, f"{slot} {STATS[i]} +{1 + i}"
+        for i, stat in enumerate(STATS):
+            yield {"slot": SLOTS[i % 7], "stat": stat, "value": 2, "sign": -1}, f"{SLOTS[i % 7]} {stat} -2"
+        for value in VALUES:
+            for sign in (1, -1):
+                yield ({"slot": "WEAPON", "stat": "HUMAN", "value": value, "sign": sign},
+                       f"WEAPON HUMAN {'+' if sign > 0 else '-'}{value}")
+    elif kind == "damage":
+        # HP and MP, damage and healing (four colours, both bounces), one to three figures; each stat's
+        # icon, its sign and drift both ways
+        for pool in ("hp", "mp"):
+            for sign in (-1, 1):
+                for value in VALUES:
+                    yield {"pool": pool, "sign": sign, "value": value}, str(value)
+        for stat in range(6):
+            for sign in (-1, 1):
+                yield {"pool": "stat", "stat": stat, "sign": sign, "value": 12 + stat}, str(12 + stat)
 
 
 def stats_address(g):
@@ -315,6 +341,158 @@ def tour_battle_mode(g, check, counters):
     return covered
 
 
+def label_pool(g):
+    """The label records (D_800F1BAC: 24-byte D_800F1BAC_t) and their count (D_800F227E)."""
+    symbols = rood_rpc.symbols()
+    pool = int.from_bytes(g.read(symbols["D_800F1BAC"], PTR), "little")
+    return pool, g.read(symbols["D_800F227E"], 1)[0]
+
+
+def tour_buff(g, check, counters):
+    """A buff pushed up by the buffs shown after it: the record's rise (unk12, 10 for each) written, as the
+    label loop writes it when a later one appears; the spawner shows each at once (none waits behind)."""
+    covered = []
+    g.call("hud", action="show", kind="buff", hold=True, age=10, slot="BODY", stat="FIRE", value=3, sign=1)
+    for rise in (10, 20, 30):
+        pool, count = label_pool(g)
+        at = next((pool + i * 24 for i in range(count) if g.read(pool + i * 24 + 8, 1)[0] in (6, 7)), None)
+        if not check(at is not None, f"buff rise {rise}: its record"):
+            break
+        g.write(at + 0x12, rise.to_bytes(2, "little"))
+        before = counters("buff")["frames"]
+        ok = g.until(lambda: counters("buff")["frames"] >= before + 2, guard=60)
+        e = next((e for e in g.call("hud", action="list")["elements"] if e["kind"] == "buff" and e["live"]), None)
+        check(bool(ok) and e is not None and e["rise"] == rise, f"buff BODY FIRE +3 risen {rise}: compared, read-only "
+                                                                f"rise {e and e['rise']}")
+        covered.append({"slot": "BODY", "stat": "FIRE", "value": 3, "rise": rise})
+    g.call("hud", action="clear")
+    return covered
+
+
+LABELS = 29  # the combat labels with pieces (D_800690B4: 29..31 have none)
+
+
+def spawn_word(g, kind=2, flags=0, index=0, age=0):
+    """A word over Ashley as the game's spawners make one (func_8009406C: kind 2, a combat label, flags bit 0 a
+    lowered stat's; func_80093B68 with type 2: kind 1, MISS), appended to the label pool; returns its address.
+    (D_800F227A 0: Ashley's words shown, as when no action has hidden them.)"""
+    import struct
+    symbols = rood_rpc.symbols()
+    pool, count = label_pool(g)
+    if count >= 30:
+        return None
+    g.write(symbols["D_800F227A"], bytes(2))
+    spread = 0x1000 if kind == 1 else 0  # (kind 1: the number's spread not yet placed)
+    at = pool + count * 24
+    g.write(at, struct.pack("<hhhhBBBBHBBhh4s", 0, 0, 0, 0, kind, 0, 0xFB if kind == 2 else 255, age, index, flags,
+                            0, spread, spread, bytes(4)))
+    g.write(symbols["D_800F227E"], (count + 1).to_bytes(2, "little"))
+    return at
+
+
+def keep_word(g):
+    """The default and fallback checks' word: a combat label kept at age 10 (written each poll), respawned when
+    gone."""
+    pool, count = label_pool(g)
+    for i in range(count):
+        if g.read(pool + i * 24 + 8, 1)[0] == 2 and g.read(pool + i * 24 + 12, 2) == b"\x05\x00":
+            g.write(pool + i * 24 + 11, bytes([10]))
+            return
+    spawn_word(g, index=5, age=10)
+
+
+def tour_actor_word(g, check, counters):
+    """Every combat label's whole life, plain and as a lowered stat's (its arrow), MISS from both of the label
+    loop's MISS calls (kinds 1 and 2), and two words at once; every age compared."""
+    covered, ages = [], set()
+
+    def life(label, **spawn):
+        before = counters("actor_word")["frames"]
+        at = spawn_word(g, **spawn)
+        if not check(at is not None, f"actor_word {label}: spawned"):
+            return
+        seen = set()
+
+        def gone():
+            live = [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "actor_word" and e["live"]]
+            seen.update(e["age"] for e in live)
+            return not live and seen
+        ok = g.until(gone, step=1, guard=60)
+        frames = counters("actor_word")["frames"] - before
+        check(bool(ok) and frames >= len(seen), f"actor_word {label}, its life: {frames} frames compared, ages "
+                                                f"{min(seen) if seen else '-'}..{max(seen) if seen else '-'}")
+        ages.update(seen)
+        covered.append({"word": label, **spawn, "ages": sorted(seen)})
+
+    for index in range(LABELS):
+        life(f"label {index}", index=index)
+        life(f"label {index} lowered", index=index, flags=1)
+    life("MISS (a number's)", kind=1, flags=2)
+    life("MISS (a word's)", kind=2, flags=2)
+    before = counters("actor_word")["frames"]
+    spawn_word(g, index=1)
+    spawn_word(g, index=21, flags=1)
+    g.run(20)
+    elements = [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "actor_word" and e["live"]]
+    check(len(elements) == 2 and counters("actor_word")["frames"] >= before + 2,
+          f"actor_word: two words at once ({len(elements)} live) compared")
+    covered.append({"word": "two at once"})
+    g.run(40)
+    check(set(range(31)) <= ages, f"actor_word: every age 0..30 covered (missing {sorted(set(range(31)) - ages)})")
+    return covered
+
+
+TIMERS = [(0, 0, 0, 0), (0, 0, 1, 0), (1, 2, 3, 0), (4, 5, 6, 0), (7, 8, 9, 0), (9, 9, 9, 0), (10, 10, 10, 0),
+          (23, 45, 67, 0), (47, 47, 47, 0), (38, 16, 82, 0), (0, 59, 99, 0), (59, 59, 98, 0), (12, 34, 56, 1)]  # minutes, seconds, hundredths, the overflow byte (59:59:99 whatever the rest)
+
+
+def timer_fixture(g, minutes=0, seconds=0, hundredths=0, over=0, shown=1):
+    """The time attack's timer as its state holds it: D_8005046C's seconds, minutes and overflow bytes,
+    vs_main_stateFlags.puzzleTimerHundredths (+0xA0), vs_battle_lowerScreenUiState 1 (the lower screen shows
+    it)."""
+    symbols = rood_rpc.symbols()
+    g.write(symbols["D_8005046C"] + 1, bytes([seconds, minutes, over]))
+    g.write(symbols["vs_main_stateFlags"] + 0xA0, bytes([hundredths]))
+    g.write(symbols["vs_battle_lowerScreenUiState"], bytes([shown]))
+
+
+def tour_timer(g, check, counters):
+    """Digits of every place 0..9 and their carries' boundaries, the overflow (59:59:99), then the timer
+    hidden and shown again."""
+    symbols = rood_rpc.symbols()
+    saved = [(symbols[n] + o, g.read(symbols[n] + o, size)) for n, o, size in
+             (("D_8005046C", 0, 4), ("vs_main_stateFlags", 0xA0, 1), ("vs_battle_lowerScreenUiState", 0, 1))]
+    covered = []
+    try:
+        for minutes, seconds, hundredths, over in TIMERS:
+            timer_fixture(g, minutes, seconds, hundredths, over)
+            text = "59:59:99" if over else f"{minutes:02}:{seconds:02}:{hundredths:02}"
+            before = counters("timer")["frames"]
+            ok = g.until(lambda: counters("timer")["frames"] >= before + 2, step=1, guard=60)
+            e = next((e for e in g.call("hud", action="list")["elements"] if e["kind"] == "timer" and e["live"]), None)
+            check(bool(ok) and e is not None and e["text"] == text
+                  and (e["minutes"], e["seconds"], e["hundredths"]) == tuple(int(text[i:i + 2]) for i in (0, 3, 6)),
+                  f"timer {text}: compared, read-only fields {e and (e['minutes'], e['seconds'], e['hundredths'])}")
+            covered.append({"text": text})
+        timer_fixture(g, shown=0)
+        before = counters("timer")["frames"]
+        g.run(12)
+        check(counters("timer")["frames"] == before, "timer hidden: no packets")
+        covered.append({"hidden": True})
+        timer_fixture(g, 3, 4, 5)
+        before = counters("timer")["frames"]
+        check(bool(g.until(lambda: counters("timer")["frames"] >= before + 2, step=1, guard=60)), "timer shown again")
+        g.run(64)  # (unpinned: as the game keeps it)
+        check(counters("timer")["frames"] >= before + 32, "timer shown, unpinned: compared")
+    finally:
+        for at, value in saved:
+            g.write(at, value)
+    return covered
+
+
+KEEP = {"actor_word": keep_word}  # kinds without a show: the test keeps one up
+
+
 def ability_icons_fixture(g, weapon_mode=False):
     g.call("settings", apply=f"qol_weapon_slots {int(weapon_mode)}")
     g.call("input", buttons=["l2", "r2"], vsyncs=2000)
@@ -419,7 +597,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -490,6 +668,12 @@ def run(out, card, renderer, kinds, candidate=False):
                 covered = tour_battle_mode(g, check, counters)
             elif kind == "ability_icons":
                 covered = tour_ability_icons(g, check, counters)
+            elif kind == "buff":
+                covered = tour_buff(g, check, counters)
+            elif kind == "actor_word":
+                covered = tour_actor_word(g, check, counters)
+            elif kind == "timer":
+                covered = tour_timer(g, check, counters)
             for show, text in states(kind):
                 # held (rood.dev.show: the game's own spawner, the age pinned) until the gate compared two of
                 # its frames showing this element's text
@@ -543,6 +727,9 @@ def run(out, card, renderer, kinds, candidate=False):
         ability_icons_fixture(g)
         battle_mode_fixture(g)  # active phase for fallback and both same-mark state proofs
         status_icons_fixture(g)  # an active carousel for fallback and the same-mark state proof
+        timer_at = rood_rpc.symbols()["vs_battle_lowerScreenUiState"]
+        timer_shown = g.read(timer_at, 1)
+        timer_fixture(g, 12, 34, 56)  # the timer up for fallback and the state proofs
         for kind in kinds:
             default_and_fallback(g, kind, check)
         state_parity(g, check)
@@ -561,6 +748,7 @@ def run(out, card, renderer, kinds, candidate=False):
         finally:
             g.write(speed_at, old_speed)
             g.write(inventory_at, old_inventory)
+            g.write(timer_at, timer_shown)
         report_dir = out
         for kind, report in reports.items():
             (report_dir / f"{kind}.json").write_text(json.dumps(report, indent=1))
@@ -584,13 +772,17 @@ def repl(g, plugin, code):
     return value.get("value", value) if isinstance(value, dict) and "value" in value else value
 
 
-SHOW = {"status": {"timing": "slow", "age": 10}, "chain": {"count": 3, "age": 40}}
+SHOW = {"status": {"timing": "slow", "age": 10}, "chain": {"count": 3, "age": 40},
+        "buff": {"slot": "WEAPON", "stat": "HUMAN", "value": 1, "sign": 1, "age": 10},
+        "damage": {"pool": "hp", "sign": -1, "value": 57, "age": 10}}
 
 
 def default_and_fallback(g, kind, check):
     """The parity mode off: rood.classic draws the kind by default; with its setting off, a draw that
     raises, or the plugin off, the game's own drawing each time."""
     def stats():
+        if kind in KEEP:
+            KEEP[kind](g)
         return g.call("hud", action="stats")["kinds"][kind]
 
     if kind in SHOW:  # (the gauges are up whenever the field is)
@@ -633,6 +825,9 @@ def default_and_fallback(g, kind, check):
     g.call("hud", action="clear")
 
 
+POPUPS = ("buff", "damage", "actor_word", "timer")
+
+
 def state_parity(g, check, ticks=120, ability_hold=True):
     """§3.4: SLOW! held (and the gauges up), from one mark: rood.classic drawing them, then the game; every
     vsync's state
@@ -648,6 +843,9 @@ def state_parity(g, check, ticks=120, ability_hold=True):
             masks.append([address, size])
     masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
     g.call("hud", action="show", kind="status", hold=True, timing="slow", age=10)
+    for kind in ("buff", "damage"):  # (held beside it: both drawn by rood.classic, then by the game)
+        g.call("hud", action="show", kind=kind, hold=True, **SHOW[kind])
+    spawn_word(g, index=6, flags=1)  # (a lowered stat's word playing out from the mark: in both runs)
     start = g.call("hud", action="stats")["kinds"]["status"]["drawn"]
     g.until(lambda: g.call("hud", action="stats")["kinds"]["status"]["drawn"] >= start + 2, guard=60,
             what="SLOW! drawn by rood.classic")
@@ -661,19 +859,22 @@ def state_parity(g, check, ticks=120, ability_hold=True):
     icons_drawn = g.call("hud", action="stats")["kinds"]["status_icons"]["drawn"]
     battle_drawn = g.call("hud", action="stats")["kinds"]["battle_mode"]["drawn"]
     ability_drawn = g.call("hud", action="stats")["kinds"]["ability_icons"]["drawn"]
+    popups_drawn = {k: g.call("hud", action="stats")["kinds"][k]["drawn"] for k in POPUPS}
     g.until(lambda: g.digest("result")["recorded"] >= ticks, guard=120, what="the digest recorded")
     lua_drawn = g.call("hud", action="stats")["kinds"]["status"]["drawn"] - lua_drawn
     figure_drawn = g.call("hud", action="stats")["kinds"]["figure"]["drawn"] - figure_drawn
     icons_drawn = g.call("hud", action="stats")["kinds"]["status_icons"]["drawn"] - icons_drawn
     battle_drawn = g.call("hud", action="stats")["kinds"]["battle_mode"]["drawn"] - battle_drawn
     ability_drawn = g.call("hud", action="stats")["kinds"]["ability_icons"]["drawn"] - ability_drawn
+    popups_drawn = {k: g.call("hud", action="stats")["kinds"][k]["drawn"] - n for k, n in popups_drawn.items()}
     g.rewind()
-    g.call("settings", apply=["hud_classic_status 0", "hud_classic_chain 0", "hud_classic_gauges 0", "hud_classic_figure 0", "hud_classic_status_icons 0", "hud_classic_battle_mode 0", "hud_classic_ability_icons 0"])
+    g.call("settings", apply=["hud_classic_status 0", "hud_classic_chain 0", "hud_classic_gauges 0", "hud_classic_figure 0", "hud_classic_status_icons 0", "hud_classic_battle_mode 0", "hud_classic_ability_icons 0", "hud_classic_buff 0", "hud_classic_damage 0", "hud_classic_actor_word 0", "hud_classic_timer 0"])
     fallback = g.call("hud", action="stats")["kinds"]["status"]["fallback"]
     figure_fallback = g.call("hud", action="stats")["kinds"]["figure"]["fallback"]
     icons_fallback = g.call("hud", action="stats")["kinds"]["status_icons"]["fallback"]
     battle_fallback = g.call("hud", action="stats")["kinds"]["battle_mode"]["fallback"]
     ability_fallback = g.call("hud", action="stats")["kinds"]["ability_icons"]["fallback"]
+    popups_fallback = {k: g.call("hud", action="stats")["kinds"][k]["fallback"] for k in POPUPS}
     g.call("input", buttons=["l2", "r2"] if ability_hold else [], vsyncs=ticks + 20)
     g.digest("compare")
     g.until(lambda: g.digest("result")["ticks"] >= ticks, guard=120, what="the digest compared")
@@ -683,6 +884,10 @@ def state_parity(g, check, ticks=120, ability_hold=True):
     icons_fallback = g.call("hud", action="stats")["kinds"]["status_icons"]["fallback"] - icons_fallback
     battle_fallback = g.call("hud", action="stats")["kinds"]["battle_mode"]["fallback"] - battle_fallback
     ability_fallback = g.call("hud", action="stats")["kinds"]["ability_icons"]["fallback"] - ability_fallback
+    popups_fallback = {k: g.call("hud", action="stats")["kinds"][k]["fallback"] - n for k, n in popups_fallback.items()}
+    for kind in POPUPS:
+        check(popups_drawn[kind] > 0 and popups_fallback[kind] > 0,
+              f"state parity {kind}: Lua drew {popups_drawn[kind]} frames, game drew {popups_fallback[kind]}")
     check(ability_drawn == ability_fallback and ability_drawn >= (ticks * 9 // 4 if ability_hold else 9),
           f"state parity ability_icons: Lua drew {ability_drawn} groups, game drew {ability_fallback}")
     check(battle_drawn > 0 and battle_fallback > 0,
@@ -691,7 +896,7 @@ def state_parity(g, check, ticks=120, ability_hold=True):
           f"state parity status_icons: Lua drew {icons_drawn} frames, game drew {icons_fallback}")
     check(figure_drawn > 0 and figure_fallback > 0,
           f"state parity figure: Lua drew {figure_drawn} frames, game drew {figure_fallback}")
-    g.call("settings", apply=["hud_classic_status 1", "hud_classic_chain 1", "hud_classic_gauges 1", "hud_classic_figure 1", "hud_classic_status_icons 1", "hud_classic_battle_mode 1", "hud_classic_ability_icons 1"])
+    g.call("settings", apply=["hud_classic_status 1", "hud_classic_chain 1", "hud_classic_gauges 1", "hud_classic_figure 1", "hud_classic_status_icons 1", "hud_classic_battle_mode 1", "hud_classic_ability_icons 1", "hud_classic_buff 1", "hud_classic_damage 1", "hud_classic_actor_word 1", "hud_classic_timer 1"])
     g.call("hud", action="clear")
     check(lua_drawn > 0 and fallback > 0 and result.get("error") == 0 and result.get("first_tick") == -1
           and result.get("ticks") == result.get("recorded"),

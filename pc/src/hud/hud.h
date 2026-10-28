@@ -34,10 +34,14 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
- * condition indices. Both are classic-only (no modern drawing); visibility stays in func_800CA2DC. */
+ * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
+ * label, func_80095258: the ailments' and buffs' words, a lowered stat's arrow). timer: the time attack's
+ * (5BF94.c _renderTimer, while vs_battle_lowerScreenUiState is 1). The kinds from gauges on
+ * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
+#define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
 #define PC_HUD_TEXT 32
 #define PC_HUD_PART_TEXT 12
@@ -79,12 +83,16 @@ typedef struct {
                            * changed (0..5: its icon HP, MP, STR, INT, AGL, RISK) */
     int slot;             /* buff: the equipment (0..6: WEAPON, SHIELD, R.ARM, L.ARM, HEAD, BODY, LEGS) */
     float bounce;         /* damage: its digits' rise this frame (game pixels, - up) */
+    int rise;             /* buff: how far it was pushed up by the buffs after it (the record's unk12, 10 each) */
     float unit;           /* travel, notice: game pixels per menus' layout unit (720 high) */
     int call_x, call_y;   /* status, chain, buff, damage: the place the game's call was given (its hook's x, y:
                            * the timing word at 44, 48 before its slide) */
     int hp, max_hp, mp, max_mp, risk; /* gauges: Ashley's (the HUD record func_800CA2DC draws) */
     int ability_animation, ability_offset, ability_group, ability_availability;
     int battle_step, battle_pulse; /* BATTLE MODE: draw-time inputs, before phase advance */
+    int minutes, seconds, hundredths; /* timer: as the game's string shows them (59:59:99 at most) */
+    int word_miss, word_label, word_lowered; /* actor_word: MISS (1) or a combat label (D_800690B4's index; lowered:
+                                              * a lowered stat's, with the arrow) */
     int icon_previous, icon_current, icon_next, icon_count, icon_selected, icon_offset;
     int stance, limb_status[5]; /* figure: stance 0/1, game's limb condition indices (read-only) */
     int slide;            /* gauges: D_800EB9B0, the display's slide up (0x80000 a step; packed into its y) */
@@ -111,7 +119,8 @@ int pc_hud_record(const pc_hud_fields* f);
  * compared. */
 extern int pc_hud_classic_override;
 extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_hud_classic_damage,
-    pc_hud_classic_gauges, pc_hud_classic_figure, pc_hud_classic_status_icons, pc_hud_classic_battle_mode, pc_hud_classic_ability_icons;
+    pc_hud_classic_gauges, pc_hud_classic_figure, pc_hud_classic_status_icons, pc_hud_classic_battle_mode, pc_hud_classic_ability_icons,
+    pc_hud_classic_actor_word, pc_hud_classic_timer;
 int pc_hud_classic_default(int kind); /* the kind's hud_classic_<kind> */
 /* Whether claims on `kind` are honoured now (a claim, the look, the overlay drawing). */
 int pc_hud_honoured(int kind);
@@ -157,7 +166,11 @@ enum {
                           * BGR, 0x80 full); typeset: ui_text's status layout for it (font 4) */
     PC_HUD_CMD_VALUE,    /* the HUD's digits (vs_battle_renderValue): a the font (0 small, 1 large), b the value,
                           * x, y its rightmost digit */
-    PC_HUD_CMD_DIGIT     /* one digit (_renderDigit): a the font (2: the separator), b the digit */
+    PC_HUD_CMD_DIGIT,    /* one digit (_renderDigit): a the font (2: the separator), b the digit */
+    PC_HUD_CMD_QUAD      /* a textured four-point polygon as the label loop's draws build theirs (POLY_FT4: the
+                          * numbers, buffs): a the page word (with its blending), b the CLUT word, c, d its u, v;
+                          * x, y, w x h on the screen; font, align the texels' w x h; color the colour word (PS1
+                          * BGR, 0x80 full); anchor 1 raw (unmodulated); alpha below 1 semi-transparent */
 };
 typedef struct {
     int type;

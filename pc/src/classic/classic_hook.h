@@ -27,7 +27,12 @@ typedef struct { int step, slide, pulse; } pc_classic_battle_mode;
 #define PC_CLASSIC_SITE_BATTLE_MODE 11
 typedef struct { int animation, offset, group, availability; } pc_classic_ability_icons;
 #define PC_CLASSIC_SITE_ABILITY_ICONS 12
-#define PC_CLASSIC_SITE_STATUS_PANEL 13 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* A word over an actor at the label loop's call (2842C.c): its record (identity only), which draw the game chose
+ * (MISS, or the combat label), and that draw's inputs, copied before it runs. */
+typedef struct { const void* label; int miss, age, index, lowered; } pc_classic_actor_word;
+#define PC_CLASSIC_SITE_ACTOR_WORD 13
+#define PC_CLASSIC_SITE_TIMER 14 /* _renderTimer: its record the string it composed (D_800EC258) */
+#define PC_CLASSIC_SITE_STATUS_PANEL 15 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end) __attribute__((weak));
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \

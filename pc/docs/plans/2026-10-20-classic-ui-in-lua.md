@@ -1,13 +1,85 @@
 # The classic HUD and menus drawn in Lua
 
 Status: in progress. Phase 0 done; phase 1's battle-status-panel drawing
-migration is done (2026-10-23, branch `classic-lua-step4`; see "Progress"
-below), with the remaining phase 1 work listed separately. It
+migration is done (2026-10-23, branch `classic-lua-step4`), and so are buff
+and damage (step 5), the actor words and the timer (step 7) (2026-10-28,
+branch `classic-lua-step5`; see "Progress" below), with the remaining phase
+1 work listed separately. It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
 `2026-10-18-freedom-and-fast-iteration.md` (the lint).
 
 ## Progress
+
+2026-10-28 (branch `classic-lua-step5`, from main; no merge or publication):
+
+- **Step 5 and step 7's actor words and timer, done.** Same gates as step 4:
+  each element passed packet and state parity (zero mismatches, zero skips,
+  no packet waivers) before its default went on and before the next was
+  started; the fallback (setting off, a raising draw, the plugin off) is
+  tested for each. Counts from the final null-renderer run:
+
+  | Element / HUD kind | Commit | Frames | Scenarios |
+  |---|---|---:|---:|
+  | Buffs (WEAPON HUMAN +1) / `buff` | `137b6e09` | 4,925 | 35 |
+  | Numbers over the actors / `damage` | `137b6e09` | 1,224 | 36 |
+  | MISS and the combat labels / `actor_word` | `e62996eb` | 1,920 | 61 |
+  | Time attack timer / `timer` | `8cd61271` | 60 | 14 |
+
+  Every earlier kind stays green with the same counts as 2026-10-23.
+- **Coverage:** buffs: every equipment and class / affinity word, both
+  signs, one to three figures, the stacking rise (10, 20, 30). Numbers: HP
+  and MP damage and healing (four colours, both bounces), one to three
+  figures, each stat's change both ways, every age 0..30. Actor words:
+  every combat label's whole life plain and lowered (the arrow), MISS from
+  both the number's and the word's MISS call, two words at once, every age
+  0..30 (records written as the game's spawners write them: no show).
+  Timer: every digit in each place, the carries' boundaries, the 59:59:99
+  overflow, hidden, shown, unpinned. State parity 120/120 vsyncs in all
+  three same-mark runs, with a buff and a number held, a lowered stat's
+  word playing out and the timer up.
+- **Hooks and model:** buff and damage reuse 2842C.c's existing `PC_HUD`
+  ranges; the buff gains a read-only `rise` (the record's unk12). New
+  `ROOD_PC`-only `PC_CLASSIC` ranges: the label loop's four
+  func_8009506C / func_80095258 calls (`PC_ACTOR_WORD`: which draw the game
+  chose, age, label index, lowered, copied at the call) and func_800CB83C's
+  `_renderTimer` call (its BCD string still composed by the game; Lua gets
+  the string and minutes / seconds / hundredths). Kinds from `gauges` on are
+  `PC_HUD_CLASSIC_ONLY`. MISS's third call site (label kind 3) is hooked but
+  not toured: nothing in BATTLE.PRG's C creates a kind 3 label.
+- **Presentation and primitives:** one new classic primitive, `d.quad` (a
+  POLY_FT4 as the label loop builds its own: screen rectangle, texel
+  rectangle, colour word, raw, page blending, alpha). The gate's normaliser
+  now ignores what the GPU never reads (a raw-textured primitive's colour, a
+  textured polygon's pads after its last two texel pairs): the game's
+  hand-built quads leave them as the buffer held them; the probe tests it.
+  Own look tables: `look.buff`, `look.damage`, `look.actor_word` (the game's
+  label, piece and colour tables, slide, fade, squash, arrow), `look.timer`.
+  The buffs' and numbers' digits are the digits style's, so
+  `look.typography.digits` sets them (declared `typography`, waived with no
+  fields, as the gauges').
+- **Defaults on after green:** `hud_classic_buff`, `hud_classic_damage`,
+  `hud_classic_actor_word`, `hud_classic_timer`.
+- **Verification, passed:** 64-bit and 32-bit (`--battle`) builds; probes
+  `classic_parity_probe` and `lua_probe`; `run.py classic_parity hud
+  classic` 5/5 on GL and 5/5 on Vulkan; Docker PS1 `make commit-check`: **All
+  files match** (after each src change and on the final tree; formatter-only
+  changes to unrelated code discarded). No game data, outputs or player
+  files committed.
+- **Not done: emote balloons** (func_80095C18). Larger than step 7's share
+  and it needs API decisions: its balloon links into the depth-sorted slot
+  `unk4 + z * 4` (z 64..2047: past `d.layer`'s -64..64); the balloon quad
+  is mirrored by side (u from 87 down to 64) and the off-screen arrow
+  (func_8009651C) is a rotated quad, beyond `d.quad`'s rectangle; the
+  draw's inputs (side bits, clamped place, off-screen direction, the far
+  actors' frame) are decided inside the function, so the hook needs
+  `ROOD_PC` snapshots inside it; and the gate needs a scene with actors
+  (the `first_bubble` checkpoint, not `save_room`) and a way to put an
+  emoting actor off screen. Estimated 2-3 h once decided.
+- **Still outside this drawing migration:** emote balloons (above); text
+  boxes and the name window (step 6); targeting (step 8); the live-fight
+  packet-parity tour for HP changes; step 1's unused remaining primitives;
+  per-range typography and the look lint.
 
 2026-10-23 (branch `classic-lua-step4`, from main; no merge or publication):
 

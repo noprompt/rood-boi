@@ -40,8 +40,10 @@ enum {
     PC_CLASSIC_STATUS_ICONS = 10, /* status carousel and count indicators */
     PC_CLASSIC_BATTLE_MODE = 11, /* sliding BATTLE MODE notice */
     PC_CLASSIC_ABILITY_ICONS = 12, /* ability label groups, cross and face buttons */
-    PC_CLASSIC_STATUS_PANEL = 13, /* the whole status display (func_800CA2DC): captured only */
-    PC_CLASSIC_KINDS = 14
+    PC_CLASSIC_ACTOR_WORD = 13, /* MISS and the combat labels over the actors (func_8009506C, func_80095258) */
+    PC_CLASSIC_TIMER = 14, /* the time attack's timer (5BF94.c _renderTimer) */
+    PC_CLASSIC_STATUS_PANEL = 15, /* the whole status display (func_800CA2DC): captured only */
+    PC_CLASSIC_KINDS = 16
 };
 const char* pc_classic_kind_name(int kind); /* "status", ...; "" for none */
 int pc_classic_kind_of(const char* name);   /* 0 unknown */

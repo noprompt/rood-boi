@@ -216,6 +216,8 @@ decides how it looks. The kinds:
 | `notice` | a line of the port's own news: the save state slots' ("Saved to slot 3", `pc/src/savestate_notice.cpp`; never the classic flavour) | `slot` (the save state slot, 0 none), `corner` (which of its corners goes on `x, y`: 1, its top middle), `unit` (game pixels per layout unit of the menus, 720 high) |
 | `name_window` | the action's name in text box 7 (vs_battle_displaySceneMessage: a band across the bottom); an event, never claimed: the game draws it | `index` (the action, `vs_main_actions`), `message` (the scene message: 11 a technique's name, 12 a spell mastered, ...) |
 | `gauges` | the classic look's only (claimed with `{flavour = "classic"}`; the modern look hides the status display): the status display's HP / MP / RISK gauges, their digits and labels, or RISK ZERO (5BF94.c func_800CA2DC's `_renderStatBar` calls); up whenever the field is (no show) | `hp`, `max_hp`, `mp`, `max_mp`, `risk` (Ashley's HUD record), `slide` (D_800EB9B0: the display sliding up, 0x80000 a step of 8 pixels in its high half) |
+| `actor_word` | the classic look's only (the modern look: the game's own): a word over an actor in the label loop (2842C.c): MISS (func_8009506C) or a combat label, the ailments' and buffs' words (func_80095258, with a lowered stat's arrow); the game decides which and when (no show) | `word` (`miss`, `label`), `label` (the combat label: D_800690B4's index), `lowered` (a lowered stat's word: no slide, the arrow), `age`, `call_x`, `call_y` (where the loop placed it) |
+| `timer` | the classic look's only: the time attack's timer (5BF94.c `_renderTimer`, while `vs_battle_lowerScreenUiState` is 1: the game decides; no show) | `text` (the game's string, mm:ss:hh: 59:59:99 at most), `minutes`, `seconds`, `hundredths` (as it shows them), `call_x`, `call_y` (128, 200) |
 
 Every element: `kind, id, text, x, y, w, h` (the game's drawing's box in its
 screen, 320 x 224 in the field, `x, y` its centre; a damage number: where the
@@ -241,6 +243,7 @@ drawing is the claims'.
 | `d.rect(x, y, w, h, color[, alpha])`, `d.measure(style, s) -> w, h` | |
 | `d.gradient(x, y, w, h, color, color2[, vertical[, alpha]])` | `color` at the left (the top) to `color2` at the right (the bottom) |
 | `d.sprite(x, y, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, set_page?}[, color[, alpha]])` | classic only: a VRAM rectangle allocated/linked by `vs_battle_setSprite` (page_x a multiple of 64, page_y 0 or 256, bits 4, 8 or 15; dimensions 0..256). `color` modulates it, white: as it is. Optional descriptor `bgr` overrides color with an exact GPU modulation word (0xBBGGRR, 0x80 full), preserving the game's colours without RGB conversion. `set_page=false` leaves the game's NOP before the sprite instead of setting a texture page, inheriting the preceding draw mode (default true). |
+| `d.quad(x, y, w, h, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, raw?, abr?}[, alpha])` | classic only: a textured four-point polygon (POLY_FT4) as the label loop builds its numbers and buffs (2842C.c func_80094B0C, func_8009695C: setPolyFT4, setXY4, setUV4, setTPage, setClut, AddPrim): `x, y` its top-left, `w x h` on the screen; the descriptor's `u, v, w, h` its texels (their own size: a quad may squash them); `bgr` the colour word (`0xBBGGRR`, `0x80` full; default `0x808080`), `raw = true` the texture unmodulated (setShadeTex 1), `abr` the page's blending (0..3), `alpha` below 1 semi-transparent |
 | `d.window(x, y, w, h[, brightness])` | classic only: the game's text box window (its stone body, frame and shadow); brightness 1 a selected box, 0.5 the others |
 | `d.cursor(x, y[, step])` | classic only: the menus' pointing hand, its brightness animation at `step` (0..15; default: the game's) |
 | `d.bar(x, y, value, max[, pool])` | classic only: the status display's bar (`hp`, `mp`, `risk`) filled value / max |
@@ -255,8 +258,8 @@ drawing is the claims'.
 
 Honoured: a claim that has not failed, and the modern look (`ui_menus 1`);
 in the classic look a claim made for the classic flavour when the kind's
-`hud_classic_<kind>` is on (status and chain by default: the kinds whose
-`rood.classic` draw passes the parity gate; buff and damage off), any
+`hud_classic_<kind>` is on (every kind `rood.classic` draws, by default: each
+passed the parity gate before its default went on), any
 claim with `hud_classic_override 1` (default 0). With the parity mode on
 (below) nothing is honoured in the classic look: the game draws and the
 Lua draw is only compared.
@@ -540,6 +543,23 @@ game's raw printer), and what it may change is a table:
   share this kind but have separate stable keys. `pc_weapon_slots_label` is invoked
   exactly once in its original order; its weapon-mode names/markers and button-prompt
   side effects remain C, outside these ranges. No `rood.dev.show("ability_icons")`;
+- `look.buff`: WEAPON HUMAN +1 (2842C.c func_8009695C) as `d.quad`s of the field UI page: the
+  equipment's and the class or affinity's words (`slots`, `stats`: by word, the game's
+  `D_80069144` / `D_8006917C` texels), the colour words of a gain and a loss, the gaps, the sign's
+  and the small digits' cells, its layer (+8) and left-edge `place`. Its fields are `slot`, `stat`,
+  `sign`, `value` and the read-only `rise` (the record's unk12: 10 for each buff shown after it);
+- `look.damage`: a number over an actor (func_80094B0C): the large digits' cells, the colour
+  words by pool (`hp`, `mp`: a loss, a gain), the bounce by frame (the game's table; each digit to
+  the left half the one before), and a stat's change (func_80094E18): its icon (the combat labels'
+  texels by stat), its sign, the drift by half the age. Fields `value`, `sign`, `pool`, `stat`,
+  `age`; the place is where the label loop put it (`call_x`, `call_y`, its spread applied). Its
+  digits are the digits style's, so `look.typography.digits` sets them as it sets the gauges';
+- `look.actor_word`: MISS (its four capitals' texels, the squash by step, half blended) and the
+  combat labels (`labels`: each its colour and pieces, the game's D_800690B4; `pieces`, D_80068FAC's
+  texels; `colours`, D_80069134), their slide in and out, fade, held brightness, and a lowered
+  stat's arrow (its cell stepping from age 15); layer -20, centred like the numbers;
+- `look.timer`: the time attack's timer, the game's string (`e.text`, composed by `_renderTimer`)
+  through its raw printer at 128, 200, grey, slot -4;
 - `look.typeset`: how ui_text sets the words (`blanks = "one"`: a run of
   the game's narrow blanks is one space, `keep_on_screen`, `screen_w`,
   `margin`, `word_space`; the playtest fix `645a7477` as Lua values, the
@@ -549,7 +569,8 @@ game's raw printer), and what it may change is a table:
   `1d2f20c5` (the old-style figures risen into the room above them before
   any is squeezed), read from the setting `ui_text_descender_lift`;
 - `look.overrides`: per kind, each deliberate difference from the game's
-  packets (`typography` for all three; a non-zero `dx` would be `place`). The parity
+  packets (`typography` for the status words, the chains, the gauges, the buffs and the
+  numbers; a non-zero `dx` would be `place`). The parity
   gate's waivers (`pc/tests/classic/waivers.toml`) must list the same.
 
 Edit and save: the running game reloads it (measured: 0.19 s mean from the
@@ -567,9 +588,8 @@ The fallback: rood.classic off or failing (a draw that raises: counted, the
 game draws until the plugin reloads), a kind's `hud_classic_<kind>` off,
 or Lua off: the game's own drawing (its typography ui_text's defaults,
 which keep the same fixes). Settings: `hud_classic_status`,
-`hud_classic_chain`, `hud_classic_gauges`, `hud_classic_figure`, `hud_classic_status_icons`, `hud_classic_battle_mode`, `hud_classic_ability_icons` (on), `hud_classic_buff`,
-`hud_classic_damage` (off: not through the gate yet); the Lua console's
-Bench toggles them.
+`hud_classic_chain`, `hud_classic_gauges`, `hud_classic_figure`, `hud_classic_status_icons`, `hud_classic_battle_mode`, `hud_classic_ability_icons`, `hud_classic_buff`,
+`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer` (all on); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
 
 **The parity gate** (`pc/src/classic/classic_parity.c`; plan §3). The
 hooks (`PC_CLASSIC`, `pc/src/classic/classic_hook.h`; `PC_HUD` is one)
@@ -581,11 +601,14 @@ the same element draws into a shadow slot (packets after the game's,
 never linked, given back); both are compared packet for packet: code,
 colours, vertices, texels, CLUT and page, sizes, draw modes, anchor. Text
 needs nothing more: a glyph sprite's texels and CLUT are its code, and
-ui_text restyles at raster time, after the gate.
+ui_text restyles at raster time, after the gate. What the GPU never reads is
+not compared: a raw-textured primitive's colour and a textured polygon's
+pads after its last two texel pairs (the game's hand-built quads leave
+them as the buffer held them).
 
 | RPC | |
 |---|---|
-| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
+| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
 | `packets {start, end}` | the packets of a guest range in allocation order |
 | `classic {parity, reset}` | per kind: frames compared, matched, mismatched (by field), skipped (why), the first difference with both packets |
 
@@ -607,14 +630,25 @@ Ability icons cover all nine groups, locked/enabled/disabled availability, every
 index, hide/hidden, and real weapon-slot mode off/on with occupied and empty slots.
 Their counter counts group comparisons (nine per display frame); `packets` shows the
 last group. State parity checks normal and occupied weapon-slot modes held open, then
-weapon-slot exit, preserving C names/markers and side effects. It
+weapon-slot exit, preserving C names/markers and side effects. Buffs cover every
+equipment and class / affinity word, both signs, digits of one to three figures and
+the rise (10, 20, 30); the numbers HP and MP damage and healing (the four colours,
+both bounces) of one to three figures and each stat's change both ways, every age of
+their lives; the actor words every combat label's whole life plain and lowered, MISS from
+both of the loop's MISS calls (a number's, a word's) and two words at once (records
+written as the game's spawners write them); state parity holds a buff and a number beside
+SLOW! and plays a lowered stat's word out from the mark; the timer every digit in each
+place, the carries' boundaries and the overflow (59:59:99), hidden and shown, and runs in
+both state parity runs. It
 requires no unwaived mismatch and waivers = declared overrides; checks the
 default (drawn by rood.classic), the fallback (setting off, a raising
 draw, the plugin off) and state parity (from one mark, rood.classic
 drawing then the game: every vsync's state the same but the packets and
 the host clock: Oracle page digests). Reports `<out>/<kind>.json`.
 Result 2026-10-20: status 576 frames, chain 558, gauges 1192, 0
-mismatches; state parity 120 of 120 vsyncs.
+mismatches; state parity 120 of 120 vsyncs. 2026-10-28: buff 2,103 frames
+(35 states), damage 1,224 frames (36 states), actor_word 1,920 frames (61
+states), timer 60 frames (14 states), 0 mismatches.
 
 ## Photo mode foundation
 

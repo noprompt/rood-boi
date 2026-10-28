@@ -15,7 +15,7 @@ extern unsigned pc_ui_text_glyph_at(unsigned tpage, unsigned clut, int u0, int v
 extern int pc_hw_anchor_of(const void* packet) __attribute__((weak));
 
 static const char* const KIND_NAMES[PC_CLASSIC_KINDS] = { "", "status", "chain", "buff", "damage", "", "", "",
-    "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "status_panel" }; /* (hud.h's travel, notice, name_window: not the classic layer's) */
+    "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "status_panel" }; /* (hud.h's travel, notice, name_window: not the classic layer's) */
 const char* pc_classic_kind_name(int kind)
 {
     return kind > 0 && kind < PC_CLASSIC_KINDS ? KIND_NAMES[kind] : "";
@@ -45,6 +45,41 @@ pc_classic_walker pc_classic_guest(void)
     return w;
 }
 
+/* What the GPU never reads is not compared: a raw-textured primitive's colour (setShadeTex 1: the texture
+ * unmodulated) and the upper halves of a textured polygon's third and fourth texel words (its pads). The
+ * game's hand-built quads (func_80094B0C's stat icon, func_80094E18) leave them as the buffer held them. */
+static void normalise(pc_classic_packet* p)
+{
+    int i = 0;
+    while (i < p->words && i < PC_CLASSIC_PACKET_WORDS) {
+        unsigned c = p->w[i] >> 24;
+        int start = i;
+        if (c >= 0x20 && c < 0x40) {
+            int verts = c & 8 ? 4 : 3, tex = c & 4, shade = c & 0x10;
+            if (tex && (c & 1) && !shade)
+                p->w[i] &= 0xFF000000u;
+            ++i;
+            for (int v = 0; v < verts && i < p->words; v++) {
+                i += shade && v ? 1 : 0; /* (its colour) */
+                ++i;                     /* (its place) */
+                if (tex && i < p->words) {
+                    if (v >= 2)
+                        p->w[i] &= 0xFFFFu;
+                    ++i;
+                }
+            }
+        } else if (c >= 0x60 && c < 0x80) {
+            if ((c & 4) && (c & 1))
+                p->w[i] &= 0xFF000000u;
+            i += 2 + (c & 4 ? 1 : 0) + (((c >> 3) & 3) == 0 ? 1 : 0);
+        } else {
+            ++i; /* (draw modes; anything else is compared word for word) */
+        }
+        if (i <= start)
+            break;
+    }
+}
+
 static void keep(const pc_classic_walker* walker, const unsigned* tag, const void* lo, pc_classic_packet* p)
 {
     unsigned n = tag[0] >> 24;
@@ -52,6 +87,7 @@ static void keep(const pc_classic_walker* walker, const unsigned* tag, const voi
     p->words = (unsigned char)n;
     for (unsigned i = 0; i < n && i < PC_CLASSIC_PACKET_WORDS; i++)
         p->w[i] = tag[1 + i];
+    normalise(p);
     p->anchor = (signed char)(walker->anchor ? walker->anchor(tag, walker->user) : 0);
     p->at = (unsigned short)(((const char*)tag - (const char*)lo) / 4);
 }
