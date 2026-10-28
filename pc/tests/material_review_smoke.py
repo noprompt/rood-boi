@@ -132,6 +132,8 @@ def main():
 
     game = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env=env, socket_path=socket)
     try:
+        # The C++ window first: the shipped Lua one (on by default) replaces it while on.
+        game.call("lua", action="enable", plugin="rood.material_review", enabled=False)
         game.call("graphics", interpolate=False, lighting_preset="low")
         game.call("graphics", ao=0, specular=1)
         game.run(20)

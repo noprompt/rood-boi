@@ -374,8 +374,8 @@ headless (the highlight's pulse on screen, a paused game's picture, Isolate,
 Focus here and from another room, Undo, the keys, the Lua window).
 
 The window also exists in Lua: the shipped plugin `rood.material_review`
-(`pc/plugins/rood.material_review/main.lua`, off by default; turn it on in
-the Lua console's Plugins list). On, Window > Material review is the Lua
+(`pc/plugins/rood.material_review/main.lua`, on by default; turn it off in
+the Lua console's Plugins list for the C++ window). On, Window > Material review is the Lua
 window (`rood.dev.window{replaces = "material_review"}`: the C++ window is
 neither drawn nor listed and its open flag is the Lua window's), drawn with
 `rood.imgui` on RPC `material_review` alone, with the same keys; off, the
