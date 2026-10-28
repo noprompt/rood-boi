@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "port-failed",
- "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 0: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 0, Zig 3",
+ "reviewed": false,
  "plan": {
   "name": "func_8008631C",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -44,9 +44,7 @@
    ]
   ],
   "ret": "c_int",
-  "types": [
-   "D_800F19CC_t2"
-  ],
+  "types": [],
   "globals": [],
   "hooks": [
    "ROOD_PC block in the source"
@@ -66,13 +64,13 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14942,
-     "completion_tokens": 17048,
-     "reasoning_tokens": 14896,
-     "cost": 0.0100182,
-     "seconds": 72.4,
-     "sample": 1,
-     "conversation": "c5b0f2734b69d75fdef3b7ac8713bebeccc18ba900680d981c67c491205d2eef"
+     "prompt_tokens": 14958,
+     "completion_tokens": 13763,
+     "reasoning_tokens": 12003,
+     "cost": 0.0041886499999999995,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": true,
     "errors": []
@@ -83,29 +81,32 @@
    "sample": 1
   },
   "classes": {
-   "no-stats": "7576",
-   "stats-low-index": "13412",
-   "stats-high-index": "9012"
+   "limb-negative": "13850",
+   "limb-nonnegative": "16150"
   },
   "mutations": [
    {
-    "name": "F1: the return mask drops the top bit",
+    "name": "F1: request targetActor taken from arg1",
     "caught": true
    },
    {
-    "name": "F2: the hit target reads arg0 instead of arg1",
+    "name": "F2: unk4A written 0 not 1",
     "caught": true
    },
    {
-    "name": "F3: targetLimb stored from targetActor",
+    "name": "F3: the call's flag is 1, not 0",
     "caught": true
    },
    {
-    "name": "F4: the callee call is dropped",
+    "name": "F4: targetLimb dropped (stored as 0)",
     "caught": true
    },
    {
-    "name": "F5: the cost is queried with mode 1",
+    "name": "F5: cost mask 0xFF800000 instead of 0xFF000000",
+    "caught": true
+   },
+   {
+    "name": "F6: request's unk4.targetActor taken from targetActor",
     "caught": true
    }
   ],
@@ -127,17 +128,17 @@
     {
      "arg": 1,
      "count": 30000,
-     "text": "32-bit: min 0, max 15, seen zero, never negative, 5 value(s): 8, 0, 15, 1, 7"
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
     },
     {
      "arg": 2,
      "count": 30000,
-     "text": "32-bit: min -2147477300, max 2147244637, unsigned 650591..4294927424, seen negative, never zero"
+     "text": "32-bit: min -2147336268, max 2147014921, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147420845, max 2147174805, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147357772, max 2147446319, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 4,
@@ -162,24 +163,24 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 38323,
-     "completion_tokens": 4931,
-     "reasoning_tokens": 4239,
-     "cost": 0.0062978,
-     "seconds": 19.2,
-     "sample": 1,
-     "conversation": "8e1d3e5a4bc616cac25c690cd5d5b6e8962ea3353d62b4018b16b42adb996e35"
+     "prompt_tokens": 38339,
+     "completion_tokens": 5757,
+     "reasoning_tokens": 5120,
+     "cost": 0.0033562,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 127, Zig 3\nzdiff: MISMATCH iteration 2: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 127, Zig 3\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: no-stats=234 stats-low-index=461 stats-high-index=305"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x406a45 [arena] (zdiff_state+0x9c5): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 96, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 96, Zig 0\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: limb-negative=464 limb-nonnegative=536"
     ],
     "runs": [
      {
       "seed": 1,
       "exit": 1,
       "mismatches": 1000,
-      "first": "MISMATCH iteration 0: memory at 0x4083a5 (zdiff_state+0x1335): C 0, Zig 3"
+      "first": "MISMATCH iteration 0: memory at 0x406a45 (zdiff_state+0x9c5): C 0, Zig 3"
      }
     ]
    },
@@ -193,43 +194,41 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 39293,
-     "completion_tokens": 6196,
-     "reasoning_tokens": 5500,
-     "cost": 0.0070273,
-     "seconds": 28.4,
-     "sample": 1,
-     "conversation": "f9835e789fe6385f9328b26056e89ef8118b9c4b257cf35de19011a202fd2159"
+     "prompt_tokens": 39248,
+     "completion_tokens": 5439,
+     "reasoning_tokens": 4666,
+     "cost": 0.00332215,
+     "seconds": null,
+     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 127, Zig 3\nzdiff: MISMATCH iteration 2: memory at 0x4083a5 [arena] (zdiff_state+0x1335): C 127, Zig 3\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: no-stats=234 stats-low-index=461 stats-high-index=305"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x406a45 [arena] (zdiff_state+0x9c5): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 201, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 201, Zig 0\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: limb-negative=464 limb-nonnegative=536"
     ],
     "runs": [
      {
       "seed": 1,
       "exit": 1,
       "mismatches": 1000,
-      "first": "MISMATCH iteration 0: memory at 0x4083a5 (zdiff_state+0x1335): C 0, Zig 3"
+      "first": "MISMATCH iteration 0: memory at 0x406a45 (zdiff_state+0x9c5): C 0, Zig 3"
      }
     ]
    }
   ]
  },
  "written": [],
- "check_seconds": 14.362818989999141,
- "wall_seconds": 134.70426567100003,
+ "check_seconds": 18.388992884996696,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 97203.77555656433,
  "totals": {
-  "cost": 0.02334,
-  "prompt_tokens": 92558,
-  "completion_tokens": 28175,
-  "model_seconds": 120.0,
-  "check_seconds": 14.4,
+  "cost": 0.01087,
+  "prompt_tokens": 92545,
+  "completion_tokens": 24959,
+  "model_seconds": 0.0,
+  "check_seconds": 18.4,
   "calls": 3,
-  "wall_seconds": 134.7
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 97203.8
  }
 }

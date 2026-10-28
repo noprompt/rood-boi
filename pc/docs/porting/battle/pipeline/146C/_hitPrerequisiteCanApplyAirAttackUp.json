@@ -1,0 +1,211 @@
+{
+ "function": "_hitPrerequisiteCanApplyAirAttackUp",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyAirAttackUp",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f908",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyAirAttackUp",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_air_attack_up",
+  "spec_file": "hitPrerequisiteCanApplyAirAttackUp.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyAirAttackUp(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14914,
+     "completion_tokens": 10352,
+     "reasoning_tokens": 8692,
+     "cost": 0.0033337,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "blade-zero": "6014",
+   "blade-nonzero": "23986"
+  },
+  "mutations": [
+   {
+    "name": "M1: returns 2 instead of 1",
+    "caught": true
+   },
+   {
+    "name": "M2: effect tested for nonzero",
+    "caught": true
+   },
+   {
+    "name": "M3: effect called with 20, not 21",
+    "caught": true
+   },
+   {
+    "name": "M4: grip checked instead of blade",
+    "caught": true
+   },
+   {
+    "name": "M5: fallthrough returns -1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if ((_hitPrerequisiteCanApplyEffect(21, arg1) == 0)",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15122, < 7468, > 7410 (signed); < 0, > 14878 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147422434..2147322679"
+    },
+    {
+     "line": 4,
+     "text": "&& (((__typeof__((vs_battle_actors[*arg1]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[*arg1]->unk3C).raw)->weapon.blade.id != 0)) {",
+     "size": 2,
+     "count": 15122,
+     "kind": "against a constant",
+     "outcomes": "== 2309, < 7082, > 5731 (signed); < 0, > 12813 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32764"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38178,
+     "completion_tokens": 1709,
+     "reasoning_tokens": 1332,
+     "cost": 0.00233615,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyAirAttackUp.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_air_attack_up.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 210.64870537200113,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 60341.18966960907,
+ "totals": {
+  "cost": 0.00567,
+  "prompt_tokens": 53092,
+  "completion_tokens": 12061,
+  "model_seconds": 0.0,
+  "check_seconds": 210.6,
+  "calls": 2,
+  "wall_seconds": 60341.2
+ }
+}

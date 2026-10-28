@@ -1,0 +1,203 @@
+{
+ "function": "_hitPrerequisiteCanApplyIntDown",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyIntDown",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f5e8",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyIntDown",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_int_down",
+  "spec_file": "hitPrerequisiteCanApplyIntDown.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyIntDown(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12178,
+     "completion_tokens": 4070,
+     "reasoning_tokens": 2815,
+     "cost": 0.0016264,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "arg0-null-arg1-null": "4993",
+   "arg0-null-arg1-set": "5004",
+   "arg0-set-arg1-null": "10013",
+   "arg0-set-arg1-set": "9990"
+  },
+  "mutations": [
+   {
+    "name": "H1: the test is inverted (!= 0)",
+    "caught": true
+   },
+   {
+    "name": "H2: wrong effect id (6 for 7)",
+    "caught": true
+   },
+   {
+    "name": "H3: <= 0 instead of == 0 (negative results pass)",
+    "caught": true
+   },
+   {
+    "name": "H4: callee dropped (constant 0 == 0)",
+    "caught": true
+   },
+   {
+    "name": "H5: arg1 not forwarded (null passed)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 2,
+   "lines_hit": 2,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "return _hitPrerequisiteCanApplyEffect(7, arg1) == 0;",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7562, < 11161, > 11277 (signed); < 0, > 22438 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147475841..2146659596"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35566,
+     "completion_tokens": 966,
+     "reasoning_tokens": 702,
+     "cost": 0.0020198,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyIntDown.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_int_down.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 226.9103074229988,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 62799.7243475914,
+ "totals": {
+  "cost": 0.00365,
+  "prompt_tokens": 47744,
+  "completion_tokens": 5036,
+  "model_seconds": 0.0,
+  "check_seconds": 226.9,
+  "calls": 2,
+  "wall_seconds": 62799.7
+ }
+}

@@ -1,0 +1,189 @@
+{
+ "function": "func_80089098",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80089098",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80089098",
+  "difficulty": "S",
+  "zig_name": "func_80089098",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80089098",
+  "spec_file": "func_80089098.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80089098() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12219,
+     "completion_tokens": 11442,
+     "reasoning_tokens": 9674,
+     "cost": 0.0034714499999999996,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x1 [NULL+0x1: a field of a null pointer]: argument 0 of the call of vs_main_freeHeap, which reads through it\nzdiff: crashed on arguments: (class mpd-1 zud-0 znd-1)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14421,
+     "completion_tokens": 6396,
+     "reasoning_tokens": 4220,
+     "cost": 0.0023200499999999997,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80089098/spec2/build/spec.zig:46:25: error: expected type 'u32', found 'usize'\n        2 => zd.low_ram + ctx.range(u32, 0, 0x7FFF),\n             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~\npc/build/port-pipeline/func_80089098/spec2/build/spec.zig:46:25: note: unsigned 32-bit int cannot represent all possible unsigned 64-bit values\nreferenced by:\n    prepare: pc/build/port-pipeline/func_80089098/spec2/build/spec.zig:85:35\n    main: pc/tests/zig_diff/main.zig:435:40\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\npc/build/port-pipeline/func_80089098/spec2/build/spec.zig:56:25: error: expected type 'u32', found 'usize'\n        2 => zd.low_ram + @as(u32, ctx.value(u16) & 0x7FFF),\n             ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\npc/build/port-pipeline/func_80089098/spec2/build/spec.zig:56:25: note: unsigned 32-bit int cannot represent all possible unsigned 64-bit values\n"
+    ]
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17177,
+     "completion_tokens": 4792,
+     "reasoning_tokens": 2549,
+     "cost": 0.00205685,
+     "seconds": null,
+     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation C4: mpdLbas sign bit masked off before the free: gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018func_80089098__standin\u2019:\nzdiff_standin.c:11:119: error: invalid operands to binary & (have \u2018vs_main_CdFile *\u2019 and \u2018unsigned int\u2019)\n"
+    ]
+   }
+  ],
+  "classes": {
+   "mpd-0 zud-0 znd-0": "464",
+   "mpd-1 zud-0 znd-0": "1368",
+   "mpd-0 zud-1 znd-0": "1439",
+   "mpd-1 zud-1 znd-0": "4281",
+   "mpd-0 zud-0 znd-1": "1365",
+   "mpd-1 zud-0 znd-1": "4369",
+   "mpd-0 zud-1 znd-1": "4226",
+   "mpd-1 zud-1 znd-1": "12488"
+  },
+  "mutations": [
+   {
+    "name": "C1: the _vsBattleNop2 call dropped",
+    "caught": true
+   },
+   {
+    "name": "C2: the func_800BEBEC call dropped",
+    "caught": true
+   },
+   {
+    "name": "C3: zudFiles guard inverted",
+    "caught": true
+   },
+   {
+    "name": "C4: mpdLbas sign bit masked off before the free",
+    "caught": false
+   },
+   {
+    "name": "C5: zndEnemies guard tests != 1 (wrong constant)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (((__typeof__((_zoneContext.zndEnemies).psx_type_[0]))(long unsigned int)(_zoneContext.zndEnemies).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7559, < 7452, > 14989 (signed); < 0, > 22441 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483647..4235888"
+    },
+    {
+     "line": 7,
+     "text": "if (((__typeof__((_zoneContext.zudFiles).psx_type_[0]))(long unsigned int)(_zoneContext.zudFiles).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7574, < 7554, > 14872 (signed); < 0, > 22426 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..4237024"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 14.049165360003826,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 97216.66870689392,
+ "totals": {
+  "cost": 0.00785,
+  "prompt_tokens": 43817,
+  "completion_tokens": 22630,
+  "model_seconds": 0.0,
+  "check_seconds": 14.0,
+  "calls": 3,
+  "wall_seconds": 97216.7
+ }
+}

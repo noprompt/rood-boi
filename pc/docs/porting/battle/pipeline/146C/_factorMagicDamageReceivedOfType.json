@@ -1,0 +1,250 @@
+{
+ "function": "_factorMagicDamageReceivedOfType",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_factorMagicDamageReceivedOfType",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80083590",
+  "difficulty": "S",
+  "zig_name": "factorMagicDamageReceivedOfType",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "factor_magic_damage_received_of_type",
+  "spec_file": "factorMagicDamageReceivedOfType.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn factorMagicDamageReceivedOfType(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14606,
+     "completion_tokens": 12594,
+     "reasoning_tokens": 10654,
+     "cost": 0.0038788,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "not-spell": "20026",
+   "spell-hpEffect-1": "3400",
+   "spell-hpEffect-3": "3331",
+   "spell-other-hpEffect": "3243"
+  },
+  "mutations": [
+   {
+    "name": "F1: divide by 8, not 10",
+    "caught": true
+   },
+   {
+    "name": "F2: the second hpEffect test is 2, not 3",
+    "caught": true
+   },
+   {
+    "name": "F3: mp dropped from the sum",
+    "caught": true
+   },
+   {
+    "name": "F4: statFactor read from hitParams[0]",
+    "caught": true
+   },
+   {
+    "name": "F5: the spell-type check dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 10,
+   "lines_hit": 10,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -8, max 8, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147433485, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (vs_main_actions[D_800F19CC->unk8.actionIndex].type == actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 9974, < 2827, > 17199 (signed); < 2827, > 17199 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..7"
+    },
+    {
+     "line": 7,
+     "text": "if ((D_800F19CC->unk8.unk4.hpEffect",
+     "size": 4,
+     "count": 9974,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3400, < 1655, > 4919 (signed); < 1655, > 4919 (unsigned)",
+     "operand": "b 1..1",
+     "a": "0..3"
+    },
+    {
+     "line": 9,
+     "text": "|| (D_800F19CC->unk8.unk4.hpEffect == 3)) {",
+     "size": 1,
+     "count": 6574,
+     "kind": "against a constant",
+     "outcomes": "== 3331, < 3243, > 0 (signed); < 3243, > 0 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..3"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38018,
+     "completion_tokens": 3781,
+     "reasoning_tokens": 3131,
+     "cost": 0.0028461499999999995,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/factorMagicDamageReceivedOfType.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/factor_magic_damage_received_of_type.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 199.60633152399896,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 57758.903693437576,
+ "totals": {
+  "cost": 0.00672,
+  "prompt_tokens": 52624,
+  "completion_tokens": 16375,
+  "model_seconds": 0.0,
+  "check_seconds": 199.6,
+  "calls": 2,
+  "wall_seconds": 57758.9
+ }
+}

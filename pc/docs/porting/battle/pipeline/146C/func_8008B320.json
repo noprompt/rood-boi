@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
- "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 0: call 0 (vs_main_loadClut): argument 0: C 0x406070, Zig 0x42",
+ "status": "spec-failed",
+ "reviewed": false,
  "plan": {
   "name": "func_8008B320",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -44,166 +44,62 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 11271,
-     "completion_tokens": 9420,
-     "reasoning_tokens": 7846,
-     "cost": 0.0058371,
-     "seconds": 39.2,
-     "sample": 1,
-     "conversation": "185b4229149bb89ee426330ef94c5c56756e9cbd97163d382b563d6beb0d278b"
+     "completion_tokens": 3441,
+     "reasoning_tokens": 2410,
+     "cost": 0.0014238,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x200 [NULL+0x200: a field of a null pointer]: argument 0 of the call of vs_main_loadClut, which reads through it\nzdiff: crashed on arguments: (class table-random)",
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12353,
+     "completion_tokens": 2040,
+     "reasoning_tokens": 855,
+     "cost": 0.00112765,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 1, fault address 0x200 [NULL+0x200: a field of a null pointer]: argument 0 of the call of vs_main_loadClut, which reads through it\nzdiff: crashed on arguments: (class null-table)",
      "(the mutations and the coverage gate are checked once the C runs crash-free)"
     ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 13269,
-     "completion_tokens": 3961,
-     "reasoning_tokens": 2521,
-     "cost": 0.0033074,
-     "seconds": 17.4,
-     "sample": 1,
-     "conversation": "63dd1d81058d1c4752a2b0ffadf513bcb89e5f7ca05e3256d908dfa282917e0a"
-    },
-    "passed": true,
-    "errors": []
    }
   ],
-  "kept": {
-   "round": 2,
-   "sample": 1
-  },
-  "classes": {
-   "table-fresh": "10005",
-   "table-interior": "9995"
-  },
-  "mutations": [
-   {
-    "name": "F1: loadClut count of the second call off by one",
-    "caught": true
-   },
-   {
-    "name": "F2: colorOffset slip on the third call",
-    "caught": true
-   },
-   {
-    "name": "F3: the fourth call gets the wrong table offset",
-    "caught": true
-   },
-   {
-    "name": "F4: the func_80099960 call is dropped",
-    "caught": true
-   },
-   {
-    "name": "F5: the first call's table offset is 0x80 short",
-    "caught": true
-   }
-  ],
-  "coverage": {
-   "branches": 0,
-   "branches_hit": 0,
-   "conditions": null,
-   "conditions_hit": null,
-   "lines": 6,
-   "lines_hit": 6,
-   "uncovered": [],
-   "flags": [],
-   "args": [],
-   "compares": [],
-   "passed": true
-  },
-  "waivers": []
+  "classes": {},
+  "mutations": [],
+  "coverage": null
  },
  "port": {
-  "attempts": [
-   {
-    "round": 1,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 34751,
-     "completion_tokens": 2501,
-     "reasoning_tokens": 2093,
-     "cost": 0.0047256,
-     "seconds": 11.7,
-     "sample": 1,
-     "conversation": "562b59b8c377095f2c881d08ec276c7bd96981748e134c768c5e76da5b1a115a"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: call 1 (vs_main_loadClut): argument 0: C 0x407370, Zig 0x406270\nzdiff: MISMATCH iteration 1: call 2 (vs_main_loadClut): argument 0: C 0x407570, Zig 0x406570\nzdiff: MISMATCH iteration 2: call 3 (func_80099960): argument 0: C 0x407770, Zig 0x406770\nzdiff: func_8008B320: 1678 iterations, seed 1, 1000 mismatches; classes: table-fresh=848 table-interior=830"
-    ],
-    "runs": [
-     {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 0: call 1 (vs_main_loadClut): argument 0: C 0x407370, Zig 0x406270"
-     }
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 35417,
-     "completion_tokens": 1723,
-     "reasoning_tokens": 1212,
-     "cost": 0.0044032,
-     "seconds": 8.0,
-     "sample": 1,
-     "conversation": "9beb099a02032daa6fc74021b919bc3b985a43258a9782fd9b97e1b24a5745bd"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: call 0 (vs_main_loadClut): argument 0: C 0x406070, Zig 0x426070\nzdiff: MISMATCH iteration 1: call 0 (vs_main_loadClut): argument 0: C 0x406170, Zig 0x426070\nzdiff: MISMATCH iteration 2: call 0 (vs_main_loadClut): argument 0: C 0x406170, Zig 0x426070\nzdiff: func_8008B320: 1000 iterations, seed 1, 1000 mismatches; classes: table-fresh=495 table-interior=505"
-    ],
-    "runs": [
-     {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 0: call 0 (vs_main_loadClut): argument 0: C 0x406070, Zig 0x426070"
-     }
-    ]
-   }
-  ]
+  "attempts": []
  },
  "written": [],
- "check_seconds": 16.117704973999935,
- "wall_seconds": 93.02647010099827,
+ "check_seconds": 11.822903615999167,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56769.267149448395,
  "totals": {
-  "cost": 0.01827,
-  "prompt_tokens": 94708,
-  "completion_tokens": 17605,
-  "model_seconds": 76.3,
-  "check_seconds": 16.1,
-  "calls": 4,
-  "wall_seconds": 93.0
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.00255,
+  "prompt_tokens": 23624,
+  "completion_tokens": 5481,
+  "model_seconds": 0.0,
+  "check_seconds": 11.8,
+  "calls": 2,
+  "wall_seconds": 56769.3
  }
 }

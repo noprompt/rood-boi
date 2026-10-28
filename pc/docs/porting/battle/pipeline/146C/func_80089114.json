@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's bug). The harness fills every global and the arena with r",
+ "reviewed": false,
  "plan": {
   "name": "func_80089114",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -24,11 +24,9 @@
   "params": [],
   "ret": "void",
   "types": [
-   "_zndEnemy",
    "mpdEnemySpawn",
    "mpdObjectSpawn",
-   "savedEnemyState",
-   "vs_battle_objectData_flags"
+   "savedEnemyState"
   ],
   "globals": [
    "D_8004FE88",
@@ -50,17 +48,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 27819,
-     "completion_tokens": 48116,
-     "reasoning_tokens": 44031,
-     "cost": 0.0268399,
-     "seconds": 201.0,
-     "sample": 1,
-     "conversation": "441803056b09bd65f15b4fd7f4549f115fd4a2ef86ae5651bd925544d9a352c7"
+     "prompt_tokens": 31131,
+     "completion_tokens": 57512,
+     "reasoning_tokens": 53471,
+     "cost": 0.01593455,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:235:46: error: expected 8 argument(s), found 9\n                return adapt(S, @call(.auto, f, .{&ctx} ++ stubArgs(@TypeOf(f), args)));\n                                             ^\npc/build/port-pipeline/func_80089114/spec1/build/spec.zig:152:9: note: function declared here\n    pub fn func_800774FC(ctx: *zd.Ctx, slot: anytype, bladeWepId: anytype, bladeMaterial: anytype, shieldWepId: anytype, shieldMaterial: anytype, arg6: anytype, arg7: anytype) ?*v.vs_battle_actor {\n    ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    f: pc/build/port-pipeline/func_80089114/spec1/build/game/common/route.zig:59:28\n    comptime: pc/tests/zig_diff/main.zig:244:58\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80089114: branches 104/106 (98.1%), conditions not measured (GCC < 14: branch coverage only), lines 142/147\n  UNCOVERED +117 b3: branch never taken: `switch (enemy->facing) {`\n  UNCOVERED +173 b0: branch never taken: `if (id == 0x7F) {`\n  FLAG +200 eq: boundary equality never occurred (32-bit compare, constant 15: both sides seen; a port's `<` for `<=` could pass): `if (j >= 16) {`\n  note: waivers no longer needed: id == 0x7F (visible true arm)\ncoverage func_80089114: FAILED (threshold 100%: 2 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `switch (enemy->facing) {` (+117): one way out of this test (+117 b3) was never taken; add inputs that take it.\n- `if (id == 0x7F) {` (+173): one way out of this test (+173 b0) was never taken; add inputs that take it.\n- `if (j >= 16) {` (+200): the two sides of this ordered compare were equal 0 time(s) in 1044. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80089114.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -73,42 +71,532 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 32528,
-     "completion_tokens": 5336,
-     "reasoning_tokens": 1243,
-     "cost": 0.0059208,
-     "seconds": 16.8,
-     "sample": 1,
-     "conversation": "c698e2ada265a1bcea3268ddef9d4dbcd960e2c9665eb3d8cb47973602a246c3"
+     "prompt_tokens": 35713,
+     "completion_tokens": 23973,
+     "reasoning_tokens": 19604,
+     "cost": 0.007778899999999999,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x4f6876 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: (class object-first)",
-     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80089114: branches 106/106 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 147/147\n  FLAG +200 eq: boundary equality never occurred (32-bit compare, constant 15: both sides seen; a port's `<` for `<=` could pass): `if (j >= 16) {`\ncoverage func_80089114: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (j >= 16) {` (+200): the two sides of this ordered compare were equal 0 time(s) in 3716. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80089114.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
-  "classes": {},
-  "mutations": [],
-  "coverage": null
+  "classes": {
+   "guard-off": "3810",
+   "table-full": "4322",
+   "normal": "21868"
+  },
+  "mutations": [
+   {
+    "name": "F1: the slot-0 scan's give-up test is off by one",
+    "caught": true
+   },
+   {
+    "name": "F2: the 0x80 flag bit becomes 0x40",
+    "caught": true
+   },
+   {
+    "name": "F3: the saved hidden flag copies the wrong field",
+    "caught": true
+   },
+   {
+    "name": "F4: object direction scaled by 32, not 64",
+    "caught": true
+   },
+   {
+    "name": "F5: object flag range upper bound exclusive",
+    "caught": true
+   },
+   {
+    "name": "F6: enemy slots 12-15 are not marked as taken",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 106,
+   "branches_hit": 106,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 147,
+   "lines_hit": 147,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+200 eq",
+     "line": 200,
+     "text": "if (j >= 16) {",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 3716,
+     "what": "boundary equality never occurred (32-bit compare, constant 15: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [],
+   "compares": [
+    {
+     "line": 22,
+     "text": "if (D_800F18E0 == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3810, < 13080, > 13110 (signed); < 0, > 26190 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 26,
+     "text": "for (j = 15; j >= 0; --j) {",
+     "size": 4,
+     "count": 445230,
+     "kind": "against a constant",
+     "outcomes": "== 26190, < 26190, > 392850 (signed); < 0, > 419040 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..15"
+    },
+    {
+     "line": 30,
+     "text": "for (i = 0; i < _zoneContext.mpdEnemyCount; ++i) {",
+     "size": 4,
+     "count": 130474,
+     "kind": "a == b / a < b",
+     "outcomes": "== 26190, < 0, > 104284 (signed); < 0, > 104284 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 32,
+     "text": "if (enemy->type == 0) {",
+     "size": 1,
+     "count": 104284,
+     "kind": "against a constant",
+     "outcomes": "== 64631, < 0, > 39653 (signed); < 0, > 39653 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 37,
+     "text": "if (slot < 16) {",
+     "size": 2,
+     "count": 104284,
+     "kind": "against a constant",
+     "outcomes": "== 2587, < 58052, > 43645 (signed); < 58052, > 43645 (unsigned)",
+     "operand": "constant 15",
+     "a": "0..255"
+    },
+    {
+     "line": 42,
+     "text": "for (i = 0; i < _zoneContext.mpdEnemyCount; ++i) {",
+     "size": 4,
+     "count": 73605,
+     "kind": "a == b / a < b",
+     "outcomes": "== 11852, < 0, > 61753 (signed); < 0, > 61753 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 44,
+     "text": "if (enemy->type == 0) {",
+     "size": 1,
+     "count": 61753,
+     "kind": "against a constant",
+     "outcomes": "== 42897, < 0, > 18856 (signed); < 0, > 18856 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 45,
+     "text": "visible = enemy->hidden == 0;",
+     "size": 1,
+     "count": 42897,
+     "kind": "against a constant",
+     "outcomes": "== 21374, < 0, > 21523 (signed); < 0, > 21523 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 47,
+     "text": "switch (enemy->sceneTest) {",
+     "size": 4,
+     "count": 42897,
+     "kind": "switch",
+     "outcomes": "== 32119, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 49,
+     "text": "if ((u_char)vs_battle_getStateFlag(1) != 0) {",
+     "size": 1,
+     "count": 10716,
+     "kind": "against a constant",
+     "outcomes": "== 2148, < 2363, > 6205 (signed); < 0, > 8568 (unsigned)",
+     "operand": "constant 0",
+     "a": "-56..3"
+    },
+    {
+     "line": 54,
+     "text": "if ((u_char)vs_battle_getStateFlag(1) != 1) {",
+     "size": 1,
+     "count": 10674,
+     "kind": "against a constant",
+     "outcomes": "== 2028, < 4494, > 4152 (signed); < 2201, > 6445 (unsigned)",
+     "operand": "constant 1",
+     "a": "-56..3"
+    },
+    {
+     "line": 59,
+     "text": "if ((u_char)vs_battle_getStateFlag(2) != 1) {",
+     "size": 1,
+     "count": 10729,
+     "kind": "against a constant",
+     "outcomes": "== 2104, < 4509, > 4116 (signed); < 2099, > 6526 (unsigned)",
+     "operand": "constant 1",
+     "a": "-56..3"
+    },
+    {
+     "line": 65,
+     "text": "switch (enemy->flagTest) {",
+     "size": 4,
+     "count": 42897,
+     "kind": "switch",
+     "outcomes": "== 32226, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 67,
+     "text": "if ((u_char)vs_battle_getStateFlag(0x82) != enemy->flagValue) {",
+     "size": 2,
+     "count": 10810,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2084, < 3120, > 5606 (signed); < 3120, > 5606 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 72,
+     "text": "if ((u_char)vs_battle_getStateFlag(0x82) > enemy->flagValue) {",
+     "size": 2,
+     "count": 10770,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2081, < 3174, > 5515 (signed); < 3174, > 5515 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 77,
+     "text": "if ((u_char)vs_battle_getStateFlag(0x82) < enemy->flagValue) {",
+     "size": 2,
+     "count": 10646,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2026, < 3160, > 5460 (signed); < 3160, > 5460 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 83,
+     "text": "switch (enemy->statTest) {",
+     "size": 4,
+     "count": 42897,
+     "kind": "switch",
+     "outcomes": "== 35676, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..5"
+    },
+    {
+     "line": 85,
+     "text": "if ((enemy->statValue & 0x3FF)",
+     "size": 4,
+     "count": 7142,
+     "kind": "a == b / a < b",
+     "outcomes": "== 333, < 2972, > 3837 (signed); < 5701, > 1108 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..1023"
+    },
+    {
+     "line": 91,
+     "text": "if (((__typeof__((vs_battle_characterState->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_characterState->unk3C).raw)->currentHP",
+     "size": 4,
+     "count": 7246,
+     "kind": "a == b / a < b",
+     "outcomes": "== 367, < 3801, > 3078 (signed); < 1143, > 5736 (unsigned)",
+     "operand": "b 0..1023",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 97,
+     "text": "if ((u_char)vs_battle_getStateFlag(enemy->statValue & 0x3FF)",
+     "size": 2,
+     "count": 7048,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1388, < 2050, > 3610 (signed); < 2050, > 3610 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 103,
+     "text": "if ((u_char)vs_battle_getStateFlag(enemy->statValue & 0x3FF)",
+     "size": 2,
+     "count": 7030,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1422, < 2050, > 3558 (signed); < 2050, > 3558 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 109,
+     "text": "if ((u_char)vs_battle_getStateFlag(enemy->statValue & 0x3FF)",
+     "size": 2,
+     "count": 7210,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1385, < 2081, > 3744 (signed); < 2081, > 3744 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 117,
+     "text": "switch (enemy->facing) {",
+     "size": 4,
+     "count": 42897,
+     "kind": "switch",
+     "outcomes": "== 35057, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..255"
+    },
+    {
+     "line": 129,
+     "text": "if (enemy->unk24) {",
+     "size": 1,
+     "count": 42897,
+     "kind": "against a constant",
+     "outcomes": "== 21578, < 0, > 21319 (signed); < 0, > 21319 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 135,
+     "text": "if (slot == 0) {",
+     "size": 2,
+     "count": 42897,
+     "kind": "against a constant",
+     "outcomes": "== 3920, < 0, > 38977 (signed); < 0, > 38977 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 136,
+     "text": "for (j = 2; j < 10; ++j) {",
+     "size": 4,
+     "count": 15892,
+     "kind": "against a constant",
+     "outcomes": "== 860, < 14330, > 702 (signed); < 14330, > 702 (unsigned)",
+     "operand": "constant 9",
+     "a": "2..10"
+    },
+    {
+     "line": 137,
+     "text": "if ((vs_battle_actors[j] == 0) && (slots[j] == 0)) {",
+     "size": 4,
+     "count": 7323,
+     "kind": "against a constant",
+     "outcomes": "== 5722, < 0, > 1601 (signed); < 0, > 1601 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 138,
+     "text": "if (D_8004FE88[template->unk0[2]] != 0) {",
+     "size": 1,
+     "count": 5722,
+     "kind": "against a constant",
+     "outcomes": "== 1485, < 1643, > 2594 (signed); < 0, > 4237 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 140,
+     "text": "|| (slots[j + 4] != 0)) {",
+     "size": 4,
+     "count": 2148,
+     "kind": "against a constant",
+     "outcomes": "== 1733, < 0, > 415 (signed); < 0, > 415 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 149,
+     "text": "if (j >= 10) {",
+     "size": 4,
+     "count": 3920,
+     "kind": "against a constant",
+     "outcomes": "== 158, < 3060, > 702 (signed); < 3060, > 702 (unsigned)",
+     "operand": "constant 9",
+     "a": "2..10"
+    },
+    {
+     "line": 151,
+     "text": "if (((__typeof__((_zoneContext.unk1C).psx_type_[0]))(long unsigned int)(_zoneContext.unk1C).raw) != 0) {",
+     "size": 4,
+     "count": 702,
+     "kind": "against a constant",
+     "outcomes": "== 365, < 0, > 337 (signed); < 0, > 337 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4301536"
+    },
+    {
+     "line": 158,
+     "text": "} else if (D_8004FE88[template->unk0[2]] != 0) {",
+     "size": 1,
+     "count": 38977,
+     "kind": "against a constant",
+     "outcomes": "== 20808, < 6977, > 11192 (signed); < 0, > 18169 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 159,
+     "text": "if ((vs_battle_actors[slot + 4] == 0) && (slots[slot + 4] == 0)) {",
+     "size": 4,
+     "count": 9295,
+     "kind": "against a constant",
+     "outcomes": "== 7785, < 0, > 1510 (signed); < 0, > 1510 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 163,
+     "text": "if (((__typeof__((_zoneContext.unk1C).psx_type_[0]))(long unsigned int)(_zoneContext.unk1C).raw) != 0) {",
+     "size": 4,
+     "count": 10384,
+     "kind": "against a constant",
+     "outcomes": "== 5161, < 0, > 5223 (signed); < 0, > 5223 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4301536"
+    },
+    {
+     "line": 172,
+     "text": "if (visible) {",
+     "size": 4,
+     "count": 31811,
+     "kind": "against a constant",
+     "outcomes": "== 29646, < 0, > 2165 (signed); < 0, > 2165 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 173,
+     "text": "if (id == 0x7F) {",
+     "size": 2,
+     "count": 2165,
+     "kind": "against a constant",
+     "outcomes": "== 527, < 1638, > 0 (signed); < 1638, > 0 (unsigned)",
+     "operand": "constant 127",
+     "a": "11..127"
+    },
+    {
+     "line": 187,
+     "text": "if ((flag >= min) && (flag <= max)) {",
+     "size": 4,
+     "count": 18856,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3645, < 4126, > 11085 (signed); < 4126, > 11085 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..255"
+    },
+    {
+     "line": 187,
+     "text": "if ((flag >= min) && (flag <= max)) {",
+     "size": 4,
+     "count": 14730,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2114, < 5690, > 6926 (signed); < 5690, > 6926 (unsigned)",
+     "operand": "b 0..200",
+     "a": "0..255"
+    },
+    {
+     "line": 193,
+     "text": "if (slot == 0xFF) {",
+     "size": 2,
+     "count": 7804,
+     "kind": "against a constant",
+     "outcomes": "== 3716, < 4088, > 0 (signed); < 4088, > 0 (unsigned)",
+     "operand": "constant 255",
+     "a": "0..255"
+    },
+    {
+     "line": 194,
+     "text": "for (j = 2; j < 16; ++j) {",
+     "size": 4,
+     "count": 49922,
+     "kind": "against a constant",
+     "outcomes": "== 3252, < 43418, > 3252 (signed); < 43418, > 3252 (unsigned)",
+     "operand": "constant 15",
+     "a": "2..16"
+    },
+    {
+     "line": 195,
+     "text": "if ((vs_battle_actors[j] == 0) && (slots[j] == 0)) {",
+     "size": 4,
+     "count": 633,
+     "kind": "against a constant",
+     "outcomes": "== 464, < 0, > 169 (signed); < 0, > 169 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 200,
+     "text": "if (j >= 16) {",
+     "size": 4,
+     "count": 3716,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 464, > 3252 (signed); < 464, > 3252 (unsigned)",
+     "operand": "constant 15",
+     "a": "2..16"
+    },
+    {
+     "line": 213,
+     "text": "for (i = 0; i < 32; ++i) {",
+     "size": 4,
+     "count": 391116,
+     "kind": "against a constant",
+     "outcomes": "== 11852, < 367412, > 11852 (signed); < 367412, > 11852 (unsigned)",
+     "operand": "constant 31",
+     "a": "0..32"
+    },
+    {
+     "line": 220,
+     "text": "if (((__typeof__((_zoneContext.unk1C).psx_type_[0]))(long unsigned int)(_zoneContext.unk1C).raw) != 0) {",
+     "size": 4,
+     "count": 11852,
+     "kind": "against a constant",
+     "outcomes": "== 5872, < 0, > 5980 (signed); < 0, > 5980 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4301536"
+    }
+   ],
+   "passed": false
+  }
  },
  "port": {
   "attempts": []
  },
  "written": [],
- "check_seconds": 1.1298093810000864,
- "wall_seconds": 219.442654202001,
+ "check_seconds": 104.54580449400055,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56801.52731394768,
  "totals": {
-  "cost": 0.03276,
-  "prompt_tokens": 60347,
-  "completion_tokens": 53452,
-  "model_seconds": 217.8,
-  "check_seconds": 1.1,
+  "cost": 0.02371,
+  "prompt_tokens": 66844,
+  "completion_tokens": 81485,
+  "model_seconds": 0.0,
+  "check_seconds": 104.5,
   "calls": 2,
-  "wall_seconds": 219.4
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 56801.5
  }
 }

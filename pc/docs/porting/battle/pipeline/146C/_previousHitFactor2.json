@@ -1,0 +1,218 @@
+{
+ "function": "_previousHitFactor2",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_previousHitFactor2",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80083524",
+  "difficulty": "S",
+  "zig_name": "previousHitFactor2",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "previous_hit_factor2",
+  "spec_file": "previousHitFactor2.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn previousHitFactor2(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14299,
+     "completion_tokens": 8313,
+     "reasoning_tokens": 6896,
+     "cost": 0.0027932,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "sum-negative": "11323",
+   "sum-zero": "7247",
+   "sum-positive": "11430"
+  },
+  "mutations": [
+   {
+    "name": "P1: the first unk4C entry is read as entry 1",
+    "caught": true
+   },
+   {
+    "name": "P2: the division by 10 becomes a shift by 3",
+    "caught": true
+   },
+   {
+    "name": "P3: the global's unk0 is offset by +1, not -1",
+    "caught": true
+   },
+   {
+    "name": "P4: statFactor read from hitParams[0] for every arg3",
+    "caught": true
+   },
+   {
+    "name": "P5: mp subtracted instead of added",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min 0, max 5, seen zero, never negative, 5 value(s): 3, 0, 2, 1, 5"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147266767, max 2147434194, unsigned 153596..4294884827, seen negative, never zero"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37764,
+     "completion_tokens": 3315,
+     "reasoning_tokens": 2791,
+     "cost": 0.0027169499999999997,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/previousHitFactor2.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/previous_hit_factor2.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 228.71228545999838,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 66623.11082077026,
+ "totals": {
+  "cost": 0.00551,
+  "prompt_tokens": 52063,
+  "completion_tokens": 11628,
+  "model_seconds": 0.0,
+  "check_seconds": 228.7,
+  "calls": 2,
+  "wall_seconds": 66623.1
+ }
+}

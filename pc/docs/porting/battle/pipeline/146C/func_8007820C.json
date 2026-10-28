@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "views-conflict",
- "reviewed": "not ported in this wave (unrouted): views-conflict: vs_battle_copyUiWeaponStats: PANIC in the Zig run, iteration 2: attempt to use null value (return address 0x4044c3)",
+ "status": "ported",
+ "reviewed": false,
  "plan": {
   "name": "func_8007820C",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -47,12 +47,12 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 11198,
-     "completion_tokens": 6042,
-     "reasoning_tokens": 4674,
-     "cost": 0.0041408,
-     "seconds": 25.3,
-     "sample": 1,
-     "conversation": "d8571baf10de08556d5679eef78807db2530720fbe705f4b5c78edf56f91234a"
+     "completion_tokens": 5412,
+     "reasoning_tokens": 4172,
+     "cost": 0.0019129,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": true,
     "errors": []
@@ -63,33 +63,30 @@
    "sample": 1
   },
   "classes": {
-   "zero": "2885",
-   "positive": "13541",
-   "negative": "13574"
+   "zero": "2411",
+   "one": "2554",
+   "negative": "12524",
+   "other-positive": "12511"
   },
   "mutations": [
    {
-    "name": "M1: negative arg0 skips the step (> 0 for != 0)",
+    "name": "F1: the call guarded by arg0 > 0 (negative arg0 skips it)",
     "caught": true
    },
    {
-    "name": "M2: inverted test on arg0",
+    "name": "F2: the step called with direction 0",
     "caught": true
    },
    {
-    "name": "M3: wrong step constant (0x27)",
+    "name": "F3: wrong step constant 0x27",
     "caught": true
    },
    {
-    "name": "M4: wrong first argument to the step (0 for 1)",
+    "name": "F4: the step call dropped",
     "caught": true
    },
    {
-    "name": "M5: the step call dropped",
-    "caught": true
-   },
-   {
-    "name": "M6: the vector fetch dropped (step sees the stack, not the fetched vector)",
+    "name": "F5: an extra arg0 == 1 exclusion",
     "caught": true
    }
   ],
@@ -116,7 +113,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 2885, < 13574, > 13541 (signed); < 0, > 27115 (unsigned)",
+     "outcomes": "== 2411, < 12524, > 15065 (signed); < 0, > 27589 (unsigned)",
      "operand": "constant 0",
      "a": "-2147483648..2147483647"
     }
@@ -138,43 +135,12 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 34679,
-     "completion_tokens": 1284,
-     "reasoning_tokens": 1033,
-     "cost": 0.0041099,
-     "seconds": 6.4,
-     "sample": 1,
-     "conversation": "a4939f21593f31ab610f8e3c4f1ec265058d5dd02a652e6c9aacb4590f92bc6f"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x1f800206 [scratchpad+0x206] (scratchpad+0x206): C 0, Zig 170\nzdiff: MISMATCH iteration 1: memory at 0x1f800206 [scratchpad+0x206] (scratchpad+0x206): C 0, Zig 170\nzdiff: MISMATCH iteration 2: memory at 0x1f800206 [scratchpad+0x206] (scratchpad+0x206): C 0, Zig 170\nzdiff: func_8007820C: 1113 iterations, seed 1, 1000 mismatches; classes: zero=113 positive=479 negative=521"
-    ],
-    "runs": [
-     {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 0: memory at 0x1f800206 (scratchpad+0x206): C 0, Zig 170"
-     }
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 35213,
-     "completion_tokens": 1230,
-     "reasoning_tokens": 823,
-     "cost": 0.0041363,
-     "seconds": 9.8,
-     "sample": 1,
-     "conversation": "1d708926a4fde71471441d1b34d5ed4eb4267ac5749742e5300521845b36f515"
+     "completion_tokens": 1670,
+     "reasoning_tokens": 1355,
+     "cost": 0.00215145,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": true,
     "errors": [],
@@ -201,27 +167,28 @@
    }
   ],
   "kept": {
-   "round": 2,
+   "round": 1,
    "sample": 1
   }
  },
- "written": [],
- "check_seconds": 143.15147016699848,
- "conflicts": [
-  "vs_battle_copyUiWeaponStats: PANIC in the Zig run, iteration 2: attempt to use null value (return address 0x4044c3)"
+ "written": [
+  "pc/tests/zig_diff/func_8007820C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007820C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
  ],
- "wall_seconds": 352.719416811,
+ "check_seconds": 254.71489484599988,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 72832.42822861671,
  "totals": {
-  "cost": 0.01239,
-  "prompt_tokens": 81090,
-  "completion_tokens": 8556,
-  "model_seconds": 41.5,
-  "check_seconds": 143.2,
-  "calls": 3,
-  "wall_seconds": 352.7
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.00406,
+  "prompt_tokens": 45877,
+  "completion_tokens": 7082,
+  "model_seconds": 0.0,
+  "check_seconds": 254.7,
+  "calls": 2,
+  "wall_seconds": 72832.4
  }
 }

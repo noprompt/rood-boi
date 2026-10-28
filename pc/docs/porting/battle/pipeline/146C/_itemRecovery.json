@@ -1,0 +1,244 @@
+{
+ "function": "_itemRecovery",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_itemRecovery",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80083430",
+  "difficulty": "S",
+  "zig_name": "itemRecovery",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "item_recovery",
+  "spec_file": "itemRecovery.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn itemRecovery(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13477,
+     "completion_tokens": 11541,
+     "reasoning_tokens": 10039,
+     "cost": 0.0035591,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "arg4-zero": "2922",
+   "arg4-negative": "7374",
+   "arg4-positive": "7104",
+   "index-outside": "12600"
+  },
+  "mutations": [
+   {
+    "name": "R1: statFactor scaled by 4",
+    "caught": true
+   },
+   {
+    "name": "R2: roll taken for negative arg4 too",
+    "caught": true
+   },
+   {
+    "name": "R3: clamp compares as unsigned",
+    "caught": true
+   },
+   {
+    "name": "R4: sum kept in int, so the short overflow does not wrap",
+    "caught": true
+   },
+   {
+    "name": "R5: hitParams index fixed at 0",
+    "caught": true
+   },
+   {
+    "name": "R6: roll offset -4 instead of -5",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -5, max 6, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (arg4 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 4968, < 12576, > 12456 (signed); < 0, > 25032 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 14,
+     "text": "if (temp_s0 < 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 914, < 12501, > 16585 (signed); < 0, > 29086 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32764..32764"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36961,
+     "completion_tokens": 2487,
+     "reasoning_tokens": 1924,
+     "cost": 0.0024698,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/itemRecovery.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/item_recovery.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 236.99084528399908,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 65987.04774665833,
+ "totals": {
+  "cost": 0.00603,
+  "prompt_tokens": 50438,
+  "completion_tokens": 14028,
+  "model_seconds": 0.0,
+  "check_seconds": 237.0,
+  "calls": 2,
+  "wall_seconds": 65987.0
+ }
+}

@@ -1,0 +1,248 @@
+{
+ "function": "_hitPrerequisiteCanApplyWaterDefenseUp",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyWaterDefenseUp",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007fc6c",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyWaterDefenseUp",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_water_defense_up",
+  "spec_file": "hitPrerequisiteCanApplyWaterDefenseUp.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyWaterDefenseUp(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15704,
+     "completion_tokens": 15239,
+     "reasoning_tokens": 13088,
+     "cost": 0.0045949499999999996,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-armor": "5108",
+   "last-limb-only": "5043",
+   "shield-only": "5807",
+   "both": "4248",
+   "limb-only": "9794"
+  },
+  "mutations": [
+   {
+    "name": "W1: effect checked with the wrong effect id",
+    "caught": true
+   },
+   {
+    "name": "W2: last limb never checked",
+    "caught": true
+   },
+   {
+    "name": "W3: shield check dropped",
+    "caught": true
+   },
+   {
+    "name": "W4: wrong return value when armor is worn",
+    "caught": true
+   },
+   {
+    "name": "W5: limb armor id narrowed to a byte",
+    "caught": true
+   },
+   {
+    "name": "W6: shield gem read instead of shield base",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if (_hitPrerequisiteCanApplyEffect(28, arg1) == 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15155, < 7391, > 7454 (signed); < 0, > 14845 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147298851..2147347987"
+    },
+    {
+     "line": 8,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 106085,
+     "kind": "against a constant",
+     "outcomes": "== 15155, < 75775, > 15155 (signed); < 75775, > 15155 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 9,
+     "text": "if (actor->limbs[i].armor.armor.id != 0) {",
+     "size": 2,
+     "count": 90930,
+     "kind": "against a constant",
+     "outcomes": "== 75572, < 7630, > 7728 (signed); < 0, > 15358 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..2"
+    },
+    {
+     "line": 14,
+     "text": "if (actor->shield.base.id != 0) {",
+     "size": 2,
+     "count": 15155,
+     "kind": "against a constant",
+     "outcomes": "== 10099, < 2482, > 2574 (signed); < 0, > 5056 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..2"
+    },
+    {
+     "line": 18,
+     "text": "if (hasArmor != 0) {",
+     "size": 4,
+     "count": 15155,
+     "kind": "against a constant",
+     "outcomes": "== 2530, < 0, > 12625 (signed); < 0, > 12625 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38954,
+     "completion_tokens": 2391,
+     "reasoning_tokens": 1913,
+     "cost": 0.00254545,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyWaterDefenseUp.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_water_defense_up.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 241.30568218199733,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 64703.87343454361,
+ "totals": {
+  "cost": 0.00714,
+  "prompt_tokens": 54658,
+  "completion_tokens": 17630,
+  "model_seconds": 0.0,
+  "check_seconds": 241.3,
+  "calls": 2,
+  "wall_seconds": 64703.9
+ }
+}

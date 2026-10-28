@@ -1,0 +1,208 @@
+{
+ "function": "func_8008D658",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008D658",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008d658",
+  "difficulty": "S",
+  "zig_name": "func_8008D658",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008D658",
+  "spec_file": "func_8008D658.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008D658(arg0: ?*v._mpdRoomSectionA) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v._mpdRoomSectionA"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12759,
+     "completion_tokens": 8978,
+     "reasoning_tokens": 7115,
+     "cost": 0.00288245,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero-found": "6080",
+   "zero-null": "5913",
+   "nonzero-found": "8959",
+   "nonzero-null": "9048"
+  },
+  "mutations": [
+   {
+    "name": "P1: the else branch plays 0x3F, not 0x3E",
+    "caught": true
+   },
+   {
+    "name": "P2: callee gets unk4 and unk2 swapped",
+    "caught": true
+   },
+   {
+    "name": "P3: the toggle tests == 1, not == 0",
+    "caught": true
+   },
+   {
+    "name": "P4: the bitfield gets the state times 3, not 5",
+    "caught": true
+   },
+   {
+    "name": "P5: the second sound call is dropped",
+    "caught": true
+   },
+   {
+    "name": "P6: func_8009291C gets unk4, not unk6",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (arg0->unk0.unk8.s16 == 0) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 11993, < 9019, > 8988 (signed); < 0, > 18007 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 13,
+     "text": "arg0->unk0.unk8.s16 = arg0->unk0.unk8.s16 == 0;",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 11993, < 9019, > 8988 (signed); < 0, > 18007 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36239,
+     "completion_tokens": 3318,
+     "reasoning_tokens": 2665,
+     "cost": 0.00264145,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008D658.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008D658.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 325.0938008339963,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 95629.32969331741,
+ "totals": {
+  "cost": 0.00552,
+  "prompt_tokens": 48998,
+  "completion_tokens": 12296,
+  "model_seconds": 0.0,
+  "check_seconds": 325.1,
+  "calls": 2,
+  "wall_seconds": 95629.3
+ }
+}

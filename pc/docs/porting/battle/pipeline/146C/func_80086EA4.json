@@ -1,0 +1,221 @@
+{
+ "function": "func_80086EA4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80086EA4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80086ea4",
+  "difficulty": "S",
+  "zig_name": "func_80086EA4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80086EA4",
+  "spec_file": "func_80086EA4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80086EA4(arg0: ?*v.vs_battle_actor2, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_battle_actor2"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12923,
+     "completion_tokens": 8792,
+     "reasoning_tokens": 7369,
+     "cost": 0.0028441499999999997,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-blade": "5041",
+   "blade-low-byte-zero": "4593",
+   "same-index": "3840",
+   "distinct-index": "6526"
+  },
+  "mutations": [
+   {
+    "name": "M1: the second affinity write adds instead of subtracts",
+    "caught": true
+   },
+   {
+    "name": "M2: the second unk168 write drops the negation",
+    "caught": true
+   },
+   {
+    "name": "M3: the blade test looks at the low byte only",
+    "caught": true
+   },
+   {
+    "name": "M4: the first unk168 store is dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: the first affinity add goes to row 1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "32-bit: min -8, max 40, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 20000,
+     "text": "32-bit: min -8, max 40, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 20000,
+     "text": "32-bit: min -1073741823, max 1073741823, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (arg0->weapon.blade.id != 0) {",
+     "size": 2,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 5041, < 6592, > 8367 (signed); < 0, > 14959 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32765"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36395,
+     "completion_tokens": 2719,
+     "reasoning_tokens": 2185,
+     "cost": 0.0024995,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_80086EA4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80086EA4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 298.98435306600004,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 90011.27795958519,
+ "totals": {
+  "cost": 0.00534,
+  "prompt_tokens": 49318,
+  "completion_tokens": 11511,
+  "model_seconds": 0.0,
+  "check_seconds": 299.0,
+  "calls": 2,
+  "wall_seconds": 90011.3
+ }
+}

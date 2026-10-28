@@ -1,0 +1,140 @@
+{
+ "function": "func_8007DF40",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8007DF40",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007df40",
+  "difficulty": "S",
+  "zig_name": "func_8007DF40",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007DF40",
+  "spec_file": "func_8007DF40.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007DF40() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 10988,
+     "completion_tokens": 2352,
+     "reasoning_tokens": 1570,
+     "cost": 0.0011374,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)",
+     "FAIL: mutation E1: a store to the scratchpad's first byte: mutation E1: a store to the scratchpad's first byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
+     "FAIL: mutation E2: a store to the scratchpad's last byte: mutation E2: a store to the scratchpad's last byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
+     "FAIL: mutation E3: a 32-bit store to PS1 address 0 (lowRam): mutation E3: a 32-bit store to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
+     "FAIL: mutation E4: a store of zero to PS1 address 0 (lowRam): mutation E4: a store of zero to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12177,
+     "completion_tokens": 2822,
+     "reasoning_tokens": 1810,
+     "cost": 0.00131435,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation E1: a store to the scratchpad's first byte: mutation E1: a store to the scratchpad's first byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
+     "FAIL: mutation E2: a store to the scratchpad's last byte: mutation E2: a store to the scratchpad's last byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
+     "FAIL: mutation E3: a 32-bit store to PS1 address 0 (lowRam): mutation E3: a 32-bit store to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
+     "FAIL: mutation E4: a store of zero to PS1 address 0 (lowRam): mutation E4: a store of zero to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)"
+    ]
+   }
+  ],
+  "classes": {
+   "run": "20000"
+  },
+  "mutations": [
+   {
+    "name": "E1: a store to the scratchpad's first byte",
+    "caught": false
+   },
+   {
+    "name": "E2: a store to the scratchpad's last byte",
+    "caught": false
+   },
+   {
+    "name": "E3: a 32-bit store to PS1 address 0 (lowRam)",
+    "caught": false
+   },
+   {
+    "name": "E4: a store of zero to PS1 address 0 (lowRam)",
+    "caught": false
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 12.342322155000147,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56602.19355082512,
+ "totals": {
+  "cost": 0.00245,
+  "prompt_tokens": 23165,
+  "completion_tokens": 5174,
+  "model_seconds": 0.0,
+  "check_seconds": 12.3,
+  "calls": 2,
+  "wall_seconds": 56602.2
+ }
+}

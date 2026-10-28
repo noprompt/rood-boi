@@ -1,0 +1,256 @@
+{
+ "function": "_factorSpellCost",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_factorSpellCost",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80083708",
+  "difficulty": "S",
+  "zig_name": "factorSpellCost",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "factor_spell_cost",
+  "spec_file": "factorSpellCost.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn factorSpellCost(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14317,
+     "completion_tokens": 13022,
+     "reasoning_tokens": 11465,
+     "cost": 0.003971349999999999,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F6: spell test inverted: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x12 [NULL+0x12: a field of a null pointer]\nzdiff: crashed on arguments: 0 0x408d80 [arena] 0x408dd0 [arena] 0xffffffff 0x361a9bdb (class not-spell)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16113,
+     "completion_tokens": 2826,
+     "reasoning_tokens": 1290,
+     "cost": 0.0015121499999999999,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "not-spell": "19852",
+   "spell-arg3-zero": "1405",
+   "spell-arg3-other": "8743"
+  },
+  "mutations": [
+   {
+    "name": "F1: statFactor always read from hitParams[0]",
+    "caught": true
+   },
+   {
+    "name": "F2: non-spell cost is 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "F3: divide by 9 not 10",
+    "caught": true
+   },
+   {
+    "name": "F4: cost read from the neighbouring action",
+    "caught": true
+   },
+   {
+    "name": "F5: cost read from the rangeX field",
+    "caught": true
+   },
+   {
+    "name": "F6: spell test inverted",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2, max 5, unsigned 0..4294967295, seen zero/negative/all ones, 7 value(s): 4294967295, 3, 1, 0, 2, 5, 4294967294"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147183550, max 2147423143, unsigned 121559..4294500231, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (vs_main_actions[D_800F19CC->unk8.actionIndex].type == actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 10148, < 2873, > 16979 (signed); < 2873, > 16979 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37791,
+     "completion_tokens": 2842,
+     "reasoning_tokens": 2315,
+     "cost": 0.0026000499999999996,
+     "seconds": null,
+     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/factorSpellCost.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/factor_spell_cost.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 345.40358407700114,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 99906.85221648216,
+ "totals": {
+  "cost": 0.00808,
+  "prompt_tokens": 68221,
+  "completion_tokens": 18690,
+  "model_seconds": 0.0,
+  "check_seconds": 345.4,
+  "calls": 3,
+  "wall_seconds": 99906.9
+ }
+}

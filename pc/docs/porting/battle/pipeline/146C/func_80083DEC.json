@@ -1,0 +1,196 @@
+{
+ "function": "func_80083DEC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80083DEC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80083dec",
+  "difficulty": "S",
+  "zig_name": "func_80083DEC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80083DEC",
+  "spec_file": "func_80083DEC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80083DEC(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13059,
+     "completion_tokens": 7347,
+     "reasoning_tokens": 5920,
+     "cost": 0.0024897,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80083DEC: 2025 iterations, seed 1, 1000 mismatches; classes: arg2-null=400 arg2-set=1625"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14681,
+     "completion_tokens": 4785,
+     "reasoning_tokens": 3273,
+     "cost": 0.0019303,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80083DEC: 2025 iterations, seed 1, 1000 mismatches; classes: arg2-null=400 arg2-set=1625"
+    ]
+   }
+  ],
+  "classes": {
+   "arg2-null": "400",
+   "arg2-set": "1625"
+  },
+  "mutations": [
+   {
+    "name": "F1: wrong status constant (12 for 13)",
+    "caught": true
+   },
+   {
+    "name": "F2: test > 0 instead of != 0 (negative results missed)",
+    "caught": true
+   },
+   {
+    "name": "F3: flag store dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: flag stored to arg1, not arg2",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong bitfield (unk1C_26 for unk1C_16)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (_setApplicableStatuses(13, arg2) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15465, < 5489, > 9046 (signed); < 0, > 14535 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146535347..2145395244"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 22.4139581670006,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56645.7609474659,
+ "totals": {
+  "cost": 0.00442,
+  "prompt_tokens": 27740,
+  "completion_tokens": 12132,
+  "model_seconds": 0.0,
+  "check_seconds": 22.4,
+  "calls": 2,
+  "wall_seconds": 56645.8
+ }
+}

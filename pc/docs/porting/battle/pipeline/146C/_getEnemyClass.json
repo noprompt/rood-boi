@@ -1,0 +1,183 @@
+{
+ "function": "_getEnemyClass",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_getEnemyClass",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f518",
+  "difficulty": "S",
+  "zig_name": "getEnemyClass",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_enemy_class",
+  "spec_file": "getEnemyClass.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getEnemyClass(arg0: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13009,
+     "completion_tokens": 10217,
+     "reasoning_tokens": 9130,
+     "cost": 0.0032047,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "class-0": "2563",
+   "class-1": "2520",
+   "class-2": "2449",
+   "class-3": "2353",
+   "class-4": "2487",
+   "class-5": "2557",
+   "class-6": "2555",
+   "class-7": "2516"
+  },
+  "mutations": [
+   {
+    "name": "G1: reads the reach field, not enemyClass",
+    "caught": true
+   },
+   {
+    "name": "G2: the actor is taken from the neighbouring slot (arg0 ^ 1)",
+    "caught": true
+   },
+   {
+    "name": "G3: class off by one",
+    "caught": true
+   },
+   {
+    "name": "G4: the stats pointer is offset by one element",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 2,
+   "lines_hit": 2,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36384,
+     "completion_tokens": 1651,
+     "reasoning_tokens": 1385,
+     "cost": 0.00223195,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getEnemyClass.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_enemy_class.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 192.31129246999808,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 58118.696415901184,
+ "totals": {
+  "cost": 0.00544,
+  "prompt_tokens": 49393,
+  "completion_tokens": 11868,
+  "model_seconds": 0.0,
+  "check_seconds": 192.3,
+  "calls": 2,
+  "wall_seconds": 58118.7
+ }
+}

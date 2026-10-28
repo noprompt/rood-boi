@@ -1,0 +1,215 @@
+{
+ "function": "_getRecoverableMp",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_getRecoverableMp",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800834e4",
+  "difficulty": "S",
+  "zig_name": "getRecoverableMp",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_recoverable_mp",
+  "spec_file": "getRecoverableMp.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getRecoverableMp(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15302,
+     "completion_tokens": 12735,
+     "reasoning_tokens": 11278,
+     "cost": 0.00394885,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero": "8665",
+   "positive": "8025",
+   "negative": "8375",
+   "wraps": "4935"
+  },
+  "mutations": [
+   {
+    "name": "R1: maxMP read as currentMP",
+    "caught": true
+   },
+   {
+    "name": "R2: the subtraction becomes an addition",
+    "caught": true
+   },
+   {
+    "name": "R3: the subtrahend reads maxMP",
+    "caught": true
+   },
+   {
+    "name": "R4: result masked to 15 bits",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 3,
+   "lines_hit": 3,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147305885, max 2147375837, unsigned 163026..4294818129, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147284987, max 2147458494, unsigned 226412..4294466032, seen negative, never zero"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38668,
+     "completion_tokens": 2266,
+     "reasoning_tokens": 1905,
+     "cost": 0.0024998999999999998,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getRecoverableMp.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_recoverable_mp.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 198.80110680899998,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 59040.66341924667,
+ "totals": {
+  "cost": 0.00645,
+  "prompt_tokens": 53970,
+  "completion_tokens": 15001,
+  "model_seconds": 0.0,
+  "check_seconds": 198.8,
+  "calls": 2,
+  "wall_seconds": 59040.7
+ }
+}

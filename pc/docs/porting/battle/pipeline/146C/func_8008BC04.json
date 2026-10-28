@@ -1,0 +1,399 @@
+{
+ "function": "func_8008BC04",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008BC04",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008bc04",
+  "difficulty": "S",
+  "zig_name": "func_8008BC04",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008BC04",
+  "spec_file": "func_8008BC04.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008BC04(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v._mpdRoomSectionA",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "?*v._mpdRoomSectionA",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13662,
+     "completion_tokens": 24353,
+     "reasoning_tokens": 21596,
+     "cost": 0.00677135,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-section": "5766",
+   "no-count": "5701",
+   "empty": "5735",
+   "past-end": "5768",
+   "not-found": "5773",
+   "huge-count": "5587",
+   "entry-match": "5670"
+  },
+  "mutations": [
+   {
+    "name": "F1: scan one entry too far",
+    "caught": true
+   },
+   {
+    "name": "F2: case 2 looks at unk2 - 1",
+    "caught": true
+   },
+   {
+    "name": "F3: unkA check on the first entry dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: case 3 compares arg1 for x - 1",
+    "caught": true
+   },
+   {
+    "name": "F5: case 1 wraps x + 1 to i16",
+    "caught": true
+   },
+   {
+    "name": "F6: sectionALen divided as a signed int",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 41,
+   "branches_hit": 41,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 31,
+   "lines_hit": 31,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -32769, max 32768, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 40000,
+     "text": "32-bit: min -32769, max 32768, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 40000,
+     "text": "32-bit: min -32769, max 32768, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (((__typeof__((vs_battle_roomData.sectionA).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionA).raw) != 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 5766, < 0, > 34234 (signed); < 0, > 34234 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4239984"
+    },
+    {
+     "line": 9,
+     "text": "if (var_t0->unk0.unkA != 0) {",
+     "size": 1,
+     "count": 34234,
+     "kind": "against a constant",
+     "outcomes": "== 5701, < 14284, > 14249 (signed); < 0, > 28533 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 10,
+     "text": "for (i = 0; i < temp_t2; ++i, ++var_t0) {",
+     "size": 4,
+     "count": 629857,
+     "kind": "a == b / a < b",
+     "outcomes": "== 21944, < 607913, > 0 (signed); < 607913, > 0 (unsigned)",
+     "operand": "b 0..214734402",
+     "a": "0..199"
+    },
+    {
+     "line": 11,
+     "text": "if ((var_t0->unk0.unk0 == arg0) && (var_t0->unk0.unk2 == arg1)",
+     "size": 4,
+     "count": 607913,
+     "kind": "a == b / a < b",
+     "outcomes": "== 25567, < 102467, > 479879 (signed); < 283068, > 299278 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 11,
+     "text": "if ((var_t0->unk0.unk0 == arg0) && (var_t0->unk0.unk2 == arg1)",
+     "size": 4,
+     "count": 25567,
+     "kind": "a == b / a < b",
+     "outcomes": "== 8638, < 8402, > 8527 (signed); < 8470, > 8459 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 12,
+     "text": "&& (var_t0->unk0.unk4 == arg2)) {",
+     "size": 4,
+     "count": 8638,
+     "kind": "a == b / a < b",
+     "outcomes": "== 6346, < 1177, > 1115 (signed); < 1128, > 1164 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 15,
+     "text": "switch (var_t0->unk0.unk6 - 4) {",
+     "size": 4,
+     "count": 601567,
+     "kind": "switch",
+     "outcomes": "== 291614, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-32772..32763"
+    },
+    {
+     "line": 17,
+     "text": "if ((var_t0->unk0.unk0 == arg0) && ((var_t0->unk0.unk2 - 1) == arg1)",
+     "size": 4,
+     "count": 72892,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2372, < 12289, > 58231 (signed); < 34529, > 35991 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 17,
+     "text": "if ((var_t0->unk0.unk0 == arg0) && ((var_t0->unk0.unk2 - 1) == arg1)",
+     "size": 4,
+     "count": 2372,
+     "kind": "a == b / a < b",
+     "outcomes": "== 286, < 773, > 1313 (signed); < 1045, > 1041 (unsigned)",
+     "operand": "b -32769..32766",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 18,
+     "text": "&& (var_t0->unk0.unk4 == arg2)) {",
+     "size": 4,
+     "count": 286,
+     "kind": "a == b / a < b",
+     "outcomes": "== 67, < 108, > 111 (signed); < 112, > 107 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32767"
+    },
+    {
+     "line": 23,
+     "text": "if (((var_t0->unk0.unk0 + 1) == arg0) && (var_t0->unk0.unk2 == arg1)",
+     "size": 4,
+     "count": 73132,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1980, < 15253, > 55899 (signed); < 27198, > 43954 (unsigned)",
+     "operand": "b -32767..32768",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 23,
+     "text": "if (((var_t0->unk0.unk0 + 1) == arg0) && (var_t0->unk0.unk2 == arg1)",
+     "size": 4,
+     "count": 1980,
+     "kind": "a == b / a < b",
+     "outcomes": "== 265, < 831, > 884 (signed); < 912, > 803 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 24,
+     "text": "&& (var_t0->unk0.unk4 == arg2)) {",
+     "size": 4,
+     "count": 265,
+     "kind": "a == b / a < b",
+     "outcomes": "== 53, < 109, > 103 (signed); < 89, > 123 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 29,
+     "text": "if ((var_t0->unk0.unk0 == arg0) && ((var_t0->unk0.unk2 + 1) == arg1)",
+     "size": 4,
+     "count": 72447,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2272, < 12221, > 57954 (signed); < 34142, > 36033 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 29,
+     "text": "if ((var_t0->unk0.unk0 == arg0) && ((var_t0->unk0.unk2 + 1) == arg1)",
+     "size": 4,
+     "count": 2272,
+     "kind": "a == b / a < b",
+     "outcomes": "== 275, < 1266, > 731 (signed); < 1004, > 993 (unsigned)",
+     "operand": "b -32767..32768",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 30,
+     "text": "&& (var_t0->unk0.unk4 == arg2)) {",
+     "size": 4,
+     "count": 275,
+     "kind": "a == b / a < b",
+     "outcomes": "== 63, < 113, > 99 (signed); < 110, > 102 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 35,
+     "text": "if (((var_t0->unk0.unk0 - 1) == arg0) && (var_t0->unk0.unk2 == arg1)",
+     "size": 4,
+     "count": 73143,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1989, < 10306, > 60848 (signed); < 42055, > 29099 (unsigned)",
+     "operand": "b -32769..32766",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 35,
+     "text": "if (((var_t0->unk0.unk0 - 1) == arg0) && (var_t0->unk0.unk2 == arg1)",
+     "size": 4,
+     "count": 1989,
+     "kind": "a == b / a < b",
+     "outcomes": "== 303, < 826, > 860 (signed); < 876, > 810 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    },
+    {
+     "line": 36,
+     "text": "&& (var_t0->unk0.unk4 == arg2)) {",
+     "size": 4,
+     "count": 303,
+     "kind": "a == b / a < b",
+     "outcomes": "== 60, < 135, > 108 (signed); < 116, > 127 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32769..32768"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37134,
+     "completion_tokens": 6129,
+     "reasoning_tokens": 5403,
+     "cost": 0.00338895,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008BC04.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008BC04.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 329.6880577890006,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 93555.2051961422,
+ "totals": {
+  "cost": 0.01016,
+  "prompt_tokens": 50796,
+  "completion_tokens": 30482,
+  "model_seconds": 0.0,
+  "check_seconds": 329.7,
+  "calls": 2,
+  "wall_seconds": 93555.2
+ }
+}

@@ -1,0 +1,205 @@
+{
+ "function": "_getChainEvasionModifier",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "_getChainEvasionModifier",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f1a4",
+  "difficulty": "S",
+  "zig_name": "getChainEvasionModifier",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_chain_evasion_modifier",
+  "spec_file": "getChainEvasionModifier.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getChainEvasionModifier(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, target: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "target",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15537,
+     "completion_tokens": 11555,
+     "reasoning_tokens": 9868,
+     "cost": 0.0036655999999999998,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 5, fault address 0x633 [NULL+0x633: a field of a null pointer]\nzdiff: crashed on arguments: 0 0 0x408a30 [arena] 0xd4541b36 0x3a6c93ba (class null-stats)",
+     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 17657,
+     "completion_tokens": 3544,
+     "reasoning_tokens": 2066,
+     "cost": 0.0017688499999999998,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _getChainEvasionModifier: branches 1/2 (50.0%), conditions not measured (GCC < 14: branch coverage only), lines 8/9\n  UNCOVERED +12 b0: branch never taken: `if (rate == 255) {`\n  note: waivers no longer needed: +12 b1\ncoverage _getChainEvasionModifier: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (rate == 255) {` (+12): one way out of this test (+12 b0) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function._getChainEvasionModifier.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "negative-limb": "10020",
+   "limb-past-six": "9993",
+   "limb-in-range": "9987"
+  },
+  "mutations": [
+   {
+    "name": "E1: wrong constant in the numerator",
+    "caught": true
+   },
+   {
+    "name": "E2: wrong scale factor",
+    "caught": true
+   },
+   {
+    "name": "E3: limb index masked to 0..7 (negative and past-six limbs read the wrong entry)",
+    "caught": true
+   },
+   {
+    "name": "E4: wrong field (nameIndex for chainEvasion)",
+    "caught": true
+   },
+   {
+    "name": "E5: wrong divisor",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 1,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 8,
+   "uncovered": [
+    {
+     "id": "+12 b0",
+     "line": 12,
+     "text": "if (rate == 255) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147159969, max 2147366427, unsigned 497121..4294727128, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147386192, max 2147449513, unsigned 121875..4294699985, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (rate == 255) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 30000, > 0 (signed); < 30000, > 0 (unsigned)",
+     "operand": "constant 255",
+     "a": "0..100"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 10.868480305000048,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56132.69530892372,
+ "totals": {
+  "cost": 0.00543,
+  "prompt_tokens": 33194,
+  "completion_tokens": 15099,
+  "model_seconds": 0.0,
+  "check_seconds": 10.9,
+  "calls": 2,
+  "wall_seconds": 56132.7
+ }
+}

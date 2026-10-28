@@ -1,0 +1,276 @@
+{
+ "function": "_absMax3",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_absMax3",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cfbf8",
+  "difficulty": "S",
+  "zig_name": "absMax3",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "abs_max3",
+  "spec_file": "absMax3.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn absMax3(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11217,
+     "completion_tokens": 6354,
+     "reasoning_tokens": 5011,
+     "cost": 0.00214935,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "first-below-second, third above second": "2586",
+   "first-below-second, third not above second": "5225",
+   "first-not-below-second, third above first": "2557",
+   "first-not-below-second, third not above first": "5127",
+   "tie: first and second magnitudes equal": "4647",
+   "tie: second and third magnitudes equal": "3593",
+   "tie: first and third magnitudes equal": "3459",
+   "an argument is INT_MIN": "2806"
+  },
+  "mutations": [
+   {
+    "name": "M1: first comparison takes ties (<= for <)",
+    "caught": true
+   },
+   {
+    "name": "M2: second comparison uses > for <",
+    "caught": true
+   },
+   {
+    "name": "M3: third argument's magnitude not taken",
+    "caught": true
+   },
+   {
+    "name": "M4: final select inverted",
+    "caught": true
+   },
+   {
+    "name": "M5: first branch returns arg0 instead of arg1",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "int var_t0 = arg0 >= new_var ? arg0 : -arg0;",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3822, < 13130, > 13048 (signed); < 0, > 26178 (unsigned)",
+     "operand": "b 0..0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 5,
+     "text": "int var_a3 = arg1 >= new_var ? arg1 : -arg1;",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3799, < 12897, > 13304 (signed); < 0, > 26201 (unsigned)",
+     "operand": "b 0..0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 6,
+     "text": "int var_v1 = arg2 >= new_var ? arg2 : -arg2;",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3805, < 13167, > 13028 (signed); < 0, > 26195 (unsigned)",
+     "operand": "b 0..0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 8,
+     "text": "if (var_t0 < var_a3) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4995, < 12682, > 12323 (signed); < 12531, > 12474 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 9,
+     "text": "var_v0 = var_a3 < var_v1;",
+     "size": 4,
+     "count": 12682,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2093, < 2917, > 7672 (signed); < 3332, > 7257 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "0..2147483647"
+    },
+    {
+     "line": 12,
+     "text": "var_v0 = var_t0 < var_v1;",
+     "size": 4,
+     "count": 17318,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3157, < 4605, > 9556 (signed); < 5130, > 9031 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 14,
+     "text": "if (var_v0 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22478, < 0, > 7522 (signed); < 0, > 7522 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34714,
+     "completion_tokens": 1026,
+     "reasoning_tokens": 628,
+     "cost": 0.0019922,
+     "seconds": null,
+     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/absMax3.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/abs_max3.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 57.2792946490008,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 98165.02018213272,
+ "totals": {
+  "cost": 0.00414,
+  "prompt_tokens": 45931,
+  "completion_tokens": 7380,
+  "model_seconds": 0.0,
+  "check_seconds": 57.3,
+  "calls": 2,
+  "wall_seconds": 98165.0
+ }
+}

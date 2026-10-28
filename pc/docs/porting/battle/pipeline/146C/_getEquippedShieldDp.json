@@ -1,0 +1,213 @@
+{
+ "function": "_getEquippedShieldDp",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_getEquippedShieldDp",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008381c",
+  "difficulty": "S",
+  "zig_name": "getEquippedShieldDp",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_equipped_shield_dp",
+  "spec_file": "getEquippedShieldDp.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getEquippedShieldDp(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15492,
+     "completion_tokens": 7084,
+     "reasoning_tokens": 5852,
+     "cost": 0.0025456,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "pp-below-0x8000": "16605",
+   "pp-top-bit-set": "13395"
+  },
+  "mutations": [
+   {
+    "name": "R1: maxPp returned instead of currentPp",
+    "caught": true
+   },
+   {
+    "name": "R2: top bit of the pp dropped",
+    "caught": true
+   },
+   {
+    "name": "R3: wrong actor index (targetActor ^ 1)",
+    "caught": true
+   },
+   {
+    "name": "R4: index masked to 3 bits",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 2,
+   "lines_hit": 2,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147054554, max 2147351169, unsigned 100815..4294912437, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147394820, max 2147438373, unsigned 37575..4294720269, seen negative, never zero"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38842,
+     "completion_tokens": 1934,
+     "reasoning_tokens": 1611,
+     "cost": 0.0024256,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getEquippedShieldDp.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_equipped_shield_dp.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 203.33972970899958,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 58305.299813747406,
+ "totals": {
+  "cost": 0.00497,
+  "prompt_tokens": 54334,
+  "completion_tokens": 9018,
+  "model_seconds": 0.0,
+  "check_seconds": 203.3,
+  "calls": 2,
+  "wall_seconds": 58305.3
+ }
+}

@@ -1,22 +1,77 @@
 {
  "unit": "5BF94",
  "totals": {
-  "functions": 47,
-  "ported": 36,
-  "cost": 0.9259,
-  "prompt_tokens": 2924593,
-  "completion_tokens": 1266875,
+  "functions": 53,
+  "ported": 41,
+  "cost": 0.9613,
+  "prompt_tokens": 3191775,
+  "completion_tokens": 1355192,
   "model_seconds": 5327.9,
-  "check_seconds": 2991.5,
-  "calls": 121,
+  "check_seconds": 3296.9,
+  "calls": 133,
   "statuses": {
    "port-failed": 3,
-   "ported": 36,
-   "spec-failed": 6,
+   "ported": 41,
+   "spec-failed": 7,
    "stopped": 2
   }
  },
  "functions": [
+  {
+   "function": "_absMax2",
+   "status": "ported",
+   "model": "anthropic/claude-haiku-5.5",
+   "spec_attempts": 1,
+   "port_attempts": 1,
+   "spec": "first",
+   "port": "first",
+   "cost": 0.00396,
+   "wall_seconds": 98126.4
+  },
+  {
+   "function": "_absMax3",
+   "status": "ported",
+   "model": "anthropic/claude-haiku-5.5",
+   "spec_attempts": 1,
+   "port_attempts": 1,
+   "spec": "first",
+   "port": "first",
+   "cost": 0.00414,
+   "wall_seconds": 98165.0
+  },
+  {
+   "function": "_addSVectorToVector",
+   "status": "ported",
+   "model": "anthropic/claude-haiku-5.5",
+   "spec_attempts": 1,
+   "port_attempts": 1,
+   "spec": "first",
+   "port": "first",
+   "cost": 0.00458,
+   "wall_seconds": 98204.6
+  },
+  {
+   "function": "_breakArtsUnlocked",
+   "status": "ported",
+   "model": "anthropic/claude-haiku-5.5",
+   "spec_attempts": 1,
+   "port_attempts": 1,
+   "spec": "first",
+   "port": "first",
+   "cost": 0.00503,
+   "wall_seconds": 98563.2
+  },
+  {
+   "function": "_dismissAllTextBoxes",
+   "status": "ported",
+   "model": "anthropic/claude-haiku-5.5",
+   "spec_attempts": 1,
+   "port_attempts": 1,
+   "spec": "first",
+   "port": "first",
+   "cost": 0.0038,
+   "wall_seconds": 98934.5
+  },
   {
    "function": "_getStatusString",
    "status": "ported",
@@ -38,6 +93,17 @@
    "port": "failed",
    "cost": 0.04865,
    "wall_seconds": 375.2
+  },
+  {
+   "function": "_renderTextImmediate",
+   "status": "spec-failed",
+   "model": "anthropic/claude-haiku-5.5",
+   "spec_attempts": 2,
+   "port_attempts": 0,
+   "spec": "failed",
+   "port": "failed",
+   "cost": 0.01393,
+   "wall_seconds": 97099.1
   },
   {
    "function": "_writeStringTerminator",

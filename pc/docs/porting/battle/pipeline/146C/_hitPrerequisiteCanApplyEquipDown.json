@@ -1,0 +1,257 @@
+{
+ "function": "_hitPrerequisiteCanApplyEquipDown",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyEquipDown",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f628",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyEquipDown",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_equip_down",
+  "spec_file": "hitPrerequisiteCanApplyEquipDown.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyEquipDown(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16102,
+     "completion_tokens": 17393,
+     "reasoning_tokens": 15421,
+     "cost": 0.005153349999999999,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "bare": "9983",
+   "limb": "19773",
+   "shield-only": "158",
+   "weapon-only": "86"
+  },
+  "mutations": [
+   {
+    "name": "E1: a hasEquipment result of 2",
+    "caught": true
+   },
+   {
+    "name": "E2: the limb loop stops before limb 5",
+    "caught": true
+   },
+   {
+    "name": "E3: limb id tested as a signed value",
+    "caught": true
+   },
+   {
+    "name": "E4: the shield test inverted",
+    "caught": true
+   },
+   {
+    "name": "E5: the weapon test reads the grip",
+    "caught": true
+   },
+   {
+    "name": "E6: the effect hook is called with the wrong id",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 12,
+   "branches_hit": 12,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 15,
+   "lines_hit": 15,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (_hitPrerequisiteCanApplyEffect(19, arg1) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7449, < 11178, > 11373 (signed); < 0, > 22551 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147312035..2147341305"
+    },
+    {
+     "line": 13,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 52143,
+     "kind": "against a constant",
+     "outcomes": "== 7449, < 37245, > 7449 (signed); < 37245, > 7449 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 14,
+     "text": "if (actor->limbs[i].armor.armor.id != 0) {",
+     "size": 2,
+     "count": 44694,
+     "kind": "against a constant",
+     "outcomes": "== 22258, < 11277, > 11159 (signed); < 0, > 22436 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 19,
+     "text": "if (actor->shield.base.id != 0) {",
+     "size": 2,
+     "count": 7449,
+     "kind": "against a constant",
+     "outcomes": "== 3715, < 1822, > 1912 (signed); < 0, > 3734 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 23,
+     "text": "if (actor->weapon.blade.id != 0) {",
+     "size": 2,
+     "count": 7449,
+     "kind": "against a constant",
+     "outcomes": "== 3766, < 1893, > 1790 (signed); < 0, > 3683 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 27,
+     "text": "if (hasEquipment != 0) {",
+     "size": 4,
+     "count": 7449,
+     "kind": "against a constant",
+     "outcomes": "== 1868, < 0, > 5581 (signed); < 0, > 5581 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39382,
+     "completion_tokens": 2424,
+     "reasoning_tokens": 1879,
+     "cost": 0.0025751000000000003,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyEquipDown.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_equip_down.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 237.85932477400092,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 61762.71411752701,
+ "totals": {
+  "cost": 0.00773,
+  "prompt_tokens": 55484,
+  "completion_tokens": 19817,
+  "model_seconds": 0.0,
+  "check_seconds": 237.9,
+  "calls": 2,
+  "wall_seconds": 61762.7
+ }
+}

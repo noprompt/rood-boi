@@ -27208,3 +27208,6036 @@ name = "S6: wrong mask for the 4/1 choice (0x20 for 0x10)"
 target = "c"
 from = "temp_v1 & 0x10 ? 4 : 1;"
 to = "temp_v1 & 0x20 ? 4 : 1;"
+
+[function._dropMiscRand]
+spec = "dropMiscRand.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._dropMiscRand.mutation]]
+name = "D1: the roll uses <= instead of <"
+target = "c"
+from = "vs_main_getRand(0xFF) < base->dropRate"
+to = "vs_main_getRand(0xFF) <= base->dropRate"
+
+[[function._dropMiscRand.mutation]]
+name = "D2: the roll is compared as unsigned (a negative roll no longer drops)"
+target = "c"
+from = "vs_main_getRand(0xFF) < base->dropRate"
+to = "(unsigned)vs_main_getRand(0xFF) < base->dropRate"
+
+[[function._dropMiscRand.mutation]]
+name = "D3: wrong roll range argument"
+target = "c"
+from = "vs_main_getRand(0xFF)"
+to = "vs_main_getRand(0x7F)"
+
+[[function._dropMiscRand.mutation]]
+name = "D4: dropped count store"
+target = "c"
+from = "looted->misc[2].count = 1;"
+to = "looted->misc[2].count = 2;"
+
+[[function._dropMiscRand.mutation]]
+name = "D5: wrong difficultyFlags constant"
+target = "c"
+from = "looted->misc[2].difficultyFlags = 3;"
+to = "looted->misc[2].difficultyFlags = 2;"
+
+[[function._dropMiscRand.mutation]]
+name = "D6: success returns 2"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[function._factorCurrentHp]
+spec = "factorCurrentHp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorCurrentHp.mutation]]
+name = "F1: statFactor read from hit parameter 0"
+target = "c"
+from = "arg0->hitParams[arg3].statFactor"
+to = "arg0->hitParams[0].statFactor"
+
+[[function._factorCurrentHp.mutation]]
+name = "F2: wrong divisor (10 for 100)"
+target = "c"
+from = "(v / 100)"
+to = "(v / 10)"
+
+[[function._factorCurrentHp.mutation]]
+name = "F3: product kept unsigned (negative HP divides wrong)"
+target = "c"
+from = "int v = (("
+to = "unsigned int v = (("
+
+[[function._factorCurrentHp.mutation]]
+name = "F4: the -1 dropped from the global term"
+target = "c"
+from = "(D_800F19CC->unk0 - 1)"
+to = "(D_800F19CC->unk0)"
+
+[[function._factorCurrentHp.mutation]]
+name = "F5: global read from unk4, not unk0"
+target = "c"
+from = "D_800F19CC->unk0 - 1"
+to = "D_800F19CC->unk4 - 1"
+
+[[function._factorCurrentHp.mutation]]
+name = "F6: maxHP read instead of currentHP"
+target = "c"
+from = "->currentHP"
+to = "->maxHP"
+
+[function._factorLastValue]
+spec = "factorLastValue.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorLastValue.mutation]]
+name = "F1: wrong divisor (/ 11)"
+target = "c"
+from = "statFactor) / 10;"
+to = "statFactor) / 11;"
+
+[[function._factorLastValue.mutation]]
+name = "F2: hitParams indexed by arg4"
+target = "c"
+from = "arg0->hitParams[arg3].statFactor"
+to = "arg0->hitParams[arg4].statFactor"
+
+[[function._factorLastValue.mutation]]
+name = "F3: signed product (sign slip on the wrapped value)"
+target = "c"
+from = "(_lastValue * arg0->hitParams[arg3].statFactor)"
+to = "((int)_lastValue * arg0->hitParams[arg3].statFactor)"
+
+[[function._factorLastValue.mutation]]
+name = "F4: statCalculator read instead of statFactor"
+target = "c"
+from = "statFactor) / 10;"
+to = "statCalculator) / 10;"
+
+[function._factorMagicDamageReceived]
+spec = "factorMagicDamageReceived.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorMagicDamageReceived.mutation]]
+name = "F1: spell test inverted"
+target = "c"
+from = "== actionTypeSpell"
+to = "!= actionTypeSpell"
+
+[[function._factorMagicDamageReceived.mutation]]
+name = "F2: the hpEffect == 3 test dropped"
+target = "c"
+from = "|| (D_800F19CC->unk8.unk4.hpEffect == 3)"
+to = ""
+
+[[function._factorMagicDamageReceived.mutation]]
+name = "F3: mp summed as hp"
+target = "c"
+from = "+ D_800F19CC->unk8.unk4.unk0.mp)"
+to = "+ D_800F19CC->unk8.unk4.unk0.hp)"
+
+[[function._factorMagicDamageReceived.mutation]]
+name = "F4: division done unsigned"
+target = "c"
+from = "/ 10;"
+to = "/ 10u;"
+
+[[function._factorMagicDamageReceived.mutation]]
+name = "F5: hp+mp narrowed to short before the factor"
+target = "c"
+from = "var_a2 = ((D_800F19CC->unk8.unk4.unk0.hp"
+to = "var_a2 = ((short)(D_800F19CC->unk8.unk4.unk0.hp"
+
+[[function._factorMagicDamageReceived.mutation]]
+name = "F6: wrong field for the action index"
+target = "c"
+from = "vs_main_actions[D_800F19CC->unk8.actionIndex]"
+to = "vs_main_actions[D_800F19CC->unk8.unk2]"
+
+[function._factorMagicDamageReceivedOfType]
+spec = "factorMagicDamageReceivedOfType.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorMagicDamageReceivedOfType.mutation]]
+name = "F1: divide by 8, not 10"
+target = "c"
+from = "/ 10;"
+to = "/ 8;"
+
+[[function._factorMagicDamageReceivedOfType.mutation]]
+name = "F2: the second hpEffect test is 2, not 3"
+target = "c"
+from = "(D_800F19CC->unk8.unk4.hpEffect == 3)"
+to = "(D_800F19CC->unk8.unk4.hpEffect == 2)"
+
+[[function._factorMagicDamageReceivedOfType.mutation]]
+name = "F3: mp dropped from the sum"
+target = "c"
+from = "+ D_800F19CC->unk8.unk4.unk0.mp)"
+to = "+ 0)"
+
+[[function._factorMagicDamageReceivedOfType.mutation]]
+name = "F4: statFactor read from hitParams[0]"
+target = "c"
+from = "action->hitParams[arg3].statFactor"
+to = "action->hitParams[0].statFactor"
+
+[[function._factorMagicDamageReceivedOfType.mutation]]
+name = "F5: the spell-type check dropped"
+target = "c"
+from = "if (vs_main_actions[D_800F19CC->unk8.actionIndex].type == actionTypeSpell) {"
+to = "if (1) {"
+
+[function._factorPhysicalDamageReceived0]
+spec = "factorPhysicalDamageReceived0.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorPhysicalDamageReceived0.mutation]]
+name = "F1: spell test inverted"
+target = "c"
+from = "!= actionTypeSpell"
+to = "== actionTypeSpell"
+
+[[function._factorPhysicalDamageReceived0.mutation]]
+name = "F2: hpEffect 3 tested as 2"
+target = "c"
+from = "hpEffect == 3"
+to = "hpEffect == 2"
+
+[[function._factorPhysicalDamageReceived0.mutation]]
+name = "F3: divisor 8 for 10"
+target = "c"
+from = "/ 10;"
+to = "/ 8;"
+
+[[function._factorPhysicalDamageReceived0.mutation]]
+name = "F4: mp read as hp in the sum"
+target = "c"
+from = "D_800F19CC->unk8.unk4.unk0.mp)"
+to = "D_800F19CC->unk8.unk4.unk0.hp)"
+
+[[function._factorPhysicalDamageReceived0.mutation]]
+name = "F5: statFactor indexed by arg4"
+target = "c"
+from = "hitParams[arg3]"
+to = "hitParams[arg4]"
+
+[[function._factorPhysicalDamageReceived0.mutation]]
+name = "F6: default result 1, not 0"
+target = "c"
+from = "short var_a2 = 0;"
+to = "short var_a2 = 1;"
+
+[function._getEnemyClass]
+spec = "getEnemyClass.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getEnemyClass.mutation]]
+name = "G1: reads the reach field, not enemyClass"
+target = "c"
+from = "->enemyClass;"
+to = "->reach;"
+
+[[function._getEnemyClass.mutation]]
+name = "G2: the actor is taken from the neighbouring slot (arg0 ^ 1)"
+target = "c"
+from = "(vs_battle_actors[*arg0]->unk3C).raw)"
+to = "(vs_battle_actors[*arg0 ^ 1]->unk3C).raw)"
+
+[[function._getEnemyClass.mutation]]
+name = "G3: class off by one"
+target = "c"
+from = "->enemyClass;"
+to = "->enemyClass + 1;"
+
+[[function._getEnemyClass.mutation]]
+name = "G4: the stats pointer is offset by one element"
+target = "c"
+from = "(vs_battle_actors[*arg0]->unk3C).raw)"
+to = "(vs_battle_actors[*arg0]->unk3C).raw + 4)"
+
+[function._getEquippedShieldDp]
+spec = "getEquippedShieldDp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getEquippedShieldDp.mutation]]
+name = "R1: maxPp returned instead of currentPp"
+target = "c"
+from = "shield.currentPp"
+to = "shield.maxPp"
+
+[[function._getEquippedShieldDp.mutation]]
+name = "R2: top bit of the pp dropped"
+target = "c"
+from = "->shield.currentPp;"
+to = "->shield.currentPp & 0x7FFF;"
+
+[[function._getEquippedShieldDp.mutation]]
+name = "R3: wrong actor index (targetActor ^ 1)"
+target = "c"
+from = "[arg1->unk0.targetActor]->unk3C).raw"
+to = "[arg1->unk0.targetActor ^ 1]->unk3C).raw"
+
+[[function._getEquippedShieldDp.mutation]]
+name = "R4: index masked to 3 bits"
+target = "c"
+from = "[arg1->unk0.targetActor]->unk3C).raw"
+to = "[arg1->unk0.targetActor & 7]->unk3C).raw"
+
+[function._getIntelligenceDifference]
+spec = "getIntelligenceDifference.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getIntelligenceDifference.mutation]]
+name = "I1: defense gem buff gets the source actor"
+target = "c"
+from = "intDiff -= _getDefenseGemBuff(action, targetActor, hitNumber);"
+to = "intDiff -= _getDefenseGemBuff(action, sourceActor, hitNumber);"
+
+[[function._getIntelligenceDifference.mutation]]
+name = "I2: the 255 clamp also catches values above 255"
+target = "c"
+from = "} else if (intDiff == 255) {"
+to = "} else if (intDiff >= 255) {"
+
+[[function._getIntelligenceDifference.mutation]]
+name = "I3: the below-zero clamp is unsigned"
+target = "c"
+from = "if (intDiff < 0) {"
+to = "if ((unsigned)intDiff < 0u) {"
+
+[[function._getIntelligenceDifference.mutation]]
+name = "I4: variance offset off by one"
+target = "c"
+from = "int v1 = intDiff - 5;"
+to = "int v1 = intDiff - 4;"
+
+[[function._getIntelligenceDifference.mutation]]
+name = "I5: target limb read from limb 0"
+target = "c"
+from = "targetActorValue += targetActor->limbs[targetLimb].agilityDefenseBonus;"
+to = "targetActorValue += targetActor->limbs[0].agilityDefenseBonus;"
+
+[[function._getIntelligenceDifference.mutation]]
+name = "I6: target weapon test uses bit 2"
+target = "c"
+from = "if (vs_battle_actors[targetActor->unk957]->weaponDrawn & 1) {"
+to = "if (vs_battle_actors[targetActor->unk957]->weaponDrawn & 2) {"
+
+[function._getLastValue]
+spec = "getLastValue.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getLastValue.mutation]]
+name = "G1: shifted right by one"
+target = "c"
+from = "return _lastValue;"
+to = "return (short)(_lastValue >> 1);"
+
+[[function._getLastValue.mutation]]
+name = "G2: sign bit masked off"
+target = "c"
+from = "return _lastValue;"
+to = "return _lastValue & 0x7FFF;"
+
+[[function._getLastValue.mutation]]
+name = "G3: off by one"
+target = "c"
+from = "return _lastValue;"
+to = "return (short)(_lastValue + 1);"
+
+[[function._getLastValue.mutation]]
+name = "G4: arg3 read as a selector"
+target = "c"
+from = "return _lastValue;"
+to = "return arg3 == 7 ? 0 : (short)_lastValue;"
+
+[[function._getLastValue.mutation]]
+name = "G5: zero low half returns -1"
+target = "c"
+from = "return _lastValue;"
+to = "return (unsigned short)_lastValue == 0 ? -1 : (short)_lastValue;"
+
+[function._getRecoverableHp]
+spec = "getRecoverableHp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getRecoverableHp.mutation]]
+name = "R1: subtraction turned into addition"
+target = "c"
+from = "- ((__typeof__"
+to = "+ ((__typeof__"
+
+[[function._getRecoverableHp.mutation]]
+name = "R2: maxHP read as maxMP"
+target = "c"
+from = ")->maxHP"
+to = ")->maxMP"
+
+[[function._getRecoverableHp.mutation]]
+name = "R3: currentHP off by one"
+target = "c"
+from = "->currentHP;"
+to = "->currentHP + 1;"
+
+[[function._getRecoverableHp.mutation]]
+name = "R4: maxHP negated"
+target = "c"
+from = "return ((__typeof__"
+to = "return -((__typeof__"
+
+[function._getRecoverableMp]
+spec = "getRecoverableMp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getRecoverableMp.mutation]]
+name = "R1: maxMP read as currentMP"
+target = "c"
+from = "->maxMP"
+to = "->currentMP"
+
+[[function._getRecoverableMp.mutation]]
+name = "R2: the subtraction becomes an addition"
+target = "c"
+from = " - ((__typeof__"
+to = " + ((__typeof__"
+
+[[function._getRecoverableMp.mutation]]
+name = "R3: the subtrahend reads maxMP"
+target = "c"
+from = "->currentMP;"
+to = "->maxMP;"
+
+[[function._getRecoverableMp.mutation]]
+name = "R4: result masked to 15 bits"
+target = "c"
+from = "->currentMP;"
+to = "->currentMP & 0x7FFF;"
+
+[function._getRiskModifier]
+spec = "getRiskModifier.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getRiskModifier.mutation]]
+name = "R1: risk offset 151 instead of 150"
+target = "c"
+from = "->risk + 150) * 100)"
+to = "->risk + 151) * 100)"
+
+[[function._getRiskModifier.mutation]]
+name = "R2: divide by 255 instead of 256"
+target = "c"
+from = "/ 256;"
+to = "/ 255;"
+
+[[function._getRiskModifier.mutation]]
+name = "R3: clamp taken for rate >= 255"
+target = "c"
+from = "if (rate == 255) {"
+to = "if (rate >= 255) {"
+
+[[function._getRiskModifier.mutation]]
+name = "R4: clamp value 255 instead of 254"
+target = "c"
+from = "rate = 254;"
+to = "rate = 255;"
+
+[[function._getRiskModifier.mutation]]
+name = "R5: the 255 clamp test dropped"
+target = "c"
+from = "if (rate == 255) {"
+to = "if (0) {"
+
+[function._getWeaponPp]
+spec = "getWeaponPp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._getWeaponPp.mutation]]
+name = "W1: the constant 1 becomes 2"
+target = "c"
+from = "((u_short)D_800F19CC->unk0 - 1)"
+to = "((u_short)D_800F19CC->unk0 - 2)"
+
+[[function._getWeaponPp.mutation]]
+name = "W2: unk0 narrowed to 8 bits, not 16"
+target = "c"
+from = "((u_short)D_800F19CC->unk0 - 1)"
+to = "((unsigned char)D_800F19CC->unk0 - 1)"
+
+[[function._getWeaponPp.mutation]]
+name = "W3: the D_800F19CC read dropped"
+target = "c"
+from = "((u_short)D_800F19CC->unk0 - 1)"
+to = "((u_short)0 - 1)"
+
+[[function._getWeaponPp.mutation]]
+name = "W4: maxPp read instead of currentPp"
+target = "c"
+from = "->weapon.currentPp"
+to = "->weapon.maxPp"
+
+[[function._getWeaponPp.mutation]]
+name = "W5: the stats come from arg2's target actor"
+target = "c"
+from = "(long unsigned int)(vs_battle_actors[arg1->unk0.targetActor]->unk3C).raw)"
+to = "(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)"
+
+[function._hitPrerequisiteAlways0]
+spec = "hitPrerequisiteAlways0.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteAlways0.mutation]]
+name = "H1: returns 0 instead of 1"
+target = "c"
+from = "return 1;"
+to = "return 0;"
+
+[[function._hitPrerequisiteAlways0.mutation]]
+name = "H2: returns 2 instead of 1"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteAlways0.mutation]]
+name = "H3: returns -1 instead of 1"
+target = "c"
+from = "return 1;"
+to = "return -1;"
+
+[[function._hitPrerequisiteAlways0.mutation]]
+name = "H4: returns 0 when the action is null (a null-guard slip)"
+target = "c"
+from = "return 1;"
+to = "return (arg0 == 0) ? 0 : 1;"
+
+[function._hitPrerequisiteAlways2]
+spec = "hitPrerequisiteAlways2.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteAlways2.mutation]]
+name = "H1: returns 0 instead of 1"
+target = "c"
+from = "return 1;"
+to = "return 0;"
+
+[[function._hitPrerequisiteAlways2.mutation]]
+name = "H2: returns -1 instead of 1"
+target = "c"
+from = "return 1;"
+to = "return -1;"
+
+[[function._hitPrerequisiteAlways2.mutation]]
+name = "H3: result depends on arg1 being non-null"
+target = "c"
+from = "return 1;"
+to = "return arg1 != 0;"
+
+[[function._hitPrerequisiteAlways2.mutation]]
+name = "H4: result depends on arg0 being non-null"
+target = "c"
+from = "return 1;"
+to = "return arg0 != 0;"
+
+[function._hitPrerequisiteCanApplyAglDown]
+spec = "hitPrerequisiteCanApplyAglDown.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyAglDown.mutation]]
+name = "A1: wrong effect id (8, not 9)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(9, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(8, arg1) == 0"
+
+[[function._hitPrerequisiteCanApplyAglDown.mutation]]
+name = "A2: result inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(9, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(9, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyAglDown.mutation]]
+name = "A3: buffer argument dropped (passes null)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(9, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(9, 0) == 0"
+
+[[function._hitPrerequisiteCanApplyAglDown.mutation]]
+name = "A4: callee not called (constant result)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(9, arg1) == 0"
+to = "1"
+
+[[function._hitPrerequisiteCanApplyAglDown.mutation]]
+name = "A5: ordered test instead of equality (negative results)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(9, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(9, arg1) <= 0"
+
+[function._hitPrerequisiteCanApplyAglUp]
+spec = "hitPrerequisiteCanApplyAglUp.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyAglUp.mutation]]
+name = "M1: result inverted"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(10, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(10, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyAglUp.mutation]]
+name = "M2: wrong effect id (11 for 10)"
+target = "c"
+from = "(10, arg1)"
+to = "(11, arg1)"
+
+[[function._hitPrerequisiteCanApplyAglUp.mutation]]
+name = "M3: buffer argument dropped (NULL passed)"
+target = "c"
+from = "(10, arg1)"
+to = "(10, (char*)0)"
+
+[[function._hitPrerequisiteCanApplyAglUp.mutation]]
+name = "M4: <= 0 instead of == 0 (negative results pass)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(10, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(10, arg1) <= 0;"
+
+[[function._hitPrerequisiteCanApplyAglUp.mutation]]
+name = "M5: only the low byte of the result is tested"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(10, arg1) == 0;"
+to = "return (_hitPrerequisiteCanApplyEffect(10, arg1) & 0xFF) == 0;"
+
+[function._hitPrerequisiteCanApplyAirAttackUp]
+spec = "hitPrerequisiteCanApplyAirAttackUp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyAirAttackUp.mutation]]
+name = "M1: returns 2 instead of 1"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyAirAttackUp.mutation]]
+name = "M2: effect tested for nonzero"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(21, arg1) == 0)"
+to = "_hitPrerequisiteCanApplyEffect(21, arg1) != 0)"
+
+[[function._hitPrerequisiteCanApplyAirAttackUp.mutation]]
+name = "M3: effect called with 20, not 21"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(21, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(20, arg1)"
+
+[[function._hitPrerequisiteCanApplyAirAttackUp.mutation]]
+name = "M4: grip checked instead of blade"
+target = "c"
+from = "weapon.blade.id"
+to = "weapon.grip.id"
+
+[[function._hitPrerequisiteCanApplyAirAttackUp.mutation]]
+name = "M5: fallthrough returns -1"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[function._hitPrerequisiteCanApplyBanish]
+spec = "hitPrerequisiteCanApplyBanish.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyBanish.mutation]]
+name = "BA1: test for nonzero instead of zero"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(29, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyBanish.mutation]]
+name = "BA2: wrong effect id (28 for 29)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(28, arg1) == 0;"
+
+[[function._hitPrerequisiteCanApplyBanish.mutation]]
+name = "BA3: arg1 not passed through"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(29, 0) == 0;"
+
+[[function._hitPrerequisiteCanApplyBanish.mutation]]
+name = "BA4: result truncated to a byte before the test"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;"
+to = "return (_hitPrerequisiteCanApplyEffect(29, arg1) & 0xFF) == 0;"
+
+[[function._hitPrerequisiteCanApplyBanish.mutation]]
+name = "BA5: sign test instead of zero test"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(29, arg1) < 0;"
+
+[[function._hitPrerequisiteCanApplyBanish.mutation]]
+name = "BA6: call dropped, constant result"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;"
+to = "(void)arg1; return 0;"
+
+[function._hitPrerequisiteCanApplyCurse]
+spec = "hitPrerequisiteCanApplyCurse.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyCurse.mutation]]
+name = "H1: wrong effect id (15 for 16)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(16, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(15, arg1) == 0"
+
+[[function._hitPrerequisiteCanApplyCurse.mutation]]
+name = "H2: result test inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(16, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(16, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyCurse.mutation]]
+name = "H3: arg1 not passed to the effect"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(16, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(16, 0)"
+
+[[function._hitPrerequisiteCanApplyCurse.mutation]]
+name = "H4: signed slip (<= 0 for == 0)"
+target = "c"
+from = "(16, arg1) == 0;"
+to = "(16, arg1) <= 0;"
+
+[[function._hitPrerequisiteCanApplyCurse.mutation]]
+name = "H5: effect call dropped, constant result"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(16, arg1) == 0;"
+to = "return 1;"
+
+[function._hitPrerequisiteCanApplyDrain]
+spec = "hitPrerequisiteCanApplyDrain.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyDrain.mutation]]
+name = "D1: effect test inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(30, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(30, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyDrain.mutation]]
+name = "D2: undead test inverted (drains only undead)"
+target = "c"
+from = "!= enemyClassUndead"
+to = "== enemyClassUndead"
+
+[[function._hitPrerequisiteCanApplyDrain.mutation]]
+name = "D3: effect called with the wrong effect id"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(30, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(31, arg1)"
+
+[[function._hitPrerequisiteCanApplyDrain.mutation]]
+name = "D4: wrong success return value"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyDrain.mutation]]
+name = "D5: class call dropped (constant class)"
+target = "c"
+from = "_getEnemyClass(arg1) != enemyClassUndead"
+to = "1 != enemyClassUndead"
+
+[[function._hitPrerequisiteCanApplyDrain.mutation]]
+name = "D6: undead constant off by one"
+target = "c"
+from = "!= enemyClassUndead)"
+to = "!= enemyClassUndead + 1)"
+
+[function._hitPrerequisiteCanApplyEarthAttackUp]
+spec = "hitPrerequisiteCanApplyEarthAttackUp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyEarthAttackUp.mutation]]
+name = "E1: effect test inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(23, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(23, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyEarthAttackUp.mutation]]
+name = "E2: wrong effect id (22 for 23)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(23, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(22, arg1)"
+
+[[function._hitPrerequisiteCanApplyEarthAttackUp.mutation]]
+name = "E3: actor index masked to 3 bits"
+target = "c"
+from = "vs_battle_actors[*arg1]->unk3C).raw"
+to = "vs_battle_actors[*arg1 & 7]->unk3C).raw"
+
+[[function._hitPrerequisiteCanApplyEarthAttackUp.mutation]]
+name = "E4: blade id compared with 1, not 0"
+target = "c"
+from = "->weapon.blade.id != 0)) {"
+to = "->weapon.blade.id != 1)) {"
+
+[[function._hitPrerequisiteCanApplyEarthAttackUp.mutation]]
+name = "E5: blade check dropped"
+target = "c"
+from = "->weapon.blade.id != 0)) {"
+to = "->weapon.blade.id != 0 || 1)) {"
+
+[function._hitPrerequisiteCanApplyEarthDefenseUp]
+spec = "hitPrerequisiteCanApplyEarthDefenseUp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyEarthDefenseUp.mutation]]
+name = "E1: shield id compared against 1, not 0"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (actor->shield.base.id != 1) {"
+
+[[function._hitPrerequisiteCanApplyEarthDefenseUp.mutation]]
+name = "E2: the limb loop stops before limb 5"
+target = "c"
+from = "i < 6"
+to = "i < 5"
+
+[[function._hitPrerequisiteCanApplyEarthDefenseUp.mutation]]
+name = "E3: the shield is never counted"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (0) {"
+
+[[function._hitPrerequisiteCanApplyEarthDefenseUp.mutation]]
+name = "E4: applies returns 2"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyEarthDefenseUp.mutation]]
+name = "E5: effect checked with the wrong constant"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(27, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(26, arg1) == 0"
+
+[function._hitPrerequisiteCanApplyEffect]
+spec = "hitPrerequisiteCanApplyEffect.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyEffect.mutation]]
+name = "H1: || instead of && between the two mask tests"
+target = "c"
+from = "&& (!(params[3]"
+to = "|| (!(params[3]"
+
+[[function._hitPrerequisiteCanApplyEffect.mutation]]
+name = "H2: second test reads unk944 instead of statuses"
+target = "c"
+from = "(!(params[3] & temp_a1->statuses))"
+to = "(!(params[3] & temp_a1->unk944))"
+
+[[function._hitPrerequisiteCanApplyEffect.mutation]]
+name = "H3: second test uses params[2]"
+target = "c"
+from = "params[3] & temp_a1->statuses"
+to = "params[2] & temp_a1->statuses"
+
+[[function._hitPrerequisiteCanApplyEffect.mutation]]
+name = "H4: the both-clear return is 2, not 0"
+target = "c"
+from = "return 0;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyEffect.mutation]]
+name = "H5: first test ORs instead of ANDs the mask"
+target = "c"
+from = "(!(params[0] & temp_a1->unk944))"
+to = "(!(params[0] | temp_a1->unk944))"
+
+[function._hitPrerequisiteCanApplyEquipDown]
+spec = "hitPrerequisiteCanApplyEquipDown.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyEquipDown.mutation]]
+name = "E1: a hasEquipment result of 2"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyEquipDown.mutation]]
+name = "E2: the limb loop stops before limb 5"
+target = "c"
+from = "for (i = 0; i < 6; ++i) {"
+to = "for (i = 0; i < 5; ++i) {"
+
+[[function._hitPrerequisiteCanApplyEquipDown.mutation]]
+name = "E3: limb id tested as a signed value"
+target = "c"
+from = "actor->limbs[i].armor.armor.id != 0"
+to = "(short)actor->limbs[i].armor.armor.id > 0"
+
+[[function._hitPrerequisiteCanApplyEquipDown.mutation]]
+name = "E4: the shield test inverted"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (actor->shield.base.id == 0) {"
+
+[[function._hitPrerequisiteCanApplyEquipDown.mutation]]
+name = "E5: the weapon test reads the grip"
+target = "c"
+from = "actor->weapon.blade.id"
+to = "actor->weapon.grip.id"
+
+[[function._hitPrerequisiteCanApplyEquipDown.mutation]]
+name = "E6: the effect hook is called with the wrong id"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(19, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(18, arg1)"
+
+[function._hitPrerequisiteCanApplyEquipUp]
+spec = "hitPrerequisiteCanApplyEquipUp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyEquipUp.mutation]]
+name = "E1: the limb loop stops at 5 (limb 5 ignored)"
+target = "c"
+from = "for (i = 0; i < 6; ++i) {"
+to = "for (i = 0; i < 5; ++i) {"
+
+[[function._hitPrerequisiteCanApplyEquipUp.mutation]]
+name = "E2: shield checks a gem, not the base"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (actor->shield.gems[0].id != 0) {"
+
+[[function._hitPrerequisiteCanApplyEquipUp.mutation]]
+name = "E3: weapon checks the grip, not the blade"
+target = "c"
+from = "if (actor->weapon.blade.id != 0) {"
+to = "if (actor->weapon.grip.id != 0) {"
+
+[[function._hitPrerequisiteCanApplyEquipUp.mutation]]
+name = "E4: wrong constant on equipment found"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyEquipUp.mutation]]
+name = "E5: effect test as > 0 (a negative result passes)"
+target = "c"
+from = "if (_hitPrerequisiteCanApplyEffect(20, arg1) != 0) {"
+to = "if (_hitPrerequisiteCanApplyEffect(20, arg1) > 0) {"
+
+[[function._hitPrerequisiteCanApplyEquipUp.mutation]]
+name = "E6: effect result ignored (call kept, test dropped)"
+target = "c"
+from = "if (_hitPrerequisiteCanApplyEffect(20, arg1) != 0) {"
+to = "_hitPrerequisiteCanApplyEffect(20, arg1); if (0) {"
+
+[function._hitPrerequisiteCanApplyExorcise]
+spec = "hitPrerequisiteCanApplyExorcise.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyExorcise.mutation]]
+name = "E1: the effect check inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(30, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(30, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyExorcise.mutation]]
+name = "E2: wrong effect constant (31 for 30)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(30, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(31, arg1)"
+
+[[function._hitPrerequisiteCanApplyExorcise.mutation]]
+name = "E3: class compared with >= (classes 3+ count as undead)"
+target = "c"
+from = "_getEnemyClass(arg1) == enemyClassUndead"
+to = "_getEnemyClass(arg1) >= enemyClassUndead"
+
+[[function._hitPrerequisiteCanApplyExorcise.mutation]]
+name = "E4: wrong return value on success"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyExorcise.mutation]]
+name = "E5: class call dropped (constant instead)"
+target = "c"
+from = "(_getEnemyClass(arg1) == enemyClassUndead)"
+to = "(enemyClassUndead == enemyClassUndead)"
+
+[function._hitPrerequisiteCanApplyFireDefenseUp]
+spec = "hitPrerequisiteCanApplyFireDefenseUp.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyFireDefenseUp.mutation]]
+name = "F1: the limb loop stops before the last limb"
+target = "c"
+from = "for (i = 0; i < 6; ++i) {"
+to = "for (i = 0; i < 5; ++i) {"
+
+[[function._hitPrerequisiteCanApplyFireDefenseUp.mutation]]
+name = "F2: the shield's armor is ignored"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (actor->shield.base.id != 0 && 0) {"
+
+[[function._hitPrerequisiteCanApplyFireDefenseUp.mutation]]
+name = "F3: the effect test is inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(26, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(26, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyFireDefenseUp.mutation]]
+name = "F4: a limb id read as signed (0x8000 counts as no armor)"
+target = "c"
+from = "if (actor->limbs[i].armor.armor.id != 0) {"
+to = "if ((short)actor->limbs[i].armor.armor.id > 0) {"
+
+[[function._hitPrerequisiteCanApplyFireDefenseUp.mutation]]
+name = "F5: wrong effect constant (25 for 26)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(26, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(25, arg1)"
+
+[function._hitPrerequisiteCanApplyHalfMove]
+spec = "hitPrerequisiteCanApplyHalfMove.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyHalfMove.mutation]]
+name = "H1: result tested against nonzero"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(4, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(4, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyHalfMove.mutation]]
+name = "H2: wrong effect id (3 for 4)"
+target = "c"
+from = "(4, arg1)"
+to = "(3, arg1)"
+
+[[function._hitPrerequisiteCanApplyHalfMove.mutation]]
+name = "H3: buffer argument dropped"
+target = "c"
+from = "(4, arg1)"
+to = "(4, 0)"
+
+[[function._hitPrerequisiteCanApplyHalfMove.mutation]]
+name = "H4: result truncated to its low byte"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(4, arg1) == 0;"
+to = "return (_hitPrerequisiteCanApplyEffect(4, arg1) & 0xFF) == 0;"
+
+[[function._hitPrerequisiteCanApplyHalfMove.mutation]]
+name = "H5: signed slip (negative results count as zero)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(4, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(4, arg1) < 1;"
+
+[function._hitPrerequisiteCanApplyIntDown]
+spec = "hitPrerequisiteCanApplyIntDown.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyIntDown.mutation]]
+name = "H1: the test is inverted (!= 0)"
+target = "c"
+from = "(7, arg1) == 0"
+to = "(7, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyIntDown.mutation]]
+name = "H2: wrong effect id (6 for 7)"
+target = "c"
+from = "(7, arg1) == 0"
+to = "(6, arg1) == 0"
+
+[[function._hitPrerequisiteCanApplyIntDown.mutation]]
+name = "H3: <= 0 instead of == 0 (negative results pass)"
+target = "c"
+from = "(7, arg1) == 0"
+to = "(7, arg1) <= 0"
+
+[[function._hitPrerequisiteCanApplyIntDown.mutation]]
+name = "H4: callee dropped (constant 0 == 0)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(7, arg1) == 0"
+to = "0 == 0"
+
+[[function._hitPrerequisiteCanApplyIntDown.mutation]]
+name = "H5: arg1 not forwarded (null passed)"
+target = "c"
+from = "(7, arg1) == 0"
+to = "(7, 0) == 0"
+
+[function._hitPrerequisiteCanApplyIntUp]
+spec = "hitPrerequisiteCanApplyIntUp.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyIntUp.mutation]]
+name = "H1: wrong effect id (9 for 8)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(8, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(9, arg1) == 0"
+
+[[function._hitPrerequisiteCanApplyIntUp.mutation]]
+name = "H2: result inverted"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(8, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(8, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyIntUp.mutation]]
+name = "H3: negative results counted as applied (<= for ==)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(8, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(8, arg1) <= 0"
+
+[[function._hitPrerequisiteCanApplyIntUp.mutation]]
+name = "H4: result narrowed to a byte before the test"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(8, arg1) == 0"
+to = "(unsigned char)_hitPrerequisiteCanApplyEffect(8, arg1) == 0"
+
+[[function._hitPrerequisiteCanApplyIntUp.mutation]]
+name = "H5: effect call dropped, constant result"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(8, arg1) == 0;"
+to = "return 1;"
+
+[function._hitPrerequisiteCanApplyNumbness]
+spec = "hitPrerequisiteCanApplyNumbness.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyNumbness.mutation]]
+name = "N1: result tests != 0"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(15, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(15, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyNumbness.mutation]]
+name = "N2: wrong effect id (14 for 15)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(15, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(14, arg1) == 0;"
+
+[[function._hitPrerequisiteCanApplyNumbness.mutation]]
+name = "N3: buffer not passed to the callee"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(15, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(15, (void *)0) == 0;"
+
+[[function._hitPrerequisiteCanApplyNumbness.mutation]]
+name = "N4: sign test instead of equality to zero"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(15, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(15, arg1) < 0;"
+
+[[function._hitPrerequisiteCanApplyNumbness.mutation]]
+name = "N5: callee dropped, result constant"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(15, arg1) == 0;"
+to = "return 1 == 0;"
+
+[function._hitPrerequisiteCanApplyParalysis]
+spec = "hitPrerequisiteCanApplyParalysis.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyParalysis.mutation]]
+name = "P1: effect id 12 instead of 13"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(13, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(12, arg1)"
+
+[[function._hitPrerequisiteCanApplyParalysis.mutation]]
+name = "P2: result tested for nonzero (inverted)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(13, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(13, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyParalysis.mutation]]
+name = "P3: byte pointer not passed through"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(13, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(13, 0)"
+
+[[function._hitPrerequisiteCanApplyParalysis.mutation]]
+name = "P4: signed test (<= 0) instead of == 0"
+target = "c"
+from = "(13, arg1) == 0;"
+to = "(13, arg1) <= 0;"
+
+[[function._hitPrerequisiteCanApplyParalysis.mutation]]
+name = "P5: callee dropped, constant 1 returned"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(13, arg1) == 0;"
+to = "return 1;"
+
+[function._hitPrerequisiteCanApplyPoison]
+spec = "hitPrerequisiteCanApplyPoison.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyPoison.mutation]]
+name = "P1: result inverted"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(14, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(14, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyPoison.mutation]]
+name = "P2: wrong effect constant (13 for 14)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(14, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(13, arg1) == 0;"
+
+[[function._hitPrerequisiteCanApplyPoison.mutation]]
+name = "P3: callee dropped, result constant"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(14, arg1) == 0;"
+to = "return 1;"
+
+[[function._hitPrerequisiteCanApplyPoison.mutation]]
+name = "P4: signed slip (<= 0 accepts negative returns)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(14, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(14, arg1) <= 0;"
+
+[[function._hitPrerequisiteCanApplyPoison.mutation]]
+name = "P5: action passed where the byte pointer goes"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(14, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(14, (char *)action) == 0;"
+
+[function._hitPrerequisiteCanApplyQuicken]
+spec = "hitPrerequisiteCanApplyQuicken.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyQuicken.mutation]]
+name = "Q1: test for nonzero instead of zero"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(11, arg1) == 0;"
+to = "_hitPrerequisiteCanApplyEffect(11, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyQuicken.mutation]]
+name = "Q2: wrong effect id (10 for 11)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(11, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(10, arg1)"
+
+[[function._hitPrerequisiteCanApplyQuicken.mutation]]
+name = "Q3: <= 0 instead of == 0 (negative results pass)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(11, arg1) == 0;"
+to = "_hitPrerequisiteCanApplyEffect(11, arg1) <= 0;"
+
+[[function._hitPrerequisiteCanApplyQuicken.mutation]]
+name = "Q4: arg1 replaced by null in the call"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(11, arg1)"
+to = "_hitPrerequisiteCanApplyEffect(11, 0)"
+
+[[function._hitPrerequisiteCanApplyQuicken.mutation]]
+name = "Q5: effect call dropped, constant returned"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(11, arg1) == 0;"
+to = "_hitPrerequisiteCanApplyEffect(11, arg1); return 1;"
+
+[function._hitPrerequisiteCanApplyRegen]
+spec = "hitPrerequisiteCanApplyRegen.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyRegen.mutation]]
+name = "R1: the test is inverted"
+target = "c"
+from = "(17, arg1) == 0"
+to = "(17, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyRegen.mutation]]
+name = "R2: wrong effect id"
+target = "c"
+from = "(17, arg1)"
+to = "(16, arg1)"
+
+[[function._hitPrerequisiteCanApplyRegen.mutation]]
+name = "R3: negative results read as success"
+target = "c"
+from = "(17, arg1) == 0"
+to = "(17, arg1) <= 0"
+
+[[function._hitPrerequisiteCanApplyRegen.mutation]]
+name = "R4: buffer replaced by null in the call"
+target = "c"
+from = "(17, arg1)"
+to = "(17, 0)"
+
+[[function._hitPrerequisiteCanApplyRegen.mutation]]
+name = "R5: a null guard added on the buffer"
+target = "c"
+from = "(17, arg1) == 0"
+to = "(17, arg1) == 0 && arg1 != 0"
+
+[function._hitPrerequisiteCanApplyStrDown]
+spec = "hitPrerequisiteCanApplyStrDown.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyStrDown.mutation]]
+name = "H1: result tested for nonzero"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(5, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(5, arg1) != 0"
+
+[[function._hitPrerequisiteCanApplyStrDown.mutation]]
+name = "H2: result tested with <= 0 (negatives slip through)"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(5, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(5, arg1) <= 0"
+
+[[function._hitPrerequisiteCanApplyStrDown.mutation]]
+name = "H3: wrong effect id passed (4 for 5)"
+target = "c"
+from = "(5, arg1)"
+to = "(4, arg1)"
+
+[[function._hitPrerequisiteCanApplyStrDown.mutation]]
+name = "H4: buffer argument replaced by null"
+target = "c"
+from = "(5, arg1)"
+to = "(5, 0)"
+
+[[function._hitPrerequisiteCanApplyStrDown.mutation]]
+name = "H5: only the low byte of the result tested"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(5, arg1) == 0"
+to = "(_hitPrerequisiteCanApplyEffect(5, arg1) & 0xFF) == 0"
+
+[[function._hitPrerequisiteCanApplyStrDown.mutation]]
+name = "H6: callee dropped, result constant"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(5, arg1) == 0"
+to = "(0 == 0)"
+
+[function._hitPrerequisiteCanApplyStrUp]
+spec = "hitPrerequisiteCanApplyStrUp.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyStrUp.mutation]]
+name = "H1: wrong effect id (5 for 6)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(6, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(5, arg1) == 0;"
+
+[[function._hitPrerequisiteCanApplyStrUp.mutation]]
+name = "H2: result inverted (!= 0)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(6, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(6, arg1) != 0;"
+
+[[function._hitPrerequisiteCanApplyStrUp.mutation]]
+name = "H3: signed slip (<= 0 for == 0)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(6, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(6, arg1) <= 0;"
+
+[[function._hitPrerequisiteCanApplyStrUp.mutation]]
+name = "H4: name pointer dropped (passed as NULL)"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(6, arg1) == 0;"
+to = "return _hitPrerequisiteCanApplyEffect(6, (char*)0) == 0;"
+
+[[function._hitPrerequisiteCanApplyStrUp.mutation]]
+name = "H5: call dropped, constant result"
+target = "c"
+from = "return _hitPrerequisiteCanApplyEffect(6, arg1) == 0;"
+to = "_hitPrerequisiteCanApplyEffect(6, arg1); return 1;"
+
+[function._hitPrerequisiteCanApplyWaterDefenseUp]
+spec = "hitPrerequisiteCanApplyWaterDefenseUp.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteCanApplyWaterDefenseUp.mutation]]
+name = "W1: effect checked with the wrong effect id"
+target = "c"
+from = "_hitPrerequisiteCanApplyEffect(28, arg1) == 0"
+to = "_hitPrerequisiteCanApplyEffect(27, arg1) == 0"
+
+[[function._hitPrerequisiteCanApplyWaterDefenseUp.mutation]]
+name = "W2: last limb never checked"
+target = "c"
+from = "for (i = 0; i < 6; ++i) {"
+to = "for (i = 0; i < 5; ++i) {"
+
+[[function._hitPrerequisiteCanApplyWaterDefenseUp.mutation]]
+name = "W3: shield check dropped"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (actor->shield.base.id != 0 && 0) {"
+
+[[function._hitPrerequisiteCanApplyWaterDefenseUp.mutation]]
+name = "W4: wrong return value when armor is worn"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._hitPrerequisiteCanApplyWaterDefenseUp.mutation]]
+name = "W5: limb armor id narrowed to a byte"
+target = "c"
+from = "if (actor->limbs[i].armor.armor.id != 0) {"
+to = "if ((u_char)actor->limbs[i].armor.armor.id != 0) {"
+
+[[function._hitPrerequisiteCanApplyWaterDefenseUp.mutation]]
+name = "W6: shield gem read instead of shield base"
+target = "c"
+from = "if (actor->shield.base.id != 0) {"
+to = "if (actor->shield.gems[0].id != 0) {"
+
+[function._hitPrerequisiteNever0]
+spec = "hitPrerequisiteNever0.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteNever0.mutation]]
+name = "H1: returns 1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[[function._hitPrerequisiteNever0.mutation]]
+name = "H2: returns -1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[[function._hitPrerequisiteNever0.mutation]]
+name = "H3: returns whether arg0 is non-null"
+target = "c"
+from = "return 0;"
+to = "return arg0 != 0;"
+
+[[function._hitPrerequisiteNever0.mutation]]
+name = "H4: writes arg1[0] before returning"
+target = "c"
+from = "return 0;"
+to = "arg1[0] = 1; return 0;"
+
+[[function._hitPrerequisiteNever0.mutation]]
+name = "H5: result depends on arg0->id == 0xFF"
+target = "c"
+from = "return 0;"
+to = "return (arg0 != 0 && arg0->id == 0xFF) ? 1 : 0;"
+
+[function._hitPrerequisiteNever1]
+spec = "hitPrerequisiteNever1.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteNever1.mutation]]
+name = "H1: returns 1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[[function._hitPrerequisiteNever1.mutation]]
+name = "H2: returns -1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[[function._hitPrerequisiteNever1.mutation]]
+name = "H3: null test on arg0 (a porter adds a guard that changes the result)"
+target = "c"
+from = "return 0;"
+to = "return arg0 ? 0 : 1;"
+
+[[function._hitPrerequisiteNever1.mutation]]
+name = "H4: null test on arg1 (a porter adds a guard that changes the result)"
+target = "c"
+from = "return 0;"
+to = "return arg1 ? 0 : 2;"
+
+[function._hitPrerequisiteNever2]
+spec = "hitPrerequisiteNever2.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteNever2.mutation]]
+name = "H1: returns 1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[[function._hitPrerequisiteNever2.mutation]]
+name = "H2: returns -1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[[function._hitPrerequisiteNever2.mutation]]
+name = "H3: result tests arg0 for null"
+target = "c"
+from = "return 0;"
+to = "return arg0 != 0;"
+
+[[function._hitPrerequisiteNever2.mutation]]
+name = "H4: result tests arg1 for null"
+target = "c"
+from = "return 0;"
+to = "return arg1 != 0;"
+
+[function._hitPrerequisiteNever3]
+spec = "hitPrerequisiteNever3.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteNever3.mutation]]
+name = "R1: returns 1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[[function._hitPrerequisiteNever3.mutation]]
+name = "R2: returns -1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[[function._hitPrerequisiteNever3.mutation]]
+name = "R3: result depends on arg0 (returns arg0 != 0)"
+target = "c"
+from = "return 0;"
+to = "return arg0 != 0;"
+
+[[function._hitPrerequisiteNever3.mutation]]
+name = "R4: result depends on arg1 (returns arg1 == 0)"
+target = "c"
+from = "return 0;"
+to = "return arg1 == 0;"
+
+[function._hitPrerequisiteUndead]
+spec = "hitPrerequisiteUndead.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._hitPrerequisiteUndead.mutation]]
+name = "H1: negated comparison"
+target = "c"
+from = "== enemyClassUndead;"
+to = "!= enemyClassUndead;"
+
+[[function._hitPrerequisiteUndead.mutation]]
+name = "H2: wrong constant for undead"
+target = "c"
+from = "== enemyClassUndead;"
+to = "== 3;"
+
+[[function._hitPrerequisiteUndead.mutation]]
+name = "H3: callee gets a null argument"
+target = "c"
+from = "_getEnemyClass(arg1)"
+to = "_getEnemyClass(0)"
+
+[[function._hitPrerequisiteUndead.mutation]]
+name = "H4: class masked to a byte before the compare"
+target = "c"
+from = "return _getEnemyClass(arg1) == enemyClassUndead;"
+to = "return (_getEnemyClass(arg1) & 0xFF) == enemyClassUndead;"
+
+[[function._hitPrerequisiteUndead.mutation]]
+name = "H5: boolean result scaled"
+target = "c"
+from = "return _getEnemyClass(arg1) == enemyClassUndead;"
+to = "return (_getEnemyClass(arg1) == enemyClassUndead) * 2;"
+
+[function._itemRecovery]
+spec = "itemRecovery.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._itemRecovery.mutation]]
+name = "R1: statFactor scaled by 4"
+target = "c"
+from = "hitParams[arg3].statFactor * 5;"
+to = "hitParams[arg3].statFactor * 4;"
+
+[[function._itemRecovery.mutation]]
+name = "R2: roll taken for negative arg4 too"
+target = "c"
+from = "if (arg4 != 0) {"
+to = "if (arg4 > 0) {"
+
+[[function._itemRecovery.mutation]]
+name = "R3: clamp compares as unsigned"
+target = "c"
+from = "if (temp_s0 < 0) {"
+to = "if ((unsigned short)temp_s0 < 0) {"
+
+[[function._itemRecovery.mutation]]
+name = "R4: sum kept in int, so the short overflow does not wrap"
+target = "c"
+from = "short temp_s0 = arg0"
+to = "int temp_s0 = arg0"
+
+[[function._itemRecovery.mutation]]
+name = "R5: hitParams index fixed at 0"
+target = "c"
+from = "arg0->hitParams[arg3].statFactor"
+to = "arg0->hitParams[0].statFactor"
+
+[[function._itemRecovery.mutation]]
+name = "R6: roll offset -4 instead of -5"
+target = "c"
+from = "vs_main_getRandSmoothed(0xB) - 5;"
+to = "vs_main_getRandSmoothed(0xB) - 4;"
+
+[function._previousHitFactor0]
+spec = "previousHitFactor0.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._previousHitFactor0.mutation]]
+name = "D1: wrong divisor (9 for 10)"
+target = "c"
+from = "/ 10)"
+to = "/ 9)"
+
+[[function._previousHitFactor0.mutation]]
+name = "D2: the -1 on unk0 dropped"
+target = "c"
+from = "(D_800F19CC->unk0 - 1)"
+to = "(D_800F19CC->unk0)"
+
+[[function._previousHitFactor0.mutation]]
+name = "D3: mp subtracted, not added"
+target = "c"
+from = "+ D_800F19CC->unk8.unk4C[0].unk0.mp)"
+to = "- D_800F19CC->unk8.unk4C[0].unk0.mp)"
+
+[[function._previousHitFactor0.mutation]]
+name = "D4: statFactor read from hitParams[0] for every index"
+target = "c"
+from = "arg0->hitParams[arg3].statFactor"
+to = "arg0->hitParams[0].statFactor"
+
+[[function._previousHitFactor0.mutation]]
+name = "D5: unsigned division of a negative product"
+target = "c"
+from = "/ 10)"
+to = "/ 10u)"
+
+[function._previousHitFactor1]
+spec = "previousHitFactor1.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._previousHitFactor1.mutation]]
+name = "P1: unsigned division (negative sums wrap)"
+target = "c"
+from = "/ 10)"
+to = "/ 10u)"
+
+[[function._previousHitFactor1.mutation]]
+name = "P2: wrong divisor"
+target = "c"
+from = "/ 10)"
+to = "/ 9)"
+
+[[function._previousHitFactor1.mutation]]
+name = "P3: mp subtracted, not added"
+target = "c"
+from = "+ D_800F19CC->unk8.unk4C[0].unk0.mp)"
+to = "- D_800F19CC->unk8.unk4C[0].unk0.mp)"
+
+[[function._previousHitFactor1.mutation]]
+name = "P4: unk0 - 1 dropped"
+target = "c"
+from = "D_800F19CC->unk0 - 1"
+to = "D_800F19CC->unk0"
+
+[[function._previousHitFactor1.mutation]]
+name = "P5: statFactor taken from hitParams[0]"
+target = "c"
+from = "arg0->hitParams[arg3]"
+to = "arg0->hitParams[0]"
+
+[function._previousHitFactor2]
+spec = "previousHitFactor2.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._previousHitFactor2.mutation]]
+name = "P1: the first unk4C entry is read as entry 1"
+target = "c"
+from = "D_800F19CC->unk8.unk4C[0].unk0.hp"
+to = "D_800F19CC->unk8.unk4C[1].unk0.hp"
+
+[[function._previousHitFactor2.mutation]]
+name = "P2: the division by 10 becomes a shift by 3"
+target = "c"
+from = "/ 10)"
+to = ">> 3)"
+
+[[function._previousHitFactor2.mutation]]
+name = "P3: the global's unk0 is offset by +1, not -1"
+target = "c"
+from = "(D_800F19CC->unk0 - 1)"
+to = "(D_800F19CC->unk0 + 1)"
+
+[[function._previousHitFactor2.mutation]]
+name = "P4: statFactor read from hitParams[0] for every arg3"
+target = "c"
+from = "hitParams[arg3]"
+to = "hitParams[0]"
+
+[[function._previousHitFactor2.mutation]]
+name = "P5: mp subtracted instead of added"
+target = "c"
+from = " + D_800F19CC->unk8.unk4C[0].unk0.mp)"
+to = " - D_800F19CC->unk8.unk4C[0].unk0.mp)"
+
+[function._setApplicableStatuses]
+spec = "setApplicableStatuses.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._setApplicableStatuses.mutation]]
+name = "S1: unk957 bound as < 128 (skips only below 128)"
+target = "c"
+from = "if (temp_a2->unk957 != 128) {"
+to = "if (temp_a2->unk957 < 128) {"
+
+[[function._setApplicableStatuses.mutation]]
+name = "S2: the mask test uses params[2] instead of params[3]"
+target = "c"
+from = "if (!(temp_t0 & params[3])) {"
+to = "if (!(temp_t0 & params[2])) {"
+
+[[function._setApplicableStatuses.mutation]]
+name = "S3: ~statuses dropped from the remove mask"
+target = "c"
+from = "remove = params[0] & ~temp_a2->unk944 & (~temp_t0 | params[2]);"
+to = "remove = params[0] & ~temp_a2->unk944 & (temp_t0 | params[2]);"
+
+[[function._setApplicableStatuses.mutation]]
+name = "S4: removeStatuses overwritten, not OR-ed"
+target = "c"
+from = "entity->removeStatuses |= remove;"
+to = "entity->removeStatuses = remove;"
+
+[[function._setApplicableStatuses.mutation]]
+name = "S5: return drops the inflict bits"
+target = "c"
+from = "return remove | inflict;"
+to = "return remove;"
+
+[function._setInflictedStatuses]
+spec = "setInflictedStatuses.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._setInflictedStatuses.mutation]]
+name = "W1: the status guard tests 127, not 128"
+target = "c"
+from = "->unk957 != 128) {"
+to = "->unk957 != 127) {"
+
+[[function._setInflictedStatuses.mutation]]
+name = "W2: the params word read from index 1"
+target = "c"
+from = "ret = params[0]"
+to = "ret = params[1]"
+
+[[function._setInflictedStatuses.mutation]]
+name = "W3: the table index masked to 4 entries"
+target = "c"
+from = "vs_main_statusEffectParams[arg0];"
+to = "vs_main_statusEffectParams[arg0 & 3];"
+
+[[function._setInflictedStatuses.mutation]]
+name = "W4: inflictStatuses overwritten, not OR-ed"
+target = "c"
+from = "entity->inflictStatuses |= ret;"
+to = "entity->inflictStatuses = ret;"
+
+[[function._setInflictedStatuses.mutation]]
+name = "W5: the return value is the params word, not ret"
+target = "c"
+from = "return ret;"
+to = "return params[0];"
+
+[function._statCalculatorNop]
+spec = "statCalculatorNop.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._statCalculatorNop.mutation]]
+name = "S1: arg3 stored into arg1 (a body that writes what the original never writes)"
+target = "c"
+from = "{\n}"
+to = "{\n    *(int*)arg1 = arg3;\n}"
+
+[[function._statCalculatorNop.mutation]]
+name = "S2: arg4 stored into arg2 instead of nothing"
+target = "c"
+from = "{\n}"
+to = "{\n    *(int*)arg2 = arg4;\n}"
+
+[[function._statCalculatorNop.mutation]]
+name = "S3: a 16-bit store into arg0 (wrong width)"
+target = "c"
+from = "{\n}"
+to = "{\n    *(short*)arg0 = (short)arg3;\n}"
+
+[[function._statCalculatorNop.mutation]]
+name = "S4: signed slip: the store happens only for negative arg3 (the non-negative class must catch the missing store is not enough, so the store must differ)"
+target = "c"
+from = "{\n}"
+to = "{\n    if (arg3 < 0) *(int*)arg1 = arg3;\n}"
+
+[[function._statCalculatorNop.mutation]]
+name = "S5: unsigned comparison of arg4 and arg3 stored into arg1"
+target = "c"
+from = "{\n}"
+to = "{\n    *(unsigned *)arg1 = (unsigned)arg4 < (unsigned)arg3;\n}"
+
+[function._stepCameraTransition]
+spec = "stepCameraTransition.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._stepCameraTransition.mutation]]
+name = "C1: arrival test uses > for the current/target bound"
+target = "c"
+from = "(currentY >= targetY) && (targetY >= nextY)"
+to = "(currentY > targetY) && (targetY >= nextY)"
+
+[[function._stepCameraTransition.mutation]]
+name = "C2: signed compare slipped to unsigned in the first clause"
+target = "c"
+from = "&& (targetY >= nextY))"
+to = "&& ((unsigned)targetY >= (unsigned)nextY))"
+
+[[function._stepCameraTransition.mutation]]
+name = "C3: current Y masked with 0x7FF, not 0xFFF"
+target = "c"
+from = "currentY = vs_scratch.camera.position.vy & ~0xFFF;"
+to = "currentY = vs_scratch.camera.position.vy & ~0x7FF;"
+
+[[function._stepCameraTransition.mutation]]
+name = "C4: arrival drops the lookAt.vy store"
+target = "c"
+from = "vs_scratch.camera.lookAt.vy = vs_battle_cameraTransition->targetLookAt.vy;"
+to = "(void)0;"
+
+[[function._stepCameraTransition.mutation]]
+name = "C5: near clip set from toFarClip"
+target = "c"
+from = "vs_battle_setNearClip(vs_battle_cameraTransition->toNearClip);"
+to = "vs_battle_setNearClip(vs_battle_cameraTransition->toFarClip);"
+
+[[function._stepCameraTransition.mutation]]
+name = "C6: arrival returns 0"
+target = "c"
+from = "return 1;"
+to = "return 0;"
+
+[function.func_80069DBC]
+spec = "func_80069DBC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80069DBC.mutation]]
+name = "F1: the flag is set to 1, not cleared"
+target = "c"
+from = "D_80060064 = 0;"
+to = "D_80060064 = 1;"
+
+[[function.func_80069DBC.mutation]]
+name = "F2: the fill is one byte short"
+target = "c"
+from = "vs_main_bzero(D_80061078, sizeof D_80061078);"
+to = "vs_main_bzero(D_80061078, sizeof D_80061078 - 1);"
+
+[[function.func_80069DBC.mutation]]
+name = "F3: the size is one entry (328 bytes), not the whole table"
+target = "c"
+from = "sizeof D_80061078);"
+to = "sizeof D_80061078[0]);"
+
+[[function.func_80069DBC.mutation]]
+name = "F4: the bzero call is dropped"
+target = "c"
+from = "vs_main_bzero(D_80061078, sizeof D_80061078);"
+to = "(void)0;"
+
+[[function.func_80069DBC.mutation]]
+name = "F5: the flag store moves after the bzero call"
+target = "c"
+from = "D_80060064 = 0;\n    vs_main_bzero(D_80061078, sizeof D_80061078);"
+to = "vs_main_bzero(D_80061078, sizeof D_80061078);\n    D_80060064 = 0;"
+
+[function.func_80069DEC]
+spec = "func_80069DEC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80069DEC.mutation]]
+name = "F1: zndId test becomes an or"
+target = "c"
+from = "&& (D_80061078[i].zndId == zndId)"
+to = "|| (D_80061078[i].zndId == zndId)"
+
+[[function.func_80069DEC.mutation]]
+name = "F2: bzero one byte short"
+target = "c"
+from = "vs_main_bzero(D_80061078[i].unk8, sizeof D_80061078[i].unk8);"
+to = "vs_main_bzero(D_80061078[i].unk8, sizeof D_80061078[i].unk8 - 1);"
+
+[[function.func_80069DEC.mutation]]
+name = "F3: loop misses the last entry"
+target = "c"
+from = "i < 4; ++i"
+to = "i < 3; ++i"
+
+[[function.func_80069DEC.mutation]]
+name = "F4: mapId compared truncated to 16 bits"
+target = "c"
+from = "D_80061078[i].mapId == mapId"
+to = "D_80061078[i].mapId == (unsigned short)mapId"
+
+[[function.func_80069DEC.mutation]]
+name = "F5: zndId compared against the wrong field"
+target = "c"
+from = "D_80061078[i].zndId == zndId"
+to = "D_80061078[i].unk0 == zndId"
+
+[function.func_8006B270]
+spec = "func_8006B270.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8006B270.mutation]]
+name = "F1: the second call dropped"
+target = "c"
+from = "func_80086754(temp_s0->statuses & 0x01E00000, temp_s0);"
+to = "(void)0;"
+
+[[function.func_8006B270.mutation]]
+name = "F2: the test mask narrowed to bit 24"
+target = "c"
+from = "if (temp_s0->statuses & 0x01E00000) {"
+to = "if (temp_s0->statuses & 0x01000000) {"
+
+[[function.func_8006B270.mutation]]
+name = "F3: first call's first argument read from unk954"
+target = "c"
+from = "func_80093FEC(temp_s0->unk957, 0,"
+to = "func_80093FEC(temp_s0->unk954, 0,"
+
+[[function.func_8006B270.mutation]]
+name = "F4: first call's mask loses bit 24"
+target = "c"
+from = "temp_s0->statuses & 0x01E00000, 1);"
+to = "temp_s0->statuses & 0x00E00000, 1);"
+
+[[function.func_8006B270.mutation]]
+name = "F5: the test inverted"
+target = "c"
+from = "if (temp_s0->statuses & 0x01E00000) {"
+to = "if (!(temp_s0->statuses & 0x01E00000)) {"
+
+[function.func_8006C480]
+spec = "func_8006C480.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8006C480.mutation]]
+name = "F1: arguments swapped in the call"
+target = "c"
+from = "func_800CF7A8(arg0, arg1, 0, 0);"
+to = "func_800CF7A8(arg1, arg0, 0, 0);"
+
+[[function.func_8006C480.mutation]]
+name = "F2: wrong constant (fourth argument 1, not 0)"
+target = "c"
+from = "func_800CF7A8(arg0, arg1, 0, 0);"
+to = "func_800CF7A8(arg0, arg1, 0, 1);"
+
+[[function.func_8006C480.mutation]]
+name = "F3: call dropped"
+target = "c"
+from = "func_800CF7A8(arg0, arg1, 0, 0);"
+to = "(void)0;"
+
+[[function.func_8006C480.mutation]]
+name = "F4: first argument narrowed to 16 bits"
+target = "c"
+from = "func_800CF7A8(arg0, arg1, 0, 0);"
+to = "func_800CF7A8((short)arg0, arg1, 0, 0);"
+
+[[function.func_8006C480.mutation]]
+name = "F5: call made twice"
+target = "c"
+from = "func_800CF7A8(arg0, arg1, 0, 0);"
+to = "func_800CF7A8(arg0, arg1, 0, 0); func_800CF7A8(arg0, arg1, 0, 0);"
+
+[function.func_8006CA20]
+spec = "func_8006CA20.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8006CA20.mutation]]
+name = "A1: arg0 bound off by one (16 runs the body)"
+target = "c"
+from = "if (arg0 >= 16) {"
+to = "if (arg0 > 16) {"
+
+[[function.func_8006CA20.mutation]]
+name = "A2: hit flag tested inverted"
+target = "c"
+from = "temp_s0->unk4.unk40 == 0"
+to = "temp_s0->unk4.unk40 != 0"
+
+[[function.func_8006CA20.mutation]]
+name = "A3: wrong constant to the actor-0 call (5 for 6)"
+target = "c"
+from = "func_8009E070(0, NULL, 6);"
+to = "func_8009E070(0, NULL, 5);"
+
+[[function.func_8006CA20.mutation]]
+name = "A4: actor-0 guard dropped on the case 5 call"
+target = "c"
+from = "if (arg0 == 0) {"
+to = "if (1) {"
+
+[[function.func_8006CA20.mutation]]
+name = "A5: slot index masked with 2 instead of 3"
+target = "c"
+from = "D_800F19CC->unk0 & 3]"
+to = "D_800F19CC->unk0 & 2]"
+
+[[function.func_8006CA20.mutation]]
+name = "A6: target actor read signed (0xFF matches arg0 -1)"
+target = "c"
+from = "temp_s0->unk4.unk0.targetActor == arg0"
+to = "(signed char)temp_s0->unk4.unk0.targetActor == arg0"
+
+[function.func_8006CDB8]
+spec = "func_8006CDB8.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8006CDB8.mutation]]
+name = "F1: the call is dropped"
+target = "c"
+from = "func_8009D854(arg0);"
+to = "(void)arg0;"
+
+[[function.func_8006CDB8.mutation]]
+name = "F2: the argument is xored with 1"
+target = "c"
+from = "func_8009D854(arg0);"
+to = "func_8009D854(arg0 ^ 1);"
+
+[[function.func_8006CDB8.mutation]]
+name = "F3: the sign bit is masked off (signed/unsigned slip)"
+target = "c"
+from = "func_8009D854(arg0);"
+to = "func_8009D854(arg0 & 0x7fffffff);"
+
+[[function.func_8006CDB8.mutation]]
+name = "F4: negative arguments clamped to 0"
+target = "c"
+from = "func_8009D854(arg0);"
+to = "func_8009D854(arg0 < 0 ? 0 : arg0);"
+
+[[function.func_8006CDB8.mutation]]
+name = "F5: the callee is called twice"
+target = "c"
+from = "func_8009D854(arg0);"
+to = "func_8009D854(arg0); func_8009D854(arg0);"
+
+[function.func_8006CE70]
+spec = "func_8006CE70.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8006CE70.mutation]]
+name = "M1: lock state upper bound one too loose (state == 4 taken)"
+target = "c"
+from = "temp_v0[arg0->unk6 & 0xF].unk0.unk8.lock.state < new_var2"
+to = "temp_v0[arg0->unk6 & 0xF].unk0.unk8.lock.state <= new_var2"
+
+[[function.func_8006CE70.mutation]]
+name = "M2: counter lower bound strict (unkC == 2 refused)"
+target = "c"
+from = "temp_v0_2[arg0->unk6 & 0xF].unkC >= 2"
+to = "temp_v0_2[arg0->unk6 & 0xF].unkC > 2"
+
+[[function.func_8006CE70.mutation]]
+name = "M3: state flag test dropped (getStateFlag never consulted)"
+target = "c"
+from = "&& !vs_battle_getStateFlag(temp_v0_2[arg0->unk6 & 0xF].unk10 + 0x3C0)"
+to = "&& !(0)"
+
+[[function.func_8006CE70.mutation]]
+name = "M4: wrong flag constant (0x3C1 for 0x3C0)"
+target = "c"
+from = "unk10 + 0x3C0"
+to = "unk10 + 0x3C1"
+
+[[function.func_8006CE70.mutation]]
+name = "M5: switch mask drops bit 8 (0x100 case lost)"
+target = "c"
+from = "switch (arg0->unk6 & 0x1F0) {"
+to = "switch (arg0->unk6 & 0x0F0) {"
+
+[[function.func_8006CE70.mutation]]
+name = "M6: counter reset store dropped"
+target = "c"
+from = "temp_v0_2[arg0->unk6 & 0xF].unkC = 0;"
+to = "(void)0;"
+
+[function.func_8006F848]
+spec = "func_8006F848.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8006F848.mutation]]
+name = "M1: effectId 21"
+target = "c"
+from = "sp10.effectId = 20;"
+to = "sp10.effectId = 21;"
+
+[[function.func_8006F848.mutation]]
+name = "M2: unk4 4 instead of 5"
+target = "c"
+from = "sp10.unk4 = 5;"
+to = "sp10.unk4 = 4;"
+
+[[function.func_8006F848.mutation]]
+name = "M3: unk16 byte 0xFC"
+target = "c"
+from = "sp10.unk16.u8[0] = 0xFD;"
+to = "sp10.unk16.u8[0] = 0xFC;"
+
+[[function.func_8006F848.mutation]]
+name = "M4: flag argument 1"
+target = "c"
+from = "func_800CF3F8(&sp10, 0);"
+to = "func_800CF3F8(&sp10, 1);"
+
+[[function.func_8006F848.mutation]]
+name = "M5: call dropped"
+target = "c"
+from = "func_800CF3F8(&sp10, 0);"
+to = "(void)&sp10;"
+
+[[function.func_8006F848.mutation]]
+name = "M6: unk10 stored into unk12"
+target = "c"
+from = "sp10.unk10 = 4;"
+to = "sp10.unk12 = 4;"
+
+[function.func_800704D8]
+spec = "func_800704D8.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_800704D8.mutation]]
+name = "W1: D_800F196C set to 4, not 5"
+target = "c"
+from = "D_800F196C = 5;"
+to = "D_800F196C = 4;"
+
+[[function.func_800704D8.mutation]]
+name = "W2: actionIndex set to 1, not 0"
+target = "c"
+from = "D_800F19CC->unk8.actionIndex = 0;"
+to = "D_800F19CC->unk8.actionIndex = 1;"
+
+[[function.func_800704D8.mutation]]
+name = "W3: _cameraMode set to 0, not 1"
+target = "c"
+from = "_cameraMode = 1;"
+to = "_cameraMode = 0;"
+
+[[function.func_800704D8.mutation]]
+name = "W4: the argument's bit 1 dropped (| 0, not | 2)"
+target = "c"
+from = "(vs_battle_characterState->weaponDrawn & 1) | 2);"
+to = "(vs_battle_characterState->weaponDrawn & 1) | 0);"
+
+[[function.func_800704D8.mutation]]
+name = "W5: func_800CAB40 call dropped"
+target = "c"
+from = "func_800CAB40();"
+to = ""
+
+[[function.func_800704D8.mutation]]
+name = "W6: the two trailing calls swapped"
+target = "c"
+from = "func_800CAB40();\n    func_8006C39C();"
+to = "func_8006C39C();\n    func_800CAB40();"
+
+[[function.func_800704D8.mutation]]
+name = "W7: weaponDrawn masked with 2, not 1"
+target = "c"
+from = "(vs_battle_characterState->weaponDrawn & 1) | 2"
+to = "(vs_battle_characterState->weaponDrawn & 2) | 2"
+
+[function.func_80070CAC]
+spec = "func_80070CAC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80070CAC.mutation]]
+name = "R1: room target radius 127"
+target = "c"
+from = "list->targets[list->count].radius = 128;"
+to = "list->targets[list->count].radius = 127;"
+
+[[function.func_80070CAC.mutation]]
+name = "R2: room with unk6 == 16 is kept (wrong constant)"
+target = "c"
+from = "if (room[i].unk6 != 16) {"
+to = "if (room[i].unk6 != 17) {"
+
+[[function.func_80070CAC.mutation]]
+name = "R3: the post-switch callee is dropped"
+target = "c"
+from = "func_8007087C((D_800F19CC_t*)&D_800F19CC->unk8);"
+to = "(void)0;"
+
+[[function.func_80070CAC.mutation]]
+name = "R4: Y sample shifted by 16, not 17"
+target = "c"
+from = ">> 17"
+to = ">> 16"
+
+[[function.func_80070CAC.mutation]]
+name = "R5: points targets get the wrong kind"
+target = "c"
+from = "list->targets[list->count].kind = 5;"
+to = "list->targets[list->count].kind = 3;"
+
+[[function.func_80070CAC.mutation]]
+name = "R6: points count masked to 0..3"
+target = "c"
+from = "count = func_8008D2C0(points);"
+to = "count = func_8008D2C0(points) & 3;"
+
+[function.func_800733F8]
+spec = "func_800733F8.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_800733F8.mutation]]
+name = "F1: the flag store 'D_800F196C' takes 5, not 4"
+target = "c"
+from = "D_800F196C = 4;"
+to = "D_800F196C = 5;"
+
+[[function.func_800733F8.mutation]]
+name = "F2: effectId off by one"
+target = "c"
+from = "sp10.effectId = arg0;"
+to = "sp10.effectId = arg0 + 1;"
+
+[[function.func_800733F8.mutation]]
+name = "F3: tickspeed store moved after the func_800CB654 call"
+target = "c"
+from = "vs_gametime_tickspeed = 4;\n    func_800CB654(1);"
+to = "func_800CB654(1);\n    vs_gametime_tickspeed = 4;"
+
+[[function.func_800733F8.mutation]]
+name = "F4: the func_8008B4C8 call dropped"
+target = "c"
+from = "func_8008B4C8(0);"
+to = "(void)0;"
+
+[[function.func_800733F8.mutation]]
+name = "F5: unkE0.vx written 1, not 0"
+target = "c"
+from = "sp10.unkE0.vx = 0;"
+to = "sp10.unkE0.vx = 1;"
+
+[function.func_80073554]
+spec = "func_80073554.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80073554.mutation]]
+name = "F1: flag stored as 0, not 1"
+target = "c"
+from = "D_800F196C = 1;"
+to = "D_800F196C = 0;"
+
+[[function.func_80073554.mutation]]
+name = "F2: flag stored after the call"
+target = "c"
+from = "D_800F196C = 1;\n    func_8006C40C();"
+to = "func_8006C40C();\n    D_800F196C = 1;"
+
+[[function.func_80073554.mutation]]
+name = "F3: the call dropped"
+target = "c"
+from = "func_8006C40C();"
+to = "(void)0;"
+
+[[function.func_80073554.mutation]]
+name = "F4: the store dropped"
+target = "c"
+from = "D_800F196C = 1;"
+to = "(void)0;"
+
+[function.func_800735CC]
+spec = "func_800735CC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_800735CC.mutation]]
+name = "F1: the unk0 store is dropped"
+target = "c"
+from = "arg0->unk0 = 0;"
+to = "(void)0;"
+
+[[function.func_800735CC.mutation]]
+name = "F2: the store moves after the second call"
+target = "c"
+from = "arg0->unk0 = 0;\n    func_8006C40C();"
+to = "func_8006C40C();\n    arg0->unk0 = 0;"
+
+[[function.func_800735CC.mutation]]
+name = "F3: the wrong field is cleared (unk2)"
+target = "c"
+from = "arg0->unk0 = 0;"
+to = "arg0->unk2 = 0;"
+
+[[function.func_800735CC.mutation]]
+name = "F4: the second call is dropped"
+target = "c"
+from = "func_8006C40C();"
+to = "(void)0;"
+
+[function.func_80073898]
+spec = "func_80073898.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80073898.mutation]]
+name = "F1: sign bit ignored (> 0 instead of != 0)"
+target = "c"
+from = "(func_800BEB10() << 16) != 0"
+to = "(func_800BEB10() << 16) > 0"
+
+[[function.func_80073898.mutation]]
+name = "F2: wrong mode value stored"
+target = "c"
+from = "D_800F196C = 3;"
+to = "D_800F196C = 2;"
+
+[[function.func_80073898.mutation]]
+name = "F3: camera mode cleared instead of set"
+target = "c"
+from = "_cameraMode = 1;"
+to = "_cameraMode = 0;"
+
+[[function.func_80073898.mutation]]
+name = "F4: fallback call dropped"
+target = "c"
+from = "func_80073870();"
+to = "(void)0;"
+
+[[function.func_80073898.mutation]]
+name = "F5: early return dropped (fallback call also runs on the taken branch)"
+target = "c"
+from = "return;"
+to = "(void)0;"
+
+[function.func_80073D30]
+spec = "func_80073D30.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80073D30.mutation]]
+name = "F1: the request's unk4A set to 2"
+target = "c"
+from = "D_800F19CC->unk8.unk4A = 1;"
+to = "D_800F19CC->unk8.unk4A = 2;"
+
+[[function.func_80073D30.mutation]]
+name = "F2: the request's unk4 cleared"
+target = "c"
+from = "D_800F19CC->unk4 = 1;"
+to = "D_800F19CC->unk4 = 0;"
+
+[[function.func_80073D30.mutation]]
+name = "F3: vy copied from arg1's vz"
+target = "c"
+from = "D_800F19CC->unk29A8.vy = arg1->unk0.unk4.vy;"
+to = "D_800F19CC->unk29A8.vy = arg1->unk0.unk4.vz;"
+
+[[function.func_80073D30.mutation]]
+name = "F4: the func_80085B10 call dropped"
+target = "c"
+from = "func_80085B10(arg0->unk0.unk6 + 6, &D_800F19CC->unk854[0], &D_800F19CC->unk8, 1);"
+to = "(void)0;"
+
+[[function.func_80073D30.mutation]]
+name = "F5: targetLimb loses its sign bit"
+target = "c"
+from = ".raw)->unk36;"
+to = ".raw)->unk36 & 0x7F;"
+
+[[function.func_80073D30.mutation]]
+name = "F6: the request's targetActor off by one"
+target = "c"
+from = "unk4C[0].unk0.targetActor = targetActor;"
+to = "unk4C[0].unk0.targetActor = targetActor + 1;"
+
+[function.func_80073F7C]
+spec = "func_80073F7C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80073F7C.mutation]]
+name = "F1: the message's ID slot reads the wrong constant"
+target = "c"
+from = "D_800F19CC->unk4 = 0;"
+to = "D_800F19CC->unk4 = 1;"
+
+[[function.func_80073F7C.mutation]]
+name = "F2: the message's row offset is off by one"
+target = "c"
+from = "arg0->unk0.unk6 + 6"
+to = "arg0->unk0.unk6 + 7"
+
+[[function.func_80073F7C.mutation]]
+name = "F3: the camera loop stops one short"
+target = "c"
+from = "i < 16"
+to = "i < 15"
+
+[[function.func_80073F7C.mutation]]
+name = "F4: the message test compares to 1, not nonzero"
+target = "c"
+from = "information != 0"
+to = "information == 1"
+
+[[function.func_80073F7C.mutation]]
+name = "F5: the camera's unkC store is dropped"
+target = "c"
+from = "D_800F1910.unk4.unkC = arg2;"
+to = "(void)arg2;"
+
+[[function.func_80073F7C.mutation]]
+name = "F6: camera mode set to 0"
+target = "c"
+from = "_cameraMode = 1;"
+to = "_cameraMode = 0;"
+
+[function.func_800741D4]
+spec = "func_800741D4.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_800741D4.mutation]]
+name = "F1: camera mode 3, not 2"
+target = "c"
+from = "_cameraMode = 2;"
+to = "_cameraMode = 3;"
+
+[[function.func_800741D4.mutation]]
+name = "F2: tick speed 5, not 4"
+target = "c"
+from = "vs_gametime_tickspeed = 4;"
+to = "vs_gametime_tickspeed = 5;"
+
+[[function.func_800741D4.mutation]]
+name = "F3: the mode test compares with 9"
+target = "c"
+from = "if (D_800F196C == 8) {"
+to = "if (D_800F196C == 9) {"
+
+[[function.func_800741D4.mutation]]
+name = "F4: the fall-through call is dropped"
+target = "c"
+from = "func_80073E30(((__typeof__"
+to = "(void)(((__typeof__"
+
+[[function.func_800741D4.mutation]]
+name = "F5: the 8-branch passes 0 instead of unkC"
+target = "c"
+from = "&D_800F1910.unk4, D_800F1910.unk4.unkC);"
+to = "&D_800F1910.unk4, 0);"
+
+[[function.func_800741D4.mutation]]
+name = "F6: the 8-branch falls through to the second call"
+target = "c"
+from = "return;"
+to = "(void)0;"
+
+[function.func_80074294]
+spec = "func_80074294.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80074294.mutation]]
+name = "F1: mask 1 instead of 3"
+target = "c"
+from = "return D_800F1868 & 3;"
+to = "return D_800F1868 & 1;"
+
+[[function.func_80074294.mutation]]
+name = "F2: or instead of and"
+target = "c"
+from = "return D_800F1868 & 3;"
+to = "return D_800F1868 | 3;"
+
+[[function.func_80074294.mutation]]
+name = "F3: mask 7 instead of 3"
+target = "c"
+from = "return D_800F1868 & 3;"
+to = "return D_800F1868 & 7;"
+
+[[function.func_80074294.mutation]]
+name = "F4: negated result (sign slip)"
+target = "c"
+from = "return D_800F1868 & 3;"
+to = "return -(D_800F1868 & 3);"
+
+[function.func_80074314]
+spec = "func_80074314.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80074314.mutation]]
+name = "F1: _cameraMode set to 3"
+target = "c"
+from = "_cameraMode = 4;"
+to = "_cameraMode = 3;"
+
+[[function.func_80074314.mutation]]
+name = "F2: tickspeed set to 1"
+target = "c"
+from = "vs_gametime_tickspeed = 2;"
+to = "vs_gametime_tickspeed = 1;"
+
+[[function.func_80074314.mutation]]
+name = "F3: second argument of func_8008DEAC is 0"
+target = "c"
+from = "unk0, 1);"
+to = "unk0, 0);"
+
+[[function.func_80074314.mutation]]
+name = "F4: first call argument read from unk2 (wrong field)"
+target = "c"
+from = "->unk0.unk0, "
+to = "->unk0.unk2, "
+
+[[function.func_80074314.mutation]]
+name = "F5: func_800CB50C call dropped"
+target = "c"
+from = "func_800CB50C();"
+to = "(void)0;"
+
+[function.func_80074374]
+spec = "func_80074374.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80074374.mutation]]
+name = "F1: wrong constant in vy"
+target = "c"
+from = "sp10.vy = sp18[3] - 0x5A;"
+to = "sp10.vy = sp18[3] - 0x5B;"
+
+[[function.func_80074374.mutation]]
+name = "F2: vx read from the wrong element"
+target = "c"
+from = "sp10.vx = sp18[2];"
+to = "sp10.vx = sp18[1];"
+
+[[function.func_80074374.mutation]]
+name = "F3: vz read from the wrong element"
+target = "c"
+from = "sp10.vz = sp18[4];"
+to = "sp10.vz = sp18[5];"
+
+[[function.func_80074374.mutation]]
+name = "F4: wrong constant argument to _stepTowardTarget"
+target = "c"
+from = "temp_s0 = _stepTowardTarget(&sp10, 1, 0x28);"
+to = "temp_s0 = _stepTowardTarget(&sp10, 1, 0x27);"
+
+[[function.func_80074374.mutation]]
+name = "F5: status test inverted"
+target = "c"
+from = "if (func_8009E480() != 0)"
+to = "if (func_8009E480() == 0)"
+
+[[function.func_80074374.mutation]]
+name = "F6: nonzero status returns the stepper result instead of 0"
+target = "c"
+from = "return 0;"
+to = "return temp_s0;"
+
+[function.func_800748B8]
+spec = "func_800748B8.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_800748B8.mutation]]
+name = "F1: the NULL result store is dropped"
+target = "c"
+from = "temp_s1 = 0;"
+to = "(void)0;"
+
+[[function.func_800748B8.mutation]]
+name = "F2: the compare is strict (> for >=)"
+target = "c"
+from = ">= 0x7FU"
+to = "> 0x7FU"
+
+[[function.func_800748B8.mutation]]
+name = "F3: signed compare (negative values escape the NULL test)"
+target = "c"
+from = ">= 0x7FU"
+to = ">= 0x7F"
+
+[[function.func_800748B8.mutation]]
+name = "F4: vx read where vy is subtracted"
+target = "c"
+from = "- sp10.unk0.unk4.vy"
+to = "- sp10.unk0.unk4.vx"
+
+[[function.func_800748B8.mutation]]
+name = "F5: the z sample's s0[1] in place of s0[2]"
+target = "c"
+from = "(s0[2] << 7) | 0x40"
+to = "(s0[1] << 7) | 0x40"
+
+[[function.func_800748B8.mutation]]
+name = "F6: the 15-bit sign extension is 16 bits wide"
+target = "c"
+from = "<< 0x11) >> 0x11)"
+to = "<< 0x10) >> 0x10)"
+
+[function.func_80077130]
+spec = "func_80077130.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80077130.mutation]]
+name = "W1: weapon test as an ordered compare"
+target = "c"
+from = "if (wepId != 0xFF) {"
+to = "if (wepId < 0xFF) {"
+
+[[function.func_80077130.mutation]]
+name = "W2: temp_s0 ignores isShield"
+target = "c"
+from = "int temp_s0 = (actorId * 2) + isShield;"
+to = "int temp_s0 = (actorId * 2) + 1;"
+
+[[function.func_80077130.mutation]]
+name = "W3: shield test as <= 0 (isShield -1 takes the body branch)"
+target = "c"
+from = "if (isShield == 0) {"
+to = "if (isShield <= 0) {"
+
+[[function.func_80077130.mutation]]
+name = "W4: psx_set reads unk48[0] for every slot"
+target = "c"
+from = "(sp10.unk4).raw = psx_addr(((__typeof__((actor->unk48[isShield]).psx_type_[0]))(long unsigned int)(actor->unk48[isShield]).raw)));"
+to = "(sp10.unk4).raw = psx_addr(((__typeof__((actor->unk48[0]).psx_type_[0]))(long unsigned int)(actor->unk48[0]).raw)));"
+
+[[function.func_80077130.mutation]]
+name = "W5: material store dropped"
+target = "c"
+from = "sp10.material = material;"
+to = "sp10.material = 0;"
+
+[[function.func_80077130.mutation]]
+name = "W6: populate call dropped"
+target = "c"
+from = "vs_battle_populateDataSlot(&sp10);"
+to = "(void)&sp10;"
+
+[function.func_8007820C]
+spec = "func_8007820C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007820C.mutation]]
+name = "F1: the call guarded by arg0 > 0 (negative arg0 skips it)"
+target = "c"
+from = "if (arg0 != 0) {"
+to = "if (arg0 > 0) {"
+
+[[function.func_8007820C.mutation]]
+name = "F2: the step called with direction 0"
+target = "c"
+from = "_stepTowardTarget(&sp10, 1, 0x28);"
+to = "_stepTowardTarget(&sp10, 0, 0x28);"
+
+[[function.func_8007820C.mutation]]
+name = "F3: wrong step constant 0x27"
+target = "c"
+from = "_stepTowardTarget(&sp10, 1, 0x28);"
+to = "_stepTowardTarget(&sp10, 1, 0x27);"
+
+[[function.func_8007820C.mutation]]
+name = "F4: the step call dropped"
+target = "c"
+from = "_stepTowardTarget(&sp10, 1, 0x28);"
+to = "(void)0;"
+
+[[function.func_8007820C.mutation]]
+name = "F5: an extra arg0 == 1 exclusion"
+target = "c"
+from = "if (arg0 != 0) {"
+to = "if (arg0 != 0 && arg0 != 1) {"
+
+[function.func_800782E4]
+spec = "func_800782E4.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_800782E4.mutation]]
+name = "M1: counter bound 31 taken as <= (wrong bound)"
+target = "c"
+from = "if (v < 0x1F) {"
+to = "if (v <= 0x1F) {"
+
+[[function.func_800782E4.mutation]]
+name = "M2: gate compared signed (> 0), negative gate values skip"
+target = "c"
+from = "if (D_800F19CC->unk2984 != 0) {"
+to = "if (D_800F19CC->unk2984 > 0) {"
+
+[[function.func_800782E4.mutation]]
+name = "M3: post-increment, the compare sees the old counter"
+target = "c"
+from = "u_int v = ++D_800F19CC->unk298E;"
+to = "u_int v = D_800F19CC->unk298E++;"
+
+[[function.func_800782E4.mutation]]
+name = "M4: wrong field, targetLimb tested for the target"
+target = "c"
+from = "targetActor != 0"
+to = "targetLimb != 0"
+
+[[function.func_800782E4.mutation]]
+name = "M5: the callee's result tested for 1, not 0"
+target = "c"
+from = "func_800C4794(&D_800F19CC->unk2998) == 0"
+to = "func_800C4794(&D_800F19CC->unk2998) == 1"
+
+[[function.func_800782E4.mutation]]
+name = "M6: final func_8007053C call dropped"
+target = "c"
+from = "func_8007053C();"
+to = "(void)0;"
+
+[function.func_80078364]
+spec = "func_80078364.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80078364.mutation]]
+name = "F1: tick threshold is > 0x1F, not >= (the 0x1E -> 0x1F tick is equal)"
+target = "c"
+from = "++D_800F19CC->unk298E >= 0x1F"
+to = "++D_800F19CC->unk298E > 0x1F"
+
+[[function.func_80078364.mutation]]
+name = "F2: stale read: the countdown byte is not copied from the step's out-param"
+target = "c"
+from = "D_800F19CC->unk298C = D_800F19CC->unk298D;"
+to = "D_800F19CC->unk298C = D_800F19CC->unk298C;"
+
+[[function.func_80078364.mutation]]
+name = "F3: wrong argument to func_80072BA8 (the status byte instead of the action index)"
+target = "c"
+from = "func_80072BA8(D_800F19CC->unk8.actionIndex);"
+to = "func_80072BA8(D_800F19CC->unk298C);"
+
+[[function.func_80078364.mutation]]
+name = "F4: the cleanup's func_800C05B4 call dropped"
+target = "c"
+from = "func_800C05B4();"
+to = "(void)0;"
+
+[[function.func_80078364.mutation]]
+name = "F5: step result tested as > 0 (negative results taken as no step)"
+target = "c"
+from = "func_800C58F8(&D_800F19CC->unk298D) != 0) {"
+to = "func_800C58F8(&D_800F19CC->unk298D) > 0) {"
+
+[[function.func_80078364.mutation]]
+name = "F6: the countdown test reads unk2988 instead of unk2984"
+target = "c"
+from = "if (D_800F19CC->unk2984 != 0) {"
+to = "if (D_800F19CC->unk2988 != 0) {"
+
+[function.func_8007980C]
+spec = "func_8007980C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007980C.mutation]]
+name = "F1: mask 1 instead of 3"
+target = "c"
+from = "!(D_800F1868 & 3)"
+to = "!(D_800F1868 & 1)"
+
+[[function.func_8007980C.mutation]]
+name = "F2: mask 7 instead of 3"
+target = "c"
+from = "!(D_800F1868 & 3)"
+to = "!(D_800F1868 & 7)"
+
+[[function.func_8007980C.mutation]]
+name = "F3: sign bit leaks into the mask"
+target = "c"
+from = "!(D_800F1868 & 3)"
+to = "!(D_800F1868 & 0x80000003)"
+
+[[function.func_8007980C.mutation]]
+name = "F4: the test is not negated"
+target = "c"
+from = "if (!(D_800F1868 & 3))"
+to = "if ((D_800F1868 & 3))"
+
+[[function.func_8007980C.mutation]]
+name = "F5: the call is dropped"
+target = "c"
+from = "func_8006FA20();"
+to = ""
+
+[function.func_8007983C]
+spec = "func_8007983C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007983C.mutation]]
+name = "F1: the unk0 test against 0 instead of 1"
+target = "c"
+from = "unk0 != 1"
+to = "unk0 != 0"
+
+[[function.func_8007983C.mutation]]
+name = "F2: the gate tests nonzero"
+target = "c"
+from = "(func_800CB45C() == 0)"
+to = "(func_800CB45C() != 0)"
+
+[[function.func_8007983C.mutation]]
+name = "F3: func_800CB50C call dropped"
+target = "c"
+from = "        func_800CB50C();\n"
+to = ""
+
+[[function.func_8007983C.mutation]]
+name = "F4: func_800CB114 and func_800CB50C swapped"
+target = "c"
+from = "        func_800CB114();\n        func_800CB50C();"
+to = "        func_800CB50C();\n        func_800CB114();"
+
+[[function.func_8007983C.mutation]]
+name = "F5: unk0 read before func_800C97BC"
+target = "c"
+from = "    func_800C97BC();\n    if ((func_800CB66C()->unk0 != 1)"
+to = "    __auto_type u = func_800CB66C()->unk0;\n    func_800C97BC();\n    if ((u != 1)"
+
+[function.func_8007B344]
+spec = "func_8007B344.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B344.mutation]]
+name = "F1: int arguments 0 and 1 swapped"
+target = "c"
+from = "func_800478E0(arg0, arg1, arg2, arg3, arg4);"
+to = "func_800478E0(arg1, arg0, arg2, arg3, arg4);"
+
+[[function.func_8007B344.mutation]]
+name = "F2: arg2 zero-extended (unsigned short slip)"
+target = "c"
+from = "func_800478E0(arg0, arg1, arg2, arg3, arg4);"
+to = "func_800478E0(arg0, arg1, (unsigned short)arg2, arg3, arg4);"
+
+[[function.func_8007B344.mutation]]
+name = "F3: arg3 replaced by arg2 (wrong argument)"
+target = "c"
+from = "func_800478E0(arg0, arg1, arg2, arg3, arg4);"
+to = "func_800478E0(arg0, arg1, arg2, arg2, arg4);"
+
+[[function.func_8007B344.mutation]]
+name = "F4: call dropped"
+target = "c"
+from = "func_800478E0(arg0, arg1, arg2, arg3, arg4);"
+to = "(void)0;"
+
+[[function.func_8007B344.mutation]]
+name = "F5: arg0 narrowed to short"
+target = "c"
+from = "func_800478E0(arg0, arg1, arg2, arg3, arg4);"
+to = "func_800478E0((short)arg0, arg1, arg2, arg3, arg4);"
+
+[function.func_8007B3F0]
+spec = "func_8007B3F0.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B3F0.mutation]]
+name = "F1: the call is dropped"
+target = "c"
+from = "func_800472D0(arg0, arg1);"
+to = "(void)arg0; (void)arg1;"
+
+[[function.func_8007B3F0.mutation]]
+name = "F2: the object is passed as null"
+target = "c"
+from = "func_800472D0(arg0, arg1);"
+to = "func_800472D0(arg0, 0);"
+
+[[function.func_8007B3F0.mutation]]
+name = "F3: arg0 off by one"
+target = "c"
+from = "func_800472D0(arg0, arg1);"
+to = "func_800472D0(arg0 + 1, arg1);"
+
+[[function.func_8007B3F0.mutation]]
+name = "F4: the call is made twice"
+target = "c"
+from = "func_800472D0(arg0, arg1);"
+to = "func_800472D0(arg0, arg1); func_800472D0(arg0, arg1);"
+
+[[function.func_8007B3F0.mutation]]
+name = "F5: arg0 truncated to a byte"
+target = "c"
+from = "func_800472D0(arg0, arg1);"
+to = "func_800472D0((unsigned char)arg0, arg1);"
+
+[function.func_8007B410]
+spec = "func_8007B410.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B410.mutation]]
+name = "M1: first call's first argument 0xC, not 0xD"
+target = "c"
+from = "func_8007B10C(0xD, 4, -4, -4, 0);"
+to = "func_8007B10C(0xC, 4, -4, -4, 0);"
+
+[[function.func_8007B410.mutation]]
+name = "M2: setClutState(1) instead of (0)"
+target = "c"
+from = "vs_main_setClutState(0);"
+to = "vs_main_setClutState(1);"
+
+[[function.func_8007B410.mutation]]
+name = "M3: func_8008B4BC call dropped"
+target = "c"
+from = "func_8008B4BC(1);"
+to = ""
+
+[[function.func_8007B410.mutation]]
+name = "M4: the D_800F1968 store moved before func_8008E480"
+target = "c"
+from = "func_8008E480(1);\n    D_800F1968 = 1;"
+to = "D_800F1968 = 1;\n    func_8008E480(1);"
+
+[[function.func_8007B410.mutation]]
+name = "M5: D_800F1968 stored as 0, not 1"
+target = "c"
+from = "D_800F1968 = 1;"
+to = "D_800F1968 = 0;"
+
+[function.func_8007B4C4]
+spec = "func_8007B4C4.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B4C4.mutation]]
+name = "W1: wrong constant for _cameraMode"
+target = "c"
+from = "_cameraMode = 2;"
+to = "_cameraMode = 3;"
+
+[[function.func_8007B4C4.mutation]]
+name = "W2: flag test as > 0 (negative flag skips the call)"
+target = "c"
+from = "if (D_800F1864 != 0)"
+to = "if (D_800F1864 > 0)"
+
+[[function.func_8007B4C4.mutation]]
+name = "W3: wrong argument to func_8009E5C4"
+target = "c"
+from = "func_8009E5C4(0);"
+to = "func_8009E5C4(1);"
+
+[[function.func_8007B4C4.mutation]]
+name = "W4: dropped call to func_8007B470"
+target = "c"
+from = "func_8007B470();"
+to = "/* dropped */"
+
+[[function.func_8007B4C4.mutation]]
+name = "W5: store moved across the call"
+target = "c"
+from = "_cameraMode = 2;\n    func_8007B470();"
+to = "func_8007B470();\n    _cameraMode = 2;"
+
+[function.func_8007B508]
+spec = "func_8007B508.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B508.mutation]]
+name = "F1: art test inverted"
+target = "c"
+from = "if (_isArtOrAbilityUnlocked() != 0) {"
+to = "if (_isArtOrAbilityUnlocked() == 0) {"
+
+[[function.func_8007B508.mutation]]
+name = "F2: flag 2 compared to 4 instead of 2"
+target = "c"
+from = "((vs_battle_getStateFlag(0xB6)) == 2)"
+to = "((vs_battle_getStateFlag(0xB6)) == 4)"
+
+[[function.func_8007B508.mutation]]
+name = "F3: unk2C07 test inverted"
+target = "c"
+from = "(D_800F19CC->unk2C07 == 0)"
+to = "(D_800F19CC->unk2C07 != 0)"
+
+[[function.func_8007B508.mutation]]
+name = "F4: action index bound wrong (> 1 for != 0)"
+target = "c"
+from = "(D_800F19CC->unk8.actionIndex != 0)"
+to = "(D_800F19CC->unk8.actionIndex > 1)"
+
+[[function.func_8007B508.mutation]]
+name = "F5: unlocked negation dropped"
+target = "c"
+from = "!((vs_main_actions[D_800F19CC->unk8.actionIndex].unlocked))"
+to = "((vs_main_actions[D_800F19CC->unk8.actionIndex].unlocked))"
+
+[[function.func_8007B508.mutation]]
+name = "F6: the final call dropped"
+target = "c"
+from = "func_8007B4C4();"
+to = "(void)0;"
+
+[function.func_8007B764]
+spec = "func_8007B764.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B764.mutation]]
+name = "G1: state >= 3 read as > 3"
+target = "c"
+from = "(vs_battle_getStateFlag(0xAB)) >= 3"
+to = "(vs_battle_getStateFlag(0xAB)) > 3"
+
+[[function.func_8007B764.mutation]]
+name = "L1: loot branch taken with no list (callee gets null)"
+target = "c"
+from = "if (_lootListHead != 0) {"
+to = "if (1) {"
+
+[[function.func_8007B764.mutation]]
+name = "S1: camera mode not set on the loot path"
+target = "c"
+from = "_cameraMode = 4;"
+to = "(void)0;"
+
+[[function.func_8007B764.mutation]]
+name = "K1: wrong camera mode constant"
+target = "c"
+from = "_cameraMode = 4;"
+to = "_cameraMode = 3;"
+
+[[function.func_8007B764.mutation]]
+name = "D1: idle path calls the wrong function"
+target = "c"
+from = "func_8007B508();"
+to = "func_8007B4C4();"
+
+[[function.func_8007B764.mutation]]
+name = "D2: dropped call to func_8007B410"
+target = "c"
+from = "func_8007B410();"
+to = "(void)0;"
+
+[function.func_8007B834]
+spec = "func_8007B834.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B834.mutation]]
+name = "M1: unk0 compared with 0, not 1"
+target = "c"
+from = "func_800CB66C()->unk0 != 1"
+to = "func_800CB66C()->unk0 != 0"
+
+[[function.func_8007B834.mutation]]
+name = "M2: the first call dropped"
+target = "c"
+from = "    func_800C97BC();\n"
+to = ""
+
+[[function.func_8007B834.mutation]]
+name = "M3: func_8007B470 and func_800CB114 swapped"
+target = "c"
+from = "        func_8007B470();\n        func_800CB114();"
+to = "        func_800CB114();\n        func_8007B470();"
+
+[[function.func_8007B834.mutation]]
+name = "M4: func_8007B764 dropped"
+target = "c"
+from = "        func_8007B764();"
+to = "        (void)0;"
+
+[[function.func_8007B834.mutation]]
+name = "M5: func_800CB114 dropped"
+target = "c"
+from = "        func_800CB114();\n"
+to = ""
+
+[function.func_8007B908]
+spec = "func_8007B908.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B908.mutation]]
+name = "F1: wrong mask (bit 1 ignored)"
+target = "c"
+from = "D_800F1868 & 3"
+to = "D_800F1868 & 1"
+
+[[function.func_8007B908.mutation]]
+name = "F2: sign bit tested too"
+target = "c"
+from = "D_800F1868 & 3"
+to = "D_800F1868 & 0x80000003"
+
+[[function.func_8007B908.mutation]]
+name = "F3: inverted test"
+target = "c"
+from = "if (!(D_800F1868 & 3))"
+to = "if (D_800F1868 & 3)"
+
+[[function.func_8007B908.mutation]]
+name = "F4: dropped call"
+target = "c"
+from = "func_8007B63C();"
+to = "(void)0;"
+
+[[function.func_8007B908.mutation]]
+name = "F5: call made twice"
+target = "c"
+from = "func_8007B63C();"
+to = "func_8007B63C(); func_8007B63C();"
+
+[function.func_8007B938]
+spec = "func_8007B938.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B938.mutation]]
+name = "F1: || for &&"
+target = "c"
+from = "(func_800CB66C()->unk0 != 1) && (func_800CB45C() == 0)"
+to = "(func_800CB66C()->unk0 != 1) || (func_800CB45C() == 0)"
+
+[[function.func_8007B938.mutation]]
+name = "F2: unk0 tested against 0, not 1"
+target = "c"
+from = "func_800CB66C()->unk0 != 1"
+to = "func_800CB66C()->unk0 != 0"
+
+[[function.func_8007B938.mutation]]
+name = "F3: the guard's callee result inverted"
+target = "c"
+from = "func_800CB45C() == 0"
+to = "func_800CB45C() != 0"
+
+[[function.func_8007B938.mutation]]
+name = "F4: func_800CB50C before func_800CB114"
+target = "c"
+from = "        func_800CB114();\n        func_800CB50C();"
+to = "        func_800CB50C();\n        func_800CB114();"
+
+[[function.func_8007B938.mutation]]
+name = "F5: func_800CB50C dropped"
+target = "c"
+from = "        func_800CB50C();\n"
+to = ""
+
+[[function.func_8007B938.mutation]]
+name = "F6: leading func_800C97BC dropped"
+target = "c"
+from = "    func_800C97BC();\n"
+to = ""
+
+[function.func_8007B9A0]
+spec = "func_8007B9A0.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B9A0.mutation]]
+name = "F1: D_800F1860 store dropped"
+target = "c"
+from = "D_800F1860 = 0;"
+to = "D_800F1860 = D_800F1860;"
+
+[[function.func_8007B9A0.mutation]]
+name = "F2: wrong constant in D_800F1864 store"
+target = "c"
+from = "D_800F1864 = 0;"
+to = "D_800F1864 = 1;"
+
+[[function.func_8007B9A0.mutation]]
+name = "F3: D_800F1864 store moved after the call"
+target = "c"
+from = "D_800F1864 = 0;\n    func_8007B7DC();"
+to = "func_8007B7DC();\n    D_800F1864 = 0;"
+
+[[function.func_8007B9A0.mutation]]
+name = "F4: call to func_8007B7DC dropped"
+target = "c"
+from = "func_8007B7DC();"
+to = "(void)0;"
+
+[[function.func_8007B9A0.mutation]]
+name = "F5: first store writes the wrong global"
+target = "c"
+from = "D_800F1860 = 0;"
+to = "D_800F1864 = 0;"
+
+[function.func_8007B9FC]
+spec = "func_8007B9FC.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007B9FC.mutation]]
+name = "S1: case 3 calls func_8007B884"
+target = "c"
+from = "func_8007B834();"
+to = "func_8007B884();"
+
+[[function.func_8007B9FC.mutation]]
+name = "S2: case 5 returns 0"
+target = "c"
+from = "func_8007B908();"
+to = "func_8007B908(); return 0;"
+
+[[function.func_8007B9FC.mutation]]
+name = "S3: default returns 1"
+target = "c"
+from = "default:"
+to = "default: return 1;"
+
+[[function.func_8007B9FC.mutation]]
+name = "S4: case 6 call dropped"
+target = "c"
+from = "func_8007B938();"
+to = "(void)0;"
+
+[[function.func_8007B9FC.mutation]]
+name = "S5: case 6 label typed as 7"
+target = "c"
+from = "case 6:"
+to = "case 7:"
+
+[function.func_8007BA98]
+spec = "func_8007BA98.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BA98.mutation]]
+name = "L1: misc[1].count takes count0"
+target = "c"
+from = "temp_v0->loot.misc[1].count = count1;"
+to = "temp_v0->loot.misc[1].count = count0;"
+
+[[function.func_8007BA98.mutation]]
+name = "L2: id0 tested as a whole int, not its low 16 bits"
+target = "c"
+from = "if (id0 & 0xFFFF) {"
+to = "if (id0) {"
+
+[[function.func_8007BA98.mutation]]
+name = "L3: unused node not freed"
+target = "c"
+from = "vs_main_freeHeapR(temp_v0);"
+to = "(void)0;"
+
+[[function.func_8007BA98.mutation]]
+name = "L4: camera mode 3 instead of 4"
+target = "c"
+from = "_cameraMode = 4;"
+to = "_cameraMode = 3;"
+
+[[function.func_8007BA98.mutation]]
+name = "L5: pushed node links to null instead of the old head"
+target = "c"
+from = "temp_a0 = _lootListHead;"
+to = "temp_a0 = 0;"
+
+[[function.func_8007BA98.mutation]]
+name = "L6: node not zeroed before use"
+target = "c"
+from = "vs_main_bzero(temp_v0, sizeof *temp_v0);"
+to = "(void)0;"
+
+[function.func_8007BBB8]
+spec = "func_8007BBB8.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BBB8.mutation]]
+name = "F1: arguments swapped"
+target = "c"
+from = "func_80069DEC(arg0, arg1);"
+to = "func_80069DEC(arg1, arg0);"
+
+[[function.func_8007BBB8.mutation]]
+name = "F2: second argument replaced by 0"
+target = "c"
+from = "func_80069DEC(arg0, arg1);"
+to = "func_80069DEC(arg0, 0);"
+
+[[function.func_8007BBB8.mutation]]
+name = "F3: call dropped"
+target = "c"
+from = "func_80069DEC(arg0, arg1);"
+to = "(void)arg0; (void)arg1;"
+
+[[function.func_8007BBB8.mutation]]
+name = "F4: first argument with bit 0 forced"
+target = "c"
+from = "func_80069DEC(arg0, arg1);"
+to = "func_80069DEC(arg0 | 1, arg1);"
+
+[function.func_8007BBD8]
+spec = "func_8007BBD8.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BBD8.mutation]]
+name = "M1: frames divided, not taken modulo 256"
+target = "c"
+from = "frames = arg2 % 256;"
+to = "frames = arg2 / 256;"
+
+[[function.func_8007BBD8.mutation]]
+name = "M2: seconds by shift instead of division (signed slip)"
+target = "c"
+from = "(arg2 / 256) % 256"
+to = "(arg2 >> 8) % 256"
+
+[[function.func_8007BBD8.mutation]]
+name = "M3: hours by shift instead of division (signed slip)"
+target = "c"
+from = "(arg2 / 16777216) % 256"
+to = "(arg2 >> 24) % 256"
+
+[[function.func_8007BBD8.mutation]]
+name = "M4: wrong guard constant (arg0 != 0)"
+target = "c"
+from = "if (arg0 != 1) {"
+to = "if (arg0 != 0) {"
+
+[[function.func_8007BBD8.mutation]]
+name = "M5: wrong flag id for minutes"
+target = "c"
+from = "vs_battle_setStateFlag(0xA2, D_80050468.minutes);"
+to = "vs_battle_setStateFlag(0xA3, D_80050468.minutes);"
+
+[[function.func_8007BBD8.mutation]]
+name = "M6: dropped trailing call"
+target = "c"
+from = "func_800CB550();"
+to = "(void)0;"
+
+[function.func_8007BD3C]
+spec = "func_8007BD3C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BD3C.mutation]]
+name = "F1: swap reads the wrong byte (unk1 for unk0)"
+target = "c"
+from = "int temp_v1 = D_80050468.unk0;"
+to = "int temp_v1 = D_80050468.unk1;"
+
+[[function.func_8007BD3C.mutation]]
+name = "F2: the nonzero branch drops the func_800CB560 call"
+target = "c"
+from = "func_800CB560();"
+to = "(void)0;"
+
+[[function.func_8007BD3C.mutation]]
+name = "F3: signed slip, negative arg0 takes the zero path"
+target = "c"
+from = "if (arg0 != 0) {"
+to = "if (arg0 > 0) {"
+
+[[function.func_8007BD3C.mutation]]
+name = "F4: wrong constant stored into unk0 by the swap"
+target = "c"
+from = "D_80050468.unk0 = 0;"
+to = "D_80050468.unk0 = 1;"
+
+[[function.func_8007BD3C.mutation]]
+name = "F5: else branch copies the fields the wrong way"
+target = "c"
+from = "D_80050468.unk0 = D_80050468.unk1;"
+to = "D_80050468.unk1 = D_80050468.unk0;"
+
+[function.func_8007BDD8]
+spec = "func_8007BDD8.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BDD8.mutation]]
+name = "F1: the call to func_8008C40C is dropped"
+target = "c"
+from = "func_8008C40C();"
+to = "(void)0;"
+
+[[function.func_8007BDD8.mutation]]
+name = "F2: the global store is dropped"
+target = "c"
+from = "return _firstPersonViewEnabled = ~arg0 & 1;"
+to = "return ~arg0 & 1;"
+
+[[function.func_8007BDD8.mutation]]
+name = "F3: the complement is dropped"
+target = "c"
+from = "~arg0 & 1"
+to = "arg0 & 1"
+
+[[function.func_8007BDD8.mutation]]
+name = "F4: wrong mask constant (3 for 1)"
+target = "c"
+from = "~arg0 & 1"
+to = "~arg0 & 3"
+
+[[function.func_8007BDD8.mutation]]
+name = "F5: the store moves across the call"
+target = "c"
+from = "func_8008C40C();"
+to = "_firstPersonViewEnabled = ~arg0 & 1; func_8008C40C();"
+
+[function.func_8007BE10]
+spec = "func_8007BE10.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BE10.mutation]]
+name = "F1: store dropped, return arg0"
+target = "c"
+from = "return D_800F18B0 = arg0;"
+to = "return arg0;"
+
+[[function.func_8007BE10.mutation]]
+name = "F2: stored value off by one"
+target = "c"
+from = "D_800F18B0 = arg0;"
+to = "D_800F18B0 = arg0 - 1;"
+
+[[function.func_8007BE10.mutation]]
+name = "F3: return masked to 31 bits"
+target = "c"
+from = "return D_800F18B0 = arg0;"
+to = "return D_800F18B0 = arg0 & 0x7FFFFFFF;"
+
+[[function.func_8007BE10.mutation]]
+name = "F4: returns 0 after the store"
+target = "c"
+from = "return D_800F18B0 = arg0;"
+to = "D_800F18B0 = arg0; return 0;"
+
+[function.func_8007BE20]
+spec = "func_8007BE20.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BE20.mutation]]
+name = "C1: the actor test uses arg0 instead of arg1"
+target = "c"
+from = "(i != arg1)"
+to = "(i != arg0)"
+
+[[function.func_8007BE20.mutation]]
+name = "C2: the loop misses actor 15"
+target = "c"
+from = "for (i = 0; i < 16; ++i)"
+to = "for (i = 0; i < 15; ++i)"
+
+[[function.func_8007BE20.mutation]]
+name = "C3: the recorded count is one short"
+target = "c"
+from = "sp10.unk3 = var_a2;"
+to = "sp10.unk3 = var_a2 - 1;"
+
+[[function.func_8007BE20.mutation]]
+name = "C4: unk10 is 5, not 4"
+target = "c"
+from = "sp10.unk10 = 4;"
+to = "sp10.unk10 = 5;"
+
+[[function.func_8007BE20.mutation]]
+name = "C5: the target byte taken from arg0"
+target = "c"
+from = "sp10.unk14.u8[0] = arg1;"
+to = "sp10.unk14.u8[0] = arg0;"
+
+[[function.func_8007BE20.mutation]]
+name = "C6: the dropped call's flag is 1"
+target = "c"
+from = "func_800CF0E8(&sp10, 0, 0);"
+to = "func_800CF0E8(&sp10, 0, 1);"
+
+[function.func_8007BEC4]
+spec = "func_8007BEC4.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BEC4.mutation]]
+name = "F1: callee gets 0 instead of arg0"
+target = "c"
+from = "func_800CEF74(arg0);"
+to = "func_800CEF74(0);"
+
+[[function.func_8007BEC4.mutation]]
+name = "F2: call dropped"
+target = "c"
+from = "func_800CEF74(arg0);"
+to = "(void)arg0;"
+
+[[function.func_8007BEC4.mutation]]
+name = "F3: argument off by one bit"
+target = "c"
+from = "func_800CEF74(arg0);"
+to = "func_800CEF74(arg0 ^ 1);"
+
+[[function.func_8007BEC4.mutation]]
+name = "F4: argument narrowed to 16 bits"
+target = "c"
+from = "func_800CEF74(arg0);"
+to = "func_800CEF74(arg0 & 0xFFFF);"
+
+[function.func_8007BEE4]
+spec = "func_8007BEE4.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BEE4.mutation]]
+name = "R1: wrong constant added to the result"
+target = "c"
+from = "return func_800CF48C();"
+to = "return func_800CF48C() ^ 1;"
+
+[[function.func_8007BEE4.mutation]]
+name = "R2: result narrowed to a signed short"
+target = "c"
+from = "return func_800CF48C();"
+to = "return (short)func_800CF48C();"
+
+[[function.func_8007BEE4.mutation]]
+name = "R3: result narrowed to an unsigned short"
+target = "c"
+from = "return func_800CF48C();"
+to = "return (unsigned short)func_800CF48C();"
+
+[[function.func_8007BEE4.mutation]]
+name = "R4: callee called twice"
+target = "c"
+from = "return func_800CF48C();"
+to = "int r = func_800CF48C(); (void)func_800CF48C(); return r;"
+
+[[function.func_8007BEE4.mutation]]
+name = "R5: call dropped, constant returned"
+target = "c"
+from = "return func_800CF48C();"
+to = "return 0;"
+
+[function.func_8007BF0C]
+spec = "func_8007BF0C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BF0C.mutation]]
+name = "F1: nonzero test becomes > 0 (negative returns read as zero)"
+target = "c"
+from = "func_800CEEBC() != 0"
+to = "func_800CEEBC() > 0"
+
+[[function.func_8007BF0C.mutation]]
+name = "F2: inverted test (== 0)"
+target = "c"
+from = "func_800CEEBC() != 0"
+to = "func_800CEEBC() == 0"
+
+[[function.func_8007BF0C.mutation]]
+name = "F3: raw return value, not the boolean"
+target = "c"
+from = "return func_800CEEBC() != 0;"
+to = "return func_800CEEBC();"
+
+[[function.func_8007BF0C.mutation]]
+name = "F4: callee called twice"
+target = "c"
+from = "func_800CEEBC() != 0"
+to = "(func_800CEEBC(), func_800CEEBC()) != 0"
+
+[[function.func_8007BF0C.mutation]]
+name = "F5: compared against 1 instead of 0"
+target = "c"
+from = "func_800CEEBC() != 0"
+to = "func_800CEEBC() != 1"
+
+[function.func_8007BF4C]
+spec = "func_8007BF4C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007BF4C.mutation]]
+name = "M1: callee gets 1 instead of 0"
+target = "c"
+from = "func_8008ABB8(0);"
+to = "func_8008ABB8(1);"
+
+[[function.func_8007BF4C.mutation]]
+name = "M2: callee gets -1 instead of 0"
+target = "c"
+from = "func_8008ABB8(0);"
+to = "func_8008ABB8(-1);"
+
+[[function.func_8007BF4C.mutation]]
+name = "M3: the call is dropped"
+target = "c"
+from = "func_8008ABB8(0);"
+to = "(void)0;"
+
+[[function.func_8007BF4C.mutation]]
+name = "M4: the call is made twice"
+target = "c"
+from = "func_8008ABB8(0);"
+to = "func_8008ABB8(0); func_8008ABB8(0);"
+
+[function.func_8007C1D8]
+spec = "func_8007C1D8.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C1D8.mutation]]
+name = "F1: the first store writes 5, not 4"
+target = "c"
+from = "vs_battle_actors[arg0]->unk1C = 4;"
+to = "vs_battle_actors[arg0]->unk1C = 5;"
+
+[[function.func_8007C1D8.mutation]]
+name = "F2: signed slip, arg1 > 0 instead of arg1 != 0"
+target = "c"
+from = "if (arg1 != 0) {"
+to = "if (arg1 > 0) {"
+
+[[function.func_8007C1D8.mutation]]
+name = "F3: the return after the first store is dropped"
+target = "c"
+from = "            return;\n"
+to = ""
+
+[[function.func_8007C1D8.mutation]]
+name = "F4: the NULL test on the entry is dropped"
+target = "c"
+from = "if (vs_battle_actors[arg0] != 0) {"
+to = "if (vs_battle_actors[arg0] != 0 || 1) {"
+expect = "crash"
+
+[[function.func_8007C1D8.mutation]]
+name = "F5: the second store writes unk1E, a wrong field"
+target = "c"
+from = "vs_battle_actors[arg0]->unk1C = 8;"
+to = "vs_battle_actors[arg0]->unk1E = 8;"
+
+[function.func_8007C218]
+spec = "func_8007C218.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C218.mutation]]
+name = "M1: wrong percent constant (0x63 for 0x64)"
+target = "c"
+from = "(temp_a0->currentHP * 0x64) / temp_a0->maxHP;"
+to = "(temp_a0->currentHP * 0x63) / temp_a0->maxHP;"
+
+[[function.func_8007C218.mutation]]
+name = "M2: live test is >= 0 instead of > 0"
+target = "c"
+from = "if (temp_a0->currentHP > 0) {"
+to = "if (temp_a0->currentHP >= 0) {"
+
+[[function.func_8007C218.mutation]]
+name = "M3: zero percent not raised to 1 (dropped store)"
+target = "c"
+from = "var_v1 = 1;"
+to = "var_v1 = var_v1;"
+
+[[function.func_8007C218.mutation]]
+name = "M4: unsigned division slip (negative maxHP)"
+target = "c"
+from = "(temp_a0->currentHP * 0x64) / temp_a0->maxHP;"
+to = "(unsigned)(temp_a0->currentHP * 0x64) / (unsigned short)temp_a0->maxHP;"
+
+[[function.func_8007C218.mutation]]
+name = "M5: wrong field (divide by currentHP)"
+target = "c"
+from = "/ temp_a0->maxHP;"
+to = "/ temp_a0->currentHP;"
+
+[function.func_8007C28C]
+spec = "func_8007C28C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C28C.mutation]]
+name = "R1: currentMP taken from maxHP"
+target = "c"
+from = "temp_a1->currentMP = temp_a1->maxMP;"
+to = "temp_a1->currentMP = temp_a1->maxHP;"
+
+[[function.func_8007C28C.mutation]]
+name = "R2: limb loop stops one short"
+target = "c"
+from = "for (i = 0; i < 6; ++i) {"
+to = "for (i = 0; i < 5; ++i) {"
+
+[[function.func_8007C28C.mutation]]
+name = "R3: wrong constant passed to the callee"
+target = "c"
+from = "func_80086754(0x7FFFFFFF, temp_a1);"
+to = "func_80086754(0x7FFFFFFE, temp_a1);"
+
+[[function.func_8007C28C.mutation]]
+name = "R4: D_800F5160 store dropped"
+target = "c"
+from = "D_800F5160 = 0;"
+to = "(void)0;"
+
+[[function.func_8007C28C.mutation]]
+name = "R5: stats NULL guard dropped"
+target = "c"
+from = "if (temp_a1 != 0) {"
+to = "if (1) {"
+expect = "crash"
+
+[function.func_8007C460]
+spec = "func_8007C460.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C460.mutation]]
+name = "W1: negative argument clamped to 0"
+target = "c"
+from = "vs_battle_screenTransitionWipeAngle = arg0;"
+to = "vs_battle_screenTransitionWipeAngle = arg0 < 0 ? 0 : arg0;"
+
+[[function.func_8007C460.mutation]]
+name = "W2: argument narrowed to u16 (signed/unsigned slip)"
+target = "c"
+from = "vs_battle_screenTransitionWipeAngle = arg0;"
+to = "vs_battle_screenTransitionWipeAngle = (unsigned short)arg0;"
+
+[[function.func_8007C460.mutation]]
+name = "W3: wrong constant: 4096 stores 0"
+target = "c"
+from = "vs_battle_screenTransitionWipeAngle = arg0;"
+to = "vs_battle_screenTransitionWipeAngle = arg0 == 4096 ? 0 : arg0;"
+
+[[function.func_8007C460.mutation]]
+name = "W4: store dropped"
+target = "c"
+from = "vs_battle_screenTransitionWipeAngle = arg0;"
+to = "(void)arg0;"
+
+[function.func_8007C46C]
+spec = "func_8007C46C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C46C.mutation]]
+name = "F1: second early-return test checks 3, not 2"
+target = "c"
+from = "== 2) {"
+to = "== 3) {"
+
+[[function.func_8007C46C.mutation]]
+name = "F2: early-return test with && (step 1 no longer returns)"
+target = "c"
+from = "||"
+to = "&&"
+
+[[function.func_8007C46C.mutation]]
+name = "F3: step stored as 4, not 5"
+target = "c"
+from = "vs_battle_screenTransitionStep = 5;"
+to = "vs_battle_screenTransitionStep = 4;"
+
+[[function.func_8007C46C.mutation]]
+name = "F4: speed store dropped"
+target = "c"
+from = "vs_battle_screenTransitionSpeed = speed;"
+to = "(void)speed;"
+
+[[function.func_8007C46C.mutation]]
+name = "F5: effect stores speed"
+target = "c"
+from = "vs_battle_screenTransitionEffect = effect;"
+to = "vs_battle_screenTransitionEffect = speed;"
+
+[function.func_8007C4D4]
+spec = "func_8007C4D4.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C4D4.mutation]]
+name = "F1: stores 1, not 0"
+target = "c"
+from = "D_800F19A0 = 0;"
+to = "D_800F19A0 = 1;"
+
+[[function.func_8007C4D4.mutation]]
+name = "F2: the store is dropped"
+target = "c"
+from = "D_800F19A0 = 0;"
+to = "(void)0;"
+
+[[function.func_8007C4D4.mutation]]
+name = "F3: only the low byte is stored"
+target = "c"
+from = "D_800F19A0 = 0;"
+to = "*(volatile unsigned char *)&D_800F19A0 = 0;"
+
+[[function.func_8007C4D4.mutation]]
+name = "F4: stores -1, not 0"
+target = "c"
+from = "D_800F19A0 = 0;"
+to = "D_800F19A0 = -1;"
+
+[function.func_8007C580]
+spec = "func_8007C580.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C580.mutation]]
+name = "F1: the two arguments of func_8007C4E0 swapped"
+target = "c"
+from = "func_8007C4E0(arg0, arg1, arg2);"
+to = "func_8007C4E0(arg0, arg2, arg1);"
+
+[[function.func_8007C580.mutation]]
+name = "F2: the room section call dropped"
+target = "c"
+from = "func_8007C4E0(arg0, arg1, arg2);"
+to = "(void)0;"
+
+[[function.func_8007C580.mutation]]
+name = "F3: unk0_16 read as unk0_24"
+target = "c"
+from = "fields.unk0_16,"
+to = "fields.unk0_24,"
+
+[[function.func_8007C580.mutation]]
+name = "F4: func_800A1108 called with 1, not 0"
+target = "c"
+from = "func_800A1108(0, &sp10);"
+to = "func_800A1108(1, &sp10);"
+
+[function.func_8007C654]
+spec = "func_8007C654.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C654.mutation]]
+name = "F1: the first callee's arguments swapped"
+target = "c"
+from = "func_8007C5C0(arg0, arg1, arg2);"
+to = "func_8007C5C0(arg0, arg2, arg1);"
+
+[[function.func_8007C654.mutation]]
+name = "F2: the first call dropped"
+target = "c"
+from = "func_8007C5C0(arg0, arg1, arg2);"
+to = "(void)arg0;"
+
+[[function.func_8007C654.mutation]]
+name = "F3: the scratch read of byte 3 instead of byte 2"
+target = "c"
+from = "sp10.unk0.unk0.fields.unk0_16,"
+to = "sp10.unk0.unk0.fields.unk0_24,"
+
+[[function.func_8007C654.mutation]]
+name = "F4: the id passed to func_800A1108 is 1, not 0"
+target = "c"
+from = "func_800A1108(0, &sp10);"
+to = "func_800A1108(1, &sp10);"
+
+[function.func_8007C8A4]
+spec = "func_8007C8A4.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C8A4.mutation]]
+name = "M1: streak bound 16 becomes 15 (slot 15 skipped)"
+target = "c"
+from = "(arg0 < 16)"
+to = "(arg0 < 15)"
+
+[[function.func_8007C8A4.mutation]]
+name = "M2: the callee is dropped"
+target = "c"
+from = "func_800AE4FC("
+to = "(void)("
+
+[[function.func_8007C8A4.mutation]]
+name = "M3: arg1 replaced by 0"
+target = "c"
+from = "), arg1);"
+to = "), 0);"
+
+[[function.func_8007C8A4.mutation]]
+name = "M4: the table NULL guard dropped"
+target = "c"
+from = "if ((vs_battle_actors[arg0] != 0) && (arg0 < 16)) {"
+to = "if ((arg0 < 16)) {"
+expect = "crash"
+
+[function.func_8007C928]
+spec = "func_8007C928.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007C928.mutation]]
+name = "F1: slot bound 15 (index 15 wrongly returns 0)"
+target = "c"
+from = "if (arg0 < 16) {"
+to = "if (arg0 < 15) {"
+
+[[function.func_8007C928.mutation]]
+name = "F2: unk40 set to 0 instead of 1"
+target = "c"
+from = "temp_v0->unk0.unk0.unk0.unk40 = 1;"
+to = "temp_v0->unk0.unk0.unk0.unk40 = 0;"
+
+[[function.func_8007C928.mutation]]
+name = "F3: index and wepId swapped in func_80077078"
+target = "c"
+from = "func_80077078(&temp_v0->unk0.unk0.unk0, arg0, arg1, arg2, 0);"
+to = "func_80077078(&temp_v0->unk0.unk0.unk0, arg1, arg0, arg2, 0);"
+
+[[function.func_8007C928.mutation]]
+name = "F4: return drops the +1"
+target = "c"
+from = "return s0 + 1;"
+to = "return s0;"
+
+[[function.func_8007C928.mutation]]
+name = "F5: table slot store dropped"
+target = "c"
+from = "*temp_s1 = &temp_v0->unk0.unk0.unk0;"
+to = "(void)temp_s1;"
+
+[function.func_8007CAA4]
+spec = "func_8007CAA4.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CAA4.mutation]]
+name = "M1: shield call passes slot 0"
+target = "c"
+from = "temp_s0->shield.wepId, 1,"
+to = "temp_s0->shield.wepId, 0,"
+
+[[function.func_8007CAA4.mutation]]
+name = "M2: weapon call passes slot 1"
+target = "c"
+from = "temp_s0->weapon.wepId, 0,"
+to = "temp_s0->weapon.wepId, 1,"
+
+[[function.func_8007CAA4.mutation]]
+name = "M3: empty-shield call dropped"
+target = "c"
+from = "                func_80077130(temp_s1, arg0, 0, 0, 0);\n            }\n        }\n    }"
+to = "            }\n        }\n    }"
+
+[[function.func_8007CAA4.mutation]]
+name = "M4: shield id test inverted"
+target = "c"
+from = "if (temp_s0->shield.base.id != 0) {"
+to = "if (temp_s0->shield.base.id == 0) {"
+
+[[function.func_8007CAA4.mutation]]
+name = "M5: blade material replaced by cost"
+target = "c"
+from = "temp_s0->weapon.blade.material);"
+to = "temp_s0->weapon.blade.cost);"
+
+[function.func_8007CB84]
+spec = "func_8007CB84.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CB84.mutation]]
+name = "F1: dataType 6 instead of 7"
+target = "c"
+from = "objData.dataType = 7;"
+to = "objData.dataType = 6;"
+
+[[function.func_8007CB84.mutation]]
+name = "F2: actorId 0 instead of 1"
+target = "c"
+from = "objData.actorId = 1;"
+to = "objData.actorId = 0;"
+
+[[function.func_8007CB84.mutation]]
+name = "F3: modelId taken from index"
+target = "c"
+from = "objData.modelId = wepId;"
+to = "objData.modelId = index;"
+
+[[function.func_8007CB84.mutation]]
+name = "F4: index field taken from wepId"
+target = "c"
+from = "objData.index = index;"
+to = "objData.index = wepId;"
+
+[[function.func_8007CB84.mutation]]
+name = "F5: populateDataSlot call dropped"
+target = "c"
+from = "vs_battle_populateDataSlot(&objData);"
+to = "(void)&objData;"
+
+[function.func_8007CBBC]
+spec = "func_8007CBBC.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CBBC.mutation]]
+name = "F1: wrong constant (0 for 1)"
+target = "c"
+from = "{ func_8009CC20(arg0, 1); }"
+to = "{ func_8009CC20(arg0, 0); }"
+
+[[function.func_8007CBBC.mutation]]
+name = "F2: argument not forwarded"
+target = "c"
+from = "{ func_8009CC20(arg0, 1); }"
+to = "{ func_8009CC20(0, 1); }"
+
+[[function.func_8007CBBC.mutation]]
+name = "F3: call dropped"
+target = "c"
+from = "{ func_8009CC20(arg0, 1); }"
+to = "{ }"
+
+[[function.func_8007CBBC.mutation]]
+name = "F4: call doubled"
+target = "c"
+from = "{ func_8009CC20(arg0, 1); }"
+to = "{ func_8009CC20(arg0, 1); func_8009CC20(arg0, 1); }"
+
+[[function.func_8007CBBC.mutation]]
+name = "F5: argument truncated to a byte"
+target = "c"
+from = "func_8009CC20(arg0, 1)"
+to = "func_8009CC20(arg0 & 0xFF, 1)"
+
+[function.func_8007CC6C]
+spec = "func_8007CC6C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CC6C.mutation]]
+name = "F1: the call is dropped"
+target = "c"
+from = "func_8009CE9C(arg0);"
+to = "(void)arg0;"
+
+[[function.func_8007CC6C.mutation]]
+name = "F2: argument off by one bit (xor 1)"
+target = "c"
+from = "func_8009CE9C(arg0);"
+to = "func_8009CE9C(arg0 ^ 1);"
+
+[[function.func_8007CC6C.mutation]]
+name = "F3: signed-to-unsigned slip (argument shifted right)"
+target = "c"
+from = "func_8009CE9C(arg0);"
+to = "func_8009CE9C((unsigned)arg0 >> 1);"
+
+[[function.func_8007CC6C.mutation]]
+name = "F4: wrong constant (argument masked to 16 bits)"
+target = "c"
+from = "func_8009CE9C(arg0);"
+to = "func_8009CE9C(arg0 & 0xFFFF);"
+
+[function.func_8007CC8C]
+spec = "func_8007CC8C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CC8C.mutation]]
+name = "F1: the call is dropped"
+target = "c"
+from = "func_8009CFA0();"
+to = "(void)0;"
+
+[[function.func_8007CC8C.mutation]]
+name = "F2: the call is made twice"
+target = "c"
+from = "func_8009CFA0();"
+to = "func_8009CFA0(); func_8009CFA0();"
+
+[[function.func_8007CC8C.mutation]]
+name = "F3: a stray store to the scratchpad after the call"
+target = "c"
+from = "func_8009CFA0();"
+to = "func_8009CFA0(); *(volatile unsigned char *)0x1F800000 = 0;"
+
+[function.func_8007CE74]
+spec = "func_8007CE74.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CE74.mutation]]
+name = "M1: first constant is -0x180, not -0x300"
+target = "c"
+from = "arg0 == -0x300"
+to = "arg0 == -0x180"
+
+[[function.func_8007CE74.mutation]]
+name = "M2: the stored pitch is arg0 + 1"
+target = "c"
+from = "pitch = arg0;"
+to = "pitch = arg0 + 1;"
+
+[[function.func_8007CE74.mutation]]
+name = "M3: the early return is dropped (falls through to the default store)"
+target = "c"
+from = "return;"
+to = "(void)0;"
+
+[[function.func_8007CE74.mutation]]
+name = "M4: || became &&"
+target = "c"
+from = "(arg0 == -0x300) || (arg0 == -0x80)"
+to = "(arg0 == -0x300) && (arg0 == -0x80)"
+
+[[function.func_8007CE74.mutation]]
+name = "M5: default pitch constant off by one"
+target = "c"
+from = "pitch = -0x180;"
+to = "pitch = -0x181;"
+
+[[function.func_8007CE74.mutation]]
+name = "M6: second constant is -0x7F, not -0x80"
+target = "c"
+from = "arg0 == -0x80"
+to = "arg0 == -0x7F"
+
+[function.func_8007CF18]
+spec = "func_8007CF18.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CF18.mutation]]
+name = "F1: slot 15 never checked"
+target = "c"
+from = "i < 16"
+to = "i < 15"
+
+[[function.func_8007CF18.mutation]]
+name = "F2: not-found returns 0, not 1"
+target = "c"
+from = "return 1;"
+to = "return 0;"
+
+[[function.func_8007CF18.mutation]]
+name = "F3: NULL slot guard dropped"
+target = "c"
+from = "(vs_battle_actors[i] != 0) && "
+to = "(1) && "
+expect = "crash"
+
+[[function.func_8007CF18.mutation]]
+name = "F4: arg0 truncated to u16 before the compare"
+target = "c"
+from = "vs_battle_actors[i]->unk18 == arg0"
+to = "vs_battle_actors[i]->unk18 == (u_int)(unsigned short)arg0"
+
+[[function.func_8007CF18.mutation]]
+name = "F5: returns the slot after the match"
+target = "c"
+from = "return i;"
+to = "return i + 1;"
+
+[[function.func_8007CF18.mutation]]
+name = "F6: loop steps by two, skipping odd slots"
+target = "c"
+from = "++i"
+to = "i += 2"
+
+[function.func_8007CF80]
+spec = "func_8007CF80.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CF80.mutation]]
+name = "F1: the last table entry is never counted"
+target = "c"
+from = "i < 16;"
+to = "i < 15;"
+
+[[function.func_8007CF80.mutation]]
+name = "F2: allegiance compared truncated to 8 bits"
+target = "c"
+from = "(vs_battle_actors[i]->unk1C == arg0)"
+to = "((unsigned char)vs_battle_actors[i]->unk1C == (unsigned char)arg0)"
+
+[[function.func_8007CF80.mutation]]
+name = "F3: null check dropped (a null entry is dereferenced)"
+target = "c"
+from = "(vs_battle_actors[i] != 0) && "
+to = ""
+expect = "crash"
+
+[[function.func_8007CF80.mutation]]
+name = "F4: a match counts two"
+target = "c"
+from = "++var_a2;"
+to = "var_a2 += 2;"
+
+[function.func_8007CFCC]
+spec = "func_8007CFCC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CFCC.mutation]]
+name = "F1: unk27 read instead of unk26"
+target = "c"
+from = "return vs_battle_actors[arg0]->unk26;"
+to = "return vs_battle_actors[arg0]->unk27;"
+
+[[function.func_8007CFCC.mutation]]
+name = "F2: null path returns 1, not 0"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[[function.func_8007CFCC.mutation]]
+name = "F3: slot 15 treated as empty (wrong bound)"
+target = "c"
+from = "vs_battle_actors[arg0] != 0"
+to = "vs_battle_actors[arg0] != 0 && arg0 != 15"
+
+[[function.func_8007CFCC.mutation]]
+name = "F4: unk26 masked to 7 bits (sign/high bit dropped)"
+target = "c"
+from = "return vs_battle_actors[arg0]->unk26;"
+to = "return vs_battle_actors[arg0]->unk26 & 0x7F;"
+
+[function.func_8007CFF8]
+spec = "func_8007CFF8.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007CFF8.mutation]]
+name = "F1: wrong constant to the first callee"
+target = "c"
+from = "func_800A0A1C(arg0, 2);"
+to = "func_800A0A1C(arg0, 3);"
+
+[[function.func_8007CFF8.mutation]]
+name = "F2: vx and vz swapped in the second call"
+target = "c"
+from = "func_800E527C(arg0, arg1->vx, arg1->vz);"
+to = "func_800E527C(arg0, arg1->vz, arg1->vx);"
+
+[[function.func_8007CFF8.mutation]]
+name = "F3: wrong field (vy for vz)"
+target = "c"
+from = "func_800E527C(arg0, arg1->vx, arg1->vz);"
+to = "func_800E527C(arg0, arg1->vx, arg1->vy);"
+
+[[function.func_8007CFF8.mutation]]
+name = "F4: second call dropped"
+target = "c"
+from = "    func_800E527C(arg0, arg1->vx, arg1->vz);"
+to = "    (void)arg0;"
+
+[[function.func_8007CFF8.mutation]]
+name = "F5: the calls reordered"
+target = "c"
+from = "    func_800A0A1C(arg0, 2);\n    func_800E527C(arg0, arg1->vx, arg1->vz);"
+to = "    func_800E527C(arg0, arg1->vx, arg1->vz);\n    func_800A0A1C(arg0, 2);"
+
+[function.func_8007D340]
+spec = "func_8007D340.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007D340.mutation]]
+name = "M1: remove flag 1 instead of 0"
+target = "c"
+from = "_removeActorAtIndex(arg0, 0);"
+to = "_removeActorAtIndex(arg0, 1);"
+
+[[function.func_8007D340.mutation]]
+name = "M2: index narrowed to unsigned char"
+target = "c"
+from = "_removeActorAtIndex(arg0, 0);"
+to = "_removeActorAtIndex((unsigned char)arg0, 0);"
+
+[[function.func_8007D340.mutation]]
+name = "M3: index off by one"
+target = "c"
+from = "_removeActorAtIndex(arg0, 0);"
+to = "_removeActorAtIndex(arg0 + 1, 0);"
+
+[[function.func_8007D340.mutation]]
+name = "M4: call dropped"
+target = "c"
+from = "_removeActorAtIndex(arg0, 0);"
+to = "(void)arg0;"
+
+[function.func_8007D41C]
+spec = "func_8007D41C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007D41C.mutation]]
+name = "F1: poly[0] u1 is 63, not 64"
+target = "c"
+from = "(&D_800F1ABC->poly[0])->u1 = (64),"
+to = "(&D_800F1ABC->poly[0])->u1 = (63),"
+
+[[function.func_8007D41C.mutation]]
+name = "F2: poly[4] u1 is 64, not 63"
+target = "c"
+from = "(&D_800F1ABC->poly[4])->u1 = (63)"
+to = "(&D_800F1ABC->poly[4])->u1 = (64)"
+
+[[function.func_8007D41C.mutation]]
+name = "F3: the poly loop stops at 9 (poly[9] left as it was)"
+target = "c"
+from = "for (i = 0; i < 10; ++i) {"
+to = "for (i = 0; i < 9; ++i) {"
+
+[[function.func_8007D41C.mutation]]
+name = "F4: tpage for the strip uses abr 1, not 0"
+target = "c"
+from = "GetTPage(2, 0, i * 64, 0)"
+to = "GetTPage(2, 1, i * 64, 0)"
+
+[[function.func_8007D41C.mutation]]
+name = "F5: sprite height 222, not 223"
+target = "c"
+from = "(&D_800F1ABC->sprite[0])->w = 64, (&D_800F1ABC->sprite[0])->h = 223;"
+to = "(&D_800F1ABC->sprite[0])->w = 64, (&D_800F1ABC->sprite[0])->h = 222;"
+
+[[function.func_8007D41C.mutation]]
+name = "F6: SetSprt call dropped"
+target = "c"
+from = "SetSprt(&D_800F1ABC->sprite[0]);"
+to = "(void)0;"
+
+[function.func_8007DE38]
+spec = "func_8007DE38.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DE38.mutation]]
+name = "F1: stores arg0 plus one"
+target = "c"
+from = "D_800F1A20 = arg0;"
+to = "D_800F1A20 = arg0 + 1;"
+
+[[function.func_8007DE38.mutation]]
+name = "F2: stores arg0 narrowed to unsigned 16 bits"
+target = "c"
+from = "D_800F1A20 = arg0;"
+to = "D_800F1A20 = (unsigned short)arg0;"
+
+[[function.func_8007DE38.mutation]]
+name = "F3: store dropped"
+target = "c"
+from = "D_800F1A20 = arg0;"
+to = "(void)arg0;"
+
+[[function.func_8007DE38.mutation]]
+name = "F4: stores the negated argument"
+target = "c"
+from = "D_800F1A20 = arg0;"
+to = "D_800F1A20 = -arg0;"
+
+[function.func_8007DE44]
+spec = "func_8007DE44.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DE44.mutation]]
+name = "F1: bound off by one (<= for <)"
+target = "c"
+from = "if (arg0 < 0x800) {"
+to = "if (arg0 <= 0x800) {"
+
+[[function.func_8007DE44.mutation]]
+name = "F2: signed compare of the argument"
+target = "c"
+from = "if (arg0 < 0x800) {"
+to = "if ((int)arg0 < 0x800) {"
+
+[[function.func_8007DE44.mutation]]
+name = "F3: stored value off by one"
+target = "c"
+from = "D_800F1A44 = arg0;"
+to = "D_800F1A44 = arg0 + 1;"
+
+[[function.func_8007DE44.mutation]]
+name = "F4: store dropped"
+target = "c"
+from = "D_800F1A44 = arg0;"
+to = "(void)arg0;"
+
+[[function.func_8007DE44.mutation]]
+name = "F5: wrong constant (0x7FF bound)"
+target = "c"
+from = "if (arg0 < 0x800) {"
+to = "if (arg0 < 0x7FF) {"
+
+[function.func_8007DE5C]
+spec = "func_8007DE5C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DE5C.mutation]]
+name = "S1: the store is dropped for a constant 0"
+target = "c"
+from = "D_800F1A40 = arg0;"
+to = "D_800F1A40 = 0;"
+
+[[function.func_8007DE5C.mutation]]
+name = "S2: stored masked to 16 bits"
+target = "c"
+from = "D_800F1A40 = arg0;"
+to = "D_800F1A40 = arg0 & 0xFFFF;"
+
+[[function.func_8007DE5C.mutation]]
+name = "S3: stored sign-folded from 16 bits"
+target = "c"
+from = "D_800F1A40 = arg0;"
+to = "D_800F1A40 = (short)arg0;"
+
+[[function.func_8007DE5C.mutation]]
+name = "S4: low bit forced on"
+target = "c"
+from = "D_800F1A40 = arg0;"
+to = "D_800F1A40 = arg0 | 1;"
+
+[[function.func_8007DE5C.mutation]]
+name = "S5: sign bit flipped"
+target = "c"
+from = "D_800F1A40 = arg0;"
+to = "D_800F1A40 = arg0 ^ 0x80000000;"
+
+[function.func_8007DE78]
+spec = "func_8007DE78.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DE78.mutation]]
+name = "F1: returns the global one low"
+target = "c"
+from = "return D_800F1A2C;"
+to = "return D_800F1A2C - 1;"
+
+[[function.func_8007DE78.mutation]]
+name = "F2: sign bit flipped"
+target = "c"
+from = "return D_800F1A2C;"
+to = "return D_800F1A2C ^ 0x8000;"
+
+[[function.func_8007DE78.mutation]]
+name = "F3: arithmetic shift instead of the value"
+target = "c"
+from = "return D_800F1A2C;"
+to = "return D_800F1A2C >> 1;"
+
+[[function.func_8007DE78.mutation]]
+name = "F4: doubled before the return"
+target = "c"
+from = "return D_800F1A2C;"
+to = "return D_800F1A2C * 2;"
+
+[function.func_8007DE88]
+spec = "func_8007DE88.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DE88.mutation]]
+name = "F1: arg0[1] reads the wrong table entry"
+target = "c"
+from = "arg0[1] = *D_800F1A30;"
+to = "arg0[1] = D_800F1A30[1];"
+
+[[function.func_8007DE88.mutation]]
+name = "F2: third word is 1, not 0"
+target = "c"
+from = "arg0[2] = 0;"
+to = "arg0[2] = 1;"
+
+[[function.func_8007DE88.mutation]]
+name = "F3: the second store is dropped"
+target = "c"
+from = "arg0[1] = *D_800F1A30;"
+to = "(void)0;"
+
+[[function.func_8007DE88.mutation]]
+name = "F4: first word is off by a bit"
+target = "c"
+from = "arg0[0] = *D_800F1A30;"
+to = "arg0[0] = *D_800F1A30 ^ 1;"
+
+[function.func_8007DEA8]
+spec = "func_8007DEA8.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DEA8.mutation]]
+name = "M1: the code byte is zeroed"
+target = "c"
+from = "*arg0 = D_800F1A78;"
+to = "*arg0 = D_800F1A78; arg0->code = 0;"
+
+[[function.func_8007DEA8.mutation]]
+name = "M2: the code byte is not copied"
+target = "c"
+from = "*arg0 = D_800F1A78;"
+to = "arg0->r0 = D_800F1A78.r0; arg0->g0 = D_800F1A78.g0; arg0->b0 = D_800F1A78.b0;"
+
+[[function.func_8007DEA8.mutation]]
+name = "M3: red and green swapped, code copied"
+target = "c"
+from = "*arg0 = D_800F1A78;"
+to = "arg0->r0 = D_800F1A78.g0; arg0->g0 = D_800F1A78.r0; arg0->b0 = D_800F1A78.b0; arg0->code = D_800F1A78.code;"
+
+[[function.func_8007DEA8.mutation]]
+name = "M4: the copy is dropped"
+target = "c"
+from = "*arg0 = D_800F1A78;"
+to = "(void)arg0;"
+
+[[function.func_8007DEA8.mutation]]
+name = "M5: blue one too high"
+target = "c"
+from = "*arg0 = D_800F1A78;"
+to = "*arg0 = D_800F1A78; arg0->b0 = arg0->b0 + 1;"
+
+[function.func_8007DECC]
+spec = "func_8007DECC.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DECC.mutation]]
+name = "F1: the last word is not copied"
+target = "c"
+from = "*arg0 = D_800F1A68;"
+to = "arg0->unk0 = D_800F1A68.unk0; arg0->unk4 = D_800F1A68.unk4; arg0->unk8 = D_800F1A68.unk8;"
+
+[[function.func_8007DECC.mutation]]
+name = "F2: the store is dropped"
+target = "c"
+from = "*arg0 = D_800F1A68;"
+to = "(void)arg0;"
+
+[[function.func_8007DECC.mutation]]
+name = "F3: words 2 and 3 swapped in the copy"
+target = "c"
+from = "*arg0 = D_800F1A68;"
+to = "arg0->unk0 = D_800F1A68.unk0; arg0->unk4 = D_800F1A68.unk4; arg0->unk8 = D_800F1A68.unkC; arg0->unkC = D_800F1A68.unk8;"
+
+[[function.func_8007DECC.mutation]]
+name = "F4: copies from the destination, not the global"
+target = "c"
+from = "*arg0 = D_800F1A68;"
+to = "*arg0 = *arg0;"
+
+[[function.func_8007DECC.mutation]]
+name = "F5: only the first two words are copied"
+target = "c"
+from = "*arg0 = D_800F1A68;"
+to = "arg0->unk0 = D_800F1A68.unk0; arg0->unk4 = D_800F1A68.unk4;"
+
+[function.func_8007DF00]
+spec = "func_8007DF00.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DF00.mutation]]
+name = "R1: returns the global plus one"
+target = "c"
+from = "return D_800F1B9C;"
+to = "return D_800F1B9C + 1;"
+
+[[function.func_8007DF00.mutation]]
+name = "R2: global read as unsigned short (sign and high half dropped)"
+target = "c"
+from = "return D_800F1B9C;"
+to = "return (int)(unsigned short)D_800F1B9C;"
+
+[[function.func_8007DF00.mutation]]
+name = "R3: global read as signed short (high half dropped)"
+target = "c"
+from = "return D_800F1B9C;"
+to = "return (int)(short)D_800F1B9C;"
+
+[[function.func_8007DF00.mutation]]
+name = "R4: global shifted right (arithmetic) before return"
+target = "c"
+from = "return D_800F1B9C;"
+to = "return D_800F1B9C >> 1;"
+
+[function.func_8007DF10]
+spec = "func_8007DF10.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DF10.mutation]]
+name = "F1: returns 0 instead of the global"
+target = "c"
+from = "return D_800F1A20;"
+to = "return 0;"
+
+[[function.func_8007DF10.mutation]]
+name = "F2: global truncated to 16 bits"
+target = "c"
+from = "return D_800F1A20;"
+to = "return (unsigned short)D_800F1A20;"
+
+[[function.func_8007DF10.mutation]]
+name = "F3: logical shift on the unsigned view"
+target = "c"
+from = "return D_800F1A20;"
+to = "return (int)((unsigned)D_800F1A20 >> 1);"
+
+[[function.func_8007DF10.mutation]]
+name = "F4: wrong constant (xor 1)"
+target = "c"
+from = "return D_800F1A20;"
+to = "return D_800F1A20 ^ 1;"
+
+[[function.func_8007DF10.mutation]]
+name = "F5: bitwise not of the global"
+target = "c"
+from = "return D_800F1A20;"
+to = "return ~D_800F1A20;"
+
+[function.func_8007DF20]
+spec = "func_8007DF20.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DF20.mutation]]
+name = "F1: sign bit dropped"
+target = "c"
+from = "return D_800F1A44;"
+to = "return D_800F1A44 & 0x7FFFFFFF;"
+
+[[function.func_8007DF20.mutation]]
+name = "F2: result truncated to 16 bits"
+target = "c"
+from = "return D_800F1A44;"
+to = "return (unsigned short)D_800F1A44;"
+
+[[function.func_8007DF20.mutation]]
+name = "F3: off-by-one on the read"
+target = "c"
+from = "return D_800F1A44;"
+to = "return D_800F1A44 + 1;"
+
+[[function.func_8007DF20.mutation]]
+name = "F4: read sign-extended from 16 bits"
+target = "c"
+from = "return D_800F1A44;"
+to = "return (int)(short)D_800F1A44;"
+
+[[function.func_8007DF20.mutation]]
+name = "F5: the global read dropped"
+target = "c"
+from = "return D_800F1A44;"
+to = "return 0;"
+
+[function.func_8007DF30]
+spec = "func_8007DF30.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007DF30.mutation]]
+name = "F1: the global is not read (returns 0)"
+target = "c"
+from = "return D_800F1A40;"
+to = "return 0;"
+
+[[function.func_8007DF30.mutation]]
+name = "F2: narrowed to a signed 16-bit value"
+target = "c"
+from = "return D_800F1A40;"
+to = "return (short)D_800F1A40;"
+
+[[function.func_8007DF30.mutation]]
+name = "F3: arithmetic shift for a signed division"
+target = "c"
+from = "return D_800F1A40;"
+to = "return D_800F1A40 >> 1;"
+
+[[function.func_8007DF30.mutation]]
+name = "F4: off-by-one constant"
+target = "c"
+from = "return D_800F1A40;"
+to = "return D_800F1A40 + 1;"
+
+[function.func_8007E97C]
+spec = "func_8007E97C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007E97C.mutation]]
+name = "R1: nonzero result is 101"
+target = "c"
+from = "? 100 : 255"
+to = "? 101 : 255"
+
+[[function.func_8007E97C.mutation]]
+name = "R2: zero result is 254"
+target = "c"
+from = "100 : 255"
+to = "100 : 254"
+
+[[function.func_8007E97C.mutation]]
+name = "R3: test inverted"
+target = "c"
+from = "D_800F1A04 != 0"
+to = "D_800F1A04 == 0"
+
+[[function.func_8007E97C.mutation]]
+name = "R4: only the low half of the global is tested"
+target = "c"
+from = "D_800F1A04 != 0"
+to = "(D_800F1A04 & 0xFFFF) != 0"
+
+[[function.func_8007E97C.mutation]]
+name = "R5: arms swapped"
+target = "c"
+from = "? 100 : 255"
+to = "? 255 : 100"
+
+[function.func_8007F434]
+spec = "func_8007F434.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007F434.mutation]]
+name = "R1: clamp only above 101"
+target = "c"
+from = "if (var_s0 > 100)"
+to = "if (var_s0 > 101)"
+
+[[function.func_8007F434.mutation]]
+name = "R2: threshold uses +21"
+target = "c"
+from = "(var_s0 + 20)"
+to = "(var_s0 + 21)"
+
+[[function.func_8007F434.mutation]]
+name = "R3: risk read with +151"
+target = "c"
+from = "->risk + 150)"
+to = "->risk + 151)"
+
+[[function.func_8007F434.mutation]]
+name = "R4: getRand called with 99"
+target = "c"
+from = "vs_main_getRand(100)"
+to = "vs_main_getRand(99)"
+
+[[function.func_8007F434.mutation]]
+name = "R5: getRand result compared unsigned"
+target = "c"
+from = "return vs_main_getRand(100)"
+to = "return (unsigned int)vs_main_getRand(100)"
+
+[[function.func_8007F434.mutation]]
+name = "R6: roll accepted on equality"
+target = "c"
+from = " < (var_s0 + 20)"
+to = " <= (var_s0 + 20)"
+
+[function.func_8007FF8C]
+spec = "func_8007FF8C.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8007FF8C.mutation]]
+name = "F1: the loop stops at slot 1 (third slot never read)"
+target = "c"
+from = "for (i = 0; i < 3; ++i) {"
+to = "for (i = 0; i < 2; ++i) {"
+
+[[function.func_8007FF8C.mutation]]
+name = "F2: wrong byte offset (0xCB for 0xCA)"
+target = "c"
+from = "arg2[i * 0x30 + 0xCA] == 9"
+to = "arg2[i * 0x30 + 0xCB] == 9"
+
+[[function.func_8007FF8C.mutation]]
+name = "F3: the hit flag is never set"
+target = "c"
+from = "var_a3 = 1;"
+to = "var_a3 = 0;"
+
+[[function.func_8007FF8C.mutation]]
+name = "F4: wrong divisor constant"
+target = "c"
+from = "return (arg1 * var_t0) / 100;"
+to = "return (arg1 * var_t0) / 101;"
+
+[[function.func_8007FF8C.mutation]]
+name = "F5: arg1 read unsigned (signed/unsigned slip)"
+target = "c"
+from = "return (arg1 * var_t0) / 100;"
+to = "return (short)(((unsigned short)arg1 * var_t0) / 100);"
+
+[function.func_80086EA4]
+spec = "func_80086EA4.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80086EA4.mutation]]
+name = "M1: the second affinity write adds instead of subtracts"
+target = "c"
+from = "affinity[0][arg2] -= arg3;"
+to = "affinity[0][arg2] += arg3;"
+
+[[function.func_80086EA4.mutation]]
+name = "M2: the second unk168 write drops the negation"
+target = "c"
+from = "unk168[arg2] = -arg3;"
+to = "unk168[arg2] = arg3;"
+
+[[function.func_80086EA4.mutation]]
+name = "M3: the blade test looks at the low byte only"
+target = "c"
+from = "if (arg0->weapon.blade.id != 0) {"
+to = "if ((arg0->weapon.blade.id & 0xFF) != 0) {"
+
+[[function.func_80086EA4.mutation]]
+name = "M4: the first unk168 store is dropped"
+target = "c"
+from = "arg0->weapon.unk168[arg1] = arg3;"
+to = "(void)arg3;"
+
+[[function.func_80086EA4.mutation]]
+name = "M5: the first affinity add goes to row 1"
+target = "c"
+from = "affinity[0][arg1] += arg3;"
+to = "affinity[1][arg1] += arg3;"
+
+[function.func_80086EF4]
+spec = "func_80086EF4.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80086EF4.mutation]]
+name = "F1: shield unk134[arg2] stored without the negation"
+target = "c"
+from = "arg0->shield.unk134[arg2] = -arg3;"
+to = "arg0->shield.unk134[arg2] = arg3;"
+
+[[function.func_80086EF4.mutation]]
+name = "F2: signed slip on the limb armor id (sign-bit ids skipped)"
+target = "c"
+from = "arg0->limbs[i].armor.armor.id != 0"
+to = "(short)arg0->limbs[i].armor.armor.id > 0"
+
+[[function.func_80086EF4.mutation]]
+name = "F3: limb loop stops one short"
+target = "c"
+from = "i < 6"
+to = "i < 5"
+
+[[function.func_80086EF4.mutation]]
+name = "F4: shield affinity[arg2] added instead of subtracted"
+target = "c"
+from = "arg0->shield.classAffinityCurrent.affinity[0][arg2] -= arg3;"
+to = "arg0->shield.classAffinityCurrent.affinity[0][arg2] += arg3;"
+
+[[function.func_80086EF4.mutation]]
+name = "F5: limb unk88[arg1] store dropped"
+target = "c"
+from = "arg0->limbs[i].armor.unk88[arg1] = arg3;"
+to = "(void)0;"
+
+[function.func_80086FA8]
+spec = "func_80086FA8.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80086FA8.mutation]]
+name = "M1: the 0x1000000 case lost (mask drops bit 24)"
+target = "c"
+from = "temp_a0 = arg0 & 0x01E00000;"
+to = "temp_a0 = arg0 & 0x00E00000;"
+
+[[function.func_80086FA8.mutation]]
+name = "M2: unk33 takes unk2E (wrong field)"
+target = "c"
+from = "arg1->unk33 = arg1->unk2F >> 1;"
+to = "arg1->unk33 = arg1->unk2E >> 1;"
+
+[[function.func_80086FA8.mutation]]
+name = "M3: the 0x2000000 switch call dropped"
+target = "c"
+from = "func_80086EF4(arg1, 4, 2, var_a3);"
+to = "(void)var_a3;"
+
+[[function.func_80086FA8.mutation]]
+name = "M4: else-if tests 0x40000 instead of 0x20000"
+target = "c"
+from = "arg0 & 0x20000) {"
+to = "arg0 & 0x40000) {"
+
+[[function.func_80086FA8.mutation]]
+name = "M5: analyze flag stored in the wrong bit"
+target = "c"
+from = "*(int*)&arg1->unk954 |= 0x20000;"
+to = "*(int*)&arg1->unk954 |= 0x10000;"
+
+[[function.func_80086FA8.coverage_waiver]]
+id = "+68 b1"
+reason = "The else-if's false edge is unreachable: statuses |= arg0 runs first, so whenever arg0 & 0x8810 is nonzero, statuses has 0x8010 or 0x800 set and the neither-branch cannot be taken."
+
+[function.func_80088CAC]
+spec = "func_80088CAC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80088CAC.mutation]]
+name = "F1: wrong constant in the guard (3 for 2)"
+target = "c"
+from = "D_80050468.unk2 == 2"
+to = "D_80050468.unk2 == 3"
+
+[[function.func_80088CAC.mutation]]
+name = "F2: the 8007BCCC call dropped"
+target = "c"
+from = "func_8007BCCC();"
+to = "(void)0;"
+
+[[function.func_80088CAC.mutation]]
+name = "F3: unk2 read as its low byte (unsigned char slip)"
+target = "c"
+from = "D_80050468.unk2 == 2"
+to = "(unsigned char)D_80050468.unk2 == 2"
+
+[[function.func_80088CAC.mutation]]
+name = "F4: func_80069DBC moved ahead of the guard"
+target = "c"
+from = "    if (D_80050468.unk2 == 2) {\n        func_8007BCCC();\n    }\n    func_80069DBC();"
+to = "    func_80069DBC();\n    if (D_80050468.unk2 == 2) {\n        func_8007BCCC();\n    }"
+
+[[function.func_80088CAC.mutation]]
+name = "F5: the trailing func_80069DBC call dropped"
+target = "c"
+from = "func_80069DBC();"
+to = "(void)0;"
+
+[function.func_80089104]
+spec = "func_80089104.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80089104.mutation]]
+name = "F1: returns the global plus one"
+target = "c"
+from = "return D_800F18A8;"
+to = "return D_800F18A8 + 1;"
+
+[[function.func_80089104.mutation]]
+name = "F2: result masked to 16 bits"
+target = "c"
+from = "return D_800F18A8;"
+to = "return D_800F18A8 & 0xFFFF;"
+
+[[function.func_80089104.mutation]]
+name = "F3: result shifted right (drops the low bit)"
+target = "c"
+from = "return D_800F18A8;"
+to = "return D_800F18A8 >> 1;"
+
+[[function.func_80089104.mutation]]
+name = "F4: the read dropped, returns zero"
+target = "c"
+from = "return D_800F18A8;"
+to = "return 0;"
+
+[function.func_80089D04]
+spec = "func_80089D04.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_80089D04.mutation]]
+name = "M1: display mask set to 1, not 0"
+target = "c"
+from = "SetDispMask(0);"
+to = "SetDispMask(1);"
+
+[[function.func_80089D04.mutation]]
+name = "M2: the call dropped"
+target = "c"
+from = "SetDispMask(0);"
+to = "(void)0;"
+
+[[function.func_80089D04.mutation]]
+name = "M3: the call made twice"
+target = "c"
+from = "SetDispMask(0);"
+to = "SetDispMask(0); SetDispMask(0);"
+
+[[function.func_80089D04.mutation]]
+name = "M4: mask -1 (all bits set), not 0"
+target = "c"
+from = "SetDispMask(0);"
+to = "SetDispMask(-1);"
+
+[function.func_8008A4DC]
+spec = "func_8008A4DC.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008A4DC.mutation]]
+name = "F1: signed compare drops negative arguments"
+target = "c"
+from = "if (arg0 != 0) {"
+to = "if (arg0 > 0) {"
+
+[[function.func_8008A4DC.mutation]]
+name = "F2: wrong constant stored when set"
+target = "c"
+from = "D_800F190C = 1;"
+to = "D_800F190C = 2;"
+
+[[function.func_8008A4DC.mutation]]
+name = "F3: else store dropped"
+target = "c"
+from = "D_800F190C = 0;"
+to = "(void)0;"
+
+[[function.func_8008A4DC.mutation]]
+name = "F4: else stores -1 instead of 0"
+target = "c"
+from = "D_800F190C = 0;"
+to = "D_800F190C = -1;"
+
+[[function.func_8008A4DC.mutation]]
+name = "F5: test inverted"
+target = "c"
+from = "if (arg0 != 0) {"
+to = "if (arg0 == 0) {"
+
+[function.func_8008ABB8]
+spec = "func_8008ABB8.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008ABB8.mutation]]
+name = "F1: the room's unk1 is not cleared on a match"
+target = "c"
+from = "vs_battle_roomData.unk1 = 0;"
+to = "(void)0;"
+
+[[function.func_8008ABB8.mutation]]
+name = "F2: wrong return constant on a match"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function.func_8008ABB8.mutation]]
+name = "F3: && becomes ||"
+target = "c"
+from = ") && ("
+to = ") || ("
+
+[[function.func_8008ABB8.mutation]]
+name = "F4: unk2 compared unsigned (signed/unsigned slip)"
+target = "c"
+from = "vs_battle_roomData.unk2 == arg0"
+to = "(unsigned short)vs_battle_roomData.unk2 == arg0"
+
+[[function.func_8008ABB8.mutation]]
+name = "F5: room check becomes unk0 != 0"
+target = "c"
+from = "vs_battle_roomData.unk0 == 1"
+to = "vs_battle_roomData.unk0 != 0"
+
+[function.func_8008B2C0]
+spec = "func_8008B2C0.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008B2C0.mutation]]
+name = "F1: flag tested against 1, not 0"
+target = "c"
+from = "vs_battle_roomData.unk0 != 0"
+to = "vs_battle_roomData.unk0 != 1"
+
+[[function.func_8008B2C0.mutation]]
+name = "F2: stored value off by one"
+target = "c"
+from = "vs_battle_roomData.unk1 = arg0;"
+to = "vs_battle_roomData.unk1 = arg0 + 1;"
+
+[[function.func_8008B2C0.mutation]]
+name = "F3: store dropped"
+target = "c"
+from = "vs_battle_roomData.unk1 = arg0;"
+to = "(void)arg0;"
+
+[[function.func_8008B2C0.mutation]]
+name = "F4: test reads unk1 instead of unk0"
+target = "c"
+from = "vs_battle_roomData.unk0 != 0"
+to = "vs_battle_roomData.unk1 != 0"
+
+[function.func_8008B6EC]
+spec = "func_8008B6EC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008B6EC.mutation]]
+name = "F1: the sign bit is masked off the returned address"
+target = "c"
+from = "(long unsigned int)(vs_battle_roomData.section3).raw"
+to = "(long unsigned int)((vs_battle_roomData.section3).raw & 0x7fffffff)"
+
+[[function.func_8008B6EC.mutation]]
+name = "F2: the address is offset by 4"
+target = "c"
+from = "(long unsigned int)(vs_battle_roomData.section3).raw"
+to = "(long unsigned int)((vs_battle_roomData.section3).raw + 4)"
+
+[[function.func_8008B6EC.mutation]]
+name = "F3: section9 read instead of section3"
+target = "c"
+from = "section3).raw"
+to = "section9).raw"
+
+[[function.func_8008B6EC.mutation]]
+name = "F4: a null pointer replaced by 4"
+target = "c"
+from = "(long unsigned int)(vs_battle_roomData.section3).raw"
+to = "((vs_battle_roomData.section3).raw ? (long unsigned int)(vs_battle_roomData.section3).raw : 4)"
+
+[function.func_8008B808]
+spec = "func_8008B808.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008B808.mutation]]
+name = "M1: the stored flag is 4, not 5"
+target = "c"
+from = "arg3 = 5;"
+to = "arg3 = 4;"
+
+[[function.func_8008B808.mutation]]
+name = "M2: section12 test strict (arg2 == 2 takes the else path)"
+target = "c"
+from = "if (arg2 >= 2) {"
+to = "if (arg2 > 2) {"
+
+[[function.func_8008B808.mutation]]
+name = "M3: section12 index off by one"
+target = "c"
+from = "[arg2 - 2].unkB4;"
+to = "[arg2 - 1].unkB4;"
+
+[[function.func_8008B808.mutation]]
+name = "M4: a negative arg3 is read as not set (sign bit test)"
+target = "c"
+from = "if (arg3 != 0) {"
+to = "if (arg3 > 0) {"
+
+[[function.func_8008B808.mutation]]
+name = "M5: section3 index off by one in the low branch"
+target = "c"
+from = "+ arg0];"
+to = "+ arg0 + 1];"
+
+[[function.func_8008B808.mutation]]
+name = "M6: NULL section3 returns 1"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[function.func_8008BAC8]
+spec = "func_8008BAC8.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008BAC8.mutation]]
+name = "D1: the last door entry is skipped"
+target = "c"
+from = "for (i = 0; i < temp_s1; ++i, ++var_s0) {"
+to = "for (i = 0; i < temp_s1 - 1; ++i, ++var_s0) {"
+
+[[function.func_8008BAC8.mutation]]
+name = "D2: arg2 bound is > 2 instead of >= 2"
+target = "c"
+from = "(arg2 >= 2) &&"
+to = "(arg2 > 2) &&"
+
+[[function.func_8008BAC8.mutation]]
+name = "D3: the arg1 test reads unk0_0 instead of unk0_5"
+target = "c"
+from = "((((&var_s0->unk2)->unk0_5)) == arg1)"
+to = "((((&var_s0->unk2)->unk0_0)) == arg1)"
+
+[[function.func_8008BAC8.mutation]]
+name = "D4: rand() result is not stored in unkAC[7]"
+target = "c"
+from = "vs_main_stateFlags.unkAC[7] = rand();"
+to = "(void)rand();"
+
+[[function.func_8008BAC8.mutation]]
+name = "D5: the no-door path returns the global, not NULL"
+target = "c"
+from = "return 0;"
+to = "return &D_800F1D08;"
+
+[[function.func_8008BAC8.mutation]]
+name = "D6: the count is taken from the length divided by 11"
+target = "c"
+from = "doorSectionLen / 12;"
+to = "doorSectionLen / 11;"
+
+[function.func_8008BC04]
+spec = "func_8008BC04.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008BC04.mutation]]
+name = "F1: scan one entry too far"
+target = "c"
+from = "i < temp_t2"
+to = "i <= temp_t2"
+
+[[function.func_8008BC04.mutation]]
+name = "F2: case 2 looks at unk2 - 1"
+target = "c"
+from = "(var_t0->unk0.unk2 + 1) == arg1"
+to = "(var_t0->unk0.unk2 - 1) == arg1"
+
+[[function.func_8008BC04.mutation]]
+name = "F3: unkA check on the first entry dropped"
+target = "c"
+from = "if (var_t0->unk0.unkA != 0) {"
+to = "if (1) {"
+
+[[function.func_8008BC04.mutation]]
+name = "F4: case 3 compares arg1 for x - 1"
+target = "c"
+from = "(var_t0->unk0.unk0 - 1) == arg0"
+to = "(var_t0->unk0.unk0 - 1) == arg1"
+
+[[function.func_8008BC04.mutation]]
+name = "F5: case 1 wraps x + 1 to i16"
+target = "c"
+from = "((var_t0->unk0.unk0 + 1) == arg0)"
+to = "((short)(var_t0->unk0.unk0 + 1) == arg0)"
+
+[[function.func_8008BC04.mutation]]
+name = "F6: sectionALen divided as a signed int"
+target = "c"
+from = "temp_t2 = vs_battle_roomData.header.sectionALen / 20;"
+to = "temp_t2 = (int)vs_battle_roomData.header.sectionALen / 20;"
+
+[function.func_8008BEBC]
+spec = "func_8008BEBC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008BEBC.mutation]]
+name = "F1: range test off by one (<= 7)"
+target = "c"
+from = "(temp_a0 - 0x1CA) < 7"
+to = "(temp_a0 - 0x1CA) <= 7"
+
+[[function.func_8008BEBC.mutation]]
+name = "F2: signed read of keyOrSigil"
+target = "c"
+from = "u_int temp_a0 = (u_short)arg0->keyOrSigil;"
+to = "int temp_a0 = (short)arg0->keyOrSigil;"
+
+[[function.func_8008BEBC.mutation]]
+name = "F3: wrong constant stored to unk13"
+target = "c"
+from = "arg0->unk13 = 8;"
+to = "arg0->unk13 = 9;"
+
+[[function.func_8008BEBC.mutation]]
+name = "F4: dropped call to func_8008C070"
+target = "c"
+from = "func_8008C070(3, arg0);"
+to = "(void)0;"
+
+[[function.func_8008BEBC.mutation]]
+name = "F5: wrong field tested (unk10 for unkE)"
+target = "c"
+from = "if (arg0->unkE == 0) {"
+to = "if (arg0->unk10 == 0) {"
+
+[[function.func_8008BEBC.mutation]]
+name = "F6: wrong return on the work path"
+target = "c"
+from = "func_8008BF48(arg0);\n        return 1;"
+to = "func_8008BF48(arg0);\n        return 0;"
+
+[function.func_8008BF48]
+spec = "func_8008BF48.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008BF48.mutation]]
+name = "F1: the unkE test flipped"
+target = "c"
+from = "if (arg0->unkE == 0) {"
+to = "if (arg0->unkE != 0) {"
+
+[[function.func_8008BF48.mutation]]
+name = "F2: the final callback passes 0 not 1"
+target = "c"
+from = "func_8008C070(1, arg0);"
+to = "func_8008C070(0, arg0);"
+
+[[function.func_8008BF48.mutation]]
+name = "F3: the unk12 flag stored as 0"
+target = "c"
+from = "temp_s0[arg0->unk10].unk12 = 1;"
+to = "temp_s0[arg0->unk10].unk12 = 0;"
+
+[[function.func_8008BF48.mutation]]
+name = "F4: the second unkE callback dropped"
+target = "c"
+from = "func_8008BD74(&temp_s0[arg0->unk10]);"
+to = "(void)0;"
+
+[[function.func_8008BF48.mutation]]
+name = "F5: indices below -1 wrongly skipped"
+target = "c"
+from = "if (arg0->unk10 != -1) {"
+to = "if (arg0->unk10 > -1) {"
+
+[[function.func_8008BF48.mutation]]
+name = "F6: first sfx-callback lock byte read as the s16 field"
+target = "c"
+from = "func_8009291C(arg0->unk0.unk8.lock.unk1);"
+to = "func_8009291C(arg0->unk0.unk8.s16);"
+
+[function.func_8008C070]
+spec = "func_8008C070.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008C070.mutation]]
+name = "M1: frame counter decremented"
+target = "c"
+from = "++D_800F1D6A;"
+to = "--D_800F1D6A;"
+
+[[function.func_8008C070.mutation]]
+name = "M2: scan stops before slot 7"
+target = "c"
+from = "for (i = 0; i < 8; ++i)"
+to = "for (i = 0; i < 7; ++i)"
+
+[[function.func_8008C070.mutation]]
+name = "M3: occupied test as <= 0 (negative slots read as free)"
+target = "c"
+from = "if (D_800F1D28[i].unk0 == 0) {"
+to = "if (D_800F1D28[i].unk0 <= 0) {"
+
+[[function.func_8008C070.mutation]]
+name = "M4: keeps filling after the first free slot"
+target = "c"
+from = "return;"
+to = "continue;"
+
+[[function.func_8008C070.mutation]]
+name = "M5: stores 1 instead of arg0"
+target = "c"
+from = "D_800F1D28[i].unk0 = arg0;"
+to = "D_800F1D28[i].unk0 = 1;"
+
+[[function.func_8008C070.mutation]]
+name = "M6: stored address off by 4"
+target = "c"
+from = "psx_addr(arg1)"
+to = "psx_addr(arg1) + 4"
+
+[function.func_8008C478]
+spec = "func_8008C478.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008C478.mutation]]
+name = "M1: section7 tested as > 0 (negative section7 returns 0)"
+target = "c"
+from = "if (vs_battle_roomData.section7 != 0) {"
+to = "if (vs_battle_roomData.section7 > 0) {"
+
+[[function.func_8008C478.mutation]]
+name = "M2: arg0 scaled by 4, not 8"
+target = "c"
+from = "(arg0 * 8)"
+to = "(arg0 * 4)"
+
+[[function.func_8008C478.mutation]]
+name = "M3: miss path returns -1, not 0"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[[function.func_8008C478.mutation]]
+name = "M4: offset subtracted, not added"
+target = "c"
+from = " + (arg0 * 8)"
+to = " - (arg0 * 8)"
+
+[[function.func_8008C478.mutation]]
+name = "M5: arg0 divided by 8, not scaled"
+target = "c"
+from = "(arg0 * 8)"
+to = "(arg0 / 8)"
+
+[function.func_8008C49C]
+spec = "func_8008C49C.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008C49C.mutation]]
+name = "F1: arg1 >= 0 becomes arg1 > 0 (zero flag not cleared)"
+target = "c"
+from = "if ((arg1 >= 0) && (D_800F1D68 == 0)) {"
+to = "if ((arg1 > 0) && (D_800F1D68 == 0)) {"
+
+[[function.func_8008C49C.mutation]]
+name = "F2: the clear of D_800F1D70[arg0] dropped"
+target = "c"
+from = "D_800F1D70[arg0] = 0;"
+to = "(void)arg0;"
+
+[[function.func_8008C49C.mutation]]
+name = "F3: the flag test inverted"
+target = "c"
+from = "D_800F1D68 == 0"
+to = "D_800F1D68 != 0"
+
+[[function.func_8008C49C.mutation]]
+name = "F4: the 7-bit field stored with a 6-bit mask"
+target = "c"
+from = "unk4_1 = arg1;"
+to = "unk4_1 = arg1 & 63;"
+
+[[function.func_8008C49C.mutation]]
+name = "F5: null section returns -1 instead of 0"
+target = "c"
+from = "return 0;"
+to = "return -1;"
+
+[function.func_8008C518]
+spec = "func_8008C518.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008C518.mutation]]
+name = "F1: callee gets 0 instead of -1"
+target = "c"
+from = "func_8008C49C(arg0, -1);"
+to = "func_8008C49C(arg0, 0);"
+
+[[function.func_8008C518.mutation]]
+name = "F2: arguments swapped"
+target = "c"
+from = "func_8008C49C(arg0, -1);"
+to = "func_8008C49C(-1, arg0);"
+
+[[function.func_8008C518.mutation]]
+name = "F3: the call is dropped"
+target = "c"
+from = "func_8008C49C(arg0, -1);"
+to = "(void)arg0;"
+
+[[function.func_8008C518.mutation]]
+name = "F4: arg0 bit 0 flipped before the call"
+target = "c"
+from = "func_8008C49C(arg0, -1);"
+to = "func_8008C49C(arg0 ^ 1, -1);"
+
+[function.func_8008D658]
+spec = "func_8008D658.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008D658.mutation]]
+name = "P1: the else branch plays 0x3F, not 0x3E"
+target = "c"
+from = "vs_main_playSfxDefault(0x7E, 0x3E);"
+to = "vs_main_playSfxDefault(0x7E, 0x3F);"
+
+[[function.func_8008D658.mutation]]
+name = "P2: callee gets unk4 and unk2 swapped"
+target = "c"
+from = "func_8008B764(arg0->unk0.unk0, arg0->unk0.unk2, arg0->unk0.unk4)"
+to = "func_8008B764(arg0->unk0.unk0, arg0->unk0.unk4, arg0->unk0.unk2)"
+
+[[function.func_8008D658.mutation]]
+name = "P3: the toggle tests == 1, not == 0"
+target = "c"
+from = "arg0->unk0.unk8.s16 = arg0->unk0.unk8.s16 == 0;"
+to = "arg0->unk0.unk8.s16 = arg0->unk0.unk8.s16 == 1;"
+
+[[function.func_8008D658.mutation]]
+name = "P4: the bitfield gets the state times 3, not 5"
+target = "c"
+from = "arg0->unk0.unk8.s16 * 5;"
+to = "arg0->unk0.unk8.s16 * 3;"
+
+[[function.func_8008D658.mutation]]
+name = "P5: the second sound call is dropped"
+target = "c"
+from = "vs_main_playSfxDefault(0x7E, 0x3C);"
+to = "(void)0;"
+
+[[function.func_8008D658.mutation]]
+name = "P6: func_8009291C gets unk4, not unk6"
+target = "c"
+from = "func_8009291C(arg0->unk0.unk6);"
+to = "func_8009291C(arg0->unk0.unk4);"
+
+[function.func_8008DEAC]
+spec = "func_8008DEAC.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008DEAC.mutation]]
+name = "F1: record count divided by 13"
+target = "c"
+from = "int temp_a3 = vs_battle_roomData.header.section9Len / 12;"
+to = "int temp_a3 = vs_battle_roomData.header.section9Len / 13;"
+
+[[function.func_8008DEAC.mutation]]
+name = "F2: non-null path stores into unkB"
+target = "c"
+from = "arg0->unkA = arg1;"
+to = "arg0->unkB = arg1;"
+
+[[function.func_8008DEAC.mutation]]
+name = "F3: the loop never advances the record pointer"
+target = "c"
+from = "++var_a2;"
+to = "var_a2 = var_a2;"
+
+[[function.func_8008DEAC.mutation]]
+name = "F4: the section9 null guard dropped (crashes on address 0)"
+target = "c"
+from = "if (var_a2 != 0) {"
+to = "if (1) {"
+expect = "crash"
+
+[[function.func_8008DEAC.mutation]]
+name = "F5: loop value masked to 7 bits"
+target = "c"
+from = "var_a2->unkA = arg1;"
+to = "var_a2->unkA = arg1 & 0x7F;"
+
+[function.func_8008E224]
+spec = "func_8008E224.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function.func_8008E224.mutation]]
+name = "M1: the store drops the -1 (parity of arg1 flips the bit)"
+target = "c"
+from = "temp_s0->unk0_9 = arg1 - 1;"
+to = "temp_s0->unk0_9 = arg1;"
+
+[[function.func_8008E224.mutation]]
+name = "M2: the set and clear branches swapped"
+target = "c"
+from = "if (!temp_s0->unk0_9) {"
+to = "if (temp_s0->unk0_9) {"
+
+[[function.func_8008E224.mutation]]
+name = "M3: wrong constant in the clear (0x200 for 0x100)"
+target = "c"
+from = "*temp_v0 &= ~0x100;"
+to = "*temp_v0 &= ~0x200;"
+
+[[function.func_8008E224.mutation]]
+name = "M4: the NULL guard on the callee's result dropped"
+target = "c"
+from = "if (temp_v0 != 0) {"
+to = "if (1) {"
+expect = "crash"
+
+[[function.func_8008E224.mutation]]
+name = "M5: the index off by one element"
+target = "c"
+from = ")[arg0];"
+to = ")[arg0 + 1];"
+
+[[function.func_8008E224.mutation]]
+name = "M6: the set store dropped"
+target = "c"
+from = "*temp_v0 |= 0x100;"
+to = "(void)0;"
+
+[function._absMax2]
+spec = "absMax2.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._absMax2.mutation]]
+name = "A1: ties go to arg1 (< for <=)"
+target = "c"
+from = "if (abs0 < (arg1 < 0 ? -arg1 : arg1)) {"
+to = "if (abs0 <= (arg1 < 0 ? -arg1 : arg1)) {"
+
+[[function._absMax2.mutation]]
+name = "A2: negative arg0 not negated for abs"
+target = "c"
+from = "int abs0 = arg0 >= 0 ? arg0 : -arg0;"
+to = "int abs0 = arg0 >= 0 ? arg0 : arg0;"
+
+[[function._absMax2.mutation]]
+name = "A3: returns the absolute value of arg1"
+target = "c"
+from = "return arg1;"
+to = "return arg1 < 0 ? -arg1 : arg1;"
+
+[[function._absMax2.mutation]]
+name = "A4: unsigned compare of the magnitudes"
+target = "c"
+from = "if (abs0 < (arg1 < 0 ? -arg1 : arg1)) {"
+to = "if ((unsigned)abs0 < (unsigned)(arg1 < 0 ? -arg1 : arg1)) {"
+
+[[function._absMax2.mutation]]
+name = "A5: returns the absolute value of arg0"
+target = "c"
+from = "return arg0;"
+to = "return abs0;"
+
+[function._absMax3]
+spec = "absMax3.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._absMax3.mutation]]
+name = "M1: first comparison takes ties (<= for <)"
+target = "c"
+from = "if (var_t0 < var_a3) {"
+to = "if (var_t0 <= var_a3) {"
+
+[[function._absMax3.mutation]]
+name = "M2: second comparison uses > for <"
+target = "c"
+from = "var_v0 = var_a3 < var_v1;"
+to = "var_v0 = var_a3 > var_v1;"
+
+[[function._absMax3.mutation]]
+name = "M3: third argument's magnitude not taken"
+target = "c"
+from = "int var_v1 = arg2 >= new_var ? arg2 : -arg2;"
+to = "int var_v1 = arg2;"
+
+[[function._absMax3.mutation]]
+name = "M4: final select inverted"
+target = "c"
+from = "if (var_v0 != 0) {"
+to = "if (var_v0 == 0) {"
+
+[[function._absMax3.mutation]]
+name = "M5: first branch returns arg0 instead of arg1"
+target = "c"
+from = "arg0 = arg1;"
+to = "arg0 = arg0;"
+
+[function._addSVectorToVector]
+spec = "addSVectorToVector.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._addSVectorToVector.mutation]]
+name = "A1: vz read from svec->vy"
+target = "c"
+from = "out->vz = vec->vz + svec->vz;"
+to = "out->vz = vec->vz + svec->vy;"
+
+[[function._addSVectorToVector.mutation]]
+name = "A2: vy read from vec->vz"
+target = "c"
+from = "out->vy = vec->vy + v;"
+to = "out->vy = vec->vz + v;"
+
+[[function._addSVectorToVector.mutation]]
+name = "A3: vx store dropped"
+target = "c"
+from = "out->vx = vec->vx + svec->vx;"
+to = "(void)0;"
+
+[[function._addSVectorToVector.mutation]]
+name = "A4: signed slip on the svec->vy read (zero-extended)"
+target = "c"
+from = "int v = svec->vy;"
+to = "unsigned int v = (unsigned short)svec->vy;"
+
+[[function._addSVectorToVector.mutation]]
+name = "A5: svec->vy read moved past the vx store"
+target = "c"
+from = "    int v = svec->vy;\n    out->vx = vec->vx + svec->vx;"
+to = "    out->vx = vec->vx + svec->vx;\n    int v = svec->vy;"
+
+[function._applyBattleAbilityEffect]
+spec = "applyBattleAbilityEffect.zig"
+iterations = 40000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._applyBattleAbilityEffect.mutation]]
+name = "A1: heal clamp compares HP as unsigned"
+target = "c"
+from = "if (actor->currentHP > arg0->unk0.hp) {"
+to = "if ((unsigned short)actor->currentHP > (unsigned short)arg0->unk0.hp) {"
+
+[[function._applyBattleAbilityEffect.mutation]]
+name = "A2: maxHP clamp to 998"
+target = "c"
+from = "actor->maxHP = 999;"
+to = "actor->maxHP = 998;"
+
+[[function._applyBattleAbilityEffect.mutation]]
+name = "A3: armor-DP drain of the target limb hits limb 0"
+target = "c"
+from = "actor->limbs[arg0->unk0.targetLimb].armor.currentDp = 0;"
+to = "actor->limbs[0].armor.currentDp = 0;"
+
+[[function._applyBattleAbilityEffect.mutation]]
+name = "A4: the HP-heal call is dropped"
+target = "c"
+from = "func_80087578(targetActorId, arg0->unk0.targetLimb, arg0->unk0.hp, 0);"
+to = "(void)0;"
+
+[[function._applyBattleAbilityEffect.mutation]]
+name = "A5: inflicting a status calls the remove callee"
+target = "c"
+from = "func_80086754(arg0->inflictStatuses & flag, actor);"
+to = "func_80086FA8(arg0->inflictStatuses & flag, actor);"
+
+[[function._applyBattleAbilityEffect.mutation]]
+name = "A6: strength cap at 1000, not 999"
+target = "c"
+from = "if (actor->strength > 999) {"
+to = "if (actor->strength > 1000) {"
+
+[function._breakArtsUnlocked]
+spec = "breakArtsUnlocked.zig"
+iterations = 20000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._breakArtsUnlocked.mutation]]
+name = "A1: the loop stops before the fourth entry"
+target = "c"
+from = "i < 4; ++i"
+to = "i < 3; ++i"
+
+[[function._breakArtsUnlocked.mutation]]
+name = "A2: the base offset 0xB8 becomes 0xB0"
+target = "c"
+from = "0xB8 + ((vs_battle_characterState"
+to = "0xB0 + ((vs_battle_characterState"
+
+[[function._breakArtsUnlocked.mutation]]
+name = "A3: the entry stride is 3, not 4"
+target = "c"
+from = "equippedWeaponCategory - 1) * 4)"
+to = "equippedWeaponCategory - 1) * 3)"
+
+[[function._breakArtsUnlocked.mutation]]
+name = "A4: an unlocked entry returns 2, not 1"
+target = "c"
+from = "return 1;"
+to = "return 2;"
+
+[[function._breakArtsUnlocked.mutation]]
+name = "A5: nothing unlocked returns 1"
+target = "c"
+from = "return 0;"
+to = "return 1;"
+
+[function._checkFirstPersonViewExit]
+spec = "checkFirstPersonViewExit.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._checkFirstPersonViewExit.mutation]]
+name = "F1: button mask bit 11 read as bit 12"
+target = "c"
+from = "(1<<11)"
+to = "(1<<12)"
+
+[[function._checkFirstPersonViewExit.mutation]]
+name = "F2: yaw test >= instead of >"
+target = "c"
+from = "> 0x100"
+to = ">= 0x100"
+
+[[function._checkFirstPersonViewExit.mutation]]
+name = "F3: yaw remainder computed unsigned (signed/unsigned slip)"
+target = "c"
+from = "- (vs_battle_cameraTransition->toSpherical.values.yaw % 512)"
+to = "- (int)((unsigned)vs_battle_cameraTransition->toSpherical.values.yaw % 512u)"
+
+[[function._checkFirstPersonViewExit.mutation]]
+name = "F4: dropped store to D_800F19C8"
+target = "c"
+from = "D_800F19C8 = 0;"
+to = "(void)0;"
+
+[[function._checkFirstPersonViewExit.mutation]]
+name = "F5: toFarClip copied from nearClip (wrong field)"
+target = "c"
+from = "toFarClip = vs_battle_cameraTransition->fromFarClip;"
+to = "toFarClip = vs_battle_cameraTransition->fromNearClip;"
+
+[[function._checkFirstPersonViewExit.mutation]]
+name = "F6: else-branch mask ~0xFF instead of ~0x1FF"
+target = "c"
+from = "yaw & ~0x1FF;"
+to = "yaw & ~0x0FF;"
+
+[function._dismissAllTextBoxes]
+spec = "dismissAllTextBoxes.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._dismissAllTextBoxes.mutation]]
+name = "D1: a failing call does not clear the result"
+target = "c"
+from = "var_s1 = 0;"
+to = "var_s1 = 1;"
+
+[[function._dismissAllTextBoxes.mutation]]
+name = "D2: loop stops one short"
+target = "c"
+from = "i < 8"
+to = "i < 7"
+
+[[function._dismissAllTextBoxes.mutation]]
+name = "D3: only positive returns count as failure"
+target = "c"
+from = "!= 0) {"
+to = "> 0) {"
+
+[[function._dismissAllTextBoxes.mutation]]
+name = "D4: result starts at 0"
+target = "c"
+from = "int var_s1 = 1;"
+to = "int var_s1 = 0;"
+
+[[function._dismissAllTextBoxes.mutation]]
+name = "D5: loop starts at box 1 (box 0 never dismissed)"
+target = "c"
+from = "for (i = 0;"
+to = "for (i = 1;"
+
+[function._endBattleCameraTransition]
+spec = "endBattleCameraTransition.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._endBattleCameraTransition.mutation]]
+name = "E1: delta.pitch copied from values.pitch, not yaw"
+target = "c"
+from = "vs_battle_cameraCurrentSpherical.values.yaw;"
+to = "vs_battle_cameraCurrentSpherical.values.pitch;"
+
+[[function._endBattleCameraTransition.mutation]]
+name = "E2: the heap block freed is NULL, not the transition"
+target = "c"
+from = "vs_main_freeHeapR(vs_battle_cameraTransition);"
+to = "vs_main_freeHeapR(0);"
+
+[[function._endBattleCameraTransition.mutation]]
+name = "E3: wrong constant passed to func_800CB654"
+target = "c"
+from = "func_800CB654(0);"
+to = "func_800CB654(1);"
+
+[[function._endBattleCameraTransition.mutation]]
+name = "E4: the transition global is not cleared after the free"
+target = "c"
+from = "vs_battle_cameraTransition = NULL;"
+to = "(void)0;"
+
+[[function._endBattleCameraTransition.mutation]]
+name = "E5: the free test inverted"
+target = "c"
+from = "if (vs_battle_cameraTransition != NULL) {"
+to = "if (vs_battle_cameraTransition == NULL) {"
+
+[[function._endBattleCameraTransition.mutation]]
+name = "E6: near clip taken from the far clip field"
+target = "c"
+from = "vs_battle_setNearClip(vs_battle_cameraTransition->fromNearClip);"
+to = "vs_battle_setNearClip(vs_battle_cameraTransition->fromFarClip);"
+
+[function._factorPhysicalDamageReceived1]
+spec = "factorPhysicalDamageReceived1.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorPhysicalDamageReceived1.mutation]]
+name = "F1: the damage divisor is 9"
+target = "c"
+from = "/ 10;"
+to = "/ 9;"
+
+[[function._factorPhysicalDamageReceived1.mutation]]
+name = "F2: the second hpEffect test is 2, not 3"
+target = "c"
+from = "hpEffect == 3)"
+to = "hpEffect == 2)"
+
+[[function._factorPhysicalDamageReceived1.mutation]]
+name = "F3: mp dropped from the sum"
+target = "c"
+from = "+ D_800F19CC->unk8.unk4.unk0.mp)"
+to = "+ 0)"
+
+[[function._factorPhysicalDamageReceived1.mutation]]
+name = "F4: the spell check is inverted"
+target = "c"
+from = "!= actionTypeSpell"
+to = "== actionTypeSpell"
+
+[[function._factorPhysicalDamageReceived1.mutation]]
+name = "F5: statFactor read at hitParams[0] whatever arg3 is"
+target = "c"
+from = "action->hitParams[arg3]"
+to = "action->hitParams[0]"
+
+[[function._factorPhysicalDamageReceived1.mutation]]
+name = "F6: hp subtracted, not added to mp"
+target = "c"
+from = "unk0.hp + D_800F19CC"
+to = "unk0.hp - D_800F19CC"
+
+[function._factorSpellCost]
+spec = "factorSpellCost.zig"
+iterations = 30000
+# Drafted by pc/tools/port_pipeline.py (anthropic/claude-haiku-5.5); review queue: pc/docs/porting/battle/pipeline/REVIEW.md
+
+[[function._factorSpellCost.mutation]]
+name = "F1: statFactor always read from hitParams[0]"
+target = "c"
+from = "* action->hitParams[arg3].statFactor)"
+to = "* action->hitParams[0].statFactor)"
+
+[[function._factorSpellCost.mutation]]
+name = "F2: non-spell cost is 1, not 0"
+target = "c"
+from = "var_v0 = 0;"
+to = "var_v0 = 1;"
+
+[[function._factorSpellCost.mutation]]
+name = "F3: divide by 9 not 10"
+target = "c"
+from = "/ 10;"
+to = "/ 9;"
+
+[[function._factorSpellCost.mutation]]
+name = "F4: cost read from the neighbouring action"
+target = "c"
+from = "D_800F19CC->unk8.actionIndex].cost"
+to = "D_800F19CC->unk8.actionIndex ^ 1].cost"
+
+[[function._factorSpellCost.mutation]]
+name = "F5: cost read from the rangeX field"
+target = "c"
+from = "].cost"
+to = "].rangeX"
+
+[[function._factorSpellCost.mutation]]
+name = "F6: spell test inverted"
+target = "c"
+from = "== actionTypeSpell) {"
+to = "!= actionTypeSpell) {"

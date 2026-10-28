@@ -1,0 +1,187 @@
+{
+ "function": "func_80074950",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80074950",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80074950",
+  "difficulty": "S",
+  "zig_name": "func_80074950",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80074950",
+  "spec_file": "func_80074950.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80074950(arg0: c_int) callconv(.c) ?*v._mpdRoomSection13",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "?*v._mpdRoomSection13",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12338,
+     "completion_tokens": 20753,
+     "reasoning_tokens": 18657,
+     "cost": 0.00580515,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F4: sector bytes read unsigned: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80074950: 40000 iterations, seed 1, 0 mismatches; classes: null-room=6573 unk12-mismatch=8385 flag-set=6227 vy-mismatch=9387 match=9428"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14598,
+     "completion_tokens": 5120,
+     "reasoning_tokens": 2878,
+     "cost": 0.0020099,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F4: sector bytes read unsigned: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_80074950: 40000 iterations, seed 1, 0 mismatches; classes: null-room=6573 unk12-mismatch=8385 flag-set=6227 vy-mismatch=9387 match=9428"
+    ]
+   }
+  ],
+  "classes": {
+   "null-room": "6573",
+   "unk12-mismatch": "8385",
+   "flag-set": "6227",
+   "vy-mismatch": "9387",
+   "match": "9428"
+  },
+  "mutations": [
+   {
+    "name": "F1: state flag test dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: vy offset off by one",
+    "caught": true
+   },
+   {
+    "name": "F3: lookup arguments swapped (s1[1] and s1[2])",
+    "caught": true
+   },
+   {
+    "name": "F4: sector bytes read unsigned",
+    "caught": false
+   },
+   {
+    "name": "F5: vx compared instead of vy",
+    "caught": true
+   },
+   {
+    "name": "F6: sign extension from 16 bits, not 15",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "32-bit: min -2147388508, max 2147410237, unsigned 112858..4294648895, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if ((temp_v0 != 0) && (temp_v0->unk12 == temp_s2)) {",
+     "size": 4,
+     "count": 33427,
+     "kind": "a == b / a < b",
+     "outcomes": "== 25042, < 4116, > 4269 (signed); < 4198, > 4187 (unsigned)",
+     "operand": "b -32767..32763",
+     "a": "-2146610938..2146940709"
+    },
+    {
+     "line": 13,
+     "text": "if (!vs_battle_getStateFlag((temp_v0->unk10 + 0x3C0))) {",
+     "size": 1,
+     "count": 25042,
+     "kind": "against a constant",
+     "outcomes": "== 18815, < 3107, > 3120 (signed); < 0, > 6227 (unsigned)",
+     "operand": "constant 0",
+     "a": "-127..127"
+    },
+    {
+     "line": 17,
+     "text": "if (sp10.unk0.unk4.vy == v) {",
+     "size": 4,
+     "count": 18815,
+     "kind": "a == b / a < b",
+     "outcomes": "== 9428, < 4725, > 4662 (signed); < 4792, > 4595 (unsigned)",
+     "operand": "b -32764..32764",
+     "a": "-16288..16479"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 44.70315107400165,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56432.25109791756,
+ "totals": {
+  "cost": 0.00782,
+  "prompt_tokens": 26936,
+  "completion_tokens": 25873,
+  "model_seconds": 0.0,
+  "check_seconds": 44.7,
+  "calls": 2,
+  "wall_seconds": 56432.3
+ }
+}

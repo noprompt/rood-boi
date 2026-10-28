@@ -1,0 +1,280 @@
+{
+ "function": "func_8008BAC8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008BAC8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008bac8",
+  "difficulty": "S",
+  "zig_name": "func_8008BAC8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008BAC8",
+  "spec_file": "func_8008BAC8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008BAC8(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v.D_800F1D08_t",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "?*v.D_800F1D08_t",
+  "types": [
+   "D_800F1D08_t"
+  ],
+  "globals": [
+   "D_800F1D08"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15558,
+     "completion_tokens": 16419,
+     "reasoning_tokens": 14266,
+     "cost": 0.00488265,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-door": "3769",
+   "no-entries": "3834",
+   "matched": "7051",
+   "unmatched": "15346"
+  },
+  "mutations": [
+   {
+    "name": "D1: the last door entry is skipped",
+    "caught": true
+   },
+   {
+    "name": "D2: arg2 bound is > 2 instead of >= 2",
+    "caught": true
+   },
+   {
+    "name": "D3: the arg1 test reads unk0_0 instead of unk0_5",
+    "caught": true
+   },
+   {
+    "name": "D4: rand() result is not stored in unkAC[7]",
+    "caught": true
+   },
+   {
+    "name": "D5: the no-door path returns the global, not NULL",
+    "caught": true
+   },
+   {
+    "name": "D6: the count is taken from the length divided by 11",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 15,
+   "lines_hit": 15,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147423960, max 2147298264, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2146956677, max 2147389627, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147450474, max 2147346736, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "if (((__typeof__((vs_battle_roomData.doorSection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.doorSection).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 3769, < 0, > 26231 (signed); < 0, > 26231 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4235968"
+    },
+    {
+     "line": 14,
+     "text": "for (i = 0; i < temp_s1; ++i, ++var_s0) {",
+     "size": 4,
+     "count": 104541,
+     "kind": "a == b / a < b",
+     "outcomes": "== 26231, < 78310, > 0 (signed); < 78310, > 0 (unsigned)",
+     "operand": "b 0..6",
+     "a": "0..6"
+    },
+    {
+     "line": 16,
+     "text": "if (((arg2 >= 2) && ((&new_var->unk2)->unk0_10 == arg2))",
+     "size": 4,
+     "count": 78310,
+     "kind": "against a constant",
+     "outcomes": "== 10232, < 23105, > 44973 (signed); < 10277, > 57801 (unsigned)",
+     "operand": "constant 1",
+     "a": "-2147450474..2147346736"
+    },
+    {
+     "line": 16,
+     "text": "if (((arg2 >= 2) && ((&new_var->unk2)->unk0_10 == arg2))",
+     "size": 4,
+     "count": 44973,
+     "kind": "a == b / a < b",
+     "outcomes": "== 7188, < 7337, > 30448 (signed); < 7337, > 30448 (unsigned)",
+     "operand": "b 0..7",
+     "a": "2..2147346736"
+    },
+    {
+     "line": 17,
+     "text": "|| (((((&var_s0->unk2)->unk0_0) == arg0))",
+     "size": 4,
+     "count": 71122,
+     "kind": "a == b / a < b",
+     "outcomes": "== 7219, < 32679, > 31224 (signed); < 19258, > 44645 (unsigned)",
+     "operand": "b 0..31",
+     "a": "-2146785090..2147298264"
+    },
+    {
+     "line": 18,
+     "text": "&& ((((&var_s0->unk2)->unk0_5)) == arg1)",
+     "size": 4,
+     "count": 7219,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2321, < 2506, > 2392 (signed); < 1800, > 3098 (unsigned)",
+     "operand": "b 0..31",
+     "a": "-2146185006..2146661011"
+    },
+    {
+     "line": 19,
+     "text": "&& ((((&var_s0->unk2)->unk0_10)) == arg2))) {",
+     "size": 4,
+     "count": 2321,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1904, < 218, > 199 (signed); < 184, > 233 (unsigned)",
+     "operand": "b 0..7",
+     "a": "-2115396888..2115064268"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39022,
+     "completion_tokens": 6188,
+     "reasoning_tokens": 5526,
+     "cost": 0.0034980999999999996,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008BAC8.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008BAC8.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 320.34435566999855,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 93260.82283639908,
+ "totals": {
+  "cost": 0.00838,
+  "prompt_tokens": 54580,
+  "completion_tokens": 22607,
+  "model_seconds": 0.0,
+  "check_seconds": 320.3,
+  "calls": 2,
+  "wall_seconds": 93260.8
+ }
+}

@@ -1,0 +1,212 @@
+{
+ "function": "_hitPrerequisiteCanApplyEffect",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyEffect",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f4b0",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyEffect",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_effect",
+  "spec_file": "hitPrerequisiteCanApplyEffect.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyEffect(debuff: c_int, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "debuff",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13515,
+     "completion_tokens": 10830,
+     "reasoning_tokens": 9045,
+     "cost": 0.00338325,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "first-mask-set": "16992",
+   "only-second-set": "7345",
+   "both-clear": "5663"
+  },
+  "mutations": [
+   {
+    "name": "H1: || instead of && between the two mask tests",
+    "caught": true
+   },
+   {
+    "name": "H2: second test reads unk944 instead of statuses",
+    "caught": true
+   },
+   {
+    "name": "H3: second test uses params[2]",
+    "caught": true
+   },
+   {
+    "name": "H4: the both-clear return is 2, not 0",
+    "caught": true
+   },
+   {
+    "name": "H5: first test ORs instead of ANDs the mask",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 4, seen zero, never negative, 5 value(s): 2, 4, 0, 3, 1"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if ((!(params[0] & temp_a1->unk944)) && (!(params[3] & temp_a1->statuses))) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 13008, < 7471, > 9521 (signed); < 0, > 16992 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 5,
+     "text": "if ((!(params[0] & temp_a1->unk944)) && (!(params[3] & temp_a1->statuses))) {",
+     "size": 4,
+     "count": 13008,
+     "kind": "against a constant",
+     "outcomes": "== 5663, < 3144, > 4201 (signed); < 0, > 7345 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36768,
+     "completion_tokens": 2676,
+     "reasoning_tokens": 2272,
+     "cost": 0.0025074,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyEffect.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_effect.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 229.92411677600285,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 61554.17065668106,
+ "totals": {
+  "cost": 0.00589,
+  "prompt_tokens": 50283,
+  "completion_tokens": 13506,
+  "model_seconds": 0.0,
+  "check_seconds": 229.9,
+  "calls": 2,
+  "wall_seconds": 61554.2
+ }
+}

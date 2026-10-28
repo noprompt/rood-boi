@@ -1,0 +1,155 @@
+{
+ "function": "_hitPrerequisiteUnused2",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteUnused2",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007fdd0",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteUnused2",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_unused2",
+  "spec_file": "hitPrerequisiteUnused2.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteUnused2(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12012,
+     "completion_tokens": 3225,
+     "reasoning_tokens": 2382,
+     "cost": 0.0014068499999999999,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused2: 1000 iterations, seed 1, 1000 mismatches",
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13060,
+     "completion_tokens": 3341,
+     "reasoning_tokens": 2206,
+     "cost": 0.00148825,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused2: 1000 iterations, seed 1, 1000 mismatches; classes: unk10-nonnegative=495 unk10-negative=505"
+    ]
+   }
+  ],
+  "classes": {
+   "unk10-nonnegative": "495",
+   "unk10-negative": "505"
+  },
+  "mutations": [
+   {
+    "name": "H1: the C writes arg1[0]",
+    "caught": true
+   },
+   {
+    "name": "H2: the C writes action->unk10",
+    "caught": true
+   },
+   {
+    "name": "H3: the C returns 1",
+    "caught": true
+   },
+   {
+    "name": "H4: the C writes arg1[15] (the last byte of the 16-byte buffer)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 12.443801695999355,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56215.1744222641,
+ "totals": {
+  "cost": 0.0029,
+  "prompt_tokens": 25072,
+  "completion_tokens": 6566,
+  "model_seconds": 0.0,
+  "check_seconds": 12.4,
+  "calls": 2,
+  "wall_seconds": 56215.2
+ }
+}

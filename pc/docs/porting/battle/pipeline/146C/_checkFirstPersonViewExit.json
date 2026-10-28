@@ -1,0 +1,220 @@
+{
+ "function": "_checkFirstPersonViewExit",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_checkFirstPersonViewExit",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800745ec",
+  "difficulty": "S",
+  "zig_name": "checkFirstPersonViewExit",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "check_first_person_view_exit",
+  "spec_file": "checkFirstPersonViewExit.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn checkFirstPersonViewExit() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14395,
+     "completion_tokens": 13927,
+     "reasoning_tokens": 11833,
+     "cost": 0.0042015,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F3: yaw remainder unsigned (signed/unsigned slip): gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018_checkFirstPersonViewExit__standin\u2019:\nzdiff_standin.c:19:60: error: expected identifier before \u2018(\u2019 token\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16627,
+     "completion_tokens": 4476,
+     "reasoning_tokens": 2352,
+     "cost": 0.00195035,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-buttons": "12155",
+   "yaw-above-256": "4451",
+   "yaw-at-256": "1361",
+   "yaw-at-or-below-255": "12033"
+  },
+  "mutations": [
+   {
+    "name": "F1: button mask bit 11 read as bit 12",
+    "caught": true
+   },
+   {
+    "name": "F2: yaw test >= instead of >",
+    "caught": true
+   },
+   {
+    "name": "F3: yaw remainder computed unsigned (signed/unsigned slip)",
+    "caught": true
+   },
+   {
+    "name": "F4: dropped store to D_800F19C8",
+    "caught": true
+   },
+   {
+    "name": "F5: toFarClip copied from nearClip (wrong field)",
+    "caught": true
+   },
+   {
+    "name": "F6: else-branch mask ~0xFF instead of ~0x1FF",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 28,
+   "lines_hit": 28,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (!(vs_main_buttonsPressed.all & ((1<< 6) | (1<<10) | (1<<11)))) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 12155, < 0, > 17845 (signed); < 0, > 17845 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..3136"
+    },
+    {
+     "line": 16,
+     "text": "if ((vs_battle_cameraTransition->toSpherical.values.yaw",
+     "size": 4,
+     "count": 17845,
+     "kind": "against a constant",
+     "outcomes": "== 1017, < 12340, > 4488 (signed); < 4879, > 11949 (unsigned)",
+     "operand": "constant 256",
+     "a": "-511..511"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37832,
+     "completion_tokens": 9595,
+     "reasoning_tokens": 8550,
+     "cost": 0.00429035,
+     "seconds": null,
+     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/checkFirstPersonViewExit.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/check_first_person_view_exit.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 375.3459929029923,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 98892.96696138382,
+ "totals": {
+  "cost": 0.01044,
+  "prompt_tokens": 68854,
+  "completion_tokens": 27998,
+  "model_seconds": 0.0,
+  "check_seconds": 375.3,
+  "calls": 3,
+  "wall_seconds": 98893.0
+ }
+}

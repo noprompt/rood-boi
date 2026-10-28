@@ -1,0 +1,762 @@
+{
+ "function": "_applyBattleAbilityEffect",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "XL",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_applyBattleAbilityEffect",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800875c8",
+  "difficulty": "XL",
+  "zig_name": "applyBattleAbilityEffect",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "apply_battle_ability_effect",
+  "spec_file": "applyBattleAbilityEffect.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn applyBattleAbilityEffect(arg0: ?*v._hitEntity_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v._hitEntity_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22906,
+     "completion_tokens": 25244,
+     "reasoning_tokens": 21990,
+     "cost": 0.0074563,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation A1: heal clamp compares HP as unsigned: gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018_applyBattleAbilityEffect__standin\u2019:\nzdiff_standin.c:45:14: error: \u2018u16\u2019 undeclared (first use in this function)\nzdiff_standin.c:45:14: note: each undeclared identifier is reported only once for each function it appears in\nzdiff_standin.c:45:18: error: expected \u2018)\u2019 before \u2018actor\u2019\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 26366,
+     "completion_tokens": 4215,
+     "reasoning_tokens": 870,
+     "cost": 0.0023720499999999997,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "target-0": "9976",
+   "heal": "7501",
+   "damage": "15015",
+   "statuses": "6321",
+   "other": "1187"
+  },
+  "mutations": [
+   {
+    "name": "A1: heal clamp compares HP as unsigned",
+    "caught": true
+   },
+   {
+    "name": "A2: maxHP clamp to 998",
+    "caught": true
+   },
+   {
+    "name": "A3: armor-DP drain of the target limb hits limb 0",
+    "caught": true
+   },
+   {
+    "name": "A4: the HP-heal call is dropped",
+    "caught": true
+   },
+   {
+    "name": "A5: inflicting a status calls the remove callee",
+    "caught": true
+   },
+   {
+    "name": "A6: strength cap at 1000, not 999",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 120,
+   "branches_hit": 120,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 189,
+   "lines_hit": 189,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 40000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 12,
+     "text": "if (arg0->unk0.unk3 == 4) {",
+     "size": 1,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 8090, < 22237, > 9673 (signed); < 8192, > 23718 (unsigned)",
+     "operand": "constant 4",
+     "a": "-128..127"
+    },
+    {
+     "line": 16,
+     "text": "switch (arg0->hpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 29951, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 23,
+     "text": "if (actor->maxHP < actor->currentHP) {",
+     "size": 2,
+     "count": 10091,
+     "kind": "a == b / a < b",
+     "outcomes": "== 108, < 4831, > 5152 (signed); < 5779, > 4204 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 27,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 70637,
+     "kind": "against a constant",
+     "outcomes": "== 10091, < 50455, > 10091 (signed); < 50455, > 10091 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 31,
+     "text": "if (actor->limbs[i].maxHp < actor->limbs[i].hp) {",
+     "size": 2,
+     "count": 60546,
+     "kind": "a == b / a < b",
+     "outcomes": "== 588, < 29035, > 30923 (signed); < 34397, > 25561 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 44,
+     "text": "if (actor->currentHP > arg0->unk0.hp) {",
+     "size": 2,
+     "count": 19860,
+     "kind": "a == b / a < b",
+     "outcomes": "== 707, < 9704, > 9449 (signed); < 9625, > 9528 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 50,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 139020,
+     "kind": "against a constant",
+     "outcomes": "== 19860, < 99300, > 19860 (signed); < 99300, > 19860 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 51,
+     "text": "if (actor->limbs[i].hp > arg0->limbs[i].effects.value0) {",
+     "size": 2,
+     "count": 119160,
+     "kind": "a == b / a < b",
+     "outcomes": "== 4293, < 57355, > 57512 (signed); < 57462, > 57405 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 56,
+     "text": "if (actor->limbs[i].armor.currentDp > arg0->limbs[i].effects.value1) {",
+     "size": 4,
+     "count": 119160,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2815, < 22927, > 93418 (signed); < 69908, > 46437 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 66,
+     "text": "switch (arg0->mpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20142, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 72,
+     "text": "if (actor->maxMP < actor->currentMP) {",
+     "size": 2,
+     "count": 10089,
+     "kind": "a == b / a < b",
+     "outcomes": "== 101, < 4836, > 5152 (signed); < 5724, > 4264 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 82,
+     "text": "if (actor->currentMP > arg0->unk0.mp) {",
+     "size": 2,
+     "count": 10053,
+     "kind": "a == b / a < b",
+     "outcomes": "== 355, < 4837, > 4861 (signed); < 4914, > 4784 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 90,
+     "text": "switch (arg0->riskEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20142, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 97,
+     "text": "if (actor->risk > arg0->risk) {",
+     "size": 4,
+     "count": 10118,
+     "kind": "a == b / a < b",
+     "outcomes": "== 252, < 1893, > 7973 (signed); < 5894, > 3972 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 105,
+     "text": "switch (arg0->strengthEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 19978, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 111,
+     "text": "if (actor->totalStrength > 999) {",
+     "size": 2,
+     "count": 10016,
+     "kind": "against a constant",
+     "outcomes": "== 244, < 5309, > 4463 (signed); < 645, > 9127 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 117,
+     "text": "if (actor->strength > 999) {",
+     "size": 2,
+     "count": 10016,
+     "kind": "against a constant",
+     "outcomes": "== 229, < 5170, > 4617 (signed); < 590, > 9197 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 127,
+     "text": "if (actor->totalStrength > arg0->strength) {",
+     "size": 4,
+     "count": 9962,
+     "kind": "a == b / a < b",
+     "outcomes": "== 254, < 1913, > 7795 (signed); < 5873, > 3835 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 133,
+     "text": "if (actor->strength > arg0->strength) {",
+     "size": 4,
+     "count": 9962,
+     "kind": "a == b / a < b",
+     "outcomes": "== 224, < 1910, > 7828 (signed); < 5870, > 3868 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 142,
+     "text": "switch (arg0->intelligenceEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 19950, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 148,
+     "text": "if (actor->totalIntelligence > 999) {",
+     "size": 2,
+     "count": 9977,
+     "kind": "against a constant",
+     "outcomes": "== 241, < 5284, > 4452 (signed); < 653, > 9083 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 154,
+     "text": "if (actor->intelligence > 999) {",
+     "size": 2,
+     "count": 9977,
+     "kind": "against a constant",
+     "outcomes": "== 224, < 5262, > 4491 (signed); < 613, > 9140 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 164,
+     "text": "if (actor->totalIntelligence > arg0->intelligence) {",
+     "size": 4,
+     "count": 9973,
+     "kind": "a == b / a < b",
+     "outcomes": "== 243, < 1847, > 7883 (signed); < 5827, > 3903 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 170,
+     "text": "if (actor->intelligence > arg0->intelligence) {",
+     "size": 4,
+     "count": 9973,
+     "kind": "a == b / a < b",
+     "outcomes": "== 227, < 1933, > 7813 (signed); < 5913, > 3833 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 179,
+     "text": "switch (arg0->agilityEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20092, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 185,
+     "text": "if (actor->totalAgility > 999) {",
+     "size": 2,
+     "count": 10104,
+     "kind": "against a constant",
+     "outcomes": "== 232, < 5395, > 4477 (signed); < 682, > 9190 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 191,
+     "text": "if (actor->agility > 999) {",
+     "size": 2,
+     "count": 10104,
+     "kind": "against a constant",
+     "outcomes": "== 260, < 5253, > 4591 (signed); < 649, > 9195 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 201,
+     "text": "if (actor->totalAgility > arg0->agility) {",
+     "size": 4,
+     "count": 9988,
+     "kind": "a == b / a < b",
+     "outcomes": "== 248, < 1966, > 7774 (signed); < 5850, > 3890 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 207,
+     "text": "if (actor->agility > arg0->agility) {",
+     "size": 4,
+     "count": 9988,
+     "kind": "a == b / a < b",
+     "outcomes": "== 224, < 1999, > 7765 (signed); < 5883, > 3881 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 215,
+     "text": "switch (arg0->maxHpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20136, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 223,
+     "text": "if (actor->maxHP > 999) {",
+     "size": 2,
+     "count": 9972,
+     "kind": "against a constant",
+     "outcomes": "== 215, < 5342, > 4415 (signed); < 603, > 9154 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 229,
+     "text": "switch (arg0->maxMpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20017, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 237,
+     "text": "if (actor->maxMP > 999) {",
+     "size": 2,
+     "count": 10093,
+     "kind": "against a constant",
+     "outcomes": "== 202, < 5429, > 4462 (signed); < 590, > 9301 (unsigned)",
+     "operand": "constant 999",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 243,
+     "text": "switch (arg0->weaponDpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20094, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 249,
+     "text": "if (actor->weapon.maxDp < actor->weapon.currentDp) {",
+     "size": 2,
+     "count": 10147,
+     "kind": "a == b / a < b",
+     "outcomes": "== 112, < 5394, > 4641 (signed); < 5799, > 4236 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32766"
+    },
+    {
+     "line": 255,
+     "text": "switch (arg0->weaponPpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "switch",
+     "outcomes": "== 20065, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..3"
+    },
+    {
+     "line": 259,
+     "text": "if (actor->weapon.maxPp < actor->weapon.currentPp) {",
+     "size": 2,
+     "count": 10007,
+     "kind": "a == b / a < b",
+     "outcomes": "== 98, < 5293, > 4616 (signed); < 5715, > 4194 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32730"
+    },
+    {
+     "line": 266,
+     "text": "if (actor->weapon.currentPp > arg0->weaponPp) {",
+     "size": 4,
+     "count": 10058,
+     "kind": "a == b / a < b",
+     "outcomes": "== 246, < 1913, > 7899 (signed); < 5815, > 3997 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 275,
+     "text": "switch (arg0->armorDpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 9943, < 9979, > 20078 (signed); < 9979, > 20078 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..3"
+    },
+    {
+     "line": 277,
+     "text": "if (actor->shield.currentDp > arg0->armorDp) {",
+     "size": 4,
+     "count": 9943,
+     "kind": "a == b / a < b",
+     "outcomes": "== 259, < 1864, > 7820 (signed); < 5812, > 3872 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 283,
+     "text": "if (actor->limbs[arg0->unk0.targetLimb].armor.currentDp > arg0->armorDp) {",
+     "size": 4,
+     "count": 9943,
+     "kind": "a == b / a < b",
+     "outcomes": "== 157, < 1689, > 8097 (signed); < 5637, > 4149 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 292,
+     "text": "switch (arg0->shieldPpEffect) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 10035, < 9996, > 19969 (signed); < 9996, > 19969 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..3"
+    },
+    {
+     "line": 294,
+     "text": "if (actor->shield.currentPp > arg0->shieldPp) {",
+     "size": 4,
+     "count": 10035,
+     "kind": "a == b / a < b",
+     "outcomes": "== 238, < 1870, > 7927 (signed); < 5889, > 3908 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "0..65535"
+    },
+    {
+     "line": 305,
+     "text": "if (arg0->inflictStatuses != 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 16084, < 11991, > 11925 (signed); < 0, > 23916 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147424231"
+    },
+    {
+     "line": 307,
+     "text": "for (i = 0; i < 32; ++i) {",
+     "size": 4,
+     "count": 789228,
+     "kind": "against a constant",
+     "outcomes": "== 23916, < 741396, > 23916 (signed); < 741396, > 23916 (unsigned)",
+     "operand": "constant 31",
+     "a": "0..32"
+    },
+    {
+     "line": 311,
+     "text": "if ((status != 0) && (actor->statuses & flag)) {",
+     "size": 4,
+     "count": 765312,
+     "kind": "against a constant",
+     "outcomes": "== 458288, < 11991, > 295033 (signed); < 0, > 307024 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..1073741824"
+    },
+    {
+     "line": 311,
+     "text": "if ((status != 0) && (actor->statuses & flag)) {",
+     "size": 4,
+     "count": 307024,
+     "kind": "against a constant",
+     "outcomes": "== 203407, < 5269, > 98348 (signed); < 0, > 103617 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..1073741824"
+    },
+    {
+     "line": 313,
+     "text": "if (targetActorId != 0) {",
+     "size": 4,
+     "count": 103617,
+     "kind": "against a constant",
+     "outcomes": "== 25536, < 0, > 78081 (signed); < 0, > 78081 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 315,
+     "text": "if (actor->currentHP != 0) {",
+     "size": 2,
+     "count": 78081,
+     "kind": "against a constant",
+     "outcomes": "== 22429, < 27094, > 28558 (signed); < 0, > 55652 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 332,
+     "text": "if (arg0->removeStatuses != 0) {",
+     "size": 4,
+     "count": 40000,
+     "kind": "against a constant",
+     "outcomes": "== 16015, < 12024, > 11961 (signed); < 0, > 23985 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147460850"
+    },
+    {
+     "line": 334,
+     "text": "for (i = 0; i < 32; ++i) {",
+     "size": 4,
+     "count": 791505,
+     "kind": "against a constant",
+     "outcomes": "== 23985, < 743535, > 23985 (signed); < 743535, > 23985 (unsigned)",
+     "operand": "constant 31",
+     "a": "0..32"
+    },
+    {
+     "line": 338,
+     "text": "if ((status != 0) && !(actor->statuses & flag)) {",
+     "size": 4,
+     "count": 767520,
+     "kind": "against a constant",
+     "outcomes": "== 463367, < 12024, > 292129 (signed); < 0, > 304153 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..1073741824"
+    },
+    {
+     "line": 338,
+     "text": "if ((status != 0) && !(actor->statuses & flag)) {",
+     "size": 4,
+     "count": 304153,
+     "kind": "against a constant",
+     "outcomes": "== 149808, < 5945, > 148400 (signed); < 0, > 154345 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..1073741824"
+    },
+    {
+     "line": 340,
+     "text": "if (targetActorId != 0) {",
+     "size": 4,
+     "count": 149808,
+     "kind": "against a constant",
+     "outcomes": "== 37921, < 0, > 111887 (signed); < 0, > 111887 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 342,
+     "text": "if (actor->currentHP != 0) {",
+     "size": 2,
+     "count": 111887,
+     "kind": "against a constant",
+     "outcomes": "== 32871, < 38569, > 40447 (signed); < 0, > 79016 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 46242,
+     "completion_tokens": 29122,
+     "reasoning_tokens": 24106,
+     "cost": 0.0095926,
+     "seconds": null,
+     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/applyBattleAbilityEffect.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/apply_battle_ability_effect.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 444.41826734399365,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 98521.52895116806,
+ "totals": {
+  "cost": 0.01942,
+  "prompt_tokens": 95514,
+  "completion_tokens": 58581,
+  "model_seconds": 0.0,
+  "check_seconds": 444.4,
+  "calls": 3,
+  "wall_seconds": 98521.5
+ }
+}

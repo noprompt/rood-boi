@@ -1,0 +1,151 @@
+{
+ "function": "_hitPrerequisiteUnused0",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteUnused0",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007fdc0",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteUnused0",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_unused0",
+  "spec_file": "hitPrerequisiteUnused0.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteUnused0(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12012,
+     "completion_tokens": 2353,
+     "reasoning_tokens": 1719,
+     "cost": 0.00118885,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused0: 1000 iterations, seed 1, 1000 mismatches",
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12851,
+     "completion_tokens": 1788,
+     "reasoning_tokens": 1043,
+     "cost": 0.00108955,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused0: 1000 iterations, seed 1, 1000 mismatches; classes: action-null=493 action-object=507"
+    ]
+   }
+  ],
+  "classes": {
+   "action-null": "493",
+   "action-object": "507"
+  },
+  "mutations": [
+   {
+    "name": "U1: writes through arg1",
+    "caught": true
+   },
+   {
+    "name": "U2: writes arg1 only when action is set",
+    "caught": true
+   },
+   {
+    "name": "U3: writes arg1 and returns 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 10.9863004430008,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56210.56863641739,
+ "totals": {
+  "cost": 0.00228,
+  "prompt_tokens": 24863,
+  "completion_tokens": 4141,
+  "model_seconds": 0.0,
+  "check_seconds": 11.0,
+  "calls": 2,
+  "wall_seconds": 56210.6
+ }
+}

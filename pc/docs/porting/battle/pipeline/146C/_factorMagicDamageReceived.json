@@ -1,0 +1,255 @@
+{
+ "function": "_factorMagicDamageReceived",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_factorMagicDamageReceived",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80082360",
+  "difficulty": "S",
+  "zig_name": "factorMagicDamageReceived",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "factor_magic_damage_received",
+  "spec_file": "factorMagicDamageReceived.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn factorMagicDamageReceived(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14526,
+     "completion_tokens": 17218,
+     "reasoning_tokens": 15418,
+     "cost": 0.0050308,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "not-spell": "8907",
+   "spell-hpEffect-other": "10607",
+   "spell-negative-sum": "3055",
+   "spell-positive-sum": "3210",
+   "spell-result-overflows-short": "4221"
+  },
+  "mutations": [
+   {
+    "name": "F1: spell test inverted",
+    "caught": true
+   },
+   {
+    "name": "F2: the hpEffect == 3 test dropped",
+    "caught": true
+   },
+   {
+    "name": "F3: mp summed as hp",
+    "caught": true
+   },
+   {
+    "name": "F4: division done unsigned",
+    "caught": true
+   },
+   {
+    "name": "F5: hp+mp narrowed to short before the factor",
+    "caught": true
+   },
+   {
+    "name": "F6: wrong field for the action index",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2, max 2, unsigned 0..4294967295, seen zero/negative/all ones, 5 value(s): 1, 4294967295, 2, 4294967294, 0"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147407854, max 2147422397, unsigned 35737..4294887008, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 6,
+     "text": "if (((vs_main_actions[D_800F19CC->unk8.actionIndex].type)) == actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 21093, < 1255, > 7652 (signed); < 1255, > 7652 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..7"
+    },
+    {
+     "line": 7,
+     "text": "if ((D_800F19CC->unk8.unk4.hpEffect == 1)",
+     "size": 1,
+     "count": 21093,
+     "kind": "against a constant",
+     "outcomes": "== 5194, < 5349, > 10550 (signed); < 5349, > 10550 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..3"
+    },
+    {
+     "line": 8,
+     "text": "|| (D_800F19CC->unk8.unk4.hpEffect == 3)) {",
+     "size": 1,
+     "count": 15899,
+     "kind": "against a constant",
+     "outcomes": "== 5292, < 10607, > 0 (signed); < 10607, > 0 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..3"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37970,
+     "completion_tokens": 4699,
+     "reasoning_tokens": 4092,
+     "cost": 0.00307325,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/factorMagicDamageReceived.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/factor_magic_damage_received.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 199.73144912099997,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 57577.82672762871,
+ "totals": {
+  "cost": 0.0081,
+  "prompt_tokens": 52496,
+  "completion_tokens": 21917,
+  "model_seconds": 0.0,
+  "check_seconds": 199.7,
+  "calls": 2,
+  "wall_seconds": 57577.8
+ }
+}

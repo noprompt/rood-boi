@@ -1,0 +1,181 @@
+{
+ "function": "func_8007B834",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8007B834",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007b834",
+  "difficulty": "S",
+  "zig_name": "func_8007B834",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007B834",
+  "spec_file": "func_8007B834.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007B834() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11185,
+     "completion_tokens": 6768,
+     "reasoning_tokens": 5668,
+     "cost": 0.0022512499999999998,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "unk0-is-one": "4980",
+   "unk0-other": "25020"
+  },
+  "mutations": [
+   {
+    "name": "M1: unk0 compared with 0, not 1",
+    "caught": true
+   },
+   {
+    "name": "M2: the first call dropped",
+    "caught": true
+   },
+   {
+    "name": "M3: func_8007B470 and func_800CB114 swapped",
+    "caught": true
+   },
+   {
+    "name": "M4: func_8007B764 dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: func_800CB114 dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if (func_800CB66C()->unk0 != 1) {",
+     "size": 2,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2593, < 13638, > 13769 (signed); < 2495, > 24912 (unsigned)",
+     "operand": "constant 1",
+     "a": "-32765..32767"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34665,
+     "completion_tokens": 2175,
+     "reasoning_tokens": 1879,
+     "cost": 0.002277,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007B834.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007B834.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 274.82079918799536,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 75449.47074174881,
+ "totals": {
+  "cost": 0.00453,
+  "prompt_tokens": 45850,
+  "completion_tokens": 8943,
+  "model_seconds": 0.0,
+  "check_seconds": 274.8,
+  "calls": 2,
+  "wall_seconds": 75449.5
+ }
+}

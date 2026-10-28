@@ -1,0 +1,212 @@
+{
+ "function": "_hitPrerequisiteCanApplyEarthAttackUp",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyEarthAttackUp",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007f9d0",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyEarthAttackUp",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_earth_attack_up",
+  "spec_file": "hitPrerequisiteCanApplyEarthAttackUp.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyEarthAttackUp(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14929,
+     "completion_tokens": 14323,
+     "reasoning_tokens": 12616,
+     "cost": 0.0043272,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "effect-nonzero": "7540",
+   "blade-zero": "11255",
+   "blade-nonzero": "11205"
+  },
+  "mutations": [
+   {
+    "name": "E1: effect test inverted",
+    "caught": true
+   },
+   {
+    "name": "E2: wrong effect id (22 for 23)",
+    "caught": true
+   },
+   {
+    "name": "E3: actor index masked to 3 bits",
+    "caught": true
+   },
+   {
+    "name": "E4: blade id compared with 1, not 0",
+    "caught": true
+   },
+   {
+    "name": "E5: blade check dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if ((_hitPrerequisiteCanApplyEffect(23, arg1) == 0)",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 22460, < 3858, > 3682 (signed); < 0, > 7540 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 4,
+     "text": "&& (((__typeof__((vs_battle_actors[*arg1]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[*arg1]->unk3C).raw)->weapon.blade.id != 0)) {",
+     "size": 2,
+     "count": 22460,
+     "kind": "against a constant",
+     "outcomes": "== 11230, < 6522, > 4708 (signed); < 0, > 11230 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32764"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38185,
+     "completion_tokens": 2403,
+     "reasoning_tokens": 1987,
+     "cost": 0.00251,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyEarthAttackUp.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_earth_attack_up.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 226.20620538500043,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 61139.56625175476,
+ "totals": {
+  "cost": 0.00684,
+  "prompt_tokens": 53114,
+  "completion_tokens": 16726,
+  "model_seconds": 0.0,
+  "check_seconds": 226.2,
+  "calls": 2,
+  "wall_seconds": 61139.6
+ }
+}

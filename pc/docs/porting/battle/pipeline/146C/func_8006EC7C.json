@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_8006EC7C: branches 31/32 (100.0% with waivers), conditions not measured (GCC",
+ "reviewed": false,
  "plan": {
   "name": "func_8006EC7C",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -25,9 +25,7 @@
   "ret": "void",
   "types": [],
   "globals": [
-   "_portInfo",
-   "pc_qol_fp_invert_y",
-   "vs_main_buttonsPreviousState"
+   "pc_qol_fp_invert_y"
   ],
   "hooks": [
    "pc_camera_stick_first_person",
@@ -49,17 +47,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 15209,
-     "completion_tokens": 20738,
-     "reasoning_tokens": 18341,
-     "cost": 0.0118899,
-     "seconds": 89.4,
-     "sample": 1,
-     "conversation": "0fb1901f7e405e48f5766ab60354c1d645565adf17ef820122bac9efb103d5ad"
+     "prompt_tokens": 15216,
+     "completion_tokens": 19158,
+     "reasoning_tokens": 16925,
+     "cost": 0.005550299999999999,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006EC7C: branches 31/32 (96.9%), conditions not measured (GCC < 14: branch coverage only), lines 49/49\n  UNCOVERED +54 b1: branch never taken: `if (pc_camera_stick_first_person) {`\n  FLAG +27 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (var_a0 <= 0) {`\n  FLAG +36 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (temp_a1 <= 0) {`\ncoverage func_8006EC7C: FAILED (threshold 100%: 1 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `if (pc_camera_stick_first_person) {` (+54): one way out of this test (+54 b1) was never taken; add inputs that take it.\n- `if (var_a0 <= 0) {` (+27): the two sides of this ordered compare were equal 0 time(s) in 6541. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (temp_a1 <= 0) {` (+36): the two sides of this ordered compare were equal 0 time(s) in 6480. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006EC7C.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006EC7C: branches 31/32 (96.9%), conditions not measured (GCC < 14: branch coverage only), lines 49/49\n  UNCOVERED +54 b1: branch never taken: `if (pc_camera_stick_first_person) {`\n  FLAG +27 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (var_a0 <= 0) {`\n  FLAG +36 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (temp_a1 <= 0) {`\n  FLAG +67 eq: boundary equality occurred only 8 time(s) in 30000 (32-bit compare, constant 896: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {`\n  FLAG +69 eq: boundary equality occurred only 5 time(s) in 18484 (32-bit compare, constant -896: both sides seen; a port's `<` for `<=` could pass): `} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {`\ncoverage func_8006EC7C: FAILED (threshold 100%: 1 uncovered, 4 value flag(s) not waived)\nWhat to add:\n- `if (pc_camera_stick_first_person) {` (+54): one way out of this test (+54 b1) was never taken; add inputs that take it.\n- `if (var_a0 <= 0) {` (+27): the two sides of this ordered compare were equal 0 time(s) in 5257. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (temp_a1 <= 0) {` (+36): the two sides of this ordered compare were equal 0 time(s) in 5302. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {` (+67): the two sides of this ordered compare were equal 8 time(s) in 30000. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {` (+69): the two sides of this ordered compare were equal 5 time(s) in 18484. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006EC7C.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -72,50 +70,49 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 18234,
-     "completion_tokens": 4753,
-     "reasoning_tokens": 2076,
-     "cost": 0.0041999,
-     "seconds": 18.1,
-     "sample": 1,
-     "conversation": "766ab2d8bebca34fc74854cc73c039db359db48281ba4e1a1cefb0a5e0033423"
+     "prompt_tokens": 18497,
+     "completion_tokens": 6671,
+     "reasoning_tokens": 4001,
+     "cost": 0.0025926,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006EC7C: branches 31/32 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 49/49\n  waived +54 b1: branch never taken: `if (pc_camera_stick_first_person) {` (pc_camera_stick_first_person is a weak undefined hook; the harness build does not link a definition, so the pointer is always null and this branch is never taken.)\n  waived +27 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (var_a0 <= 0) {` (var_a0 <= 0 is only evaluated inside the stick window ((rStickX - 64u) > 128), where var_a0 = rStickX - 128 lies in [-128,-65] or [65,127]; it can never equal 0.)\n  waived +36 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (temp_a1 <= 0) {` (temp_a1 <= 0 is only evaluated when (temp_a1 + 64) > 128u, which requires temp_a1 < -64 or temp_a1 > 64; temp_a1 == 0 never reaches it.)\n  FLAG +67 eq: boundary equality never occurred (32-bit compare, constant 896: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {`\n  FLAG +69 eq: boundary equality occurred only 2 time(s) in 20334 (32-bit compare, constant -896: both sides seen; a port's `<` for `<=` could pass): `} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {`\ncoverage func_8006EC7C: FAILED (threshold 100%: 0 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {` (+67): the two sides of this ordered compare were equal 0 time(s) in 30000. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {` (+69): the two sides of this ordered compare were equal 2 time(s) in 20334. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006EC7C.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006EC7C: branches 31/32 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 49/49\n  waived +54 b1: branch never taken: `if (pc_camera_stick_first_person) {` (weak hook pc_camera_stick_first_person is not linked into the harness's C build; the test always sees null)\n  waived +27 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (var_a0 <= 0) {` (inside the guard (rStickX - 64u) > 128, var_a0 = rStickX - 128 is never 0 (rStickX = 128 fails the guard), so the sides cannot be equal)\n  waived +36 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (temp_a1 <= 0) {` (inside the guard (temp_a1 + 64) > 128u, temp_a1 is never 0 (0 gives 64, which fails the guard), so the sides cannot be equal)\n  FLAG +67 eq: boundary equality occurred only 6 time(s) in 30000 (32-bit compare, constant 896: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {`\n  FLAG +69 eq: boundary equality occurred only 3 time(s) in 18451 (32-bit compare, constant -896: both sides seen; a port's `<` for `<=` could pass): `} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {`\ncoverage func_8006EC7C: FAILED (threshold 100%: 0 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {` (+67): the two sides of this ordered compare were equal 6 time(s) in 30000. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {` (+69): the two sides of this ordered compare were equal 3 time(s) in 18451. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006EC7C.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "stick-x-out": "6541",
-   "stick-y-out": "3638",
-   "pitch-out-of-range": "15152",
-   "buttons-held": "4298",
-   "plain": "371"
+   "stick-x": "3546",
+   "stick-y": "1826",
+   "idle": "8628",
+   "pitch-at-clamp": "16000"
   },
   "mutations": [
    {
-    "name": "M1: the D-pad pitch ignores invert-Y",
+    "name": "F1: D-pad pitch step 16, not 32",
     "caught": true
    },
    {
-    "name": "M2: the stick pitch loses its invert-Y sign",
+    "name": "F2: right button tests the pitch bit (1<<12) for yaw",
     "caught": true
    },
    {
-    "name": "M3: signed division by 3 becomes a shift",
+    "name": "F3: pitch clamped to 895, not 896",
     "caught": true
    },
    {
-    "name": "M4: pitch clamp at 895, not 896",
+    "name": "F4: stick dead zone bound 127 (not 128)",
     "caught": true
    },
    {
-    "name": "M5: camera z position taken from sp10 vy",
+    "name": "F5: stick yaw divided by 2, not 3",
     "caught": true
    },
    {
-    "name": "M6: the right-stick yaw window includes 192 (>= for > 128)",
+    "name": "F6: camera z from the wrong scan field (vy)",
     "caught": true
    }
   ],
@@ -142,7 +139,7 @@
      "kind": "eq",
      "bits": 32,
      "equal": 0,
-     "count": 6541,
+     "count": 3546,
      "what": "boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
     },
     {
@@ -152,7 +149,7 @@
      "kind": "eq",
      "bits": 32,
      "equal": 0,
-     "count": 6480,
+     "count": 3484,
      "what": "boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
     },
     {
@@ -161,9 +158,9 @@
      "text": "if (vs_battle_cameraCurrentSpherical.values.pitch > 896) {",
      "kind": "eq",
      "bits": 32,
-     "equal": 0,
+     "equal": 6,
      "count": 30000,
-     "what": "boundary equality never occurred (32-bit compare, constant 896: both sides seen; a port's `<` for `<=` could pass)"
+     "what": "boundary equality occurred only 6 time(s) in 30000 (32-bit compare, constant 896: both sides seen; a port's `<` for `<=` could pass)"
     },
     {
      "id": "+69 eq",
@@ -171,9 +168,9 @@
      "text": "} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {",
      "kind": "eq",
      "bits": 32,
-     "equal": 2,
-     "count": 20334,
-     "what": "boundary equality occurred only 2 time(s) in 20334 (32-bit compare, constant -896: both sides seen; a port's `<` for `<=` could pass)"
+     "equal": 3,
+     "count": 18451,
+     "what": "boundary equality occurred only 3 time(s) in 18451 (32-bit compare, constant -896: both sides seen; a port's `<` for `<=` could pass)"
     }
    ],
    "args": [],
@@ -184,9 +181,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 10101, < 9950, > 9949 (signed); < 0, > 19899 (unsigned)",
+     "outcomes": "== 7531, < 7551, > 14918 (signed); < 0, > 22469 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..1"
+     "a": "-1..256"
     },
     {
      "line": 6,
@@ -194,7 +191,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 15179, < 0, > 14821 (signed); < 0, > 14821 (unsigned)",
+     "outcomes": "== 22529, < 0, > 7471 (signed); < 0, > 7471 (unsigned)",
      "operand": "constant 0",
      "a": "0..16384"
     },
@@ -204,9 +201,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 10101, < 9950, > 9949 (signed); < 0, > 19899 (unsigned)",
+     "outcomes": "== 7531, < 7551, > 14918 (signed); < 0, > 22469 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..1"
+     "a": "-1..256"
     },
     {
      "line": 10,
@@ -214,7 +211,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 14845, < 0, > 15155 (signed); < 0, > 15155 (unsigned)",
+     "outcomes": "== 22566, < 0, > 7434 (signed); < 0, > 7434 (unsigned)",
      "operand": "constant 0",
      "a": "0..16384"
     },
@@ -224,7 +221,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 16863, < 0, > 13137 (signed); < 0, > 13137 (unsigned)",
+     "outcomes": "== 22429, < 0, > 7571 (signed); < 0, > 7571 (unsigned)",
      "operand": "constant 0",
      "a": "0..32768"
     },
@@ -234,7 +231,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 14397, < 0, > 15603 (signed); < 0, > 15603 (unsigned)",
+     "outcomes": "== 22469, < 0, > 7531 (signed); < 0, > 7531 (unsigned)",
      "operand": "constant 0",
      "a": "0..8192"
     },
@@ -244,7 +241,7 @@
      "size": 1,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 15140, < 7813, > 7047 (signed); < 400, > 14460 (unsigned)",
+     "outcomes": "== 7529, < 19744, > 2727 (signed); < 16938, > 5533 (unsigned)",
      "operand": "constant 7",
      "a": "-128..127"
     },
@@ -252,9 +249,9 @@
      "line": 26,
      "text": "if ((_portInfo->rStickX - 64u) > 128) {",
      "size": 4,
-     "count": 15140,
+     "count": 7529,
      "kind": "against a constant",
-     "outcomes": "== 704, < 11131, > 3305 (signed); < 7895, > 6541 (unsigned)",
+     "outcomes": "== 413, < 5367, > 1749 (signed); < 3570, > 3546 (unsigned)",
      "operand": "constant 128",
      "a": "-64..191"
     },
@@ -262,9 +259,9 @@
      "line": 27,
      "text": "if (var_a0 <= 0) {",
      "size": 4,
-     "count": 6541,
+     "count": 3546,
      "kind": "against a constant",
-     "outcomes": "== 0, < 3236, > 3305 (signed); < 0, > 6541 (unsigned)",
+     "outcomes": "== 0, < 1797, > 1749 (signed); < 0, > 3546 (unsigned)",
      "operand": "constant 0",
      "a": "-128..127"
     },
@@ -272,9 +269,9 @@
      "line": 35,
      "text": "if ((temp_a1 + 64) > 128u) {",
      "size": 4,
-     "count": 15140,
+     "count": 7529,
      "kind": "against a constant",
-     "outcomes": "== 717, < 11159, > 3264 (signed); < 7943, > 6480 (unsigned)",
+     "outcomes": "== 429, < 5380, > 1720 (signed); < 3616, > 3484 (unsigned)",
      "operand": "constant 128",
      "a": "-64..191"
     },
@@ -282,9 +279,9 @@
      "line": 36,
      "text": "if (temp_a1 <= 0) {",
      "size": 4,
-     "count": 6480,
+     "count": 3484,
      "kind": "against a constant",
-     "outcomes": "== 0, < 3216, > 3264 (signed); < 0, > 6480 (unsigned)",
+     "outcomes": "== 0, < 1764, > 1720 (signed); < 0, > 3484 (unsigned)",
      "operand": "constant 0",
      "a": "-128..127"
     },
@@ -292,11 +289,11 @@
      "line": 43,
      "text": "+ (pc_qol_fp_invert_y ? -(temp_a1 / 3) : (temp_a1 / 3)))",
      "size": 4,
-     "count": 6480,
+     "count": 3484,
      "kind": "against a constant",
-     "outcomes": "== 2244, < 2114, > 2122 (signed); < 0, > 4236 (unsigned)",
+     "outcomes": "== 881, < 891, > 1712 (signed); < 0, > 2603 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..1"
+     "a": "-1..256"
     },
     {
      "line": 61,
@@ -304,9 +301,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 10101, < 9950, > 9949 (signed); < 0, > 19899 (unsigned)",
+     "outcomes": "== 7531, < 7551, > 14918 (signed); < 0, > 22469 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..1"
+     "a": "-1..256"
     },
     {
      "line": 67,
@@ -314,7 +311,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 0, < 20334, > 9666 (signed); < 1160, > 28840 (unsigned)",
+     "outcomes": "== 6, < 18445, > 11549 (signed); < 3445, > 26549 (unsigned)",
      "operand": "constant 896",
      "a": "-4095..4095"
     },
@@ -322,11 +319,11 @@
      "line": 69,
      "text": "} else if (vs_battle_cameraCurrentSpherical.values.pitch < -896) {",
      "size": 4,
-     "count": 20334,
+     "count": 18451,
      "kind": "against a constant",
-     "outcomes": "== 2, < 17065, > 3267 (signed); < 18225, > 2107 (unsigned)",
+     "outcomes": "== 3, < 11518, > 6930 (signed); < 14969, > 3479 (unsigned)",
      "operand": "constant -896",
-     "a": "-4095..895"
+     "a": "-4095..896"
     }
    ],
    "passed": false
@@ -336,19 +333,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 37.72575601599965,
- "wall_seconds": 38.050553699000375,
+ "check_seconds": 37.66606304599918,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56321.821541547775,
  "totals": {
-  "cost": 0.01609,
-  "prompt_tokens": 33443,
-  "completion_tokens": 25491,
-  "model_seconds": 107.5,
+  "cost": 0.00814,
+  "prompt_tokens": 33713,
+  "completion_tokens": 25829,
+  "model_seconds": 0.0,
   "check_seconds": 37.7,
   "calls": 2,
-  "wall_seconds": 38.1
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 56321.8
  }
 }

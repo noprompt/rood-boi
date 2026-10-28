@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation M3: Y band test >= instead of >: mutation M3: Y band test >= instead of >: its `from` text occurs 0 times in the C body of _c",
+ "reviewed": false,
  "plan": {
   "name": "_clampPositionToZoneBounds",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -50,18 +50,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 13627,
-     "completion_tokens": 14191,
-     "reasoning_tokens": 11796,
-     "cost": 0.0084582,
-     "seconds": 58.3,
-     "sample": 1,
-     "conversation": "6e6d9bc3733fa22975801713ff02a7cca78ab0540b7f08567d733e4cbc1ad897"
+     "prompt_tokens": 13668,
+     "completion_tokens": 19193,
+     "reasoning_tokens": 16075,
+     "cost": 0.005481649999999999,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation M1: midpoint by signed division instead of >> 1: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _clampPositionToZoneBounds: 40000 iterations, seed 1, 0 mismatches; classes: x-midpoint=19978 x-clamp-low=6176 x-clamp-high=5937 x-pass=7909",
-     "FAIL: mutation M2: Z high clamp off by one: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _clampPositionToZoneBounds: 40000 iterations, seed 1, 0 mismatches; classes: x-midpoint=19978 x-clamp-low=6176 x-clamp-high=5937 x-pass=7909"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_clampPositionToZoneBounds/spec1/build/spec.zig:37:9: error: function parameter shadows declaration of 'pos'\nfn mode(pos: i32, s: Span) u2 {\n        ^~~\npc/build/port-pipeline/_clampPositionToZoneBounds/spec1/build/spec.zig:50:1: note: declared here\nfn pos(ctx: *zd.Ctx, s: Span) i32 {\n^~\n"
     ]
    },
    {
@@ -74,49 +73,53 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 16336,
-     "completion_tokens": 5365,
-     "reasoning_tokens": 2748,
-     "cost": 0.0043161,
-     "seconds": 21.4,
-     "sample": 1,
-     "conversation": "3adf9c94eb6507fc8554a47d02f8eb03fc0a025c86f15df9d6d652d9dee4686c"
+     "prompt_tokens": 17044,
+     "completion_tokens": 4439,
+     "reasoning_tokens": 1324,
+     "cost": 0.0019619499999999996,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation M3: Y band test >= instead of >: mutation M3: Y band test >= instead of >: its `from` text occurs 0 times in the C body of _clampPositionToZoneBounds (copy it exactly from the C)"
+     "FAIL: mutation Z4: collapsed midpoint divided instead of shifted (signed slip on odd negative sums): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _clampPositionToZoneBounds: 40000 iterations, seed 1, 0 mismatches; classes: x-collapse-y-pass=3301 x-collapse-y-look=3318 x-low-y-pass=5131 x-low-y-look=5069 x-high-y-pass=3261 x-high-y-look=3370 x-pass-y-pass=8241 x-pass-y-look=8309"
     ]
    }
   ],
   "classes": {
-   "x-midpoint": "19978",
-   "x-clamp-low": "6176",
-   "x-clamp-high": "5937",
-   "x-pass": "7909"
+   "x-collapse-y-pass": "3301",
+   "x-collapse-y-look": "3318",
+   "x-low-y-pass": "5131",
+   "x-low-y-look": "5069",
+   "x-high-y-pass": "3261",
+   "x-high-y-look": "3370",
+   "x-pass-y-pass": "8241",
+   "x-pass-y-look": "8309"
   },
   "mutations": [
    {
-    "name": "M1: midpoint shifted by 2, not 1",
+    "name": "Z1: X collapse test with <= (equal bounds take the collapse branch)",
     "caught": true
    },
    {
-    "name": "M2: Z low clamp off by one",
+    "name": "Z2: radius divisor 2305 instead of 2304",
     "caught": true
    },
    {
-    "name": "M3: Y band test >= instead of >",
+    "name": "Z3: Y pass-through threshold with >= (exactly ONE*96 changes branch)",
+    "caught": true
+   },
+   {
+    "name": "Z4: collapsed midpoint divided instead of shifted (signed slip on odd negative sums)",
     "caught": false
    },
    {
-    "name": "M4: Y offset measured from position.vy, not lookAt.vy",
+    "name": "Z5: dropped Z alignment store",
     "caught": true
    },
    {
-    "name": "M5: unsigned division of a negative distance",
-    "caught": true
-   },
-   {
-    "name": "M6: Y clamp tests the wrong sign",
+    "name": "Z6: Z lower bound read from maxZ",
     "caught": true
    }
   ],
@@ -148,29 +151,29 @@
      "size": 4,
      "count": 40000,
      "kind": "a == b / a < b",
-     "outcomes": "== 676, < 19978, > 19346 (signed); < 19919, > 19405 (unsigned)",
-     "operand": "b -537087800..537087800",
-     "a": "-537087800..537087800"
+     "outcomes": "== 7917, < 6619, > 25464 (signed); < 13497, > 18586 (unsigned)",
+     "operand": "b -2146959360..2146959360",
+     "a": "-2147444176..2147187264"
     },
     {
      "line": 15,
      "text": "if (inPos->vx < bound) {",
      "size": 4,
-     "count": 20022,
+     "count": 33381,
      "kind": "a == b / a < b",
-     "outcomes": "== 3430, < 10416, > 6176 (signed); < 6419, > 10173 (unsigned)",
-     "operand": "b -1073305103..1073190243",
-     "a": "-537087800..524287640"
+     "outcomes": "== 4584, < 18597, > 10200 (signed); < 14574, > 14223 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "-2146959360..2146959360"
     },
     {
      "line": 17,
      "text": "} else if (maxBound < inPos->vx) {",
      "size": 4,
-     "count": 13846,
+     "count": 23181,
      "kind": "a == b / a < b",
-     "outcomes": "== 3442, < 5937, > 4467 (signed); < 6890, > 3514 (unsigned)",
-     "operand": "b -537087800..1073190243",
-     "a": "-524288000..537087800"
+     "outcomes": "== 4628, < 6631, > 11922 (signed); < 10005, > 8548 (unsigned)",
+     "operand": "b -2146959360..2147483647",
+     "a": "-2146959360..2146959720"
     },
     {
      "line": 27,
@@ -178,29 +181,29 @@
      "size": 4,
      "count": 40000,
      "kind": "a == b / a < b",
-     "outcomes": "== 653, < 19902, > 19445 (signed); < 20137, > 19210 (unsigned)",
-     "operand": "b -536563512..537087800",
-     "a": "-536563512..537087800"
+     "outcomes": "== 7917, < 6514, > 25569 (signed); < 13547, > 18536 (unsigned)",
+     "operand": "b -2147483648..2147112096",
+     "a": "-2147483648..2147483288"
     },
     {
      "line": 30,
      "text": "if (inPos->vz < bound) {",
      "size": 4,
-     "count": 20098,
+     "count": 33486,
      "kind": "a == b / a < b",
-     "outcomes": "== 3447, < 10609, > 6042 (signed); < 6370, > 10281 (unsigned)",
-     "operand": "b -1073101330..1073671290",
-     "a": "-536563512..523763712"
+     "outcomes": "== 4569, < 18789, > 10128 (signed); < 14697, > 14220 (unsigned)",
+     "operand": "b -2147483648..2147483647",
+     "a": "-2147483648..2145910784"
     },
     {
      "line": 32,
      "text": "} else if (maxBound < inPos->vz) {",
      "size": 4,
-     "count": 14056,
+     "count": 23358,
      "kind": "a == b / a < b",
-     "outcomes": "== 3429, < 6122, > 4505 (signed); < 7018, > 3609 (unsigned)",
-     "operand": "b -532893496..1073671290",
-     "a": "-520093696..537087800"
+     "outcomes": "== 4599, < 6778, > 11981 (signed); < 10169, > 8590 (unsigned)",
+     "operand": "b -2147483647..2147483647",
+     "a": "-2147483648..2147483288"
     },
     {
      "line": 45,
@@ -208,19 +211,19 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 2210, < 30599, > 7191 (signed); < 12664, > 25126 (unsigned)",
+     "outcomes": "== 6625, < 23421, > 9954 (signed); < 3303, > 30072 (unsigned)",
      "operand": "constant 393216",
-     "a": "-1073577357..1073708790"
+     "a": "-2146342292..2147079326"
     },
     {
      "line": 45,
      "text": "if ((bound > (4096 * 96)) || (bound < v)) {",
      "size": 4,
-     "count": 32809,
+     "count": 30046,
      "kind": "a == b / a < b",
-     "outcomes": "== 2275, < 7210, > 23324 (signed); < 22084, > 8450 (unsigned)",
+     "outcomes": "== 6758, < 9980, > 13308 (signed); < 19908, > 3380 (unsigned)",
      "operand": "b -393216..-393216",
-     "a": "-1073577357..393216"
+     "a": "-2146342292..393216"
     },
     {
      "line": 50,
@@ -228,9 +231,9 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 4987, < 17544, > 17469 (signed); < 0, > 35013 (unsigned)",
+     "outcomes": "== 3385, < 18414, > 18201 (signed); < 0, > 36615 (unsigned)",
      "operand": "constant 0",
-     "a": "-1073542927..1073708790"
+     "a": "-2147483648..2147483647"
     }
    ],
    "passed": true
@@ -240,19 +243,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 31.98170554599983,
- "wall_seconds": 112.11598009000045,
+ "check_seconds": 17.14074109700232,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56087.317744493484,
  "totals": {
-  "cost": 0.01277,
-  "prompt_tokens": 29963,
-  "completion_tokens": 19556,
-  "model_seconds": 79.7,
-  "check_seconds": 32.0,
+  "cost": 0.00744,
+  "prompt_tokens": 30712,
+  "completion_tokens": 23632,
+  "model_seconds": 0.0,
+  "check_seconds": 17.1,
   "calls": 2,
-  "wall_seconds": 112.1
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 56087.3
  }
 }

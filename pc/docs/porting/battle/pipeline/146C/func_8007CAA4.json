@@ -1,0 +1,206 @@
+{
+ "function": "func_8007CAA4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8007CAA4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007caa4",
+  "difficulty": "S",
+  "zig_name": "func_8007CAA4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007CAA4",
+  "spec_file": "func_8007CAA4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007CAA4(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14647,
+     "completion_tokens": 10007,
+     "reasoning_tokens": 8328,
+     "cost": 0.0032341,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-actor": "5036",
+   "no-stats": "4191",
+   "weapon-only": "2373",
+   "shield-only": "2215",
+   "both": "15884",
+   "neither": "301"
+  },
+  "mutations": [
+   {
+    "name": "M1: shield call passes slot 0",
+    "caught": true
+   },
+   {
+    "name": "M2: weapon call passes slot 1",
+    "caught": true
+   },
+   {
+    "name": "M3: empty-shield call dropped",
+    "caught": true
+   },
+   {
+    "name": "M4: shield id test inverted",
+    "caught": true
+   },
+   {
+    "name": "M5: blade material replaced by cost",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 15, seen zero, never negative"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (temp_s0->weapon.blade.id != 0) {",
+     "size": 2,
+     "count": 20773,
+     "kind": "against a constant",
+     "outcomes": "== 2516, < 10434, > 7823 (signed); < 0, > 18257 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32765"
+    },
+    {
+     "line": 16,
+     "text": "if (temp_s0->shield.base.id != 0) {",
+     "size": 2,
+     "count": 20773,
+     "kind": "against a constant",
+     "outcomes": "== 1320, < 10247, > 9206 (signed); < 0, > 19453 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32763"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38011,
+     "completion_tokens": 3217,
+     "reasoning_tokens": 2696,
+     "cost": 0.0027048,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007CAA4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007CAA4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 349.3394050019997,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 82311.97272086143,
+ "totals": {
+  "cost": 0.00594,
+  "prompt_tokens": 52658,
+  "completion_tokens": 13224,
+  "model_seconds": 0.0,
+  "check_seconds": 349.3,
+  "calls": 2,
+  "wall_seconds": 82312.0
+ }
+}

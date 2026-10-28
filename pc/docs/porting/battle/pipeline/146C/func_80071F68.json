@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation F5: unk2C00 store dropped: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what th",
+ "reviewed": false,
  "plan": {
   "name": "func_80071F68",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -29,8 +29,7 @@
   ],
   "ret": "void",
   "types": [
-   "D_800F19CC_t5",
-   "_mpdRoomSection13"
+   "D_800F19CC_t5"
   ],
   "globals": [
    "D_800E81B4",
@@ -52,18 +51,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 23370,
-     "completion_tokens": 44860,
-     "reasoning_tokens": 40679,
-     "cost": 0.024767,
-     "seconds": 189.4,
-     "sample": 1,
-     "conversation": "2816b37fa6b9592e5957574525c8eec989d23412eb3bfbea32b337fc7a95d0c2"
+     "prompt_tokens": 23460,
+     "completion_tokens": 40464,
+     "reasoning_tokens": 36861,
+     "cost": 0.011289,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 2, fault address 0x36 [NULL+0x36: a field of a null pointer]\nzdiff: crashed on arguments: 0x7fffffff (class rooms)",
-     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80071F68: branches 56/56 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 100/100\n  FLAG +51 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\ncoverage func_80071F68: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `&& !(actor->unk1C & 0x8000)) {` (+51): the two sides of this ordered compare were equal 0 time(s) in 85426. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80071F68.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -76,50 +74,49 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 27958,
-     "completion_tokens": 7304,
-     "reasoning_tokens": 3078,
-     "cost": 0.0064478,
-     "seconds": 26.9,
-     "sample": 1,
-     "conversation": "7a3989dd88680b505d10ce4ed2d99452c7e21bc67ffdac1d5c6cdf6ade4c9460"
+     "prompt_tokens": 27446,
+     "completion_tokens": 6231,
+     "reasoning_tokens": 2383,
+     "cost": 0.00293005,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation F5: unk2C00 store dropped: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x40ca0c [arena] (zdiff_state+0x298c): C 255, Zig 174\nzdiff: CRASH (signal 11) in the Zig run, iteration 1, fault address 0x4ce009 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x7fffffff (class range-from-attacker)",
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80071F68: branches 56/56 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 100/100\n  FLAG +51 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\ncoverage func_80071F68: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `&& !(actor->unk1C & 0x8000)) {` (+51): the two sides of this ordered compare were equal 0 time(s) in 184989. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80071F68.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80071F68: branches 56/56 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 100/100\n  FLAG +51 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\ncoverage func_80071F68: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `&& !(actor->unk1C & 0x8000)) {` (+51): the two sides of this ordered compare were equal 0 time(s) in 144462. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80071F68.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "range-from-attacker": "13287",
-   "rooms": "13295",
-   "parts": "6703",
-   "single": "6715"
+   "room": "12094",
+   "parts": "8927",
+   "target0": "2627",
+   "plain": "6352"
   },
   "mutations": [
    {
-    "name": "F1: part 0 is skipped",
+    "name": "F1: rangeX test on the wrong constant",
     "caught": true
    },
    {
-    "name": "F2: room height bound <= instead of <",
+    "name": "F2: currentRange replaced by unk39",
     "caught": true
    },
    {
-    "name": "F3: signed compare on the room's unkC",
+    "name": "F3: room height test uses <= for <",
     "caught": true
    },
    {
-    "name": "F4: wrong divisor in the risk-based score",
+    "name": "F4: unsigned range test becomes signed",
     "caught": true
    },
    {
-    "name": "F5: unk2C00 store dropped",
-    "caught": false
+    "name": "F5: dropped func_800C1664 call",
+    "caught": true
    },
    {
-    "name": "F6: range read from the wrong attacker field",
+    "name": "F6: wrong constant in the room flag byte",
     "caught": true
    }
   ],
@@ -139,15 +136,15 @@
      "kind": "eq",
      "bits": 16,
      "equal": 0,
-     "count": 184989,
+     "count": 144462,
      "what": "boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
     }
    ],
    "args": [
     {
      "arg": 0,
-     "count": 40000,
-     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+     "count": 30000,
+     "text": "32-bit: min -2147469831, max 2147330035, unsigned 226444..4294901585, seen negative, never zero"
     }
    ],
    "compares": [
@@ -155,29 +152,29 @@
      "line": 25,
      "text": "if (spec->rangeX == 0xFF) {",
      "size": 1,
-     "count": 40000,
+     "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 13287, < 13222, > 13491 (signed); < 26713, > 0 (unsigned)",
+     "outcomes": "== 10025, < 10058, > 9917 (signed); < 19975, > 0 (unsigned)",
      "operand": "constant -1",
-     "a": "-128..127"
+     "a": "-2..18"
     },
     {
      "line": 38,
      "text": "if (D_800F19CC->unk2984) {",
      "size": 4,
-     "count": 40000,
+     "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 19900, < 10167, > 9933 (signed); < 0, > 20100 (unsigned)",
+     "outcomes": "== 14932, < 0, > 15068 (signed); < 0, > 15068 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147449437..2147424398"
+     "a": "0..1"
     },
     {
      "line": 43,
      "text": "for (i = 0; i < 16; ++i) {",
      "size": 4,
-     "count": 680000,
+     "count": 510000,
      "kind": "against a constant",
-     "outcomes": "== 40000, < 600000, > 40000 (signed); < 600000, > 40000 (unsigned)",
+     "outcomes": "== 30000, < 450000, > 30000 (signed); < 450000, > 30000 (unsigned)",
      "operand": "constant 15",
      "a": "0..16"
     },
@@ -185,9 +182,9 @@
      "line": 47,
      "text": "&& (i != D_800F19CC->unk8.unk4.unk0.targetActor",
      "size": 4,
-     "count": 489803,
+     "count": 367038,
      "kind": "a == b / a < b",
-     "outcomes": "== 40000, < 225657, > 224146 (signed); < 225657, > 224146 (unsigned)",
+     "outcomes": "== 30000, < 210266, > 126772 (signed); < 210266, > 126772 (unsigned)",
      "operand": "b 0..15",
      "a": "0..15"
     },
@@ -195,19 +192,19 @@
      "line": 48,
      "text": "|| D_800E81B4[vs_main_actions[action].unk2_4])",
      "size": 1,
-     "count": 40000,
+     "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 20133, < 9855, > 10012 (signed); < 0, > 19867 (unsigned)",
+     "outcomes": "== 15055, < 0, > 14945 (signed); < 0, > 14945 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "0..1"
     },
     {
      "line": 49,
      "text": "&& (status & 0x3000001) == 1",
      "size": 4,
-     "count": 469670,
+     "count": 351983,
      "kind": "against a constant",
-     "outcomes": "== 264191, < 29671, > 175808 (signed); < 29671, > 175808 (unsigned)",
+     "outcomes": "== 284650, < 9590, > 57743 (signed); < 9590, > 57743 (unsigned)",
      "operand": "constant 1",
      "a": "0..50331649"
     },
@@ -215,9 +212,9 @@
      "line": 50,
      "text": "&& (actor->unk1C & D_800E81D4[vs_main_actions[action].unk2_4])",
      "size": 4,
-     "count": 264191,
+     "count": 284650,
      "kind": "against a constant",
-     "outcomes": "== 79202, < 0, > 184989 (signed); < 0, > 184989 (unsigned)",
+     "outcomes": "== 140188, < 0, > 144462 (signed); < 0, > 144462 (unsigned)",
      "operand": "constant 0",
      "a": "0..255"
     },
@@ -225,29 +222,29 @@
      "line": 51,
      "text": "&& !(actor->unk1C & 0x8000)) {",
      "size": 2,
-     "count": 184989,
+     "count": 144462,
      "kind": "against a constant",
-     "outcomes": "== 0, < 59557, > 125432 (signed); < 0, > 184989 (unsigned)",
+     "outcomes": "== 0, < 33957, > 110505 (signed); < 0, > 144462 (unsigned)",
      "operand": "constant 0",
-     "a": "-32765..32767"
+     "a": "-1..4"
     },
     {
      "line": 52,
      "text": "if (D_800E81C4[vs_main_actions[action].unk2_4]) {",
      "size": 1,
-     "count": 125432,
+     "count": 110505,
      "kind": "against a constant",
-     "outcomes": "== 62592, < 32003, > 30837 (signed); < 0, > 62840 (unsigned)",
+     "outcomes": "== 55004, < 0, > 55501 (signed); < 0, > 55501 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "0..1"
     },
     {
      "line": 53,
      "text": "for (j = 0; j < 6; ++j) {",
      "size": 4,
-     "count": 439880,
+     "count": 388507,
      "kind": "against a constant",
-     "outcomes": "== 62840, < 314200, > 62840 (signed); < 314200, > 62840 (unsigned)",
+     "outcomes": "== 55501, < 277505, > 55501 (signed); < 277505, > 55501 (unsigned)",
      "operand": "constant 5",
      "a": "0..6"
     },
@@ -255,39 +252,39 @@
      "line": 55,
      "text": "if (part >= 0) {",
      "size": 4,
-     "count": 377040,
+     "count": 333006,
      "kind": "against a constant",
-     "outcomes": "== 95181, < 94392, > 187467 (signed); < 0, > 281859 (unsigned)",
+     "outcomes": "== 109089, < 41620, > 182297 (signed); < 0, > 223917 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..255"
+     "a": "-1..7"
     },
     {
      "line": 57,
      "text": "if (func_800C1564((void*)&D_800F19CC->unk29A0,",
      "size": 4,
-     "count": 282648,
+     "count": 291386,
      "kind": "against a constant",
-     "outcomes": "== 70238, < 71069, > 141341 (signed); < 0, > 212410 (unsigned)",
+     "outcomes": "== 109246, < 109452, > 72688 (signed); < 0, > 182140 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..256"
+     "a": "-1..1"
     },
     {
      "line": 72,
      "text": "if (func_800C1564((void*)&D_800F19CC->unk29A0,",
      "size": 4,
-     "count": 62592,
+     "count": 55004,
      "kind": "against a constant",
-     "outcomes": "== 15626, < 15648, > 31318 (signed); < 0, > 46966 (unsigned)",
+     "outcomes": "== 20597, < 20634, > 13773 (signed); < 0, > 34407 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..256"
+     "a": "-1..1"
     },
     {
      "line": 87,
      "text": "if (D_800E81D4[vs_main_actions[action].unk2_4] & 0x80) {",
      "size": 1,
-     "count": 40000,
+     "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 139, < 19990, > 19871 (signed); < 0, > 39861 (unsigned)",
+     "outcomes": "== 1507, < 12094, > 16399 (signed); < 0, > 28493 (unsigned)",
      "operand": "constant 0",
      "a": "-128..127"
     },
@@ -295,39 +292,39 @@
      "line": 89,
      "text": "for (j = 0; j < i; ++j) {",
      "size": 4,
-     "count": 59963,
+     "count": 54602,
      "kind": "a == b / a < b",
-     "outcomes": "== 19990, < 39973, > 0 (signed); < 39973, > 0 (unsigned)",
-     "operand": "b 0..4",
-     "a": "0..4"
+     "outcomes": "== 12094, < 42508, > 0 (signed); < 42508, > 0 (unsigned)",
+     "operand": "b 0..7",
+     "a": "0..7"
     },
     {
      "line": 95,
      "text": "if ((room[j].unk10 < 64)",
      "size": 2,
-     "count": 39973,
+     "count": 42508,
      "kind": "against a constant",
-     "outcomes": "== 5049, < 15135, > 19789 (signed); < 24, > 34900 (unsigned)",
+     "outcomes": "== 10686, < 10536, > 21286 (signed); < 0, > 31822 (unsigned)",
      "operand": "constant 63",
-     "a": "-32768..32766"
+     "a": "-1..65"
     },
     {
      "line": 96,
      "text": "&& func_800C1564(",
      "size": 4,
-     "count": 20184,
+     "count": 21222,
      "kind": "against a constant",
-     "outcomes": "== 5050, < 5024, > 10110 (signed); < 0, > 15134 (unsigned)",
+     "outcomes": "== 7848, < 8048, > 5326 (signed); < 0, > 13374 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..256"
+     "a": "-1..1"
     },
     {
      "line": 103,
      "text": "if (((u_short)room[j].unkC - 2 < 2u) && (room[j].unk8 == 0)) {",
      "size": 4,
-     "count": 15134,
+     "count": 13374,
      "kind": "against a constant",
-     "outcomes": "== 1063, < 3279, > 10792 (signed); < 1057, > 13014 (unsigned)",
+     "outcomes": "== 2223, < 6615, > 4536 (signed); < 2218, > 8933 (unsigned)",
      "operand": "constant 1",
      "a": "-2..65533"
     },
@@ -335,29 +332,29 @@
      "line": 103,
      "text": "if (((u_short)room[j].unkC - 2 < 2u) && (room[j].unk8 == 0)) {",
      "size": 2,
-     "count": 2120,
+     "count": 4441,
      "kind": "against a constant",
-     "outcomes": "== 531, < 529, > 1060 (signed); < 0, > 1589 (unsigned)",
+     "outcomes": "== 2178, < 0, > 2263 (signed); < 0, > 2263 (unsigned)",
      "operand": "constant 0",
-     "a": "-32747..32716"
+     "a": "0..1"
     },
     {
      "line": 120,
      "text": "if (D_800F19CC->unk2984) {",
      "size": 4,
-     "count": 40000,
+     "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 19900, < 10167, > 9933 (signed); < 0, > 20100 (unsigned)",
+     "outcomes": "== 14932, < 0, > 15068 (signed); < 0, > 15068 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147449437..2147424398"
+     "a": "0..1"
     },
     {
      "line": 124,
      "text": "if (D_800F19CC->unk8.unk4.unk0.targetActor) {",
      "size": 1,
-     "count": 40000,
+     "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 2498, < 0, > 37502 (signed); < 0, > 37502 (unsigned)",
+     "outcomes": "== 8964, < 0, > 21036 (signed); < 0, > 21036 (unsigned)",
      "operand": "constant 0",
      "a": "0..15"
     },
@@ -365,61 +362,61 @@
      "line": 125,
      "text": "for (count = 0; count < D_800F19CC->unk2C00; ++count) {",
      "size": 4,
-     "count": 294620,
+     "count": 182059,
      "kind": "a == b / a < b",
-     "outcomes": "== 37502, < 257118, > 0 (signed); < 257118, > 0 (unsigned)",
-     "operand": "b 0..46",
-     "a": "0..46"
+     "outcomes": "== 21036, < 161023, > 0 (signed); < 161023, > 0 (unsigned)",
+     "operand": "b 0..42",
+     "a": "0..42"
     },
     {
      "line": 126,
      "text": "if ((D_800F19CC->unk29C0[count].unk9",
      "size": 2,
-     "count": 257118,
+     "count": 161023,
      "kind": "a == b / a < b",
-     "outcomes": "== 6989, < 151331, > 98798 (signed); < 167261, > 82868 (unsigned)",
-     "operand": "b -32767..32728",
-     "a": "0..35"
+     "outcomes": "== 9427, < 5619, > 145977 (signed); < 5619, > 145977 (unsigned)",
+     "operand": "b 0..2",
+     "a": "0..38"
     },
     {
      "line": 130,
      "text": "&& (((actionTargetContextView*)D_800F19CC)->targets[count].limb",
      "size": 4,
-     "count": 6989,
+     "count": 9427,
      "kind": "a == b / a < b",
-     "outcomes": "== 353, < 5516, > 1120 (signed); < 4204, > 2432 (unsigned)",
-     "operand": "b 0..255",
-     "a": "-1..16"
+     "outcomes": "== 1202, < 1429, > 6796 (signed); < 1429, > 6796 (unsigned)",
+     "operand": "b 0..3",
+     "a": "0..7"
     },
     {
      "line": 137,
      "text": "if (D_800F19CC->unk298C == 0xFF) {",
      "size": 1,
-     "count": 37502,
+     "count": 21036,
      "kind": "against a constant",
-     "outcomes": "== 18708, < 9247, > 9547 (signed); < 18794, > 0 (unsigned)",
+     "outcomes": "== 9980, < 0, > 11056 (signed); < 11056, > 0 (unsigned)",
      "operand": "constant -1",
-     "a": "-128..127"
+     "a": "-1..20"
     },
     {
      "line": 138,
      "text": "for (count = 0; count < D_800F19CC->unk2C00; ++count) {",
      "size": 4,
-     "count": 145678,
+     "count": 82356,
      "kind": "a == b / a < b",
-     "outcomes": "== 18708, < 126970, > 0 (signed); < 126970, > 0 (unsigned)",
-     "operand": "b 0..41",
-     "a": "0..41"
+     "outcomes": "== 9980, < 72376, > 0 (signed); < 72376, > 0 (unsigned)",
+     "operand": "b 0..42",
+     "a": "0..42"
     },
     {
      "line": 139,
      "text": "if (D_800F19CC->unk29C0[count].unk9",
      "size": 2,
-     "count": 126970,
+     "count": 72376,
      "kind": "a == b / a < b",
-     "outcomes": "== 2839, < 74610, > 49521 (signed); < 83116, > 41015 (unsigned)",
-     "operand": "b -32767..32527",
-     "a": "0..35"
+     "outcomes": "== 2982, < 2467, > 66927 (signed); < 2467, > 66927 (unsigned)",
+     "operand": "b 0..2",
+     "a": "0..38"
     }
    ],
    "passed": false
@@ -429,19 +426,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 121.52856962900114,
- "wall_seconds": 338.83901361300013,
+ "check_seconds": 140.51611447300093,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56411.85842037201,
  "totals": {
-  "cost": 0.03121,
-  "prompt_tokens": 51328,
-  "completion_tokens": 52164,
-  "model_seconds": 216.3,
-  "check_seconds": 121.5,
+  "cost": 0.01422,
+  "prompt_tokens": 50906,
+  "completion_tokens": 46695,
+  "model_seconds": 0.0,
+  "check_seconds": 140.5,
   "calls": 2,
-  "wall_seconds": 338.8
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 56411.9
  }
 }

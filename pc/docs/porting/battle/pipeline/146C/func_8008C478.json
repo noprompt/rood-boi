@@ -1,0 +1,193 @@
+{
+ "function": "func_8008C478",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008C478",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008c478",
+  "difficulty": "S",
+  "zig_name": "func_8008C478",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008C478",
+  "spec_file": "func_8008C478.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008C478(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11614,
+     "completion_tokens": 3565,
+     "reasoning_tokens": 2553,
+     "cost": 0.00147195,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "section7-zero": "5053",
+   "section7-negative": "6818",
+   "section7-positive": "8129"
+  },
+  "mutations": [
+   {
+    "name": "M1: section7 tested as > 0 (negative section7 returns 0)",
+    "caught": true
+   },
+   {
+    "name": "M2: arg0 scaled by 4, not 8",
+    "caught": true
+   },
+   {
+    "name": "M3: miss path returns -1, not 0",
+    "caught": true
+   },
+   {
+    "name": "M4: offset subtracted, not added",
+    "caught": true
+   },
+   {
+    "name": "M5: arg0 divided by 8, not scaled",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if (vs_battle_roomData.section7 != 0) {",
+     "size": 4,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 5053, < 6818, > 8129 (signed); < 0, > 14947 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35094,
+     "completion_tokens": 829,
+     "reasoning_tokens": 588,
+     "cost": 0.00196195,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008C478.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008C478.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 310.6782513360031,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 94735.4616510868,
+ "totals": {
+  "cost": 0.00343,
+  "prompt_tokens": 46708,
+  "completion_tokens": 4394,
+  "model_seconds": 0.0,
+  "check_seconds": 310.7,
+  "calls": 2,
+  "wall_seconds": 94735.5
+ }
+}

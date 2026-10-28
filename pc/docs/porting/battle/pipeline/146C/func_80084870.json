@@ -1,0 +1,211 @@
+{
+ "function": "func_80084870",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80084870",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80084870",
+  "difficulty": "S",
+  "zig_name": "func_80084870",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80084870",
+  "spec_file": "func_80084870.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80084870(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14019,
+     "completion_tokens": 12693,
+     "reasoning_tokens": 11138,
+     "cost": 0.0038742,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084870: 1000 iterations, seed 1, 1000 mismatches; classes: hp-effect-1=258 hp-effect-3=263 hp-effect-other=479"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15780,
+     "completion_tokens": 4703,
+     "reasoning_tokens": 3011,
+     "cost": 0.00196475,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084870: 1000 iterations, seed 1, 1000 mismatches; classes: hp-effect-1=269 hp-effect-3=233 hp-effect-other=498"
+    ]
+   }
+  ],
+  "classes": {
+   "hp-effect-1": "269",
+   "hp-effect-3": "233",
+   "hp-effect-other": "498"
+  },
+  "mutations": [
+   {
+    "name": "M1: the stat change is taken away, not added",
+    "caught": true
+   },
+   {
+    "name": "M2: hpEffect set to 1, not 2",
+    "caught": true
+   },
+   {
+    "name": "M3: the hpEffect == 3 case dropped",
+    "caught": true
+   },
+   {
+    "name": "M4: amount held in an unsigned char",
+    "caught": true
+   },
+   {
+    "name": "M5: the calculator's arg1 and arg2 swapped",
+    "caught": true
+   },
+   {
+    "name": "M6: the kill-flag call gets arg1 as its target",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2145737469, max 2147356020, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147234662, max 2147284759, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if ((temp_v1 == 1) || ((temp_v1 == 3))) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7609, < 7582, > 14809 (signed); < 7582, > 14809 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..3"
+    },
+    {
+     "line": 4,
+     "text": "if ((temp_v1 == 1) || ((temp_v1 == 3))) {",
+     "size": 4,
+     "count": 22391,
+     "kind": "against a constant",
+     "outcomes": "== 7487, < 14904, > 0 (signed); < 14904, > 0 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..3"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 25.238728209000328,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56716.295117378235,
+ "totals": {
+  "cost": 0.00584,
+  "prompt_tokens": 29799,
+  "completion_tokens": 17396,
+  "model_seconds": 0.0,
+  "check_seconds": 25.2,
+  "calls": 2,
+  "wall_seconds": 56716.3
+ }
+}

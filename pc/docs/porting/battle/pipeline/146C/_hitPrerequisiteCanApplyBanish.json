@@ -1,0 +1,205 @@
+{
+ "function": "_hitPrerequisiteCanApplyBanish",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_hitPrerequisiteCanApplyBanish",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007fd08",
+  "difficulty": "S",
+  "zig_name": "hitPrerequisiteCanApplyBanish",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "hit_prerequisite_can_apply_banish",
+  "spec_file": "hitPrerequisiteCanApplyBanish.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn hitPrerequisiteCanApplyBanish(arg0: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12163,
+     "completion_tokens": 4079,
+     "reasoning_tokens": 2571,
+     "cost": 0.0016279,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "arg1-null": "5059",
+   "arg1-set": "14941"
+  },
+  "mutations": [
+   {
+    "name": "BA1: test for nonzero instead of zero",
+    "caught": true
+   },
+   {
+    "name": "BA2: wrong effect id (28 for 29)",
+    "caught": true
+   },
+   {
+    "name": "BA3: arg1 not passed through",
+    "caught": true
+   },
+   {
+    "name": "BA4: result truncated to a byte before the test",
+    "caught": true
+   },
+   {
+    "name": "BA5: sign test instead of zero test",
+    "caught": true
+   },
+   {
+    "name": "BA6: call dropped, constant result",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 2,
+   "lines_hit": 2,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "return _hitPrerequisiteCanApplyEffect(29, arg1) == 0;",
+     "size": 4,
+     "count": 20000,
+     "kind": "against a constant",
+     "outcomes": "== 7849, < 4494, > 7657 (signed); < 0, > 12151 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146635306..2146989595"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35559,
+     "completion_tokens": 1145,
+     "reasoning_tokens": 887,
+     "cost": 0.0020642,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/hitPrerequisiteCanApplyBanish.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/hit_prerequisite_can_apply_banish.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 207.76016445299865,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 60529.95665502548,
+ "totals": {
+  "cost": 0.00369,
+  "prompt_tokens": 47722,
+  "completion_tokens": 5224,
+  "model_seconds": 0.0,
+  "check_seconds": 207.8,
+  "calls": 2,
+  "wall_seconds": 60530.0
+ }
+}

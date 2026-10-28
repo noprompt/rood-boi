@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation D1: the null test is inverted: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x426070 [D_800F1CC8+0",
+ "reviewed": false,
  "plan": {
   "name": "func_8008B8F8",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -47,16 +47,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12085,
-     "completion_tokens": 7336,
-     "reasoning_tokens": 5741,
-     "cost": 0.0048765,
-     "seconds": 30.9,
-     "sample": 1,
-     "conversation": "24fbdab7984c52e1be7f78ab130339dd8bd6b6b8b663eb0f080002b9792601f7"
+     "completion_tokens": 8696,
+     "reasoning_tokens": 7258,
+     "cost": 0.0027782499999999995,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_8008B8F8/spec1/build/spec.zig:28:30: error: expected type 'usize', found 'c_int'\n        const count: usize = n;\n                             ^\npc/build/port-pipeline/func_8008B8F8/spec1/build/spec.zig:28:30: note: unsigned 64-bit int cannot represent all possible signed 32-bit values\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_8008B8F8/spec1/build/game/common/route.zig:29:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: mutation D1: door id read as unsigned char: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8008B8F8: 30000 iterations, seed 1, 0 mismatches; classes: null=6054 door-byte-high=10671 door-byte-low=13275"
     ]
    },
    {
@@ -69,48 +69,44 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14008,
-     "completion_tokens": 2541,
-     "reasoning_tokens": 939,
-     "cost": 0.0026713,
-     "seconds": 9.3,
-     "sample": 1,
-     "conversation": "2bceee7e7afd196cf7c4499e251f9ca1de5a3fb585228fc99d3bfc04f58d48e4"
+     "prompt_tokens": 13671,
+     "completion_tokens": 2783,
+     "reasoning_tokens": 1270,
+     "cost": 0.0013793,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation D1: the null test is inverted: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x426070 [D_800F1CC8+0x0] (zdiff_state+0x20000): C 141, Zig 0\nzdiff: MISMATCH iteration 1: memory at 0x426070 [D_800F1CC8+0x0] (zdiff_state+0x20000): C 198, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x426070 [D_800F1CC8+0x0] (zdiff_state+0x20000): C 135, Zig 0\nzdiff: PANIC in the Zig run, iteration 10: attempt to use null value (return address 0x4018bf)"
+     "FAIL: mutation D1: door id read as unsigned char: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8008B8F8: 30000 iterations, seed 1, 0 mismatches; classes: null=6054 door-byte-high=10671 door-byte-low=13275"
     ]
    }
   ],
   "classes": {
-   "null": "3758",
-   "self-copy": "4404",
-   "copy": "21838"
+   "null": "6054",
+   "door-byte-high": "10671",
+   "door-byte-low": "13275"
   },
   "mutations": [
    {
-    "name": "D1: the null test is inverted",
+    "name": "D1: door id read as unsigned char",
     "caught": false
    },
    {
-    "name": "D2: the door id is read from byte 7",
+    "name": "D2: doorEntered stored with the top bit masked",
     "caught": true
    },
    {
-    "name": "D3: the no-pointer door is 0, not -1",
+    "name": "D3: wrong constant for the no-door value",
     "caught": true
    },
    {
-    "name": "D4: memcpy drops the last byte",
+    "name": "D4: bzero clears one byte short",
     "caught": true
    },
    {
-    "name": "D5: bzero leaves the last byte",
-    "caught": true
-   },
-   {
-    "name": "D6: the door id is narrowed to a signed char",
+    "name": "D5: the record copy is dropped",
     "caught": true
    }
   ],
@@ -138,19 +134,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 17.533292304000497,
- "wall_seconds": 58.2617503199981,
+ "check_seconds": 28.769488807000016,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56787.47597980499,
  "totals": {
-  "cost": 0.00755,
-  "prompt_tokens": 26093,
-  "completion_tokens": 9877,
-  "model_seconds": 40.2,
-  "check_seconds": 17.5,
+  "cost": 0.00416,
+  "prompt_tokens": 25756,
+  "completion_tokens": 11479,
+  "model_seconds": 0.0,
+  "check_seconds": 28.8,
   "calls": 2,
-  "wall_seconds": 58.3
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 56787.5
  }
 }

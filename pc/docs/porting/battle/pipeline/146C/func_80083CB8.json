@@ -1,0 +1,202 @@
+{
+ "function": "func_80083CB8",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80083CB8",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80083cb8",
+  "difficulty": "S",
+  "zig_name": "func_80083CB8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80083CB8",
+  "spec_file": "func_80083CB8.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80083CB8(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13061,
+     "completion_tokens": 7165,
+     "reasoning_tokens": 5721,
+     "cost": 0.0024443,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 4: return value\nzdiff: func_80083CB8: 1688 iterations, seed 1, 1000 mismatches; classes: arg2-null=201 arg2-valid=1487",
+     "FAIL: mutation M1: callee gets arg1 instead of arg2: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x4060c4 [arena] (zdiff_state+0x54): C 221, Zig 56\nzdiff: MISMATCH iteration 1: memory at 0x4060c4 [arena] (zdiff_state+0x54): C 60, Zig 211\nzdiff: MISMATCH iteration 2: memory at 0x4060c4 [arena] (zdiff_state+0x54): C 222, Zig 200\nzdiff: CRASH (signal 11) in the Zig run, iteration 22, fault address 0x1e [NULL+0x1e: a field of a null pointer]",
+     "FAIL: mutation M6: store made unconditional: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x1e [NULL+0x1e: a field of a null pointer]\nzdiff: crashed on arguments: 0x406070 [arena] 0x4060b0 [arena] 0 0x85b98aa4 0x90cbeb0a (class arg2-null)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15236,
+     "completion_tokens": 6528,
+     "reasoning_tokens": 4947,
+     "cost": 0.0023937999999999997,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 4: return value\nzdiff: MISMATCH iteration 5: return value\nzdiff: func_80083CB8: 1680 iterations, seed 1, 1000 mismatches; classes: arg2-null=171 arg2-valid=1509"
+    ]
+   }
+  ],
+  "classes": {
+   "arg2-null": "171",
+   "arg2-valid": "1509"
+  },
+  "mutations": [
+   {
+    "name": "M1: callee gets arg1 instead of arg2",
+    "caught": true
+   },
+   {
+    "name": "M2: store 2 instead of 1",
+    "caught": true
+   },
+   {
+    "name": "M3: test > 0 instead of != 0",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong callee id 13",
+    "caught": true
+   },
+   {
+    "name": "M5: store dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: store made unconditional",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147357358, max 2147410512, unsigned 188960..4294952113, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147450587, max 2147482546, unsigned 160900..4294856388, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (_setApplicableStatuses(12, arg2) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 12441, < 8735, > 8824 (signed); < 0, > 17559 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147471619..2147382551"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 23.847044731001006,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56638.35412335396,
+ "totals": {
+  "cost": 0.00484,
+  "prompt_tokens": 28297,
+  "completion_tokens": 13693,
+  "model_seconds": 0.0,
+  "check_seconds": 23.8,
+  "calls": 2,
+  "wall_seconds": 56638.4
+ }
+}

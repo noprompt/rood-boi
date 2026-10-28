@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_80088554: branches 98/106 (92.5%), conditions not measured (GCC < 14: branch",
+ "reviewed": false,
  "plan": {
   "name": "func_80088554",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -44,17 +44,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 18065,
-     "completion_tokens": 24958,
-     "reasoning_tokens": 21896,
-     "cost": 0.0142855,
-     "seconds": 105.1,
-     "sample": 1,
-     "conversation": "90625e0a70d192c475fed9437616a1e4080a86cc349ee1e37b04aecf701c745b"
+     "prompt_tokens": 18074,
+     "completion_tokens": 43828,
+     "reasoning_tokens": 40331,
+     "cost": 0.0118607,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has c_uint: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_80088554/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has c_uint: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_80088554/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
     ]
    },
    {
@@ -67,101 +67,65 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 21466,
-     "completion_tokens": 4582,
-     "reasoning_tokens": 1525,
-     "cost": 0.0044376,
-     "seconds": 15.7,
-     "sample": 1,
-     "conversation": "9ee44b11a4dbf6cb5e94a2632f38543211c13de85a7dfcc64f8716d20be936d0"
+     "prompt_tokens": 21910,
+     "completion_tokens": 5096,
+     "reasoning_tokens": 1568,
+     "cost": 0.0023695,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80088554: branches 98/106 (92.5%), conditions not measured (GCC < 14: branch coverage only), lines 80/84\n  UNCOVERED +58 b1: branch never taken: `if (temp_s3->weaponDrawn & 1) {`\n  UNCOVERED +73 b1: branch never taken: `if (temp_s0->currentHP != 0) {`\n  UNCOVERED +101 b0: branch never taken: `if (temp_s3->weaponDrawn & 1) {`\n  UNCOVERED +103 b0: branch never taken (not executed): `if (temp_s0->weapon.currentPp != 0) {`\n  UNCOVERED +103 b1: branch never taken (not executed): `if (temp_s0->weapon.currentPp != 0) {`\n  UNCOVERED +107 b0: branch never taken (not executed): `if (temp_s0->shield.currentPp != 0) {`\n  UNCOVERED +107 b1: branch never taken (not executed): `if (temp_s0->shield.currentPp != 0) {`\n  UNCOVERED +116 b1: branch never taken: `if (temp_s0->currentHP != 0) {`\ncoverage func_80088554: FAILED (threshold 100%: 8 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (temp_s3->weaponDrawn & 1) {` (+58): one way out of this test (+58 b1) was never taken; add inputs that take it.\n- `if (temp_s0->currentHP != 0) {` (+73): one way out of this test (+73 b1) was never taken; add inputs that take it.\n- `if (temp_s3->weaponDrawn & 1) {` (+101): one way out of this test (+101 b0) was never taken; add inputs that take it.\n- `if (temp_s0->weapon.currentPp != 0) {` (+103) never ran: no input reaches this line; add inputs that get there (the tests before it must come out the other way).\n- `if (temp_s0->weapon.currentPp != 0) {` (+103) never ran: no input reaches this line; add inputs that get there (the tests before it must come out the other way).\n- `if (temp_s0->shield.currentPp != 0) {` (+107) never ran: no input reaches this line; add inputs that get there (the tests before it must come out the other way).\n- `if (temp_s0->shield.currentPp != 0) {` (+107) never ran: no input reaches this line; add inputs that get there (the tests before it must come out the other way).\n- `if (temp_s0->currentHP != 0) {` (+116): one way out of this test (+116 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80088554.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80088554: branches 104/106 (98.1%), conditions not measured (GCC < 14: branch coverage only), lines 84/84\n  UNCOVERED +73 b1: branch never taken: `if (temp_s0->currentHP != 0) {`\n  UNCOVERED +116 b1: branch never taken: `if (temp_s0->currentHP != 0) {`\ncoverage func_80088554: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (temp_s0->currentHP != 0) {` (+73): one way out of this test (+73 b1) was never taken; add inputs that take it.\n- `if (temp_s0->currentHP != 0) {` (+116): one way out of this test (+116 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80088554.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "no-actors": "2963",
-   "tick-multiple-240": "4585",
-   "tick-multiple-60": "6122",
-   "tick-other": "16330"
+   "no-actors": "3286",
+   "tick-240": "7806",
+   "tick-60": "11592",
+   "tick-other": "17316"
   },
   "mutations": [
    {
-    "name": "V1: the streak entry scores 2",
+    "name": "F1: tick speed ignored in the timer",
     "caught": true
    },
    {
-    "name": "U1: unk954 bonus threshold is 36",
+    "name": "F2: unk954 decremented by one too many",
     "caught": true
    },
    {
-    "name": "D1: limb index wraps at 5",
+    "name": "F3: HP refresh call dropped",
     "caught": true
    },
    {
-    "name": "C1: the death check call is dropped",
+    "name": "F4: signed timer read as unsigned",
     "caught": true
    },
    {
-    "name": "T1: the busy-flag test uses bit 23",
+    "name": "F5: return value of 2 mapped to 1",
     "caught": true
    },
    {
-    "name": "S1: statuses bit 3 read as bit 4",
+    "name": "F6: unit-0 test inverted for the death path",
     "caught": true
    }
   ],
   "coverage": {
    "branches": 106,
-   "branches_hit": 98,
+   "branches_hit": 104,
    "conditions": null,
    "conditions_hit": null,
    "lines": 84,
-   "lines_hit": 80,
+   "lines_hit": 84,
    "uncovered": [
-    {
-     "id": "+58 b1",
-     "line": 58,
-     "text": "if (temp_s3->weaponDrawn & 1) {",
-     "what": "branch never taken"
-    },
     {
      "id": "+73 b1",
      "line": 73,
      "text": "if (temp_s0->currentHP != 0) {",
      "what": "branch never taken"
-    },
-    {
-     "id": "+101 b0",
-     "line": 101,
-     "text": "if (temp_s3->weaponDrawn & 1) {",
-     "what": "branch never taken"
-    },
-    {
-     "id": "+103 b0",
-     "line": 103,
-     "text": "if (temp_s0->weapon.currentPp != 0) {",
-     "what": "branch never taken (not executed)"
-    },
-    {
-     "id": "+103 b1",
-     "line": 103,
-     "text": "if (temp_s0->weapon.currentPp != 0) {",
-     "what": "branch never taken (not executed)"
-    },
-    {
-     "id": "+107 b0",
-     "line": 107,
-     "text": "if (temp_s0->shield.currentPp != 0) {",
-     "what": "branch never taken (not executed)"
-    },
-    {
-     "id": "+107 b1",
-     "line": 107,
-     "text": "if (temp_s0->shield.currentPp != 0) {",
-     "what": "branch never taken (not executed)"
     },
     {
      "id": "+116 b1",
@@ -177,9 +141,9 @@
      "line": 6,
      "text": "for (i = 0; i < 16; ++i) {",
      "size": 4,
-     "count": 510000,
+     "count": 680000,
      "kind": "against a constant",
-     "outcomes": "== 30000, < 450000, > 30000 (signed); < 450000, > 30000 (unsigned)",
+     "outcomes": "== 40000, < 600000, > 40000 (signed); < 600000, > 40000 (unsigned)",
      "operand": "constant 15",
      "a": "0..16"
     },
@@ -187,9 +151,9 @@
      "line": 11,
      "text": "if ((temp_s3 != 0) && ((temp_s3->unk27 != 0x80) || (i == 0))) {",
      "size": 1,
-     "count": 324726,
+     "count": 470171,
      "kind": "against a constant",
-     "outcomes": "== 129882, < 0, > 194844 (signed); < 194844, > 0 (unsigned)",
+     "outcomes": "== 156806, < 0, > 313365 (signed); < 235056, > 78309 (unsigned)",
      "operand": "constant -128",
      "a": "-128..127"
     },
@@ -197,9 +161,9 @@
      "line": 11,
      "text": "if ((temp_s3 != 0) && ((temp_s3->unk27 != 0x80) || (i == 0))) {",
      "size": 4,
-     "count": 129882,
+     "count": 156806,
      "kind": "against a constant",
-     "outcomes": "== 8112, < 0, > 121770 (signed); < 0, > 121770 (unsigned)",
+     "outcomes": "== 9856, < 0, > 146950 (signed); < 0, > 146950 (unsigned)",
      "operand": "constant 0",
      "a": "0..15"
     },
@@ -207,9 +171,9 @@
      "line": 15,
      "text": "if (temp_v0 & 0x01000000) {",
      "size": 4,
-     "count": 202956,
+     "count": 323221,
      "kind": "against a constant",
-     "outcomes": "== 126843, < 0, > 76113 (signed); < 0, > 76113 (unsigned)",
+     "outcomes": "== 242332, < 0, > 80889 (signed); < 0, > 80889 (unsigned)",
      "operand": "constant 0",
      "a": "0..16777216"
     },
@@ -217,29 +181,29 @@
      "line": 17,
      "text": "if (func_8009E4B0(i) != 1) {",
      "size": 4,
-     "count": 76113,
+     "count": 80889,
      "kind": "against a constant",
-     "outcomes": "== 25166, < 25595, > 25352 (signed); < 25595, > 25352 (unsigned)",
+     "outcomes": "== 37936, < 21702, > 21251 (signed); < 0, > 42953 (unsigned)",
      "operand": "constant 1",
-     "a": "0..2"
+     "a": "-2147357484..2147474065"
     },
     {
      "line": 21,
      "text": "if ((var_s1 == 0) && (i != 0)) {",
      "size": 4,
-     "count": 50947,
+     "count": 42953,
      "kind": "against a constant",
-     "outcomes": "== 21877, < 9284, > 19786 (signed); < 0, > 29070 (unsigned)",
+     "outcomes": "== 10770, < 5355, > 26828 (signed); < 0, > 32183 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..2"
+     "a": "-2146898604..2147107504"
     },
     {
      "line": 21,
      "text": "if ((var_s1 == 0) && (i != 0)) {",
      "size": 4,
-     "count": 21877,
+     "count": 10770,
      "kind": "against a constant",
-     "outcomes": "== 2225, < 0, > 19652 (signed); < 0, > 19652 (unsigned)",
+     "outcomes": "== 943, < 0, > 9827 (signed); < 0, > 9827 (unsigned)",
      "operand": "constant 0",
      "a": "0..15"
     },
@@ -247,39 +211,39 @@
      "line": 22,
      "text": "if (func_800BEC58(0xC, 0, 0, 0) == 1) {",
      "size": 2,
-     "count": 19652,
+     "count": 9827,
      "kind": "against a constant",
-     "outcomes": "== 14728, < 0, > 4924 (signed); < 0, > 4924 (unsigned)",
+     "outcomes": "== 4949, < 2442, > 2436 (signed); < 0, > 4878 (unsigned)",
      "operand": "constant 1",
-     "a": "1..2"
+     "a": "-32755..32733"
     },
     {
      "line": 30,
      "text": "} else if ((temp_v0 & 0x01002001) == 1) {",
      "size": 4,
-     "count": 126843,
+     "count": 242332,
      "kind": "against a constant",
-     "outcomes": "== 76072, < 50771, > 0 (signed); < 50771, > 0 (unsigned)",
+     "outcomes": "== 80702, < 40266, > 121364 (signed); < 40266, > 121364 (unsigned)",
      "operand": "constant 1",
-     "a": "0..1"
+     "a": "0..8193"
     },
     {
      "line": 36,
      "text": "if (temp_s0->unk954 > 35) {",
      "size": 2,
-     "count": 63417,
+     "count": 70712,
      "kind": "against a constant",
-     "outcomes": "== 6290, < 34879, > 22248 (signed); < 12743, > 44384 (unsigned)",
+     "outcomes": "== 8867, < 35420, > 26425 (signed); < 26560, > 35285 (unsigned)",
      "operand": "constant 35",
-     "a": "-32768..32760"
+     "a": "-1..200"
     },
     {
      "line": 38,
      "text": "} else if (temp_s0->unk954 != 0) {",
      "size": 2,
-     "count": 19033,
+     "count": 35427,
      "kind": "against a constant",
-     "outcomes": "== 6424, < 0, > 12609 (signed); < 0, > 12609 (unsigned)",
+     "outcomes": "== 8942, < 0, > 26485 (signed); < 0, > 26485 (unsigned)",
      "operand": "constant 0",
      "a": "0..35"
     },
@@ -287,29 +251,29 @@
      "line": 42,
      "text": "if ((D_800E8490 % 30 == 0) && (temp_s0->currentHP != 0)) {",
      "size": 4,
-     "count": 63417,
+     "count": 70712,
      "kind": "against a constant",
-     "outcomes": "== 25825, < 2233, > 35359 (signed); < 0, > 37592 (unsigned)",
+     "outcomes": "== 48703, < 3676, > 18333 (signed); < 0, > 22009 (unsigned)",
      "operand": "constant 0",
-     "a": "-29..29"
+     "a": "-1..29"
     },
     {
      "line": 42,
      "text": "if ((D_800E8490 % 30 == 0) && (temp_s0->currentHP != 0)) {",
      "size": 2,
-     "count": 25825,
+     "count": 48703,
      "kind": "against a constant",
-     "outcomes": "== 4363, < 10708, > 10754 (signed); < 0, > 21462 (unsigned)",
+     "outcomes": "== 6933, < 13850, > 27920 (signed); < 0, > 41770 (unsigned)",
      "operand": "constant 0",
-     "a": "-32761..32761"
+     "a": "-32768..32767"
     },
     {
      "line": 44,
      "text": "if (temp_s3->weaponDrawn & 1) {",
      "size": 4,
-     "count": 21462,
+     "count": 41770,
      "kind": "against a constant",
-     "outcomes": "== 10669, < 0, > 10793 (signed); < 0, > 10793 (unsigned)",
+     "outcomes": "== 19248, < 0, > 22522 (signed); < 0, > 22522 (unsigned)",
      "operand": "constant 0",
      "a": "0..1"
     },
@@ -317,9 +281,9 @@
      "line": 46,
      "text": "if (D_800E8490 % 120 == 0) {",
      "size": 4,
-     "count": 10793,
+     "count": 22522,
      "kind": "against a constant",
-     "outcomes": "== 6539, < 35, > 4219 (signed); < 0, > 4254 (unsigned)",
+     "outcomes": "== 10509, < 3417, > 8596 (signed); < 0, > 12013 (unsigned)",
      "operand": "constant 0",
      "a": "-60..90"
     },
@@ -327,119 +291,119 @@
      "line": 47,
      "text": "if (temp_s0->risk != 0) {",
      "size": 2,
-     "count": 6539,
+     "count": 10509,
      "kind": "against a constant",
-     "outcomes": "== 1158, < 2691, > 2690 (signed); < 0, > 5381 (unsigned)",
+     "outcomes": "== 2614, < 2586, > 5309 (signed); < 0, > 7895 (unsigned)",
      "operand": "constant 0",
-     "a": "-32763..32721"
+     "a": "-1..2"
     },
     {
      "line": 52,
      "text": "if (D_800E8490 % 180 == 0) {",
      "size": 4,
-     "count": 10793,
+     "count": 22522,
      "kind": "against a constant",
-     "outcomes": "== 2636, < 35, > 8122 (signed); < 0, > 8157 (unsigned)",
+     "outcomes": "== 5216, < 3417, > 13889 (signed); < 0, > 17306 (unsigned)",
      "operand": "constant 0",
-     "a": "-60..150"
+     "a": "-60..120"
     },
     {
      "line": 54,
      "text": "if (temp_s0->currentMP < temp_s0->maxMP) {",
      "size": 2,
-     "count": 2636,
+     "count": 5216,
      "kind": "a == b / a < b",
-     "outcomes": "== 1010, < 842, > 784 (signed); < 821, > 805 (unsigned)",
-     "operand": "b -32750..32686",
-     "a": "-32741..32711"
+     "outcomes": "== 2302, < 1438, > 1476 (signed); < 1299, > 1615 (unsigned)",
+     "operand": "b -1..32767",
+     "a": "-1..32767"
     },
     {
      "line": 58,
      "text": "if (temp_s3->weaponDrawn & 1) {",
      "size": 4,
-     "count": 2636,
+     "count": 5216,
      "kind": "against a constant",
-     "outcomes": "== 0, < 0, > 2636 (signed); < 0, > 2636 (unsigned)",
+     "outcomes": "== 420, < 0, > 4796 (signed); < 0, > 4796 (unsigned)",
      "operand": "constant 0",
-     "a": "1..1"
+     "a": "0..1"
     },
     {
      "line": 60,
      "text": "if (temp_s0->weapon.currentPp != 0) {",
      "size": 2,
-     "count": 2636,
+     "count": 4796,
      "kind": "against a constant",
-     "outcomes": "== 679, < 660, > 1297 (signed); < 0, > 1957 (unsigned)",
+     "outcomes": "== 1187, < 1215, > 2394 (signed); < 0, > 3609 (unsigned)",
      "operand": "constant 0",
-     "a": "-32745..32741"
+     "a": "-1..2"
     },
     {
      "line": 64,
      "text": "if (temp_s0->shield.currentPp != 0) {",
      "size": 2,
-     "count": 2636,
+     "count": 4796,
      "kind": "against a constant",
-     "outcomes": "== 685, < 649, > 1302 (signed); < 0, > 1951 (unsigned)",
+     "outcomes": "== 1186, < 1181, > 2429 (signed); < 0, > 3610 (unsigned)",
      "operand": "constant 0",
-     "a": "-32748..32678"
+     "a": "-1..2"
     },
     {
      "line": 70,
      "text": "if (D_800E8490 % 240 == 0) {",
      "size": 4,
-     "count": 10793,
+     "count": 22522,
      "kind": "against a constant",
-     "outcomes": "== 3874, < 35, > 6884 (signed); < 0, > 6919 (unsigned)",
+     "outcomes": "== 7031, < 3417, > 12074 (signed); < 0, > 15491 (unsigned)",
      "operand": "constant 0",
-     "a": "-60..210"
+     "a": "-60..180"
     },
     {
      "line": 72,
      "text": "if (temp_s0->currentHP < temp_s0->maxHP) {",
      "size": 2,
-     "count": 3874,
+     "count": 7031,
      "kind": "a == b / a < b",
-     "outcomes": "== 1471, < 1144, > 1259 (signed); < 991, > 1412 (unsigned)",
-     "operand": "b -32743..32753",
-     "a": "-32743..32753"
+     "outcomes": "== 3070, < 1847, > 2114 (signed); < 1687, > 2274 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
     },
     {
      "line": 73,
      "text": "if (temp_s0->currentHP != 0) {",
      "size": 2,
-     "count": 1144,
+     "count": 1847,
      "kind": "against a constant",
-     "outcomes": "== 0, < 913, > 231 (signed); < 0, > 1144 (unsigned)",
+     "outcomes": "== 0, < 1169, > 678 (signed); < 0, > 1847 (unsigned)",
      "operand": "constant 0",
-     "a": "-32636..28390"
+     "a": "-32768..5"
     },
     {
      "line": 78,
      "text": "if (temp_s0->limbs[D_800E8494].maxHp != 0) {",
      "size": 2,
-     "count": 3874,
+     "count": 7031,
      "kind": "against a constant",
-     "outcomes": "== 968, < 1010, > 1896 (signed); < 0, > 2906 (unsigned)",
+     "outcomes": "== 780, < 2330, > 3921 (signed); < 0, > 6251 (unsigned)",
      "operand": "constant 0",
-     "a": "-32728..32759"
+     "a": "-32768..32767"
     },
     {
      "line": 79,
      "text": "if (temp_s0->limbs[D_800E8494].hp",
      "size": 2,
-     "count": 2906,
+     "count": 6251,
      "kind": "a == b / a < b",
-     "outcomes": "== 939, < 979, > 988 (signed); < 642, > 1325 (unsigned)",
-     "operand": "b -32728..32759",
-     "a": "-32711..32751"
+     "outcomes": "== 2011, < 2178, > 2062 (signed); < 2302, > 1938 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
     },
     {
      "line": 88,
      "text": "if (!(temp_s0->statuses & 8) || (D_800E8490 % 120 == 0)) {",
      "size": 4,
-     "count": 10669,
+     "count": 19248,
      "kind": "against a constant",
-     "outcomes": "== 5314, < 0, > 5355 (signed); < 0, > 5355 (unsigned)",
+     "outcomes": "== 12791, < 0, > 6457 (signed); < 0, > 6457 (unsigned)",
      "operand": "constant 0",
      "a": "0..8"
     },
@@ -447,9 +411,9 @@
      "line": 88,
      "text": "if (!(temp_s0->statuses & 8) || (D_800E8490 % 120 == 0)) {",
      "size": 4,
-     "count": 5355,
+     "count": 6457,
      "kind": "against a constant",
-     "outcomes": "== 3264, < 17, > 2074 (signed); < 0, > 2091 (unsigned)",
+     "outcomes": "== 3007, < 961, > 2489 (signed); < 0, > 3450 (unsigned)",
      "operand": "constant 0",
      "a": "-60..90"
     },
@@ -457,19 +421,19 @@
      "line": 90,
      "text": "if (temp_s0->risk != 0) {",
      "size": 2,
-     "count": 8578,
+     "count": 15798,
      "kind": "against a constant",
-     "outcomes": "== 1438, < 3544, > 3596 (signed); < 0, > 7140 (unsigned)",
+     "outcomes": "== 3909, < 3964, > 7925 (signed); < 0, > 11889 (unsigned)",
      "operand": "constant 0",
-     "a": "-32765..32753"
+     "a": "-1..2"
     },
     {
      "line": 95,
      "text": "if (D_800E8490 % 60 == 0) {",
      "size": 4,
-     "count": 10669,
+     "count": 19248,
      "kind": "against a constant",
-     "outcomes": "== 9084, < 8, > 1577 (signed); < 0, > 1585 (unsigned)",
+     "outcomes": "== 14768, < 1496, > 2984 (signed); < 0, > 4480 (unsigned)",
      "operand": "constant 0",
      "a": "-30..30"
     },
@@ -477,29 +441,49 @@
      "line": 97,
      "text": "if (temp_s0->currentMP < temp_s0->maxMP) {",
      "size": 2,
-     "count": 9084,
+     "count": 14768,
      "kind": "a == b / a < b",
-     "outcomes": "== 3544, < 2716, > 2824 (signed); < 2789, > 2751 (unsigned)",
-     "operand": "b -32766..32764",
-     "a": "-32766..32764"
+     "outcomes": "== 6639, < 4201, > 3928 (signed); < 4525, > 3604 (unsigned)",
+     "operand": "b -1..32767",
+     "a": "-1..32767"
     },
     {
      "line": 101,
      "text": "if (temp_s3->weaponDrawn & 1) {",
      "size": 4,
-     "count": 9084,
+     "count": 14768,
      "kind": "against a constant",
-     "outcomes": "== 9084, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 13919, < 0, > 849 (signed); < 0, > 849 (unsigned)",
      "operand": "constant 0",
-     "a": "0..0"
+     "a": "0..1"
+    },
+    {
+     "line": 103,
+     "text": "if (temp_s0->weapon.currentPp != 0) {",
+     "size": 2,
+     "count": 849,
+     "kind": "against a constant",
+     "outcomes": "== 208, < 210, > 431 (signed); < 0, > 641 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
+    },
+    {
+     "line": 107,
+     "text": "if (temp_s0->shield.currentPp != 0) {",
+     "size": 2,
+     "count": 849,
+     "kind": "against a constant",
+     "outcomes": "== 194, < 218, > 437 (signed); < 0, > 655 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
     },
     {
      "line": 113,
      "text": "if (D_800E8490 % 120 == 0) {",
      "size": 4,
-     "count": 10669,
+     "count": 19248,
      "kind": "against a constant",
-     "outcomes": "== 6474, < 32, > 4163 (signed); < 0, > 4195 (unsigned)",
+     "outcomes": "== 9032, < 2899, > 7317 (signed); < 0, > 10216 (unsigned)",
      "operand": "constant 0",
      "a": "-60..90"
     },
@@ -507,99 +491,99 @@
      "line": 115,
      "text": "if (temp_s0->currentHP < temp_s0->maxHP) {",
      "size": 2,
-     "count": 6474,
+     "count": 9032,
      "kind": "a == b / a < b",
-     "outcomes": "== 2426, < 2032, > 2016 (signed); < 1634, > 2414 (unsigned)",
-     "operand": "b -32747..32762",
-     "a": "-32761..32761"
+     "outcomes": "== 3861, < 2421, > 2750 (signed); < 2123, > 3048 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
     },
     {
      "line": 116,
      "text": "if (temp_s0->currentHP != 0) {",
      "size": 2,
-     "count": 2032,
+     "count": 2421,
      "kind": "against a constant",
-     "outcomes": "== 0, < 1653, > 379 (signed); < 0, > 2032 (unsigned)",
+     "outcomes": "== 0, < 1588, > 833 (signed); < 0, > 2421 (unsigned)",
      "operand": "constant 0",
-     "a": "-32761..29911"
+     "a": "-32768..5"
     },
     {
      "line": 121,
      "text": "if (temp_s0->limbs[D_800E8494].maxHp != 0) {",
      "size": 2,
-     "count": 6474,
+     "count": 9032,
      "kind": "against a constant",
-     "outcomes": "== 1682, < 1542, > 3250 (signed); < 0, > 4792 (unsigned)",
+     "outcomes": "== 1031, < 2941, > 5060 (signed); < 0, > 8001 (unsigned)",
      "operand": "constant 0",
-     "a": "-32760..32766"
+     "a": "-32768..32767"
     },
     {
      "line": 122,
      "text": "if (temp_s0->limbs[D_800E8494].hp",
      "size": 2,
-     "count": 4792,
+     "count": 8001,
      "kind": "a == b / a < b",
-     "outcomes": "== 1592, < 1592, > 1608 (signed); < 1060, > 2140 (unsigned)",
-     "operand": "b -32760..32766",
-     "a": "-32762..32740"
+     "outcomes": "== 2624, < 2783, > 2594 (signed); < 2956, > 2421 (unsigned)",
+     "operand": "b -32768..32767",
+     "a": "-32768..32767"
     },
     {
      "line": 131,
      "text": "if (D_800E8490 % 60 == 0) {",
      "size": 4,
-     "count": 63417,
+     "count": 70712,
      "kind": "against a constant",
-     "outcomes": "== 21974, < 2251, > 39192 (signed); < 0, > 41443 (unsigned)",
+     "outcomes": "== 37330, < 7468, > 25914 (signed); < 0, > 33382 (unsigned)",
      "operand": "constant 0",
-     "a": "-59..59"
+     "a": "-30..59"
     },
     {
      "line": 133,
      "text": "if (temp_s0->currentHP != 0) {",
      "size": 2,
-     "count": 21974,
+     "count": 37330,
      "kind": "against a constant",
-     "outcomes": "== 4499, < 8335, > 9140 (signed); < 0, > 17475 (unsigned)",
+     "outcomes": "== 6563, < 9341, > 21426 (signed); < 0, > 30767 (unsigned)",
      "operand": "constant 0",
-     "a": "-32761..32761"
+     "a": "-32768..32767"
     },
     {
      "line": 137,
      "text": "if (temp_s0->currentHP == 0) {",
      "size": 2,
-     "count": 21974,
+     "count": 37330,
      "kind": "against a constant",
-     "outcomes": "== 6661, < 7323, > 7990 (signed); < 0, > 15313 (unsigned)",
+     "outcomes": "== 16930, < 8088, > 12312 (signed); < 0, > 20400 (unsigned)",
      "operand": "constant 0",
-     "a": "-32743..32761"
+     "a": "-32768..32767"
     },
     {
      "line": 139,
      "text": "if (temp_s3->unk26 == 0) {",
      "size": 1,
-     "count": 6661,
+     "count": 16930,
      "kind": "against a constant",
-     "outcomes": "== 3346, < 1659, > 1656 (signed); < 0, > 3315 (unsigned)",
+     "outcomes": "== 8412, < 0, > 8518 (signed); < 0, > 8518 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "0..2"
     },
     {
      "line": 145,
      "text": "if ((var_s1 == 0) && (i != 0)) {",
      "size": 4,
-     "count": 3315,
+     "count": 8518,
      "kind": "against a constant",
-     "outcomes": "== 1412, < 611, > 1292 (signed); < 0, > 1903 (unsigned)",
+     "outcomes": "== 2125, < 1061, > 5332 (signed); < 0, > 6393 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..2"
+     "a": "-2145100789..2147206253"
     },
     {
      "line": 145,
      "text": "if ((var_s1 == 0) && (i != 0)) {",
      "size": 4,
-     "count": 1412,
+     "count": 2125,
      "kind": "against a constant",
-     "outcomes": "== 164, < 0, > 1248 (signed); < 0, > 1248 (unsigned)",
+     "outcomes": "== 209, < 0, > 1916 (signed); < 0, > 1916 (unsigned)",
      "operand": "constant 0",
      "a": "0..15"
     },
@@ -607,61 +591,61 @@
      "line": 146,
      "text": "if (func_800BEC58(0xC, 0, 0, 0) == 1) {",
      "size": 2,
-     "count": 1248,
+     "count": 1916,
      "kind": "against a constant",
-     "outcomes": "== 930, < 0, > 318 (signed); < 0, > 318 (unsigned)",
+     "outcomes": "== 992, < 480, > 444 (signed); < 0, > 924 (unsigned)",
      "operand": "constant 1",
-     "a": "1..2"
+     "a": "-32758..32705"
     },
     {
      "line": 159,
      "text": "if (var_s1 != 0) {",
      "size": 4,
-     "count": 480000,
+     "count": 640000,
      "kind": "against a constant",
-     "outcomes": "== 428127, < 9895, > 41978 (signed); < 0, > 51873 (unsigned)",
+     "outcomes": "== 589681, < 6416, > 43903 (signed); < 0, > 50319 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..2"
+     "a": "-2146898604..2147206253"
     },
     {
      "line": 160,
      "text": "if (var_s5 == 0) {",
      "size": 4,
-     "count": 51873,
+     "count": 50319,
      "kind": "against a constant",
-     "outcomes": "== 23487, < 4270, > 24116 (signed); < 0, > 28386 (unsigned)",
+     "outcomes": "== 27693, < 2533, > 20093 (signed); < 0, > 22626 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..2"
+     "a": "-2145053449..2147035164"
     },
     {
      "line": 162,
      "text": "} else if (var_s1 == 1) {",
      "size": 4,
-     "count": 28386,
+     "count": 22626,
      "kind": "against a constant",
-     "outcomes": "== 14665, < 5162, > 8559 (signed); < 0, > 13721 (unsigned)",
+     "outcomes": "== 8503, < 2806, > 11317 (signed); < 0, > 14123 (unsigned)",
      "operand": "constant 1",
-     "a": "-1..2"
+     "a": "-2146898604..2147206253"
     },
     {
      "line": 170,
      "text": "if (D_800E8490 % 240 == 0) {",
      "size": 4,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 1075, < 1141, > 27784 (signed); < 0, > 28925 (unsigned)",
+     "outcomes": "== 1931, < 3828, > 34241 (signed); < 0, > 38069 (unsigned)",
      "operand": "constant 0",
-     "a": "-64..239"
+     "a": "-60..239"
     },
     {
      "line": 176,
      "text": "if (var_s1 != 0) {",
      "size": 4,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 7504, < 11245, > 11251 (signed); < 0, > 22496 (unsigned)",
+     "outcomes": "== 13378, < 6612, > 20010 (signed); < 0, > 26622 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "-2146397638..2147420711"
     }
    ],
    "passed": false
@@ -671,19 +655,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 30.66334377900057,
- "wall_seconds": 151.96419998599958,
+ "check_seconds": 33.88731767699937,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56773.98503637314,
  "totals": {
-  "cost": 0.01872,
-  "prompt_tokens": 39531,
-  "completion_tokens": 29540,
-  "model_seconds": 120.8,
-  "check_seconds": 30.7,
+  "cost": 0.01423,
+  "prompt_tokens": 39984,
+  "completion_tokens": 48924,
+  "model_seconds": 0.0,
+  "check_seconds": 33.9,
   "calls": 2,
-  "wall_seconds": 152.0
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 56774.0
  }
 }

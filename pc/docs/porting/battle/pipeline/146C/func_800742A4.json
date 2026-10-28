@@ -1,0 +1,146 @@
+{
+ "function": "func_800742A4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800742A4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800742a4",
+  "difficulty": "S",
+  "zig_name": "func_800742A4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800742A4",
+  "spec_file": "func_800742A4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_800742A4() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F1910"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11883,
+     "completion_tokens": 6317,
+     "reasoning_tokens": 4995,
+     "cost": 0.0021734,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800742A4/spec1/build/spec.zig:42:21: error: type '?*views_146C._mpdRoomSectionA' does not support field access\n    return if (actor.unk0.unk0 < 0) 0 else 1;\n               ~~~~~^~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:443:36\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13481,
+     "completion_tokens": 2126,
+     "reasoning_tokens": 802,
+     "cost": 0.00120555,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F3: shift of 6 instead of 7: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800742A4: 30000 iterations, seed 1, 0 mismatches; classes: field-negative=13864 field-nonnegative=16136",
+     "FAIL: mutation F4: sp10[0] reads unk2: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800742A4: 30000 iterations, seed 1, 0 mismatches; classes: field-negative=13864 field-nonnegative=16136",
+     "FAIL: mutation F5: sp10[2] offset 0x41: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800742A4: 30000 iterations, seed 1, 0 mismatches; classes: field-negative=13864 field-nonnegative=16136"
+    ]
+   }
+  ],
+  "classes": {
+   "field-negative": "13864",
+   "field-nonnegative": "16136"
+  },
+  "mutations": [
+   {
+    "name": "F1: camera mode 5",
+    "caught": true
+   },
+   {
+    "name": "F2: tickspeed 3",
+    "caught": true
+   },
+   {
+    "name": "F3: shift of 6 instead of 7",
+    "caught": false
+   },
+   {
+    "name": "F4: sp10[0] reads unk2",
+    "caught": false
+   },
+   {
+    "name": "F5: sp10[2] offset 0x41",
+    "caught": false
+   },
+   {
+    "name": "F6: the trailing call dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 21.21833609799978,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56409.350021123886,
+ "totals": {
+  "cost": 0.00338,
+  "prompt_tokens": 25364,
+  "completion_tokens": 8443,
+  "model_seconds": 0.0,
+  "check_seconds": 21.2,
+  "calls": 2,
+  "wall_seconds": 56409.4
+ }
+}

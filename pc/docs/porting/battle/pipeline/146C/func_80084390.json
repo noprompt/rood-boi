@@ -1,0 +1,197 @@
+{
+ "function": "func_80084390",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80084390",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80084390",
+  "difficulty": "S",
+  "zig_name": "func_80084390",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80084390",
+  "spec_file": "func_80084390.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80084390(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14073,
+     "completion_tokens": 14540,
+     "reasoning_tokens": 12843,
+     "cost": 0.0043386499999999995,
+     "seconds": null,
+     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084390: 1048 iterations, seed 1, 1000 mismatches; classes: not-spell=358 spell-low-hp=317 spell-high-hp=373"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15973,
+     "completion_tokens": 3262,
+     "reasoning_tokens": 1501,
+     "cost": 0.00161415,
+     "seconds": null,
+     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084390: 1048 iterations, seed 1, 1000 mismatches; classes: not-spell=358 spell-low-hp=317 spell-high-hp=373"
+    ]
+   }
+  ],
+  "classes": {
+   "not-spell": "358",
+   "spell-low-hp": "317",
+   "spell-high-hp": "373"
+  },
+  "mutations": [
+   {
+    "name": "M1: the spell test inverted",
+    "caught": true
+   },
+   {
+    "name": "M2: the hp change lands on arg1, not arg2",
+    "caught": true
+   },
+   {
+    "name": "M3: hpEffect set to 0, not 2",
+    "caught": true
+   },
+   {
+    "name": "M4: the stat-change side effect call dropped",
+    "caught": true
+   },
+   {
+    "name": "M5: amount narrowed to signed char",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147447105, max 2147282869, unsigned 25379..4294951821, seen negative, never zero"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147345008, max 2147257819, unsigned 252568..4294809765, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 3,
+     "text": "if (vs_main_actions[D_800F19CC->unk8.actionIndex].type == actionTypeSpell) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 20077, < 1396, > 8527 (signed); < 1396, > 8527 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 21.971021962999657,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 56695.697729349136,
+ "totals": {
+  "cost": 0.00595,
+  "prompt_tokens": 30046,
+  "completion_tokens": 17802,
+  "model_seconds": 0.0,
+  "check_seconds": 22.0,
+  "calls": 2,
+  "wall_seconds": 56695.7
+ }
+}
