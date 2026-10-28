@@ -292,6 +292,10 @@ Json list_json()
     j.set("relief_footprint", Json::num(pc_relief_footprint));
     j.set("env_specular", Json::num(pc_env_specular));
     j.set("baked_energy", Json::num(pc_baked_energy));
+    j.set("relief_baked", Json::num(pc_relief_baked));
+    j.set("relief_indirect", Json::num(pc_relief_indirect));
+    j.set("relief_reach", Json::num(pc_relief_reach));
+    j.set("relief_overhead", Json::num(pc_relief_overhead));
     j.set("preview", Json::boolean_(pc_auto_height_preview != 0));
     j.set("cells", Json::num(emissive::material_cell_count()));
     j.set("unsaved", Json::boolean_(materials::pending_dirty()));

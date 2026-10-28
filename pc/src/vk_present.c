@@ -160,6 +160,9 @@ typedef struct {
     float material2[4];
     /* The baked shadow (lights.cpp pc_baked_shadow_params): level, curve, sky, indirect; lights. */
     float baked_shadow[2][4];
+    /* The relief under the baked and indirect light (emissive.h): relief_baked, relief_indirect,
+     * relief_reach, relief_overhead (scaled.frag material3_). */
+    float material3[4];
 } present_ubo;
 
 /* ---- swapchain ---- */
@@ -1142,8 +1145,8 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
                 vk_descriptors_image(&d, 6 + i, gi_views[i], vk.nearest);
             vk_descriptors_image(&d, 10, haze_view, vk.linear);
             vk_descriptors_image(&d, 11, pc_vk_shadows_view(), vk.linear);
-            if (pc_vk_probes_bind)
-                pc_vk_probes_bind(&d, 12);
+            if (pc_vk_probes_bind && pc_vk_probes_bind(&d, 12))
+                pu->i1[2] |= 512; /* the probe field is readable (the relief's indirect light) */
             vk_descriptors_buffer(&d, 16, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, light_slice.buffer, light_slice.offset,
                 light_bytes);
             vk_descriptors_image(&d, 17, medium_view, vk.linear);
@@ -1168,6 +1171,10 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
             pu->material2[1] = pc_bump_occlusion < 0 ? 0 : pc_bump_occlusion > 1 ? 1 : pc_bump_occlusion;
             pu->material2[2] = pc_env_specular < 0 ? 0 : pc_env_specular > 1 ? 1 : pc_env_specular;
             pu->material2[3] = pc_baked_energy < 0 ? 0 : pc_baked_energy > 1 ? 1 : pc_baked_energy;
+            pu->material3[0] = pc_relief_baked < 0 ? 0 : pc_relief_baked > 4 ? 4 : pc_relief_baked;
+            pu->material3[1] = pc_relief_indirect < 0 ? 0 : pc_relief_indirect > 4 ? 4 : pc_relief_indirect;
+            pu->material3[2] = pc_relief_reach < 0 ? 0 : pc_relief_reach > 4096 ? 4096 : pc_relief_reach;
+            pu->material3[3] = pc_relief_overhead < 0 ? 0 : pc_relief_overhead > 1 ? 1 : pc_relief_overhead;
             pu->material[2] = !pc_gl_show_depth && pc_material_active() ? 1.0f : 0.0f;
             if (pu->material[2] > 0 && gi && pc_vk_reflect_bind && pc_vk_reflect_bind(&reflect_view))
                 pu->material[3] = 1;

@@ -71,6 +71,11 @@ extern float pc_bump_occlusion;
 extern float pc_relief_aniso, pc_relief_footprint;
 extern float pc_env_specular;
 extern float pc_baked_energy;
+/* The relief under light without a direction (scaled.frag relief_*, pc/docs/Materials.md "The relief under
+ * the baked and indirect light"): its strength on the game's baked light and on the indirect light
+ * (0..2; 0: as without), the reach (world units) that turns the light's change along the surface
+ * into the tilt of its direction, and the share of a light-from-above prior in that tilt (0..1). */
+extern float pc_relief_baked, pc_relief_indirect, pc_relief_reach, pc_relief_overhead;
 /* The editor's preview of the height estimate on every entry in view
  * (material_editor.cpp; not a setting). */
 extern int pc_auto_height_preview;

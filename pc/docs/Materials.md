@@ -496,12 +496,75 @@ maps draws exactly what it did.
   unchanged (the Keep's walls and floor differ by 0 in the normals view).
 - **What it bends**: the dynamic lights' diffuse cosine (the attenuation,
   shapes and shadows stay the geometry's), the sun's, the GGX lobe and the
-  Fresnel of the environment. The geometry's normal keeps the shadows, GI,
-  AO and the traced reflections' rays.
-- **The baked light** has no direction, so the relief cannot shade it;
-  only the cavities (a texel below its eight neighbours' mean) lose a share
+  Fresnel of the environment; and, below, the game's baked light, the
+  indirect light (probes or path traced) and the sky's ambient. The
+  geometry's normal keeps the shadows, the GI's lookup and denoising, AO
+  and the traced reflections' rays.
+- **The cavities** (a texel below its eight neighbours' mean) lose a share
   of the ambient light (baked, indirect, sky), `bump_occlusion`: physical
   (a pit sees less of its surround) and subtle.
+
+### The relief under the baked and indirect light
+
+In most rooms most of the light is the game's baked (vertex) light and the
+indirect light, and neither has a direction, so bending only the dynamic
+lights left the relief faint. `scaled.frag` (`relief_*`) now shades both
+with it, Vulkan only:
+
+- **The model.** Over a relief whose tilt is `t` (the bent normal's part
+  along the surface, unnormalised: the height's slope times
+  `bump_strength`), light from direction `l` delivers `dot(n + t, l)` per
+  unit of flat area (each facet's cosine times its area). Against the flat
+  value that is `1 + dot(t, tau)`, `tau` the light's tilt from the normal
+  along the surface (the tangent of its angle). So a flat surface keeps
+  exactly its light, and over slopes that cancel (any height map: the
+  slopes of a closed bump sum to zero) the mean is unchanged: the light
+  only moves from the faces turned away to the faces turned toward it. With
+  a share `k` of the light from that direction, `1 + k dot(t, tau)`
+  (clamped to 0..2); `k` is the term's strength.
+- **The baked light's direction.** The vertex light is the light arriving
+  at the surface; it carries no direction, and nothing else in the frame
+  knows where it came from (its lights have no geometry, the probes do not
+  see them, and the rooms where it matters most have no dynamic light and
+  so no probe field at all). But an irradiance field rises toward its light
+  along a surface: a point light `h` above it, `x` along, gives
+  `grad E / E = 3x / (h^2 + x^2)` where the light's tilt is `x / h`. So
+  `tau = relief_reach x grad E / E`, `relief_reach` about the light's
+  height over the surface. The gradient is taken in world space on the
+  surface from the vertex light at four screen neighbours (central
+  differences over a footprint of `relief_reach / 8`, 8..64 units,
+  one-sided at an edge, none across a crease or a depth step), so it is
+  smooth across the game's triangles. Where the light hardly changes
+  (broad, evenly lit walls), `relief_overhead` adds light from above (the
+  world's up along the surface; nothing on floors and ceilings): the
+  prior we read bumps by, and what the room's lanterns and torches above
+  head height mostly give. `tau` is clamped to 2 (63 degrees).
+- **The indirect light.** With the probe field readable this frame
+  (`gi_method probes`, `gi_on` 512) it has its own direction: DDGI stores
+  irradiance by normal, so the term is the field's own response,
+  `(E(n + t) - E(n - t)) / 2E(n)` at the unnormalised bent normals (for
+  irradiance linear in the normal exactly `dot(t, grad)`, the same flux
+  change; the probes' weights are the geometry normal's). The path
+  tracer's result is irradiance per GI pixel without a direction: its
+  gradient along the surface, as for the baked light (the GI result looked
+  up at the same four neighbours), plus the light from above. The sky's
+  ambient (`env_ambient`, rooms where nothing traces the sky) by the same
+  difference at the bent normals.
+- **Strength 0** (either term) and pixels without a relief take exactly
+  the old expressions: the frame is byte-identical to the renderer before
+  (checked against the old binary in the Keep and Snowfly Forest, preset
+  Low, and by `material_relief_smoke` against the terms on with nothing to
+  give a direction).
+- **Measured** (the Keep 29/3 at the game camera, no dynamic light, the
+  defaults): the walls' high-pass luminance deviation rises 12-15 %, their
+  mean luminance changes by under 1 %; over every material pixel of the
+  view -0.1..+0.1 %. Snowfly Forest 40/13 the same within 0.15 %. Brick
+  tops catch the lantern's light, their undersides darken; the stone
+  floor shows its slabs toward the lantern. The Catacombs (13/3) change
+  little: few of its textures have a relief entry yet.
+
+Debug view 12 (RPC `graphics view_mode`): the baked factor (r) and the
+indirect factor (g), 0.5 = 1, and the baked light's tilt (b, 1 = 2).
 
 Tunables (lighting quality keys: settings, Graphics > Lighting quality >
 Materials, RPC `graphics`):
@@ -516,6 +579,10 @@ Materials, RPC `graphics`):
 | `relief_footprint` | texels per pixel (long side) where the relief starts to fade, gone at twice; 0: no limit | 3 |
 | `env_specular` | the baked (and indirect) light reflected as the surround, 0..1 | 1 |
 | `baked_energy` | the baked light under the material's energy split, 0..1 | 1 |
+| `relief_baked` | the relief under the game's baked light: the directional share of that light, 0..4; 0: as before (byte-identical) | 2 |
+| `relief_indirect` | the relief under the indirect light (probes, path traced) and the sky's ambient, 0..4; 0: as before | 2 |
+| `relief_reach` | world units that turn the light's relative change along the surface into its tilt (about the light's height over the surface); also sets the gradient's footprint (reach / 8, 8..64); 0: no tilt from it | 96 |
+| `relief_overhead` | the tilt toward the world's up added on walls (light from above), 0..1 | 0.6 |
 
 No maps and no flags: the picture is byte-identical (material_smoke).
 
@@ -582,3 +649,6 @@ or metal), `map {key, channel}`, `undo`, `preview {auto_height}`, `reload`.
   material today (the translucent passes keep the opaque G-buffer); a
   material there needs its own pass.
 - Reflections along the relief normal (the traced rays use the geometry's).
+- The relief under the glows' light (`gi_extra`'s gba, traced) and the
+  baked light's direction from the room's fixtures (the lighting pack's
+  fixture catalog knows where the lanterns are) where they are known.

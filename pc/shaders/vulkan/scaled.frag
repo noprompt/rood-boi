@@ -8,7 +8,7 @@ layout(location = 0) out vec4 color;
 layout(std140, binding = 0) uniform Present {
     ivec4 rect; // display x, y, width, height in VRAM pixels
     ivec4 i0; // scale, filtered (0 nearest, 1 bilinear, 2 supersample), show_depth, post
-    ivec4 i1; // view_mode, light_count, gi_on (bits: 1 add, 2 show alone, 4 traced visibility, 8 show it, 16 baked visibility, 32 show it, 64 probe field, 128 a GI result is bound, 256 its rgb is the probe field), unused
+    ivec4 i1; // view_mode, light_count, gi_on (bits: 1 add, 2 show alone, 4 traced visibility, 8 show it, 16 baked visibility, 32 show it, 64 probe field, 128 a GI result is bound, 256 its rgb is the probe field, 512 the probe field is readable), unused
     ivec4 i2; // gi_size.xy
     vec4 view_; // viewport size in window pixels
     vec4 f0; // focus_sz, dof_radius, aperture, baked
@@ -71,6 +71,11 @@ layout(std140, binding = 0) uniform Present {
     // below it, z its strength on the sun and sky, w on the indirect light and glows; [1].x on the
     // dynamic lights. Debug view (view_mode) 11: the three factors as rgb.
     vec4 baked_shadow_[2];
+    // The relief under light without a direction (emissive.h relief_*): x its strength on the game's
+    // baked light, y on the indirect light and the sky (0: as without), z the reach (world units) that
+    // turns the light's change along the surface into its tilt, w the share of light from above.
+    // Debug view (view_mode) 12: the baked and indirect factors (r, g; 0.5 = 1) and the baked tilt (b).
+    vec4 material3_;
 } u;
 #include "material_pack.glsl"
 layout(binding = 23) uniform sampler2D material_tex; // the material target (material_pack.glsl)
@@ -379,6 +384,121 @@ vec4 gi_at(vec2 display, vec3 world, vec3 wn, out vec4 extra_out) {
     extra_out = weight > 1e-5 ? extra / weight : vec4(1.0, 0.0, 0.0, 0.0);
     return weight > 1e-5 ? sum / weight : vec4(0.0, 0.0, 0.0, 1.0);
 }
+// ---- the relief under the baked and indirect light (pc/docs/Materials.md "Height and normals") ----
+// That light is irradiance without a direction. Over a relief whose tilt is t (the unnormalised bent
+// normal's part along the surface: the height's slope), light arriving from direction l delivers
+// dot(n + t, l) per unit of flat area (each facet's cosine times its area), i.e. its flat value times
+// 1 + dot(t, tau), tau the light's tilt from the normal along the surface (tan of its angle): a flat
+// surface keeps exactly its light, and over slopes that cancel the mean is unchanged. A share k of the
+// light from that direction (the rest from all around) gives 1 + k dot(t, tau).
+// Where nothing says where the light comes from: an irradiance field rises toward its light along a
+// surface (a point light h above it, x along: grad E / E = 3x / (h^2 + x^2) where the tilt is x / h),
+// so tau = reach x grad E / E, reach about the light's height over the surface; plus a share of light
+// from above (the world's up along the surface: what we read bumps by when nothing else tells).
+float relief_luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+// The gradient along the surface of a scalar from its values at two screen-axis neighbours' offsets
+// a and b (world vectors along the surface, 0 when that axis has no neighbour) and their changes.
+vec3 relief_solve(vec3 a, vec3 b, float da, float db, vec3 n) {
+    vec3 ab = cross(a, b);
+    float det = dot(ab, n), la = dot(a, a), lb = dot(b, b);
+    if (abs(det) > 0.05 * sqrt(la * lb) && la > 0.0 && lb > 0.0)
+        return (da * cross(b, n) + db * cross(n, a)) / det;
+    return (la > 0.0 ? a * da / la : vec3(0.0)) + (lb > 0.0 ? b * db / lb : vec3(0.0));
+}
+// The relative gradients (grad E / E, world, along the surface) of the baked light (x the vertex
+// light's luminance) and, with `want_gi`, of the GI result's indirect light around pixel q: central
+// differences over a footprint of reach / 8 (8..64 units) between neighbours on the same surface
+// (one-sided at an edge, none across a crease or a depth step).
+void relief_gradients(ivec2 q, vec3 world, vec3 wn, float z, float e_baked, float e_gi, bool want_gi,
+                      out vec3 g_baked, out vec3 g_gi) {
+    float radius = clamp(u.material3_.z * 0.125, 8.0, 64.0);
+    int r = int(clamp(radius * projection.x / max(z, 1.0) * float(scale), 1.0, 32.0 * float(scale)));
+    vec3 axis_w[2] = vec3[2](vec3(0.0), vec3(0.0));
+    float axis_b[2] = float[2](0.0, 0.0), axis_g[2] = float[2](0.0, 0.0);
+    mat3 to_world = normal_to_world();
+    for (int a = 0; a < 2; a++) {
+        vec3 wp[2]; float eb[2], eg[2]; bool ok[2];
+        for (int sgn = 0; sgn < 2; sgn++) {
+            ivec2 o = q + (a == 0 ? ivec2(r, 0) : ivec2(0, r)) * (sgn == 0 ? 1 : -1);
+            ok[sgn] = false; wp[sgn] = world; eb[sgn] = e_baked; eg[sgn] = e_gi;
+            vec2 disp = (vec2(o) + 0.5) / float(scale) - vec2(rect.xy);
+            if (any(lessThan(disp, vec2(0.0))) || any(greaterThanEqual(disp, vec2(rect.zw)))) continue;
+            o = ivec2(o.x % (1024 * scale), o.y % (512 * scale));
+            vec4 nn = texelFetch(normal_tex, o, 0);
+            vec4 sh = texelFetch(shade_tex, o, 0);
+            float zo = texelFetch(depth_tex, o, 0).r * 65536.0;
+            if (nn.a < 0.5 || sh.a < 0.75 || zo < 0.5) continue;
+            vec3 wno = normalize(to_world * normalize(nn.xyz * 2.0 - 1.0));
+            vec3 w = world_at(o, zo), dw = w - world;
+            if (dot(wno, wn) < 0.9 || abs(dot(dw, wn)) > 0.1 * length(dw) + 1.0) continue;
+            ok[sgn] = true; wp[sgn] = w;
+            eb[sgn] = relief_luma(sh.rgb * (255.0 / 128.0));
+            if (want_gi) { vec4 ex; eg[sgn] = relief_luma(gi_at(disp, w, wno, ex).rgb); }
+        }
+        if (ok[0] && ok[1]) { axis_w[a] = wp[0] - wp[1]; axis_b[a] = eb[0] - eb[1]; axis_g[a] = eg[0] - eg[1]; }
+        else if (ok[0]) { axis_w[a] = wp[0] - world; axis_b[a] = eb[0] - e_baked; axis_g[a] = eg[0] - e_gi; }
+        else if (ok[1]) { axis_w[a] = world - wp[1]; axis_b[a] = e_baked - eb[1]; axis_g[a] = e_gi - eg[1]; }
+    }
+    g_baked = relief_solve(axis_w[0], axis_w[1], axis_b[0], axis_b[1], wn) / max(e_baked, 0.02);
+    g_gi = want_gi ? relief_solve(axis_w[0], axis_w[1], axis_g[0], axis_g[1], wn) / max(e_gi, 0.005) : vec3(0.0);
+}
+// A light's tilt along the surface from its relative gradient (reach) and the light from above.
+vec3 relief_tilt(vec3 g, vec3 wn) {
+    vec3 up = vec3(0.0, -1.0, 0.0);
+    vec3 tau = g * u.material3_.z + (up - wn * dot(up, wn)) * u.material3_.w;
+    tau -= wn * dot(tau, wn);
+    float l = length(tau);
+    return l > 2.0 ? tau * (2.0 / l) : tau; // at most about 63 degrees from the normal
+}
+// The probe field's response to the relief (DDGI: irradiance by the normal, so it has the direction
+// itself): (E(n + t) - E(n - t)) / 2 at the unnormalised bent normals, over E(n): for irradiance linear in
+// the normal (the field's first order) exactly the flux change dot(t, grad), mean zero over the slopes.
+// The weights (trilinear, wrapped cosine, visibility) are the geometry normal's for all three.
+float probe_relief(vec3 p, vec3 n, vec3 eye_dir, vec3 t) {
+    vec3 biased = p + n * pv_bias.x - eye_dir * pv_bias.y;
+    vec3 cell = clamp((biased - pv_origin.xyz) / pv_spacing.xyz, vec3(0.0), vec3(pv_counts.xyz - 1));
+    ivec3 base = min(ivec3(cell), pv_counts.xyz - 2);
+    vec3 alpha = cell - vec3(base);
+    vec2 irradiance_texel = 1.0 / vec2(textureSize(probe_irradiance, 0));
+    vec2 depth_texel = 1.0 / vec2(textureSize(probe_depth, 0));
+    vec2 uv0 = (probe_oct_encode(n) * 0.5 + 0.5) * float(PROBE_IRRADIANCE) + 1.0;
+    vec2 uvp = (probe_oct_encode(normalize(n + t)) * 0.5 + 0.5) * float(PROBE_IRRADIANCE) + 1.0;
+    vec2 uvm = (probe_oct_encode(normalize(n - t)) * 0.5 + 0.5) * float(PROBE_IRRADIANCE) + 1.0;
+    int base_index = probe_index(base);
+    float depth_scale = 1.0 / pv_spacing.w;
+    float e0 = 0.0, de = 0.0;
+    for (int i = 0; i < 8; i++) {
+        ivec3 offset = ivec3(i, i >> 1, i >> 2) & 1;
+        int index = base_index + offset.x + pv_counts.x * (offset.y + pv_counts.y * offset.z);
+        ivec2 tile = ivec2(index % pv_counts.w, index / pv_counts.w);
+        vec4 data = texelFetch(probe_data, tile, 0);
+        if (data.w <= 0.0) continue;
+        vec3 from_probe = biased - (pv_origin.xyz + vec3(base + offset) * pv_spacing.xyz + data.xyz);
+        float distance = length(from_probe);
+        vec3 direction = from_probe / max(distance, 1e-4);
+        float wrap = (0.5 - 0.5 * dot(direction, n));
+        float weight = wrap * wrap + 0.2;
+        vec2 depth_uv = (vec2(tile * (PROBE_DEPTH + 2)) + 1.0 + (probe_oct_encode(direction) * 0.5 + 0.5) * float(PROBE_DEPTH)) * depth_texel;
+        vec2 moments = textureLod(probe_depth, depth_uv, 0.0).rg;
+        distance *= depth_scale;
+        if (distance > moments.x) {
+            float variance = abs(moments.y - moments.x * moments.x);
+            float d = distance - moments.x;
+            float chebyshev = variance / (variance + d * d);
+            weight *= max(chebyshev * chebyshev * chebyshev, 0.05);
+        }
+        weight = max(weight, 1e-6);
+        const float crush = 0.2;
+        if (weight < crush) weight *= weight * weight / (crush * crush);
+        vec3 trilinear = mix(1.0 - alpha, alpha, vec3(offset));
+        weight *= trilinear.x * trilinear.y * trilinear.z * data.w;
+        vec2 corner = vec2(tile * (PROBE_IRRADIANCE + 2));
+        e0 += relief_luma(textureLod(probe_irradiance, (corner + uv0) * irradiance_texel, 0.0).rgb) * weight;
+        de += (relief_luma(textureLod(probe_irradiance, (corner + uvp) * irradiance_texel, 0.0).rgb)
+             - relief_luma(textureLod(probe_irradiance, (corner + uvm) * irradiance_texel, 0.0).rgb)) * weight;
+    }
+    return e0 > 1e-5 ? 0.5 * de * sqrt(1.0 + dot(t, t)) / e0 : 0.0;
+}
 // ---- material response (pc/docs/Materials.md "Shading") ----
 // GGX (Trowbridge-Reitz) with the height-correlated Smith visibility, in the
 // lights' own units: the diffuse term is albedo x light x cosine (no 1 / pi),
@@ -578,6 +698,37 @@ void main() {
                 n_s = normalize(normal_to_world() * normalize(normal - tangential * u.material2_.x));
                 if (dot(n_s, m_view) < 0.0 && dot(world_normal, m_view) > 0.0) n_s = normalize(n_s - m_view * dot(n_s, m_view) * 1.01);
             }
+            // The relief under the baked and indirect light (relief_*): their factors here (exactly 1 when
+            // off, flat or without a relief; see relief_gradients).
+            float f_baked = 1.0, f_indirect = 1.0, f_sky = 1.0;
+            vec3 tau_b = vec3(0.0);
+            bool r_baked = m_relief && u.material3_.x > 0.0 && shade.a > 0.75;
+            bool r_indirect = m_relief && u.material3_.y > 0.0;
+            if (r_baked || r_indirect) {
+                vec3 flat_n = normalize(n.xyz * 2.0 - 1.0);
+                vec3 tangential = flat_n - mp.bent / max(dot(mp.bent, flat_n), 0.2);
+                vec3 t = normal_to_world() * (-tangential * u.material2_.x);
+                t -= world_normal * dot(t, world_normal); // the relief's tilt along the surface (world)
+                bool probe_field = (gi_on & 512) != 0;
+                bool traced_gi = r_indirect && (gi_on & 128) != 0 && (gi_on & 256) == 0 && !probe_field;
+                vec3 g_b = vec3(0.0), g_i = vec3(0.0);
+                if (r_baked || traced_gi)
+                    relief_gradients(q, world, world_normal, z, relief_luma(vertex_light), relief_luma(gi.rgb), traced_gi, g_b, g_i);
+                if (r_baked) {
+                    tau_b = relief_tilt(g_b, world_normal);
+                    f_baked = clamp(1.0 + u.material3_.x * dot(t, tau_b), 0.0, 2.0);
+                }
+                if (r_indirect) {
+                    float k = probe_field ? probe_relief(world, world_normal, normalize(world - eye_world), t)
+                                          : dot(t, relief_tilt(g_i, world_normal));
+                    f_indirect = clamp(1.0 + u.material3_.y * k, 0.0, 2.0);
+                    if (u.env_mode.y != 0) { // the sky's ambient has its own direction (environment.glsl)
+                        float e0 = relief_luma(env_ambient(world_normal));
+                        float de = relief_luma(env_ambient(normalize(world_normal + t))) - relief_luma(env_ambient(normalize(world_normal - t)));
+                        f_sky = e0 > 1e-5 ? clamp(1.0 + u.material3_.y * 0.5 * de * sqrt(1.0 + dot(t, t)) / e0, 0.0, 2.0) : 1.0;
+                    }
+                }
+            }
             // The cavities' ambient occlusion (the baked, indirect and sky light; never the direct lights').
             float m_cav = has_mat ? 1.0 - mp.cavity * clamp(u.material2_.y, 0.0, 1.0) * min(u.material2_.x, 1.0) : 1.0;
             vec3 m_r = reflect(-m_view, n_s);
@@ -622,8 +773,11 @@ void main() {
             if (env_sun_on())
                 sum += env_sun_unshadowed(m_relief ? n_s : world_normal) * bsh.x * (u.env_mode.x == -2 ? clamp(gi.a, 0.0, 1.0)
                     : u.env_mode.x == 0 ? env_sun_map_visibility(world, world_normal, ign(gl_FragCoord.xy) * 6.2831853) : ao);
-            if (u.env_mode.y != 0)
-                sum += env_ambient(world_normal) * ao * m_cav * bsh.x;
+            if (u.env_mode.y != 0) {
+                vec3 sky = env_ambient(world_normal);
+                if (r_indirect) sky *= f_sky;
+                sum += sky * ao * m_cav * bsh.x;
+            }
             if (has_mat && env_sun_on()) { // the sun's highlight: its disc's angular size widens the lobe
                 float sv = u.env_mode.x == -2 ? clamp(gi.a, 0.0, 1.0)
                     : u.env_mode.x == 0 ? env_sun_map_visibility(world, world_normal, ign(gl_FragCoord.xy) * 6.2831853) : ao;
@@ -633,8 +787,10 @@ void main() {
             if ((gi_on & 8) != 0) { color = vec4(vec3(gi.a), 1.0); return; }
             if ((gi_on & 32) != 0) { color = vec4(vec3(baked_vis * ao), 1.0); return; }
             vec3 indirect = vec3(0.0); // (the material's environment where no reflection is traced)
-            if ((gi_on & 1) != 0) { indirect = gi.rgb * ao * gi_strength * bsh.y; sum += (gi.rgb * ao * m_cav + extra.gba) * gi_strength * bsh.y; } // indirect + glows
-            else if ((gi_on & (64 | 256)) != 0) { indirect = gi.rgb * ao * gi_strength * bsh.y; sum += indirect * m_cav; } // probes alone (no traced GI result)
+            vec3 gi_lit = gi.rgb; // on the relief (relief_indirect)
+            if (r_indirect) gi_lit *= f_indirect;
+            if ((gi_on & 1) != 0) { indirect = gi.rgb * ao * gi_strength * bsh.y; sum += (gi_lit * ao * m_cav + extra.gba) * gi_strength * bsh.y; } // indirect + glows
+            else if ((gi_on & (64 | 256)) != 0) { indirect = gi.rgb * ao * gi_strength * bsh.y; sum += (r_indirect ? gi_lit * ao * gi_strength * bsh.y : indirect) * m_cav; } // probes alone (no traced GI result)
             if (view_mode == 11) { color = vec4(bsh, 1.0); return; }
             if (view_mode == 3) { color = vec4(shade.a > 0.75 ? albedo : shade.rgb, 1.0); return; }
             if (view_mode == 4) { color = vec4(min(shade.a > 0.75 ? vertex_light * 0.5 : shade.rgb, vec3(1.0)), 1.0); return; }
@@ -660,14 +816,16 @@ void main() {
                 if (view_mode == 6) { color = vec4(mat.rgb, 1.0); return; }
                 if (view_mode == 9) { color = vec4(n_s * 0.5 + 0.5, 1.0); return; }
                 if (view_mode == 10) { color = vec4(vec3(m_cav), 1.0); return; }
+                if (view_mode == 12) { color = vec4(f_baked * 0.5, f_indirect * 0.5, min(length(tau_b) * 0.5, 1.0), 1.0); return; }
                 // 8: the traced reflections alone (before Fresnel), magenta when none is bound
                 if (view_mode == 8) { color = u.material_.w > 0.5 ? vec4(min(texture(reflect_tex, ((vec2(q) + 0.5) / float(scale) - vec2(rect.xy)) / vec2(rect.zw)).rgb, vec3(1.0)), 1.0) : vec4(1.0, 0.0, 1.0, 1.0); return; }
                 if (view_mode == 7) { color = vec4(min(spec, vec3(1.0)), 1.0); return; }
                 // The baked light under the same split as the dynamic light (baked_energy; 0: untouched).
                 vec3 kb = mix(vec3(1.0), kd, clamp(u.material2_.w, 0.0, 1.0) * min(u.material_.x, 1.0));
+                if (r_baked) c *= f_baked; // the baked light on the relief (relief_baked)
                 c = c * baked * baked_vis * ao * m_cav * kb + albedo * sum * mix(vec3(1.0), kd, min(u.material_.x, 1.0)) + spec;
             } else {
-                if (view_mode >= 6 && view_mode <= 10) { color = vec4(0.0, 0.0, 0.0, 1.0); return; }
+                if ((view_mode >= 6 && view_mode <= 10) || view_mode == 12) { color = vec4(0.0, 0.0, 0.0, 1.0); return; }
                 c = c * baked * baked_vis * ao + albedo * sum;
             }
             if (em_px) c = max(c, em);

@@ -32,7 +32,8 @@ extern int pc_gl_compute;
 /* Material response (emissive.h): the specular switch and its tunables. */
 extern int pc_specular, pc_reflection_bounces, pc_auto_height;
 extern float pc_specular_strength, pc_roughness_bias, pc_bump_strength, pc_auto_height_strength, pc_bump_occlusion,
-    pc_env_specular, pc_baked_energy, pc_relief_aniso, pc_relief_footprint;
+    pc_env_specular, pc_baked_energy, pc_relief_aniso, pc_relief_footprint, pc_relief_baked, pc_relief_indirect,
+    pc_relief_reach, pc_relief_overhead;
 int pc_material_active(void);
 /* Weak: absent in some builds. */
 extern int pc_vk_active __attribute__((weak));
@@ -148,6 +149,11 @@ Key keys[] = {
     { "relief_footprint", FLOAT_KEY, &pc_relief_footprint, nullptr, 0, false },
     { "env_specular", FLOAT_KEY, &pc_env_specular, nullptr, 0, false },
     { "baked_energy", FLOAT_KEY, &pc_baked_energy, nullptr, 0, false },
+    /* The relief under the baked and the indirect light (pc/docs/Materials.md). */
+    { "relief_baked", FLOAT_KEY, &pc_relief_baked, nullptr, 0, false },
+    { "relief_indirect", FLOAT_KEY, &pc_relief_indirect, nullptr, 0, false },
+    { "relief_reach", FLOAT_KEY, &pc_relief_reach, nullptr, 0, false },
+    { "relief_overhead", FLOAT_KEY, &pc_relief_overhead, nullptr, 0, false },
 };
 const int key_count = sizeof keys / sizeof keys[0];
 
@@ -1007,6 +1013,24 @@ extern "C" void pc_lighting_panel(void)
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
                 ImGui::SetTooltip("bump_occlusion: texels below their neighbours lose this share of the ambient\n"
                                   "(baked, indirect, sky) light.");
+            ImGui::SliderFloat("Relief under baked light", &pc_relief_baked, 0, 4, pc_relief_baked > 0 ? "%.2f" : "Off");
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                ImGui::SetTooltip("relief_baked: the game's baked light shades the relief, from the direction its\n"
+                                  "brightness rises along the surface (and from above). Flat surfaces keep their light.");
+            ImGui::SliderFloat("Relief under indirect light", &pc_relief_indirect, 0, 4, pc_relief_indirect > 0 ? "%.2f" : "Off");
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                ImGui::SetTooltip("relief_indirect: the indirect light (probes: their directional field; path traced:\n"
+                                  "the direction it rises along the surface) and the sky shade the relief.");
+            if (pc_relief_baked > 0 || pc_relief_indirect > 0) {
+                ImGui::SliderFloat("Relief light reach", &pc_relief_reach, 0, 1024, "%.0f units");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                    ImGui::SetTooltip("relief_reach: how far a light's change along the surface tilts its direction\n"
+                                      "(about the height of the light over the surface; 0: no tilt from it).");
+                ImGui::SliderFloat("Relief light from above", &pc_relief_overhead, 0, 1, "%.2f");
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                    ImGui::SetTooltip("relief_overhead: the share of light from above in the baked and indirect light's\n"
+                                      "direction on walls (where their own change says little).");
+            }
             ImGui::SliderFloat("Relief stretch limit", &pc_relief_aniso, 0, 16, pc_relief_aniso > 0 ? "%.1f x" : "No limit");
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
                 ImGui::SetTooltip("relief_aniso: the relief fades to flat where the texture is stretched this much\n"

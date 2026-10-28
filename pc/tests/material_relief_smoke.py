@@ -16,6 +16,18 @@ estimate their relief from the colours). Vulkan, in the relief normals view
 - the broad faces (the wall, the far wall, the floor) are unchanged by the
   limit (mean difference of the two pictures below a bound) and still show
   relief (the picture differs from bump_strength 0 there).
+
+Then in the lit picture (view_mode 0; the Keep has no dynamic light, so its
+walls are the game's baked light and the indirect light only), the relief under
+the baked and indirect light (relief_baked, relief_indirect, relief_reach,
+relief_overhead; "Height and normals"):
+
+- with both strengths 0 the frame is byte-identical to one with them on but
+  nothing to give the light a direction (reach 0, no light from above: every
+  factor exactly 1), i.e. to the picture without the terms;
+- with the defaults the relief-mapped walls gain contrast (the high-pass
+  deviation of their luminance rises) while their mean luminance stays within
+  1.5 % (the terms only move light between the slopes).
 OpenGL draws no relief: only the tunables are checked.
 """
 import argparse
@@ -46,6 +58,19 @@ def noise(img, box):
 
 def crop(img, box):
     return img[box[1]:box[3], box[0]:box[2]]
+
+
+def luma(img):
+    return img @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+
+
+def detail(img, box):
+    """The high-pass deviation of the luminance in box (minus a 7 x 7 mean)."""
+    y = luma(crop(img, box))
+    k = 3
+    pad = np.pad(y, k, mode="edge")
+    mean = sum(pad[k + j:k + j + y.shape[0], k + i:k + i + y.shape[1]] for j in range(-k, k + 1) for i in range(-k, k + 1))
+    return float((y - mean / (2 * k + 1) ** 2).std())
 
 
 def main():
@@ -88,6 +113,14 @@ def main():
             game.present_screenshot(str(out / f"{name}.png"))
             return np.asarray(Image.open(out / f"{name}.png").convert("RGB")).astype(np.float32)
 
+        def still_shot(name):  # the game held: the same frame redrawn
+            game.call("redraw")
+            game.wait_presents(4)
+            game.call("redraw")
+            game.wait_presents(4)
+            game.present_screenshot(str(out / f"{name}.png"))
+            return np.asarray(Image.open(out / f"{name}.png").convert("RGB")).astype(np.float32)
+
         listed = game.call("material", action="list")
         check(listed.get("relief_aniso", 0) > 0 and listed.get("relief_footprint", 0) > 0,
               f"the limits are tunables with defaults on: {listed.get('relief_aniso')}, {listed.get('relief_footprint')}")
@@ -120,6 +153,53 @@ def main():
                     check(relief > 1.0, f"{name}: still shows relief (mean difference from no relief {relief:.2f})")
                 else:
                     print(f"floor relief difference from no relief {relief:.2f}")
+            # The relief under the baked and indirect light.
+            terms = ("relief_baked", "relief_indirect", "relief_reach", "relief_overhead")
+            check(all(k in listed for k in terms), "the baked/indirect relief terms are tunables: "
+                  + ", ".join(f"{k} {listed.get(k)}" for k in terms))
+            check(listed.get("relief_baked", 0) > 0 and listed.get("relief_indirect", 0) > 0, "and on by default")
+            # Byte for byte where a redrawn paused frame is the same every time (preset Low, no ambient
+            # occlusion, no traced reflections: material_smoke's): strength 0 against the terms on with
+            # nothing to give the light a direction (every factor exactly 1).
+            before = game.call("graphics")
+            game.call("graphics", view_mode=0, lighting_preset="low")
+            game.call("graphics", ao=0, reflection_bounces=0, relief_baked=0, relief_indirect=0)
+            still = still_shot("still-terms-0")
+            check(np.array_equal(still, still_shot("still-terms-0-again")), "the paused frame redrawn is steady")
+            game.call("graphics", relief_baked=listed["relief_baked"], relief_indirect=listed["relief_indirect"],
+                      relief_reach=0, relief_overhead=0)
+            still_undirected = still_shot("still-terms-undirected")
+            game.call("graphics", relief_reach=listed["relief_reach"], relief_overhead=listed["relief_overhead"])
+            still_on = still_shot("still-terms-on")
+            differ = int((still != still_undirected).any(axis=2).sum())
+            check(differ == 0, f"steady: strength 0 is byte-identical to the terms without a direction ({differ} pixels differ)")
+            check(float(np.abs(still - still_on).mean()) > 0.05, "steady: the terms change the picture")
+            game.call("graphics", lighting_preset=before["lighting_preset"])
+            game.call("graphics", **{k: before[k] for k in ("ao", "reflection_bounces", "gi_method", "shadows") if k in before})
+            game.call("graphics", view_mode=0, relief_baked=0, relief_indirect=0)
+            zero = shot("lit-terms-0")
+            game.call("graphics", relief_baked=listed["relief_baked"], relief_indirect=listed["relief_indirect"],
+                      relief_reach=0, relief_overhead=0)
+            undirected = shot("lit-terms-undirected")
+            game.call("graphics", relief_reach=listed["relief_reach"], relief_overhead=listed["relief_overhead"])
+            lit = shot("lit-terms-on")
+            game.call("graphics", relief_baked=0, relief_indirect=0)
+            again = shot("lit-terms-0-again")
+            game.call("graphics", relief_baked=listed["relief_baked"], relief_indirect=listed["relief_indirect"])
+            steady = np.array_equal(zero, again)
+            same = int((zero != undirected).any(axis=2).sum())
+            if steady:
+                check(same == 0, f"strength 0 is the picture without the terms (pixels differing: {same})")
+            else:  # the traced light still moving between the shots: within its own frame-to-frame change
+                drift = float(np.abs(zero - again).mean())
+                check(float(np.abs(zero - undirected).mean()) <= drift + 0.05,
+                      f"strength 0 is the picture without the terms (within the frames' own drift {drift:.3f})")
+            for name in ("wall", "far wall"):
+                box = BROAD[name]
+                m0, m1 = float(luma(crop(zero, box)).mean()), float(luma(crop(lit, box)).mean())
+                d0, d1 = detail(zero, box), detail(lit, box)
+                check(abs(m1 / max(m0, 1e-3) - 1) < 0.015, f"{name}: mean luminance kept ({m0:.2f} -> {m1:.2f})")
+                check(d1 > d0 * 1.03, f"{name}: the relief catches the baked light (detail {d0:.2f} -> {d1:.2f})")
     finally:
         game.close()
     print(f"{'FAILED' if failures else 'passed'}: {len(failures)} failure(s)")

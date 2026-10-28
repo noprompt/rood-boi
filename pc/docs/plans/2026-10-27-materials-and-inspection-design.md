@@ -227,6 +227,10 @@ there's some subtle displacement". Two causes, two pieces of work:
   light a direction (e.g. the probes' dominant direction). Do this first (or in
   parallel): it is quick to try with shader hot reload and shows whether better
   maps pay off.
+  Done (branch relief-indirect): the probes' own directional response for the
+  indirect light; the baked light's direction from its own gradient along the
+  surface plus light from above (the probes do not see the baked light's
+  sources); Materials.md "The relief under the baked and indirect light".
 - **Maps from analysis, not a runtime guess.** An offline bake tool per texture
   key writes a full map set into the user layer: height and normal (new
   `normal.png` channel), and also roughness, metal, specular/cavity/AO as the
