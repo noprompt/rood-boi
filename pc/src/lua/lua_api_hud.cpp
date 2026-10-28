@@ -653,7 +653,8 @@ int int_field(lua_State* L, int t, const char* k, int lo, int hi, const char* fn
 // d.sprite(x, y, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y}[, color[, alpha]]): a rectangle of
 // VRAM as the game draws its sprites (classic only): the texture page at page_x (a multiple of 64),
 // page_y (0 or 256), bits 4, 8 or 15, the texels u, v (in the page) w x h, the CLUT at clut_x (a
-// multiple of 16), clut_y (4 and 8 bits). color modulates it (white: as it is).
+// multiple of 16), clut_y (4 and 8 bits). color modulates it (white: as it is). abr (0..3): the page's
+// blending (the game's setTPage), for a semi-transparent sprite (alpha below 1).
 int api_sprite(lua_State* L)
 {
     const char* fn = "rood.draw.sprite";
@@ -683,10 +684,13 @@ int api_sprite(lua_State* L)
         return luaL_error(L, "%s: set_page must be boolean", fn);
     bool inherit_page = lua_isboolean(L, -1) && !lua_toboolean(L, -1);
     lua_pop(L, 1);
+    lua_getfield(L, 3, "abr");
+    int abr = lua_isnil(L, -1) ? 0 : int_field(L, 3, "abr", 0, 3, fn);
+    lua_pop(L, 1);
     pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_SPRITE);
     if (k) {
         k->x = pixel(x), k->y = pixel(y), k->w = w, k->h = h;
-        k->a = (px / 64) | (py / 256) << 4 | (bits == 4 ? 0 : bits == 8 ? 1 : 2) << 7; // the page word (GP0 E1)
+        k->a = (px / 64) | (py / 256) << 4 | abr << 5 | (bits == 4 ? 0 : bits == 8 ? 1 : 2) << 7; // the page word (GP0 E1)
         k->b = (cx / 16) | cy << 6;                                                     // the CLUT word
         k->c = u, k->d = v;
         k->font = raw;
@@ -871,6 +875,116 @@ int api_image(lua_State* L)
     if (k)
         k->a = (int)image, k->b = (int)drawer, k->c = (int)clut;
     lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
+// d.menu_row([{x, y, w}]): classic only (menu_row's): the row the element recorded drawn by the game's own emit
+// (58EC.c: its window, label, counts, icons and scroll arrow, in vs_scratch.unk8's slots) on a copy of its record;
+// x, y (its place) and w (its window's width, 0..255) replace the record's when given.
+int api_menu_row(lua_State* L)
+{
+    const char* fn = "rood.draw.menu_row";
+    int set = 0, x = 0, y = 0, w = 0;
+    if (!lua_isnoneornil(L, 1)) {
+        luaL_checktype(L, 1, LUA_TTABLE);
+        auto field = [&](const char* k, int bit, int lo, int hi, int* out) {
+            lua_getfield(L, 1, k);
+            bool none = lua_isnil(L, -1);
+            lua_pop(L, 1);
+            if (!none)
+                *out = int_field(L, 1, k, lo, hi, fn), set |= bit;
+        };
+        field("x", 1, -1024, 1024, &x);
+        field("y", 2, -1024, 1024, &y);
+        field("w", 4, 0, 255, &w);
+    }
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_MENU_ROW);
+    if (k)
+        k->x = x, k->y = y, k->w = w, k->a = set;
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
+// d.option_text(text, x, y, colour[, {room, upper}]) -> pen: classic only (option_value's): our Option pages' value
+// text by their own draw (classic_options.c: encoded as the page encodes it, capitals when upper, default true; cut
+// to room pixels with "..", 0 none), the menu font in colour 0..3 (0 white, 1 lit, 3 grey); returns the pen after it
+// (x plus its width), as the page's draw returns it.
+extern "C" int pc_options_text_width(const char* utf8, int upper, int room) __attribute__((weak));
+int api_option_text(lua_State* L)
+{
+    const char* fn = "rood.draw.option_text";
+    size_t len;
+    const char* text = luaL_checklstring(L, 1, &len);
+    float x = coordinate(L, 2, fn), y = coordinate(L, 3, fn);
+    lua_Integer colour = luaL_checkinteger(L, 4);
+    int room = 0, upper = 1;
+    if (colour < 0 || colour > 3)
+        return luaL_error(L, "%s: colour 0..3", fn);
+    if (!lua_isnoneornil(L, 5)) {
+        luaL_checktype(L, 5, LUA_TTABLE);
+        lua_getfield(L, 5, "room");
+        if (!lua_isnil(L, -1))
+            room = int_field(L, 5, "room", 0, 320, fn);
+        lua_getfield(L, 5, "upper");
+        if (!lua_isnil(L, -1))
+            upper = lua_toboolean(L, -1);
+        lua_pop(L, 2);
+    }
+    if (len > 127)
+        return luaL_error(L, "%s: text longer than 127 bytes", fn);
+    need_classic(L, fn);
+    std::string copy(text, len);
+    int width = pc_options_text_width ? pc_options_text_width(copy.c_str(), upper, room) : 0;
+    pc_hud_classic_cmd* c = classic_arena_used + len + 1 <= sizeof classic_arena ? next_classic(PC_HUD_CMD_OPTION_TEXT)
+                                                                                  : nullptr;
+    if (c) {
+        std::memcpy(classic_arena + classic_arena_used, text, len);
+        classic_arena[classic_arena_used + len] = 0;
+        c->text = classic_arena + classic_arena_used;
+        c->length = (int)len;
+        classic_arena_used += (unsigned)len + 1;
+        c->x = pixel(x), c->y = pixel(y), c->w = room, c->a = upper;
+        c->color = (unsigned)colour;
+    }
+    lua_pushinteger(L, pixel(x) + width);
+    return 1;
+}
+
+// d.option_width(text[, {room, upper}]) -> pixels: the advance d.option_text would give the same text (nothing drawn).
+int api_option_width(lua_State* L)
+{
+    const char* fn = "rood.draw.option_width";
+    std::string text = luaL_checkstring(L, 1);
+    int room = 0, upper = 1;
+    if (!lua_isnoneornil(L, 2)) {
+        luaL_checktype(L, 2, LUA_TTABLE);
+        lua_getfield(L, 2, "room");
+        if (!lua_isnil(L, -1))
+            room = int_field(L, 2, "room", 0, 320, fn);
+        lua_getfield(L, 2, "upper");
+        if (!lua_isnil(L, -1))
+            upper = lua_toboolean(L, -1);
+        lua_pop(L, 2);
+    }
+    lua_pushinteger(L, pc_options_text_width ? pc_options_text_width(text.c_str(), upper, room) : 0);
+    return 1;
+}
+
+// d.option_bar(x, y, fill, colour): classic only (option_value's): a slider's gauge as our Option pages draw it (the
+// HP / MP / RISK bar, vs_battle_renderStatBar: colour 0..3, fill 0..64 pixels) at x, y + 4.
+int api_option_bar(lua_State* L)
+{
+    const char* fn = "rood.draw.option_bar";
+    float x = coordinate(L, 1, fn), y = coordinate(L, 2, fn);
+    lua_Integer fill = luaL_checkinteger(L, 3), colour = luaL_checkinteger(L, 4);
+    if (fill < 0 || fill > 64 || colour < 0 || colour > 3)
+        return luaL_error(L, "%s: fill 0..64, colour 0..3", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* c = next_classic(PC_HUD_CMD_OPTION_BAR);
+    if (c)
+        c->x = pixel(x), c->y = pixel(y), c->a = (int)colour, c->b = (int)fill;
+    lua_pushboolean(L, c != nullptr);
     return 1;
 }
 
@@ -1532,6 +1646,91 @@ const char* const ANCHORS_OF[] = { "centre", "left", "right", "picture" };
 
 // An element's fields into the table on top (reused: every field set every time, those another
 // kind has to nil). parts: fresh tables (rood.dev.list), else the registry's reused ones.
+// MAINMENU's frame (58EC.c, the menu_* kinds): what each piece drew from. menu_background: fade (0..16), brightness
+// (opaque), ot_slot (bytes from vs_scratch.unk4), buffer (the frame buffer drawn: 0 or 1); menu_command: action (call_y its
+// slide); menu_cursor: step, color (call_x, call_y its place); menu_tabs: mode, step, lit; menu_row: row = the
+// record's fields (a copy, read before the emit steps its gradient), drawn as it is by d.menu_row.
+void fill_menu(lua_State* L, const pc_hud_fields& f)
+{
+    int k = f.kind;
+    // ("fade" is target_row's too: nil for the other kinds by its block, above)
+    static const char* const keys[] = { "brightness", "ot_slot", "buffer", "action", "color", "mode", "lit", "row",
+        "option" };
+    for (const char* key : keys)
+        set_nil(L, key);
+    if (k == PC_HUD_MENU_BACKGROUND) {
+        set_int(L, "fade", f.menu_fade);
+        set_int(L, "brightness", f.menu_brightness);
+        set_int(L, "ot_slot", f.menu_slot);
+        set_int(L, "buffer", f.menu_frame);
+    } else if (k == PC_HUD_MENU_COMMAND) {
+        set_int(L, "action", f.menu_action);
+    } else if (k == PC_HUD_MENU_CURSOR) {
+        set_int(L, "step", f.menu_step);
+        set_int(L, "color", f.menu_color);
+    } else if (k == PC_HUD_MENU_TABS) {
+        set_int(L, "step", f.menu_step);
+        set_int(L, "mode", f.menu_mode);
+        set_bool(L, "lit", f.menu_lit != 0);
+    } else if (k == PC_HUD_MENU_ROW) {
+        const unsigned char* b = f.menu_item; // (vs_battle_menuItem_t's layout: 5BF94.h)
+        auto s16 = [&](int at) { return (int)(int16_t)(b[at] | b[at + 1] << 8); };
+        auto u16 = [&](int at) { return (int)(b[at] | b[at + 1] << 8); };
+        lua_createtable(L, 0, 20);
+        set_int(L, "id", f.menu_id);
+        set_int(L, "state", b[0]);
+        set_int(L, "w", b[1]);
+        set_int(L, "background", b[2]);
+        set_int(L, "gradient", b[4]);
+        set_int(L, "scrollable", b[5]);
+        set_bool(L, "selected", b[6] != 0);
+        set_bool(L, "unselectable", b[7] != 0);
+        set_int(L, "button", b[8]);
+        set_int(L, "icon", b[9]);
+        set_int(L, "color", b[10]);
+        set_bool(L, "invert", b[11] != 0);
+        set_int(L, "material", b[12]);
+        set_int(L, "outset", b[13]);
+        set_int(L, "page", u16(14));
+        set_int(L, "count", u16(16));
+        set_int(L, "max", u16(18));
+        set_int(L, "x", s16(20));
+        set_int(L, "y", s16(22));
+        lock_table(L);
+        lua_setfield(L, -2, "row");
+    } else if (k == PC_HUD_OPTION_VALUE) { // our Option pages' value column: what classic_options.c draws it from
+        static const char* const kinds[] = { "choice", "toggle", "slider", "action", "binding", "info", "header",
+            "note", "link" };
+        lua_createtable(L, 0, 20);
+        set_int(L, "row", f.opt_row);
+        lua_pushstring(L, f.opt_kind >= 0 && f.opt_kind < 9 ? kinds[f.opt_kind] : "");
+        lua_setfield(L, -2, "kind");
+        set_bool(L, "enabled", f.opt_enabled != 0);
+        set_bool(L, "focused", f.opt_focused != 0);
+        set_int(L, "index", f.opt_index);
+        set_int(L, "right", f.opt_right);
+        set_int(L, "lit", f.opt_lit);
+        set_int(L, "other", f.opt_other);
+        set_int(L, "gap", f.opt_gap);
+        set_int(L, "bar_colour", f.opt_bar_colour);
+        set_int(L, "bar_width", f.opt_bar_width);
+        set_int(L, "fill", f.opt_fill);
+        set_bool(L, "link", f.opt_link != 0);
+        set_bool(L, "upper", f.opt_upper != 0);
+        set_int(L, "window_x", f.opt_window_x);
+        lua_pushstring(L, f.opt_value);
+        lua_setfield(L, -2, "value");
+        lua_pushstring(L, f.opt_on);
+        lua_setfield(L, -2, "on");
+        lua_pushstring(L, f.opt_off);
+        lua_setfield(L, -2, "off");
+        lua_pushstring(L, f.opt_label);
+        lua_setfield(L, -2, "label");
+        lock_table(L);
+        lua_setfield(L, -2, "option");
+    }
+}
+
 void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
 {
     const pc_hud_fields& f = e.f;
@@ -1699,7 +1898,8 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
                 set_nil(L, g);
     }
     if (((k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE) || k == PC_HUD_ACTOR_WORD || k == PC_HUD_TIMER || k == PC_HUD_EMOTE
-            || k == PC_HUD_TARGET_ROW || k == PC_HUD_TARGET_LINE || k == PC_HUD_TARGET_MARKER) && !e.synthetic) { // where the game's call put it
+            || k == PC_HUD_TARGET_ROW || k == PC_HUD_TARGET_LINE || k == PC_HUD_TARGET_MARKER || k == PC_HUD_MENU_COMMAND
+            || k == PC_HUD_MENU_ROW || k == PC_HUD_MENU_CURSOR || k == PC_HUD_OPTION_VALUE) && !e.synthetic) { // where the game's call put it
         set_int(L, "call_x", f.call_x);
         set_int(L, "call_y", f.call_y);
     } else {
@@ -1731,6 +1931,7 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
         if (k != PC_HUD_BATTLE_MODE)
             set_nil(L, "step");
     }
+    fill_menu(L, f);
     if (k == PC_HUD_CHAIN || k == PC_HUD_BUFF || k == PC_HUD_DAMAGE)
         set_int(L, "value", f.value);
     else
@@ -1926,6 +2127,10 @@ void open_hud(lua_State* L, Plugin* p)
     set_cfunction(L, -1, "gradient", api_gradient);
     set_cfunction(L, -1, "sprite", api_sprite);
     set_cfunction(L, -1, "quad", api_quad);
+    set_cfunction(L, -1, "menu_row", api_menu_row);
+    set_cfunction(L, -1, "option_text", api_option_text);
+    set_cfunction(L, -1, "option_bar", api_option_bar);
+    set_cfunction(L, -1, "option_width", api_option_width);
     set_cfunction(L, -1, "frame", api_frame);
     set_cfunction(L, -1, "band", api_band);
     set_cfunction(L, -1, "char", api_char);

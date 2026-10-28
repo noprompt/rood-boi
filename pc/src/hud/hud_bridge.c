@@ -68,9 +68,12 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
  * (func_80094B0C) and a word over an actor -20, the timer -4 (_renderTimer), an emote its own (its actor's
  * depth: element_slot) (func_8009506C, func_80095258, its arrow func_800957D0), the
  * gauges -12 (their bars, labels and separators; their digits -16), a target row its own (vs_scratch.unk8 + 8, the
- * selected + 4: element_slot) and its leader lines vs_scratch.unk8, the area target's marker -4. A classic draw links its packets there too, unless it names another (d.layer). */
+ * selected + 4: element_slot) and its leader lines vs_scratch.unk8, the area target's marker -4, MAINMENU's background
+ * its own (_backgroundOtOffset: element_slot), its command title, rows, hand and tab arrows vs_scratch.unk8 (a row's
+ * emit links at unk8 - 4 .. + 12: d.menu_row's own). A classic draw links its packets there too, unless it names another (d.layer). */
 static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4,
-    PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, -4 };
+    PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, -4,
+    PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8 };
 static int element_slot; /* PC_HUD_LAYER_ELEMENT: the slot the element just recorded was linked into */
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
@@ -83,6 +86,9 @@ typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC
             && PC_CLASSIC_TEXT_BAND == PC_HUD_TEXT_BAND && PC_CLASSIC_BOX_TEXT == PC_HUD_BOX_TEXT
             && PC_CLASSIC_IMAGE == PC_HUD_IMAGE && PC_CLASSIC_TARGET_ROW == PC_HUD_TARGET_ROW
             && PC_CLASSIC_TARGET_LINE == PC_HUD_TARGET_LINE && PC_CLASSIC_TARGET_MARKER == PC_HUD_TARGET_MARKER
+            && PC_CLASSIC_MENU_BACKGROUND == PC_HUD_MENU_BACKGROUND && PC_CLASSIC_MENU_COMMAND == PC_HUD_MENU_COMMAND
+            && PC_CLASSIC_MENU_ROW == PC_HUD_MENU_ROW && PC_CLASSIC_MENU_CURSOR == PC_HUD_MENU_CURSOR
+            && PC_CLASSIC_MENU_TABS == PC_HUD_MENU_TABS && PC_CLASSIC_OPTION_VALUE == PC_HUD_OPTION_VALUE
         ? 1
         : -1];
 
@@ -304,6 +310,10 @@ static u_long* slot_for(int kind, int layer)
 extern u_long* D_800F51B8; /* 5BF94.c */
 static u_long box_shadow[34], band_icon_shadow; /* (band_icon_shadow: vs_scratch.unk8's for the band's icon) */
 static int box_shadow_id = -1;
+/* A menu row's emit links at vs_scratch.unk8 - 4, + 0, + 8 and + 12 (its glyphs, the scroll arrow, the window and
+ * its sprites, the tile): in the parity mode d.menu_row runs with unk8 pointed at menu_shadow + 2 (never drawn). */
+static u_long menu_shadow[8];
+static int menu_shadowed;
 extern int pc_hw_anchor_muted __attribute__((weak)), pc_hw_anchor_muted_as __attribute__((weak));
 static int text_recording, text_glyph_count, text_box_id; /* the text boxes' glyphs (below, char_packets) */
 static void* image_records[3]; /* the images recorded this frame (pc_hud_image, image_packets) */
@@ -344,6 +354,9 @@ static void parity(int kind, int element_anchor)
         pc_hw_anchor_muted_as = -1;
     for (i = 0; i < 34; ++i)
         box_shadow[i] = 0x00FFFFFF;
+    for (i = 0; i < 8; ++i)
+        menu_shadow[i] = 0x00FFFFFF;
+    menu_shadowed = 0;
     classic_packets(cmds, count, anchor, kind, 1);
     shadowing = 0;
     lua_anchor = !pc_hw_anchor_recorded || anchor == PC_HUD_ANCHOR_GAME ? 0
@@ -373,6 +386,9 @@ static void parity(int kind, int element_anchor)
             n += pc_classic_walk(&box, (const unsigned*)&band_icon_shadow, start, psx_get(vs_scratch.unk0), lua + n,
                 PC_CLASSIC_CAPTURE - n);
     }
+    for (i = 7; menu_shadowed && i >= 0; --i) /* (a menu row's: the higher slot first) */
+        n += pc_classic_walk(&walker, (const unsigned*)&menu_shadow[i], start, psx_get(vs_scratch.unk0), lua + n,
+            PC_CLASSIC_CAPTURE - n);
     pc_classic_parity_compare(kind, lua, n, pc_vsync_count ? pc_vsync_count() : 0);
     psx_set(vs_scratch.unk0, start); /* (given back: nothing links to them) */
 }
@@ -564,6 +580,127 @@ void pc_hud_target_marker(void* record, void* first, void* end)
     f.anchor = PC_HUD_ANCHOR_CENTRE;
     append(f.text, f.text + sizeof f.text, "marker");
     classic_finish(PC_HUD_TARGET_MARKER, &f, first, end, slots, 1, 0);
+}
+
+/* MAINMENU's shared frame (58EC.c's PC_CLASSIC sites, classic_hook.h): each piece as the game drew it, with what
+ * it drew it from. A row is one element per row (0..39); the others one each. The game's packets are walked from
+ * its slots: the background's own, vs_scratch.unk8 (a row's: unk8 - 4 .. + 12). */
+#define MENU_TOURED_SCREEN 8 /* vs_battle_menuState.currentMenu & 0x3F: MENU8, the Option screen */
+static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
+void pc_hud_menu(int kind, void* record, void* first, void* end)
+{
+    static pc_hud_fields rows[40], one[5];
+    pc_hud_fields* f;
+    int slots[4], nslots = 1, unk8 = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
+    if (!record || first == end)
+        return;
+    /* Only the screens the gate tours (the Option screen, MENU8): every other MAINMENU screen keeps the game's own
+     * drawing (no element, no claim) until its tour is green (the Quick Manual crashed with Lua's rows). */
+    if ((vs_battle_menuState.currentMenu & 0x3F) != MENU_TOURED_SCREEN)
+        return;
+    if (kind == PC_HUD_OPTION_VALUE) { /* our Option pages' value column (classic_options.c) */
+        static pc_hud_fields values[16];
+        const pc_classic_option_value* v = record;
+        f = &values[v->row % 16];
+        *f = (pc_hud_fields) { 0 };
+        f->key = (const void*)(values + v->row % 16);
+        f->opt_row = v->row, f->opt_kind = v->kind, f->opt_enabled = v->enabled, f->opt_focused = v->focused;
+        f->opt_index = v->index, f->opt_right = v->right, f->opt_lit = v->lit, f->opt_other = v->other;
+        f->opt_gap = v->gap, f->opt_bar_colour = v->bar_colour, f->opt_bar_width = v->bar_width, f->opt_fill = v->fill;
+        f->opt_link = v->link, f->opt_upper = v->upper, f->opt_window_x = v->window_x;
+        f->call_x = v->x, f->call_y = v->y;
+        f->x = v->x, f->y = v->y, f->w = v->right - v->x, f->h = 12;
+        append(f->opt_value, f->opt_value + sizeof f->opt_value, v->value ? v->value : "");
+        append(f->opt_on, f->opt_on + sizeof f->opt_on, v->on ? v->on : "");
+        append(f->opt_off, f->opt_off + sizeof f->opt_off, v->off ? v->off : "");
+        append(f->opt_label, f->opt_label + sizeof f->opt_label, v->label ? v->label : "");
+        slots[0] = unk8 - 4, slots[1] = unk8 + 8;
+        nslots = 2;
+    } else if (kind == PC_HUD_MENU_ROW) {
+        const pc_classic_menu_row* row = record;
+        f = &rows[row->id % 40];
+        *f = (pc_hud_fields) { 0 };
+        f->key = row->row;
+        f->menu_id = row->id;
+        memcpy(f->menu_item, row->item, sizeof f->menu_item);
+        memcpy(menu_row_item, row->item, sizeof menu_row_item);
+        {
+            const vs_battle_menuItem_t* item = (const vs_battle_menuItem_t*)row->item;
+            f->x = item->x, f->y = item->y, f->w = item->w, f->h = 12;
+            f->call_x = item->x, f->call_y = item->y;
+        }
+        slots[0] = unk8 - 4, slots[1] = unk8, slots[2] = unk8 + 8, slots[3] = unk8 + 12;
+        nslots = 4;
+    } else {
+        f = &one[kind - PC_HUD_MENU_BACKGROUND];
+        *f = (pc_hud_fields) { 0 };
+        f->key = f;
+        slots[0] = unk8;
+        if (kind == PC_HUD_MENU_BACKGROUND) {
+            const pc_classic_menu_background* b = record;
+            f->menu_fade = b->fade, f->menu_brightness = b->brightness, f->menu_slot = b->slot * 4;
+            f->menu_frame = b->frame;
+            slots[0] = element_slot = b->slot * 4;
+        } else if (kind == PC_HUD_MENU_COMMAND) {
+            const pc_classic_menu_command* c = record;
+            f->menu_action = c->action, f->call_y = c->y;
+        } else if (kind == PC_HUD_MENU_CURSOR) {
+            const pc_classic_menu_cursor* c = record;
+            f->menu_step = c->step, f->menu_color = c->color;
+            f->call_x = (short)c->xy, f->call_y = c->xy >> 16;
+        } else {
+            const pc_classic_menu_tabs* t = record;
+            f->menu_mode = t->mode, f->menu_step = t->step, f->menu_lit = t->lit;
+        }
+    }
+    f->kind = kind;
+    f->anchor = PC_HUD_ANCHOR_GAME;
+    append(f->text, f->text + sizeof f->text, pc_classic_kind_name(kind));
+    classic_finish(kind, f, first, end, slots, nslots, 0);
+}
+
+/* A menu row by the game's own emit on a copy of the row just recorded (x, y, w as the command sets them). */
+void pc_mainmenu_render_row(vs_battle_menuItem_t* copy); /* 58EC.c */
+static void menu_row_packets(const pc_hud_classic_cmd* c, int shadowed)
+{
+    vs_battle_menuItem_t item;
+    void* slot = psx_get(vs_scratch.unk8);
+    memcpy(&item, menu_row_item, sizeof item);
+    if (c->a & 1)
+        item.x = (short)c->x;
+    if (c->a & 2)
+        item.y = (short)c->y;
+    if (c->a & 4)
+        item.w = (u_char)c->w;
+    if (shadowed) {
+        psx_set(vs_scratch.unk8, &menu_shadow[2]);
+        menu_shadowed = 1;
+    }
+    pc_mainmenu_render_row(&item);
+    psx_set(vs_scratch.unk8, slot);
+}
+
+/* Our Option pages' value text and gauge by classic_options.c's own draws (the labels' slot: vs_scratch.unk8 + 8,
+ * its glyphs at - 4), into the menu shadow for the parity gate. */
+int pc_options_text_draw(const char* utf8, int upper, int room, int x, int y, int c); /* classic_options.c */
+void pc_options_bar_draw(int colour, int fill, int x, int y);
+static void option_packets(const pc_hud_classic_cmd* c, int shadowed)
+{
+    char text[128];
+    void* slot = psx_get(vs_scratch.unk8);
+    int n = c->length < (int)sizeof text - 1 ? c->length : (int)sizeof text - 1;
+    if (shadowed) {
+        psx_set(vs_scratch.unk8, &menu_shadow[2]);
+        menu_shadowed = 1;
+    }
+    if (c->type == PC_HUD_CMD_OPTION_BAR) {
+        pc_options_bar_draw(c->a, c->b, c->x, c->y);
+    } else {
+        memcpy(text, c->text ? c->text : "", (size_t)n);
+        text[n] = 0;
+        pc_options_text_draw(text, c->a, c->w, c->x, c->y, (int)c->color);
+    }
+    psx_set(vs_scratch.unk8, slot);
 }
 
 /* A text box's text (_printVariableWidthFont): the glyphs it set this frame (recorded as it set them); the box. */
@@ -1470,6 +1607,13 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
         }
         case PC_HUD_CMD_QUAD:
             quad_ft4(ot, c);
+            break;
+        case PC_HUD_CMD_MENU_ROW:
+            menu_row_packets(c, shadowed);
+            break;
+        case PC_HUD_CMD_OPTION_TEXT:
+        case PC_HUD_CMD_OPTION_BAR:
+            option_packets(c, shadowed);
             break;
         case PC_HUD_CMD_PLATE:
             plate_packets(ot, c);

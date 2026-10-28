@@ -53,6 +53,7 @@
 #include "../display_confirm.h"
 #include "../quit_options.h"
 #include "../host_format.h" /* pc_format, pc_log_line, pc_host_seconds */
+#include "../classic/classic_hook.h"
 #include <libetc.h>
 #include <string.h>
 
@@ -479,6 +480,33 @@ static void fly_out_rows(void)
 
 /* ---- values ---- */
 
+/* The value column's text for the classic look in Lua (hud_bridge.c d.option_text): UTF-8 encoded as draw_text
+ * encodes it (capitals when `upper`), cut to `room` pixels (> 0), drawn in the menu font in colour c at x, y into
+ * the labels' slot; returns the pen. pc_options_text_width: the pen's advance, nothing drawn. */
+static int option_glyphs(const char* utf8, int upper, int room, u_char* g, int cap)
+{
+    int n = encode(utf8, g, cap - 3, upper);
+    return room > 0 ? fit(g, n, room, NULL) : n;
+}
+int pc_options_text_width(const char* utf8, int upper, int room)
+{
+    u_char g[TEXT];
+    int n = option_glyphs(utf8, upper, room, g, sizeof g), w = 0;
+    for (int i = 0; i < n; i++)
+        w += g[i] == GLYPH_SPACING && i + 1 < n ? g[++i] : glyph_width(g[i]);
+    return w;
+}
+int pc_options_text_draw(const char* utf8, int upper, int room, int x, int y, int c)
+{
+    u_char g[TEXT];
+    return draw_glyphs(g, option_glyphs(utf8, upper, room, g, sizeof g), x, y, c);
+}
+/* The slider's gauge as draw_values draws it (labels' slot). */
+void pc_options_bar_draw(int colour, int fill, int x, int y)
+{
+    vs_battle_renderStatBar(colour, fill, label_slot(), (x & 0xFFFF) | ((y + 4) << 16));
+}
+
 static void draw_values(void)
 {
     int right = style(PC_STYLE_ROW_X) + style(PC_STYLE_ROW_W);
@@ -497,6 +525,21 @@ static void draw_values(void)
         if (right > 316 + item->x - style(PC_STYLE_ROW_X))
             right = 316 + item->x - style(PC_STYLE_ROW_X);
         c = r.row.enabled ? style(PC_STYLE_LIT) : 3;
+        /* PC_CLASSIC (classic_hook.h): the row's value as drawn below, from what it is drawn from */
+        pc_classic_option_value value = { abs, r.row.kind, r.row.enabled, abs == S.cursor && r.row.enabled,
+            r.row.index, x, right, c, r.row.enabled ? style(PC_STYLE_OTHER) : 3, style(PC_STYLE_TOGGLE_GAP),
+            style(PC_STYLE_BAR_COLOUR), style(PC_STYLE_BAR_WIDTH), 0, r.row.enabled && r.link >= 0,
+            style(PC_STYLE_UPPERCASE), item->x, y, r.row.value, "On", "Off", r.row.label };
+        void* first = psx_load(void*, (u_int*)0x1F800000);
+        if (r.row.kind == PC_UI_SET_TOGGLE) {
+            pc_ui_settings_catalog_choice(r.catalog, 1, &value.on, NULL);
+            pc_ui_settings_catalog_choice(r.catalog, 0, &value.off, NULL);
+            value.on = value.on ? value.on : "On", value.off = value.off ? value.off : "Off";
+        } else if (r.row.kind == PC_UI_SET_SLIDER) {
+            float span = r.row.max - r.row.min;
+            int w = span > 0 ? (int)((r.row.number - r.row.min) * style(PC_STYLE_BAR_WIDTH) / span + 0.5f) : 0;
+            value.fill = w < 0 ? 0 : w > style(PC_STYLE_BAR_WIDTH) ? style(PC_STYLE_BAR_WIDTH) : w;
+        }
         switch (r.row.kind) {
         case PC_UI_SET_TOGGLE: {
             const char *on = NULL, *off = NULL;
@@ -543,6 +586,9 @@ static void draw_values(void)
         default:
             break;
         }
+        if (pc_classic_site)
+            pc_classic_site(PC_CLASSIC_SITE_OPTION_VALUE, &value, value.x, y, first,
+                psx_load(void*, (u_int*)0x1F800000));
     }
 }
 

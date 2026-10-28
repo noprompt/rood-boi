@@ -297,7 +297,7 @@ suites = ["frame_cost_smoke", "rpc_smoke", "ctest"]
 [[rule]]
 paths = ["pc/src/lua/*", "pc/plugins/*", "pc/tests/lua/*", "pc/third_party/lua*"]
 suites = ["lua_smoke", "ctest", "hud_bench_smoke", "repl_smoke", "options_classic_smoke", "options_confirm_smoke",
-          "classic_parity", "classic_hud_smoke", "photo_foundation_smoke"]
+          "classic_parity", "classic_hud_smoke", "photo_foundation_smoke", "menu_model_smoke"]
 
 # ---- developer tool windows in Lua (rood.imgui, rood.dev.window, rood.dev.rpc) ----
 [[rule]]
@@ -357,7 +357,7 @@ suites = ["hud_bench_smoke", "lua_smoke", "ctest", "ui_text_smoke", "classic_par
 # ---- the classic look drawn in Lua (pc/src/classic: hooks, the parity gate; its waivers) ----
 [[rule]]
 paths = ["pc/src/classic/*", "pc/tests/classic/*"]
-suites = ["classic_parity", "classic_hud_smoke", "hud_bench_smoke", "ui_text_smoke", "ctest"]
+suites = ["classic_parity", "classic_hud_smoke", "hud_bench_smoke", "ui_text_smoke", "ctest", "menu_model_smoke"]
 
 # ---- modern menus (pc/src/ui) and the original menus they mirror ----
 [[rule]]

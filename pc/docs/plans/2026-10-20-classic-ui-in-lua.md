@@ -5,12 +5,97 @@ migration is done (2026-10-23, branch `classic-lua-step4`), and so are buff
 and damage (step 5), step 7's actor words, timer and emotes (2026-10-28,
 branch `classic-lua-step5`), step 6's frames, band, text and images
 and step 8's targeting (same day, branch `classic-lua-step8`; see "Progress"
-below), with the remaining phase 1 work listed separately. It
+below), with the remaining phase 1 work listed separately. Phase 2 is under
+way (branch `classic-lua-phase2`): the menu model, the shared frame's hooks,
+and its rows, hand and command title drawn in Lua through the Option screen. It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
 `2026-10-18-freedom-and-fast-iteration.md` (the lint).
 
 ## Progress
+
+2026-10-28, afternoon (branch `classic-lua-phase2`, from main `dbbeb2aa`; no merge or publication):
+
+- **Phase 2 step 1, done (`106e331e`):** `rood.game.menu()` (`pc/src/classic/menu_model.c`, the
+  Lua side in `lua_api_game.cpp`): one locked table per vsync, copies only: the live rows of
+  `vs_battle_menuItems` (every field, `text` decoded, `glyphs` the codes the game set, `sub`),
+  `cursor` (58EC.c's list statics through a `ROOD_PC` accessor, `pc_classic_mainmenu_read`, and the
+  sub-menu's cursor memory), `command`, `fade`, `info` (text box 7), `loaded`. `menu_model_smoke`
+  (null renderer) reads it against RPC `options` in the Option screen: the list's cursor, Display's
+  rows and help, Scaling's flyout; `vs_main_settings` and the card unchanged.
+- **Step 2, done (`01a87351`):** `ROOD_PC`-only `PC_CLASSIC` ranges in 58EC.c, emit-only (every state
+  step stays the game's): `_renderMenuItems`' per-row emit (split out under `ROOD_PC` as
+  `_renderMenuItem`, after the row's slide is stepped; the row copied before the emit steps its
+  gradient), `vs_mainMenu_renderCursor`, `_renderMenuCommand`'s sprite, the tab arrows, the
+  background. The split needed no restructure of the logic: the slide steps already precede the emit
+  in each iteration, so the emit is wrapped and nothing moves (the oracle state proof below is the
+  check). `vs_mainMenu_renderItemsList` draws only through the hand (its rows are the shared rows);
+  the information box is text box 7 (step 6's `text_frame` / `box_text`). HUD kinds `menu_background`,
+  `menu_command`, `menu_row`, `menu_cursor`, `menu_tabs` (classic-only, never hidden with the HUD);
+  `d.menu_row` (the game's emit on a copy of the row, `pc_mainmenu_render_row`; in the parity mode
+  with `vs_scratch.unk8` pointed at a shadow); `d.sprite` gains `abr`. The HUD pool is 96.
+- **Steps 3 and 4, in part (`71f3df2c`):** rood.classic draws the frame: `look.menu_row`
+  (`d.menu_row`), `look.menu_cursor`, `look.menu_command` (`d.sprite` from the game's tables), and
+  `menu_tabs`, `menu_background` (written, not toured: their settings stay off). All placed with
+  anchor `game` (16:9 as today); `place.dx`, `dy` move a piece. The tour (`classic_parity.py
+  run_menus`, its own game from the save room, the original menus): the Option list walked through
+  every entry and back, the nine rows' flyouts, each of our pages to its end (scroll arrows),
+  Display's Scaling flyout, Fullscreen mode's "Keep these settings?" (KEEP / REVERT / Cross; the test
+  modes), the menu closed. Counts:
+
+  | Element / HUD kind | Commit | Frames | Scenarios |
+  |---|---|---:|---:|
+  | Menu rows (the game's and our pages' windows and labels, the flyouts) / `menu_row` | `71f3df2c` | 10,700 | 18 |
+  | The pointing hand / `menu_cursor` | `71f3df2c` | 492 | 18 |
+  | The command title (OPTIONS) / `menu_command` | `71f3df2c` | 1,507 | 18 |
+  | Our pages' value column (ON / OFF, choices, sliders, bindings, links, notes) / `option_value` | `51e3b9ac` | 2,791 | 18 |
+
+  0 mismatches, 0 skips, no packet waivers; the fallback (setting off, a raising draw, the plugin
+  off) tested for each; state parity 120/120 vsyncs at the list at rest and as Display's rows come
+  in (masked too: `classic_options.c`'s `help.since`, the host's clock when a help box was set).
+  Defaults on: `hud_classic_menu_row`, `hud_classic_menu_cursor`, `hud_classic_menu_command`,
+  `hud_classic_option_value`.
+- **Our pages' value column (`51e3b9ac`):** `classic_options.c`'s draw_values records each visible
+  row's value as it draws it (kind, enabled, focused, index, the column and the window's right end,
+  colours, gap, the gauge's colour, width and fill, the page model's texts) around a site of its own
+  (emit-only), kind `option_value`; rood.classic's `look.option_value` draws it with the page's own
+  calls (`d.option_text`: encoded and cut as the page does, returning the pen; `d.option_width`;
+  `d.option_bar`: its gauge). `classic_options.c` keeps the input and navigation and stays the
+  fallback renderer. The default and the fallback tested on Display; state parity there.
+- **Verification:** 64-bit and 32-bit (`--battle`) builds; Docker `make commit-check`: **All files
+  match** after each src change (formatter-only changes to unrelated code discarded; the game code
+  inside the new ranges keeps its indentation). `run.py classic_parity hud classic
+  cutscene_player_smoke widescreen_smoke options menu` 16/16 on GL and 16/16 on Vulkan on the
+  final tree (19/19 on GL with the ctest suites before the value column) (with
+  `menu_model_smoke`, `options_classic_smoke`, `options_confirm_smoke`, `save_menu_smoke`,
+  `ui_menus_smoke`, `camera_stick_menus_smoke`, `menu0_levelled_smoke`, `interp_menu_2d_smoke`; every
+  earlier kind green with its counts); probes `classic_parity_probe`, `lua_probe`,
+  `options_nav_probe`, `option_pages_probe`, `lua_menu_probe` 5/5.
+- **Fix after the merge (main's quick verify on Vulkan: ui_text_smoke crashed in the Quick Manual,
+  button_roles_symbols_smoke's Quick Manual page with the L2 shortcut's buttons failed):** the frame's
+  kinds were claimed on every MAINMENU screen, the Option screen being the only one toured. They are
+  now restricted to it (`vs_battle_menuState.currentMenu & 0x3F == 8`, hud_bridge.c `pc_hud_menu`):
+  every other screen keeps the game's own drawing, no element, until its own tour is green (phase 3).
+  The cause on the Quick Manual was not isolated (no stack in the log); it goes with that screen's
+  tour. The gate now also runs every `manual`, `ui_`, `menu`, `prompts`, `button` suite on GL and
+  Vulkan: 40/40 on each (with ui_text_smoke, button_roles_symbols_smoke,
+  ui_manual_smoke, button_prompts_smoke and every ui_* suite). menu_row now compares 10,188 frames and menu_command 1,450 (the
+  menu's close, once it has left MENU8, is the game's own); menu_cursor 492 and option_value 2,791 as before.
+- **Done-when status:** the Option screen (the game's rows, the flyouts, the hand, the title, the
+  information box, our pages' rows and values) is drawn by Lua by default, parity green. `option_style.c`'s values were already only
+  fallback defaults (rood.options' `M.style` sets all thirteen, M1); the help's width, lines and
+  seconds are those Lua values, its breaking rule (a sentence a line when they fit, else greedy) is
+  still `classic_options.c`'s, unchanged; no other line-break bug was found to fix (question below).
+  `vs_main_settings` is unchanged by the tours (`menu_model_smoke`, `options_classic_smoke`).
+  `primitive_extend` and `side_paint` stay on for these ranges: the look is today's (anchor `game`),
+  and the rows reaching the 16:9 edges (widescreen_smoke) is their work.
+- **Left in phase 2:** the tab arrows and the background toured
+  (another screen shows them: Items, Status) and turned on; the help's breaking rule as Lua; the
+  explicit 16:9 placement (heuristics off) as a look decision; the per-frame budget for a menu
+  frame measured.
+- **Questions:** which help line-break bug the task means (the fix `d474115f` is in; breaking is
+  sentence-per-line when it fits, else greedy at 270 px / two lines, as `options_classic_smoke`
+  checks). Whether the menus' 16:9 placement should leave today's heuristics (a look decision).
 
 2026-10-28, later (branch `classic-lua-step8`, from main `23855d99`; no merge or publication):
 

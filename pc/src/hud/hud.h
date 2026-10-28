@@ -34,7 +34,7 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_MENU_BACKGROUND, PC_HUD_MENU_COMMAND, PC_HUD_MENU_ROW, PC_HUD_MENU_CURSOR, PC_HUD_MENU_TABS, PC_HUD_OPTION_VALUE, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
  * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
@@ -51,14 +51,19 @@ enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAM
  * targeting list (58578.c func_800C1DC4: a part's name by the raw printer, its plate; its fade stepped by the
  * game), in the slot the game linked it into. target_line: a selected row's leader lines (func_800C16FC, func_800C1A40:
  * from the part's point to the row, swept in by their age), in vs_scratch.unk8. target_marker: the area target's
- * marker (func_800C28AC: the brackets' quads, its sprites, one pulsing), in vs_scratch.unk4 - 4. The kinds from gauges on
+ * marker (func_800C28AC: the brackets' quads, its sprites, one pulsing), in vs_scratch.unk4 - 4. menu_background,
+ * menu_command, menu_row, menu_cursor, menu_tabs: MAINMENU's shared frame (58EC.c; every menu screen's): the
+ * background's four sprites (its own slot), the command title's sprite, a row of vs_battle_menuItems (its window,
+ * label, counts and icons in vs_scratch.unk8 - 4 .. + 12), the pointing hand and the tab arrows (vs_scratch.unk8).
+ * option_value: a row's value in our Option pages (pc/src/ui/classic_options.c, the game's printers and gauge, in
+ * vs_scratch.unk8 - 4 and + 8). The kinds from gauges on
  * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
 #define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
 #define PC_HUD_TEXT 32
 #define PC_HUD_PART_TEXT 12
 #define PC_HUD_PARTS 4
-#define PC_HUD_POOL 64
+#define PC_HUD_POOL 96
 /* pc_hud_fields.anchor: where widescreen puts it. The game's 2D is drawn 3/4 as wide about
  * the picture's centre or the edge it is anchored to (pc_hw_anchor_packets); PICTURE:
  * fractions of the whole picture (x / 320, y / 240), sizes in the picture's own pixels
@@ -112,6 +117,15 @@ typedef struct {
     int row_selected, row_fade, row_bank; /* target_row: pc_classic_target_row's (the fade before the game steps it) */
     int row_x, row_y;     /* target_line: the row's place (call_x, call_y the line's start; age the lines' sweep) */
     int marker_lock, marker_step; /* target_marker: the call's lock (arg1), the brightness step (call_x, call_y its place) */
+    int menu_id, menu_fade, menu_brightness, menu_slot, menu_frame; /* menu_row: the row (0..39); menu_background:
+                                                                     * the fade step, brightness, slot, frame buffer */
+    int menu_action, menu_step, menu_color, menu_mode, menu_lit; /* menu_command: the action (call_y its slide);
+                                                                  * menu_cursor: step, colour; menu_tabs: mode, step, lit */
+    unsigned char menu_item[0x40]; /* menu_row: a copy of its record (vs_battle_menuItem_t) before the emit */
+    int opt_row, opt_kind, opt_enabled, opt_focused, opt_index, opt_right, opt_lit, opt_other, opt_gap, opt_bar_colour,
+        opt_bar_width, opt_fill, opt_link, opt_upper, opt_window_x; /* option_value: pc_classic_option_value's (call_x
+                                                                    * the column's x, call_y the row's y) */
+    char opt_value[64], opt_on[24], opt_off[24], opt_label[96];
     int word_miss, word_label, word_lowered; /* actor_word: MISS (1) or a combat label (D_800690B4's index; lowered:
                                               * a lowered stat's, with the arrow) */
     int icon_previous, icon_current, icon_next, icon_count, icon_selected, icon_offset;
@@ -143,7 +157,9 @@ extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_
     pc_hud_classic_gauges, pc_hud_classic_figure, pc_hud_classic_status_icons, pc_hud_classic_battle_mode, pc_hud_classic_ability_icons,
     pc_hud_classic_actor_word, pc_hud_classic_timer, pc_hud_classic_emote,
     pc_hud_classic_text_frame, pc_hud_classic_text_band, pc_hud_classic_box_text, pc_hud_classic_image,
-    pc_hud_classic_target_row, pc_hud_classic_target_line, pc_hud_classic_target_marker;
+    pc_hud_classic_target_row, pc_hud_classic_target_line, pc_hud_classic_target_marker,
+    pc_hud_classic_menu_background, pc_hud_classic_menu_command, pc_hud_classic_menu_row, pc_hud_classic_menu_cursor,
+    pc_hud_classic_menu_tabs, pc_hud_classic_option_value;
 /* hud_bridge.c: the glyphs the last box_text element set (6 ints each: code, font table, colour style, x, y,
  * brightness), their count. */
 int pc_hud_box_text_glyphs(const int** out) __attribute__((weak));
@@ -209,11 +225,17 @@ enum {
     PC_HUD_CMD_LEADER,   /* a target row's leader line by the game's routine (func_800C16FC; b 1: func_800C1A40, the left
                           * half's) as func_800C1DC4 calls it: x, y its start, c, d where it meets the row, a the count
                           * (its sweep); in the kind's slot (the routine's vs_scratch.unk8) */
-    PC_HUD_CMD_QUAD      /* a textured four-point polygon as the label loop's draws build theirs (POLY_FT4: the
+    PC_HUD_CMD_QUAD,     /* a textured four-point polygon as the label loop's draws build theirs (POLY_FT4: the
                           * numbers, buffs): a the page word (with its blending), b the CLUT word, c, d its u, v;
                           * x, y, w x h on the screen; font, align the texels' w x h; color the colour word (PS1
                           * BGR, 0x80 full); anchor 1 raw (unmodulated); alpha below 1 semi-transparent;
                           * fit 1: its corners and texels given one by one (corner: from x, y; uv) */
+    PC_HUD_CMD_OPTION_TEXT, /* our Option pages' value text (classic_options.c pc_options_text_draw: encoded as the page
+                             * draws it, a: capitals, w: the room it is cut to, 0 none; color the font colour 0..3) */
+    PC_HUD_CMD_OPTION_BAR,  /* their slider's gauge (pc_options_bar_draw: a the colour, b the fill) */
+    PC_HUD_CMD_MENU_ROW  /* a menu row by the game's own emit (58EC.c pc_mainmenu_render_row) on a copy of the row
+                          * the menu_row element recorded: x, y its place, w its window's width (a: which of them
+                          * are set, bits 1 x, 2 y, 4 w; else the record's) */
 };
 typedef struct {
     int type;

@@ -948,6 +948,7 @@ if battle:
         ("pc/src/hud/query_bridge.c", "query_bridge"),
         ("pc/src/hud/player_bridge.c", "player_bridge"),
         ("pc/src/classic/classic_bridge.c", "classic_bridge"),
+        ("pc/src/classic/menu_model.c", "classic_menu_model"),
         ("pc/src/weapon_slots.c", "weapon_slots"),
         ("pc/src/button_roles.c", "button_roles"),
         ("pc/src/text_lines.c", "text_lines"),

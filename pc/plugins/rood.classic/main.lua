@@ -311,6 +311,56 @@ local function make_look()
       brightness = 0x80, pulse_at = 3,
       pulse = { 128, 184, 240, 232, 224, 216, 208, 200, 192, 184, 176, 168, 160, 152, 144, 136 },
     },
+    -- MAINMENU's shared frame (58EC.c), every menu screen's (the Option screen's toured: the game's rows and
+    -- flyouts, our pages' rows). Each piece is a copy of the game's own drawing: placed as the game's 2D is
+    -- (anchor "game": 16:9 as today); dx, dy move a piece (a placement override).
+    -- A row of vs_battle_menuItems (its window, label, counts, icons; _renderMenuItems' emit by the game's own
+    -- code on a copy of the row: d.menu_row).
+    menu_row = { place = { anchor = "game", dx = 0, dy = 0 } },
+    -- The pointing hand (vs_mainMenu_renderCursor): a sprite of the menu page, pulsing by its step
+    -- (vs_battle_cursorBrightnessAnimation), the CLUT by its colour (0 white, 1 the other).
+    menu_cursor = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 32, v = 48, w = 16, h = 16, clut_x = 896, clut_y = 223,
+        bgr = 0x808080 },
+      cluts = { 896, 928 },
+      pulse = { 128, 184, 240, 232, 224, 216, 208, 200, 192, 184, 176, 168, 160, 152, 144, 136 },
+    },
+    -- The command title (_renderMenuCommand): the action's sprite (uvs, sizes: its tables) right-aligned at
+    -- `right`, sliding down to y 12 - 4, semi-transparent.
+    menu_command = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      right = 312, top = -4,
+      sizes = { { 62, 10 }, { 36, 10 }, { 30, 10 }, { 56, 10 }, { 30, 10 }, { 32, 10 } }, -- actions 1..6 (w, h)
+      uvs = { { 0, 64 }, { 64, 64 }, { 100, 64 }, { 132, 64 }, { 188, 64 }, { 0, 74 } },
+      sprite = { page_x = 768, page_y = 0, bits = 4, abr = 1, u = 0, v = 0, w = 0, h = 0, clut_x = 848, clut_y = 223,
+        bgr = 0x808080 },
+    },
+    -- The tab arrows (vs_mainMenu_renderTabNavigation): mode 1 the L1 / R1 labels and the arrows by them, mode 0
+    -- the arrows at the list's corners; bobbing by step // 4; lit (animating) or dim.
+    menu_tabs = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      labels = { { "1", 216, 8 }, { "L", 210, 8 }, { "1", 288, 8 }, { "R", 282, 8 } },
+      colours = { [false] = 0x404040, [true] = 0x808080 },
+      arrows = { [0] = { { 16, 16 }, { 162, 17 } }, [1] = { { 200, 5 }, { 292, 6 } } },
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 0, v = 48, w = 16, h = 16, clut_x = 912, clut_y = 223,
+        bgr = 0x808080 },
+      cluts = { [false] = 912, [true] = 896 },
+    },
+    -- The background (_renderBackground): the menu picture (two 8-bit sprites, 256 + 64 wide) at the fade's
+    -- brightness (fade * 8; semi-transparent until 16) and, while fading, the frame behind it darkened (two
+    -- 15-bit sprites of the other buffer, at 128 - fade * 8). In its own slot.
+    menu_background = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      picture = { { 256, 64, 768 }, { 0, 256, 640 } }, -- x, w, page_x
+      sprite = { page_x = 640, page_y = 256, bits = 8, abr = 1, u = 0, v = 0, w = 0, h = 240, clut_x = 768,
+        clut_y = 227, bgr = 0x808080 },
+      behind = { page_x = 0, page_y = 0, bits = 15, abr = 1, u = 0, v = 0, w = 0, h = 240, bgr = 0x808080 },
+    },
+    -- Our Option pages' value column (pc/src/ui/classic_options.c's draws: the game's menu font and gauge; its
+    -- numbers are rood.options' M.style, read as the page draws them): ON / OFF, a choice between arrows, a
+    -- slider's gauge and value, a binding's or an info's text, a link's arrow, a note.
+    option_value = { place = { anchor = "game", dx = 0, dy = 0 }, arrow_gap = 2, note_x = 6, bar_room = 8 },
     -- How ui_text sets both (with ui_text font; the packets stay the game's): the status style,
     -- typeset as one word centred where the game centres it.
     typeset = {
@@ -845,9 +895,122 @@ M.draw.target_marker = function(e, d)
   end
 end
 
+-- MAINMENU's shared frame (58EC.c). A row: the game's own emit on a copy of the row (d.menu_row).
+M.draw.menu_row = function(e, d)
+  local p = look.menu_row.place
+  d.anchor(p.anchor)
+  if p.dx ~= 0 or p.dy ~= 0 then
+    d.menu_row({ x = e.row.x + p.dx, y = e.row.y + p.dy })
+  else
+    d.menu_row()
+  end
+end
+
+-- menu_cursor: vs_mainMenu_renderCursor's sprite (setSpriteDefaultTexPage in vs_scratch.unk8).
+M.draw.menu_cursor = function(e, d)
+  local c = look.menu_cursor
+  local s = c.sprite
+  d.anchor(c.place.anchor)
+  d.layer("unk8")
+  s.clut_x = c.cluts[e.color + 1] or c.cluts[1]
+  s.bgr = c.pulse[e.step + 1] * 0x010101
+  d.sprite(e.call_x + c.place.dx, e.call_y + c.place.dy, s)
+end
+
+-- menu_command: _renderMenuCommand's sprite (setSprite 0x180: semi-transparent).
+M.draw.menu_command = function(e, d)
+  local c = look.menu_command
+  local size, uv = c.sizes[e.action], c.uvs[e.action]
+  if not size then return end
+  local s = c.sprite
+  d.anchor(c.place.anchor)
+  d.layer("unk8")
+  s.w, s.h, s.u, s.v = size[1], size[2], uv[1], uv[2]
+  d.sprite(c.right - size[1] + c.place.dx, e.call_y + c.top + c.place.dy, s, nil, 0.5)
+end
+
+-- menu_tabs: vs_mainMenu_renderTabNavigation (in drawing order: the right arrow, the left, then the labels last
+-- to first; each links at the head of vs_scratch.unk8).
+M.draw.menu_tabs = function(e, d)
+  local t = look.menu_tabs
+  local s, at, bob = t.sprite, t.arrows[e.mode ~= 0 and 1 or 0], e.step // 4
+  local dx, dy = t.place.dx, t.place.dy
+  d.anchor(t.place.anchor)
+  d.layer("unk8")
+  s.clut_x = t.cluts[e.lit]
+  s.u = 16
+  d.sprite(at[2][1] + bob + dx, at[2][2] + dy, s)
+  s.u = 0
+  d.sprite(at[1][1] - bob + dx, at[1][2] + dy, s)
+  if e.mode ~= 0 then
+    for i = #t.labels, 1, -1 do
+      local l = t.labels[i]
+      d.text_raw(l[1], l[2] + dx, l[3] + dy, t.colours[e.lit])
+    end
+  end
+end
+
+-- menu_background: _renderBackground's sprites (in drawing order: the frame behind, then the picture).
+M.draw.menu_background = function(e, d)
+  local b = look.menu_background
+  local dx, dy = b.place.dx, b.place.dy
+  local opaque = e.fade == 16
+  local level = opaque and e.brightness or e.fade * 8
+  d.anchor(b.place.anchor)
+  if not opaque then
+    local h, u = b.behind, e.buffer == 0 and 320 or 0
+    h.bgr = (128 - level) * 0x010101
+    h.page_x, h.w = u + 256, 64
+    d.sprite(256 + dx, dy, h)
+    h.page_x, h.w = u, 256
+    d.sprite(dx, dy, h)
+  end
+  local s = b.sprite
+  s.bgr = (level % 256) * 0x010101
+  for i = #b.picture, 1, -1 do
+    local p = b.picture[i]
+    s.page_x, s.w = p[3], p[2]
+    d.sprite(p[1] + dx, dy, s, nil, (opaque and level < 256) and 1 or 0.5)
+  end
+end
+
+-- option_value: classic_options.c draw_values' row, the same printer calls from the same copied inputs. Each glyph
+-- links at the head of its slot, so the commands go in the reverse of the page's calls (places worked out first).
+M.draw.option_value = function(e, d)
+  local o, l = e.option, look.option_value
+  local dx, dy = l.place.dx, l.place.dy
+  local x, y, right, up = e.call_x + dx, e.call_y + dy, e.option.right + dx, { upper = e.option.upper }
+  local k = o.kind
+  d.anchor(l.place.anchor)
+  if k == "toggle" then
+    local off_x = x + d.option_width(o.on, up) + o.gap
+    d.option_text(o.off, off_x, y, o.index == 0 and o.lit or o.other, up)
+    d.option_text(o.on, x, y, o.index == 1 and o.lit or o.other, up)
+  elseif k == "choice" then
+    local arrow = d.option_width("<", up) + l.arrow_gap
+    local room = right - x - 2 * arrow
+    local pen = x + arrow + d.option_width(o.value, { room = room, upper = o.upper })
+    if o.focused then d.option_text(">", pen + l.arrow_gap, y, 0, up) end
+    d.option_text(o.value, x + arrow, y, o.lit, { room = room, upper = o.upper })
+    if o.focused then d.option_text("<", x, y, 0, up) end
+  elseif k == "slider" then
+    local tw = d.option_width(o.value, up)
+    d.option_text(o.value, tw < right - x and right - tw or x, y, o.lit, { room = right - x, upper = o.upper })
+    if x + o.bar_width + l.bar_room + tw <= right then d.option_bar(x, y, o.fill, o.bar_colour) end
+  elseif k == "binding" or k == "info" then
+    d.option_text(o.value, x, y, o.enabled and 0 or 3, { room = right - x, upper = o.upper })
+  elseif k == "link" then
+    d.option_text(">", right - d.option_width(">", up), y, o.link and 0 or 3, up)
+  elseif k == "note" then
+    local wx = o.window_x + dx
+    d.option_text(o.label, wx + l.note_x, y, 3, { room = right - wx - l.note_x, upper = false })
+  end
+end
+
 for _, kind in ipairs({ "status", "chain", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "buff",
                         "damage", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image",
-                        "target_row", "target_line", "target_marker" }) do
+                        "target_row", "target_line", "target_marker", "menu_row", "menu_cursor", "menu_command",
+                        "menu_tabs", "menu_background", "option_value" }) do
   rood.hud.claim(kind, function(e, d) return M.draw[kind](e, d) end, { flavour = "classic" })
 end
 

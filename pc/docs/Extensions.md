@@ -226,6 +226,11 @@ decides how it looks. The kinds:
 | `target_row` | the classic look's only: a row of the targeting list (58578.c func_800C1DC4: a part's name by the raw printer on its plate, a gradient with a black shadow), in the slot the game linked it into (`vs_scratch.unk8 + 8`, the selected `+ 4`); the targeting decides which rows, their slide and the plate's fade (no show) | `text` (the name as the game's string: `#` right-aligns), `call_x`, `call_y` (the row's place, the list's offset in y), `selected`, `fade` (the plate's step 0..8, before the game steps it), `bank` (its colours: 0, 1) |
 | `target_line` | the classic look's only: the selected row's leader lines (58578.c func_800C1DC4's func_800C16FC, on the left half func_800C1A40: from the part's point to the row, swept in by their age; from age 18 a second behind), in `vs_scratch.unk8`; the targeting decides (no show) | `call_x`, `call_y` (the line's start: the part's point projected), `row_x`, `row_y` (the row's place), `age` (the sweep: the row's unk3) |
 | `target_marker` | the classic look's only: the area target's marker (58578.c func_800C28AC: three sprites of the field UI page, one pulsing; with the pitch free, the brackets' two quads), slot -4; the targeting decides (no show) | `call_x`, `call_y` (the point projected), `lock` (the call's arg1: the pitch locked, no brackets, the other sprites), `step` (the pulse's brightness step, 0..15) |
+| `menu_row` | the classic look's only, and only in the Option screen (MENU8: the screen the gate tours; every other menu screen keeps the game's drawing, no element, until its tour is green; the same for `menu_cursor`, `menu_command`, `menu_tabs`, `menu_background`): a row of MAINMENU's shared frame (58EC.c `_renderMenuItems`' emit, every menu screen's: its window, label, counts, icons, scroll arrow; its slide stepped by the game first), in `vs_scratch.unk8 - 4 .. + 12`; one element per row (0..39) | `row` (a copy of the record before the emit: `id, state, x, y, w, background, gradient, scrollable, selected, unselectable, button, icon, color, invert, material, outset, page, count, max`), `call_x`, `call_y` (its place) |
+| `menu_cursor` | the classic look's only: the menus' pointing hand (`vs_mainMenu_renderCursor`), in `vs_scratch.unk8` | `call_x`, `call_y`, `step` (its pulse, 0..15), `color` (0, 1: its CLUT) |
+| `menu_command` | the classic look's only: the command title's sprite (`_renderMenuCommand`: OPTIONS and the others), in `vs_scratch.unk8` | `action` (1..6), `call_y` (its slide) |
+| `option_value` | the classic look's only: a row's value in our Option pages (`pc/src/ui/classic_options.c` draw_values, the game's menu font and gauge: ON / OFF, a choice between arrows, a slider, a binding's or an info's text, a link's arrow, a note), in `vs_scratch.unk8 - 4` and `+ 8`; one element per visible row; `classic_options.c` stays its fallback | `option` (`row, kind, enabled, focused, index, right, lit, other, gap, bar_colour, bar_width, fill, link, upper, window_x, value, on, off, label`: what the page draws it from, its numbers rood.options' `M.style`), `call_x` (the value column), `call_y` |
+| `menu_tabs`, `menu_background` | the classic look's only, not yet toured (off: `hud_classic_menu_tabs`, `hud_classic_menu_background`): the tab arrows and L1 / R1 (`vs_mainMenu_renderTabNavigation`); the menu background (`_renderBackground`), its own slot | tabs: `mode`, `step`, `lit`; background: `fade` (0..16), `brightness`, `ot_slot`, `buffer` |
 
 Every element: `kind, id, text, x, y, w, h` (the game's drawing's box in its
 screen, 320 x 224 in the field, `x, y` its centre; a damage number: where the
@@ -250,7 +255,9 @@ drawing is the claims'.
 | `d.glyph(button, x, y, h[, style[, color[, alpha]]]) -> w`, `d.glyph_width(button, h)` | the button's prompt icon for the device used last (`l2` .. `left`, `travel`), `h` high, its left at `x`, its middle at `y`; the style's stroke outlines it; 0 when that device has none |
 | `d.rect(x, y, w, h, color[, alpha])`, `d.measure(style, s) -> w, h` | |
 | `d.gradient(x, y, w, h, color, color2[, vertical[, alpha]])` | `color` at the left (the top) to `color2` at the right (the bottom) |
-| `d.sprite(x, y, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, set_page?}[, color[, alpha]])` | classic only: a VRAM rectangle allocated/linked by `vs_battle_setSprite` (page_x a multiple of 64, page_y 0 or 256, bits 4, 8 or 15; dimensions 0..256). `color` modulates it, white: as it is. Optional descriptor `bgr` overrides color with an exact GPU modulation word (0xBBGGRR, 0x80 full), preserving the game's colours without RGB conversion. `set_page=false` leaves the game's NOP before the sprite instead of setting a texture page, inheriting the preceding draw mode (default true). |
+| `d.sprite(x, y, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, set_page?, abr?}[, color[, alpha]])` | classic only: a VRAM rectangle allocated/linked by `vs_battle_setSprite` (page_x a multiple of 64, page_y 0 or 256, bits 4, 8 or 15; dimensions 0..256). `color` modulates it, white: as it is. Optional descriptor `bgr` overrides color with an exact GPU modulation word (0xBBGGRR, 0x80 full), preserving the game's colours without RGB conversion. `set_page=false` leaves the game's NOP before the sprite instead of setting a texture page, inheriting the preceding draw mode (default true). `abr` (0..3) the page's blending (the game's setTPage), for a semi-transparent sprite (`alpha` below 1). |
+| `d.option_text(text, x, y, colour[, {room, upper}])`, `d.option_width(text[, {room, upper}])`, `d.option_bar(x, y, fill, colour)` | classic only (option_value's): our Option pages' value text by their own draw (encoded as the page encodes it, capitals unless `upper` is false, cut to `room` pixels with `..`; colour 0 white, 1 lit, 3 grey; returns the pen), its width (nothing drawn), and a slider's gauge (`vs_battle_renderStatBar`, `fill` 0..64) |
+| `d.menu_row([{x, y, w}])` | classic only (menu_row's): the row the element recorded drawn by the game's own emit (58EC.c, through `pc_mainmenu_render_row`) on a copy of its record; `x, y` (its place) and `w` (its window's width, 0..255) replace the record's when given |
 | `d.quad(x, y, w, h, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, raw?, abr?, corners?, uvs?}[, alpha])` | classic only: a textured four-point polygon (POLY_FT4) as the label loop builds its numbers and buffs (2842C.c func_80094B0C, func_8009695C: setPolyFT4, setXY4, setUV4, setTPage, setClut, AddPrim): `x, y` its top-left, `w x h` on the screen; the descriptor's `u, v, w, h` its texels (their own size: a quad may squash them); `bgr` the colour word (`0xBBGGRR`, `0x80` full; default `0x808080`), `raw = true` the texture unmodulated (setShadeTex 1), `abr` the page's blending (0..3), `alpha` below 1 semi-transparent. `corners = {x0, y0, .. x3, y3}` (from `x, y`, in the packet's vertex order) with `uvs = {u0, v0, .. u3, v3}`: each corner and its texel given (a mirrored balloon, a turned arrow); `w, h` and the texel rectangle are then unused |
 | `d.frame(x, y, w, h, {box, shape, flip?, tail?})` | classic only: a text box's frame by the game's own routine (func_800CD3E4) on a copy of box `box` (0..7: it links into that box's entries of the text boxes' ordering table): its place, size, shape, flip and tail as given, the rest the box's. The vector talk bubbles (`ui_bubbles vector`, an option) redraw it as they redraw the game's |
 | `d.band(box, {top, edge, lines, settled?, icon?})` | classic only: a text box's band across the screen by the game's own routine (func_800CD158, the name window's) on a copy of box `box`: from the top or the bottom, `edge` rows grown, its lines, its icon when settled |
@@ -349,6 +356,7 @@ read-only table per query per vsync (the same table until the next one, so
 | `rood.game.mode()` | `title`, `attract`, `cutscene` (an event script), `menu` (the field menu or the modern menus), `battle`, `field`, or `none` (no room: loading) |
 | `rood.game.room()` | nil, or `{zone, room, area, name}` (the game's names) |
 | `rood.game.first_person()` | the first-person view |
+| `rood.game.menu()` | nil (no menu frame), or the classic menus' model (`pc/src/classic/menu_model.h`; battle builds): `{menu, screen, loaded, submenu, hidden, rows, cursor, command, command_next, fade, fade_in, info}`. `rows` are `vs_battle_menuItems`' live rows (`{id, state, x, y, w, background, target_x, target_y, selected, unselectable, invert, scrollable, gradient, anim, button, icon, outset, material, color, count, max, page, text, glyphs, sub}`: `text` decoded, `glyphs` the codes the game set); `cursor` MAINMENU's list (`{row, page, sub_menu, row_info, rows, list_open, list_row, row_offset, memory_row, memory_page}`); `info` text box 7 while it is up. A skin for the classic menus reads it; actions stay the game's |
 | `rood.game.paused()` | the photo mode's pause holds the game (or was asked for); `pause()` / `resume()` with the `game.pause` grant (below) |
 | `rood.game.inventory()`, `weapons()`, `shields()`, `armour()`, `accessories()`, `equipment()`, `workshop()`, `labels()`, `combine(a, b)`, `craftable()` | the player state: below |
 
@@ -594,6 +602,13 @@ game's raw printer), and what it may change is a table:
 - `look.target_marker`: the area target's marker: its sprites (`d.sprite`: the game's packed steps,
   sizes and texels; the locked set from `locked`; `pulse_at` by the brightness step's `pulse`) and,
   unless locked, the brackets (`d.quad`s with corners packed as the game adds them);
+- `look.option_value`: our Option pages' value column, from the row's copied inputs, in the page's
+  order of calls reversed (each glyph links at its slot's head): `d.option_text`, `d.option_width`,
+  `d.option_bar`; `arrow_gap`, `note_x`, `bar_room` as the page spaces them;
+- `look.menu_row`, `look.menu_cursor`, `look.menu_command` (and `menu_tabs`, `menu_background`, not yet
+  toured): MAINMENU's shared frame. A row by `d.menu_row` (the game's emit on a copy); the hand and the
+  command title by `d.sprite` from the game's tables (the hand's `pulse`, `cluts`; the title's `sizes`,
+  `uvs`, right-aligned at `right`); placed as the game's (anchor `game`); `dx`, `dy` move a piece;
 - `look.timer`: the time attack's timer, the game's string (`e.text`, composed by `_renderTimer`)
   through its raw printer at 128, 200, grey, slot -4;
 - `look.typeset`: how ui_text sets the words (`blanks = "one"`: a run of
@@ -625,7 +640,7 @@ game draws until the plugin reloads), a kind's `hud_classic_<kind>` off,
 or Lua off: the game's own drawing (its typography ui_text's defaults,
 which keep the same fixes). Settings: `hud_classic_status`,
 `hud_classic_chain`, `hud_classic_gauges`, `hud_classic_figure`, `hud_classic_status_icons`, `hud_classic_battle_mode`, `hud_classic_ability_icons`, `hud_classic_buff`,
-`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer`, `hud_classic_emote`, `hud_classic_text_frame`, `hud_classic_text_band`, `hud_classic_box_text`, `hud_classic_image`, `hud_classic_target_row`, `hud_classic_target_line`, `hud_classic_target_marker` (all on); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
+`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer`, `hud_classic_emote`, `hud_classic_text_frame`, `hud_classic_text_band`, `hud_classic_box_text`, `hud_classic_image`, `hud_classic_target_row`, `hud_classic_target_line`, `hud_classic_target_marker`, `hud_classic_menu_row`, `hud_classic_menu_cursor`, `hud_classic_menu_command`, `hud_classic_option_value` (all on), `hud_classic_menu_tabs`, `hud_classic_menu_background` (off: not yet toured); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
 
 **The parity gate** (`pc/src/classic/classic_parity.c`; plan §3). The
 hooks (`PC_CLASSIC`, `pc/src/classic/classic_hook.h`; `PC_HUD` is one)
@@ -644,7 +659,7 @@ them as the buffer held them).
 
 | RPC | |
 |---|---|
-| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `emote`, `text_frame`, `text_band`, `box_text`, `image`, `target_row`, `target_line`, `target_marker`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
+| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `emote`, `text_frame`, `text_band`, `box_text`, `image`, `target_row`, `target_line`, `target_marker`, `menu_background`, `menu_command`, `menu_row`, `menu_cursor`, `menu_tabs`, `option_value`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
 | `packets {start, end}` | the packets of a guest range in allocation order |
 | `classic {parity, reset}` | per kind: frames compared, matched, mismatched (by field), skipped (why), the first difference with both packets |
 
@@ -711,7 +726,10 @@ mismatches; state parity 120 of 120 vsyncs. 2026-10-28: buff 2,103 frames
 (35 states), damage 1,224 frames (36 states), actor_word 1,920 frames (61
 states), timer 60 frames (14 states), emote 134 frames (44 states), text_frame 917 frames (146 states), text_band 216 frames (43 states), box_text 878 frames (6 states; and the
 name window's text in the save room, 124), image 717 frames, target_row 474 frames (37
-states), target_line 502 frames (36 states), target_marker 150 frames (15 states), 0 mismatches.
+states), target_line 502 frames (36 states), target_marker 150 frames (15 states), 0 mismatches. The
+menus (`run_menus`, the game's Option screen: the list, the nine flyouts, our pages, Keep these
+settings?): menu_row 10,700 frames, menu_cursor 492, menu_command 1,507, option_value 2,791 (18 states), 0 mismatches;
+state parity 120 of 120 vsyncs at the list and as a page's rows come in.
 
 ## Photo mode foundation
 

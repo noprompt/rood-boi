@@ -405,6 +405,12 @@ const Entry entries[] = {
     I("hud_classic_target_row", pc_hud_classic_target_row),
     I("hud_classic_target_line", pc_hud_classic_target_line),
     I("hud_classic_target_marker", pc_hud_classic_target_marker),
+    I("hud_classic_menu_background", pc_hud_classic_menu_background),
+    I("hud_classic_menu_command", pc_hud_classic_menu_command),
+    I("hud_classic_menu_row", pc_hud_classic_menu_row),
+    I("hud_classic_menu_cursor", pc_hud_classic_menu_cursor),
+    I("hud_classic_menu_tabs", pc_hud_classic_menu_tabs),
+    I("hud_classic_option_value", pc_hud_classic_option_value),
     I("save_states", pc_save_states), /* the save state slots (savestate_slots.c), 0 off */
 #ifdef ROOD_VULKAN
     I("shader_reload", pc_shader_reload), /* shader hot reload (shader_reload.cpp), 0 off */

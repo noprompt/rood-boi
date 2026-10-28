@@ -25,6 +25,10 @@ typedef char pc_classic_sites_agree[PC_CLASSIC_SITE_GAUGES == PC_CLASSIC_GAUGES
             && PC_CLASSIC_SITE_IMAGE == PC_CLASSIC_IMAGE && PC_CLASSIC_SITE_TARGET_ROW == PC_CLASSIC_TARGET_ROW
             && PC_CLASSIC_SITE_TARGET_LINE == PC_CLASSIC_TARGET_LINE
             && PC_CLASSIC_SITE_TARGET_MARKER == PC_CLASSIC_TARGET_MARKER
+            && PC_CLASSIC_SITE_MENU_BACKGROUND == PC_CLASSIC_MENU_BACKGROUND
+            && PC_CLASSIC_SITE_MENU_COMMAND == PC_CLASSIC_MENU_COMMAND && PC_CLASSIC_SITE_MENU_ROW == PC_CLASSIC_MENU_ROW
+            && PC_CLASSIC_SITE_MENU_CURSOR == PC_CLASSIC_MENU_CURSOR && PC_CLASSIC_SITE_MENU_TABS == PC_CLASSIC_MENU_TABS
+            && PC_CLASSIC_SITE_OPTION_VALUE == PC_CLASSIC_OPTION_VALUE
         ? 1
         : -1];
 
@@ -47,6 +51,7 @@ void pc_hud_target_row(void* record, void* first, void* end);
 void pc_hud_target_line(void* record, void* first, void* end);
 void pc_hud_target_marker(void* record, void* first, void* end);
 void pc_hud_gauges(void* record, void* first, void* end); /* hud_bridge.c */
+void pc_hud_menu(int kind, void* record, void* first, void* end); /* hud_bridge.c: MAINMENU's frame */
 extern unsigned pc_vsync_count(void) __attribute__((weak));
 
 /* A packet's anchor: the range it lies in, else the one its caller gives the site's range after the
@@ -100,6 +105,10 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
     int hide = pc_photo_hide_hud && pc_photo_hide_hud() && kind != PC_CLASSIC_ACTOR_WORD && kind != PC_CLASSIC_TIMER
         && kind != PC_CLASSIC_EMOTE && kind != PC_CLASSIC_TEXT_FRAME && kind != PC_CLASSIC_TEXT_BAND
         && kind != PC_CLASSIC_BOX_TEXT && kind != PC_CLASSIC_IMAGE;
+    if (kind >= PC_CLASSIC_MENU_BACKGROUND && kind <= PC_CLASSIC_OPTION_VALUE) { /* (the menus: never the HUD's to hide) */
+        pc_hud_menu(kind, record, first, end);
+        return;
+    }
     if (kind >= PC_CLASSIC_STATUS && kind <= PC_CLASSIC_DAMAGE) {
         pc_hud_element(kind, record, x, y, first, end);
         if (hide) /* (a classic claim's own packets too: allocated after the game's) */

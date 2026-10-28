@@ -925,7 +925,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,option_value", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -1213,6 +1213,204 @@ def run_marker(out, card, env, check, waivers):
         g.close()
 
 
+MENUS = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # MAINMENU's shared frame
+         "option_value")  # (and our Option pages' value column)
+MENU_TOURED = ("menu_row", "menu_cursor", "menu_command", "option_value")  # (the Option screen: no tabs, background)
+OPTION_COMMAND, VANILLA_OPTIONS = 7, 9  # the top level's Option row (MENU8), its nine rows of the game's options
+
+
+def run_menus(out, card, env, check, waivers, kinds):
+    """MAINMENU's shared frame through the game's Option screen (MENU8 and our pages; Rename excluded), its own game
+    from the save room (the original menus): the menu opened; the list walked down through every entry (the
+    game's nine rows, our pages, the scroll) and back; each of the nine rows' flyouts opened, moved through, left;
+    each of our pages opened and walked through to its end (the scroll arrows), Display's Scaling flyout, the
+    Fullscreen mode's "Keep these settings?" (KEEP / REVERT: the test modes); the menu closed. Then the default and
+    the fallback per kind, state parity from a mark as the list opens."""
+    from menu_nav import top_command
+    env = dict(env, ROOD_TEST_FULLSCREEN_MODES="1920x1080@60,1280x720@60")
+    g = launch_at("save_room", card=card, fast=True, log=out / "game-menus.log", extra_env=env)
+    symbols = rood_rpc.symbols()
+    covered = []
+    try:
+        def opt():
+            return g.call("options")["classic"]
+
+        def wait(screen, limit=600):
+            for _ in range(limit):
+                o = opt()
+                if o["screen"] == screen and o["ready"]:
+                    return o
+                g.run(1)
+            raise RpcError(f"options screen {screen}: {json.dumps(opt())[:300]}")
+
+        def press(button, settle=2):
+            g.press(button, vsyncs=2, settle=settle)
+
+        def frames():
+            k = g.call("classic")["kinds"]
+            return {kind: k[kind]["frames"] for kind in MENUS}
+
+        def toured(label, before, **extra):
+            after = frames()
+            covered.append({"scenario": label, **{k: after[k] - before[k] for k in MENUS if after[k] > before[k]},
+                            **extra})
+
+        def list_to(index):
+            for _ in range(60):
+                o = wait("list")
+                if o["list_focus"] == index:
+                    return o
+                press("down" if o["list_focus"] < index else "up")
+            raise RpcError(f"the Option list's entry {index}")
+
+        def page_to(row_id):
+            for _ in range(80):
+                o = wait("page")
+                if o["focus_id"] == row_id:
+                    return o
+                press("down")
+            raise RpcError(f"row {row_id}")
+
+        g.call("classic", parity=True, reset=True)
+        before = frames()
+        g.press("triangle", vsyncs=3, settle=30)
+        top_command(g, symbols, OPTION_COMMAND)
+        press("circle")
+        o = wait("list")
+        toured("the menu opened, the Option list in", before)
+        entries = o["entries"]
+        total = VANILLA_OPTIONS + len(entries)
+        before = frames()
+        for _ in range(total):  # down through every entry (the list scrolls), wrapping to the top
+            press("down")
+            wait("list")
+        for _ in range(3):
+            press("up")
+            wait("list")
+        toured(f"the list walked: {total} entries down and back", before, entries=total)
+        for row in range(VANILLA_OPTIONS):  # each of the game's own options: its flyout
+            list_to(row)
+            before = frames()
+            press("circle", settle=30)
+            for button in ("down", "down", "up"):
+                press(button, settle=6)
+            press("cross", settle=4)
+            wait("list")
+            toured(f"option {row}'s flyout: in, moved through, out", before, row=row)
+        for entry in entries:
+            if not entry.startswith("rood.options/"):
+                continue
+            list_to(VANILLA_OPTIONS + entries.index(entry))
+            before = frames()
+            press("circle")
+            o = wait("page")
+            for _ in range(len(o["rows"]) + 1):  # to its end (the scroll arrows) and around
+                press("down")
+                wait("page")
+            if entry == "rood.options/display":
+                page_to("aspect")
+                press("circle")
+                wait("flyout")
+                for button in ("down", "up"):
+                    press(button, settle=4)
+                    wait("flyout")
+                press("cross")
+                wait("page")
+                def pick(row_id, index):
+                    """Circle on the row, its flyout's choice `index`, Circle (options_confirm_smoke's way)."""
+                    page_to(row_id)
+                    r = next(r for r in wait("page")["rows"] if r["id"] == row_id)
+                    press("circle")
+                    wait("flyout")
+                    for _ in range((index - r["index"]) % r["count"]):
+                        press("down")
+                    press("circle")
+                    return r["index"]
+                window = pick("window_mode", 2)  # Fullscreen (the exclusive modes' row then asks)
+                wait("page")
+                mode = pick("fullscreen_mode", 1)
+                wait("confirm")
+                press("down", settle=6)  # REVERT
+                press("up", settle=6)    # KEEP
+                press("cross")           # (Cross: reverted)
+                wait("page")
+                check(next(r for r in wait("page")["rows"] if r["id"] == "fullscreen_mode")["index"] == mode,
+                      "menus: Keep these settings? toured, reverted")
+                pick("window_mode", window)
+                wait("page")
+            press("cross")
+            wait("list")
+            toured(f"page {entry}: in, every row, out", before, page=entry)
+        before = frames()
+        press("triangle", settle=60)
+        toured("the menu closed", before)
+        reports = {kind: opening_report(g, check, waivers, kind, covered, set()) for kind in kinds
+                   if kind in MENU_TOURED}
+        for kind in kinds:
+            if kind not in MENU_TOURED:
+                c = g.call("classic")["kinds"][kind]
+                check(c["mismatched"] == 0 and c["skipped"] == 0,
+                      f"{kind} (not toured here): {c['frames']} frames compared, {c['mismatched']} mismatched")
+        g.call("classic", parity=False)
+        toured_kinds = [k for k in kinds if k in MENU_TOURED]
+
+        def state_proof(label, expect):
+            """§3.4 from the mark: 120 vsyncs with rood.classic drawing, then with the game drawing. (Masked too: the
+            Option pages' help clock, classic_options.c's help.since: the host's seconds when a help box was set.)"""
+            masks = state_masks(g) + [[a + 400, 8] for a, n, name in Symbols(rood_rpc.BINARY).rows
+                                      if name == "help" and n == 408]
+            g.rewind()
+            drawn = {k: g.call("hud", action="stats")["kinds"][k]["drawn"] for k in toured_kinds}
+            g.digest("record", ticks=120, masks=masks)
+            g.until(lambda: g.digest("result")["recorded"] >= 120, guard=120, what="the digest recorded")
+            drawn = {k: g.call("hud", action="stats")["kinds"][k]["drawn"] - drawn[k] for k in toured_kinds}
+            g.rewind()
+            g.call("settings", apply=[f"hud_classic_{k} 0" for k in toured_kinds])
+            fallback = {k: g.call("hud", action="stats")["kinds"][k]["fallback"] for k in toured_kinds}
+            g.digest("compare")
+            g.until(lambda: g.digest("result")["ticks"] >= 120, guard=120, what="the digest compared")
+            result = g.digest("result")
+            fallback = {k: g.call("hud", action="stats")["kinds"][k]["fallback"] - fallback[k] for k in toured_kinds}
+            g.call("settings", apply=[f"hud_classic_{k} 1" for k in toured_kinds])
+            check(all(drawn[k] > 0 and fallback[k] > 0 for k in toured_kinds if k in expect) and result.get("error") == 0
+                  and result.get("first_tick") == -1 and result.get("ticks") == result.get("recorded"),
+                  f"state parity menus, {label}: {result.get('ticks')} of {result.get('recorded')} vsyncs the same "
+                  f"(rood.classic drew {drawn}, the game {fallback}; first difference {result.get('first_tick')} "
+                  f"{result.get('first_pages')})")
+
+        # the default and the fallback, then the state proofs: the Option list at rest (the hand pulsing), and
+        # Display's rows sliding in one a frame with its help (a mark just after Circle on it)
+        g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
+        g.run(30)
+        g.press("triangle", vsyncs=3, settle=30)
+        top_command(g, symbols, OPTION_COMMAND)
+        for _ in range(5):  # (Circle once the top level takes it)
+            press("circle")
+            if g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F == 8, guard=5):
+                break
+        wait("list")
+        g.pause()
+        g.mark()
+        for kind in toured_kinds:
+            if kind != "option_value":  # (no values in the list: on a page, below)
+                g.rewind()
+                default_and_fallback(g, kind, check)
+        state_proof("the Option list at rest", ("menu_row", "menu_cursor", "menu_command"))
+        g.rewind()
+        list_to(VANILLA_OPTIONS + entries.index("rood.options/display"))
+        press("circle", settle=0)
+        g.mark()
+        if "option_value" in toured_kinds:
+            default_and_fallback(g, "option_value", check)
+        state_proof("Display's rows coming in", toured_kinds)
+        for kind, report in reports.items():
+            (out / f"{kind}.json").write_text(json.dumps(report, indent=1))
+            print(f"report: {out / (kind + '.json')}: {report['frames']} frames, {report['states']} states, "
+                  f"{'green' if report['green'] else 'RED'}")
+    finally:
+        g.close()
+
+
 def opening_report(g, check, waivers, kind, covered, extra):
     c = g.call("classic")["kinds"][kind]
     declared = sorted(n for n in str(repl(g, "rood.classic", f"return table.concat(M.look.overrides.{kind} or {{}}, ',')"))
@@ -1347,6 +1545,12 @@ def run(out, card, renderer, kinds, candidate=False):
     if "target_marker" in kinds:
         run_marker(out, card, env, check, waivers)
         kinds = [k for k in kinds if k != "target_marker"]
+        if not kinds:
+            print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
+            return 1 if failures else 0
+    if any(k in MENUS for k in kinds):
+        run_menus(out, card, env, check, waivers, [k for k in kinds if k in MENUS])
+        kinds = [k for k in kinds if k not in MENUS]
         if not kinds:
             print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
             return 1 if failures else 0

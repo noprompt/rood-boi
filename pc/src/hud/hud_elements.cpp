@@ -34,6 +34,12 @@ int pc_hud_classic_status = 1, pc_hud_classic_chain = 1, pc_hud_classic_buff = 1
     pc_hud_classic_text_band = 1, pc_hud_classic_box_text = 1,
     pc_hud_classic_image = 1, pc_hud_classic_target_row = 1, pc_hud_classic_target_line = 1,
     pc_hud_classic_target_marker = 1;
+// MAINMENU's shared frame (the classic menus, plan phase 2): on for the rows, the hand and the command title (their
+// Option screen tour is green); the background and the tab arrows (no Option screen shows them) off until toured.
+int pc_hud_classic_menu_command = 1, pc_hud_classic_menu_row = 1, pc_hud_classic_menu_cursor = 1;
+int pc_hud_classic_menu_background, pc_hud_classic_menu_tabs;
+// Our Option pages' value column (classic_options.c's draws, its fallback): on (its Option screen tour is green).
+int pc_hud_classic_option_value = 1;
 int pc_hud_classic_default(int kind)
 {
     switch (kind) {
@@ -56,6 +62,12 @@ int pc_hud_classic_default(int kind)
     case PC_HUD_TARGET_ROW: return pc_hud_classic_target_row != 0;
     case PC_HUD_TARGET_LINE: return pc_hud_classic_target_line != 0;
     case PC_HUD_TARGET_MARKER: return pc_hud_classic_target_marker != 0;
+    case PC_HUD_MENU_BACKGROUND: return pc_hud_classic_menu_background != 0;
+    case PC_HUD_MENU_COMMAND: return pc_hud_classic_menu_command != 0;
+    case PC_HUD_MENU_ROW: return pc_hud_classic_menu_row != 0;
+    case PC_HUD_MENU_CURSOR: return pc_hud_classic_menu_cursor != 0;
+    case PC_HUD_MENU_TABS: return pc_hud_classic_menu_tabs != 0;
+    case PC_HUD_OPTION_VALUE: return pc_hud_classic_option_value != 0;
     }
     return 0;
 }
@@ -86,7 +98,8 @@ Hold holds[PC_HUD_KINDS];
 #define RESPAWN_VSYNCS 15
 
 const char* const KINDS[PC_HUD_KINDS] = { "", "status", "chain", "buff", "damage", "travel", "notice",
-    "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker" };
+    "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker",
+    "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value" };
 const char* const TIMINGS[] = { "too_fast", "fast", "success", "slow", "too_slow" };
 // BATTLE.PRG func_800958A4's words and colours (PS1 BGR, 0x80 full).
 const char* const TIMING_WORDS[] = { "TOO FAST!", "FAST!", "", "SLOW!", "TOO SLOW!" };
@@ -121,7 +134,8 @@ bool single(int kind)
     // actor words (one per label record), the emotes (one per actor) and the target rows and lines (one per row).
     return kind == PC_HUD_STATUS || kind == PC_HUD_CHAIN || kind == PC_HUD_TRAVEL || kind == PC_HUD_NOTICE
         || kind == PC_HUD_NAME_WINDOW || kind == PC_HUD_GAUGES || kind == PC_HUD_FIGURE || kind == PC_HUD_STATUS_ICONS || kind == PC_HUD_BATTLE_MODE
-        || kind == PC_HUD_TIMER || kind == PC_HUD_TARGET_MARKER;
+        || kind == PC_HUD_TIMER || kind == PC_HUD_TARGET_MARKER || kind == PC_HUD_MENU_BACKGROUND
+        || kind == PC_HUD_MENU_COMMAND || kind == PC_HUD_MENU_CURSOR || kind == PC_HUD_MENU_TABS;
 }
 
 Appearance appeared[64];

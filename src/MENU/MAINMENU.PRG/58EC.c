@@ -7,6 +7,9 @@
 #include "gpu.h"
 #include "vs_string.h"
 #include <libetc.h>
+#ifdef ROOD_PC
+#include "pc/src/classic/classic_hook.h"
+#endif
 
 typedef struct {
     u_short name[14];
@@ -435,6 +438,13 @@ static void _renderMenuCommand(void)
 
     actionYPos = y;
 
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the title's sprite, from the action and its slide just
+     * stepped. */
+    {
+        pc_classic_menu_command pcCommand = { action, y };
+        PC_CLASSIC(PC_CLASSIC_SITE_MENU_COMMAND, &pcCommand, 0, 0, {
+#endif
     if (action != 0) {
         prim = vs_battle_setSprite((1 << 8) | 128,
             (312 - (menuActionRenderPostitions[action] & 0xFF))
@@ -443,6 +453,10 @@ static void _renderMenuCommand(void)
         prim[1] = vs_getTpage(768, 0, clut4Bit, semiTransparencyFull, ditheringOff);
         prim[4] = menuActionUvs[action] | vs_getUV0Clut(0, 0, 848, 223);
     }
+#ifdef ROOD_PC
+        });
+    }
+#endif
 }
 
 void vs_mainMenu_toggleBackgroundFade(int fadeState)
@@ -500,6 +514,11 @@ int vs_mainMenu_renderCursor(u_int animStep, int xy)
 {
     int clut;
     int cursorAnimStep = animStep >> (vs_mainMenu_cursorColor * 8);
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the hand, from its step, place and colour. */
+    pc_classic_menu_cursor pcCursor = { cursorAnimStep, xy, vs_mainMenu_cursorColor };
+    void* pcCursorFirst = psx_load(void*, (u_int*)0x1F800000);
+#endif
 
     u_long* prim = vs_battle_setSpriteDefaultTexPage(
         vs_battle_cursorBrightnessAnimation[cursorAnimStep], xy, vs_getWH(16, 16),
@@ -513,6 +532,11 @@ int vs_mainMenu_renderCursor(u_int animStep, int xy)
 
     prim[4] = clut;
     vs_mainMenu_cursorColor = 0;
+#ifdef ROOD_PC
+    if (pc_classic_site)
+        pc_classic_site(PC_CLASSIC_SITE_MENU_CURSOR, &pcCursor, (short)xy, xy >> 16,
+            pcCursorFirst, psx_load(void*, (u_int*)0x1F800000));
+#endif
 
     return (cursorAnimStep + 1) & 0xF;
 }
@@ -901,6 +925,21 @@ int vs_mainMenu_storeCursor(void)
 }
 
 int vs_mainMenu_getConfirmedRow(void) { return _selectedRow + _subMenuPage; }
+
+#ifdef ROOD_PC
+void pc_classic_mainmenu_read(pc_classic_mainmenu* out)
+{
+    out->row = _selectedRow;
+    out->page = _subMenuPage;
+    out->sub_menu = _subMenuId;
+    out->row_info = _subMenuRowInfo;
+    out->row_count = _subMenuRowCount;
+    out->list_open = _itemsText != NULL;
+    out->row_offset = _menuRowYOffset;
+    out->command = _menuActionCurrent;
+    out->command_next = _menuActionNext;
+}
+#endif
 
 int vs_mainmenu_getSelectedRow(void) { return _itemsText != NULL ? -1 : _selectedRow; }
 
@@ -1308,6 +1347,14 @@ void vs_mainMenu_renderTabNavigation(int mode)
     }
 
     xy = arrowAnimState >> 2;
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the arrows (and L1 / R1), from the mode and the step
+     * just taken. */
+    {
+        pc_classic_menu_tabs pcTabs = { mode, arrowAnimState,
+            color != vs_getRGB888(64, 64, 64) };
+        PC_CLASSIC(PC_CLASSIC_SITE_MENU_TABS, &pcTabs, 0, 0, {
+#endif
 
     if (mode != 0) {
         for (i = 0; i < 4; ++i) {
@@ -1327,6 +1374,10 @@ void vs_mainMenu_renderTabNavigation(int mode)
     }
 
     vs_battle_setSpriteDefault(vs_getWH(16, 16), i + xy)[4] = clut | vs_getUV(16, 48);
+#ifdef ROOD_PC
+        });
+    }
+#endif
 }
 
 /**
@@ -1476,6 +1527,13 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
         }
     }
 }
+
+#ifdef ROOD_PC
+static void _renderMenuItem(vs_battle_menuItem_t* menuItem);
+/* The classic look's copy of a row (pc/src/hud/hud_bridge.c: d.menu_row): the row's emit
+ * (below) on a copy of its record; nothing of the live rows is written. */
+void pc_mainmenu_render_row(vs_battle_menuItem_t* copy) { _renderMenuItem(copy); }
+#endif
 
 static void _renderMenuItems(void)
 {
@@ -1656,6 +1714,28 @@ static void _renderMenuItems(void)
             continue;
         }
 
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the row's emit (its slides stepped above), from a
+         * copy of its record taken before the emit steps its gradient. */
+        {
+            pc_classic_menu_row pcRow;
+            pcRow.row = menuItem;
+            pcRow.id = i;
+            vs_battle_memcpy(pcRow.item, menuItem, sizeof pcRow.item);
+            PC_CLASSIC(PC_CLASSIC_SITE_MENU_ROW, &pcRow, menuItem->x, menuItem->y,
+                _renderMenuItem(menuItem));
+        }
+    }
+}
+
+static void _renderMenuItem(vs_battle_menuItem_t* menuItem)
+{
+    int var_v1;
+    u_long* before;
+    int origin;
+    int j;
+    {
+#endif
         j = menuItem->max;
         before = psx_get(vs_scratch.unk8) + 8;
 
@@ -1758,7 +1838,16 @@ void vs_mainMenu_renderScreen(void)
     vs_mainMenu_backgroundFadeStep = fadeStep;
 
     if (fadeStep != 0) {
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the background, from its fade step and its slot.
+         */
+        pc_classic_menu_background pcBackground = { fadeStep, _backgroundBrightness,
+            _backgroundOtOffset, vs_main_frameBuf };
+        PC_CLASSIC(PC_CLASSIC_SITE_MENU_BACKGROUND, &pcBackground, 0, 0,
+            _renderBackground(fadeStep));
+#else
         _renderBackground(fadeStep);
+#endif
     }
 
     if (vs_battle_shortcutInvoked == 0) {

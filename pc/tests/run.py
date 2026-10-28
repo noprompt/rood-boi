@@ -142,7 +142,7 @@ def zig_diff_changed(functions, scale=1.0):
 # Game suites safe on the null renderer (CPU only, no pictures). verify.sh's
 # null lane runs them, so the quick lane does not repeat them on Vulkan.
 NULL_SAFE = {"null_backend_smoke", "shadow_battle_smoke", "shadow_battle_smoke_38C1C", "ownership_smoke",
-             "battle_corpus_candidate", "zig_hotswap_smoke", "engine_rewind_smoke", "classic_parity",
+             "battle_corpus_candidate", "zig_hotswap_smoke", "engine_rewind_smoke", "classic_parity", "menu_model_smoke",
              *(f"trial_corpus_{t[0]}{suffix}" for t in TRIAL_CORPUS for suffix in ("", "_features"))}
 
 
@@ -501,10 +501,15 @@ def suites(args, mode="egl"):
                       "drawn), hot-reloaded while held; the game's own drawing with no claim, a draw error, the "
                       "plugin off, the classic look")]
           if args.save.exists() else []),
-        *([Suite("classic_parity", [PY, str(TESTS / "classic_parity.py"), "--card", str(args.save)], 600, gpu=False,
+        *([Suite("classic_parity", [PY, str(TESTS / "classic_parity.py"), "--card", str(args.save)], 1200, gpu=False,
                  note="the classic look in Lua: rood.classic's timing words and chain counts packet for packet "
                       "against the game's own in the same frames (the null renderer), waivers = its declared "
                       "overrides, on by default, the game's drawing as the fallback, state parity")]
+          if args.save.exists() else []),
+        *([Suite("menu_model_smoke", [PY, str(TESTS / "menu_model_smoke.py"), "--card", str(args.save)], 300,
+                 gpu=False,
+                 note="the classic menus' model rood.game.menu() against RPC options in the game's Option screen "
+                      "(the list's cursor, a page's rows and help, a flyout; one read-only table per vsync)")]
           if args.save.exists() else []),
         *([Suite("classic_hud_smoke", [PY, str(TESTS / "classic_hud_smoke.py"), "--card", str(args.save)], 300,
                  note="rood.classic on a renderer: its typeset decides the status words' typography (one space, on "

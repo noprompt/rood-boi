@@ -8,6 +8,14 @@
 //                             or "none" (no room: loading, another overlay)
 //   rood.game.room()          nil, or {zone, room, area, name}
 //   rood.game.first_person()  boolean
+//   rood.game.menu()          nil (no menu frame), or the classic menus' model (classic/menu_model.h; plan
+//                             2026-10-20-classic-ui-in-lua.md §2.3): {menu, screen, loaded, submenu, hidden,
+//                             rows = {{id, state, x, y, w, background, target_x, target_y, selected,
+//                             unselectable, invert, scrollable, gradient, anim, button, icon, outset, material,
+//                             color, count, max, page, text, glyphs = {codes}, sub}, ...} (live rows, by id),
+//                             cursor = {row, page, sub_menu, row_info, rows, list_open, list_row, row_offset,
+//                             memory_row, memory_page}, command, command_next, fade, fade_in, info (text box 7,
+//                             nil while it is down)}
 //   rood.game.paused()        the photo mode's pause holds (or is asked for); pause() and
 //                             resume() with the game.pause grant (lua_api_photo.cpp)
 //   rood.game.inventory(), weapons(), shields(), armour(), accessories(), equipment(),
@@ -17,11 +25,14 @@
 // same table until the next vsync: compare with ==, no churn in a draw function).
 #include "rl_internal.h"
 #include "hud/game_query.h"
+#include "classic/menu_model.h"
 
 #include <cstring>
 
 extern "C" int pc_game_phase __attribute__((weak));          // boot_runtime.c: 1 title, 2 attract demo
 extern "C" int pc_ui_menu_active(void) __attribute__((weak)); // ui/menu_bridge.c: the modern menus
+extern "C" int pc_menu_model_fill(pc_menu_model*) __attribute__((weak)); // classic/menu_model.c (battle builds)
+extern "C" const char* pc_menu_model_state_name(int) __attribute__((weak));
 
 namespace rl {
 namespace {
@@ -188,6 +199,94 @@ int api_first_person(lua_State* L)
     return 1;
 }
 
+pc_menu_model menu_model;
+unsigned long long menu_filled; // the generation menu_model holds
+
+int api_menu(lua_State* L)
+{
+    if (cached(L, "rood.game.menu"))
+        return 1;
+    if (menu_filled != ticks) {
+        if (!pc_menu_model_fill || !pc_menu_model_fill(&menu_model))
+            menu_model.items = 0;
+        menu_filled = ticks;
+    }
+    const pc_menu_model& m = menu_model;
+    if (!m.items) {
+        lua_pushnil(L);
+        keep(L, "rood.game.menu");
+        return 1;
+    }
+    lua_createtable(L, 0, 14);
+    set_int(L, "menu", m.menu);
+    set_str(L, "screen", m.screen ? m.screen : "");
+    set_bool(L, "loaded", m.loaded != 0);
+    set_int(L, "submenu", m.submenu);
+    set_bool(L, "hidden", m.hidden != 0);
+    lua_createtable(L, m.row_count, 0);
+    for (int i = 0; i < m.row_count; ++i) {
+        const pc_menu_model_row& r = m.rows[i];
+        lua_createtable(L, 0, 26);
+        set_int(L, "id", r.id);
+        set_str(L, "state", pc_menu_model_state_name ? pc_menu_model_state_name(r.state) : "");
+        set_int(L, "x", r.x);
+        set_int(L, "y", r.y);
+        set_int(L, "w", r.w);
+        set_int(L, "background", r.background);
+        set_int(L, "target_x", r.target_x);
+        set_int(L, "target_y", r.target_y);
+        set_bool(L, "selected", r.selected != 0);
+        set_bool(L, "unselectable", r.unselectable != 0);
+        set_bool(L, "invert", r.invert != 0);
+        set_int(L, "scrollable", r.scrollable);
+        set_int(L, "gradient", r.gradient);
+        set_int(L, "anim", r.anim);
+        set_int(L, "button", r.button);
+        set_int(L, "icon", r.icon);
+        set_int(L, "outset", r.outset);
+        set_int(L, "material", r.material);
+        set_int(L, "color", r.color);
+        set_int(L, "count", r.count);
+        set_int(L, "max", r.max);
+        set_int(L, "page", r.page);
+        set_str(L, "text", r.text);
+        set_str(L, "sub", r.sub);
+        lua_createtable(L, r.glyph_count, 0);
+        for (int g = 0; g < r.glyph_count; ++g) {
+            lua_pushinteger(L, r.glyphs[g]);
+            lua_rawseti(L, -2, g + 1);
+        }
+        lock_table(L);
+        lua_setfield(L, -2, "glyphs");
+        lock_table(L);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lock_table(L);
+    lua_setfield(L, -2, "rows");
+    lua_createtable(L, 0, 10);
+    set_int(L, "row", m.cursor.row);
+    set_int(L, "page", m.cursor.page);
+    set_int(L, "sub_menu", m.cursor.sub_menu);
+    set_int(L, "row_info", m.cursor.row_info);
+    set_int(L, "rows", m.cursor.rows);
+    set_bool(L, "list_open", m.cursor.list_open != 0);
+    set_int(L, "list_row", m.cursor.list_row);
+    set_int(L, "row_offset", m.cursor.row_offset);
+    set_int(L, "memory_row", m.cursor.memory_row);
+    set_int(L, "memory_page", m.cursor.memory_page);
+    lock_table(L);
+    lua_setfield(L, -2, "cursor");
+    set_int(L, "command", m.command);
+    set_int(L, "command_next", m.command_next);
+    set_int(L, "fade", m.fade);
+    set_bool(L, "fade_in", m.fade_in != 0);
+    if (m.info_shown)
+        set_str(L, "info", m.info);
+    lock_table(L);
+    keep(L, "rood.game.menu");
+    return 1;
+}
+
 void open_game(lua_State* L, Plugin* p)
 {
     lua_newtable(L);
@@ -195,6 +294,7 @@ void open_game(lua_State* L, Plugin* p)
     set_cfunction(L, -1, "mode", api_mode);
     set_cfunction(L, -1, "room", api_room);
     set_cfunction(L, -1, "first_person", api_first_person);
+    set_cfunction(L, -1, "menu", api_menu);
     open_game_pause(L, p); /* paused; pause and resume with the game.pause grant (lua_api_photo.cpp) */
     open_game_player(L);   /* the bag, equipment, workshop, combine (lua_api_player.cpp) */
     lock_table(L);

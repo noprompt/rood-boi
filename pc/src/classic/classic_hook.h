@@ -67,7 +67,45 @@ typedef struct {
  * pitch locked, the brackets' quads off and the other sprites) and its brightness step (D_800EA6AC, stepped). */
 typedef struct { int x, y, lock, step; } pc_classic_target_marker;
 #define PC_CLASSIC_SITE_TARGET_MARKER 22
-#define PC_CLASSIC_SITE_STATUS_PANEL 23 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* MAINMENU's shared frame (58EC.c), every menu screen's: the background (its fade step, the opaque brightness, its
+ * slot: words from vs_scratch.unk4, the frame buffer), the command title's sprite (the action shown, its slide),
+ * a row of vs_battle_menuItems (its emit after its slide is stepped: the row, identity only; its id; a copy of its
+ * record, 0x40 bytes, before the emit steps its gradient), the pointing hand (vs_mainMenu_renderCursor: its
+ * step, packed place, colour) and the tab arrows (vs_mainMenu_renderTabNavigation: mode, the step just taken,
+ * lit). */
+typedef struct { int fade, brightness, slot, frame; } pc_classic_menu_background;
+#define PC_CLASSIC_SITE_MENU_BACKGROUND 23
+typedef struct { int action, y; } pc_classic_menu_command;
+#define PC_CLASSIC_SITE_MENU_COMMAND 24
+typedef struct {
+    const void* row;
+    int id;
+    unsigned char item[0x40];
+} pc_classic_menu_row;
+#define PC_CLASSIC_SITE_MENU_ROW 25
+typedef struct { int step, xy, color; } pc_classic_menu_cursor;
+#define PC_CLASSIC_SITE_MENU_CURSOR 26
+typedef struct { int mode, step, lit; } pc_classic_menu_tabs;
+#define PC_CLASSIC_SITE_MENU_TABS 27
+/* A row's value in our Option pages (pc/src/ui/classic_options.c draw_values: not the game's, but drawn with its
+ * printers): the page's row (its index), kind (PC_UI_SET_*), enabled, focused, the choice's index; the column's x
+ * and the window's right end; the colours (current, other); the toggle's gap; the slider's gauge (colour, width,
+ * fill); a link's target there; capitals; the window's x and the row's y; the texts (value, the toggle's two
+ * names, a note's label: the page model's, read only). */
+typedef struct {
+    int row, kind, enabled, focused, index, x, right, lit, other, gap, bar_colour, bar_width, fill, link, upper,
+        window_x, y;
+    const char *value, *on, *off, *label;
+} pc_classic_option_value;
+#define PC_CLASSIC_SITE_OPTION_VALUE 28
+#define PC_CLASSIC_SITE_STATUS_PANEL 29 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* MAINMENU's shared frame (58EC.c), read for the menu model (pc/src/classic/menu_model.c, rood.game.menu()): the
+ * statics its list and command title keep (the list's cursor row and page, the sub-menu's id, row info and row
+ * count, whether its rows take input (_itemsText), the rows' y offset; the command title's current and next). */
+typedef struct {
+    int row, page, sub_menu, row_info, row_count, list_open, row_offset, command, command_next;
+} pc_classic_mainmenu;
+void pc_classic_mainmenu_read(pc_classic_mainmenu* out); /* 58EC.c */
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end) __attribute__((weak));
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \
