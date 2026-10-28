@@ -34,12 +34,14 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
  * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
  * label, func_80095258: the ailments' and buffs' words, a lowered stat's arrow). timer: the time attack's
- * (5BF94.c _renderTimer, while vs_battle_lowerScreenUiState is 1). The kinds from gauges on
+ * (5BF94.c _renderTimer, while vs_battle_lowerScreenUiState is 1). emote: a balloon over an actor (2842C.c
+ * func_80095C18: the dots, '!', '?', the heart; an off-screen actor's arrow; a far actor's sprite), linked
+ * into the actor's depth-sorted slot. The kinds from gauges on
  * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
 #define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
@@ -91,6 +93,7 @@ typedef struct {
     int ability_animation, ability_offset, ability_group, ability_availability;
     int battle_step, battle_pulse; /* BATTLE MODE: draw-time inputs, before phase advance */
     int minutes, seconds, hundredths; /* timer: as the game's string shows them (59:59:99 at most) */
+    int emote_draw, emote_kind, emote_side, emote_z, emote_direction, emote_frame; /* emote: pc_classic_emote's */
     int word_miss, word_label, word_lowered; /* actor_word: MISS (1) or a combat label (D_800690B4's index; lowered:
                                               * a lowered stat's, with the arrow) */
     int icon_previous, icon_current, icon_next, icon_count, icon_selected, icon_offset;
@@ -120,7 +123,7 @@ int pc_hud_record(const pc_hud_fields* f);
 extern int pc_hud_classic_override;
 extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_hud_classic_damage,
     pc_hud_classic_gauges, pc_hud_classic_figure, pc_hud_classic_status_icons, pc_hud_classic_battle_mode, pc_hud_classic_ability_icons,
-    pc_hud_classic_actor_word, pc_hud_classic_timer;
+    pc_hud_classic_actor_word, pc_hud_classic_timer, pc_hud_classic_emote;
 int pc_hud_classic_default(int kind); /* the kind's hud_classic_<kind> */
 /* Whether claims on `kind` are honoured now (a claim, the look, the overlay drawing). */
 int pc_hud_honoured(int kind);
@@ -170,7 +173,8 @@ enum {
     PC_HUD_CMD_QUAD      /* a textured four-point polygon as the label loop's draws build theirs (POLY_FT4: the
                           * numbers, buffs): a the page word (with its blending), b the CLUT word, c, d its u, v;
                           * x, y, w x h on the screen; font, align the texels' w x h; color the colour word (PS1
-                          * BGR, 0x80 full); anchor 1 raw (unmodulated); alpha below 1 semi-transparent */
+                          * BGR, 0x80 full); anchor 1 raw (unmodulated); alpha below 1 semi-transparent;
+                          * fit 1: its corners and texels given one by one (corner: from x, y; uv) */
 };
 typedef struct {
     int type;
@@ -183,11 +187,14 @@ typedef struct {
     int length;
     int a, b, c, d;
     pc_text_typeset typeset; /* text_raw with font 4 (the status style) */
+    short corner[8];         /* quad with fit 1: x0, y0 .. x3, y3 from x, y, in the packet's vertex order */
+    unsigned char uv[8];     /* and their texels u0, v0 .. u3, v3 */
     int layer;               /* the ordering-table slot (bytes from vs_scratch.unk4, d.layer); PC_HUD_LAYER_KIND: the
                               * kind's own */
 } pc_hud_classic_cmd;
 #define PC_HUD_LAYER_KIND (-0x7FFF)
 #define PC_HUD_LAYER_UNK8 (-0x7FFE) /* resolve the actual scratchpad OT pointer each draw */
+#define PC_HUD_LAYER_ELEMENT (-0x7FFD) /* the element's own slot, as the game linked it (an emote's depth) */
 #define PC_HUD_CLASSIC_COMMANDS 256
 /* lua_api_hud.cpp: the claim on the element just recorded draws in the classic flavour;
  * its commands (in drawing order) in *out, their count, or -1 when it failed (the game

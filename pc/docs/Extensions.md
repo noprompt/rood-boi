@@ -218,6 +218,7 @@ decides how it looks. The kinds:
 | `gauges` | the classic look's only (claimed with `{flavour = "classic"}`; the modern look hides the status display): the status display's HP / MP / RISK gauges, their digits and labels, or RISK ZERO (5BF94.c func_800CA2DC's `_renderStatBar` calls); up whenever the field is (no show) | `hp`, `max_hp`, `mp`, `max_mp`, `risk` (Ashley's HUD record), `slide` (D_800EB9B0: the display sliding up, 0x80000 a step of 8 pixels in its high half) |
 | `actor_word` | the classic look's only (the modern look: the game's own): a word over an actor in the label loop (2842C.c): MISS (func_8009506C) or a combat label, the ailments' and buffs' words (func_80095258, with a lowered stat's arrow); the game decides which and when (no show) | `word` (`miss`, `label`), `label` (the combat label: D_800690B4's index), `lowered` (a lowered stat's word: no slide, the arrow), `age`, `call_x`, `call_y` (where the loop placed it) |
 | `timer` | the classic look's only: the time attack's timer (5BF94.c `_renderTimer`, while `vs_battle_lowerScreenUiState` is 1: the game decides; no show) | `text` (the game's string, mm:ss:hh: 59:59:99 at most), `minutes`, `seconds`, `hundredths` (as it shows them), `call_x`, `call_y` (128, 200) |
+| `emote` | the classic look's only: an emote over an actor (2842C.c func_80095C18: the balloon with one to three dots, the shout's '!', the heart, the surprise strokes, '?' alone; an off-screen actor's arrow, func_8009651C); the game decides which, where and when (no show; a far actor's sprite stays the game's) | `draw` (`balloon`, `arrow`), `emote` (the kind, 1..7), `side` (0..5: the balloon and the way it faces), `z` (its depth: the slot `unk4 + z` words, the kind's own layer), `direction` (the arrow: 1 left, 2 right, 4 up, 8 down and pairs), `actor`, `call_x`, `call_y` (the actor's place on the screen; the arrow's clamped) |
 
 Every element: `kind, id, text, x, y, w, h` (the game's drawing's box in its
 screen, 320 x 224 in the field, `x, y` its centre; a damage number: where the
@@ -243,12 +244,12 @@ drawing is the claims'.
 | `d.rect(x, y, w, h, color[, alpha])`, `d.measure(style, s) -> w, h` | |
 | `d.gradient(x, y, w, h, color, color2[, vertical[, alpha]])` | `color` at the left (the top) to `color2` at the right (the bottom) |
 | `d.sprite(x, y, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, set_page?}[, color[, alpha]])` | classic only: a VRAM rectangle allocated/linked by `vs_battle_setSprite` (page_x a multiple of 64, page_y 0 or 256, bits 4, 8 or 15; dimensions 0..256). `color` modulates it, white: as it is. Optional descriptor `bgr` overrides color with an exact GPU modulation word (0xBBGGRR, 0x80 full), preserving the game's colours without RGB conversion. `set_page=false` leaves the game's NOP before the sprite instead of setting a texture page, inheriting the preceding draw mode (default true). |
-| `d.quad(x, y, w, h, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, raw?, abr?}[, alpha])` | classic only: a textured four-point polygon (POLY_FT4) as the label loop builds its numbers and buffs (2842C.c func_80094B0C, func_8009695C: setPolyFT4, setXY4, setUV4, setTPage, setClut, AddPrim): `x, y` its top-left, `w x h` on the screen; the descriptor's `u, v, w, h` its texels (their own size: a quad may squash them); `bgr` the colour word (`0xBBGGRR`, `0x80` full; default `0x808080`), `raw = true` the texture unmodulated (setShadeTex 1), `abr` the page's blending (0..3), `alpha` below 1 semi-transparent |
+| `d.quad(x, y, w, h, {page_x, page_y, bits, u, v, w, h, clut_x, clut_y, bgr?, raw?, abr?, corners?, uvs?}[, alpha])` | classic only: a textured four-point polygon (POLY_FT4) as the label loop builds its numbers and buffs (2842C.c func_80094B0C, func_8009695C: setPolyFT4, setXY4, setUV4, setTPage, setClut, AddPrim): `x, y` its top-left, `w x h` on the screen; the descriptor's `u, v, w, h` its texels (their own size: a quad may squash them); `bgr` the colour word (`0xBBGGRR`, `0x80` full; default `0x808080`), `raw = true` the texture unmodulated (setShadeTex 1), `abr` the page's blending (0..3), `alpha` below 1 semi-transparent. `corners = {x0, y0, .. x3, y3}` (from `x, y`, in the packet's vertex order) with `uvs = {u0, v0, .. u3, v3}`: each corner and its texel given (a mirrored balloon, a turned arrow); `w, h` and the texel rectangle are then unused |
 | `d.window(x, y, w, h[, brightness])` | classic only: the game's text box window (its stone body, frame and shadow); brightness 1 a selected box, 0.5 the others |
 | `d.cursor(x, y[, step])` | classic only: the menus' pointing hand, its brightness animation at `step` (0..15; default: the game's) |
 | `d.bar(x, y, value, max[, pool])` | classic only: the status display's bar (`hp`, `mp`, `risk`) filled value / max |
 | `d.text_raw(s, x, y, word[, typeset])` | classic only: the game's raw printer (`vs_battle_renderTextRawColor`: the status words, RISK ZERO) called as the game calls it: `s` as given (`$` centres it on `x`, `#` right-aligns, the game's narrow blanks), `word` the PS1 colour word (`0xBBGGRR`, `0x80` full); `typeset` how ui_text sets it: `{style = "status", blanks = "one" \| "each", keep_on_screen, screen_w, margin, word_space}` (fields left out: ui_text's defaults, its settings) |
-| `d.layer(slot \| nil)` | classic only: the ordering-table slot the commands that follow link into, as the game names its slots: bytes from `vs_scratch.unk4` (-64..64, a multiple of 4: the status words' -16, the gauges' bars and labels -12, their digits -16); nil the kind's own. `"unk8"` resolves `vs_scratch.unk8` at the draw, also for shadow-slot identity and OT sorting (not a guessed offset). A slot draws its packets in the order of the commands (the game's: the reverse of its calls) |
+| `d.layer(slot \| nil)` | classic only: the ordering-table slot the commands that follow link into, as the game names its slots: bytes from `vs_scratch.unk4` (-64..64, a multiple of 4: the status words' -16, the gauges' bars and labels -12, their digits -16); nil the kind's own (an emote's: its actor's depth slot, `unk4 + z` words, resolved per element). `"unk8"` resolves `vs_scratch.unk8` at the draw, also for shadow-slot identity and OT sorting (not a guessed offset). A slot draws its packets in the order of the commands (the game's: the reverse of its calls) |
 | `d.value(font, x, y, value) -> x, y`, `d.digit(font, x, y, digit)` | classic only: the HUD's digits (`vs_battle_renderValue`: the rightmost at `x, y`; font 0 small, 1 large; returns the pen the game's call leaves) and one digit (`_renderDigit`; font 2 the separator) |
 | `d.xy(x, y, delta) -> x, y` | the game's packed position arithmetic: `x, y` packed as the game packs them plus `delta` written as the game writes its steps (`56 \| (-8 << 16)`), so x's carry or borrow reaches y as in the game |
 | `d.anchor(where)` | where the draw's commands sit in 16:9: `"left"`, `"right"`, `"centre"`, `"element"` (its own, the default), `"screen"` (a panel's: the picture's square pixels, 240 high; not in the classic flavour); in the classic flavour the range is placed exactly (`PC_ANCHOR_EXACT`: no edge extension, cover or side-paint guesses) |
@@ -558,6 +559,10 @@ game's raw printer), and what it may change is a table:
   combat labels (`labels`: each its colour and pieces, the game's D_800690B4; `pieces`, D_80068FAC's
   texels; `colours`, D_80069134), their slide in and out, fade, held brightness, and a lowered
   stat's arrow (its cell stepping from age 15); layer -20, centred like the numbers;
+- `look.emote`: the emote balloons: the balloon's corners and texels by side (D_80068F04,
+  D_80068F64), the marks' offsets by side (D_80068F94, packed as the game adds them), the dots,
+  '!', heart and '?' sprites, the off-screen arrow's eight points and its direction table; drawn in
+  the actor's depth slot (the kind's own layer, `d.layer(nil)`), the arrow in -16;
 - `look.timer`: the time attack's timer, the game's string (`e.text`, composed by `_renderTimer`)
   through its raw printer at 128, 200, grey, slot -4;
 - `look.typeset`: how ui_text sets the words (`blanks = "one"`: a run of
@@ -589,7 +594,7 @@ game draws until the plugin reloads), a kind's `hud_classic_<kind>` off,
 or Lua off: the game's own drawing (its typography ui_text's defaults,
 which keep the same fixes). Settings: `hud_classic_status`,
 `hud_classic_chain`, `hud_classic_gauges`, `hud_classic_figure`, `hud_classic_status_icons`, `hud_classic_battle_mode`, `hud_classic_ability_icons`, `hud_classic_buff`,
-`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer` (all on); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
+`hud_classic_damage`, `hud_classic_actor_word`, `hud_classic_timer`, `hud_classic_emote` (all on); the Lua console's Bench toggles those of status, chain, buff, damage and gauges.
 
 **The parity gate** (`pc/src/classic/classic_parity.c`; plan §3). The
 hooks (`PC_CLASSIC`, `pc/src/classic/classic_hook.h`; `PC_HUD` is one)
@@ -608,7 +613,7 @@ them as the buffer held them).
 
 | RPC | |
 |---|---|
-| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
+| `packets {kind}` | a site's last capture (`status`, `chain`, `buff`, `damage`, `gauges`, `figure`, `status_icons`, `battle_mode`, `ability_icons`, `actor_word`, `timer`, `emote`, `status_panel`), normalised: each packet's words, kind, vertices, texels, CLUT, page, colour, the glyph it shows; in the parity mode the Lua draw's beside it. Sites capture from the first call |
 | `packets {start, end}` | the packets of a guest range in allocation order |
 | `classic {parity, reset}` | per kind: frames compared, matched, mismatched (by field), skipped (why), the first difference with both packets |
 
@@ -639,7 +644,13 @@ both of the loop's MISS calls (a number's, a word's) and two words at once (reco
 written as the game's spawners write them); state parity holds a buff and a number beside
 SLOW! and plays a lowered stat's word out from the mark; the timer every digit in each
 place, the carries' boundaries and the overflow (59:59:99), hidden and shown, and runs in
-both state parity runs. It
+both state parity runs. Emotes play in their own game at the opening (the `first_bubble`
+checkpoint: actors on screen): every kind on every actor with both side bits (all six balloon
+sides), then one emoting actor moved through a grid of places beyond the view (its position
+written each frame) for the off-screen arrow, all eight directions; state parity there for three
+kinds. The proof masks what a classic draw's later allocation moves: the primitive buffers, the
+ordering tables (the text boxes' private one, D_800F4CD0, too) and the packet pointer and its
+copies (D_800F1CC0, D_800F1BB8). It
 requires no unwaived mismatch and waivers = declared overrides; checks the
 default (drawn by rood.classic), the fallback (setting off, a raising
 draw, the plugin off) and state parity (from one mark, rood.classic
@@ -648,7 +659,7 @@ the host clock: Oracle page digests). Reports `<out>/<kind>.json`.
 Result 2026-10-20: status 576 frames, chain 558, gauges 1192, 0
 mismatches; state parity 120 of 120 vsyncs. 2026-10-28: buff 2,103 frames
 (35 states), damage 1,224 frames (36 states), actor_word 1,920 frames (61
-states), timer 60 frames (14 states), 0 mismatches.
+states), timer 60 frames (14 states), emote 134 frames (44 states), 0 mismatches.
 
 ## Photo mode foundation
 

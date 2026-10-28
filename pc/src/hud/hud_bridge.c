@@ -65,10 +65,12 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
 
 /* The ordering-table slot each kind's game drawing links into (bytes from vs_scratch.unk4): the status
  * words and the chain count -16 (func_800958A4, func_80095A4C), a buff +8 (func_8009695C), a number -20
- * (func_80094B0C) and a word over an actor -20, the timer -4 (_renderTimer) (func_8009506C, func_80095258, its arrow func_800957D0), the
+ * (func_80094B0C) and a word over an actor -20, the timer -4 (_renderTimer), an emote its own (its actor's
+ * depth: element_slot) (func_8009506C, func_80095258, its arrow func_800957D0), the
  * gauges -12 (their bars, labels and separators; their digits -16). A classic draw links its packets there
  * too, unless it names another (d.layer). */
-static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4 };
+static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4, PC_HUD_LAYER_ELEMENT };
+static int element_slot; /* PC_HUD_LAYER_ELEMENT: the slot the element just recorded was linked into */
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
 typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC_CLASSIC_CHAIN == PC_HUD_CHAIN
@@ -76,6 +78,7 @@ typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC
             && PC_CLASSIC_FIGURE == PC_HUD_FIGURE && PC_CLASSIC_STATUS_ICONS == PC_HUD_STATUS_ICONS
             && PC_CLASSIC_BATTLE_MODE == PC_HUD_BATTLE_MODE && PC_CLASSIC_ABILITY_ICONS == PC_HUD_ABILITY_ICONS
             && PC_CLASSIC_ACTOR_WORD == PC_HUD_ACTOR_WORD && PC_CLASSIC_TIMER == PC_HUD_TIMER
+            && PC_CLASSIC_EMOTE == PC_HUD_EMOTE
         ? 1
         : -1];
 
@@ -268,6 +271,8 @@ static int shadow_count, shadowing;
 static int slot_offset(int kind, int layer)
 {
     int slot = layer != PC_HUD_LAYER_KIND ? layer : kind_slot[kind >= 1 && kind < PC_HUD_KINDS ? kind : 1];
+    if (slot == PC_HUD_LAYER_ELEMENT)
+        slot = element_slot;
     /* Resolve before shadow lookup/sort: aliases coalesce and real OT order is preserved. */
     return slot == PC_HUD_LAYER_UNK8
         ? (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4)) : slot;
@@ -422,6 +427,38 @@ void pc_hud_actor_word(void* record, int x, int y, void* first, void* end)
     f.life = DAMAGE_LIFE;
     f.anchor = PC_HUD_ANCHOR_CENTRE;
     classic_finish(PC_HUD_ACTOR_WORD, &f, first, end, slots, 1, 0);
+}
+
+/* An emote over an actor: what func_80095C18 decided (pc_classic_emote, set as it decided it), the slot it
+ * linked into (the balloon and its marks: its depth, unk4 + z words; the off-screen arrow -16; a far actor's
+ * sprite 0). One element per actor. */
+void pc_hud_emote(void* record, int actor, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static char keys[16];
+    const pc_classic_emote* emote = record;
+    int slot;
+    if (!emote || !emote->draw || first == end || actor < 0 || actor >= 16)
+        return;
+    if (emote->draw == 3)
+        return; /* a far actor's sprite stays the game's: no scene the gate plays shows one (func_8009F858) */
+    slot = emote->draw == 1 ? emote->z * 4 : emote->draw == 2 ? -16 : 0;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_EMOTE;
+    f.key = &keys[actor];
+    f.emote_draw = emote->draw;
+    f.emote_kind = emote->kind;
+    f.emote_side = emote->side;
+    f.emote_z = emote->z;
+    f.emote_direction = emote->direction;
+    f.emote_frame = emote->frame;
+    f.call_x = emote->x, f.call_y = emote->y;
+    f.x = (float)emote->x, f.y = (float)emote->y;
+    f.value = actor;
+    append(f.text, f.text + sizeof f.text, emote->draw == 1 ? "balloon" : emote->draw == 2 ? "arrow" : "far");
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    element_slot = slot;
+    classic_finish(PC_HUD_EMOTE, &f, first, end, &slot, 1, 0);
 }
 
 /* The time attack's timer: the string _renderTimer composed (its digits the game's: 59:59:99 at most) and
@@ -1016,6 +1053,16 @@ static void quad_ft4(u_long* ot, const pc_hud_classic_cmd* c)
     u_long u1 = (u0 + (u_long)c->font) & 255, v1 = (v0 + (u_long)c->align) & 255;
     int x1 = c->x + c->w, y1 = c->y + c->h;
     p[0] = (c->color & 0xFFFFFF) | (u_long)(0x2C | (c->anchor ? 1 : 0) | (semi(c->alpha) ? 2 : 0)) << 24;
+    if (c->fit) { /* its corners and texels one by one (a mirrored balloon, a turned arrow) */
+        int i;
+        for (i = 0; i < 4; ++i) {
+            p[1 + 2 * i] = xy(c->x + c->corner[2 * i], c->y + c->corner[2 * i + 1]);
+            p[2 + 2 * i] = (u_long)c->uv[2 * i] | (u_long)c->uv[2 * i + 1] << 8;
+        }
+        p[2] |= ((u_long)c->b & 0xFFFF) << 16;
+        p[4] |= ((u_long)c->a & 0xFFFF) << 16;
+        return;
+    }
     p[1] = xy(c->x, c->y);
     p[2] = u0 | v0 << 8 | ((u_long)c->b & 0xFFFF) << 16;
     p[3] = xy(x1, c->y);

@@ -702,7 +702,9 @@ int api_sprite(lua_State* L)
 // the buffs): x, y its top-left and w x h on the screen, the texels u, v w x h in the page (their own size:
 // a quad may squash them), bgr the colour word (PS1 BGR, 0x80 full; default 0x808080), raw true: the texture
 // unmodulated (setShadeTex 1), abr the page's blending (0..3, the game's setTPage), alpha below 1
-// semi-transparent.
+// semi-transparent. corners = {x0, y0, x1, y1, x2, y2, x3, y3} (from x, y, in the packet's vertex order: top
+// left, top right, bottom left, bottom right of the texels) with uvs = {u0, v0, .. u3, v3}: each corner and its
+// texel given (a mirrored or turned quad: the emote balloons, the off-screen arrow); w, h are then unused.
 int api_quad(lua_State* L)
 {
     const char* fn = "rood.draw.quad";
@@ -710,8 +712,16 @@ int api_quad(lua_State* L)
     luaL_checktype(L, 5, LUA_TTABLE);
     int px = int_field(L, 5, "page_x", 0, 1023, fn), py = int_field(L, 5, "page_y", 0, 256, fn);
     int bits = int_field(L, 5, "bits", 4, 15, fn);
-    int u = int_field(L, 5, "u", 0, 255, fn), v = int_field(L, 5, "v", 0, 255, fn);
-    int tw = int_field(L, 5, "w", 0, 256, fn), th = int_field(L, 5, "h", 0, 256, fn);
+    lua_getfield(L, 5, "corners");
+    bool explicit_corners = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+    auto texel = [&](const char* k, int hi) { // (with corners the texel rectangle is unused: 0 when left out)
+        lua_getfield(L, 5, k);
+        bool none = lua_isnil(L, -1);
+        lua_pop(L, 1);
+        return none && explicit_corners ? 0 : int_field(L, 5, k, 0, hi, fn);
+    };
+    int u = texel("u", 255), v = texel("v", 255), tw = texel("w", 256), th = texel("h", 256);
     int cx = 0, cy = 0, abr = 0;
     unsigned colour = 0x808080;
     if (bits != 15)
@@ -734,10 +744,35 @@ int api_quad(lua_State* L)
         return luaL_error(L, "%s: raw must be boolean", fn);
     bool raw = lua_toboolean(L, -1);
     lua_pop(L, 1);
+    short corner[8] = {};
+    unsigned char uv[8] = {};
+    lua_getfield(L, 5, "corners");
+    if (explicit_corners) {
+        luaL_checktype(L, -1, LUA_TTABLE);
+        lua_getfield(L, 5, "uvs");
+        if (!lua_istable(L, -1))
+            return luaL_error(L, "%s: corners need uvs = {u0, v0, .. u3, v3}", fn);
+        for (int i = 0; i < 8; ++i) {
+            lua_rawgeti(L, -2, i + 1);
+            lua_rawgeti(L, -2, i + 1);
+            if (!lua_isinteger(L, -2) || !lua_isinteger(L, -1))
+                return luaL_error(L, "%s: corners and uvs are 8 integers each", fn);
+            lua_Integer c = lua_tointeger(L, -2), t = lua_tointeger(L, -1);
+            if (c < -1024 || c > 1024 || t < 0 || t > 255)
+                return luaL_error(L, "%s: a corner -1024..1024 from x, y; a texel 0..255", fn);
+            corner[i] = (short)c, uv[i] = (unsigned char)t;
+            lua_pop(L, 2);
+        }
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
     float alpha = optional_alpha(L, 6, 1);
     need_classic(L, fn);
     pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_QUAD);
     if (k) {
+        k->fit = explicit_corners;
+        std::memcpy(k->corner, corner, sizeof corner);
+        std::memcpy(k->uv, uv, sizeof uv);
         k->x = pixel(x), k->y = pixel(y), k->w = pixel(w), k->h = pixel(h);
         k->a = (px / 64) | (py / 256) << 4 | abr << 5 | (bits == 4 ? 0 : bits == 8 ? 1 : 2) << 7; // setTPage's word
         k->b = (cx / 16) | cy << 6;                                                                 // setClut's
@@ -1407,6 +1442,19 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
         set_nil(L, "group");
         set_nil(L, "availability");
     }
+    if (k == PC_HUD_EMOTE) { // what func_80095C18 decided
+        set_str(L, "draw", f.emote_draw == 1 ? "balloon" : f.emote_draw == 2 ? "arrow" : "far");
+        set_int(L, "emote", f.emote_kind);
+        set_int(L, "side", f.emote_side);
+        set_int(L, "z", f.emote_z);
+        set_int(L, "direction", f.emote_direction);
+        set_int(L, "frame", f.emote_frame);
+        set_int(L, "actor", f.value);
+    } else {
+        static const char* const emote_fields[] = { "draw", "emote", "side", "z", "direction", "frame", "actor" };
+        for (const char* k2 : emote_fields)
+            set_nil(L, k2);
+    }
     if (k == PC_HUD_TIMER) { // as the game's string shows them
         set_int(L, "minutes", f.minutes);
         set_int(L, "seconds", f.seconds);
@@ -1457,7 +1505,7 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
             if ((k != PC_HUD_STATUS_ICONS && k != PC_HUD_BATTLE_MODE) || strcmp(g, "slide"))
                 set_nil(L, g);
     }
-    if (((k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE) || k == PC_HUD_ACTOR_WORD || k == PC_HUD_TIMER) && !e.synthetic) { // where the game's call put it
+    if (((k >= PC_HUD_STATUS && k <= PC_HUD_DAMAGE) || k == PC_HUD_ACTOR_WORD || k == PC_HUD_TIMER || k == PC_HUD_EMOTE) && !e.synthetic) { // where the game's call put it
         set_int(L, "call_x", f.call_x);
         set_int(L, "call_y", f.call_y);
     } else {
@@ -2006,6 +2054,12 @@ std::string element_json(const hud::Element& e)
             + ",\"offset\":" + std::to_string(e.f.ability_offset)
             + ",\"group\":" + std::to_string(e.f.ability_group)
             + ",\"availability\":" + std::to_string(e.f.ability_availability);
+    if (e.f.kind == PC_HUD_EMOTE)
+        icons = std::string(",\"draw\":") + (e.f.emote_draw == 1 ? "\"balloon\"" : e.f.emote_draw == 2 ? "\"arrow\"" : "\"far\"")
+            + ",\"emote\":" + std::to_string(e.f.emote_kind)
+            + ",\"side\":" + std::to_string(e.f.emote_side) + ",\"z\":" + std::to_string(e.f.emote_z)
+            + ",\"direction\":" + std::to_string(e.f.emote_direction) + ",\"frame\":" + std::to_string(e.f.emote_frame)
+            + ",\"call_x\":" + std::to_string(e.f.call_x) + ",\"call_y\":" + std::to_string(e.f.call_y);
     if (e.f.kind == PC_HUD_TIMER)
         icons = ",\"minutes\":" + std::to_string(e.f.minutes) + ",\"seconds\":" + std::to_string(e.f.seconds)
             + ",\"hundredths\":" + std::to_string(e.f.hundredths);

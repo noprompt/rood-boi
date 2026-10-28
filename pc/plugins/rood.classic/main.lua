@@ -5,7 +5,8 @@
 -- gauges with their digits and labels (gauges), and Ashley's body/damage silhouette (figure).
 -- The status carousel (status_icons), BATTLE MODE notice (battle_mode), and ability_icons are Lua too, and so
 -- are the buffs (buff: WEAPON HUMAN +1), the numbers over the actors (damage) and the words over them (actor_word:
--- MISS, the ailments' and buffs' words), quads as the game builds them, and the time attack's timer (timer).
+-- MISS, the ailments' and buffs' words), quads as the game builds them, the time attack's timer (timer) and the
+-- emote balloons over the actors (emote).
 -- Ability groups leave pc_weapon_slots_label's weapon-mode names/markers and side effects in C.
 -- Each draw function below is a copy of the game's own, made of the game's own pieces (d.text_raw is
 -- its raw printer, d.value its digits, d.bar its gauge), so by default it emits exactly the game's
@@ -215,6 +216,36 @@ local function make_look()
     -- The time attack's timer (5BF94.c _renderTimer, while the lower screen shows it): the game's string
     -- (mm:ss:hh, its digits the game's) in the info capitals at 128, 200, grey, slot -4.
     timer = { place = { anchor = "centre", dx = 0, dy = 0 }, layer = -4, x = 128, y = 200, colour = 0x808080 },
+    -- An emote over an actor (2842C.c func_80095C18), linked into its actor's depth slot (the layer the
+    -- kind's own). The balloon (D_80068F04's corners and D_80068F64's texels by side: 0, 1 the speech balloon
+    -- facing either way, 2, 3 the shout, 4, 5 the surprise strokes), then its marks from the place by side
+    -- (D_80068F94, packed as the game adds them): one to three dots, '!' in the shout, the heart; '?' alone
+    -- sets its own page. An off-screen actor's arrow (func_8009651C, slot -16): eight points about the clamped
+    -- place, turned by the direction (1 left, 2 right, 4 up, 8 down and their pairs). (A far actor's sprite,
+    -- the kind's bit 8, stays the game's: the gate has no scene that shows one.)
+    emote = {
+      place = { anchor = "centre", dx = 0, dy = 0 },
+      corners = { { -6, -22, 18, -22, -6, 1, 18, 1 }, { -17, -22, 7, -22, -17, 1, 7, 1 },
+        { -10, -29, 20, -29, -10, 1, 20, 1 }, { -19, -29, 9, -29, -19, 1, 9, 1 },
+        { -9, -16, 11, -16, -9, -3, 11, -3 }, { -10, -16, 10, -16, -10, -3, 10, -3 } },
+      uvs = { { 64, 16, 88, 16, 64, 39, 88, 39 }, { 87, 16, 63, 16, 87, 39, 63, 39 },
+        { 121, 17, 151, 17, 121, 47, 151, 47 }, { 150, 17, 120, 17, 150, 47, 120, 47 },
+        { 160, 17, 180, 17, 160, 30, 180, 30 }, { 179, 17, 159, 17, 179, 30, 159, 30 } },
+      marks = { -983042, -983054, -1376256, -1310727, -720893, -720893 },
+      balloon = { page_x = 448, page_y = 256, bits = 4, clut_x = 992, clut_y = 220, bgr = 0x808080 },
+      dot = { step = 6, sprite = { page_x = 448, page_y = 256, bits = 4, u = 90, v = 18, w = 5, h = 5,
+        clut_x = 992, clut_y = 220, bgr = 0x808080, set_page = false } },
+      shout = { page_x = 448, page_y = 256, bits = 4, u = 152, v = 17, w = 7, h = 12, clut_x = 992, clut_y = 220,
+        bgr = 0x808080, set_page = false },
+      heart = { offset = 2 | (-3 << 16), sprite = { page_x = 448, page_y = 256, bits = 4, u = 152, v = 32, w = 16,
+        h = 16, clut_x = 992, clut_y = 220, bgr = 0x808080, set_page = false } },
+      question = { offset = -22 << 16, sprite = { page_x = 448, page_y = 256, bits = 4, u = 183, v = 17, w = 7, h = 12,
+        clut_x = 992, clut_y = 220, bgr = 0x808080 } },
+      arrow = { dx = { -8, 0, 7, 10, 7, 0, -8, -11 }, dy = { -8, -11, -8, 0, 7, 10, 7, 0 },
+        directions = { [4] = 0, [6] = 1, [2] = 2, [10] = 3, [8] = 4, [9] = 5, [1] = 6, [5] = 7 },
+        quad = { page_x = 768, page_y = 0, bits = 4, clut_x = 976, clut_y = 223, raw = true,
+          corners = { 0, 0, 0, 0, 0, 0, 0, 0 }, uvs = { 48, 48, 63, 48, 48, 63, 63, 63 } } },
+    },
     -- How ui_text sets both (with ui_text font; the packets stay the game's): the status style,
     -- typeset as one word centred where the game centres it.
     typeset = {
@@ -607,8 +638,49 @@ M.draw.timer = function(e, d)
   d.text_raw(e.text, t.x + t.place.dx, t.y + t.place.dy, t.colour)
 end
 
+-- emote: func_80095C18 as it decided (e.draw). The game links each piece at the head of the slot: the balloon
+-- (linked last) first, then its marks in the reverse of the game's calls.
+local function emote_balloon(d, m, e)
+  local q = m.balloon
+  q.corners, q.uvs = m.corners[e.side + 1], m.uvs[e.side + 1] -- (reused: no table per frame)
+  d.quad(e.call_x + m.place.dx, e.call_y + m.place.dy, 0, 0, q)
+end
+local function emote_sprite(d, m, e, delta, sprite)
+  local x, y = xy(e.call_x + m.place.dx, e.call_y + m.place.dy, delta)
+  d.sprite(x, y, sprite)
+end
+local ARROW_TURNS = { 0, 2, 6, 4 } -- (the arrow's vertices 0, 1, 3, 2 are its points turned by two each)
+M.draw.emote = function(e, d)
+  local m = look.emote
+  d.anchor(m.place.anchor)
+  if e.draw == "arrow" then
+    local a = m.arrow
+    local i, c = a.directions[e.direction], a.quad.corners
+    if not i then return end
+    for k, step in ipairs(ARROW_TURNS) do
+      local at = (i + step) % 8 + 1
+      c[2 * k - 1], c[2 * k] = a.dx[at], a.dy[at]
+    end
+    d.quad(e.call_x + m.place.dx, e.call_y + m.place.dy, 0, 0, a.quad)
+    return
+  end
+  local kind, mark = e.emote, m.marks[e.side + 1]
+  if kind == 7 then
+    emote_sprite(d, m, e, m.question.offset, m.question.sprite)
+    return
+  end
+  emote_balloon(d, m, e)
+  if kind >= 1 and kind <= 3 then
+    for k = 0, kind - 1 do emote_sprite(d, m, e, k * m.dot.step + mark, m.dot.sprite) end
+  elseif kind == 4 then
+    emote_sprite(d, m, e, mark, m.shout)
+  elseif kind == 5 then
+    emote_sprite(d, m, e, mark + m.heart.offset, m.heart.sprite)
+  end
+end
+
 for _, kind in ipairs({ "status", "chain", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "buff",
-                        "damage", "actor_word", "timer" }) do
+                        "damage", "actor_word", "timer", "emote" }) do
   rood.hud.claim(kind, function(e, d) return M.draw[kind](e, d) end, { flavour = "classic" })
 end
 

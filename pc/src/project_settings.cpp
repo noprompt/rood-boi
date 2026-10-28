@@ -397,6 +397,7 @@ const Entry entries[] = {
     I("hud_classic_ability_icons", pc_hud_classic_ability_icons),
     I("hud_classic_actor_word", pc_hud_classic_actor_word),
     I("hud_classic_timer", pc_hud_classic_timer),
+    I("hud_classic_emote", pc_hud_classic_emote),
     I("save_states", pc_save_states), /* the save state slots (savestate_slots.c), 0 off */
 #ifdef ROOD_VULKAN
     I("shader_reload", pc_shader_reload), /* shader hot reload (shader_reload.cpp), 0 off */

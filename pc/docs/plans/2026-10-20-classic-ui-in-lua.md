@@ -2,7 +2,7 @@
 
 Status: in progress. Phase 0 done; phase 1's battle-status-panel drawing
 migration is done (2026-10-23, branch `classic-lua-step4`), and so are buff
-and damage (step 5), the actor words and the timer (step 7) (2026-10-28,
+and damage (step 5), step 7's actor words, timer and emotes (2026-10-28,
 branch `classic-lua-step5`; see "Progress" below), with the remaining phase
 1 work listed separately. It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
@@ -13,7 +13,8 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 
 2026-10-28 (branch `classic-lua-step5`, from main; no merge or publication):
 
-- **Step 5 and step 7's actor words and timer, done.** Same gates as step 4:
+- **Step 5 and step 7's actor words, timer and emote balloons, done** (step 7
+  complete). Same gates as step 4:
   each element passed packet and state parity (zero mismatches, zero skips,
   no packet waivers) before its default went on and before the next was
   started; the fallback (setting off, a raising draw, the plugin off) is
@@ -25,6 +26,7 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
   | Numbers over the actors / `damage` | `137b6e09` | 1,224 | 36 |
   | MISS and the combat labels / `actor_word` | `e62996eb` | 1,920 | 61 |
   | Time attack timer / `timer` | `8cd61271` | 60 | 14 |
+  | Emote balloons / `emote` | `ade26096` | 134 | 44 |
 
   Every earlier kind stays green with the same counts as 2026-10-23.
 - **Coverage:** buffs: every equipment and class / affinity word, both
@@ -35,7 +37,13 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
   both the number's and the word's MISS call, two words at once, every age
   0..30 (records written as the game's spawners write them: no show).
   Timer: every digit in each place, the carries' boundaries, the 59:59:99
-  overflow, hidden, shown, unpinned. State parity 120/120 vsyncs in all
+  overflow, hidden, shown, unpinned. Emotes, in their own launch at the
+  opening (`first_bubble`, no card: actors on screen): every kind on every
+  actor with both side bits (all six balloon sides), then one emoting actor
+  moved (its position written each frame) through a grid beyond the view:
+  the off-screen arrow in all eight directions; state parity there for
+  three kinds. A far actor's sprite (the kind's bit 8) stays the game's:
+  no scene the gate plays shows one. State parity 120/120 vsyncs in all
   three same-mark runs, with a buff and a number held, a lowered stat's
   word playing out and the timer up.
 - **Hooks and model:** buff and damage reuse 2842C.c's existing `PC_HUD`
@@ -44,40 +52,56 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
   func_8009506C / func_80095258 calls (`PC_ACTOR_WORD`: which draw the game
   chose, age, label index, lowered, copied at the call) and func_800CB83C's
   `_renderTimer` call (its BCD string still composed by the game; Lua gets
-  the string and minutes / seconds / hundredths). Kinds from `gauges` on are
+  the string and minutes / seconds / hundredths). func_80095C18 records what
+  it decides as it decides it (balloon kind, side, place, depth; the arrow's
+  direction and clamped place) for a range around func_8009627C's call; the
+  emote's default layer resolves to its own depth slot (`unk4 + z` words),
+  as `"unk8"` resolves (decision 2026-10-28). Kinds from `gauges` on are
   `PC_HUD_CLASSIC_ONLY`. MISS's third call site (label kind 3) is hooked but
   not toured: nothing in BATTLE.PRG's C creates a kind 3 label.
 - **Presentation and primitives:** one new classic primitive, `d.quad` (a
   POLY_FT4 as the label loop builds its own: screen rectangle, texel
-  rectangle, colour word, raw, page blending, alpha). The gate's normaliser
+  rectangle, colour word, raw, page blending, alpha; explicit corners and
+  per-corner texels for the mirrored balloon and the turned arrow, one
+  primitive by decision). The gate's normaliser
   now ignores what the GPU never reads (a raw-textured primitive's colour, a
   textured polygon's pads after its last two texel pairs): the game's
   hand-built quads leave them as the buffer held them; the probe tests it.
+  The state proof also masks the text boxes' private ordering tables
+  (D_800F4CD0) and the room drawing's copies of the packet pointer
+  (D_800F1CC0, D_800F1BB8): a classic draw allocates after the game's
+  no-ops, so later packets and the links to them sit further on (seen
+  with a text box open at the opening).
   Own look tables: `look.buff`, `look.damage`, `look.actor_word` (the game's
-  label, piece and colour tables, slide, fade, squash, arrow), `look.timer`.
+  label, piece and colour tables, slide, fade, squash, arrow), `look.timer`,
+  `look.emote`.
   The buffs' and numbers' digits are the digits style's, so
   `look.typography.digits` sets them (declared `typography`, waived with no
   fields, as the gauges').
 - **Defaults on after green:** `hud_classic_buff`, `hud_classic_damage`,
-  `hud_classic_actor_word`, `hud_classic_timer`.
+  `hud_classic_actor_word`, `hud_classic_timer`, `hud_classic_emote`.
 - **Verification, passed:** 64-bit and 32-bit (`--battle`) builds; probes
   `classic_parity_probe` and `lua_probe`; `run.py classic_parity hud
   classic` 5/5 on GL and 5/5 on Vulkan; Docker PS1 `make commit-check`: **All
   files match** (after each src change and on the final tree; formatter-only
   changes to unrelated code discarded). No game data, outputs or player
   files committed.
-- **Not done: emote balloons** (func_80095C18). Larger than step 7's share
-  and it needs API decisions: its balloon links into the depth-sorted slot
-  `unk4 + z * 4` (z 64..2047: past `d.layer`'s -64..64); the balloon quad
-  is mirrored by side (u from 87 down to 64) and the off-screen arrow
-  (func_8009651C) is a rotated quad, beyond `d.quad`'s rectangle; the
-  draw's inputs (side bits, clamped place, off-screen direction, the far
-  actors' frame) are decided inside the function, so the hook needs
-  `ROOD_PC` snapshots inside it; and the gate needs a scene with actors
-  (the `first_bubble` checkpoint, not `save_room`) and a way to put an
-  emoting actor off screen. Estimated 2-3 h once decided.
-- **Still outside this drawing migration:** emote balloons (above); text
-  boxes and the name window (step 6); targeting (step 8); the live-fight
+- **Step 6 (text boxes, the name window): not started, decisions needed.**
+  func_800CB83C's printers interleave the typewriter's logic with drawing
+  (_printVariableWidthFont steps speed, pages, the continuation arrow's
+  frame, sfx and the button read while it emits), so it needs §2.2's
+  split or a model of the glyph runs the game emitted. Visible to the user:
+  (1) the vector talk bubbles (`ui_bubbles vector`, ui_bubbles.c, fed by
+  `pc_bubble_rect` / `pc_bubble_frame` from the game's frames) redraw the
+  frames, which the classic rule allows only for typography: keep them over
+  rood.classic's copies, or are they the modern look's? (2) the dialogue
+  layout settings the user picks (`ui_text_layout`, `ui_text_bubble_align`)
+  would become rood.classic look values (§2.5): Lua over the settings, or the
+  settings stay the source? (3) one `text_box` kind with parts per box id
+  (frame, band, text, portrait), or the frames first (func_800CD3E4,
+  func_800CD158 with its frame-buffer band) and the text later?
+- **Still outside this drawing migration:** text boxes and the name window
+  (step 6, above); targeting (step 8); the live-fight
   packet-parity tour for HP changes; step 1's unused remaining primitives;
   per-range typography and the look lint.
 

@@ -20,6 +20,7 @@ typedef char pc_classic_sites_agree[PC_CLASSIC_SITE_GAUGES == PC_CLASSIC_GAUGES
             && PC_CLASSIC_SITE_BATTLE_MODE == PC_CLASSIC_BATTLE_MODE
             && PC_CLASSIC_SITE_ABILITY_ICONS == PC_CLASSIC_ABILITY_ICONS
             && PC_CLASSIC_SITE_ACTOR_WORD == PC_CLASSIC_ACTOR_WORD && PC_CLASSIC_SITE_TIMER == PC_CLASSIC_TIMER
+            && PC_CLASSIC_SITE_EMOTE == PC_CLASSIC_EMOTE
         ? 1
         : -1];
 
@@ -33,6 +34,7 @@ void pc_hud_battle_mode(void* record, void* first, void* end);
 void pc_hud_ability_icons(void* record, void* first, void* end);
 void pc_hud_actor_word(void* record, int x, int y, void* first, void* end);
 void pc_hud_timer(void* record, int x, int y, void* first, void* end);
+void pc_hud_emote(void* record, int actor, void* first, void* end);
 void pc_hud_gauges(void* record, void* first, void* end); /* hud_bridge.c */
 extern unsigned pc_vsync_count(void) __attribute__((weak));
 
@@ -86,6 +88,12 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
     if (kind >= PC_CLASSIC_STATUS && kind <= PC_CLASSIC_DAMAGE) {
         pc_hud_element(kind, record, x, y, first, end);
         if (hide) /* (a classic claim's own packets too: allocated after the game's) */
+            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        return;
+    }
+    if (kind == PC_CLASSIC_EMOTE) {
+        pc_hud_emote(record, x, first, end);
+        if (hide)
             pc_classic_suppress(first, psx_get(vs_scratch.unk0));
         return;
     }

@@ -32,7 +32,12 @@ typedef struct { int animation, offset, group, availability; } pc_classic_abilit
 typedef struct { const void* label; int miss, age, index, lowered; } pc_classic_actor_word;
 #define PC_CLASSIC_SITE_ACTOR_WORD 13
 #define PC_CLASSIC_SITE_TIMER 14 /* _renderTimer: its record the string it composed (D_800EC258) */
-#define PC_CLASSIC_SITE_STATUS_PANEL 15 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* An emote over an actor (2842C.c func_80095C18), as the game decided it inside the function: draw 1 the
+ * balloon and its marks (kind, side, the screen place, z the depth slot), 2 the off-screen arrow
+ * (func_8009651C: direction, the clamped place), 3 a far actor's sprite (frame); 0 nothing. */
+typedef struct { int draw, kind, side, x, y, z, direction, frame; } pc_classic_emote;
+#define PC_CLASSIC_SITE_EMOTE 15
+#define PC_CLASSIC_SITE_STATUS_PANEL 16 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end) __attribute__((weak));
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \

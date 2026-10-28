@@ -42,8 +42,9 @@ enum {
     PC_CLASSIC_ABILITY_ICONS = 12, /* ability label groups, cross and face buttons */
     PC_CLASSIC_ACTOR_WORD = 13, /* MISS and the combat labels over the actors (func_8009506C, func_80095258) */
     PC_CLASSIC_TIMER = 14, /* the time attack's timer (5BF94.c _renderTimer) */
-    PC_CLASSIC_STATUS_PANEL = 15, /* the whole status display (func_800CA2DC): captured only */
-    PC_CLASSIC_KINDS = 16
+    PC_CLASSIC_EMOTE = 15, /* the emote balloons over the actors (2842C.c func_80095C18, func_8009651C) */
+    PC_CLASSIC_STATUS_PANEL = 16, /* the whole status display (func_800CA2DC): captured only */
+    PC_CLASSIC_KINDS = 17
 };
 const char* pc_classic_kind_name(int kind); /* "status", ...; "" for none */
 int pc_classic_kind_of(const char* name);   /* 0 unknown */

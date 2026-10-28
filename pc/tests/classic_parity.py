@@ -490,7 +490,99 @@ def tour_timer(g, check, counters):
     return covered
 
 
-KEEP = {"actor_word": keep_word}  # kinds without a show: the test keeps one up
+KEEP = {"actor_word": keep_word, "emote": lambda g: keep_emotes(g)}  # kinds without a show: kept up by the test
+
+EMOTES = [1, 2, 3, 4, 5, 6, 7, 0x10]  # the dots, the shout's '!', the heart, the surprise, '?' alone; 0x10 a balloon
+# with no case of its own (func_80095C18's switch has none: the balloon alone)
+OFFSETS = [(dx, dy, dz) for dx in (-6000, 0, 6000) for dy in (-4000, 0, 4000) for dz in (-6000, 0, 6000)]
+
+
+def emote_actors(g):
+    """The opening's actors with a record (D_800F4538, past Ashley): their positions' addresses."""
+    symbols = rood_rpc.symbols()
+    found = []
+    for i in range(1, 16):
+        actor = int.from_bytes(g.read(symbols["D_800F4538"] + PTR * i, PTR), "little")
+        if actor:
+            found.append((i, actor + 0x1C))  # (unk0.position)
+    return found
+
+
+def tour_emote(g, check, counters):
+    """Each emote on every actor of the opening, both sides of each balloon (the side bits written either
+    way), then the off-screen arrow: an emoting actor moved (its position written each frame) through a grid
+    of places around and beyond the view, every direction it reaches compared; a far actor's sprite."""
+    import struct
+    symbols = rood_rpc.symbols()
+    kinds_at, sides_at = symbols["D_800F2260"], symbols["D_800F2274"]
+    saved = [(kinds_at, g.read(kinds_at, 16)), (sides_at, g.read(sides_at, 4)),
+             (symbols["D_800F2270"], g.read(symbols["D_800F2270"], 2))]
+    g.write(symbols["D_800F2270"], bytes(2))
+    covered, seen = [], set()
+
+    def live():
+        return [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "emote" and e["live"]]
+
+    def compared(label, frames=2, keep=None):
+        before = counters("emote")["frames"]
+
+        def done():
+            if keep:
+                keep()
+            return counters("emote")["frames"] >= before + frames
+        ok = g.until(done, step=1, guard=60)
+        elements = live()
+        seen.update((e["draw"], e["emote"], e["side"], e["direction"]) for e in elements)
+        check(bool(ok) and elements, f"emote {label}: compared ({len(elements)} live, "
+                                     f"{counters('emote')['frames'] - before} frames)")
+        covered.append({"scenario": label, "elements": [{k: e[k] for k in ("draw", "emote", "side", "z",
+                                                                            "direction", "frame", "value")}
+                                                        for e in elements]})
+        return elements
+
+    try:
+        actors = emote_actors(g)
+        check(len(actors) > 0, f"emote: the opening's actors {[i for i, _ in actors]}")
+        for kind in EMOTES:
+            for sides in (0, 0xFFFF):
+                g.write(kinds_at, bytes([0] + [kind] * 15))
+                g.write(sides_at, struct.pack("<I", sides))
+                compared(f"kind {kind:#x}, side bits {sides:#x}")
+        balloons = {(k, s) for d, k, s, _ in seen if d == "balloon"}
+        check({1, 2, 3, 4, 5, 6} <= {k for k, _ in balloons} and any(d == "balloon" and k == 7 for d, k, _, _ in seen),
+              f"emote: every kind drawn ({sorted(balloons)})")
+        check({s for _, s in balloons} >= {0, 1, 2, 3, 4, 5}, f"emote: all six balloon sides drawn "
+                                                             f"({sorted({s for _, s in balloons})})")
+        # the arrow: kind 4 on one actor, moved
+        i, at = actors[0]
+        home = g.read(at, 6)
+        g.write(kinds_at, bytes([0] + [4 if a == i else 0 for a in range(1, 16)]))
+        x0, y0, z0 = struct.unpack("<hhh", home)
+        try:
+            for dx, dy, dz in OFFSETS:
+                place = struct.pack("<hhh", max(-32768, min(32767, x0 + dx)), max(-32768, min(32767, y0 + dy)),
+                                    max(-32768, min(32767, z0 + dz)))
+                compared(f"actor {i} moved {dx}, {dy}, {dz}", keep=lambda: g.write(at, place))
+        finally:
+            g.write(at, home)
+        directions = {d for draw, _, _, d in seen if draw == "arrow"}
+        check(len(directions) > 0, f"emote: off-screen arrows drawn, directions {sorted(directions)}")
+        # a far actor's sprite (kind with bit 8): only where the actor's motion gives it a frame
+        g.write(kinds_at, bytes([0] + [8] * 15))
+        g.run(8)
+        far = [e for e in live() if e["draw"] == "far"]
+        covered.append({"scenario": "far", "drawn": len(far)})
+        print(f"note: far sprites drawn: {len(far)}", flush=True)
+    finally:
+        for address, value in saved:
+            g.write(address, value)
+    return covered, seen
+
+
+def keep_emotes(g):
+    symbols = rood_rpc.symbols()
+    g.write(symbols["D_800F2270"], bytes(2))
+    g.write(symbols["D_800F2260"], bytes([0] + [1] * 15))
 
 
 def ability_icons_fixture(g, weapon_mode=False):
@@ -597,7 +689,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -607,6 +699,78 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     with card_guard(out / "cards", source=args.card) as cards:
         return run(out, cards.card1, args.renderer, [k for k in args.kind.split(",") if k], args.candidate)
+
+
+def run_emotes(out, env, check, waivers, failures):
+    """The emotes: actors on screen, so the opening (the first_bubble checkpoint: the duke's line waits for a
+    button), its own game; the gate, the default and the fallback, state parity there."""
+    # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
+    g = launch_at("first_bubble", card=str(out / "no-card.mcd"), fast=True, log=out / "game-emotes.log",
+                  extra_env=env)
+    try:
+        g.call("classic", parity=True, reset=True)
+        g.run(200)
+
+        def counters(kind):
+            return g.call("classic")["kinds"][kind]
+        declared = sorted(n for n in str(repl(g, "rood.classic", "return table.concat(M.look.overrides.emote or {}, ',')"))
+                          .strip('"').split(",") if n)
+        covered, seen = tour_emote(g, check, counters)
+        c = counters("emote")
+        waived = waivers.get("emote", {})
+        allowed = {f for w in waived.values() for f in w.get("fields", [])}
+        unwaived = {f: n for f, n in c["fields"].items() if f not in allowed}
+        check(c["frames"] > 0 and c["skipped"] == 0,
+              f"emote: {c['frames']} frames compared, {c['skipped']} skipped ({c['skip'] or 'none'})")
+        check(not unwaived, f"emote: {c['matched']} matched, {c['mismatched']} mismatched; unwaived fields "
+                            f"{unwaived or 'none'}" + (f"; first {json.dumps(c.get('first'))}" if unwaived else ""))
+        check(sorted(waived) == declared, f"emote: overrides declared {declared} = waived {sorted(waived)}")
+        report = {"kind": "emote", "frames": c["frames"], "matched": c["matched"], "mismatched": c["mismatched"],
+                  "skipped": c["skipped"], "fields": c["fields"], "first": c.get("first"),
+                  "waived": dict(waived), "declared": declared, "coverage": covered, "states": len(covered),
+                  "drawn": sorted(map(list, seen)),
+                  "green": c["frames"] > 0 and c["skipped"] == 0 and not unwaived}
+        g.call("classic", parity=False)
+        keep_emotes(g)
+        default_and_fallback(g, "emote", check)
+        # state parity (§3.4) at the opening: the emotes up from one mark, rood.classic drawing, then the game
+        symbols = rood_rpc.symbols()
+        pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4
+        masks = [[0x1F800000, 4]]
+        for name, size in (("D_8005E0C0", 0x20000), ("D_80055C80", 0x822 * 4)):
+            for i in range(2):
+                address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
+                masks.append([address, size])
+        masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
+        masks += packet_masks(symbols, pointer)
+        for kind in (1, 4, 5):
+            g.write(symbols["D_800F2260"], bytes([0] + [kind] * 15))
+            g.run(4)
+            g.pause()
+            g.mark()
+            g.rewind()
+            drawn = g.call("hud", action="stats")["kinds"]["emote"]["drawn"]
+            g.digest("record", ticks=120, masks=masks)
+            g.until(lambda: g.digest("result")["recorded"] >= 120, guard=120, what="the digest recorded")
+            drawn = g.call("hud", action="stats")["kinds"]["emote"]["drawn"] - drawn
+            g.rewind()
+            g.call("settings", apply="hud_classic_emote 0")
+            fallback = g.call("hud", action="stats")["kinds"]["emote"]["fallback"]
+            g.digest("compare")
+            g.until(lambda: g.digest("result")["ticks"] >= 120, guard=120, what="the digest compared")
+            result = g.digest("result")
+            fallback = g.call("hud", action="stats")["kinds"]["emote"]["fallback"] - fallback
+            g.call("settings", apply="hud_classic_emote 1")
+            check(drawn > 0 and fallback > 0 and result.get("error") == 0 and result.get("first_tick") == -1
+                  and result.get("ticks") == result.get("recorded"),
+                  f"state parity emote {kind}: {result.get('ticks')} of {result.get('recorded')} vsyncs the same "
+                  f"(rood.classic drew {drawn}, the game {fallback}; first difference {result.get('first_tick')} "
+                  f"{result.get('first_pages')})")
+        (out / "emote.json").write_text(json.dumps(report, indent=1))
+        print(f"report: {out / 'emote.json'}: {report['frames']} frames, {report['states']} states, "
+              f"{'green' if report['green'] else 'RED'}")
+    finally:
+        g.close()
 
 
 def run(out, card, renderer, kinds, candidate=False):
@@ -633,6 +797,13 @@ def run(out, card, renderer, kinds, candidate=False):
             os.environ["ROOD_TEST_SNAPSHOTS"] = "0"
     elif renderer == "vulkan":
         env["ROOD_RENDERER"] = "vulkan"
+    waivers = tomllib.loads((ROOT / "pc/tests/classic/waivers.toml").read_text())
+    if "emote" in kinds:
+        kinds = [k for k in kinds if k != "emote"]
+        run_emotes(out, env, check, waivers, failures)
+        if not kinds:
+            print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
+            return 1 if failures else 0
     g = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env=env)
     try:
         plugin = g.lua_plugins().get("rood.classic")
@@ -828,6 +999,16 @@ def default_and_fallback(g, kind, check):
 POPUPS = ("buff", "damage", "actor_word", "timer")
 
 
+def packet_masks(symbols, pointer):
+    """More of what the proof leaves out as packets, beside the primitive buffers and the ordering table: the
+    text boxes' private ordering tables (D_800F4CD0: three of 34 links, spliced into the frame's) and the room
+    drawing's copies of the packet pointer (D_800F1CC0, D_800F1BB8, 146C.c). A classic draw allocates its
+    packets after the game's no-ops, so later packets, and the links to them, sit further on."""
+    masks = [[symbols["D_800F4CD0"], 3 * 34 * 4]]
+    rows = {name: a for a, n, name in Symbols(rood_rpc.BINARY).rows if name in ("D_800F1CC0", "D_800F1BB8")}
+    return masks + [[a, pointer] for a in rows.values()]
+
+
 def state_parity(g, check, ticks=120, ability_hold=True):
     """§3.4: SLOW! held (and the gauges up), from one mark: rood.classic drawing them, then the game; every
     vsync's state
@@ -842,6 +1023,7 @@ def state_parity(g, check, ticks=120, ability_hold=True):
             address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
             masks.append([address, size])
     masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
+    masks += packet_masks(symbols, pointer)
     g.call("hud", action="show", kind="status", hold=True, timing="slow", age=10)
     for kind in ("buff", "damage"):  # (held beside it: both drawn by rood.classic, then by the game)
         g.call("hud", action="show", kind=kind, hold=True, **SHOW[kind])
