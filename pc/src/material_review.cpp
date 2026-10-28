@@ -18,6 +18,9 @@
 // only, never a bare letter (the camera flies with WASD). The decisions live
 // in review_state.json beside proposals.json (a review
 // material_rollout_apply.py reads), so a session resumes where it stopped.
+// The window also exists in Lua (pc/plugins/rood.material_review, on RPC
+// material_review alone): while that plugin is on it takes this window's
+// place (rood.dev.window{replaces}) and this one draws nothing.
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +55,15 @@ extern "C" int pc_rpc_is_paused(void);
 extern "C" void pc_rpc_request_step(long vsyncs);
 
 bool pc_material_review_open;
+/* The Lua window may take its place (pc/plugins/rood.material_review: rood.dev.window{replaces}). */
+extern "C" void pc_lua_dev_replaceable(const char* name, bool* open) __attribute__((weak));
+static struct ReplaceableReview {
+    ReplaceableReview()
+    {
+        if (pc_lua_dev_replaceable)
+            pc_lua_dev_replaceable("material_review", &pc_material_review_open);
+    }
+} replaceable_review;
 
 namespace {
 
@@ -1240,8 +1252,14 @@ Json proposal_json(const Proposal& p, bool full)
         j.set("entry", Json::str(d->second.entry));
     }
     j.set("room_count", Json::num((double)p.rooms.size()));
+    j.set("first_room", Json::str(p.rooms.empty() ? "" : p.rooms[0].name));
     if (full) {
         j.set("reason", Json::str(p.reason));
+        Json alternatives = Json::array(), in_catalog = Json::array();
+        for (const std::string& a : p.alternatives) alternatives.items.push_back(Json::str(a));
+        for (const std::string& a : p.in_catalog) in_catalog.items.push_back(Json::str(a));
+        j.set("alternatives", alternatives);
+        j.set("in_catalog", in_catalog);
         Json rooms = Json::array();
         for (const Room& r : p.rooms) {
             Json x = Json::object();
@@ -1293,6 +1311,24 @@ Json status_json()
     f.set("distance", Json::num(std::round(last_focus.distance * 10) / 10));
     j.set("focus", f);
     j.set("settings", settings_json());
+    Json presets = Json::array(); /* the catalog's presets (the preset choice; the Lua window's sliders) */
+    for (const auto& pr : materials::catalog_presets()) {
+        Json x = Json::object();
+        x.set("name", Json::str(pr.first));
+        x.set("roughness", Json::num(pr.second.roughness));
+        x.set("specular", Json::num(pr.second.specular));
+        x.set("metal", Json::num(pr.second.metal));
+        x.set("auto_height", Json::boolean_(pr.second.auto_height));
+        x.set("bump", Json::num(pr.second.bump));
+        presets.items.push_back(x);
+    }
+    j.set("presets", presets);
+    Json filters = Json::object(); /* the window's filters (N / P / U step through what they pass) */
+    filters.set("status", Json::str(status_names[filter_status]));
+    filters.set("preset", Json::str(filter_preset));
+    filters.set("confidence", Json::str(confidence_names[filter_confidence]));
+    filters.set("zone", Json::num(filter_zone));
+    j.set("filters", filters);
     j.set("status", Json::str(status_line));
     int z = -1, r = -1;
     emissive::current_room(&z, &r);
@@ -1342,13 +1378,14 @@ bool flag(const Json& j, const char* name, bool* out)
  * confidence, zone, offset, limit} | select {id, stable or index; or next /
  * previous / undecided: true} | preview {on, highlight, isolate, pulse: the
  * pulse held at 0..1 of its wave, -1 running} | preset {preset} | tune
- * {roughness, specular, metal, auto_height, bump} | go {room: [zone, room]}
+ * {roughness, specular, metal, auto_height, bump} | filters {status, preset,
+ * confidence, zone: the window's own, which next / previous / undecided follow} | go {room: [zone, room]}
  * or {next: true} | focus (the status's "focus": pending while it goes to
  * the room first) | decide {decision: accept, reject or clear} | undo |
  * settings {highlight_rgb, highlight_strength, highlight_rate,
  * highlight_floor, highlight_flat, isolate_dim, isolate_grey, focus_margin,
  * focus_join, focus_view, focus_min, focus_max, focus_cut, enemies,
- * scripts, advance, auto_go}}. Opening or any selection makes the window
+ * scripts, advance, auto_go; save: false applies without writing}}. Opening or any selection makes the window
  * live (the preview, the highlight and Isolate follow it; closing drops
  * them). */
 extern "C" int pc_material_review_rpc(const char* params_text, char* out, int size)
@@ -1389,12 +1426,31 @@ extern "C" int pc_material_review_rpc(const char* params_text, char* out, int si
         int offset = (int)num_of(params, "offset", 0), limit = (int)num_of(params, "limit", 50);
         Json j = Json::object();
         j.set("total", Json::num((double)list.size()));
+        int counts[3] = { 0, 0, 0 }; /* undecided, accepted, rejected: of every proposal */
+        for (const Proposal& p : proposals) {
+            auto d = decisions.find(p.stable);
+            counts[d == decisions.end() ? 0 : d->second.decision == "accept" ? 1 : 2]++;
+        }
+        Json tally = Json::object();
+        tally.set("undecided", Json::num(counts[0]));
+        tally.set("accepted", Json::num(counts[1]));
+        tally.set("rejected", Json::num(counts[2]));
+        j.set("counts", tally);
         Json items = Json::array();
         for (int i = std::max(0, offset); i < (int)list.size() && i < offset + limit; i++)
             items.items.push_back(proposal_json(proposals[(size_t)list[(size_t)i]], false));
         j.set("proposals", items);
         filter_status = saved[0], filter_confidence = saved[1], filter_zone = saved[2], filter_preset = saved_preset;
         return reply(j, out, size);
+    }
+    if (action == "filters") { /* the window's filters, kept: {status, preset, confidence, zone} (as list's) */
+        std::string s = str_of(params, "status");
+        for (int k = 0; k < 4; k++) if (s == status_names[k]) filter_status = k;
+        std::string c = str_of(params, "confidence");
+        for (int k = 0; k < 4; k++) if (c == confidence_names[k]) filter_confidence = k;
+        if (params.get("preset")) filter_preset = str_of(params, "preset");
+        if (params.get("zone")) filter_zone = std::max(-1, (int)num_of(params, "zone", -1));
+        return reply(status_json(), out, size);
     }
     if (action == "select") {
         pc_material_review_open = true;
@@ -1472,9 +1528,9 @@ extern "C" int pc_material_review_rpc(const char* params_text, char* out, int si
         pc_material_review_frame();
         return reply(status_json(), out, size);
     }
-    if (action == "settings") {
+    if (action == "settings") { /* {save: false}: applied, not written (a slider being dragged) */
         settings_from(params);
-        if (!save_state(&error)) return fail(error, out, size);
+        if ((!flag(params, "save", &b) || b) && !save_state(&error)) return fail(error, out, size);
         pc_material_review_frame();
         return reply(status_json(), out, size);
     }

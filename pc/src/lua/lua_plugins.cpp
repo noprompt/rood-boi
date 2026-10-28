@@ -922,10 +922,16 @@ extern "C" void pc_lua_settings_begin(void)
     rl::grants().clear();
 }
 
+/* The developer windows' open state (lua_dev_tools.cpp; the game's build only). */
+extern "C" int pc_lua_dev_settings_parse(const char* key, const char* rest) __attribute__((weak));
+extern "C" void pc_lua_dev_settings_write(FILE* f) __attribute__((weak));
+
 extern "C" int pc_lua_settings_parse(const char* key, const char* rest)
 {
     char a[256], b[1024];
     long long n;
+    if (pc_lua_dev_settings_parse && pc_lua_dev_settings_parse(key, rest))
+        return 1;
     if (!std::strcmp(key, "plugins_elevated")) {
         if (std::sscanf(rest, "%lld", &n) == 1)
             rl::config.elevated = n != 0;
@@ -991,4 +997,6 @@ extern "C" void pc_lua_settings_write(FILE* f)
     }
     for (const rl::Grant& g : rl::grants())
         std::fprintf(f, "plugin_grant %s %s %s\n", g.plugin.c_str(), g.hash.c_str(), g.capability.c_str());
+    if (pc_lua_dev_settings_write)
+        pc_lua_dev_settings_write(f);
 }

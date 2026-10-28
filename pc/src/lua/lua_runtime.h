@@ -26,6 +26,16 @@ void pc_lua_settings_write(FILE* f);
 /* The dev overlay's Lua console (lua_console.cpp). */
 void pc_lua_console_menu_item(void);
 void pc_lua_console_window(void);
+/* Developer tool windows in Lua (lua_dev_tools.cpp): the Window menu's entries, the open windows
+ * (while the overlay shows), and whether one with keys = true has the keyboard (the editor's
+ * shortcuts stand aside). */
+void pc_lua_dev_menu_items(void);
+void pc_lua_dev_windows(void);
+int pc_lua_dev_keys(void);
+/* A C++ tool window a Lua window may replace (rood.dev.window{replaces}): registered with its open flag;
+ * replaced: a Lua window does it now (the C++ one is neither drawn nor in the menu). */
+void pc_lua_dev_replaceable(const char* name, bool* open);
+int pc_lua_dev_replaced(const char* name);
 
 #ifdef __cplusplus
 }

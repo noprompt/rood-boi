@@ -1551,7 +1551,7 @@ void drop_hud(Plugin* p)
         }
 }
 
-void open_hud(lua_State* L, Plugin*)
+void open_hud(lua_State* L, Plugin* p)
 {
     if (luaL_newmetatable(L, STYLE_META)) {
         lua_pushcfunction(L, style_index);
@@ -1599,12 +1599,18 @@ void open_hud(lua_State* L, Plugin*)
     lua_pushvalue(L, -1);
     lua_setfield(L, LUA_REGISTRYINDEX, "rood.hud.draw"); // d in draw functions
     lua_setfield(L, -2, "draw");
-    if (dev_mode()) {
+    bool tools = granted(p, "dev.tools"); // rood.dev.window, rood.dev.rpc (lua_dev_tools.cpp)
+    if (dev_mode() || tools) {
         lua_newtable(L);
-        set_cfunction(L, -1, "show", api_show);
-        set_cfunction(L, -1, "clear", api_clear);
-        set_cfunction(L, -1, "list", api_list);
-        open_bench(L);
+        if (dev_mode()) {
+            set_cfunction(L, -1, "show", api_show);
+            set_cfunction(L, -1, "clear", api_clear);
+            set_cfunction(L, -1, "list", api_list);
+            open_bench(L);
+        }
+        if (tools)
+            for (ApiOpener open : dev_openers())
+                open(L, p);
         lock_table(L);
         lua_setfield(L, -2, "dev");
     }

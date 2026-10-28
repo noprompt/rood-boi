@@ -352,9 +352,14 @@ RPC `material_review`: `status` (default: the path, counts, preview,
 highlight, isolate and the marked texels, `showing` proposed or before,
 `in_room`, `keys` (the window has the keyboard), `undo` (newest first),
 `focus` (pending, ok, triangles, cluster, clusters, centre, eye, radius,
-distance), the settings, the room, the selected proposal and its entry),
+distance), the settings, the catalog's `presets` (name and values), the
+`filters`, the room, the selected proposal (its alternatives and catalog
+ids too) and its entry),
 `open {open, focus}` (focus: the window takes the keyboard), `load
-{path}`, `list {status, preset, confidence, zone, offset, limit}`, `select
+{path}`, `list {status, preset, confidence, zone, offset, limit}` (also
+`counts`: undecided, accepted, rejected of all), `filters {status, preset,
+confidence, zone}` (the window's own, which next / previous / undecided
+follow), `select
 {id | stable | index | next | previous | undecided}`, `preview {on,
 highlight, isolate, pulse}` (pulse: the pulse held at 0..1 of its wave, -1
 running), `preset {preset}`, `tune {roughness, specular, metal,
@@ -363,10 +368,21 @@ auto_height, bump}`, `go {room: [zone, room]}` (or the next room),
 {highlight_rgb, highlight_strength, highlight_rate, highlight_floor,
 highlight_flat, isolate_dim, isolate_grey, focus_margin, focus_join,
 focus_view, focus_min, focus_max, focus_cut, enemies, scripts, advance,
-auto_go}` (saved in the state file). No Lua binding yet (Lua has no
-material or dev-tool calls to follow). `material_review_smoke` checks it
+auto_go, save}` (saved in the state file; `save: false` applies without
+writing, while a slider is dragged). `material_review_smoke` checks it
 headless (the highlight's pulse on screen, a paused game's picture, Isolate,
-Focus here and from another room, Undo, the keys).
+Focus here and from another room, Undo, the keys, the Lua window).
+
+The window also exists in Lua: the shipped plugin `rood.material_review`
+(`pc/plugins/rood.material_review/main.lua`, off by default; turn it on in
+the Lua console's Plugins list). On, Window > Material review is the Lua
+window (`rood.dev.window{replaces = "material_review"}`: the C++ window is
+neither drawn nor listed and its open flag is the Lua window's), drawn with
+`rood.imgui` on RPC `material_review` alone, with the same keys; off, the
+C++ window is back. It draws the C++ window's picture pixel for pixel
+(checked by `material_review_smoke`). Edit its `main.lua` while the game
+runs: the window redraws from the saved file (pc/docs/Extensions.md,
+"Developer tool windows").
 
 The survey's hints come from RPC `material survey`: per texture, `facing`
 (its cells whose triangles face up, sideways and down as seen from the eye)

@@ -12,7 +12,10 @@ packet as the game does (the parity gate), its typography and 16:9
 placement a hot-reloaded table, and off, the game draws them; the shipped
 `rood.options` (on) defines the core Option pages, which the C++ fallback
 builds identically without it; the shipped `rood.photo` (on) is the photo
-mode, opened by its own button (F12), doing nothing until then.
+mode, opened by its own button (F12), doing nothing until then; the shipped
+`rood.dev_example` (off) is a developer tool window in Lua ("Developer tool
+windows"), and the shipped `rood.material_review` (off) the Material review
+window in Lua, replacing the C++ one while on.
 
 ## Where Lua runs
 
@@ -158,6 +161,7 @@ reloads). Every elevated call is logged (`<plugin_data>/audit.log`).
 | `fs.write`, `fs.write:<folder>` | yes | `rood.fs.write`, `remove` |
 | `net:<host>`, `exec`, `memory.read`, `memory.write`, `flags.write`, `native` | declared only | exist when granted and refuse: "not available in this version" |
 | `game.pause`, `camera`, `post`, `ui.hide`, `capture`, `input.capture` | the photo mode foundation | below ("Photo mode foundation"); not elevated |
+| `dev.tools` | yes | `rood.imgui`, `rood.dev.window`, `rood.dev.rpc` (below, "Developer tool windows"); not elevated; in dev mode declared is granted |
 
 The photo mode's capabilities are not elevated: they need their grant (tied
 to the code's hash, as every grant) but not `plugins_elevated`, and a shipped
@@ -193,6 +197,7 @@ checks are not a defense against another process racing filesystem changes.
 | `rood.test.case(name, fn)`, `eq`, `ok`, `near`, `raises`, `skip`, `wait(ticks)` | in `tests/*.lua` |
 | `rood.menu.page{...}`, `action`, `remove`, `pages`, `rows`, `actions`, `generation` | the Option screens' pages (below) |
 | `rood.game.pause/resume/paused`, `rood.camera`, `rood.post`, `rood.ui`, `rood.capture`, `rood.input` | the photo mode foundation (below), each with its grant |
+| `rood.imgui`, `rood.dev.window/window_open/remove_window/rpc` | developer tool windows (below), the dev.tools grant |
 
 ## HUD: claims and drawing
 
@@ -846,7 +851,109 @@ a light leak or frame overlay, and the modern HUD in photos (ImGui is not
 captured). The 2D the game draws as screen sprites (some particles, sky
 tiles) follows the camera only as the game draws it from the free camera.
 
-### Testing
+### Developer tool windows
+
+The overlay's tool windows written in Lua (`pc/src/lua/lua_api_imgui.cpp`,
+`lua_dev_tools.cpp`; plan `pc/docs/plans/2026-10-27-rood-imgui.md`): a window
+in Window, drawn with Dear ImGui from a plugin, edited and hot-reloaded while
+the game runs. They need the `dev.tools` capability: a shipped plugin has it
+when it declares it, yours when you grant it (RPC `lua {action "grant"}`;
+tied to the code's hash like every grant), and in dev mode (`ROOD_RPC` set or
+`ROOD_DEV=1`) declaring it is enough, so a tool you are writing keeps it
+through every save.
+
+```lua
+-- plugin.lua: capabilities = { "dev.tools" }
+local imgui = rood.imgui
+local strength, name = 0.5, "lamp"
+rood.dev.window {
+  id = "lamps", title = "Lamps", size = { 320, 200 },
+  draw = function()                         -- between the host's Begin and End
+    local changed
+    changed, strength = imgui.SliderFloat("strength", strength, 0, 1)
+    changed, name = imgui.InputText("name", name)
+    if imgui.Button("Pause") then rood.dev.rpc("pause", { paused = true }) end
+    local g = rood.dev.rpc("graphics")      -- a reply is a table
+    imgui.Text(string.format("scale %s", tostring(g and g.scale)))
+  end,
+}
+```
+
+| | |
+|---|---|
+| `rood.dev.window{id, title, draw[, open][, keys][, size = {w, h}][, size_em][, flags][, replaces][, menu = "Window"]}` | a checkable entry of Window (sorted by title); `draw()` runs every presented frame while it is open and the overlay shows. Returns `"<plugin>/<id>"`; registering the same id again replaces it. Its open state is yours: kept across reloads (`open` is only the first state) and runs (settings `dev_window <id> 0\|1`). `keys`: while it is focused the editor's shortcuts (Ctrl+Z, H, ...) stand aside. `size_em`: the first size in font heights. `flags`: `imgui.WindowFlags_*`. `replaces`: a C++ window's name (`"material_review"`): while this window is registered the C++ one is neither drawn nor listed, and its open flag is this window's open state (the plugin off: the C++ one is back) |
+| `rood.dev.window_open(id[, open]) -> open`, `rood.dev.remove_window(id)` | |
+| `rood.dev.rpc(method[, params]) -> result \| nil, error` | one developer RPC method (`pc/tools/rood_rpc.py`'s, dev_rpc.c) in-process: the same handler, its undo; refused: `lua`, `quit`, `restart`, `reload`, `auth`, memory `read`/`write`, `state_flag`, `record`, `replay`, `input_record`, and a call from inside another |
+| `rood.imgui.*` | Dear ImGui by its own names (below) |
+
+`rood.imgui` keeps Dear ImGui's names, so its documentation applies:
+`ImGui::SliderFloat` is `imgui.SliderFloat`, `ImGuiWindowFlags_MenuBar`
+`imgui.WindowFlags_MenuBar`, `ImGuiCol_Text` `imgui.Col_Text`,
+`ImGuiKey_Enter` `imgui.Key_Enter`. Values go in and come back Lua's way:
+`changed, v = imgui.SliderFloat(label, v, min, max[, format, flags])`;
+`changed, text = imgui.InputText(label, text[, flags])`;
+`changed, rgb = imgui.ColorEdit3(label, {r, g, b})` (a new table);
+`changed, i = imgui.Combo(label, i, items)` (1-based); `visible, open =
+imgui.Begin(name, open, flags)`, `selected, open = imgui.BeginTabItem(...)`;
+`clicked, selected = imgui.MenuItem(label, shortcut, selected, enabled)`.
+Text is never a format string (`imgui.Text(string.format(...))`). Dear
+ImGui's own indexes stay (`TableSetColumnIndex` is 0-based). There are:
+Begin/End, BeginChild/EndChild, SetNextWindowSize/Pos, IsWindowFocused/Hovered;
+Text (TextUnformatted), TextWrapped, TextDisabled, TextColored(`{r,g,b,a}`, text),
+LabelText, BulletText, SeparatorText; Button, SmallButton, Checkbox,
+RadioButton, Selectable, ProgressBar, Bullet; SliderFloat, SliderInt,
+DragFloat, DragInt, DragFloat2/3/4 (tables), InputFloat, InputInt,
+InputText, InputTextMultiline; Combo, BeginCombo/EndCombo,
+BeginListBox/EndListBox; ColorEdit3/4; SameLine, Separator, Spacing,
+NewLine, Dummy, Indent, Unindent, BeginGroup/EndGroup,
+PushItemWidth/PopItemWidth, SetNextItemWidth, AlignTextToFramePadding,
+GetContentRegionAvail, CalcTextSize, GetFontSize, GetFrameHeight,
+GetTextLineHeightWithSpacing, GetStyleColorVec4 (`{r, g, b, a}`);
+SetScrollHereY, SetScrollY, GetScrollY; ListClipper_Begin(count[, row height]) and
+`more, first, last = ListClipper_Step()` (cimgui's names for Dear ImGui's
+ImGuiListClipper: only the rows in view drawn; 1-based, inclusive; Step
+until it returns false);
+TreeNode (TreeNodeEx: flags), TreePop, CollapsingHeader, SetNextItemOpen;
+BeginTable/EndTable, TableSetupColumn, TableSetupScrollFreeze,
+TableHeadersRow, TableNextRow, TableNextColumn, TableSetColumnIndex;
+BeginTabBar/EndTabBar, BeginTabItem/EndTabItem; BeginTooltip,
+BeginItemTooltip, EndTooltip, SetTooltip, SetItemTooltip; OpenPopup,
+BeginPopup, BeginPopupContextItem, EndPopup, CloseCurrentPopup;
+BeginMenuBar/EndMenuBar, BeginMenu/EndMenu, MenuItem; IsItemHovered,
+IsItemClicked, IsItemActive, IsItemEdited, IsItemDeactivatedAfterEdit,
+IsAnyItemActive, SetItemDefaultFocus, SetKeyboardFocusHere; PushID/PopID,
+BeginDisabled/EndDisabled, PushStyleColor/PopStyleColor,
+PushStyleVar/PopStyleVar; PlotLines, PlotHistogram; IsKeyPressed,
+IsKeyDown, IsKeyReleased, HasKeys, GetIO (a copy: KeyCtrl, KeyShift,
+KeyAlt, WantTextInput, DeltaTime, ...), GetTime.
+
+Keys answer only while the window has the keyboard: focused, nothing being
+typed, no right mouse held, the camera not flying (`imgui.HasKeys()`), so a
+tool's shortcuts never fire while you type into one of its fields or fly.
+
+Errors never unbalance the overlay. Every Begin/Push is checked against
+its End/Pop before Dear ImGui sees it (a stray `imgui.End()` is a Lua
+error, not Dear ImGui's assertion). A draw that raises, or returns with a
+Begin or Push left open, is rewound with Dear ImGui's error recovery (every
+window, table, tree, ID and style push it opened closed) and its window
+shows the error and its traceback with Retry until Retry, reopening it or
+the plugin reloading; one fault is counted (the fault policy as for every
+handler). A draw over its budget is drawn again next frame. `rood.imgui`
+answers only inside the plugin's own draws.
+
+The shipped `rood.dev_example` (off: turn it on in the Lua console's
+Plugins list) is Window > Lua example: the game's status by `rood.dev.rpc`,
+Pause / Resume, an RPC explorer, a few widgets. Edit
+`pc/plugins/rood.dev_example/main.lua` while it is open: the window redraws
+from the saved file and stays open. The shipped `rood.material_review`
+(off) is Window > Material review in Lua (pc/docs/Materials.md, "Reviewing
+in the game"): the C++ window's picture pixel for pixel and its keys, on RPC
+`material_review` alone. RPC `lua {action "windows"}` lists the
+windows (`id, title, plugin, menu, open, keys, focused, replaces, failed, error,
+frames, failures`); `lua {action "window", id, open, focus, retry}` opens,
+focuses or retries one.
+
+## Testing
 
 - `ctest lua_probe`: the Lua side over a fake host: the grants (none: the
   functions absent; not elevated), pause refused with its reason, the camera's
@@ -1199,6 +1306,15 @@ rood_repl.py --json -s hud -e 'repl.reload()'                     # or save main
   digits' descender lift edited in its look (the setting untouched), hot
   reload timed (paused and running), a live REPL edit, an undeclared
   `place.dx` reported by the gate.
+- `pc/tests/run.py lua_imgui_smoke`: one game at the title, the overlay
+  shown, the fixture test.imgui: no rood.imgui without dev.tools; its two
+  windows in Window (RPC `lua windows`), the open one drawn every frame, one
+  opened by RPC and saved; widget values round-tripping through Lua;
+  rood.imgui outside a draw refused; `rood.dev.rpc` (a result, an error, a
+  refusal); keys with the window focused; a draw raising and one leaving
+  scopes open: that window failed with its message, the other and the
+  overlay going on, no Dear ImGui assertion; Retry; hot reload with the
+  window open; the shipped rood.dev_example on.
 - `pc/tests/run.py repl_smoke`: one game in the save room, driven as an agent
   does with `rood_repl.py -e` processes: a session's bindings across them,
   JSON replies, an error's exit status and traceback, multi-line input from a

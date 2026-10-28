@@ -42,6 +42,11 @@ const std::vector<CapabilityInfo>& capability_table()
         { "capture", false, true, "Save pictures of the game (in pc/user/photos)", false },
         { "input.capture", false, true, "Take the pad and keyboard from the game while it holds them (Escape or "
                                         "Start gives them back)", false },
+        /* Developer tools (lua_dev_tools.cpp, lua_api_imgui.cpp): windows in the overlay's Window menu drawn with
+         * rood.imgui, and the developer RPC in-process (rood.dev.rpc). Not elevated, like the photo mode's: a
+         * shipped plugin has it when it declares it, yours when you grant it (for its code's hash). */
+        { "dev.tools", false, true, "Add developer tool windows to the overlay and drive the game through its "
+                                    "developer commands (rooms, settings, materials, the editor)", false },
     };
     return table;
 }
@@ -198,6 +203,12 @@ std::deque<std::string>& audit_buffer()
 }
 
 std::string name_of(const std::string& capability) { return capability.substr(0, capability.find(':')); }
+bool dev_tools_mode()
+{
+    const char* rpc = std::getenv("ROOD_RPC");
+    const char* dev = std::getenv("ROOD_DEV");
+    return (rpc && *rpc) || (dev && !std::strcmp(dev, "1"));
+}
 
 /* The plugin's own folder and the folders its grants of `which` (fs.read / fs.write) name. */
 bool roots_for(Plugin* p, const char* which, std::vector<std::string>& roots)
@@ -362,6 +373,13 @@ std::vector<std::string> active_grants(const Plugin* p)
         if (elevated && !config.elevated)
             continue;
         if (!elevated && p->shipped) { /* the game's own plugins: what they declare */
+            out.push_back(cap);
+            continue;
+        }
+        /* dev.tools in dev mode (ROOD_RPC set or ROOD_DEV=1): declared is enough, so a tool being written
+         * keeps it through every save and hot reload (its hash changes each time); the RPC and the REPL
+         * reach everything in that mode anyway. */
+        if (name_of(cap) == "dev.tools" && dev_tools_mode()) {
             out.push_back(cap);
             continue;
         }

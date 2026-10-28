@@ -252,6 +252,16 @@ std::vector<Hook>& flush_hooks()
     static auto* list = new std::vector<Hook>();
     return *list;
 }
+std::vector<ApiOpener>& dev_openers()
+{
+    static auto* list = new std::vector<ApiOpener>();
+    return *list;
+}
+std::vector<RpcAction>& rpc_actions()
+{
+    static auto* list = new std::vector<RpcAction>();
+    return *list;
+}
 
 bool on_game_thread()
 {

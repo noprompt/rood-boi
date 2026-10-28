@@ -72,6 +72,10 @@ extern "C" void pc_settings_load(void);
 extern "C" void pc_lua_frame(double dt);        /* pc/src/lua: plugins' frame handlers (ImGui frame open) */
 extern "C" void pc_lua_console_menu_item(void); /* lua_console.cpp */
 extern "C" void pc_lua_console_window(void);
+extern "C" void pc_lua_dev_menu_items(void); /* lua_dev_tools.cpp: plugins' tool windows */
+extern "C" void pc_lua_dev_windows(void);
+extern "C" int pc_lua_dev_keys(void);
+extern "C" int pc_lua_dev_replaced(const char* name);
 extern "C" void pc_fast_travel_prompt_draw(void); /* fast_travel_prompt.cpp */
 extern "C" void pc_hud_frame(void);               /* lua_api_hud.cpp: claimed HUD elements */
 extern "C" void pc_hud_panels(float dt, int view_w, int view_h); /* lua_api_hud.cpp: plugins' panels (rood.draw.panel) */
@@ -160,7 +164,10 @@ extern "C" void pc_overlay_init(SDL_Window* window, SDL_GLContext context)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.IniFilename = "pc/build/boot/imgui.ini";
+    /* $ROOD_IMGUI_INI: the tests' own (pc/tests/run.py), so a run neither reads
+     * nor rewrites the player's window layout. */
+    const char* ini = getenv("ROOD_IMGUI_INI");
+    io.IniFilename = ini && *ini ? ini : "pc/build/boot/imgui.ini";
     /* Numbers are typed as in Unreal: a click (without dragging) on a
      * drag field edits it as text, a drag scrubs; sliders take a
      * double-click (or Ctrl+click). Enter commits, Escape cancels, Tab
@@ -1531,9 +1538,11 @@ static void menu_bar(float* height)
         if (ImGui::MenuItem("Library", "Shift+1", place_tab_shown || !rood_library::docked()))
             outliner_tab_request = 1;
         ImGui::MenuItem("Room Browser", "Ctrl+R", &pc_room_browser_open);
-        ImGui::MenuItem("Material review", nullptr, &pc_material_review_open);
+        if (!pc_lua_dev_replaced("material_review")) /* else the Lua window (rood.material_review) */
+            ImGui::MenuItem("Material review", nullptr, &pc_material_review_open);
         ImGui::MenuItem("Cutscene", cutscene::replay_key_name().c_str(), &cutscene::window_open);
         pc_lua_console_menu_item();
+        pc_lua_dev_menu_items(); /* plugins' tool windows (rood.dev.window) */
         ImGui::MenuItem("Keyboard shortcuts", nullptr, &show_help);
         ImGui::EndMenu();
     }
@@ -2264,7 +2273,7 @@ static void editor_shortcuts()
     }
     /* The Material review's window, when it has the keyboard, takes Ctrl+Z
      * (its decisions' undo) and H (its highlight). */
-    bool review = pc_material_review_keys();
+    bool review = pc_material_review_keys() || pc_lua_dev_keys(); /* or a Lua tool window's (keys = true) */
     /* Undo: Ctrl+Z; redo: Ctrl+Y or Ctrl+Shift+Z (held: repeats). */
     if (io.KeyCtrl && !io.KeyAlt && !review) {
         if (ImGui::IsKeyPressed(ImGuiKey_Z, true))
@@ -2455,11 +2464,13 @@ extern "C" void pc_overlay_frame(int width, int height)
         rood_details::ladder_frame(); /* a value ladder being dragged (editor_details.cpp) */
         pc_lights_editor_windows();
         pc_room_browser_window();
-        pc_material_review_window();
+        if (!pc_lua_dev_replaced("material_review"))
+            pc_material_review_window();
         pc_cutscene_window();
         help_window();
         memory_cards_window();
         pc_lua_console_window();
+        pc_lua_dev_windows(); /* plugins' tool windows (lua_dev_tools.cpp) */
         /* What the panels changed becomes a transaction (once released). */
         pc_undo_frame_end();
     } else {

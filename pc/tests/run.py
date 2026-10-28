@@ -503,6 +503,10 @@ def suites(args, mode="egl"):
                       "screen at 16:9), hot-reloaded (timed), the REPL, place as data (the gate sees dx), the same "
                       "picture as the game's")]
           if args.save.exists() else []),
+        Suite("lua_imgui_smoke", [PY, str(TESTS / "lua_imgui_smoke.py")], 300,
+              note="Lua developer windows: rood.imgui behind the dev.tools grant, Window menu entries, values "
+                   "round-tripping, rood.dev.rpc, keys, a failing or unbalanced draw shown failed with the overlay "
+                   "going on, Retry, hot reload"),
         *([Suite("repl_smoke", [PY, str(TESTS / "repl_smoke.py"), "--card", str(args.save)], 300,
                  note="Lua REPL bridge: rood_repl.py -e sessions across processes, sandboxes, inspection, "
                       "rood.hud's draw redefined live (next frame), then its file reloaded wins")]
@@ -845,7 +849,7 @@ CHECKPOINT_SUITES = {
     "ui_ashley_backdrop_smoke", "ui_data_smoke", "ui_container_smoke", "interp_menu_2d_smoke",
     "ui_ashley_detail_smoke", "ui_score_smoke", "snapshot_resume_smoke", "engine_reload_smoke", "frame_cost_smoke",
     "hud_bench_smoke", "classic_hud_smoke",
-    "repl_smoke", "photo_foundation_smoke", "photo_engine_reload_smoke", "photo_mode_smoke", "photo_full_room_smoke",
+    "repl_smoke", "lua_imgui_smoke", "photo_foundation_smoke", "photo_engine_reload_smoke", "photo_mode_smoke", "photo_full_room_smoke",
     "cutscene_player_smoke", "cutscene_viewer_smoke", "cutscene_sequencer_smoke", "cutscene_freecam_smoke",
     "text_fade_smoke",
 }
@@ -1041,6 +1045,7 @@ def run_suite(suite, index, args, mode, results, lock):
         ROOD_PREFABS=str(out / "prefabs"),
         ROOD_PLUGINS=str(out / "plugins"),  # none of the user's plugins (pc/user/plugins)
         ROOD_PLUGIN_DATA=str(out / "plugin_data"),
+        ROOD_IMGUI_INI=str(out / "imgui.ini"),  # not the player's window layout
         ROOD_HEADLESS=mode,
         ROOD_BUTTON_PROMPTS="original",  # the PS1 glyphs (button_prompts_smoke opts in)
         ROOD_AUDIO=f"wav:{out / 'audio.wav'}" if suite.name.startswith("input:") else "none",

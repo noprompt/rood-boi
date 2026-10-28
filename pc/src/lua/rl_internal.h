@@ -228,6 +228,13 @@ std::vector<PluginHook>& unload_hooks(); /* drop what a plugin registered */
 std::vector<Hook>& poll_hooks();         /* every tick and frame */
 std::vector<Hook>& tick_hooks();         /* every tick, first (the HUD's held moments) */
 std::vector<Hook>& flush_hooks();        /* at exit: write what is unsaved */
+/* Fields of rood.dev for the dev.tools grant (lua_dev_tools.cpp: window, rpc), added to the table on top. */
+std::vector<ApiOpener>& dev_openers();
+/* More actions of RPC lua (game-side modules: lua_dev_tools.cpp's windows): true when the action is
+ * theirs (*reply set, or *error with *refused true). */
+using RpcAction = bool (*)(const std::string& action, const prefab::Json& params, std::string* reply,
+    std::string* error, bool* refused);
+std::vector<RpcAction>& rpc_actions();
 
 /* ---- lua_sandbox.cpp, lua_api_core.cpp ---- */
 void open_sandbox(lua_State* L, Plugin* p);

@@ -368,10 +368,19 @@ extern "C" int pc_lua_rpc(const char* params_text, char* out, int size)
                 first = false;
             }
         reply += "]}";
-    } else
-        return failure("lua: unknown action '" + action
-            + "' (eval, console, repl, plugins, reload, rescan, enable, grant, budget, test, test_status, log, audit, emit, "
-              "registry)");
+    } else {
+        bool refused = false;
+        for (rl::RpcAction more : rl::rpc_actions())
+            if (more(action, params, &reply, &error, &refused)) {
+                if (refused)
+                    return failure("lua: " + error);
+                break;
+            }
+        if (reply.empty())
+            return failure("lua: unknown action '" + action
+                + "' (eval, console, repl, plugins, reload, rescan, enable, grant, budget, test, test_status, log, audit, "
+                  "emit, registry, windows, window)");
+    }
     if ((int)reply.size() >= size)
         return failure("lua: the reply is larger than " + std::to_string(size) + " bytes");
     std::memcpy(out, reply.c_str(), reply.size() + 1);

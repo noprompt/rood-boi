@@ -123,8 +123,8 @@ def main():
             return 1
         # One reference set per GPU; the Vulkan renderer (ROOD_RENDERER=vulkan)
         # is compared with the OpenGL references of the same GPU.
-        # (Not the Vulkan pipeline cache's line, logged before the device's.)
-        renderer = re.search(r"\[(?:gl|vk)\] ((?!validation|pipeline cache)[^/,\n]*)",
+        # (Not the Vulkan pipeline cache's or GPU priority's lines, logged before the device's.)
+        renderer = re.search(r"\[(?:gl|vk)\] ((?!validation|pipeline cache|low GPU priority)[^/,\n]*)",
                              pathlib.Path(game.log).read_text())
         gpu = re.sub(r"[^a-z0-9]+", "-", (renderer.group(1) if renderer else "unknown").lower()).strip("-")
         golden = pathlib.Path(args.golden) / gpu

@@ -299,6 +299,13 @@ paths = ["pc/src/lua/*", "pc/plugins/*", "pc/tests/lua/*", "pc/third_party/lua*"
 suites = ["lua_smoke", "ctest", "hud_bench_smoke", "repl_smoke", "options_classic_smoke", "options_confirm_smoke",
           "classic_parity", "classic_hud_smoke", "photo_foundation_smoke"]
 
+# ---- developer tool windows in Lua (rood.imgui, rood.dev.window, rood.dev.rpc) ----
+[[rule]]
+paths = ["pc/src/lua/lua_api_imgui.cpp", "pc/src/lua/lua_dev_tools.cpp", "pc/src/lua/lua_imgui.h",
+         "pc/tests/lua/plugins/test.imgui/*", "pc/plugins/rood.dev_example/*", "pc/src/dev_overlay.cpp",
+         "pc/src/dev_rpc.c", "pc/third_party/imgui/*", "pc/plugins/rood.material_review/*"]
+suites = ["lua_imgui_smoke", "material_review_smoke"]
+
 # ---- the photo mode foundation (rood.game.pause, rood.camera, rood.post, rood.ui, rood.capture, rood.input) ----
 [[rule]]
 paths = ["pc/src/photo*", "pc/src/*_photo.inc", "pc/src/lua/lua_api_photo.cpp", "pc/src/lua/lua_photo*",

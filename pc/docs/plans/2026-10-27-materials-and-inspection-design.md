@@ -213,3 +213,27 @@ if cheap.
   standard surface values).
 - Test design, as long as each part has headless smoke coverage like the
   existing `material_smoke` / `material_review_smoke`.
+
+## Added 2026-10-27 (after the review): better maps, and relief that catches the light
+
+The user accepted every rollout proposal (to tune while playing) and found the
+relief weak: most surfaces "do not really catch the light ... or feel like
+there's some subtle displacement". Two causes, two pieces of work:
+
+- **Relief only bends direct light.** The height estimate's normals reach the
+  dynamic lights and the sun; the game's baked light has no direction and the
+  traced GI shades with the triangle's normal, so in most rooms the bumps barely
+  show. Feed the relief normal into the GI/indirect shading and give the baked
+  light a direction (e.g. the probes' dominant direction). Do this first (or in
+  parallel): it is quick to try with shader hot reload and shows whether better
+  maps pay off.
+- **Maps from analysis, not a runtime guess.** An offline bake tool per texture
+  key writes a full map set into the user layer: height and normal (new
+  `normal.png` channel), and also roughness, metal, specular/cavity/AO as the
+  user asked ("good roughness/metalness/etc maps all around"). Methods compared
+  side by side in game: an improved classical estimate (frequency separation,
+  seam/edge detection, per-material profiles, the painted shading's light
+  direction integrated to height) and local ML models (texture-to-material and
+  depth/normal estimators, after upscaling the tiny textures; weights download
+  only with the user's OK; game art never leaves the machine). Instances (part
+  3) take these maps as their texture inputs.

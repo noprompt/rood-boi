@@ -29,6 +29,11 @@ up from the save room's own textures, with scratch catalogs:
 - resume: loading again reads the decisions and the selection back;
 - keys (the overlay shown, the window with the keyboard): a bare A decides
   nothing; Ctrl+Enter accepts; Ctrl+Z undoes it;
+- the Lua window (pc/plugins/rood.material_review) turned on: the same
+  picture as the C++ window, pixel for pixel; it replaces
+  the C++ one (Window, its open flag), the same keys (bare A nothing,
+  Ctrl+Enter, Ctrl+Z, B, N), closing it closes the review, no fault; off,
+  the C++ window is back;
 - go: to another room (a door) and to a room no door leads into (the
   middle of its floor grid), arriving there; focus from a room that is none
   of the proposal's goes to its top room first, then frames it;
@@ -316,6 +321,77 @@ def main():
               and chord["undo"][:1] == ["P0003 accepted"] and undone["decided"] == decided,
               f"keys: the window has them ({st['keys']}); bare A decides nothing ({bare['decided']} = {decided}), "
               f"Ctrl+Enter accepts ({chord['decided']}, {chord['undo'][:1]}), Ctrl+Z undoes it ({undone['decided']})")
+        game.call("editor_ui", visible=False)
+
+        # The Lua window (pc/plugins/rood.material_review), on: Window > Material review is it (the C++ one
+        # neither drawn nor listed), open as the review is, the same keys through RPC material_review.
+        lua_window = "rood.material_review/review"
+
+        def lua_windows():
+            return {w["id"]: w for w in game.call("lua", action="windows")["windows"]}
+
+        game.call("editor_ui", visible=True)
+        game.call("material_review", action="open", open=True, focus=True)
+        game.wait_presents(6)
+        cpp_picture = np.asarray(Image.open(game.present_screenshot(out / "review-cpp.png")).convert("RGB"))
+        game.call("lua", action="enable", plugin="rood.material_review", enabled=True)
+        game.call("lua", action="window", id=lua_window, focus=True)
+        game.wait_presents(6)
+        lua_picture = np.asarray(Image.open(game.present_screenshot(out / "review-lua.png")).convert("RGB"))
+        differ_at = np.argwhere((cpp_picture != lua_picture).any(axis=2))
+        check(cpp_picture.shape == lua_picture.shape and len(differ_at) == 0,
+              f"the Lua window draws the C++ window's picture, pixel for pixel ({len(differ_at)} pixels differ"
+              f"{', first at ' + str(differ_at[0][::-1].tolist()) if len(differ_at) else ''}; review-cpp.png, "
+              f"review-lua.png)")
+        w = lua_windows().get(lua_window, {})
+        st = game.call("material_review")
+        check(w.get("replaces") == "material_review" and w.get("open") and st["open"] and w.get("focused")
+              and not st["keys"] and w.get("frames", 0) >= 3 and not w.get("failed"),
+              f"Lua window: replaces the C++ one, open as the review is, drawn, has the keyboard "
+              f"({ {k: w.get(k) for k in ('replaces', 'open', 'focused', 'frames', 'failed', 'error')} }, "
+              f"C++ keys {st['keys']})")
+        decided, selected = st["decided"], st.get("selected", {}).get("id")
+        game.call("editor_input", keys=["a"])
+        game.wait_presents(6)
+        bare = game.call("material_review")
+        game.call("editor_input", keys=["enter"], ctrl=True)
+        game.wait_presents(6)
+        chord = game.call("material_review")
+        game.call("editor_input", keys=["z"], ctrl=True)
+        game.wait_presents(6)
+        undone = game.call("material_review")
+        check(bare["decided"] == decided and chord["decided"] == decided + 1
+              and chord["undo"][:1] == [f"{selected} accepted"] and undone["decided"] == decided,
+              f"Lua keys: bare A decides nothing ({bare['decided']} = {decided}), Ctrl+Enter accepts "
+              f"({chord['decided']}, {chord['undo'][:1]}), Ctrl+Z undoes it ({undone['decided']})")
+        preview = undone["preview"]
+        game.call("editor_input", keys=["b"])
+        game.wait_presents(6)
+        toggled = game.call("material_review")
+        game.call("editor_input", keys=["b"])
+        game.call("editor_input", keys=["n"])
+        game.wait_presents(6)
+        moved = game.call("material_review")
+        check(toggled["preview"] == (not preview) and moved["preview"] == preview
+              and moved.get("selected", {}).get("id") not in (None, selected),
+              f"Lua keys: B before / after ({preview} -> {toggled['preview']}), N the next proposal "
+              f"({selected} -> {moved.get('selected', {}).get('id')})")
+        game.call("material_review", action="select", id=selected)
+        game.call("lua", action="window", id=lua_window, open=False)
+        game.wait_presents(2)
+        closed = game.call("material_review")["open"]
+        game.call("material_review", action="open", open=True)
+        game.wait_presents(2)
+        reopened = lua_windows()[lua_window]["open"]
+        plugin = game.lua_plugins()["rood.material_review"]
+        check(not closed and reopened and plugin["faults"] == 0 and not lua_windows()[lua_window]["failed"],
+              f"Lua window: closing it closes the review ({closed}), opening the review opens it ({reopened}); "
+              f"no fault ({plugin['faults']})")
+        game.call("lua", action="enable", plugin="rood.material_review", enabled=False)
+        game.call("material_review", action="open", open=True, focus=True)
+        game.wait_presents(6)
+        st = game.call("material_review")
+        check(lua_window not in lua_windows() and st["keys"], "the plugin off: the C++ window is back (it has the keys)")
         game.call("editor_ui", visible=False)
 
         st = game.call("material_review", action="go", room=list(other))

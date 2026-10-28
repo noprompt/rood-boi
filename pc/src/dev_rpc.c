@@ -854,9 +854,23 @@ static int bool_value(const char* v, int* out)
 
 /* ---- responses ---- */
 
+/* In-process calls (pc_rpc_call: Lua's rood.dev.rpc) reply into this buffer instead of a socket. */
+#define CAPTURE_FD (-2)
+static char* capture_out;
+static size_t capture_size, capture_used;
+
 static void send_line(int fd, const char* text)
 {
     size_t length = strlen(text);
+    if (fd == CAPTURE_FD) { /* the first line is the reply; anything after it is dropped */
+        if (capture_out && !capture_used && capture_size) {
+            size_t n = length < capture_size - 1 ? length : capture_size - 1;
+            memcpy(capture_out, text, n);
+            capture_out[n] = 0;
+            capture_used = n ? n : 1;
+        }
+        return;
+    }
     while (length) {
         long n = rpc_send(fd, text, length);
         if (n < 0 && rpc_retry())
@@ -4367,6 +4381,54 @@ static void handle(int fd, const char* request)
         snprintf(name, sizeof name, "%s (RPC)", method);
         pc_undo_flush(name);
     }
+}
+
+/* One request handled in-process, as a client's would be (the editor's undo included), for Lua's
+ * rood.dev.rpc (pc/src/lua/lua_dev_tools.cpp): the reply line ({"result": ...} or {"error": ...}) in
+ * out; 0, or -1 with a message in out when it was refused. No client is current, so methods that
+ * answer later (wait, reload, restart, snapshot) refuse; nested calls refuse too (handle_method's
+ * buffers are static). */
+int pc_rpc_call(const char* method, const char* params_json, char* out, int size)
+{
+    static int depth;
+    static char request[LINE_MAX_BYTES];
+    if (!method || !*method || size < 2) {
+        snprintf(out, (size_t)size, "no method");
+        return -1;
+    }
+    for (const char* c = method; *c; c++)
+        if (!((*c >= 'a' && *c <= 'z') || (*c >= '0' && *c <= '9') || *c == '_')) {
+            snprintf(out, (size_t)size, "bad method name");
+            return -1;
+        }
+    if (depth) {
+        snprintf(out, (size_t)size, "an in-process RPC call is already running (no nesting)");
+        return -1;
+    }
+    int n = snprintf(request, sizeof request, "{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"%s\",\"params\":%s}",
+        method, params_json && *params_json ? params_json : "{}");
+    if (n < 0 || (size_t)n >= sizeof request) {
+        snprintf(out, (size_t)size, "params larger than %d bytes", LINE_MAX_BYTES);
+        return -1;
+    }
+    struct client* saved = current_client;
+    current_client = NULL;
+    capture_out = out, capture_size = (size_t)size, capture_used = 0;
+    out[0] = 0;
+    depth++;
+    handle(CAPTURE_FD, request);
+    depth--;
+    current_client = saved;
+    capture_out = NULL;
+    if (!capture_used) {
+        snprintf(out, (size_t)size, "%s: no reply", method);
+        return -1;
+    }
+    /* Remove the newline send_line got. */
+    size_t len = strlen(out);
+    while (len && (out[len - 1] == '\n' || out[len - 1] == '\r'))
+        out[--len] = 0;
+    return 0;
 }
 
 /* Equal strings, in a time that doesn't depend on where they differ. */
