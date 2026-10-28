@@ -925,7 +925,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,option_value", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,menu_tabs,menu_background,option_value", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -1215,8 +1215,145 @@ def run_marker(out, card, env, check, waivers):
 
 MENUS = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # MAINMENU's shared frame
          "option_value")  # (and our Option pages' value column)
-MENU_TOURED = ("menu_row", "menu_cursor", "menu_command", "option_value")  # (the Option screen: no tabs, background)
+MENU_TOURED = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # (Items: the tabs,
+               "option_value")                                                            # the background)
+ITEMS_ONLY = ("menu_tabs", "menu_background")  # (not on the Option screen: their default and fallback in Items)
 OPTION_COMMAND, VANILLA_OPTIONS = 7, 9  # the top level's Option row (MENU8), its nine rows of the game's options
+
+
+ITEMS_COMMAND, ITEMS_MENU = 3, 4  # the top level's Items row; its currentMenu (MENU3's screen)
+INTRO_STATE = 0xAB  # vs_main_stateFlags.introState: under 3 (the prologue) Manage's Equip is unselectable
+ITEM_CATEGORY = 0x3A  # D_800F4EE8.unk3A.currentItemCategory: the category + 1 (0: the Manage page, category 7)
+
+
+def items_open(g, symbols):
+    """Triangle, Items: MENU3 (its rows at rest)."""
+    from menu_nav import top_command
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, ITEMS_COMMAND)
+    for _ in range(5):  # (Circle once the top level takes it)
+        g.press("circle", vsyncs=2, settle=2)
+        if g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F == ITEMS_MENU, guard=10):
+            break
+    items_ready(g, symbols)
+
+
+def items_live(g, symbols):
+    """The live rows' ids (vs_battle_menuItems: 20.. a list, 32.. an action menu, ui_items_smoke's)."""
+    p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
+    raw = g.read(p, 64 * 40) if p else b""
+    return [i for i in range(len(raw) // 64) if raw[i * 64]]
+
+
+def items_ready(g, symbols, limit=400):
+    """Every live row idle (state 0 or 1) three frames in a row (ui_items_smoke's wait), MENU3 up."""
+    calm = 0
+    for _ in range(limit):
+        p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
+        raw = g.read(p, 64 * 40) if p else b""
+        live = [raw[i * 64] for i in range(len(raw) // 64) if raw[i * 64]]
+        calm = calm + 1 if live and all(st <= 1 for st in live) else 0
+        if calm >= 3:
+            g.run(2)
+            return
+        g.run(1)
+    raise RpcError(f"Items: the rows never came to rest (currentMenu {g.read(symbols['vs_battle_menuState'], 1)[0]:#x})")
+
+
+def tour_items(g, symbols, toured, frames):
+    """The Items screen (MENU3) through the original menus, for the shared frame's kinds: opened; the Manage page's
+    Equip (its parts walked, the weapon's list in and out); every category in turn with R1 (the tab arrows; the
+    category's list walked down past its end and back, the row's status view (Square) in and out, a row picked up and
+    its actions walked, the Yes / No of its Discard opened and left on No); back round with L1; closed."""
+    def press(button, settle=6):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def category():
+        return (g.read(symbols["D_800F4EE8"] + ITEM_CATEGORY, 1)[0] - 1) & 7
+
+    def rows_now():  # (the live rows and their places: a status view slides them)
+        p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
+        raw = g.read(p, 64 * 40) if p else b""
+        return [(i, raw[i * 64 + 20:i * 64 + 24]) for i in range(len(raw) // 64) if raw[i * 64]]
+
+    def at_rest():
+        items_ready(g, symbols)
+        if g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F != ITEMS_MENU:
+            raise RpcError(f"Items: left MENU3 ({g.read(symbols['vs_battle_menuState'], 1)[0]:#x})")
+
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")  # (the cursor memory off: lists open on their first row)
+    intro = g.read(symbols["vs_main_stateFlags"] + INTRO_STATE, 1)
+    g.write(symbols["vs_main_stateFlags"] + INTRO_STATE, bytes([max(intro[0], 3)]))  # (Equip selectable)
+    before = frames()
+    items_open(g, symbols)
+    toured("Items opened", before)
+    for _ in range(9):
+        if category() == 7:
+            break
+        press("r1", settle=10)
+        at_rest()
+    before = frames()
+    press("circle", settle=20)  # Equip
+    at_rest()
+    for button in ("down",) * 6 + ("up",) * 6:
+        press(button)
+    press("circle", settle=20)  # the weapon's list
+    at_rest()
+    for button in ("down", "down", "up", "up"):
+        press(button)
+    press("cross", settle=20)
+    at_rest()
+    press("cross", settle=20)
+    at_rest()
+    toured("Items: Equip, its parts, the weapon's list", before)
+    for step in range(8):  # weapons .. misc, then the Manage page again
+        before = frames()
+        press("r1", settle=10)
+        at_rest()
+        c, names = category(), None
+        if c != 7 and any(20 <= i < 30 for i in items_live(g, symbols)):  # (an empty category: Cross would leave)
+            for button in ("down",) * 10 + ("up",) * 10:
+                press(button, settle=4)
+            rows = rows_now()
+            press("square", settle=20)  # the status view (refused in some categories: nothing changes)
+            g.run(30)
+            if rows_now() != rows:
+                press("cross", settle=20)
+                at_rest()
+            press("circle", settle=10)  # picked up
+            at_rest()
+            press("circle", settle=10)  # its actions
+            at_rest()
+            for button in ("down",) * 4 + ("up",) * 4:
+                press(button)
+            actions = str(repl(g, "rood.classic", "local t = {} for _, r in ipairs(rood.game.menu().rows) do "
+                               "if r.id >= 32 and r.state ~= 'inactive' then t[#t + 1] = r.id .. '=' .. r.text end end "
+                               "return table.concat(t, '|')")).strip('"').split("|")
+            names = [a.split("=", 1)[1].strip().lower()
+                     for a in sorted((a for a in actions if "=" in a), key=lambda a: int(a.split("=")[0]))]
+            if "discard" in names:
+                for _ in range(names.index("discard")):  # (the actions open on their first row)
+                    press("down")
+                press("circle", settle=10)  # Discard: the Yes / No (on No)
+                g.run(20)
+                press("cross", settle=10)  # left on No
+                g.run(20)
+            at_rest()
+            if any(i >= 32 for i in items_live(g, symbols)):  # (the actions again: Cross to the list)
+                press("cross", settle=10)
+                at_rest()
+        print(f"Items: category {c} toured (actions {names if c != 7 else None})", flush=True)  # (progress)
+        toured(f"Items: category {c}: its list, status view, actions, Discard's Yes / No", before, category=c)
+    before = frames()
+    for _ in range(8):
+        press("l1", settle=10)
+        at_rest()
+    toured("Items: the categories back round with L1", before)
+    before = frames()
+    press("triangle", settle=60)
+    g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="Items closed")
+    toured("Items closed", before)
+    g.write(symbols["vs_main_stateFlags"] + INTRO_STATE, intro)
 
 
 def run_menus(out, card, env, check, waivers, kinds):
@@ -1344,6 +1481,9 @@ def run_menus(out, card, env, check, waivers, kinds):
         before = frames()
         press("triangle", settle=60)
         toured("the menu closed", before)
+        g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
+        g.run(30)
+        tour_items(g, symbols, toured, frames)
         reports = {kind: opening_report(g, check, waivers, kind, covered, set()) for kind in kinds
                    if kind in MENU_TOURED}
         for kind in kinds:
@@ -1392,7 +1532,7 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.pause()
         g.mark()
         for kind in toured_kinds:
-            if kind != "option_value":  # (no values in the list: on a page, below)
+            if kind != "option_value" and kind not in ITEMS_ONLY:  # (no values in the list: on a page, below)
                 g.rewind()
                 default_and_fallback(g, kind, check)
         state_proof("the Option list at rest", ("menu_row", "menu_cursor", "menu_command"))
@@ -1402,7 +1542,28 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.mark()
         if "option_value" in toured_kinds:
             default_and_fallback(g, "option_value", check)
-        state_proof("Display's rows coming in", toured_kinds)
+        state_proof("Display's rows coming in", [k for k in toured_kinds if k not in ITEMS_ONLY])
+        # Items: the default and the fallback of every frame kind, the state proof at its list at rest (the tabs'
+        # arrows bobbing, the background up)
+        g.rewind()
+        for _ in range(8):  # (out of Display's page, the list, the menu)
+            if g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F:
+                break
+            g.press("cross" if g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F == 8 else "triangle", vsyncs=3,
+                    settle=60)
+        g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
+        g.run(30)
+        items_open(g, symbols)
+        g.press("r1", vsyncs=3, settle=10)  # (a category's list: the tab arrows)
+        items_ready(g, symbols)
+        g.pause()
+        g.mark()
+        items_kinds = [k for k in toured_kinds if k != "option_value"]
+        for kind in items_kinds:
+            g.rewind()
+            default_and_fallback(g, kind, check)
+        toured_kinds[:] = items_kinds
+        state_proof("the Items list at rest", items_kinds)
         for kind, report in reports.items():
             (out / f"{kind}.json").write_text(json.dumps(report, indent=1))
             print(f"report: {out / (kind + '.json')}: {report['frames']} frames, {report['states']} states, "

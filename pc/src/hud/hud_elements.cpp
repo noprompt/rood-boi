@@ -34,10 +34,10 @@ int pc_hud_classic_status = 1, pc_hud_classic_chain = 1, pc_hud_classic_buff = 1
     pc_hud_classic_text_band = 1, pc_hud_classic_box_text = 1,
     pc_hud_classic_image = 1, pc_hud_classic_target_row = 1, pc_hud_classic_target_line = 1,
     pc_hud_classic_target_marker = 1;
-// MAINMENU's shared frame (the classic menus, plan phase 2): on for the rows, the hand and the command title (their
-// Option screen tour is green); the background and the tab arrows (no Option screen shows them) off until toured.
+// MAINMENU's shared frame (the classic menus, plan phases 2 and 3): on (the rows, the hand and the command title
+// toured green in the Option screen and Items; the background and the tab arrows in Items).
 int pc_hud_classic_menu_command = 1, pc_hud_classic_menu_row = 1, pc_hud_classic_menu_cursor = 1;
-int pc_hud_classic_menu_background, pc_hud_classic_menu_tabs;
+int pc_hud_classic_menu_background = 1, pc_hud_classic_menu_tabs = 1;
 // Our Option pages' value column (classic_options.c's draws, its fallback): on (its Option screen tour is green).
 int pc_hud_classic_option_value = 1;
 int pc_hud_classic_default(int kind)

@@ -276,7 +276,13 @@ static int _gripStatusView(int itemInfo)
 {
     enum state { init, wait, manageInput, returnMenuReady };
 
+#ifdef ROOD_PC
+    /* Written below (BUG: rodata .write); host literals are read-only. */
+    static char gemSlotCountText[] = "X     0";
+    static char* gemSlotCountBuf = gemSlotCountText;
+#else
     static char* gemSlotCountBuf = "X     0";
+#endif
 
     static char state;
     static char animationTimer;

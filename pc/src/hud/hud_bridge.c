@@ -310,8 +310,9 @@ static u_long* slot_for(int kind, int layer)
 extern u_long* D_800F51B8; /* 5BF94.c */
 static u_long box_shadow[34], band_icon_shadow; /* (band_icon_shadow: vs_scratch.unk8's for the band's icon) */
 static int box_shadow_id = -1;
-/* A menu row's emit links at vs_scratch.unk8 - 4, + 0, + 8 and + 12 (its glyphs, the scroll arrow, the window and
- * its sprites, the tile): in the parity mode d.menu_row runs with unk8 pointed at menu_shadow + 2 (never drawn). */
+/* A menu row's emit links at vs_scratch.unk8 - 4, + 0, + 4, + 8 and + 12 (its glyphs, the scroll arrow and the
+ * material, the row icon, the window and its sprites, the tile): in the parity mode d.menu_row runs with unk8 pointed
+ * at menu_shadow + 2 (never drawn). */
 static u_long menu_shadow[8];
 static int menu_shadowed;
 extern int pc_hw_anchor_muted __attribute__((weak)), pc_hw_anchor_muted_as __attribute__((weak));
@@ -585,18 +586,21 @@ void pc_hud_target_marker(void* record, void* first, void* end)
 /* MAINMENU's shared frame (58EC.c's PC_CLASSIC sites, classic_hook.h): each piece as the game drew it, with what
  * it drew it from. A row is one element per row (0..39); the others one each. The game's packets are walked from
  * its slots: the background's own, vs_scratch.unk8 (a row's: unk8 - 4 .. + 12). */
-#define MENU_TOURED_SCREEN 8 /* vs_battle_menuState.currentMenu & 0x3F: MENU8, the Option screen */
+/* The screens toured (vs_battle_menuState.currentMenu & 0x3F, a bit each; menu_model.c SCREENS): 4 Items
+ * (MENU3), 8 the Option screen (MENU8). */
+#define MENU_TOURED_SCREENS ((1u << 4) | (1u << 8))
 static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
 void pc_hud_menu(int kind, void* record, void* first, void* end)
 {
     static pc_hud_fields rows[40], one[5];
     pc_hud_fields* f;
-    int slots[4], nslots = 1, unk8 = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
+    int slots[5], nslots = 1, unk8 = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
     if (!record || first == end)
         return;
-    /* Only the screens the gate tours (the Option screen, MENU8): every other MAINMENU screen keeps the game's own
+    /* Only the screens the gate tours (MENU_TOURED_SCREENS): every other MAINMENU screen keeps the game's own
      * drawing (no element, no claim) until its tour is green (the Quick Manual crashed with Lua's rows). */
-    if ((vs_battle_menuState.currentMenu & 0x3F) != MENU_TOURED_SCREEN)
+    if ((vs_battle_menuState.currentMenu & 0x3F) > 31
+        || !(MENU_TOURED_SCREENS & (1u << (vs_battle_menuState.currentMenu & 0x3F))))
         return;
     if (kind == PC_HUD_OPTION_VALUE) { /* our Option pages' value column (classic_options.c) */
         static pc_hud_fields values[16];
@@ -629,8 +633,8 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
             f->x = item->x, f->y = item->y, f->w = item->w, f->h = 12;
             f->call_x = item->x, f->call_y = item->y;
         }
-        slots[0] = unk8 - 4, slots[1] = unk8, slots[2] = unk8 + 8, slots[3] = unk8 + 12;
-        nslots = 4;
+        slots[0] = unk8 - 4, slots[1] = unk8, slots[2] = unk8 + 4, slots[3] = unk8 + 8, slots[4] = unk8 + 12;
+        nslots = 5;
     } else {
         f = &one[kind - PC_HUD_MENU_BACKGROUND];
         *f = (pc_hud_fields) { 0 };

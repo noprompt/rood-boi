@@ -7,12 +7,77 @@ branch `classic-lua-step5`), step 6's frames, band, text and images
 and step 8's targeting (same day, branch `classic-lua-step8`; see "Progress"
 below), with the remaining phase 1 work listed separately. Phase 2 is under
 way (branch `classic-lua-phase2`): the menu model, the shared frame's hooks,
-and its rows, hand and command title drawn in Lua through the Option screen. It
+and its rows, hand and command title drawn in Lua through the Option screen. Phase 3 has begun with
+Items (branch `classic-lua-items`): the shared frame's kinds, the tab arrows and the background with them. It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
 `2026-10-18-freedom-and-fast-iteration.md` (the lint).
 
 ## Progress
+
+2026-10-28, evening (branch `classic-lua-items`, from main `e1c639bc`; no merge or publication):
+
+- **Phase 3, screen 1 (Items, MENU3), piece 1: the shared frame's kinds on Items, done.** `pc_hud_menu`
+  (hud_bridge.c) now claims on a set of toured screens, `MENU_TOURED_SCREENS` (`currentMenu & 0x3F`, menu_model.c's
+  names): 4 Items and 8 the Option screen. (Items is currentMenu 4, not 3: the overlay is MENU3, the screen index the
+  top level's command + 1.) A row's capture now also walks `vs_scratch.unk8 + 4`, where
+  `vs_mainMenu_renderMenuRowIcon` links the row icon: the Option screen has no row icons, so its tour never needed
+  it; Items' first tour showed 15,946 mismatched frames (the game's capture lacked the icon the Lua copy, walking its
+  whole shadow, had), 0 after. The Lua draw was right all along: suppression is by packet range, not by slot.
+- **Tour** (`classic_parity.py tour_items`, in the menus game after the Option tour; the original menus, the cursor
+  memory off, `introState` lifted to 3 for the tour so Manage's Equip is selectable, then restored): Items opened;
+  Equip, its parts walked, the weapon's list in and out; each category in turn with R1 (the tab arrows): its list
+  walked down past its end and back, the row's status view (Square) in and out where the category has one, a row
+  picked up, its actions walked, Discard's Yes / No opened (found by the action's text through `rood.game.menu()`) and
+  left on No; an empty category skipped (Cross would leave); back round with L1; closed. Counts (the menus game,
+  Option screen and Items together):
+
+  | Element / HUD kind | Frames | Scenarios |
+  |---|---:|---:|
+  | Menu rows / `menu_row` | 33,124 | 30 |
+  | The hand / `menu_cursor` | 1,488 | 30 |
+  | The command title / `menu_command` | 3,261 | 30 |
+  | The tab arrows / `menu_tabs` | 1,807 | 30 |
+  | The background / `menu_background` | 1,977 | 30 |
+  | Our pages' values / `option_value` | 2,791 | 30 |
+
+  0 mismatches, 0 skips, no packet waivers. The default and the fallback (setting off, a raising draw, the plugin off)
+  tested for every frame kind in Items; state parity 120/120 vsyncs at the Items list at rest (a category's list: the
+  arrows bobbing, the background up), and the Option screen's two proofs as before. **Defaults on:**
+  `hud_classic_menu_tabs`, `hud_classic_menu_background` (the rows, hand and title already were); the kinds draw by
+  default in Items and the Option screen, every other screen keeps the game's drawing.
+- **A crash found by the tour, fixed (`7b75d81c`):** Square on a grip in Items segfaulted on the PC with or without
+  Lua: `_gripStatusView` (items1.h) writes the gem-slot count into a string literal (the decomp's "BUG: rodata
+  .write"), read-only on the host. Under `ROOD_PC` the buffer is a writable array (as MENUD's `_gripNavigation`
+  already does); commit-check All files match. It is not the Quick Manual crash: that one needed Lua's kinds on
+  (phase 2's fix), and this one is game code with the kinds off too.
+- **The Quick Manual crash, reproduced and located (not fixed):** with the Quick Manual (currentMenu 10) added to
+  the toured set for an experiment (not committed), ui_text_smoke's screens part crashed again on Vulkan at battle
+  frame 282 and button_roles_symbols_smoke failed its Quick Manual page, as on main after phase 2. The stack:
+  `DrawOTag` → `gpu_hw.c` text_run_flush → `ui_text.c` `pc_ui_text_layout_run` → `bubble_segments` (ui_text.c:1768) →
+  `pc_text_box_line` → `text_lines.c` `walk` (line 36, `c = *str++`). So a run of menu glyphs went down the talk
+  bubbles' whole-line path (`ui_text_bubble_align`: a run's first segment asks the text boxes for the line it
+  starts), and `pc_text_box_line` walked a text box whose `string` (or an inline `0xFF` string) is stale in the
+  Quick Manual: it walks every box with a non-null string, live or not. Two things to settle in that screen's tour:
+  why the Lua-drawn rows' glyphs reach the bubble path there (the game's own rows do not), and which box's string
+  is dangling (walk only boxes the game draws this frame). Items' rows do not take that path (the Items tour and
+  every gate suite are clean with the kinds on). What else was checked to differ on Items: its rows are the shared
+  rows (text inline in the record, `subText` a guest pointer kept valid by the live record, the scrollable rows'
+  statics keyed on the frame buffer, so a second emit in the same frame steps nothing), row icons at `unk8 + 4`
+  (now walked), materials and outset icons at `unk8`, no `vs_scratch` redirection in MENU3 or MENUE.
+- **Verification:** 64-bit and 32-bit (`--battle`) builds; Docker `make commit-check`: **All files match** (after
+  the items1.h change; formatter-only rewrites of 5BF94.c and 58EC.c discarded, build/ restored from main's copy).
+  `run.py classic_parity hud classic cutscene_player_smoke widescreen_smoke` plus every `manual`, `ui_`, `menu`,
+  `prompts`, `button`, `options`, `items`, `equip` suite: 40/40 on GL; 39/40 on Vulkan, the one failure
+  ui_system_smoke's settings-save debounce timing (0.99 s against 1 s, unrelated to menus), 1/1 on its rerun.
+  classic_parity in the gate now checks `menu_tabs` and `menu_background` too (its default kinds).
+- **Left for Items:** the screen's own drawing (still the game's): the status views' panels
+  (`_itemStatusDispatcher`'s weapon, blade, grip, shield, armor, gem, misc views: `vs_mainMenu_renderEquipStats`,
+  `vs_mainMenu_renderDpPpBars`, the class / affinity table, the gem-slot count), the category icons
+  (`_renderItemCategory`), the STATUS button strip, Ashley (`_renderAshley.h`; the 3D stays the game's), the equip
+  menus' stat panels; the information box is text box 7 (already Lua). Each needs `PC_CLASSIC` emit-only ranges in
+  MAINMENU / MENU3 sources, a model, look tables and the same gates. The list itself (rows, hand, scroll arrows,
+  counts, icons, materials) and Discard's Yes / No are the shared rows: done with piece 1.
 
 2026-10-28, afternoon (branch `classic-lua-phase2`, from main `dbbeb2aa`; no merge or publication):
 
@@ -583,7 +648,7 @@ separate plugin later).
 | Magick (+ Teleport) | MENU0 | `vs_menu0_exec` (15AC.c), `84.c` menus; rows via the shared frame | magick_bridge (modern); 4 `ROOD_PC` hooks | no | |
 | Break Arts | MENU1 | `vs_menu1_exec` (30.c) | abilities_bridge (modern) | no | |
 | Battle Abilities; unlock popup | MENU2 | `vs_menu2_exec` (64.c), `vs_menu2_actionUnlock` (143C.c) | abilities_bridge | no | |
-| Items (lists, status views, equip, sort, discard) | MENU3 | `vs_menu3_exec` (16C.c) + `items0/1/2.h`, `_renderAshley.h` | items_bridge, equip_bridge | no | |
+| Items (lists, status views, equip, sort, discard) | MENU3 | `vs_menu3_exec` (16C.c) + `items0/1/2.h`, `_renderAshley.h` | items_bridge, equip_bridge | the shared frame (rows, hand, title, tabs, background; 2026-10-28) | a grip's status view crashed (`7b75d81c`) |
 | Status / equipment detail | MENU4 | `vs_menu4_exec` → `_drawScreen` (120.c:2195), `_renderLimbUi`, `_renderBasicStats`, `_drawWeaponInfo`…; 3D actor MAINMENU 224.c | ashley_bridge; 1 hook | no | |
 | Map | MENU5 | `_renderScreen` (4D8.c:1007), `_renderMap`, `_renderCompass`, `_drawUIControls`, map labels | map_bridge frame; `_drawUIControls` anchored left; 16 hooks | no | the 3D map stays the game's |
 | Data: save/load card screens, save-container prompt, Game Over | MENU7 | `_drawFileMenu`, `_drawFileMenuElement`, `_printString` / `_printCharacter` (own printer), `_drawSprt`, `_drawHPMP`, `_displayGameOverScreen` | data_bridge (modern frame); 13 hooks; ui_text through `_printCharacter` | no | YES/NO split in 16:9 (`178969a4`) |
