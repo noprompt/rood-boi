@@ -80,9 +80,9 @@ extern float pc_relief_baked, pc_relief_indirect, pc_relief_reach, pc_relief_ove
  * (material_editor.cpp; not a setting). */
 extern int pc_auto_height_preview;
 /* The planes (PC_MATERIAL_MAP_H x PC_EMISSIVE_MAP_W bytes); returns whether
- * they changed since the last call (upload them). Valid after
- * pc_emissive_sync. */
-int pc_material_rows(const uint8_t** planes);
+ * they changed since the last call (upload them: rows [row0, row1) of each
+ * plane). Valid after pc_emissive_sync. */
+int pc_material_rows(const uint8_t** planes, int* row0, int* row1);
 /* Whether any drawn texel has a material (and the switch is on). */
 int pc_material_active(void);
 

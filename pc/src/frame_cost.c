@@ -8,6 +8,10 @@
 int pc_cost_on;
 static uint64_t sums[PC_COST_SECTIONS], counts[PC_COUNTERS];
 static uint64_t vsyncs, game_from;
+/* This vsync's sections: a frame whose game and presenting took more than
+ * SLOW_NS is logged with them (ROOD_PERF), to see what a hitch was doing. */
+static uint64_t frame[PC_COST_SECTIONS];
+#define SLOW_NS 12000000u
 static const char* const section_names[PC_COST_SECTIONS] = { "game", "host", "draw", "raster", "emissive", "upload",
     "readback", "gpu_copy", "fence_wait", "present", "debug_ppm" };
 static const char* const counter_names[PC_COUNTERS] = { "upload_kb", "uploads", "readbacks", "gpu_copies", "hashed_texels",
@@ -22,8 +26,11 @@ uint64_t pc_cost_clock(void)
 }
 void pc_cost_end(int section, uint64_t start)
 {
-    if (pc_cost_on && start)
-        sums[section] += pc_cost_clock() - start;
+    if (pc_cost_on && start) {
+        uint64_t spent = pc_cost_clock() - start;
+        sums[section] += spent;
+        frame[section] += spent;
+    }
 }
 void pc_cost_count(int counter, unsigned n)
 {
@@ -35,7 +42,9 @@ void pc_cost_vsync(void)
     if (!pc_cost_on)
         return;
     if (game_from) {
-        sums[PC_COST_GAME] += pc_cost_clock() - game_from;
+        uint64_t spent = pc_cost_clock() - game_from;
+        sums[PC_COST_GAME] += spent;
+        frame[PC_COST_GAME] += spent;
         ++vsyncs;
     }
     game_from = 0;
@@ -47,6 +56,15 @@ void pc_cost_game_resumes(uint64_t start)
     game_from = pc_cost_clock();
     if (start)
         sums[PC_COST_HOST] += game_from - start;
+    if (frame[PC_COST_GAME] + frame[PC_COST_PRESENT] > SLOW_NS) {
+        fprintf(stderr, "[perf] slow frame %llu:", (unsigned long long)vsyncs);
+        for (int i = 0; i < PC_COST_SECTIONS; i++)
+            if (i != PC_COST_HOST && frame[i] >= 100000u)
+                fprintf(stderr, " %s %.1f", section_names[i], (double)frame[i] * 1e-6);
+        fprintf(stderr, " ms\n");
+    }
+    for (int i = 0; i < PC_COST_SECTIONS; i++)
+        frame[i] = 0;
 }
 int pc_cost_json(char* out, int size, int reset, const char* extra)
 {

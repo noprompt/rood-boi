@@ -387,9 +387,18 @@ void pc_vk_hw_upload_emissive(const uint8_t* map, int row0, int row1)
     if (row1 > row0)
         upload_slot_rows(map + (size_t)row0 * PC_EMISSIVE_MAP_W, row0, row1 - row0);
 }
-void pc_vk_hw_upload_material(const uint8_t* planes)
+/* Material planes (emissive.h): rows [row0, row1) of each plane. */
+void pc_vk_hw_upload_material(const uint8_t* planes, int row0, int row1)
 {
-    upload_slot_rows(planes, PC_MATERIAL_ROW, PC_MATERIAL_MAP_H);
+    if (row1 <= row0)
+        return;
+    if (row0 == 0 && row1 == 512) {
+        upload_slot_rows(planes, PC_MATERIAL_ROW, PC_MATERIAL_MAP_H);
+        return;
+    }
+    for (int i = 0; i < PC_MATERIAL_PLANES; i++)
+        upload_slot_rows(planes + ((size_t)i * 512 + row0) * PC_EMISSIVE_MAP_W, PC_MATERIAL_ROW + i * 512 + row0,
+            row1 - row0);
 }
 
 /* ---- packet batches ---- */

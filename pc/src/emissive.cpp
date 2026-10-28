@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -772,6 +773,16 @@ bool save_user(std::string* error)
 /* ---------------------------------------------------------------- uses */
 
 namespace {
+/* A use's cells in the material planes (stamp_use): six bytes per texel of
+ * its box, the planes in order. Shared by every use of the same texture,
+ * palette colours and surface (stamp_cache). */
+struct MaterialStamp {
+    bool listed = false; /* it writes anything */
+    bool colours = false; /* it read the palette's colours (the relief estimate) */
+    bool painted = false, painted_metal = false;
+    int relief = 0;
+    std::vector<uint8_t> cells;
+};
 struct Use {
     uint16_t page, clut; /* tpage & 0x19f (page and colour depth), CLUT */
     uint8_t box[4]; /* u0, v0, u1, v1 */
@@ -784,6 +795,18 @@ struct Use {
      * row by row, then the CLUT's): an unmatched use is hashed again only
      * when this changed (same VRAM, same keys, same result). */
     std::vector<uint16_t> seen;
+    /* Its material (write_materials), kept while nothing it depends on
+     * changed: the entry that matched (resolved for material_serial from key
+     * mat_key and the palette's colours mat_clut), and the cells it writes
+     * (for material_stamps). listed: it writes anything (info: its line in
+     * material_list). */
+    std::string mat_key, mat_id;
+    std::vector<uint16_t> mat_clut;
+    materials::Surface mat_value;
+    uint32_t mat_serial = 0, stamped = 0;
+    bool mat_found = false, listed = false;
+    MaterialUse info;
+    std::shared_ptr<const MaterialStamp> stamp;
 };
 std::unordered_map<uint64_t, Use> uses;
 std::unordered_map<uint64_t, std::vector<uint64_t>> instance_uses; /* instance key -> uses */
@@ -841,6 +864,40 @@ int material_zone = -1, material_room = -1, material_on = -1;
 float applied_relief[3] = { -1, -1, -1 }; /* the estimate's switch, strength, preview the planes have */
 int material_uses, material_cells;
 std::vector<MaterialUse> material_list;
+/* What the uses' cached materials were resolved and stamped for (Use::mat_*,
+ * stamp): bumped by a catalog or room change, and by painted maps or the
+ * relief settings. */
+uint32_t material_serial = 1, material_stamps = 1, resolved_catalog;
+/* The boxes whose cells changed since the planes were written (a use's key,
+ * or a use gone): update_materials rewrites only those cells. */
+struct MaterialArea {
+    uint16_t page;
+    uint8_t box[4];
+};
+std::vector<MaterialArea> material_areas;
+std::vector<uint16_t> material_count; /* per cell: the writes that found it without a material (material_cells) */
+std::vector<uint8_t> material_mask; /* the cells update_materials rewrites */
+/* Stamps by texture key, palette colours and surface (for material_stamps;
+ * a palette cycling through its colours finds its earlier ones), and the
+ * palette keys by CLUT (its colours when hashed). */
+std::unordered_map<std::string, std::shared_ptr<const MaterialStamp>> stamp_cache;
+size_t stamp_cache_bytes;
+struct PaletteKey {
+    bool set = false;
+    std::vector<uint16_t> colours;
+    std::string key;
+};
+std::unordered_map<uint32_t, PaletteKey> palette_keys;
+/* find_match's answers by texture key, size and palette key (for
+ * material_serial: many uses draw the same texture with the same palette). */
+struct Resolved {
+    bool found = false;
+    materials::Surface value;
+    std::string id;
+};
+std::unordered_map<std::string, Resolved> resolved;
+uint32_t resolved_serial;
+int material_row0 = 0, material_row1 = 512; /* rows of each plane changed since the upload */
 
 uint64_t use_key(unsigned page, unsigned clut, const uint8_t box[4])
 {
@@ -1225,9 +1282,23 @@ std::vector<std::array<float, 9>> texture_triangles(const std::string& clut, con
     }
     return out;
 }
+/* A use's CLUT (16 or 256 entries; none at 16 bits) as runs of halfwords. */
+template <typename F> static void clut_runs(const Use& u, F run)
+{
+    const uint16_t* vram = pc_native_vram();
+    int depth = (int)((u.page >> 7) & 3);
+    if (!vram || depth >= 2)
+        return;
+    int cx = (int)(u.clut & 63) * 16, cy = (int)((u.clut >> 6) & 511), n = depth == 0 ? 16 : 256;
+    const uint16_t* row = vram + (size_t)cy * 1024;
+    int first = std::min(n, 1024 - cx);
+    run(row + cx, first);
+    if (first < n)
+        run(row, n - first);
+}
 /* The VRAM a use's keys read (Use::seen), visited as runs of halfwords:
  * the rows of its texels, then the CLUT (16 or 256 entries; none at 16 bits). */
-template <typename F> static void use_vram(const Use& u, F run)
+template <typename F> static void texel_runs(const Use& u, F run)
 {
     const uint16_t* vram = pc_native_vram();
     if (!vram)
@@ -1243,14 +1314,13 @@ template <typename F> static void use_vram(const Use& u, F run)
             x += n;
         }
     }
-    if (depth < 2) {
-        int cx = (int)(u.clut & 63) * 16, cy = (int)((u.clut >> 6) & 511), n = depth == 0 ? 16 : 256;
-        const uint16_t* row = vram + (size_t)cy * 1024;
-        int first = std::min(n, 1024 - cx);
-        run(row + cx, first);
-        if (first < n)
-            run(row, n - first);
-    }
+}
+template <typename F> static void use_vram(const Use& u, F run)
+{
+    if (!pc_native_vram())
+        return;
+    texel_runs(u, run);
+    clut_runs(u, run);
 }
 static void remember_vram(Use& u)
 {
@@ -1270,6 +1340,36 @@ static bool vram_unchanged(const Use& u)
     });
     return same && at == u.seen.size();
 }
+/* Whether the texels (not the CLUT) of a use's Use::seen are VRAM's still:
+ * then its key (of their indices) is the same. */
+static bool texels_unchanged(const Use& u)
+{
+    if (u.seen.empty() || !pc_native_vram())
+        return false;
+    size_t at = 0;
+    bool same = true;
+    texel_runs(u, [&](const uint16_t* p, int n) {
+        if (same && (at + (size_t)n > u.seen.size() || memcmp(p, u.seen.data() + at, (size_t)n * 2)))
+            same = false;
+        at += (size_t)n;
+    });
+    return same;
+}
+/* ROOD_MATERIAL_CHECK=1: the planes' incremental writes are checked
+ * (check_materials), and the keys kept when only a CLUT changed. */
+static bool material_check()
+{
+    static const bool on = getenv("ROOD_MATERIAL_CHECK") && atoi(getenv("ROOD_MATERIAL_CHECK"));
+    return on;
+}
+/* A use's cells changed (its key, or it is gone): update_materials. */
+static void note_material(const Use& u)
+{
+    MaterialArea a;
+    a.page = u.page;
+    memcpy(a.box, u.box, 4);
+    material_areas.push_back(a);
+}
 static void match_use(Use& u)
 {
     u.state = 1;
@@ -1277,17 +1377,20 @@ static void match_use(Use& u)
     int w1 = u.box[2] - u.box[0], h1 = u.box[3] - u.box[1];
     if (!sizes.count(w1 << 8 | h1) && !materials::catalog_has_palette_entries()) {
         if (!u.key.empty())
-            materials_changed = true;
+            note_material(u);
         u.key.clear();
         u.seen.clear();
         return;
     }
     std::string was = u.key;
-    u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
+    if (u.key.empty() || !texels_unchanged(u)) { /* (only its CLUT changed: a palette animation) */
+        u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
+        pc_cost_count(PC_COUNT_HASHED, (unsigned)((w1 + 1) * (h1 + 1)));
+    } else if (material_check() && u.key != content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]))
+        fprintf(stderr, "[materials] check: a kept key differs\n");
     if (u.key != was && materials::catalog_has_size(w1 + 1, h1 + 1))
-        materials_changed = true; /* (the material planes: write_materials) */
+        note_material(u); /* (the material planes: update_materials) */
     remember_vram(u);
-    pc_cost_count(PC_COUNT_HASHED, (unsigned)((w1 + 1) * (h1 + 1)));
     const Catalog& c = catalog();
     std::string ck;
     for (size_t i = 0; i < c.entries.size(); i++) {
@@ -1324,10 +1427,10 @@ static bool relief_changed()
  * (dark seams and gaps low, bright faces high), times auto_height_strength.
  * Both times the entry's bump. Transparent texels take the median. Returns
  * 0 (no relief), 1 (painted) or 2 (estimated). */
-static int use_heights(const Use* u, const materials::Entry* e, int w, int h, std::vector<float>& out)
+static int use_heights(const Use* u, const materials::Surface& value, int w, int h, std::vector<float>& out)
 {
     out.clear();
-    float bump = e->value.bump;
+    float bump = value.bump;
     const materials::Channel* map = materials::channel(u->key, "height");
     if (map && map->w == w && map->h == h) {
         out.resize((size_t)w * h);
@@ -1336,7 +1439,7 @@ static int use_heights(const Use* u, const materials::Entry* e, int w, int h, st
         return 1;
     }
     float strength = std::clamp(pc_auto_height_strength, 0.0f, 2.0f);
-    if (!((e->value.auto_height && pc_auto_height) || pc_auto_height_preview) || strength <= 0 || bump <= 0)
+    if (!((value.auto_height && pc_auto_height) || pc_auto_height_preview) || strength <= 0 || bump <= 0)
         return 0;
     out.assign((size_t)w * h, -1.0f);
     std::vector<float> seen;
@@ -1352,8 +1455,13 @@ static int use_heights(const Use* u, const materials::Entry* e, int w, int h, st
         }
     if (seen.size() < 2)
         return out.clear(), 0;
-    std::sort(seen.begin(), seen.end());
-    float lo = seen[seen.size() * 5 / 100], hi = seen[seen.size() * 95 / 100], mid = seen[seen.size() / 2];
+    /* (the three ranks a sort would put there; mid first, then each side) */
+    size_t n = seen.size(), at_lo = n * 5 / 100, at_mid = n / 2, at_hi = n * 95 / 100;
+    std::nth_element(seen.begin(), seen.begin() + at_mid, seen.end());
+    std::nth_element(seen.begin(), seen.begin() + at_lo, seen.begin() + at_mid);
+    if (at_hi > at_mid)
+        std::nth_element(seen.begin() + at_mid + 1, seen.begin() + at_hi, seen.end());
+    float lo = seen[at_lo], hi = seen[at_hi], mid = seen[at_mid];
     float span = hi - lo;
     if (span < 1.0f / 62.0f)
         return out.clear(), 0; /* flat colour: no relief to estimate */
@@ -1362,115 +1470,369 @@ static int use_heights(const Use* u, const materials::Entry* e, int w, int h, st
     return 2;
 }
 
-/* The material planes: every use whose texture a material entry names (by
- * content key, size, palette and room), its box's cells written with the
- * entry's fractions (x 255), roughness and metal from its painted
- * roughness.png and metal.png when they are the box's size, and its relief
- * (use_heights): the slopes along u and v (a Sobel filter, edges clamped to
- * the box) and the cavity (how far a texel sits below its eight
- * neighbours' mean). Unnamed cells: roughness 255, the rest 0, which the
- * draw shaders treat as no material. */
-static void write_materials()
+/* The cells of a box of a page in the planes: f(at, i) per texel (i: its
+ * index in the box, row by row). */
+template <typename F> static void box_cells(unsigned page, const uint8_t box[4], F f)
 {
-    material_planes.assign((size_t)PC_MATERIAL_MAP_H * PC_EMISSIVE_MAP_W, 0);
-    memset(material_planes.data(), 255, (size_t)512 * PC_EMISSIVE_MAP_W);
-    material_uses = material_cells = 0;
+    int tx = (int)(page & 15) * 64, ty = (int)((page >> 4) & 1) * 256;
+    int depth = std::min((int)((page >> 7) & 3), 2);
+    int w = box[2] - box[0] + 1;
+    for (int y = box[1]; y <= box[3]; y++)
+        for (int x = box[0]; x <= box[2]; x++)
+            f((size_t)(ty + y) * PC_EMISSIVE_MAP_W + ((tx * 4 + (x << depth)) & 4095),
+                (size_t)(y - box[1]) * w + (x - box[0]));
+}
+/* Whether two boxes' cells can meet: their rows overlap, and their columns
+ * (a span from the first, wrapping at the planes' width) do. */
+static bool boxes_meet(unsigned pa, const uint8_t a[4], unsigned pb, const uint8_t b[4])
+{
+    auto span = [](unsigned page, const uint8_t box[4], int* row0, int* row1, int* col, int* len) {
+        int depth = std::min((int)((page >> 7) & 3), 2);
+        *row0 = (int)((page >> 4) & 1) * 256 + box[1], *row1 = *row0 + box[3] - box[1];
+        *col = ((int)(page & 15) * 256 + (box[0] << depth)) & 4095, *len = ((box[2] - box[0]) << depth) + 1;
+    };
+    int ar0, ar1, ac, al, br0, br1, bc, bl;
+    span(pa, a, &ar0, &ar1, &ac, &al), span(pb, b, &br0, &br1, &bc, &bl);
+    return ar0 <= br1 && br0 <= ar1 && (((bc - ac) & 4095) < al || ((ac - bc) & 4095) < bl);
+}
+static bool same_surface(const materials::Surface& a, const materials::Surface& b)
+{
+    return a.roughness == b.roughness && a.specular == b.specular && a.metal == b.metal
+        && a.auto_height == b.auto_height && a.bump == b.bump;
+}
+static bool clut_unchanged(const Use& u)
+{
+    size_t at = 0;
+    bool same = true;
+    clut_runs(u, [&](const uint16_t* p, int n) {
+        if (same && (at + (size_t)n > u.mat_clut.size() || memcmp(p, u.mat_clut.data() + at, (size_t)n * 2)))
+            same = false;
+        at += (size_t)n;
+    });
+    return same && at == u.mat_clut.size();
+}
+/* clut_key of a use's palette (`colours`: its CLUT now), hashed once per
+ * CLUT and colours. */
+static const std::string& palette_key(const Use& u, const std::vector<uint16_t>& colours)
+{
+    PaletteKey& k = palette_keys[(uint32_t)((u.page >> 7) & 3) << 16 | u.clut];
+    if (!k.set || k.colours != colours)
+        k.set = true, k.colours = colours, k.key = clut_key(u.page, u.clut);
+    return k.key;
+}
+/* A use's material entry (by content key, size, palette and room), from its
+ * cache while its key, its palette's colours and material_serial (the
+ * catalog, the room) are the same; `fresh`: resolved again regardless.
+ * Returns whether one matched; *changed: whether its cells may have (the
+ * entry, or the colours its stamp read): they are stamped again. */
+static bool resolve_material(Use& u, bool fresh, bool* changed)
+{
+    *changed = false;
+    if (!fresh && u.mat_serial == material_serial && u.mat_key == u.key && clut_unchanged(u))
+        return u.mat_found;
+    int w = u.box[2] - u.box[0] + 1, h = u.box[3] - u.box[1] + 1;
+    std::vector<uint16_t> clut;
+    clut_runs(u, [&](const uint16_t* p, int n) { clut.insert(clut.end(), p, p + n); });
+    if (resolved_serial != material_serial)
+        resolved.clear(), resolved_serial = material_serial;
+    Resolved fresh_one, *r = &fresh_one;
+    if (materials::catalog_has_size(w, h)) {
+        bool palette = materials::catalog_needs_clut(u.key); /* (palette entries too) */
+        std::string id = u.key + (char)(w - 1) + (char)(h - 1) + (palette ? palette_key(u, clut) : "");
+        auto it = resolved.find(id);
+        if (fresh || it == resolved.end()) {
+            const materials::Entry* e = materials::find_match(u.key, w, h, palette ? palette_key(u, clut) : "",
+                material_zone, material_room);
+            r = &resolved[id];
+            r->found = e != nullptr;
+            if (e)
+                r->value = e->value, r->id = e->id;
+        } else
+            r = &it->second;
+    }
+    *changed = u.mat_key != u.key || u.mat_found != r->found
+        || (r->found && (!same_surface(u.mat_value, r->value) || u.mat_id != r->id))
+        || (u.mat_clut != clut && (!u.stamp || u.stamp->colours));
+    if (*changed)
+        u.stamped = 0;
+    u.mat_key = u.key, u.mat_clut.swap(clut), u.mat_serial = material_serial, u.mat_found = r->found;
+    if (r->found)
+        u.mat_value = r->value, u.mat_id = r->id;
+    return r->found;
+}
+
+/* A use's cells (MaterialStamp) from its entry: the entry's fractions
+ * (x 255), roughness and metal from its painted roughness.png and metal.png
+ * when they are the box's size, and its relief (use_heights): the slopes
+ * along u and v (a Sobel filter, edges clamped to the box) and the cavity
+ * (how far a texel sits below its eight neighbours' mean). */
+static void make_stamp(const Use& u, MaterialStamp& out)
+{
+    const materials::Surface& v = u.mat_value;
+    int w = u.box[2] - u.box[0] + 1, h = u.box[3] - u.box[1] + 1;
+    const materials::Channel* map = materials::channel(u.key, "roughness");
+    if (map && (map->w != w || map->h != h))
+        map = nullptr; /* never stretched (pc/docs/Materials.md) */
+    const materials::Channel* metal_map = materials::channel(u.key, "metal");
+    if (metal_map && (metal_map->w != w || metal_map->h != h))
+        metal_map = nullptr;
+    const materials::Channel* height_map = materials::channel(u.key, "height");
+    std::vector<float> heights;
+    int relief = use_heights(&u, v, w, h, heights);
+    /* (anything but a painted height map, when the estimate was tried) */
+    out.colours = !(height_map && height_map->w == w && height_map->h == h)
+        && ((v.auto_height && pc_auto_height) || pc_auto_height_preview);
+    uint8_t s = (uint8_t)std::clamp((int)lroundf(v.specular * 255.0f), 0, 255);
+    uint8_t m = (uint8_t)std::clamp((int)lroundf(v.metal * 255.0f), 0, 255);
+    uint8_t r = (uint8_t)std::clamp((int)lroundf(v.roughness * 255.0f), 0, 255);
+    if (!s && !m && !metal_map && !relief)
+        return;
+    out.listed = true;
+    out.painted = map != nullptr;
+    out.painted_metal = metal_map != nullptr;
+    out.relief = relief;
+    out.cells.assign((size_t)w * h * PC_MATERIAL_PLANES, 0);
+    auto height = [&](int x, int y) {
+        return heights[(size_t)std::clamp(y, 0, h - 1) * w + std::clamp(x, 0, w - 1)];
+    };
+    for (int by = 0; by < h; by++)
+        for (int bx = 0; bx < w; bx++) {
+            size_t i = (size_t)by * w + bx;
+            uint8_t* c = &out.cells[i * PC_MATERIAL_PLANES]; /* roughness, specular, metal, slopes, cavity */
+            c[0] = map ? map->values[i] : r;
+            c[1] = s, c[2] = metal_map ? metal_map->values[i] : m;
+            if (relief) {
+                float gx = (height(bx + 1, by - 1) + 2 * height(bx + 1, by) + height(bx + 1, by + 1)
+                               - height(bx - 1, by - 1) - 2 * height(bx - 1, by) - height(bx - 1, by + 1)) / 8.0f;
+                float gy = (height(bx - 1, by + 1) + 2 * height(bx, by + 1) + height(bx + 1, by + 1)
+                               - height(bx - 1, by - 1) - 2 * height(bx, by - 1) - height(bx + 1, by - 1)) / 8.0f;
+                float around = 0;
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                        around += dx || dy ? height(bx + dx, by + dy) : 0.0f;
+                float sunk = std::clamp((around / 8.0f - height(bx, by)) * 2.0f, 0.0f, 1.0f);
+                c[3] = (uint8_t)std::clamp((int)lroundf(128.0f + gx * 63.5f), 1, 255);
+                c[4] = (uint8_t)std::clamp((int)lroundf(128.0f + gy * 63.5f), 1, 255);
+                c[5] = (uint8_t)lroundf(sunk * 255.0f);
+            }
+        }
+}
+/* A use's stamp and its line in material_list: kept while material_stamps
+ * is, else found in stamp_cache (the same texture key, palette colours and
+ * surface: the same cells) or made (`fresh`: made again regardless). */
+static void stamp_use(Use& u, bool fresh)
+{
+    if (!fresh && u.stamped == material_stamps && u.stamp)
+        return;
+    u.stamped = material_stamps;
+    const materials::Surface& v = u.mat_value;
+    std::string id = u.key;
+    id.append((const char*)u.mat_clut.data(), u.mat_clut.size() * 2);
+    const float fields[4] = { v.roughness, v.specular, v.metal, v.bump };
+    id.append((const char*)fields, sizeof fields);
+    id.push_back(v.auto_height ? 1 : 0);
+    auto found = fresh ? stamp_cache.end() : stamp_cache.find(id);
+    if (found != stamp_cache.end())
+        u.stamp = found->second;
+    else {
+        auto made = std::make_shared<MaterialStamp>();
+        make_stamp(u, *made);
+        if (stamp_cache_bytes > ((size_t)64 << 20))
+            stamp_cache.clear(), stamp_cache_bytes = 0;
+        stamp_cache_bytes += made->cells.size() + id.size();
+        stamp_cache[id] = made;
+        u.stamp = made;
+    }
+    u.listed = u.stamp->listed;
+    if (!u.listed)
+        return;
+    MaterialUse& info = u.info;
+    info.key = u.key, info.entry = u.mat_id, info.page = u.page, info.clut = u.clut;
+    memcpy(info.box, u.box, 4);
+    info.painted = u.stamp->painted;
+    info.painted_metal = u.stamp->painted_metal;
+    info.relief = u.stamp->relief;
+}
+/* Writes a use's cells into the planes: all of them, or those `mask` marks. */
+static void write_use(const Use& u, const uint8_t* mask)
+{
+    if (!u.listed)
+        return;
+    const size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
+    uint8_t* p = material_planes.data();
+    const uint8_t* stamp = u.stamp->cells.data();
+    box_cells(u.page, u.box, [&](size_t at, size_t i) {
+        if (mask && !mask[at])
+            return;
+        const uint8_t* c = stamp + i * PC_MATERIAL_PLANES;
+        bool bare = p[plane + at] == 0 && p[2 * plane + at] == 0 && p[3 * plane + at] == 0;
+        material_count[at] += bare, material_cells += bare;
+        for (int k = 0; k < PC_MATERIAL_PLANES; k++)
+            p[k * plane + at] = c[k];
+    });
+}
+/* The uses with a material, resolved (`note`: those whose result changed are
+ * noted in material_areas), in a stable order (two boxes over the same
+ * texels: the same result every time). */
+static std::vector<Use*> material_order(bool fresh, bool note)
+{
+    std::vector<Use*> order;
+    for (auto& kv : uses) {
+        Use& u = kv.second;
+        if (u.key.empty())
+            continue;
+        bool was = u.mat_found, changed;
+        std::shared_ptr<const MaterialStamp> before = u.stamp;
+        bool found = resolve_material(u, fresh, &changed);
+        if (note && changed && was && found && before) {
+            stamp_use(u, false); /* (the same cells, as a palette steps: nothing to write) */
+            const MaterialStamp &a = *before, &b = *u.stamp;
+            if (&a == &b || (a.listed == b.listed && a.cells == b.cells))
+                changed = false;
+        }
+        if (note && changed && (found || was))
+            note_material(u);
+        if (found)
+            order.push_back(&u);
+    }
+    std::sort(order.begin(), order.end(), [](const Use* x, const Use* y) {
+        return std::make_tuple(x->page, x->clut, x->box[0], x->box[1], x->box[2], x->box[3])
+            < std::make_tuple(y->page, y->clut, y->box[0], y->box[1], y->box[2], y->box[3]);
+    });
+    return order;
+}
+static void list_materials(const std::vector<Use*>& order)
+{
     material_list.clear();
-    any_material = false;
+    for (Use* u : order) {
+        stamp_use(*u, false);
+        if (u->listed)
+            material_list.push_back(u->info);
+    }
+    material_uses = (int)material_list.size();
+    any_material = material_uses > 0;
+}
+
+/* The material planes: every use whose texture a material entry names (by
+ * content key, size, palette and room), its box's cells written with its
+ * stamp (stamp_use), in order. Unnamed cells: roughness 255, the rest 0,
+ * which the draw shaders treat as no material. The uses' entries and cells
+ * come from their caches unless what they depend on changed (`fresh`: all
+ * made again, ROOD_MATERIAL_CHECK). */
+static void write_materials(bool fresh = false)
+{
+    int zone = material_zone, room = material_room;
+    if (materials::generation() != applied_material_maps || relief_changed()) {
+        ++material_stamps; /* painted maps or the estimate's settings: every use's cells again */
+        stamp_cache.clear(), stamp_cache_bytes = 0;
+    }
     applied_material_maps = materials::generation();
     applied_relief[0] = (float)pc_auto_height, applied_relief[1] = pc_auto_height_strength;
     applied_relief[2] = (float)pc_auto_height_preview;
     current_room(&material_zone, &material_room);
+    uint32_t catalog = materials::catalog_generation();
+    if (catalog != resolved_catalog || zone != material_zone || room != material_room)
+        ++material_serial; /* every use's entry again */
+    resolved_catalog = catalog;
+    const size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
+    material_planes.assign((size_t)PC_MATERIAL_MAP_H * PC_EMISSIVE_MAP_W, 0);
+    memset(material_planes.data(), 255, plane);
+    material_count.assign(plane, 0);
+    material_uses = material_cells = 0;
+    material_list.clear();
+    any_material = false;
+    material_areas.clear();
+    material_row0 = 0, material_row1 = 512;
     material_on = pc_specular != 0;
     if (!material_on)
         return;
-    std::vector<std::pair<const Use*, const materials::Entry*>> order;
-    const std::vector<materials::Entry> entries = materials::catalog_entries();
-    for (auto& kv : uses) {
-        const Use& u = kv.second;
-        if (u.key.empty())
-            continue;
-        int w = u.box[2] - u.box[0] + 1, h = u.box[3] - u.box[1] + 1;
-        if (!materials::catalog_has_size(w, h))
-            continue;
-        const materials::Entry* e = materials::find_match(u.key, w, h, "", material_zone, material_room);
-        bool needs_clut = false;
-        for (const materials::Entry& x : entries)
-            needs_clut |= (x.key == u.key || x.key.empty()) && !x.clut.empty(); /* palette entries too */
-        if (needs_clut)
-            e = materials::find_match(u.key, w, h, clut_key(u.page, u.clut), material_zone, material_room);
-        if (e)
-            order.push_back({ &u, e });
+    std::vector<Use*> order = material_order(fresh, false);
+    for (Use* u : order) {
+        stamp_use(*u, fresh);
+        write_use(*u, nullptr);
     }
-    /* A stable order (two boxes over the same texels: the same result every time). */
-    std::sort(order.begin(), order.end(), [](const auto& a, const auto& b) {
-        const Use *x = a.first, *y = b.first;
-        return std::make_tuple(x->page, x->clut, x->box[0], x->box[1], x->box[2], x->box[3])
-            < std::make_tuple(y->page, y->clut, y->box[0], y->box[1], y->box[2], y->box[3]);
-    });
+    list_materials(order);
+}
+/* The planes after some uses' cells changed (material_areas, and a use whose
+ * palette's colours did): only the cells of those boxes are written again,
+ * cleared and then every use over them in order, clipped to them, just as
+ * write_materials writes them. Many at once: all of them. */
+static void update_materials()
+{
+    if (!material_on) {
+        material_areas.clear();
+        return;
+    }
+    if (material_planes.empty() || materials::catalog_generation() != resolved_catalog
+        || materials::generation() != applied_material_maps)
+        return write_materials();
+    std::vector<Use*> order = material_order(false, true);
+    if (material_areas.size() > 512)
+        return write_materials();
     const size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
-    uint8_t* rough = material_planes.data();
-    uint8_t* spec = rough + plane;
-    uint8_t* metal = spec + plane;
-    uint8_t* slope_u = metal + plane;
-    uint8_t* slope_v = slope_u + plane;
-    uint8_t* cavity = slope_v + plane;
-    std::vector<float> heights;
-    for (const auto& item : order) {
-        const Use* u = item.first;
-        const materials::Surface& v = item.second->value;
-        int w = u->box[2] - u->box[0] + 1, h = u->box[3] - u->box[1] + 1;
-        const materials::Channel* map = materials::channel(u->key, "roughness");
-        if (map && (map->w != w || map->h != h))
-            map = nullptr; /* never stretched (pc/docs/Materials.md) */
-        const materials::Channel* metal_map = materials::channel(u->key, "metal");
-        if (metal_map && (metal_map->w != w || metal_map->h != h))
-            metal_map = nullptr;
-        int relief = use_heights(u, item.second, w, h, heights);
-        uint8_t s = (uint8_t)std::clamp((int)lroundf(v.specular * 255.0f), 0, 255);
-        uint8_t m = (uint8_t)std::clamp((int)lroundf(v.metal * 255.0f), 0, 255);
-        uint8_t r = (uint8_t)std::clamp((int)lroundf(v.roughness * 255.0f), 0, 255);
-        if (!s && !m && !metal_map && !relief)
-            continue;
-        ++material_uses;
-        MaterialUse info;
-        info.key = u->key, info.entry = item.second->id, info.page = u->page, info.clut = u->clut;
-        memcpy(info.box, u->box, 4);
-        info.painted = map != nullptr;
-        info.painted_metal = metal_map != nullptr;
-        info.relief = relief;
-        material_list.push_back(info);
-        int tx = (int)(u->page & 15) * 64, ty = (int)((u->page >> 4) & 1) * 256;
-        int depth = std::min((int)((u->page >> 7) & 3), 2);
-        auto height = [&](int x, int y) {
-            return heights[(size_t)std::clamp(y, 0, h - 1) * w + std::clamp(x, 0, w - 1)];
-        };
-        for (int y = u->box[1]; y <= u->box[3]; y++)
-            for (int x = u->box[0]; x <= u->box[2]; x++) {
-                size_t at = (size_t)(ty + y) * PC_EMISSIVE_MAP_W + ((tx * 4 + (x << depth)) & 4095);
-                size_t i = (size_t)(y - u->box[1]) * w + (x - u->box[0]);
-                material_cells += spec[at] == 0 && metal[at] == 0 && slope_u[at] == 0;
-                rough[at] = map ? map->values[i] : r;
-                spec[at] = s, metal[at] = metal_map ? metal_map->values[i] : m;
-                slope_u[at] = slope_v[at] = cavity[at] = 0;
-                if (relief) {
-                    int bx = x - u->box[0], by = y - u->box[1];
-                    float gx = (height(bx + 1, by - 1) + 2 * height(bx + 1, by) + height(bx + 1, by + 1)
-                                   - height(bx - 1, by - 1) - 2 * height(bx - 1, by) - height(bx - 1, by + 1)) / 8.0f;
-                    float gy = (height(bx - 1, by + 1) + 2 * height(bx, by + 1) + height(bx + 1, by + 1)
-                                   - height(bx - 1, by - 1) - 2 * height(bx, by - 1) - height(bx + 1, by - 1)) / 8.0f;
-                    float around = 0;
-                    for (int dy = -1; dy <= 1; dy++)
-                        for (int dx = -1; dx <= 1; dx++)
-                            around += dx || dy ? height(bx + dx, by + dy) : 0.0f;
-                    float sunk = std::clamp((around / 8.0f - height(bx, by)) * 2.0f, 0.0f, 1.0f);
-                    slope_u[at] = (uint8_t)std::clamp((int)lroundf(128.0f + gx * 63.5f), 1, 255);
-                    slope_v[at] = (uint8_t)std::clamp((int)lroundf(128.0f + gy * 63.5f), 1, 255);
-                    cavity[at] = (uint8_t)lroundf(sunk * 255.0f);
-                }
-            }
+    if (material_mask.size() != plane)
+        material_mask.assign(plane, 0);
+    uint8_t* p = material_planes.data();
+    for (const MaterialArea& a : material_areas) {
+        box_cells(a.page, a.box, [&](size_t at, size_t) {
+            if (material_mask[at])
+                return;
+            material_mask[at] = 1;
+            material_cells -= material_count[at], material_count[at] = 0;
+            p[at] = 255;
+            for (int k = 1; k < PC_MATERIAL_PLANES; k++)
+                p[k * plane + at] = 0;
+        });
+        int row0 = (int)((a.page >> 4) & 1) * 256 + a.box[1];
+        material_row0 = std::min(material_row0, row0);
+        material_row1 = std::max(material_row1, row0 + a.box[3] - a.box[1] + 1);
     }
-    any_material = material_uses > 0;
+    for (Use* u : order) {
+        bool meets = false;
+        for (size_t i = 0; i < material_areas.size() && !meets; i++)
+            meets = boxes_meet(u->page, u->box, material_areas[i].page, material_areas[i].box);
+        if (!meets)
+            continue;
+        stamp_use(*u, false);
+        write_use(*u, material_mask.data());
+    }
+    for (const MaterialArea& a : material_areas)
+        box_cells(a.page, a.box, [&](size_t at, size_t) { material_mask[at] = 0; });
+    material_areas.clear();
+    list_materials(order);
+}
+/* ROOD_MATERIAL_CHECK=1: every write of the planes is compared with a
+ * rebuild from nothing (no cached entries or cells); differences are logged. */
+static void check_materials()
+{
+    static int checks, mismatched;
+    std::vector<uint8_t> planes = material_planes;
+    std::vector<MaterialUse> list = material_list;
+    int cells = material_cells;
+    bool any = any_material;
+    write_materials(true);
+    size_t differ = 0, first = 0;
+    for (size_t i = 0; i < planes.size() && i < material_planes.size(); i++)
+        if (planes[i] != material_planes[i] && !differ++)
+            first = i;
+    bool same_list = list.size() == material_list.size();
+    for (size_t i = 0; same_list && i < list.size(); i++) {
+        const MaterialUse &a = list[i], &b = material_list[i];
+        same_list = a.key == b.key && a.entry == b.entry && a.page == b.page && a.clut == b.clut
+            && !memcmp(a.box, b.box, 4) && a.painted == b.painted && a.painted_metal == b.painted_metal
+            && a.relief == b.relief;
+    }
+    ++checks;
+    if (differ || !same_list || cells != material_cells || any != any_material
+        || planes.size() != material_planes.size()) {
+        ++mismatched;
+        fprintf(stderr,
+            "[materials] check %d: %zu bytes differ (first: plane %zu row %zu column %zu), list %s, cells %d vs %d\n",
+            checks, differ, first / ((size_t)512 * PC_EMISSIVE_MAP_W), first / PC_EMISSIVE_MAP_W % 512,
+            first % PC_EMISSIVE_MAP_W, same_list ? "same" : "differs", cells, material_cells);
+    }
+    if (checks % 100 == 0)
+        fprintf(stderr, "[materials] check: %d writes, %d mismatched\n", checks, mismatched);
 }
 
 uint32_t map_serial() { return map_generation; }
@@ -1555,7 +1917,7 @@ extern "C" void pc_emissive_mesh_gone(uint32_t mesh)
             if (it->second.entry >= 0)
                 marks_changed = true;
             if (!it->second.key.empty())
-                materials_changed = true;
+                note_material(it->second);
             uses.erase(it);
         }
         instance_uses.erase(ii);
@@ -1726,8 +2088,13 @@ extern "C" int pc_emissive_sync(int* row0, int* row1)
             || materials::generation() != applied_material_maps || relief_changed())
             materials_changed = true;
     }
-    if (materials_changed) {
-        write_materials();
+    if (materials_changed || !material_areas.empty()) {
+        if (materials_changed)
+            write_materials();
+        else
+            update_materials(); /* (only the cells of the uses that changed) */
+        if (material_check())
+            check_materials();
         material_dirty = true;
         materials_changed = false;
     }
@@ -1760,13 +2127,16 @@ extern "C" int pc_emissive_pending(void)
     return loaded && (applied_generation != catalog_generation || (strength > 0) != marks_on);
 }
 extern "C" int pc_emissive_active(void) { return any_marks && pc_emissive > 0; }
-extern "C" int pc_material_rows(const uint8_t** planes)
+extern "C" int pc_material_rows(const uint8_t** planes, int* row0, int* row1)
 {
     if (material_planes.empty())
         write_materials();
     *planes = material_planes.data();
+    *row0 = material_row0, *row1 = material_row1;
     bool dirty = material_dirty;
     material_dirty = false;
+    if (dirty)
+        material_row0 = 512, material_row1 = 0;
     return dirty;
 }
 extern "C" int pc_material_active(void) { return any_material && pc_specular != 0; }

@@ -74,6 +74,10 @@ const Entry* find_match(const std::string& key, int w, int h, const std::string&
 bool catalog_has_size(int w, int h);
 /* Whether any entry matches by palette alone (no key): then every size counts. */
 bool catalog_has_palette_entries();
+/* Whether matching a texture of this key needs its palette's key (an entry
+ * names the key with a palette, or a palette entry exists). Like
+ * catalog_has_size, as of the catalog's last read (no stat calls). */
+bool catalog_needs_clut(const std::string& key);
 /* Changes whenever either catalog file changed on disk (checks their stamps:
  * two stat calls). */
 uint32_t catalog_generation();
@@ -143,7 +147,7 @@ std::vector<Present> channels(const std::string& key);
  * appeared, or went; poll() checks: cheap, a stat per file) and at once when
  * pc_materials_baked is switched. */
 uint32_t generation();
-void poll();
+void poll(); /* (a slice of the files per call, at most every 50 ms) */
 void forget(); /* reload everything on the next look */
 void reload(); /* forget(), and read both catalog files again */
 

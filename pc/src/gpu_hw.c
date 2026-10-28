@@ -1728,8 +1728,9 @@ static void emissive_sync(void)
         if (r1 > r0)
             pc_vk_hw_upload_emissive(map, r0, r1);
         const uint8_t* planes = NULL;
-        if (pc_material_rows(&planes))
-            pc_vk_hw_upload_material(planes);
+        int m0, m1;
+        if (pc_material_rows(&planes, &m0, &m1))
+            pc_vk_hw_upload_material(planes, m0, m1);
         return;
     }
 #endif

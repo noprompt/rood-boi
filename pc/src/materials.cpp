@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <map>
 #include <system_error>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <SDL3/SDL.h>
 
@@ -300,16 +302,29 @@ uint32_t generation()
 void poll()
 {
     check_baked();
-    for (auto& kv : cache) {
-        const std::string &key = kv.first.first, &name = kv.first.second;
+    /* A slice of the files at a time (three stat calls each), at most every
+     * 50 ms: a large catalog looks at thousands, and a sweep of them all on
+     * every call cost a millisecond, several times a frame. */
+    static uint64_t last;
+    static std::pair<std::string, std::string> next; /* where the last slice stopped */
+    uint64_t now = SDL_GetTicks();
+    if (now - last < 50)
+        return;
+    last = now;
+    auto it = cache.lower_bound(next);
+    for (size_t n = 0; n < 256 && n < cache.size(); n++, ++it) {
+        if (it == cache.end())
+            it = cache.begin();
+        const std::string &key = it->first.first, &name = it->first.second;
         bool changed = false;
         for (int layer = 0; layer < LAYERS; layer++)
-            changed |= layer_stamp(layer, key, name) != kv.second.stamps[layer];
+            changed |= layer_stamp(layer, key, name) != it->second.stamps[layer];
         if (changed) {
-            load(key, name, kv.second);
+            load(key, name, it->second);
             ++files_generation;
         }
     }
+    next = it == cache.end() ? std::pair<std::string, std::string>() : it->first;
 }
 void forget()
 {
@@ -405,6 +420,11 @@ struct CatalogState {
     std::map<std::string, Surface> presets;
     std::map<int, bool> sizes; /* (w - 1) << 8 | (h - 1) */
     bool palette_entries = false; /* any entry matches by palette alone (every size is hashed) */
+    /* find_match's index: the entries naming each key, and the palette
+     * entries by palette, in catalog order; what needs a palette's key. */
+    std::unordered_map<std::string, std::vector<size_t>> by_key, by_clut;
+    std::unordered_set<std::string> clut_keys; /* keys some entry names with a palette */
+    bool palette_clut = false; /* a palette entry with a palette (then every key needs it) */
     long long shipped_stamp = -1, user_stamp = -1;
     uint32_t generation = 0;
 };
@@ -579,10 +599,15 @@ const std::vector<Entry>& current_catalog()
             if (old == catalog_cache.entries.end()) catalog_cache.entries.push_back(p);
             else *old = p;
         }
-        catalog_cache.palette_entries = false;
-        for (const Entry& e : catalog_cache.entries) {
+        catalog_cache.palette_entries = catalog_cache.palette_clut = false;
+        catalog_cache.by_key.clear(), catalog_cache.by_clut.clear(), catalog_cache.clut_keys.clear();
+        for (size_t i = 0; i < catalog_cache.entries.size(); i++) {
+            const Entry& e = catalog_cache.entries[i];
             if (e.w > 0) catalog_cache.sizes[(e.w - 1) << 8 | (e.h - 1)] = true;
             catalog_cache.palette_entries |= e.key.empty();
+            (e.key.empty() ? catalog_cache.by_clut[e.clut] : catalog_cache.by_key[e.key]).push_back(i);
+            if (!e.clut.empty() && e.key.empty()) catalog_cache.palette_clut = true;
+            else if (!e.clut.empty()) catalog_cache.clut_keys.insert(e.key);
         }
         ++catalog_cache.generation;
     }
@@ -597,16 +622,25 @@ static std::map<std::string, Surface> catalog_presets_map()
 std::vector<Entry> catalog_entries() { return current_catalog(); }
 const Entry* find_match(const std::string& key, int w, int h, const std::string& clut, int zone, int room)
 {
-    const Entry* found = nullptr;
-    const Entry* palette = nullptr; /* a palette entry: only where no entry names the texture itself */
-    for (const Entry& e : current_catalog()) {
-        if (!e.in_scope(zone, room)) continue;
-        if (e.key.empty()) {
-            if (!clut.empty() && e.clut == clut && (e.w == 0 || (e.w == w && e.h == h))) palette = &e;
-        } else if (e.key == key && e.w == w && e.h == h && (e.clut.empty() || e.clut == clut))
-            found = &e;
-    }
-    return found ? found : palette;
+    /* The last matching entry naming the texture, else the last palette
+     * entry (only where no entry names the texture itself). */
+    const std::vector<Entry>& entries = current_catalog();
+    if (auto found = catalog_cache.by_key.find(key); found != catalog_cache.by_key.end())
+        for (auto i = found->second.rbegin(); i != found->second.rend(); ++i) {
+            const Entry& e = entries[*i];
+            if (e.in_scope(zone, room) && e.w == w && e.h == h && (e.clut.empty() || e.clut == clut)) return &e;
+        }
+    if (clut.empty()) return nullptr;
+    if (auto found = catalog_cache.by_clut.find(clut); found != catalog_cache.by_clut.end())
+        for (auto i = found->second.rbegin(); i != found->second.rend(); ++i) {
+            const Entry& e = entries[*i];
+            if (e.in_scope(zone, room) && (e.w == 0 || (e.w == w && e.h == h))) return &e;
+        }
+    return nullptr;
+}
+bool catalog_needs_clut(const std::string& key)
+{
+    return catalog_cache.palette_clut || catalog_cache.clut_keys.count(key) > 0;
 }
 bool catalog_has_palette_entries()
 {
