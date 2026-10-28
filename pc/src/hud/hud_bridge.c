@@ -69,7 +69,7 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
  * depth: element_slot) (func_8009506C, func_80095258, its arrow func_800957D0), the
  * gauges -12 (their bars, labels and separators; their digits -16). A classic draw links its packets there
  * too, unless it names another (d.layer). */
-static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4, PC_HUD_LAYER_ELEMENT };
+static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4, PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT };
 static int element_slot; /* PC_HUD_LAYER_ELEMENT: the slot the element just recorded was linked into */
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
@@ -78,7 +78,9 @@ typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC
             && PC_CLASSIC_FIGURE == PC_HUD_FIGURE && PC_CLASSIC_STATUS_ICONS == PC_HUD_STATUS_ICONS
             && PC_CLASSIC_BATTLE_MODE == PC_HUD_BATTLE_MODE && PC_CLASSIC_ABILITY_ICONS == PC_HUD_ABILITY_ICONS
             && PC_CLASSIC_ACTOR_WORD == PC_HUD_ACTOR_WORD && PC_CLASSIC_TIMER == PC_HUD_TIMER
-            && PC_CLASSIC_EMOTE == PC_HUD_EMOTE
+            && PC_CLASSIC_EMOTE == PC_HUD_EMOTE && PC_CLASSIC_TEXT_FRAME == PC_HUD_TEXT_FRAME
+            && PC_CLASSIC_TEXT_BAND == PC_HUD_TEXT_BAND && PC_CLASSIC_BOX_TEXT == PC_HUD_BOX_TEXT
+            && PC_CLASSIC_IMAGE == PC_HUD_IMAGE
         ? 1
         : -1];
 
@@ -293,6 +295,33 @@ static u_long* slot_for(int kind, int layer)
     shadows[i].head = 0x00FFFFFF;
     return &shadows[i].head;
 }
+/* The text boxes' own ordering table (D_800F51B8: 34 entries, 4 a box, spliced into the frame's by func_800CB83C;
+ * drawn from its first entry): a box's frame links into its entries 1 (the shadow) and 2 (the body, the outline,
+ * the draw modes). A classic frame drawn in the parity mode goes into a table of its own (box_shadow, never
+ * spliced). */
+extern u_long* D_800F51B8; /* 5BF94.c */
+static u_long box_shadow[34], band_icon_shadow; /* (band_icon_shadow: vs_scratch.unk8's for the band's icon) */
+static int box_shadow_id = -1;
+extern int pc_hw_anchor_muted __attribute__((weak)), pc_hw_anchor_muted_as __attribute__((weak));
+static int text_recording, text_glyph_count, text_box_id; /* the text boxes' glyphs (below, char_packets) */
+static void* image_records[3]; /* the images recorded this frame (pc_hud_image, image_packets) */
+/* A kind's entries: the frames' 1 and 2, the text's 3 (vs_battle_printVariableWidthFontChar links at the box's
+ * entry 3). Then the head of `icon` (vs_scratch.unk8: the band's icon, func_800CD0FC, links there), when it is of
+ * this range. */
+static int box_entries(int kind, const u_long* table, int id, const u_long* icon, const void* first, const void* end,
+    pc_classic_packet* out, int max)
+{
+    pc_classic_walker walker = pc_classic_guest();
+    int n = 0, e, from = kind == PC_HUD_BOX_TEXT ? 3 : 1, to = kind == PC_HUD_BOX_TEXT ? 3 : 2;
+    if (id < 0 || id > 7)
+        return 0;
+    for (e = from; e <= to; ++e)
+        n += pc_classic_walk(&walker, (const unsigned*)&table[id * 4 + e], first, end, out + n, max - n);
+    if (icon)
+        n += pc_classic_walk(&walker, (const unsigned*)icon, first, end, out + n, max - n);
+    return n;
+}
+
 static void parity(int kind, int element_anchor)
 {
     static pc_classic_packet lua[PC_CLASSIC_CAPTURE];
@@ -308,12 +337,19 @@ static void parity(int kind, int element_anchor)
     anchor = pc_hud_classic_anchor && pc_hud_classic_anchor() >= 0 ? pc_hud_classic_anchor() : element_anchor;
     shadow_count = 0;
     shadowing = 1;
+    box_shadow_id = -1;
+    if (&pc_hw_anchor_muted_as)
+        pc_hw_anchor_muted_as = -1;
+    for (i = 0; i < 34; ++i)
+        box_shadow[i] = 0x00FFFFFF;
     classic_packets(cmds, count, anchor, kind, 1);
     shadowing = 0;
-    lua_anchor = !pc_hw_anchor_recorded ? 0
+    lua_anchor = !pc_hw_anchor_recorded || anchor == PC_HUD_ANCHOR_GAME ? 0
         : pc_hw_anchor_recorded(anchor == PC_HUD_ANCHOR_LEFT ? PC_ANCHOR_LEFT_EDGE
                 : anchor == PC_HUD_ANCHOR_RIGHT          ? PC_ANCHOR_RIGHT_EDGE
                                                          : PC_ANCHOR_CENTRE);
+    if (&pc_hw_anchor_muted_as && pc_hw_anchor_muted_as >= 0)
+        lua_anchor = pc_hw_anchor_muted_as; /* (a game routine anchored its own range, as it does the game's) */
     walker.anchor = shadow_anchor;
     for (i = 1; i < shadow_count; ++i) /* (the table's drawing order: the higher slot first) */
         for (j = i; j > 0 && shadows[j].offset > shadows[j - 1].offset; --j) {
@@ -325,6 +361,16 @@ static void parity(int kind, int element_anchor)
     for (i = 0; i < shadow_count; ++i)
         n += pc_classic_walk(&walker, (const unsigned*)&shadows[i].head, start, psx_get(vs_scratch.unk0), lua + n,
             PC_CLASSIC_CAPTURE - n);
+    if (box_shadow_id >= 0) { /* (its own anchor: the walker's, as the game's capture) */
+        pc_classic_walker box = pc_classic_guest();
+        box.anchor = shadow_anchor;
+        for (j = kind == PC_HUD_BOX_TEXT ? 3 : 1; j <= (kind == PC_HUD_BOX_TEXT ? 3 : 2); ++j)
+            n += pc_classic_walk(&box, (const unsigned*)&box_shadow[box_shadow_id * 4 + j], start,
+                psx_get(vs_scratch.unk0), lua + n, PC_CLASSIC_CAPTURE - n);
+        if (kind == PC_HUD_TEXT_BAND)
+            n += pc_classic_walk(&box, (const unsigned*)&band_icon_shadow, start, psx_get(vs_scratch.unk0), lua + n,
+                PC_CLASSIC_CAPTURE - n);
+    }
     pc_classic_parity_compare(kind, lua, n, pc_vsync_count ? pc_vsync_count() : 0);
     psx_set(vs_scratch.unk0, start); /* (given back: nothing links to them) */
 }
@@ -339,7 +385,14 @@ static int classic_finish(int kind, pc_hud_fields* f, void* first, void* end, co
     int amount;
     if (pc_classic_capturing()) { /* (RPC packets, the parity gate) */
         static pc_classic_packet game[PC_CLASSIC_CAPTURE], scanned[PC_CLASSIC_CAPTURE];
-        int count = pc_classic_walk_slots(slots, nslots, kind == PC_HUD_ABILITY_ICONS, enclosing, first, end, game, PC_CLASSIC_CAPTURE);
+        int count = 0;
+        if (kind == PC_HUD_TEXT_FRAME || kind == PC_HUD_TEXT_BAND || kind == PC_HUD_BOX_TEXT) /* (the text boxes'
+                                                                                                * own table) */
+            count = box_entries(kind, D_800F51B8, f->box_id, kind == PC_HUD_TEXT_BAND ? psx_get(vs_scratch.unk8) : NULL, first,
+                end, game, PC_CLASSIC_CAPTURE);
+        else
+            count = pc_classic_walk_slots(slots, nslots, kind == PC_HUD_ABILITY_ICONS, enclosing, first, end, game,
+                PC_CLASSIC_CAPTURE);
         pc_classic_capture_game(kind, game, count, pc_vsync_count ? pc_vsync_count() : 0, f->text);
         pc_classic_walker guest = pc_classic_guest();
         pc_classic_capture_allocated(kind, pc_classic_scan(&guest, first, end, scanned, PC_CLASSIC_CAPTURE));
@@ -427,6 +480,90 @@ void pc_hud_actor_word(void* record, int x, int y, void* first, void* end)
     f.life = DAMAGE_LIFE;
     f.anchor = PC_HUD_ANCHOR_CENTRE;
     classic_finish(PC_HUD_ACTOR_WORD, &f, first, end, slots, 1, 0);
+}
+
+/* An image (func_800CCA90): which, its drawer, CLUT word and slot, as the game called the drawer; one element per
+ * image. Only the tiled drawer (D_800EC25C[0]: the opening's cards) is the classic layer's: the others (the
+ * credits' wipes, ...) stay the game's until a scene the gate plays shows them. */
+void pc_hud_image(void* record, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static char keys[3];
+    const pc_classic_image* image = record;
+    if (!image || first == end || image->image < 0 || image->image > 2 || image->mode != 0)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_IMAGE;
+    f.key = &keys[image->image];
+    f.image_index = image->image, f.image_mode = image->mode, f.image_clut = image->clut;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    append(f.text, f.text + sizeof f.text, "image");
+    element_slot = image->slot;
+    image_records[image->image] = image->gim;
+    classic_finish(PC_HUD_IMAGE, &f, first, end, &image->slot, 1, 0);
+}
+
+/* A text box's text (_printVariableWidthFont): the glyphs it set this frame (recorded as it set them); the box. */
+void pc_hud_box_text(void* record, int id, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static char keys[8];
+    text_recording = 0;
+    if (!record || first == end || id < 0 || id > 7)
+        return; /* (nothing set: no glyph yet, spaces only) */
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_BOX_TEXT;
+    f.key = &keys[id];
+    f.box_id = id;
+    f.value = text_glyph_count;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    append(f.text, f.text + sizeof f.text, "text");
+    text_box_id = id;
+    classic_finish(PC_HUD_BOX_TEXT, &f, first, end, NULL, 0, 0);
+}
+
+/* A text box's band (func_800CD158): the box as the routine reads it (which edge, how far it has grown, its lines,
+ * whether it has settled and its icon), copied after the call (the routine changes nothing of it). */
+void pc_hud_text_band(void* record, int id, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static char keys[8];
+    const vs_battle_textBox* box = record;
+    if (!box || first == end || id < 0 || id > 7)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_TEXT_BAND;
+    f.key = &keys[id];
+    f.box_id = id;
+    f.band_top = box->y == 0, f.band_edge = box->unk2A, f.band_lines = box->lineCount;
+    f.band_settled = box->state == box->unk22 + 1, f.band_icon = box->unk0.unk0_8;
+    f.x = 160, f.y = f.band_top ? f.band_edge * 0.5f : 240 - f.band_edge * 0.5f;
+    f.w = 320, f.h = (float)f.band_edge;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    append(f.text, f.text + sizeof f.text, "band");
+    classic_finish(PC_HUD_TEXT_BAND, &f, first, end, NULL, 0, 0);
+}
+
+/* A text box's frame (func_800CD3E4): the box as the routine reads it (its place and size this frame, the
+ * shape, the flip, the tail), copied after the call (the routine changes nothing of it). */
+void pc_hud_text_frame(void* record, int id, void* first, void* end)
+{
+    static pc_hud_fields f;
+    static char keys[8];
+    const vs_battle_textBox* box = record;
+    if (!box || first == end || id < 0 || id > 7)
+        return;
+    f = (pc_hud_fields) { 0 };
+    f.kind = PC_HUD_TEXT_FRAME;
+    f.key = &keys[id];
+    f.box_id = id;
+    f.box_x = box->unk24, f.box_y = box->unk26, f.box_w = box->unk28, f.box_h = box->unk2A;
+    f.box_shape = box->unk0.unk0_8, f.box_flip = box->unk0.unk0_6, f.box_tail = box->unk0.unk0_12;
+    f.x = (float)f.box_x + f.box_w * 0.5f, f.y = (float)f.box_y + f.box_h * 0.5f;
+    f.w = (float)f.box_w, f.h = (float)f.box_h;
+    f.anchor = PC_HUD_ANCHOR_CENTRE;
+    append(f.text, f.text + sizeof f.text, "frame");
+    classic_finish(PC_HUD_TEXT_FRAME, &f, first, end, NULL, 0, 0);
 }
 
 /* An emote over an actor: what func_80095C18 decided (pc_classic_emote, set as it decided it), the slot it
@@ -1073,6 +1210,115 @@ static void quad_ft4(u_long* ot, const pc_hud_classic_cmd* c)
     p[8] = u1 | v1 << 8;
 }
 
+/* A text box's frame by the game's own routine (func_800CD3E4) on a copy of the box: the box's place, size, shape,
+ * flip and tail set for the call and given back after it (nothing else of the box is read); its packets link into
+ * the box's entries of the text boxes' table, or of box_shadow for the parity gate (the vector bubbles,
+ * ui_bubbles.c, told nothing of those). */
+void func_800CD3E4(int index); /* 5BF94.c */
+extern int pc_bubble_frame_muted __attribute__((weak));
+static void frame_packets(const pc_hud_classic_cmd* c, int shadowed)
+{
+    int id = c->a & 7;
+    vs_battle_textBox* box = &vs_battle_textBoxes[id];
+    vs_battle_textBox_fields fields = box->unk0;
+    short place[4] = { box->unk24, box->unk26, box->unk28, box->unk2A };
+    u_long* table = D_800F51B8;
+    box->unk24 = (short)c->x, box->unk26 = (short)c->y, box->unk28 = (short)c->w, box->unk2A = (short)c->h;
+    box->unk0.unk0_8 = (u_int)c->b & 15, box->unk0.unk0_6 = (u_int)c->c & 3, box->unk0.unk0_12 = (u_int)c->d & 15;
+    if (shadowed) {
+        D_800F51B8 = box_shadow;
+        box_shadow_id = id;
+        if (&pc_bubble_frame_muted)
+            pc_bubble_frame_muted = 1;
+    }
+    func_800CD3E4(id);
+    D_800F51B8 = table;
+    if (&pc_bubble_frame_muted)
+        pc_bubble_frame_muted = 0;
+    box->unk0 = fields;
+    box->unk24 = place[0], box->unk26 = place[1], box->unk28 = place[2], box->unk2A = place[3];
+}
+
+/* A text box's band by the game's own routine (func_800CD158) on a copy of the box: which edge it grows from, how
+ * far, the lines it holds and its icon set for the call and given back after; its packets link into the box's
+ * entry 1 (box_shadow's for the parity gate). */
+void func_800CD158(int id); /* 5BF94.c */
+static void band_packets(const pc_hud_classic_cmd* c, int shadowed)
+{
+    int id = c->a & 7;
+    vs_battle_textBox* box = &vs_battle_textBoxes[id];
+    vs_battle_textBox_fields fields = box->unk0;
+    short y = box->y, edge = box->unk2A, state = box->state;
+    char lines = box->lineCount;
+    u_long* table = D_800F51B8;
+    u_long* icon = psx_get(vs_scratch.unk8);
+    box->y = c->b ? 0 : 1, box->unk2A = (short)c->c, box->lineCount = (char)c->d;
+    box->state = c->font ? box->unk22 + 1 : 0;
+    box->unk0.unk0_8 = (u_int)c->align & 15;
+    if (shadowed) {
+        D_800F51B8 = box_shadow;
+        box_shadow_id = id;
+        band_icon_shadow = 0x00FFFFFF;
+        psx_set(vs_scratch.unk8, &band_icon_shadow); /* (its icon's slot: setSpriteDefault reads it there) */
+    }
+    func_800CD158(id);
+    D_800F51B8 = table;
+    psx_set(vs_scratch.unk8, icon);
+    box->unk0 = fields;
+    box->y = y, box->unk2A = edge, box->state = state, box->lineCount = lines;
+}
+
+/* The text boxes' glyphs (_printVariableWidthFont): recorded as the printer sets them, between the site's begin
+ * and its hook (5BF94.c pc_classic_text_begin, pc_classic_text_char): the code, the font state the printer reads
+ * (its table, colour style, brightness) and the place; a classic draw sets them again by the same printer, in the
+ * element's box (text_box_id), its font state set for each and given back after. */
+#define BOX_GLYPHS 512
+static int text_glyphs[BOX_GLYPHS][6];
+extern char _fontTable, D_800F4CB8;
+extern int _fontBrightness;
+int vs_battle_printVariableWidthFontChar(u_int glyphId, int x, int y, u_long* ot); /* 5BF94.c */
+void pc_classic_text_begin(void) { text_recording = 1, text_glyph_count = 0; }
+void pc_classic_text_char(int glyph, int x, int y)
+{
+    int* g;
+    if (!text_recording || text_glyph_count >= BOX_GLYPHS)
+        return;
+    g = text_glyphs[text_glyph_count++];
+    g[0] = glyph, g[1] = _fontTable, g[2] = D_800F4CB8, g[3] = x, g[4] = y, g[5] = _fontBrightness;
+}
+int pc_classic_text_muted(void) { return shadowing; } /* (the parity gate's copies: not ui_text's) */
+int pc_hud_box_text_glyphs(const int** out)
+{
+    *out = &text_glyphs[0][0];
+    return text_glyph_count;
+}
+static void char_packets(const pc_hud_classic_cmd* c, int shadowed)
+{
+    char table = _fontTable, style = D_800F4CB8;
+    int brightness = _fontBrightness;
+    if (shadowed)
+        box_shadow_id = text_box_id;
+    _fontTable = (char)c->b, D_800F4CB8 = (char)c->c, _fontBrightness = c->d;
+    vs_battle_printVariableWidthFontChar((u_int)c->a, c->x, c->y, (shadowed ? box_shadow : D_800F51B8) + text_box_id * 4);
+    _fontTable = table, D_800F4CB8 = style, _fontBrightness = brightness;
+}
+
+/* An image by the game's own drawer, as func_800CCA90 calls it (D_800F51C8 cleared first: the drawers set it);
+ * into the shadow, the drawers' own widescreen ranges (pc_hw_anchor_packets) are not recorded. */
+extern void (*D_800EC25C[])(void*, int, u_long*); /* 5BF94.c (gim_t* its first) */
+extern char D_800F51C8;
+static void image_packets(u_long* ot, const pc_hud_classic_cmd* c, int shadowed)
+{
+    if (c->a < 0 || c->a > 2 || c->b < 0 || c->b > 3 || !image_records[c->a])
+        return;
+    if (shadowed && &pc_hw_anchor_muted)
+        pc_hw_anchor_muted = 1;
+    D_800F51C8 = 0;
+    D_800EC25C[c->b](image_records[c->a], c->c, ot);
+    if (&pc_hw_anchor_muted)
+        pc_hw_anchor_muted = 0;
+}
+
 /* The commands as packets in the kind's slot (shadow: into that word instead, for the parity gate:
  * nothing reported to ui_text or widescreen), the range anchored exactly (PC_ANCHOR_EXACT) where
  * `anchor` says (PC_HUD_ANCHOR_*; d.anchor's, else the element's). */
@@ -1129,6 +1375,18 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
         case PC_HUD_CMD_QUAD:
             quad_ft4(ot, c);
             break;
+        case PC_HUD_CMD_FRAME:
+            frame_packets(c, shadowed);
+            break;
+        case PC_HUD_CMD_BAND:
+            band_packets(c, shadowed);
+            break;
+        case PC_HUD_CMD_CHAR:
+            char_packets(c, shadowed);
+            break;
+        case PC_HUD_CMD_IMAGE:
+            image_packets(ot, c, shadowed);
+            break;
         case PC_HUD_CMD_WINDOW:
             window_packets(ot, c);
             break;
@@ -1146,7 +1404,7 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
         }
     }
     restyle = 1;
-    if (!shadowed && pc_hw_anchor_packets) /* placed by data: exactly, no heuristics */
+    if (!shadowed && pc_hw_anchor_packets && anchor != PC_HUD_ANCHOR_GAME) /* placed by data: exactly, no heuristics */
         pc_hw_anchor_packets(start, psx_get(vs_scratch.unk0),
             (anchor == PC_HUD_ANCHOR_LEFT ? PC_ANCHOR_LEFT_EDGE
                     : anchor == PC_HUD_ANCHOR_RIGHT ? PC_ANCHOR_RIGHT_EDGE

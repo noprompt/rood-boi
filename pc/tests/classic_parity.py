@@ -26,6 +26,9 @@ plugins only (rood.classic on), dev mode (the RPC):
     then with the game drawing, leaves the game's memory the same every vsync
     (Oracle page digests; the primitive buffers, ordering tables and the
     packet pointer masked).
+What packets cannot show (a host-side hide, widescreen's widening) is the other suites' to see: the classic
+gate also runs cutscene_player_smoke and widescreen_smoke (run.py classic_parity hud classic
+cutscene_player_smoke widescreen_smoke).
 Reports: <out>/<kind>.json (frames compared, mismatches by
 field, the first difference with both packets, waived fields, the states
 covered). Exit 0 when every kind is green."""
@@ -490,7 +493,59 @@ def tour_timer(g, check, counters):
     return covered
 
 
-KEEP = {"actor_word": keep_word, "emote": lambda g: keep_emotes(g)}  # kinds without a show: kept up by the test
+def keep_band(g):
+    """The name window held open (its band): shown again when gone."""
+    if not any(e["kind"] == "text_band" and e["live"] for e in g.call("hud", action="list")["elements"]):
+        g.call("hud", action="show", kind="name_window", hold=True)
+
+
+def tour_text_band(g, check, counters):
+    """The name window's band (text box 7): its whole life (opening row by row, held, closing), then held with its
+    box's fields written: from the top or the bottom, each grown edge, one to four lines, each icon."""
+    import struct
+    symbols = rood_rpc.symbols()
+    box = symbols["vs_battle_textBoxes"] + 7 * 0x30
+    covered, seen = [], set()
+
+    def compared(label, frames=2):
+        before = counters("text_band")["frames"]
+        ok = g.until(lambda: counters("text_band")["frames"] >= before + frames, step=1, guard=60)
+        elements = [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "text_band" and e["live"]]
+        seen.update((e["top"], e["edge"], e["lines"], e["settled"], e["icon"]) for e in elements)
+        check(bool(ok) and elements, f"text_band {label}: compared ({len(elements)} live)")
+        covered.append({"scenario": label, "bands": [{k: e[k] for k in ("box", "top", "edge", "lines", "settled",
+                                                                        "icon")} for e in elements]})
+
+    for index in (184, 1):  # a Break Art's name, another action's
+        before = counters("text_band")["frames"]
+        g.call("hud", action="show", kind="name_window", hold=False, index=index)
+        ok = g.until(lambda: not any(e["kind"] == "text_band" and e["live"]
+                                     for e in g.call("hud", action="list")["elements"])
+                     and counters("text_band")["frames"] > before, step=1, guard=60)
+        check(bool(ok) and counters("text_band")["frames"] >= before + 20,
+              f"text_band: action {index}'s name window, its life ({counters('text_band')['frames'] - before} frames)")
+        covered.append({"scenario": f"life {index}"})
+    g.call("hud", action="show", kind="name_window", hold=True)
+    compared("held")
+    flags = struct.unpack("<I", g.read(box, 4))[0]
+    y, lines = g.read(box + 0x16, 2), g.read(box + 0x21, 1)
+    try:
+        for top in (1, 0):
+            for count in (1, 2, 3, 4):
+                for icon in (0, 1, 2, 3, 4):
+                    g.write(box + 0x16, struct.pack("<h", 0 if top else 1))
+                    g.write(box + 0x21, bytes([count]))
+                    g.write(box, struct.pack("<I", (flags & ~0xF00) | icon << 8))
+                    compared(f"{'top' if top else 'bottom'}, {count} lines, icon {icon}")
+    finally:
+        g.write(box, struct.pack("<I", flags))
+        g.write(box + 0x16, y)
+        g.write(box + 0x21, lines)
+        g.call("hud", action="clear")
+    return covered
+
+
+KEEP = {"actor_word": keep_word, "emote": lambda g: keep_emotes(g), "text_band": keep_band}  # kinds without a show
 
 EMOTES = [1, 2, 3, 4, 5, 6, 7, 0x10]  # the dots, the shout's '!', the heart, the surprise, '?' alone; 0x10 a balloon
 # with no case of its own (func_80095C18's switch has none: the balloon alone)
@@ -689,7 +744,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -701,39 +756,119 @@ def main():
         return run(out, cards.card1, args.renderer, [k for k in args.kind.split(",") if k], args.candidate)
 
 
-def run_emotes(out, env, check, waivers, failures):
-    """The emotes: actors on screen, so the opening (the first_bubble checkpoint: the duke's line waits for a
-    button), its own game; the gate, the default and the fallback, state parity there."""
-    # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
-    g = launch_at("first_bubble", card=str(out / "no-card.mcd"), fast=True, log=out / "game-emotes.log",
-                  extra_env=env)
+OPENING = ("emote", "text_frame", "box_text")  # the kinds the opening shows (first_bubble): actors, the duke's talk bubble
+
+
+def tour_text_frame(g, check, counters):
+    """The talk bubble's frame: every shape the frames' table has, each flip and tail, written into the open box's
+    fields (func_800CD3E4 reads them; the box's place and size stay the game's), then the next lines (the
+    bubble closing, opening, moving)."""
+    import struct
+    symbols = rood_rpc.symbols()
+    boxes, table = symbols["vs_battle_textBoxes"], symbols["D_800EB588"]
+    covered, seen = [], set()
+
+    def open_box():
+        for i in range(8):
+            flags, state = struct.unpack_from("<I", g.read(boxes + i * 0x30, 4))[0], struct.unpack(
+                "<h", g.read(boxes + i * 0x30 + 0x1C, 2))[0]
+            if state != 0 and (flags & 15) in (2, 7):
+                return i, flags
+        return None, None
+
+    def compared(label, frames=2):
+        before = counters("text_frame")["frames"]
+        ok = g.until(lambda: counters("text_frame")["frames"] >= before + frames, step=1, guard=60)
+        elements = [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "text_frame" and e["live"]]
+        seen.update((e["shape"], e["flip"], e["tail"]) for e in elements)
+        check(bool(ok) and elements, f"text_frame {label}: compared ({len(elements)} live)")
+        covered.append({"scenario": label, "boxes": [{k: e[k] for k in ("box", "box_x", "box_y", "box_w", "box_h",
+                                                                        "shape", "flip", "tail")} for e in elements]})
+
+    box, flags = open_box()
+    if not check(box is not None, f"text_frame: a talk bubble open (box {box})"):
+        return covered, seen
+    shapes = [k for k in range(16) if int.from_bytes(g.read(table + k * PTR, PTR), "little")]
     try:
-        g.call("classic", parity=True, reset=True)
-        g.run(200)
+        for shape in shapes:
+            for flip in range(4):
+                for tail in (0, 1, 2, 3):
+                    g.write(boxes + box * 0x30, struct.pack("<I", (flags & ~0xFFC0) | flip << 6 | shape << 8
+                                                            | tail << 12 | (flags & 0xFFFF0000)))
+                    compared(f"box {box} shape {shape} flip {flip} tail {tail}")
+    finally:
+        g.write(boxes + box * 0x30, struct.pack("<I", flags))
+    check(len({sh for sh, _, _ in seen}) == len(shapes), f"text_frame: every shape drawn {sorted({sh for sh, _, _ in seen})}"
+                                                         f" of {shapes}")
+    for line in range(2):  # the next lines: the bubble closes, the next one opens and zooms in
+        before = counters("text_frame")["frames"]
+        g.press("circle", vsyncs=3, settle=0)
+        g.run(300)
+        check(counters("text_frame")["frames"] > before + 20, f"text_frame: line {line + 2}, its bubble's life compared "
+                                                              f"({counters('text_frame')['frames'] - before} frames)")
+        covered.append({"scenario": f"line {line + 2}"})
+    return covered, seen
+
+
+def tour_box_text(g, check, counters):
+    """The talk bubble's text: the duke's line set (its zoom over), held; then the next lines typing out glyph by
+    glyph (the typewriter's every step), the continuation arrow's frames; then each colour style and font table
+    written into the open box's flags (the printer reads them)."""
+    covered, seen = [], set()
+
+    def compared(label, frames=2):
+        before = counters("box_text")["frames"]
+        ok = g.until(lambda: counters("box_text")["frames"] >= before + frames, step=1, guard=60)
+        elements = [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "box_text" and e["live"]]
+        seen.update((e["box"], e["value"]) for e in elements)
+        check(bool(ok) and elements, f"box_text {label}: compared ({[e['value'] for e in elements]} glyphs)")
+        covered.append({"scenario": label, "glyphs": [e["value"] for e in elements]})
+
+    import struct
+    compared("the duke's line", frames=20)
+    boxes = rood_rpc.symbols()["vs_battle_textBoxes"]
+    box = next(e["box"] for e in g.call("hud", action="list")["elements"] if e["kind"] == "box_text" and e["live"])
+    flags, brightness = struct.unpack("<I", g.read(boxes + box * 0x30, 4))[0], g.read(boxes + box * 0x30 + 0x1E, 1)
+    try:  # (the printer's font table and colour style follow the box's kind; its brightness the box's selection)
+        for kind, light in ((2, 0x40), (7, 0x80), (7, 0x40), (5, 0x80)):
+            g.write(boxes + box * 0x30, struct.pack("<I", (flags & ~15) | kind))
+            g.write(boxes + box * 0x30 + 0x1E, bytes([light]))
+            compared(f"box {box} as kind {kind}, brightness {light:#x}")
+    finally:
+        g.write(boxes + box * 0x30, struct.pack("<I", flags))
+        g.write(boxes + box * 0x30 + 0x1E, brightness)
+    before = counters("box_text")["frames"]
+    g.press("circle", vsyncs=3, settle=0)
+    g.run(240)
+    check(counters("box_text")["frames"] > before + 20, f"box_text: the next line typed out glyph by glyph and held "
+                                                        f"({counters('box_text')['frames'] - before} frames)")
+    covered.append({"scenario": "the next line, typed out"})
+    return covered, seen
+
+
+NEW_GAME = ("image",)  # the kinds New Game's opening shows before the first bubble: its cards
+
+
+def run_new_game(out, env, check, waivers, kinds):
+    """The images (func_800CCA90's tiled drawer): New Game's opening cards (the title, no card: Start, Circle). From
+    the first card's first frame (a mark): the default and the fallback, state parity, then back to the mark and
+    every frame of the cards' lives compared."""
+    g = launch_at("title", card=str(out / "no-card.mcd"), fast=True, log=out / "game-new-game.log", extra_env=env)
+    try:
+        g.call("classic", parity=False)
 
         def counters(kind):
             return g.call("classic")["kinds"][kind]
-        declared = sorted(n for n in str(repl(g, "rood.classic", "return table.concat(M.look.overrides.emote or {}, ',')"))
-                          .strip('"').split(",") if n)
-        covered, seen = tour_emote(g, check, counters)
-        c = counters("emote")
-        waived = waivers.get("emote", {})
-        allowed = {f for w in waived.values() for f in w.get("fields", [])}
-        unwaived = {f: n for f, n in c["fields"].items() if f not in allowed}
-        check(c["frames"] > 0 and c["skipped"] == 0,
-              f"emote: {c['frames']} frames compared, {c['skipped']} skipped ({c['skip'] or 'none'})")
-        check(not unwaived, f"emote: {c['matched']} matched, {c['mismatched']} mismatched; unwaived fields "
-                            f"{unwaived or 'none'}" + (f"; first {json.dumps(c.get('first'))}" if unwaived else ""))
-        check(sorted(waived) == declared, f"emote: overrides declared {declared} = waived {sorted(waived)}")
-        report = {"kind": "emote", "frames": c["frames"], "matched": c["matched"], "mismatched": c["mismatched"],
-                  "skipped": c["skipped"], "fields": c["fields"], "first": c.get("first"),
-                  "waived": dict(waived), "declared": declared, "coverage": covered, "states": len(covered),
-                  "drawn": sorted(map(list, seen)),
-                  "green": c["frames"] > 0 and c["skipped"] == 0 and not unwaived}
-        g.call("classic", parity=False)
-        keep_emotes(g)
-        default_and_fallback(g, "emote", check)
-        # state parity (§3.4) at the opening: the emotes up from one mark, rood.classic drawing, then the game
+
+        def images():
+            return [e for e in g.call("hud", action="list")["elements"] if e["kind"] == "image" and e["live"]]
+        g.press("start", vsyncs=4, settle=90)
+        g.press("circle", vsyncs=3, settle=0)
+        check(bool(g.until(lambda: images(), step=1, guard=120)), "image: the opening's first card drawn")
+        g.pause()
+        g.mark()
+        default_and_fallback(g, "image", check)
+        # state parity (§3.4) from the mark
         symbols = rood_rpc.symbols()
         pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4
         masks = [[0x1F800000, 4]]
@@ -743,32 +878,150 @@ def run_emotes(out, env, check, waivers, failures):
                 masks.append([address, size])
         masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
         masks += packet_masks(symbols, pointer)
-        for kind in (1, 4, 5):
-            g.write(symbols["D_800F2260"], bytes([0] + [kind] * 15))
+        g.rewind()
+        drawn = g.call("hud", action="stats")["kinds"]["image"]["drawn"]
+        g.digest("record", ticks=120, masks=masks)
+        g.until(lambda: g.digest("result")["recorded"] >= 120, guard=120, what="the digest recorded")
+        drawn = g.call("hud", action="stats")["kinds"]["image"]["drawn"] - drawn
+        g.rewind()
+        g.call("settings", apply="hud_classic_image 0")
+        fallback = g.call("hud", action="stats")["kinds"]["image"]["fallback"]
+        g.digest("compare")
+        g.until(lambda: g.digest("result")["ticks"] >= 120, guard=120, what="the digest compared")
+        result = g.digest("result")
+        fallback = g.call("hud", action="stats")["kinds"]["image"]["fallback"] - fallback
+        g.call("settings", apply="hud_classic_image 1")
+        check(drawn > 0 and fallback > 0 and result.get("error") == 0 and result.get("first_tick") == -1
+              and result.get("ticks") == result.get("recorded"),
+              f"state parity image: {result.get('ticks')} of {result.get('recorded')} vsyncs the same (rood.classic "
+              f"drew {drawn}, the game {fallback}; first difference {result.get('first_tick')} "
+              f"{result.get('first_pages')})")
+        # the gate: from the mark, the cards' lives
+        g.rewind()
+        g.call("classic", parity=True, reset=True)
+        covered, seen = [], set()
+        g.until(lambda: images(), step=1, guard=30)
+        for card in range(3):
+            before = counters("image")["frames"]
+            ages = set()
+
+            def gone():
+                live = images()
+                ages.update((e["image"], e["drawer"]) for e in live)
+                return not live
+            ok = g.until(gone, step=1, guard=120)
+            frames = counters("image")["frames"] - before
+            check(bool(ok) and frames > 10, f"image: card {card + 1}, its life: {frames} frames compared "
+                                            f"({sorted(ages)})")
+            seen |= ages
+            covered.append({"scenario": f"card {card + 1}", "frames": frames, "images": sorted(map(list, ages))})
+            if not g.until(lambda: images(), step=2, guard=30):
+                break
+        report = opening_report(g, check, waivers, "image", covered, seen)
+        g.call("classic", parity=False)
+        (out / "image.json").write_text(json.dumps(report, indent=1))
+        print(f"report: {out / 'image.json'}: {report['frames']} frames, {report['states']} states, "
+              f"{'green' if report['green'] else 'RED'}")
+    finally:
+        g.close()
+
+
+def opening_report(g, check, waivers, kind, covered, extra):
+    c = g.call("classic")["kinds"][kind]
+    declared = sorted(n for n in str(repl(g, "rood.classic", f"return table.concat(M.look.overrides.{kind} or {{}}, ',')"))
+                      .strip('"').split(",") if n)
+    waived = waivers.get(kind, {})
+    allowed = {f for w in waived.values() for f in w.get("fields", [])}
+    unwaived = {f: n for f, n in c["fields"].items() if f not in allowed}
+    check(c["frames"] > 0 and c["skipped"] == 0,
+          f"{kind}: {c['frames']} frames compared, {c['skipped']} skipped ({c['skip'] or 'none'})")
+    check(not unwaived, f"{kind}: {c['matched']} matched, {c['mismatched']} mismatched; unwaived fields "
+                        f"{unwaived or 'none'}" + (f"; first {json.dumps(c.get('first'))}" if unwaived else ""))
+    check(sorted(waived) == declared, f"{kind}: overrides declared {declared} = waived {sorted(waived)}")
+    return {"kind": kind, "frames": c["frames"], "matched": c["matched"], "mismatched": c["mismatched"],
+            "skipped": c["skipped"], "fields": c["fields"], "first": c.get("first"), "waived": dict(waived),
+            "declared": declared, "coverage": covered, "states": len(covered), "drawn": sorted(map(list, extra)),
+            "green": c["frames"] > 0 and c["skipped"] == 0 and not unwaived}
+
+
+def run_opening(out, env, check, waivers, kinds):
+    """The kinds the save room does not show: the emotes (actors on screen) and the talk bubbles' frames, at the
+    opening (the first_bubble checkpoint: the duke's bubble zooms in, his line waits for a button), its own game;
+    the gate, the default and the fallback, state parity there."""
+    # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
+    g = launch_at("first_bubble", card=str(out / "no-card.mcd"), fast=True, log=out / "game-opening.log",
+                  extra_env=env)
+    try:
+        g.call("classic", parity=True, reset=True)
+
+        def counters(kind):
+            return g.call("classic")["kinds"][kind]
+        g.run(200)  # (the bubble's zoom: every frame compared)
+        tours = {}
+        if "emote" in kinds:
+            tours["emote"] = tour_emote(g, check, counters)
+        if "text_frame" in kinds:
+            check(counters("text_frame")["frames"] >= 20, f"text_frame: the bubble's zoom compared "
+                                                          f"({counters('text_frame')['frames']} frames)")
+            tours["text_frame"] = tour_text_frame(g, check, counters)
+        if "box_text" in kinds:
+            tours["box_text"] = tour_box_text(g, check, counters)
+        reports = {kind: opening_report(g, check, waivers, kind, *tours[kind]) for kind in tours}
+        g.call("classic", parity=False)
+        symbols = rood_rpc.symbols()
+        for kind in kinds:
+            if kind == "emote":
+                keep_emotes(g)
+            default_and_fallback(g, kind, check)
+        if "text_frame" in kinds:  # the vector talk bubbles (an option) redraw rood.classic's copies as the game's
+            g.call("graphics", ui_bubbles="vector")
+            b0 = g.call("ui_bubbles")
+            g.run(20)
+            b1 = g.call("ui_bubbles")
+            g.call("graphics", ui_bubbles="original")
+            drawn = g.call("hud", action="stats")["kinds"]["text_frame"]
+            check(b1["verified"] >= b0["verified"] + 8 and b1["mismatched"] == b0["mismatched"] and drawn["honoured"],
+                  f"text_frame: ui_bubbles vector over rood.classic's frames: {b1['verified'] - b0['verified']} "
+                  f"verified, {b1['mismatched'] - b0['mismatched']} mismatched")
+        # state parity (§3.4) here: from one mark, rood.classic drawing, then the game
+        pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4
+        masks = [[0x1F800000, 4]]
+        for name, size in (("D_8005E0C0", 0x20000), ("D_80055C80", 0x822 * 4)):
+            for i in range(2):
+                address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
+                masks.append([address, size])
+        masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
+        masks += packet_masks(symbols, pointer)
+        runs = ([("emote", k) for k in (1, 4, 5) if "emote" in kinds] + [("text_frame", 0)] * ("text_frame" in kinds)
+                + [("box_text", 0)] * ("box_text" in kinds))
+        for kind, emote in runs:
+            g.write(symbols["D_800F2270"], bytes(2))
+            g.write(symbols["D_800F2260"], bytes([0] + [emote] * 15))
             g.run(4)
             g.pause()
             g.mark()
             g.rewind()
-            drawn = g.call("hud", action="stats")["kinds"]["emote"]["drawn"]
+            drawn = g.call("hud", action="stats")["kinds"][kind]["drawn"]
             g.digest("record", ticks=120, masks=masks)
             g.until(lambda: g.digest("result")["recorded"] >= 120, guard=120, what="the digest recorded")
-            drawn = g.call("hud", action="stats")["kinds"]["emote"]["drawn"] - drawn
+            drawn = g.call("hud", action="stats")["kinds"][kind]["drawn"] - drawn
             g.rewind()
-            g.call("settings", apply="hud_classic_emote 0")
-            fallback = g.call("hud", action="stats")["kinds"]["emote"]["fallback"]
+            g.call("settings", apply=f"hud_classic_{kind} 0")
+            fallback = g.call("hud", action="stats")["kinds"][kind]["fallback"]
             g.digest("compare")
             g.until(lambda: g.digest("result")["ticks"] >= 120, guard=120, what="the digest compared")
             result = g.digest("result")
-            fallback = g.call("hud", action="stats")["kinds"]["emote"]["fallback"] - fallback
-            g.call("settings", apply="hud_classic_emote 1")
+            fallback = g.call("hud", action="stats")["kinds"][kind]["fallback"] - fallback
+            g.call("settings", apply=f"hud_classic_{kind} 1")
             check(drawn > 0 and fallback > 0 and result.get("error") == 0 and result.get("first_tick") == -1
                   and result.get("ticks") == result.get("recorded"),
-                  f"state parity emote {kind}: {result.get('ticks')} of {result.get('recorded')} vsyncs the same "
+                  f"state parity {kind} {emote}: {result.get('ticks')} of {result.get('recorded')} vsyncs the same "
                   f"(rood.classic drew {drawn}, the game {fallback}; first difference {result.get('first_tick')} "
                   f"{result.get('first_pages')})")
-        (out / "emote.json").write_text(json.dumps(report, indent=1))
-        print(f"report: {out / 'emote.json'}: {report['frames']} frames, {report['states']} states, "
-              f"{'green' if report['green'] else 'RED'}")
+        for kind, report in reports.items():
+            (out / f"{kind}.json").write_text(json.dumps(report, indent=1))
+            print(f"report: {out / (kind + '.json')}: {report['frames']} frames, {report['states']} states, "
+                  f"{'green' if report['green'] else 'RED'}")
     finally:
         g.close()
 
@@ -798,9 +1051,15 @@ def run(out, card, renderer, kinds, candidate=False):
     elif renderer == "vulkan":
         env["ROOD_RENDERER"] = "vulkan"
     waivers = tomllib.loads((ROOT / "pc/tests/classic/waivers.toml").read_text())
-    if "emote" in kinds:
-        kinds = [k for k in kinds if k != "emote"]
-        run_emotes(out, env, check, waivers, failures)
+    if "image" in kinds:
+        run_new_game(out, env, check, waivers, ["image"])
+        kinds = [k for k in kinds if k != "image"]
+        if not kinds:
+            print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
+            return 1 if failures else 0
+    if any(k in OPENING for k in kinds):
+        run_opening(out, env, check, waivers, [k for k in kinds if k in OPENING])
+        kinds = [k for k in kinds if k not in OPENING]
         if not kinds:
             print(f"{'PASS' if not failures else 'FAIL'}: classic parity ({len(failures)} failures)")
             return 1 if failures else 0
@@ -845,6 +1104,8 @@ def run(out, card, renderer, kinds, candidate=False):
                 covered = tour_actor_word(g, check, counters)
             elif kind == "timer":
                 covered = tour_timer(g, check, counters)
+            elif kind == "text_band":
+                covered = tour_text_band(g, check, counters)
             for show, text in states(kind):
                 # held (rood.dev.show: the game's own spawner, the age pinned) until the gate compared two of
                 # its frames showing this element's text
@@ -892,6 +1153,11 @@ def run(out, card, renderer, kinds, candidate=False):
             if kind == "ability_icons":
                 reports[kind]["capture_unit"] = "group (nine per display frame)"
                 reports[kind]["display_frames"] = c["frames"] // 9
+        for kind in OPENING:  # (the save room shows some too: the name window's text; each compared here as well)
+            c = counters(kind)
+            check(c["mismatched"] == 0 and c["skipped"] == 0,
+                  f"{kind} in the save room: {c['frames']} frames compared, {c['mismatched']} mismatched, "
+                  f"{c['skipped']} skipped")
         g.call("classic", parity=False)
         check(not g.call("classic")["parity"], "the parity mode is off")
 
@@ -996,7 +1262,7 @@ def default_and_fallback(g, kind, check):
     g.call("hud", action="clear")
 
 
-POPUPS = ("buff", "damage", "actor_word", "timer")
+POPUPS = ("buff", "damage", "actor_word", "timer", "text_band")
 
 
 def packet_masks(symbols, pointer):
@@ -1028,6 +1294,7 @@ def state_parity(g, check, ticks=120, ability_hold=True):
     for kind in ("buff", "damage"):  # (held beside it: both drawn by rood.classic, then by the game)
         g.call("hud", action="show", kind=kind, hold=True, **SHOW[kind])
     spawn_word(g, index=6, flags=1)  # (a lowered stat's word playing out from the mark: in both runs)
+    g.call("hud", action="show", kind="name_window", hold=True)  # (its band, held)
     start = g.call("hud", action="stats")["kinds"]["status"]["drawn"]
     g.until(lambda: g.call("hud", action="stats")["kinds"]["status"]["drawn"] >= start + 2, guard=60,
             what="SLOW! drawn by rood.classic")
@@ -1050,7 +1317,7 @@ def state_parity(g, check, ticks=120, ability_hold=True):
     ability_drawn = g.call("hud", action="stats")["kinds"]["ability_icons"]["drawn"] - ability_drawn
     popups_drawn = {k: g.call("hud", action="stats")["kinds"][k]["drawn"] - n for k, n in popups_drawn.items()}
     g.rewind()
-    g.call("settings", apply=["hud_classic_status 0", "hud_classic_chain 0", "hud_classic_gauges 0", "hud_classic_figure 0", "hud_classic_status_icons 0", "hud_classic_battle_mode 0", "hud_classic_ability_icons 0", "hud_classic_buff 0", "hud_classic_damage 0", "hud_classic_actor_word 0", "hud_classic_timer 0"])
+    g.call("settings", apply=["hud_classic_status 0", "hud_classic_chain 0", "hud_classic_gauges 0", "hud_classic_figure 0", "hud_classic_status_icons 0", "hud_classic_battle_mode 0", "hud_classic_ability_icons 0", "hud_classic_buff 0", "hud_classic_damage 0", "hud_classic_actor_word 0", "hud_classic_timer 0", "hud_classic_text_band 0"])
     fallback = g.call("hud", action="stats")["kinds"]["status"]["fallback"]
     figure_fallback = g.call("hud", action="stats")["kinds"]["figure"]["fallback"]
     icons_fallback = g.call("hud", action="stats")["kinds"]["status_icons"]["fallback"]
@@ -1078,7 +1345,7 @@ def state_parity(g, check, ticks=120, ability_hold=True):
           f"state parity status_icons: Lua drew {icons_drawn} frames, game drew {icons_fallback}")
     check(figure_drawn > 0 and figure_fallback > 0,
           f"state parity figure: Lua drew {figure_drawn} frames, game drew {figure_fallback}")
-    g.call("settings", apply=["hud_classic_status 1", "hud_classic_chain 1", "hud_classic_gauges 1", "hud_classic_figure 1", "hud_classic_status_icons 1", "hud_classic_battle_mode 1", "hud_classic_ability_icons 1", "hud_classic_buff 1", "hud_classic_damage 1", "hud_classic_actor_word 1", "hud_classic_timer 1"])
+    g.call("settings", apply=["hud_classic_status 1", "hud_classic_chain 1", "hud_classic_gauges 1", "hud_classic_figure 1", "hud_classic_status_icons 1", "hud_classic_battle_mode 1", "hud_classic_ability_icons 1", "hud_classic_buff 1", "hud_classic_damage 1", "hud_classic_actor_word 1", "hud_classic_timer 1", "hud_classic_text_band 1"])
     g.call("hud", action="clear")
     check(lua_drawn > 0 and fallback > 0 and result.get("error") == 0 and result.get("first_tick") == -1
           and result.get("ticks") == result.get("recorded"),

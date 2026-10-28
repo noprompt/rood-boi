@@ -784,6 +784,96 @@ int api_quad(lua_State* L)
     return 1;
 }
 
+// d.frame(x, y, w, h, {box, shape, flip?, tail?}): classic only: a text box's frame drawn by the game's own routine
+// (func_800CD3E4) on a copy of box `box` (0..7: its entries of the text boxes' ordering table): x, y its top-left,
+// w x h, shape (the frames' table: 0..15), flip (0..3: mirrored across, down), tail (the speaker's part, 0..15).
+int api_frame(lua_State* L)
+{
+    const char* fn = "rood.draw.frame";
+    float x = coordinate(L, 1, fn), y = coordinate(L, 2, fn), w = coordinate(L, 3, fn), h = coordinate(L, 4, fn);
+    luaL_checktype(L, 5, LUA_TTABLE);
+    int box = int_field(L, 5, "box", 0, 7, fn), shape = int_field(L, 5, "shape", 0, 15, fn);
+    auto optional = [&](const char* k, int hi) {
+        lua_getfield(L, 5, k);
+        bool none = lua_isnil(L, -1);
+        lua_pop(L, 1);
+        return none ? 0 : int_field(L, 5, k, 0, hi, fn);
+    };
+    int flip = optional("flip", 3), tail = optional("tail", 15);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_FRAME);
+    if (k) {
+        k->x = pixel(x), k->y = pixel(y), k->w = pixel(w), k->h = pixel(h);
+        k->a = box, k->b = shape, k->c = flip, k->d = tail;
+    }
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
+// d.band(box, {top, edge, lines, settled?, icon?}): classic only: a text box's band across the screen drawn by the
+// game's own routine (func_800CD158: the name window's) on a copy of box `box` (0..7: its ordering-table entry):
+// top (true: from the screen's top), edge (the rows it has grown, 0..240), lines (its text's), settled (open: the
+// icon shown, at the bottom), icon (the box's icon field, 0..15).
+int api_band(lua_State* L)
+{
+    const char* fn = "rood.draw.band";
+    lua_Integer box = luaL_checkinteger(L, 1);
+    luaL_checktype(L, 2, LUA_TTABLE);
+    if (box < 0 || box > 7)
+        return luaL_error(L, "%s: box 0..7", fn);
+    lua_getfield(L, 2, "top");
+    bool top = lua_toboolean(L, -1);
+    lua_getfield(L, 2, "settled");
+    bool settled = lua_toboolean(L, -1);
+    lua_pop(L, 2);
+    int edge = int_field(L, 2, "edge", 0, 240, fn), lines = int_field(L, 2, "lines", 0, 127, fn);
+    lua_getfield(L, 2, "icon");
+    bool has_icon = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+    int icon = has_icon ? int_field(L, 2, "icon", 0, 15, fn) : 0;
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_BAND);
+    if (k)
+        k->a = (int)box, k->b = top, k->c = edge, k->d = lines, k->font = settled, k->align = icon;
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
+// d.char(code, x, y, font, style, brightness): classic only, box_text's: one glyph of the text boxes' font set by
+// the game's printer (vs_battle_printVariableWidthFontChar) in the element's box: code as the printer takes it, font
+// its table (0, 1), style its colour style (0..7), brightness its sprites' (0x80 full, 0x180 half blended).
+int api_char(lua_State* L)
+{
+    const char* fn = "rood.draw.char";
+    lua_Integer code = luaL_checkinteger(L, 1);
+    float x = coordinate(L, 2, fn), y = coordinate(L, 3, fn);
+    lua_Integer table = luaL_checkinteger(L, 4), style = luaL_checkinteger(L, 5), brightness = luaL_checkinteger(L, 6);
+    if (code < 0 || code > 0xFF || table < 0 || table > 1 || style < 0 || style > 7 || brightness < 0 || brightness > 0x1FF)
+        return luaL_error(L, "%s: code 0..255, font 0 or 1, style 0..7, brightness 0..0x1FF", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_CHAR);
+    if (k)
+        k->x = pixel(x), k->y = pixel(y), k->a = (int)code, k->b = (int)table, k->c = (int)style, k->d = (int)brightness;
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
+// d.image(image, drawer, clut): classic only (image's): a portrait or still drawn by the game's own drawer
+// (D_800EC25C[drawer], as func_800CCA90 calls it) in the kind's slot: image 0..2, clut its CLUT word.
+int api_image(lua_State* L)
+{
+    const char* fn = "rood.draw.image";
+    lua_Integer image = luaL_checkinteger(L, 1), drawer = luaL_checkinteger(L, 2), clut = luaL_checkinteger(L, 3);
+    if (image < 0 || image > 2 || drawer < 0 || drawer > 3)
+        return luaL_error(L, "%s: image 0..2, drawer 0..3", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_IMAGE);
+    if (k)
+        k->a = (int)image, k->b = (int)drawer, k->c = (int)clut;
+    lua_pushboolean(L, k != nullptr);
+    return 1;
+}
+
 // d.window(x, y, w, h[, brightness]): the game's text box window (its frame, body and shadow; classic
 // only); brightness 1 as a selected box, 0.5 as the others.
 int api_window(lua_State* L)
@@ -961,12 +1051,14 @@ int api_text_raw(lua_State* L)
 int api_anchor(lua_State* L)
 {
     const char* fn = "rood.draw.anchor";
-    static const char* const names[] = { "centre", "left", "right", "element", "center", "screen", nullptr };
+    static const char* const names[] = { "centre", "left", "right", "element", "center", "screen", "game", nullptr };
     int i = luaL_checkoption(L, 1, nullptr, names);
     need_draw(L, fn);
-    int anchor = i == 5 ? PC_HUD_ANCHOR_SCREEN : i == 4 ? PC_HUD_ANCHOR_CENTRE : i == 3 ? -1 : i;
+    int anchor = i == 6 ? PC_HUD_ANCHOR_GAME : i == 5 ? PC_HUD_ANCHOR_SCREEN : i == 4 ? PC_HUD_ANCHOR_CENTRE : i == 3 ? -1 : i;
     if (anchor == PC_HUD_ANCHOR_SCREEN && classic_pass)
         return luaL_error(L, "%s: \"screen\" is a panel's (the modern pass)", fn);
+    if (anchor == PC_HUD_ANCHOR_GAME && !classic_pass)
+        return luaL_error(L, "%s: \"game\" is the classic flavour's", fn);
     if (classic_pass)
         classic_anchor = anchor;
     else
@@ -1442,6 +1534,66 @@ void fill_element(lua_State* L, const hud::Element& e, bool fresh = false)
         set_nil(L, "group");
         set_nil(L, "availability");
     }
+    if (k == PC_HUD_TEXT_BAND) { // the box as func_800CD158 reads it
+        set_int(L, "box", f.box_id);
+        set_bool(L, "top", f.band_top != 0);
+        set_int(L, "edge", f.band_edge);
+        set_int(L, "lines", f.band_lines);
+        set_bool(L, "settled", f.band_settled != 0);
+        set_int(L, "icon", f.band_icon);
+    } else {
+        static const char* const band_fields[] = { "box", "top", "edge", "lines", "settled", "icon" };
+        for (const char* k2 : band_fields)
+            if (k != PC_HUD_BOX_TEXT || strcmp(k2, "box"))
+                set_nil(L, k2);
+    }
+    if (k == PC_HUD_IMAGE) {
+        set_int(L, "image", f.image_index);
+        set_int(L, "drawer", f.image_mode);
+        set_int(L, "clut", f.image_clut);
+    } else {
+        set_nil(L, "image");
+        set_nil(L, "drawer");
+        set_nil(L, "clut");
+    }
+    if (k == PC_HUD_BOX_TEXT) { // the glyphs _printVariableWidthFont set: 6 integers each, one table reused
+        const int* g = nullptr;
+        int n = pc_hud_box_text_glyphs ? pc_hud_box_text_glyphs(&g) : 0;
+        set_int(L, "box", f.box_id);
+        lua_getfield(L, -1, "glyphs");
+        if (!lua_istable(L, -1)) {
+            lua_pop(L, 1);
+            lua_createtable(L, n * 6, 0);
+            lua_pushvalue(L, -1);
+            lua_setfield(L, -3, "glyphs");
+        }
+        lua_Integer had = (lua_Integer)lua_rawlen(L, -1);
+        for (int i = 0; i < n * 6; ++i) {
+            lua_pushinteger(L, g[i]);
+            lua_rawseti(L, -2, i + 1);
+        }
+        for (lua_Integer i = n * 6 + 1; i <= had; ++i) {
+            lua_pushnil(L);
+            lua_rawseti(L, -2, i);
+        }
+        lua_pop(L, 1);
+    } else {
+        set_nil(L, "glyphs");
+    }
+    if (k == PC_HUD_TEXT_FRAME) { // the box as func_800CD3E4 reads it
+        set_int(L, "box", f.box_id);
+        set_int(L, "box_x", f.box_x);
+        set_int(L, "box_y", f.box_y);
+        set_int(L, "box_w", f.box_w);
+        set_int(L, "box_h", f.box_h);
+        set_int(L, "shape", f.box_shape);
+        set_int(L, "flip", f.box_flip);
+        set_int(L, "tail", f.box_tail);
+    } else {
+        static const char* const box_fields[] = { "box_x", "box_y", "box_w", "box_h", "shape", "flip", "tail" };
+        for (const char* k2 : box_fields)
+            set_nil(L, k2);
+    }
     if (k == PC_HUD_EMOTE) { // what func_80095C18 decided
         set_str(L, "draw", f.emote_draw == 1 ? "balloon" : f.emote_draw == 2 ? "arrow" : "far");
         set_int(L, "emote", f.emote_kind);
@@ -1707,6 +1859,10 @@ void open_hud(lua_State* L, Plugin* p)
     set_cfunction(L, -1, "gradient", api_gradient);
     set_cfunction(L, -1, "sprite", api_sprite);
     set_cfunction(L, -1, "quad", api_quad);
+    set_cfunction(L, -1, "frame", api_frame);
+    set_cfunction(L, -1, "band", api_band);
+    set_cfunction(L, -1, "char", api_char);
+    set_cfunction(L, -1, "image", api_image);
     set_cfunction(L, -1, "window", api_window);
     set_cfunction(L, -1, "cursor", api_cursor);
     set_cfunction(L, -1, "bar", api_bar);
@@ -2054,6 +2210,19 @@ std::string element_json(const hud::Element& e)
             + ",\"offset\":" + std::to_string(e.f.ability_offset)
             + ",\"group\":" + std::to_string(e.f.ability_group)
             + ",\"availability\":" + std::to_string(e.f.ability_availability);
+    if (e.f.kind == PC_HUD_IMAGE)
+        icons = ",\"image\":" + std::to_string(e.f.image_index) + ",\"drawer\":" + std::to_string(e.f.image_mode);
+    if (e.f.kind == PC_HUD_BOX_TEXT)
+        icons = ",\"box\":" + std::to_string(e.f.box_id);
+    if (e.f.kind == PC_HUD_TEXT_BAND)
+        icons = ",\"box\":" + std::to_string(e.f.box_id) + ",\"top\":" + std::to_string(e.f.band_top)
+            + ",\"edge\":" + std::to_string(e.f.band_edge) + ",\"lines\":" + std::to_string(e.f.band_lines)
+            + ",\"settled\":" + std::to_string(e.f.band_settled) + ",\"icon\":" + std::to_string(e.f.band_icon);
+    if (e.f.kind == PC_HUD_TEXT_FRAME)
+        icons = ",\"box\":" + std::to_string(e.f.box_id) + ",\"box_x\":" + std::to_string(e.f.box_x)
+            + ",\"box_y\":" + std::to_string(e.f.box_y) + ",\"box_w\":" + std::to_string(e.f.box_w)
+            + ",\"box_h\":" + std::to_string(e.f.box_h) + ",\"shape\":" + std::to_string(e.f.box_shape)
+            + ",\"flip\":" + std::to_string(e.f.box_flip) + ",\"tail\":" + std::to_string(e.f.box_tail);
     if (e.f.kind == PC_HUD_EMOTE)
         icons = std::string(",\"draw\":") + (e.f.emote_draw == 1 ? "\"balloon\"" : e.f.emote_draw == 2 ? "\"arrow\"" : "\"far\"")
             + ",\"emote\":" + std::to_string(e.f.emote_kind)
@@ -2159,7 +2328,7 @@ std::string stats_json()
         cmds += "}";
     }
     static const char* const CLASSIC_TYPES[] = { "text", "rect", "gradient", "glyph", "sprite", "window", "cursor",
-        "bar", "text_raw", "value", "digit", "quad" };
+        "bar", "text_raw", "value", "digit", "frame", "band", "char", "image", "quad" };
     unsigned panel_first = 0, panel_last = 0; // the classic panels' packets of the last game frame
     if (pc_hud_panel_range)
         pc_hud_panel_range(&panel_first, &panel_last);

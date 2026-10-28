@@ -3,7 +3,8 @@
 Status: in progress. Phase 0 done; phase 1's battle-status-panel drawing
 migration is done (2026-10-23, branch `classic-lua-step4`), and so are buff
 and damage (step 5), step 7's actor words, timer and emotes (2026-10-28,
-branch `classic-lua-step5`; see "Progress" below), with the remaining phase
+branch `classic-lua-step5`), and step 6's frames, band, text and images
+(same day; see "Progress" below), with the remaining phase
 1 work listed separately. It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
@@ -86,22 +87,66 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
   files match** (after each src change and on the final tree; formatter-only
   changes to unrelated code discarded). No game data, outputs or player
   files committed.
-- **Step 6 (text boxes, the name window): not started, decisions needed.**
-  func_800CB83C's printers interleave the typewriter's logic with drawing
-  (_printVariableWidthFont steps speed, pages, the continuation arrow's
-  frame, sfx and the button read while it emits), so it needs §2.2's
-  split or a model of the glyph runs the game emitted. Visible to the user:
-  (1) the vector talk bubbles (`ui_bubbles vector`, ui_bubbles.c, fed by
-  `pc_bubble_rect` / `pc_bubble_frame` from the game's frames) redraw the
-  frames, which the classic rule allows only for typography: keep them over
-  rood.classic's copies, or are they the modern look's? (2) the dialogue
-  layout settings the user picks (`ui_text_layout`, `ui_text_bubble_align`)
-  would become rood.classic look values (§2.5): Lua over the settings, or the
-  settings stay the source? (3) one `text_box` kind with parts per box id
-  (frame, band, text, portrait), or the frames first (func_800CD3E4,
-  func_800CD158 with its frame-buffer band) and the text later?
-- **Still outside this drawing migration:** text boxes and the name window
-  (step 6, above); targeting (step 8); the live-fight
+- **Step 6 (text boxes, the name window): frames, band, text and images done**
+  (decisions 2026-10-28: the vector bubbles stay an opt-in over rood.classic's
+  copies; the settings stay the source of the dialogue layout; frames first,
+  then the text with the typewriter left in C). Same gates; counts from the
+  final null-renderer run:
+
+  | Element / HUD kind | Commit | Frames | Scenarios |
+  |---|---|---:|---:|
+  | Bubble and info box frames / `text_frame` | `9b4f8d8e` | 917 | 146 |
+  | Name window band / `text_band` | `35f897f7` | 216 | 43 |
+  | Text boxes' text / `box_text` | `9a38d4e6` | 878 (+124 in the save room) | 6 |
+  | Portraits and stills, tiled drawer / `image` | `84892647` | 717 | 1 (3 images' whole lives) |
+
+  - **Approach:** each element is drawn by the game's own routine on a copy
+    of its inputs (§2.4's `window` row): `d.frame` (func_800CD3E4), `d.band`
+    (func_800CD158 with its icon), `d.char` (vs_battle_printVariableWidthFontChar,
+    with the font table, colour style and brightness the printer had),
+    `d.image` (D_800EC25C's drawer). The typewriter (speed, pages, the
+    arrow, sounds, buttons) stays C: ROOD_PC snapshots record each glyph
+    as it is set. The text boxes' private ordering table is the hook's slot
+    (a shadow table in the parity mode; the band's icon slot in unk8 too).
+  - **Placement:** new `d.anchor("game")`: no exact anchor, widescreen
+    treats the range as the game's own 2D. With the exact anchor the band
+    lost its 16:9 edge treatment (the band's right end differed); with
+    "game" the band rows are pixel-identical. Frames, band, text and images
+    use it, so 16:9 looks as today. The explicit Lua placement of §2.6
+    (heuristics off) is left for a later look decision.
+  - **Interplay:** the vector bubbles (opt-in) verify rood.classic's frames
+    (a copy replaces the game's pending bubble; nothing recorded for the
+    shadow); ui_text registers `d.char`'s glyphs as the game's (layout and
+    bubble alignment from the settings); a drawer's own widescreen range in
+    the shadow is noted, not recorded (`pc_hw_anchor_muted`).
+  - **Coverage:** frames: the opening bubble's zoom, all nine shapes at each
+    flip and tail, two lines' bubbles closing and opening; band: two whole
+    name-window lives, top and bottom, one to four lines, each icon; text:
+    the duke's line, the box as other kinds and selections, the next line
+    typed out glyph by glyph, the name window's text in the save room;
+    images: New Game's opening cards from fade-in to fade-out. State parity
+    120/120 for each.
+  - **Still the game's:** the closing text (`_printFixedWidthFont`) and
+    `_renderTextImmediate` (types 0/6); the image drawers 1..3 (the credits'
+    wipes and others: no scene the gate plays shows them); a far actor's
+    emote sprite.
+  - **Defaults on:** `hud_classic_text_frame`, `hud_classic_text_band`,
+    `hud_classic_box_text`, `hud_classic_image`.
+  - **Verification:** 64-bit and 32-bit builds; probes; `run.py
+    classic_parity hud classic ui_text_smoke ui_lines_smoke opening_smoke
+    widescreen_smoke` 9/9 on GL and 7/7 on Vulkan; commit-check All files
+    match after each src change.
+  - **Fix after the merge (verify's cutscene_player_smoke, 16:9 credits
+    card and tear missing):** not the Lua draw: every `PC_CLASSIC` site's
+    packets were suppressed while the photo hide (`hide{hud}`, the cutscene
+    player's capture) was on, and the images, text boxes, emotes, actor
+    words and timer had never been the HUD's to hide (the dialogue has its
+    own, `game2d`). Those sites now keep their packets under the HUD hide,
+    as before step 5. The classic gate now runs `run.py classic_parity hud
+    classic cutscene_player_smoke widescreen_smoke` on GL and Vulkan (packet
+    parity cannot see a host-side hide or widening).
+- **Still outside this drawing migration:** step 6's remainders (above);
+  targeting (step 8); the live-fight
   packet-parity tour for HP changes; step 1's unused remaining primitives;
   per-range typography and the look lint.
 

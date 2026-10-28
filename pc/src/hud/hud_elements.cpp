@@ -29,7 +29,9 @@ int pc_hud_classic_override;
 int pc_hud_classic_status = 1, pc_hud_classic_chain = 1, pc_hud_classic_buff = 1, pc_hud_classic_damage = 1,
     pc_hud_classic_gauges = 1, pc_hud_classic_figure = 1, pc_hud_classic_status_icons = 1, pc_hud_classic_battle_mode = 1, pc_hud_classic_ability_icons = 1,
     pc_hud_classic_actor_word = 1, pc_hud_classic_timer = 1,
-    pc_hud_classic_emote = 1;
+    pc_hud_classic_emote = 1, pc_hud_classic_text_frame = 1,
+    pc_hud_classic_text_band = 1, pc_hud_classic_box_text = 1,
+    pc_hud_classic_image = 1;
 int pc_hud_classic_default(int kind)
 {
     switch (kind) {
@@ -45,6 +47,10 @@ int pc_hud_classic_default(int kind)
     case PC_HUD_ACTOR_WORD: return pc_hud_classic_actor_word != 0;
     case PC_HUD_TIMER: return pc_hud_classic_timer != 0;
     case PC_HUD_EMOTE: return pc_hud_classic_emote != 0;
+    case PC_HUD_TEXT_FRAME: return pc_hud_classic_text_frame != 0;
+    case PC_HUD_TEXT_BAND: return pc_hud_classic_text_band != 0;
+    case PC_HUD_BOX_TEXT: return pc_hud_classic_box_text != 0;
+    case PC_HUD_IMAGE: return pc_hud_classic_image != 0;
     }
     return 0;
 }
@@ -75,7 +81,7 @@ Hold holds[PC_HUD_KINDS];
 #define RESPAWN_VSYNCS 15
 
 const char* const KINDS[PC_HUD_KINDS] = { "", "status", "chain", "buff", "damage", "travel", "notice",
-    "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote" };
+    "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image" };
 const char* const TIMINGS[] = { "too_fast", "fast", "success", "slow", "too_slow" };
 // BATTLE.PRG func_800958A4's words and colours (PS1 BGR, 0x80 full).
 const char* const TIMING_WORDS[] = { "TOO FAST!", "FAST!", "", "SLOW!", "TOO SLOW!" };

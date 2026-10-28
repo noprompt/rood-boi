@@ -20,7 +20,9 @@ typedef char pc_classic_sites_agree[PC_CLASSIC_SITE_GAUGES == PC_CLASSIC_GAUGES
             && PC_CLASSIC_SITE_BATTLE_MODE == PC_CLASSIC_BATTLE_MODE
             && PC_CLASSIC_SITE_ABILITY_ICONS == PC_CLASSIC_ABILITY_ICONS
             && PC_CLASSIC_SITE_ACTOR_WORD == PC_CLASSIC_ACTOR_WORD && PC_CLASSIC_SITE_TIMER == PC_CLASSIC_TIMER
-            && PC_CLASSIC_SITE_EMOTE == PC_CLASSIC_EMOTE
+            && PC_CLASSIC_SITE_EMOTE == PC_CLASSIC_EMOTE && PC_CLASSIC_SITE_TEXT_FRAME == PC_CLASSIC_TEXT_FRAME
+            && PC_CLASSIC_SITE_TEXT_BAND == PC_CLASSIC_TEXT_BAND && PC_CLASSIC_SITE_BOX_TEXT == PC_CLASSIC_BOX_TEXT
+            && PC_CLASSIC_SITE_IMAGE == PC_CLASSIC_IMAGE
         ? 1
         : -1];
 
@@ -35,6 +37,10 @@ void pc_hud_ability_icons(void* record, void* first, void* end);
 void pc_hud_actor_word(void* record, int x, int y, void* first, void* end);
 void pc_hud_timer(void* record, int x, int y, void* first, void* end);
 void pc_hud_emote(void* record, int actor, void* first, void* end);
+void pc_hud_text_frame(void* record, int id, void* first, void* end);
+void pc_hud_text_band(void* record, int id, void* first, void* end);
+void pc_hud_box_text(void* record, int id, void* first, void* end);
+void pc_hud_image(void* record, void* first, void* end);
 void pc_hud_gauges(void* record, void* first, void* end); /* hud_bridge.c */
 extern unsigned pc_vsync_count(void) __attribute__((weak));
 
@@ -84,10 +90,38 @@ extern int pc_photo_hide_hud(void) __attribute__((weak));
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end)
 {
     static pc_classic_packet captured[PC_CLASSIC_CAPTURE];
-    int hide = pc_photo_hide_hud && pc_photo_hide_hud();
+    /* (the HUD's sites only: the words over the actors, the timer, the emotes, the text boxes and the images were
+     * never the HUD's to hide; the dialogue has its own, GAME2D) */
+    int hide = pc_photo_hide_hud && pc_photo_hide_hud() && kind != PC_CLASSIC_ACTOR_WORD && kind != PC_CLASSIC_TIMER
+        && kind != PC_CLASSIC_EMOTE && kind != PC_CLASSIC_TEXT_FRAME && kind != PC_CLASSIC_TEXT_BAND
+        && kind != PC_CLASSIC_BOX_TEXT && kind != PC_CLASSIC_IMAGE;
     if (kind >= PC_CLASSIC_STATUS && kind <= PC_CLASSIC_DAMAGE) {
         pc_hud_element(kind, record, x, y, first, end);
         if (hide) /* (a classic claim's own packets too: allocated after the game's) */
+            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        return;
+    }
+    if (kind == PC_CLASSIC_IMAGE) {
+        pc_hud_image(record, first, end);
+        if (hide)
+            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        return;
+    }
+    if (kind == PC_CLASSIC_BOX_TEXT) {
+        pc_hud_box_text(record, x, first, end);
+        if (hide)
+            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        return;
+    }
+    if (kind == PC_CLASSIC_TEXT_BAND) {
+        pc_hud_text_band(record, x, first, end);
+        if (hide)
+            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        return;
+    }
+    if (kind == PC_CLASSIC_TEXT_FRAME) {
+        pc_hud_text_frame(record, x, first, end);
+        if (hide)
             pc_classic_suppress(first, psx_get(vs_scratch.unk0));
         return;
     }

@@ -34,14 +34,20 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
  * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
  * label, func_80095258: the ailments' and buffs' words, a lowered stat's arrow). timer: the time attack's
  * (5BF94.c _renderTimer, while vs_battle_lowerScreenUiState is 1). emote: a balloon over an actor (2842C.c
  * func_80095C18: the dots, '!', '?', the heart; an off-screen actor's arrow; a far actor's sprite), linked
- * into the actor's depth-sorted slot. The kinds from gauges on
+ * into the actor's depth-sorted slot. text_frame: a text box's frame (5BF94.c func_800CD3E4: the talk
+ * bubbles' and the information box's shapes), in the box's entries of the text boxes' own ordering table
+ * (D_800F51B8). text_band: a text box's band across the screen (func_800CD158: the name window's; the picture
+ * behind darkened in steps, black past it, the action's icon), likewise. box_text: a text box's text as
+ * _printVariableWidthFont sets it this frame (its glyphs: code, font table, colour style, place, brightness; the
+ * typewriter, pages, arrow, sounds and buttons stay the game's), in the box's entry 3. image: a portrait or still
+ * (func_800CCA90; its tiled drawer, D_800EC25C[0]: the others stay the game's). The kinds from gauges on
  * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
 #define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
@@ -54,7 +60,9 @@ enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAM
  * fractions of the whole picture (x / 320, y / 240), sizes in the picture's own pixels
  * (the Travel prompt, which is ours); SCREEN: the picture's own square pixels from its top-left, 240 high
  * (a plugin's panel, rood.draw.panel: its width 240 times the picture's aspect). */
-enum { PC_HUD_ANCHOR_CENTRE, PC_HUD_ANCHOR_LEFT, PC_HUD_ANCHOR_RIGHT, PC_HUD_ANCHOR_PICTURE, PC_HUD_ANCHOR_SCREEN };
+enum { PC_HUD_ANCHOR_CENTRE, PC_HUD_ANCHOR_LEFT, PC_HUD_ANCHOR_RIGHT, PC_HUD_ANCHOR_PICTURE, PC_HUD_ANCHOR_SCREEN,
+    PC_HUD_ANCHOR_GAME /* classic: placed as the game's own 2D is (no anchor of its own: widescreen's edge
+                        * extension and cover guesses as for the game's packets) */ };
 
 /* A piece of an element as the game drew it (the buff's words, sign and digits). */
 typedef struct {
@@ -93,6 +101,9 @@ typedef struct {
     int ability_animation, ability_offset, ability_group, ability_availability;
     int battle_step, battle_pulse; /* BATTLE MODE: draw-time inputs, before phase advance */
     int minutes, seconds, hundredths; /* timer: as the game's string shows them (59:59:99 at most) */
+    int box_id, box_x, box_y, box_w, box_h, box_shape, box_flip, box_tail; /* text_frame: the box's (read only) */
+    int image_index, image_mode, image_clut; /* image: which (0..2), its drawer, its CLUT word */
+    int band_top, band_edge, band_lines, band_settled, band_icon; /* text_band: the box's (read only) */
     int emote_draw, emote_kind, emote_side, emote_z, emote_direction, emote_frame; /* emote: pc_classic_emote's */
     int word_miss, word_label, word_lowered; /* actor_word: MISS (1) or a combat label (D_800690B4's index; lowered:
                                               * a lowered stat's, with the arrow) */
@@ -123,7 +134,11 @@ int pc_hud_record(const pc_hud_fields* f);
 extern int pc_hud_classic_override;
 extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_hud_classic_damage,
     pc_hud_classic_gauges, pc_hud_classic_figure, pc_hud_classic_status_icons, pc_hud_classic_battle_mode, pc_hud_classic_ability_icons,
-    pc_hud_classic_actor_word, pc_hud_classic_timer, pc_hud_classic_emote;
+    pc_hud_classic_actor_word, pc_hud_classic_timer, pc_hud_classic_emote,
+    pc_hud_classic_text_frame, pc_hud_classic_text_band, pc_hud_classic_box_text, pc_hud_classic_image;
+/* hud_bridge.c: the glyphs the last box_text element set (6 ints each: code, font table, colour style, x, y,
+ * brightness), their count. */
+int pc_hud_box_text_glyphs(const int** out) __attribute__((weak));
 int pc_hud_classic_default(int kind); /* the kind's hud_classic_<kind> */
 /* Whether claims on `kind` are honoured now (a claim, the look, the overlay drawing). */
 int pc_hud_honoured(int kind);
@@ -170,6 +185,16 @@ enum {
     PC_HUD_CMD_VALUE,    /* the HUD's digits (vs_battle_renderValue): a the font (0 small, 1 large), b the value,
                           * x, y its rightmost digit */
     PC_HUD_CMD_DIGIT,    /* one digit (_renderDigit): a the font (2: the separator), b the digit */
+    PC_HUD_CMD_FRAME,    /* a text box's frame by the game's routine (func_800CD3E4) on a copy of the box: a its id
+                          * (its ordering-table entries), b the shape, c the flip, d the tail; x, y, w, h */
+    PC_HUD_CMD_BAND,     /* a text box's band by the game's routine (func_800CD158) on a copy of the box: a its id, b
+                          * top (1: from the top), c its edge (rows grown), d its lines; font settled (its icon),
+                          * align the icon (the box's unk0_8) */
+    PC_HUD_CMD_CHAR,     /* a glyph of the text boxes' font by the game's printer (vs_battle_printVariableWidthFontChar)
+                          * in the element's box: a the code, b the font table, c the colour style, d the brightness;
+                          * x, y */
+    PC_HUD_CMD_IMAGE,    /* an image by the game's drawer (D_800EC25C[b]) as func_800CCA90 calls it: a the image
+                          * (0..2), c its CLUT word; in the kind's slot */
     PC_HUD_CMD_QUAD      /* a textured four-point polygon as the label loop's draws build theirs (POLY_FT4: the
                           * numbers, buffs): a the page word (with its blending), b the CLUT word, c, d its u, v;
                           * x, y, w x h on the screen; font, align the texels' w x h; color the colour word (PS1

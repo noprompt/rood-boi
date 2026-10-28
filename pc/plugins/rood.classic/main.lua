@@ -6,7 +6,9 @@
 -- The status carousel (status_icons), BATTLE MODE notice (battle_mode), and ability_icons are Lua too, and so
 -- are the buffs (buff: WEAPON HUMAN +1), the numbers over the actors (damage) and the words over them (actor_word:
 -- MISS, the ailments' and buffs' words), quads as the game builds them, the time attack's timer (timer) and the
--- emote balloons over the actors (emote).
+-- emote balloons over the actors (emote), the text boxes' frames and the name window's band (text_frame, text_band:
+-- the game's routines on copies), their text (box_text: each glyph by the game's printer) and the portraits and
+-- stills (image: the game's tiled drawer).
 -- Ability groups leave pc_weapon_slots_label's weapon-mode names/markers and side effects in C.
 -- Each draw function below is a copy of the game's own, made of the game's own pieces (d.text_raw is
 -- its raw printer, d.value its digits, d.bar its gauge), so by default it emits exactly the game's
@@ -246,6 +248,23 @@ local function make_look()
         quad = { page_x = 768, page_y = 0, bits = 4, clut_x = 976, clut_y = 223, raw = true,
           corners = { 0, 0, 0, 0, 0, 0, 0, 0 }, uvs = { 48, 48, 63, 48, 48, 63, 63, 63 } } },
     },
+    -- A text box's frame (5BF94.c func_800CD3E4: the talk bubbles' and the information box's shapes), drawn by
+    -- the game's own routine on a copy of the box (d.frame): its place this frame, size, shape, flip and the
+    -- speaker's tail are the game's (the opening's zoom included). (The vector talk bubbles, ui_bubbles vector,
+    -- an option, redraw these copies as they do the game's.)
+    -- (place: anchor "game", widescreen placing the box as it places the game's own 2D: the edge extension too)
+    text_frame = { place = { anchor = "game", dx = 0, dy = 0 } },
+    -- A text box's band across the screen (func_800CD158: the name window's): the picture behind it darkened row by
+    -- row, black past it, the action's icon once settled, by the game's own routine on a copy of the box (d.band).
+    text_band = { place = { anchor = "game" } }, -- (across the screen: widescreen stretches it to the edges as the game's)
+    -- A text box's text as the game's printer set it this frame (_printVariableWidthFont: the typewriter, pages, the
+    -- continuation arrow, sounds and buttons are the game's): each glyph again by the same printer (d.char), with
+    -- the font table, colour style and brightness it had. Its typography is ui_text's (the dialogue and menu
+    -- styles; ui_text_layout, ui_text_bubble_align: the settings).
+    box_text = { place = { anchor = "game", dx = 0, dy = 0 } },
+    -- A portrait or still (func_800CCA90; the opening's cards), by the game's own tiled drawer as the game calls it,
+    -- placed as the game's (its full-screen stills fill 16:9 as the drawer itself decides).
+    image = { place = { anchor = "game" } },
     -- How ui_text sets both (with ui_text font; the packets stay the game's): the status style,
     -- typeset as one word centred where the game centres it.
     typeset = {
@@ -679,8 +698,40 @@ M.draw.emote = function(e, d)
   end
 end
 
+-- text_frame: func_800CD3E4 for the box as the game set it this frame.
+local frame = {}
+M.draw.text_frame = function(e, d)
+  local t = look.text_frame
+  frame.box, frame.shape, frame.flip, frame.tail = e.box, e.shape, e.flip, e.tail
+  d.anchor(t.place.anchor)
+  d.frame(e.box_x + t.place.dx, e.box_y + t.place.dy, e.box_w, e.box_h, frame)
+end
+
+-- text_band: func_800CD158 for the box as the game set it this frame.
+local band = {}
+M.draw.text_band = function(e, d)
+  band.top, band.edge, band.lines, band.settled, band.icon = e.top, e.edge, e.lines, e.settled, e.icon
+  d.anchor(look.text_band.place.anchor)
+  d.band(e.box, band)
+end
+
+-- box_text: e.glyphs, 6 integers a glyph (code, font table, style, x, y, brightness) in the order the printer set
+-- them; each links at the head of the box's entry, so the commands go last glyph first.
+M.draw.box_text = function(e, d)
+  local p, g = look.box_text.place, e.glyphs
+  d.anchor(p.anchor)
+  for i = #g - 5, 1, -6 do
+    d.char(g[i], g[i + 3] + p.dx, g[i + 4] + p.dy, g[i + 1], g[i + 2], g[i + 5])
+  end
+end
+
+M.draw.image = function(e, d)
+  d.anchor(look.image.place.anchor)
+  d.image(e.image, e.drawer, e.clut)
+end
+
 for _, kind in ipairs({ "status", "chain", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "buff",
-                        "damage", "actor_word", "timer", "emote" }) do
+                        "damage", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image" }) do
   rood.hud.claim(kind, function(e, d) return M.draw[kind](e, d) end, { flavour = "classic" })
 end
 

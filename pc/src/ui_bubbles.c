@@ -57,6 +57,7 @@ const char* const pc_ui_bubbles_names[2] = { "original", "vector" };
 typedef struct {
     uintptr_t start, end; /* the frame's packets */
     int id, shape, flip, tail, valid;
+    int fresh; /* its box's unrounded rectangle was set (pc_bubble_rect) */
     unsigned shadow_drawn, main_drawn; /* ordering table serial last drawn */
     int point_count, path_count, triangle_count;
     float points[MAX_POINTS][2]; /* screen pixels (before the drawing offset) */
@@ -295,19 +296,32 @@ static int chain(bubble* B, const segments* seg)
     return at == B->path[0];
 }
 
+/* Set while the classic layer's parity gate draws a frame into its shadow (pc/src/hud/hud_bridge.c): nothing of
+ * those packets is drawn, so nothing is recorded. */
+int pc_bubble_frame_muted;
+
 void pc_bubble_frame(int id, const void* box, const void* shape, const void* start, const void* end)
 {
+    if (pc_bubble_frame_muted)
+        return;
     ++stats.frames;
     if (id < 0 || id >= MAX_BUBBLES || !box || !shape)
         return;
     const unsigned char* b = box;
     unsigned flags = u32_at(b);
-    int fresh = rects[id].set;
+    int fresh = rects[id].set, slot = pending_count;
     rects[id].set = 0;
-    if (pending_count >= MAX_BUBBLES)
+    for (int i = 0; i < pending_count; i++)
+        if (pending[i].id == id) { /* a classic claim's copy of the frame replaces the game's (its packets no-ops) */
+            slot = i;
+            fresh |= pending[i].fresh;
+            break;
+        }
+    if (slot >= MAX_BUBBLES)
         return;
-    bubble* B = &pending[pending_count];
+    bubble* B = &pending[slot];
     memset(B, 0, sizeof *B);
+    B->fresh = fresh;
     B->start = (uintptr_t)start, B->end = (uintptr_t)end;
     B->id = id;
     B->shape = (flags >> 8) & 15, B->flip = (flags >> 6) & 3, B->tail = (flags >> 12) & 15;
@@ -365,7 +379,8 @@ void pc_bubble_frame(int id, const void* box, const void* shape, const void* sta
             fprintf(stderr, "[ui] bubble %d (shape %d, flip %d, tail %d) does not match its packets: original\n", id,
                 B->shape, B->flip, B->tail);
     }
-    ++pending_count;
+    if (slot == pending_count)
+        ++pending_count;
 }
 
 void pc_ui_bubbles_frame(void)

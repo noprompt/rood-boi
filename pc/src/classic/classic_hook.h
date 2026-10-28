@@ -37,7 +37,17 @@ typedef struct { const void* label; int miss, age, index, lowered; } pc_classic_
  * (func_8009651C: direction, the clamped place), 3 a far actor's sprite (frame); 0 nothing. */
 typedef struct { int draw, kind, side, x, y, z, direction, frame; } pc_classic_emote;
 #define PC_CLASSIC_SITE_EMOTE 15
-#define PC_CLASSIC_SITE_STATUS_PANEL 16 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+#define PC_CLASSIC_SITE_TEXT_FRAME 16 /* func_800CD3E4: its record the text box (read only), x its id */
+#define PC_CLASSIC_SITE_TEXT_BAND 17 /* func_800CD158: likewise */
+#define PC_CLASSIC_SITE_BOX_TEXT 18 /* _printVariableWidthFont: likewise (its glyphs recorded as it sets them) */
+/* An image (func_800CCA90: the portraits and stills): its index (0..2), drawer (D_800EC25C), CLUT word and slot
+ * (bytes from vs_scratch.unk4: the table's far end, or after unk8). */
+typedef struct {
+    int image, mode, clut, slot;
+    void* gim; /* its record (gim_t: identity, for the drawer) */
+} pc_classic_image;
+#define PC_CLASSIC_SITE_IMAGE 19
+#define PC_CLASSIC_SITE_STATUS_PANEL 20 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end) __attribute__((weak));
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \

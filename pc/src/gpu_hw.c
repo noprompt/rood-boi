@@ -652,8 +652,17 @@ static anchor_range pending_anchors[MAX_ANCHOR_RANGES], active_anchors[MAX_ANCHO
 static int pending_anchor_count, active_anchor_count;
 /* primitive_anchor (above): of the packet being drawn */
 static float anchor_left, anchor_right; /* the screen's edges in VRAM X */
+/* Set while the classic layer's parity gate draws into its shadow (pc/src/hud/hud_bridge.c): those packets are
+ * given back and the space reused, so they are anchored nowhere. */
+int pc_hw_anchor_muted, pc_hw_anchor_muted_as = -1; /* (muted: what the range would have recorded) */
+int pc_hw_anchor_recorded(int anchor);
 void pc_hw_anchor_packets(const void* start, const void* end, int anchor)
 {
+    if (pc_hw_anchor_muted) {
+        if (end > start)
+            pc_hw_anchor_muted_as = pc_hw_anchor_recorded(anchor);
+        return;
+    }
     int exact = (anchor & 0x20) != 0; /* PC_ANCHOR_EXACT */
     anchor &= ~0x20;
     /* Ranges marked 0x10 belong to the widescreen layout fixes

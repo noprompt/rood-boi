@@ -1490,9 +1490,15 @@ int vs_battle_selectTextBox(u_char boxMask)
 /* ui_text_layout line (pc/src/ui_text.c): each character this printer sets. */
 extern void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y,
     int next_x, int advance) __attribute__((weak));
+/* PC_CLASSIC (classic_hook.h): the glyphs _printVariableWidthFont sets, recorded as it sets them; a classic
+ * draw's copies into the parity gate's shadow are not ui_text's. */
+extern void pc_classic_text_char(int glyph, int x, int y) __attribute__((weak));
+extern int pc_classic_text_muted(void) __attribute__((weak));
 static void pc_text_char(
     void* const* commands, int count, int glyph, int x, int y, int advance)
 {
+    if (pc_classic_text_muted && pc_classic_text_muted())
+        return;
     if (pc_text_glyph)
         pc_text_glyph(
             commands, count, glyph, x << 16, y << 16, (x + advance) << 16, advance);
@@ -1531,6 +1537,10 @@ int vs_battle_printVariableWidthFontChar(u_int glyphId, int x, int y, u_long* ot
     u_int glyphCol;
     u_long* sprite;
 
+#ifdef ROOD_PC
+    if (pc_classic_text_char)
+        pc_classic_text_char(glyphId, x, y);
+#endif
     if (glyphId == ' ') {
 #ifdef ROOD_PC
         pc_text_char(NULL, 0, -1, x, y, 6);
@@ -4102,7 +4112,12 @@ void func_800CB83C(void)
             }
             goto text;
         case 4:
+#ifdef ROOD_PC
+            /* PC_CLASSIC: the box's band (classic_hook.h). */
+            PC_CLASSIC(PC_CLASSIC_SITE_TEXT_BAND, box, id, 0, func_800CD158(id));
+#else
             func_800CD158(id);
+#endif
             if (state < 0)
                 break;
             goto text;
@@ -4112,11 +4127,26 @@ void func_800CB83C(void)
             break;
         case 2:
         case 7:
+#ifdef ROOD_PC
+            /* PC_CLASSIC: the box's frame (classic_hook.h). */
+            PC_CLASSIC(PC_CLASSIC_SITE_TEXT_FRAME, box, id, 0, func_800CD3E4(id));
+#else
             func_800CD3E4(id);
+#endif
         default:
         text:
             if (state == duration + 1)
+#ifdef ROOD_PC
+            {
+                /* PC_CLASSIC: the glyphs it sets (classic_hook.h); the typewriter stays the game's. */
+                extern void pc_classic_text_begin(void) __attribute__((weak));
+                if (pc_classic_text_begin)
+                    pc_classic_text_begin();
+                PC_CLASSIC(PC_CLASSIC_SITE_BOX_TEXT, box, id, 0, _printVariableWidthFont(box));
+            }
+#else
                 _printVariableWidthFont(box);
+#endif
             else if (state < 0)
                 _printFixedWidthFont(box, scale);
             break;
@@ -4547,9 +4577,21 @@ void func_800CCA90(int arg0)
     }
 
     D_800F51C8 = 0;
+#ifdef ROOD_PC
+    {
+        /* PC_CLASSIC: the image as the game draws it (classic_hook.h): which, its drawer, CLUT and slot. */
+        u_long* pc_ot = gim->unkC & 0x4000 ? psx_get(vs_scratch.unk4) + 0x1FF8 - arg0 * 4
+                                           : psx_get(vs_scratch.unk8) + 0x18 - arg0 * 8;
+        pc_classic_image pc_image = { arg0, gim->unk0_3, clut << 16,
+            (int)((char*)pc_ot - (char*)psx_get(vs_scratch.unk4)), gim };
+        PC_CLASSIC(PC_CLASSIC_SITE_IMAGE, &pc_image, arg0, 0,
+            D_800EC25C[gim->unk0_3](gim, clut << 16, pc_ot));
+    }
+#else
     D_800EC25C[gim->unk0_3](gim, clut << 16,
         gim->unkC & 0x4000 ? psx_get(vs_scratch.unk4) + 0x1FF8 - arg0 * 4
                            : psx_get(vs_scratch.unk8) + 0x18 - arg0 * 8);
+#endif
 #ifdef ROOD_PC
     if (arg0 == 0 && gim->unk3 == 0x80) {
         extern void pc_opening_image_ready(int);
