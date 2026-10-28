@@ -228,6 +228,11 @@ def suites(args, mode="egl"):
                        ROOT / "pc/tools/material_rollout_rules.json", ROOT / "pc/assets/materials/catalog.json"],
               note="material rollout: resumable room targets, texture looks, preset proposals, palette "
                    "aggregation, the review page, applying a review to a catalog copy"),
+        Suite("material_bake", [PY, str(TESTS / "material_bake_test.py")], 60, binary=None,
+              sources=[ROOT / "pc/tools/material_bake.py", ROOT / "pc/tools/material_bake.json"],
+              note="material bake: height, roughness, metal from made-up textures (sizes, mortar below "
+                   "blocks, no slope from painted shading, no speckle, metal only on metal presets), targets, "
+                   "dry run, tunables, refusals"),
         Suite("shader_compiler", [PY, str(TESTS / "shader_compiler_test.py")], 600, binary=None,
               sources=[TESTS / "shader_compiler_probe.cpp", ROOT / "pc/src/shader_compiler.cpp",
                        ROOT / "pc/src/shader_compiler.h", ROOT / "pc/src/vk_shader_lookup.c",
@@ -435,6 +440,9 @@ def suites(args, mode="egl"):
             Suite("material_relief_smoke", [PY, str(TESTS / "material_relief_smoke.py"), "--card", str(args.save)], 300,
                   note="the relief fades to flat where the texture is stretched: the Keep's arch side smooth, the broad "
                        "faces unchanged and still bumped; the limits are tunables"),
+            Suite("material_baked_smoke", [PY, str(TESTS / "material_baked_smoke.py"), "--card", str(args.save)], 300,
+                  note="the baked material layer: picked up live, under the user's maps, materials_baked off "
+                       "byte-identical to no baked layer"),
             Suite("material_survey_smoke", [PY, str(TESTS / "material_survey_smoke.py"), "--card", str(args.save)], 300,
                   note="material survey: the textures in view by share, agreeing with the picker; the one-click "
                        "preset makes a texture or palette entry, live, saved and read back"),
@@ -1045,6 +1053,7 @@ def run_suite(suite, index, args, mode, results, lock):
         ROOD_PREFABS=str(out / "prefabs"),
         ROOD_PLUGINS=str(out / "plugins"),  # none of the user's plugins (pc/user/plugins)
         ROOD_PLUGIN_DATA=str(out / "plugin_data"),
+        ROOD_MATERIALS_BAKED=str(out / "baked"),  # not the maps baked on this machine (material_bake.py)
         ROOD_IMGUI_INI=str(out / "imgui.ini"),  # not the player's window layout
         ROOD_HEADLESS=mode,
         ROOD_BUTTON_PROMPTS="original",  # the PS1 glyphs (button_prompts_smoke opts in)

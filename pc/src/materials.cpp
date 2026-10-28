@@ -18,6 +18,8 @@
 
 namespace fs = std::filesystem;
 
+int pc_materials_baked = 1;
+
 namespace materials {
 
 std::string user_dir()
@@ -29,6 +31,11 @@ std::string shipped_dir()
 {
     const char* e = getenv("ROOD_MATERIALS_SHIPPED");
     return e && *e ? e : "pc/assets/materials";
+}
+std::string baked_dir()
+{
+    const char* e = getenv("ROOD_MATERIALS_BAKED");
+    return e && *e ? e : "pc/build/materials";
 }
 std::string export_dir()
 {
@@ -196,36 +203,54 @@ bool read_png_gray(const std::string& path, int* w, int* h, std::vector<uint8_t>
 /* ---------------------------------------------------------------- the layers */
 
 namespace {
+/* The layers by precedence: the user's, the shipped one, the baked one. */
+enum { USER, SHIPPED, BAKED, LAYERS };
 struct Cached {
-    long long user_stamp = -1, shipped_stamp = -1;
+    long long stamps[LAYERS] = { -1, -1, -1 };
     bool present = false;
     Channel channel;
 };
 std::map<std::pair<std::string, std::string>, Cached> cache;
 uint32_t files_generation = 1;
+int applied_baked = -1; /* pc_materials_baked the cache was loaded with */
 
 std::string channel_path(const std::string& dir, const std::string& key, const std::string& name)
 {
     return dir + "/" + key + "/" + name + ".png";
 }
+std::string layer_dir(int layer) { return layer == USER ? user_dir() : layer == SHIPPED ? shipped_dir() : baked_dir(); }
+bool layer_on(int layer) { return layer != BAKED || pc_materials_baked; }
+long long layer_stamp(int layer, const std::string& key, const std::string& name)
+{
+    return layer_on(layer) ? stamp(channel_path(layer_dir(layer), key, name)) : 0;
+}
 void load(const std::string& key, const std::string& name, Cached& c)
 {
-    std::string user = channel_path(user_dir(), key, name), shipped = channel_path(shipped_dir(), key, name);
-    c.user_stamp = stamp(user), c.shipped_stamp = stamp(shipped);
     c.present = false;
     c.channel = Channel();
-    for (int layer = 0; layer < 2 && !c.present; layer++) {
-        const std::string& path = layer == 0 ? user : shipped;
-        if (!(layer == 0 ? c.user_stamp : c.shipped_stamp))
+    for (int layer = 0; layer < LAYERS; layer++)
+        c.stamps[layer] = layer_stamp(layer, key, name);
+    for (int layer = 0; layer < LAYERS && !c.present; layer++) {
+        if (!c.stamps[layer])
             continue;
-        std::string error;
+        std::string path = channel_path(layer_dir(layer), key, name), error;
         int w = 0, h = 0;
         if (!read_png_gray(path, &w, &h, c.channel.values, &error)) {
             fprintf(stderr, "[materials] %s\n", error.c_str());
             continue;
         }
-        c.channel.w = w, c.channel.h = h, c.channel.path = path, c.channel.shipped = layer == 1;
+        c.channel.w = w, c.channel.h = h, c.channel.path = path;
+        c.channel.shipped = layer == SHIPPED, c.channel.baked = layer == BAKED;
         c.present = true;
+    }
+}
+/* The baked layer switched: everything reloads. */
+void check_baked()
+{
+    if (applied_baked != (pc_materials_baked != 0)) {
+        applied_baked = pc_materials_baked != 0;
+        cache.clear();
+        ++files_generation;
     }
 }
 } // namespace
@@ -234,6 +259,7 @@ const Channel* channel(const std::string& key, const std::string& name)
 {
     if (!valid_key(key) || !valid_name(name))
         return nullptr;
+    check_baked();
     auto found = cache.find({ key, name });
     if (found == cache.end()) {
         found = cache.emplace(std::make_pair(key, name), Cached()).first;
@@ -246,9 +272,11 @@ std::vector<Present> channels(const std::string& key)
     std::vector<Present> out;
     if (!valid_key(key))
         return out;
-    for (int layer = 0; layer < 2; layer++) {
+    for (int layer = 0; layer < LAYERS; layer++) {
+        if (!layer_on(layer))
+            continue;
         std::error_code ec;
-        fs::path dir = fs::path(layer == 0 ? user_dir() : shipped_dir()) / key;
+        fs::path dir = fs::path(layer_dir(layer)) / key;
         for (const auto& f : fs::directory_iterator(dir, ec)) {
             if (f.path().extension() != ".png")
                 continue;
@@ -259,18 +287,25 @@ std::vector<Present> channels(const std::string& key)
             for (const Present& p : out)
                 seen |= p.name == name;
             if (!seen)
-                out.push_back({ name, f.path().string(), layer == 0 });
+                out.push_back({ name, f.path().string(), layer == USER, layer == BAKED });
         }
     }
     return out;
 }
-uint32_t generation() { return files_generation; }
+uint32_t generation()
+{
+    check_baked();
+    return files_generation;
+}
 void poll()
 {
+    check_baked();
     for (auto& kv : cache) {
         const std::string &key = kv.first.first, &name = kv.first.second;
-        if (stamp(channel_path(user_dir(), key, name)) != kv.second.user_stamp
-            || stamp(channel_path(shipped_dir(), key, name)) != kv.second.shipped_stamp) {
+        bool changed = false;
+        for (int layer = 0; layer < LAYERS; layer++)
+            changed |= layer_stamp(layer, key, name) != kv.second.stamps[layer];
+        if (changed) {
             load(key, name, kv.second);
             ++files_generation;
         }

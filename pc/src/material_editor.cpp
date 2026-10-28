@@ -287,6 +287,8 @@ Json list_json()
     j.set("bump_strength", Json::num(pc_bump_strength));
     j.set("auto_height", Json::boolean_(pc_auto_height != 0));
     j.set("auto_height_strength", Json::num(pc_auto_height_strength));
+    j.set("materials_baked", Json::boolean_(pc_materials_baked != 0));
+    j.set("baked_dir", Json::str(materials::baked_dir()));
     j.set("bump_occlusion", Json::num(pc_bump_occlusion));
     j.set("relief_aniso", Json::num(pc_relief_aniso));
     j.set("relief_footprint", Json::num(pc_relief_footprint));

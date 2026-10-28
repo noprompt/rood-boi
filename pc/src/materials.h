@@ -6,10 +6,12 @@
 //   <materials>/<key>/<channel>.png     emissive, roughness, height, metal
 //
 // A map is the size of the texture's UV box (the exported reference's
-// size), texel for texel (nearest, no filtering). Two layers: the shipped
-// one (pc/assets/materials, committed, single-channel PNGs only) and the
-// user's (materials/ in the user lighting directory), which wins per channel
-// file. The loader is generic: it finds whatever channel files a texture
+// size), texel for texel (nearest, no filtering). Three layers: the baked
+// one (pc/build/materials: derived from the textures by
+// pc/tools/material_bake.py, local only, never committed; used while
+// pc_materials_baked is on), the shipped one (pc/assets/materials,
+// committed, single-channel PNGs only) over it and the user's (materials/ in
+// the user lighting directory) over both, per channel file. The loader is generic: it finds whatever channel files a texture
 // has; consumers opt into individual channels. Files changed on disk are
 // reloaded (poll(): mtime and size).
 #ifndef ROOD_MATERIALS_H
@@ -102,7 +104,8 @@ struct Channel {
     int w = 0, h = 0;
     std::vector<uint8_t> values; /* row-major, w * h: 0..255 */
     std::string path;
-    bool shipped = false; /* from the shipped layer (else the user's) */
+    bool shipped = false; /* from the shipped layer */
+    bool baked = false;   /* from the baked layer (neither: the user's) */
 };
 
 /* Where the layers and the exports live (relative to the repository root,
@@ -110,10 +113,13 @@ struct Channel {
  *   user     $ROOD_MATERIALS, else materials/ in the user lighting
  *            directory ($ROOD_LIGHTS or pc/user/lighting)
  *   shipped  $ROOD_MATERIALS_SHIPPED, else pc/assets/materials
+ *   baked    $ROOD_MATERIALS_BAKED, else pc/build/materials (gitignored:
+ *            maps derived from the game's art by material_bake.py)
  *   exports  $ROOD_MATERIAL_EXPORTS, else pc/exports/materials (gitignored:
  *            the exported references are the game's art, never committed) */
 std::string user_dir();
 std::string shipped_dir();
+std::string baked_dir();
 std::string export_dir();
 
 /* The channels the loader knows how to use (and the publish guard allows in
@@ -123,16 +129,19 @@ bool known_channel(const std::string& name);
  * (rough), height 128 (flat, room to carve down or raise), else 0. */
 uint8_t blank_value(const std::string& name);
 
-/* A texture's channel map (the user's over the shipped one), or nullptr. */
+/* A texture's channel map (the user's over the shipped one over the baked
+ * one), or nullptr. */
 const Channel* channel(const std::string& key, const std::string& name);
-/* The channel files a texture has: name, and whether the user's layer has it. */
+/* The channel files a texture has: name, and which layer the one in use is in. */
 struct Present {
     std::string name, path;
     bool user;
+    bool baked = false;
 };
 std::vector<Present> channels(const std::string& key);
 /* Changes whenever a channel file looked at so far changed on disk (or
- * appeared, or went); poll() checks (cheap: a stat per file). */
+ * appeared, or went; poll() checks: cheap, a stat per file) and at once when
+ * pc_materials_baked is switched. */
 uint32_t generation();
 void poll();
 void forget(); /* reload everything on the next look */
@@ -158,4 +167,8 @@ bool read_png_gray(const std::string& path, int* w, int* h, std::vector<uint8_t>
 bool write_png(const std::string& path, int w, int h, int channels, const uint8_t* data, std::string* error);
 
 } // namespace materials
+
+/* Whether the baked layer is used (the materials_baked setting; 0: the maps
+ * as without it, the colour estimate where an entry asks for one). */
+extern int pc_materials_baked;
 #endif

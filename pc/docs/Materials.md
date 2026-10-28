@@ -28,10 +28,12 @@ everywhere the texture is drawn.
 - **Format**: 8-bit grayscale PNG. On import a colour image counts by its
   luminance and an image whose alpha is used (an alpha-only layer) by its
   alpha; the editor and the importer always write grayscale.
-- **Layers**, the user's winning per channel file:
+- **Layers**, the user's winning per channel file, then the shipped one,
+  then the baked one:
 
 | Layer | Where | |
 | --- | --- | --- |
+| baked | `pc/build/materials/<key>/<channel>.png` (`$ROOD_MATERIALS_BAKED`) | gitignored: derived from the game's art by `material_bake.py` ([Baked maps](#baked-maps)), never committed; used while `materials_baked` is on |
 | shipped | `pc/assets/materials/<key>/<channel>.png` (`$ROOD_MATERIALS_SHIPPED`) | committed; single-channel grayscale only |
 | user | `materials/<key>/<channel>.png` in the user lighting directory (`pc/user/lighting`, `$ROOD_LIGHTS`; `$ROOD_MATERIALS` overrides) | the artist's |
 | exports | `pc/exports/materials/<key>/reference.png` (`$ROOD_MATERIAL_EXPORTS`) | gitignored: the texture itself, game art, never committed |
@@ -39,7 +41,7 @@ everywhere the texture is drawn.
 - **Loader** (`pc/src/materials.cpp`, `materials.h`): generic. It finds
   whatever channel files a texture has (`channels(key)`: any `<name>.png`
   but `reference.png`), loads one on demand (`channel(key, name)`: the
-  user's, else the shipped one) and reloads a file that changed on disk
+  user's, else the shipped one, else the baked one) and reloads a file that changed on disk
   (`poll()`, about once a second: mtime and size), so a map painted in an
   outside editor shows live. Consumers ask for the channels they know
   (`known_channel`: `emissive`, `roughness`, `height`, `metal`). Blank
@@ -608,6 +610,76 @@ the maps match (RPC, the editor, the planes on the CPU) but the GL
 G-buffer has no material target and the GL present pass is unchanged
 (material_smoke checks the frame is identical). Rooms without dynamic lights show no highlights either
 (the game's baked light has no direction).
+
+## Baked maps
+
+The textures carry no height, roughness or metal of their own, so
+`pc/tools/material_bake.py` derives a full map set for every texture a
+material entry applies to (the shipped catalog and the user's: by key or
+by palette; the accepted rollout proposals are palette entries, about
+15,000 textures) from its texels, offline, by classical image analysis
+(no learned model, nothing downloaded):
+
+```
+python3 pc/tools/material_bake.py --all [--dry-run] [--preview pc/build/bake-preview]
+python3 pc/tools/material_bake.py --keys 9a87cf9633,d83ebe3791 [--method classical]
+```
+
+- **Where**: into the baked layer, `pc/build/materials/<key>/<channel>.png`
+  (`--out`, `$ROOD_MATERIALS_BAKED`), at exactly the texture's box size,
+  8-bit grayscale. The maps are derived from the game's art: they stay on
+  this machine (the tool refuses `pc/assets`; `--preview` contact sheets
+  only go under `pc/build`). Only files whose content changed are
+  rewritten, and the game reloads those live.
+- **The textures**: the exported references
+  (`pc/exports/materials/<key>/reference.png`) and the rollout's texture
+  thumbnails (`--textures`, default `pc/build/material_rollout/tex`, as RPC
+  `material texture` draws them: `<key>-<w>x<h>-<clut>.png`). A key drawn
+  with several palettes takes the first an entry matches. `--user-catalog`
+  (default the user lighting directory's `materials.json`) is only read.
+- **height**: the luminance, smoothed edge-preserving (a self-guided
+  filter, `smooth_radius`, `smooth_eps`: the palette's quantization and
+  dithering go, edges stay), split into bands: what is broader than
+  `low_sigma` texels is the shading painted into the texture and is
+  dropped (big gradients do not become slopes); the brick-sized band
+  (`w_detail`) and the finer one (`w_mid`, above `mid_sigma`) are kept.
+  Dark narrow features, a black top-hat over a disc of `groove_radius`
+  (mortar, cracks, gaps; above `groove_threshold`, softened by
+  `groove_soften`) carve down by `w_groove`. Centred on the mean and
+  scaled by its `height_percentile` so the result spans 128 ±
+  `height_amplitude` x 127: a mean of about 128.
+- **roughness**: the entry's roughness (its own, else its preset's),
+  rougher where the texture is busy (local contrast, `roughness_detail`)
+  and in the grooves (`roughness_cavity`), smoother on raised faces
+  (`roughness_height`), clamped to `roughness_range`.
+- **metal**: only presets with `"metal": true` (worn iron, polished
+  metal) get a `metal.png`: the entry's metal where the texels are grey
+  (saturation under `metal_saturation`) and bright enough
+  (`metal_brightness`), none where they are rust-coloured
+  (`metal_rust_hue`) and less in the grooves (`metal_cavity`). Every other
+  preset has no metal map (its entry's metal applies, 0): plain stone is
+  never metal.
+- **Tunables**: `pc/tools/material_bake.json`, `default` and per-preset
+  overrides (stone, wood, bark, metal, cloth... each its own weights and
+  ranges). A baked map is a map like any other: at run time a baked
+  `height.png` replaces the colour estimate (`auto_height`), a baked
+  `roughness.png` the entry's roughness, both times `bump_strength` and the
+  entry's `bump` as painted maps are.
+- **The switch**: `materials_baked` (Graphics > Lighting quality,
+  Materials: *Baked maps*; RPC `graphics materials_baked=0`, listed by
+  `material list` with `baked_dir`). Off: the baked layer is not looked at,
+  the picture exactly the one without it (the estimate where an entry asks
+  for it). A painted or shipped map always wins over a baked one; RPC
+  `emissive materials {key}` lists each channel's layer (`user`, `baked`).
+- **Methods**: `--method classical` is the only one. Another (a learned
+  height estimator, once its weights are approved) is one more function in
+  `METHODS`: it gets the texture (RGBA) and the preset's parameters and
+  returns the channel arrays.
+- **Tests**: `material_bake` (disc-free: a made-up block wall has its
+  mortar below the blocks, no slope from its painted shading, no speckle;
+  metal only on metal presets; targets, dry run, tunables, refusals) and
+  `material_baked_smoke` (the Keep: a baked map picked up live, the user's
+  winning, off byte-identical to no baked layer).
 
 ## Editing (Details > Material)
 

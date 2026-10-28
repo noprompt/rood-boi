@@ -8,6 +8,7 @@
 // is decided again each frame (a Custom "traced" without a tracer draws
 // shadow maps), so a settings file from another machine also works.
 #include "lighting_quality.h"
+#include "materials.h"
 #include "frame_cost.h" /* RPC perf: the game thread's sections */
 #include "atmosphere.h"
 #include "probe_gi.h"
@@ -144,6 +145,8 @@ Key keys[] = {
     { "bump_strength", FLOAT_KEY, &pc_bump_strength, nullptr, 0, false },
     { "auto_height", BOOL, &pc_auto_height, nullptr, 0, false },
     { "auto_height_strength", FLOAT_KEY, &pc_auto_height_strength, nullptr, 0, false },
+    /* The baked maps (pc/build/materials, material_bake.py) under the shipped and the user's. */
+    { "materials_baked", BOOL, &pc_materials_baked, nullptr, 0, false },
     { "bump_occlusion", FLOAT_KEY, &pc_bump_occlusion, nullptr, 0, false },
     { "relief_aniso", FLOAT_KEY, &pc_relief_aniso, nullptr, 0, false },
     { "relief_footprint", FLOAT_KEY, &pc_relief_footprint, nullptr, 0, false },
@@ -1009,6 +1012,11 @@ extern "C" void pc_lighting_panel(void)
                                   "bumps from their texture's luminance.");
             if (pc_auto_height)
                 ImGui::SliderFloat("Estimate strength", &pc_auto_height_strength, 0, 2, "%.2f");
+            checkbox("Baked maps", &pc_materials_baked);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                ImGui::SetTooltip("materials_baked: height, roughness and metal maps derived from each texture by\n"
+                                  "pc/tools/material_bake.py (pc/build/materials). Painted and shipped maps win;\n"
+                                  "off: as without them (the estimate from colours where asked for).");
             ImGui::SliderFloat("Cavity occlusion", &pc_bump_occlusion, 0, 1, "%.2f");
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
                 ImGui::SetTooltip("bump_occlusion: texels below their neighbours lose this share of the ambient\n"

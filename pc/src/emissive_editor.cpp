@@ -1870,6 +1870,7 @@ extern "C" int pc_emissive_rpc(const char* params_text, char* out, int size)
             cj2.set("name", Json::str(c.name));
             cj2.set("path", Json::str(c.path));
             cj2.set("user", Json::boolean_(c.user));
+            cj2.set("baked", Json::boolean_(c.baked));
             if (const materials::Channel* m = materials::channel(key, c.name)) {
                 cj2.set("width", Json::num(m->w));
                 cj2.set("height", Json::num(m->h));
