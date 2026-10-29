@@ -8,12 +8,57 @@ and step 8's targeting (same day, branch `classic-lua-step8`; see "Progress"
 below), with the remaining phase 1 work listed separately. Phase 2 is under
 way (branch `classic-lua-phase2`): the menu model, the shared frame's hooks,
 and its rows, hand and command title drawn in Lua through the Option screen. Phase 3 has begun with
-Items (branch `classic-lua-items`): the shared frame's kinds, the tab arrows and the background with them. It
+Items (branch `classic-lua-items`): the shared frame's kinds, the tab arrows and the background with them; the Quick
+Manual and Status followed (branch `classic-lua-manual`). It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
 `2026-10-18-freedom-and-fast-iteration.md` (the lint).
 
 ## Progress
+
+2026-10-28, night (branch `classic-lua-manual`, from main `95adc53e`; no merge or publication):
+
+- **Phase 3, the Quick Manual (MENUE, currentMenu 10) and Status (MENU4, currentMenu 5): the shared frame's kinds,
+  done.** `MENU_TOURED_SCREENS` is now 4, 5, 8, 10. No capture gap showed: neither screen needed a change to the
+  capture or to rood.classic, only the claim. Both tours run in `run_menus` after Items (the original menus, the
+  cursor memory off):
+  - `tour_manual`: QUICK MANUAL opened (menuFlags bit 9 set); the topic list walked 15 down and 16 up (the window
+    scrolls, both wraps); every one of the 14 topics opened by the list's cursor (`rood.game.menu().cursor`), its
+    lines stepped down and up, Up at the top (to the end) and Down at the end (back), every page turned with
+    Square + Down, Start, back to the list (Circle; Cross for the last); Cross to the top level; reopened, a page,
+    Triangle. MENUE's `_showMenuState` is read as ui_manual_smoke does.
+  - `tour_status`: Status opened; the body's parts and stat descriptions walked every way past their ends; R1 / L1
+    through the room's actors (Ashley, actor 3) and back to Ashley (MENU4's `_selectedActor`); two parts' equipment
+    lists (Circle) walked past both ends, each of the 8 pieces' detail opened (Circle; its rows from 32) and walked;
+    a part's stats (Square): rows past both ends, the parts round with R1 / L1; closed. The hand is moved by MENU4's
+    own neighbour table (D_801080FC, `status_to`); a press while the screen glides is retried only if the state did
+    not move (`status_into`). (A first try with R1 / L1 left on actor 3 refused every detail and Square: the tour
+    now checks it is back on Ashley.)
+
+  | Element / HUD kind | Quick Manual frames | Status frames |
+  |---|---:|---:|
+  | Menu rows / `menu_row` | 8,216 | 20,954 |
+  | The hand / `menu_cursor` | 255 | 1,845 |
+  | The command title / `menu_command` | 1,861 | 1,466 |
+  | The tab arrows / `menu_tabs` | 0 (none on the screen) | 1,070 |
+  | The background / `menu_background` | 1,855 | 2,826 |
+
+  (17 Quick Manual and 7 Status scenarios.) 0 mismatches, 0 skips, no packet waivers. The default and the fallback
+  (setting off, a raising draw, the plugin off) for every kind each screen draws at rest, and state parity 120/120
+  vsyncs (`screen_proofs`): the Quick Manual list at rest (rows, hand, title, background); Status at rest (rows,
+  title, background), its equipment list (rows, hand, title, background) and a part's stats (the same). The hand
+  on Status's main screen is drawn while it moves (167 of 173 frames of the walk) but not counted at rest.
+- **Verification:** 64-bit build (no `src/` change: no commit-check needed). The whole menus run (Option screen,
+  Items, Quick Manual, Status): menu_row 62,294, menu_cursor 3,588, menu_command 6,588, menu_tabs 2,877,
+  menu_background 6,658, option_value 2,791 frames, 54 scenarios, all green; classic_parity PASS (0 failures).
+  `run.py -j 1 classic_parity hud classic cutscene_player_smoke widescreen_smoke manual ui_ menu prompts button
+  options items status`: 40/40 on GL, 40/40 on Vulkan (ui_system_smoke passed first time on both).
+- **Left as the game's own drawing:** the Quick Manual's page: its text (text box 0, already the dialogue style),
+  the TURN PAGE / MENU strip (`vs_mainmenu_renderButton`, `_drawControlsBg`), PAGE n / m, the page background and
+  its fades (`_setPageBg`, `_fadeMenuUpper` / `Lower`), the page arrows, the illustrations (`_drawContent`,
+  `_drawSprite`). Status: `_drawScreen` (the body figure and its parts' condition, `_renderLimbUi`, the basic stats
+  and bars, the status icons, `_drawMenuBackground`), the STATUS button strip, `vs_mainMenu_renderEquipStats`, the
+  class / affinity table, the equipment detail's panels; Ashley in 3D stays the game's.
 
 2026-10-28, late (branch `quick-manual-crash`, from main `1a9b4875`; no merge or publication):
 

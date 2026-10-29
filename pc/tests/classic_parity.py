@@ -37,6 +37,7 @@ import json
 import os
 import pathlib
 import shutil
+import subprocess
 import sys
 import tomllib
 
@@ -1356,6 +1357,325 @@ def tour_items(g, symbols, toured, frames):
     g.write(symbols["vs_main_stateFlags"] + INTRO_STATE, intro)
 
 
+MANUAL_COMMAND, MANUAL_MENU, MANUAL_TOPICS = 9, 10, 14  # the top level's QUICK MANUAL row (menuFlags bit 9),
+MANUAL_LIST, MANUAL_PAGE = 2, 5                         # its currentMenu (MENUE), topics; MENUE's _showMenuState
+MENUE = {}  # MENUE's statics (ui_manual_smoke.menue_symbols)
+
+
+def manual_state(g, symbols):
+    """(currentMenu & 0x3F, MENUE's _showMenuState, the list taking input (vs_mainMenu_itemsListRow 17))."""
+    from ui_manual_smoke import menue_symbols
+    if not MENUE:
+        MENUE.update(menue_symbols())
+    return (g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F,
+            int.from_bytes(g.read(MENUE["_showMenuState"], 4), "little", signed=True),
+            g.read(symbols["vs_mainMenu_itemsListRow"], 1)[0] == 17)
+
+
+def menu_close(g, symbols):
+    """Triangle until the menu is closed (a press while a screen still glides in is not taken)."""
+    for _ in range(6):
+        g.press("triangle", vsyncs=3, settle=30)
+        if g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=10):
+            break
+    g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=10, what="the menu closed")
+    g.run(30)
+
+
+def manual_open(g, symbols):
+    """Triangle, QUICK MANUAL (the command shown: menuFlags bit 9), Circle: MENUE's list at rest."""
+    from menu_nav import top_command
+    flags = int.from_bytes(g.read(symbols["vs_main_settings"] + 2, 2), "little")
+    g.write(symbols["vs_main_settings"] + 2, (flags | 1 << MANUAL_COMMAND).to_bytes(2, "little"))
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, MANUAL_COMMAND)
+    for _ in range(5):
+        g.press("circle", vsyncs=2, settle=2)
+        if g.until(lambda: manual_state(g, symbols)[0] == MANUAL_MENU, guard=10):
+            break
+    manual_wait(g, symbols, MANUAL_LIST)
+
+
+def manual_wait(g, symbols, show, limit=600):
+    """MENUE's list taking input (MANUAL_LIST) or a topic's page up (MANUAL_PAGE)."""
+    for _ in range(limit):
+        menu, state, row = manual_state(g, symbols)
+        if menu == MANUAL_MENU and state == show and (show != MANUAL_LIST or row):
+            g.run(4)
+            return
+        g.run(1)
+    raise RpcError(f"Quick Manual: never reached state {show} ({manual_state(g, symbols)})")
+
+
+def tour_manual(g, symbols, toured, frames):
+    """The Quick Manual (MENUE, currentMenu 10) through the original menus: opened (the cursor memory off: topic 0);
+    the topic list walked down past its end and up past its top (the window scrolls); every topic opened: its lines
+    stepped down and up, Up at the top (to the end) and Down at the end (to the top), each page turned with Square +
+    Down, Start (the top), Circle back to the list (topic 13 left with Cross); Cross from the list to the top level;
+    reopened and closed with Triangle from a page."""
+    def press(button, settle=4):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def topic():
+        return int.from_bytes(g.read(symbols["vs_battle_manualDisplayState"], 2), "little")
+
+    memory = g.read(symbols["vs_main_settings"] + 1, 1)
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")  # (the cursor memory off: the list opens on topic 0)
+    before = frames()
+    manual_open(g, symbols)
+    toured("Quick Manual opened", before)
+    before = frames()
+    for button in ("down",) * (MANUAL_TOPICS + 1) + ("up",) * (MANUAL_TOPICS + 2):
+        press(button)
+    manual_wait(g, symbols, MANUAL_LIST)
+    toured(f"Quick Manual: the list walked, {MANUAL_TOPICS + 1} down and {MANUAL_TOPICS + 2} up", before)
+    for t in range(MANUAL_TOPICS):
+        before = frames()
+        manual_wait(g, symbols, MANUAL_LIST)
+        for _ in range(2 * MANUAL_TOPICS):  # (to topic t by the list's cursor, rood.game.menu(): row + scroll)
+            at = int(repl(g, "rood.classic", "local c = rood.game.menu().cursor return c.row + c.page"))
+            if at == t:
+                break
+            press("down" if at < t else "up")
+        press("circle", settle=10)
+        manual_wait(g, symbols, MANUAL_PAGE)
+        if topic() != t:
+            raise RpcError(f"Quick Manual: topic {topic()} open, not {t}")
+        g.run(12)  # (the page's content drawn after eight frames)
+        for button in ("down",) * 3 + ("up",) * 3 + ("up", "down"):  # lines; Up at the top to the end, Down back
+            press(button)
+        pages = 0
+        for _ in range(40):  # Square + Down: each page in turn, to the last
+            line = int.from_bytes(g.read(symbols["vs_battle_manualDisplayState"] + 4 + 2 * t, 2), "little")
+            g.hold(["square", "down"], 3)
+            g.run(4)
+            if int.from_bytes(g.read(symbols["vs_battle_manualDisplayState"] + 4 + 2 * t, 2), "little") <= line:
+                break
+            pages += 1
+        press("start")  # the top
+        press("cross" if t == MANUAL_TOPICS - 1 else "circle", settle=10)
+        manual_wait(g, symbols, MANUAL_LIST)
+        print(f"Quick Manual: topic {t} toured ({pages} page turns)", flush=True)  # (progress)
+        toured(f"Quick Manual: topic {t}: its lines, pages, the top, back", before, topic=t, pages=pages)
+    before = frames()
+    press("cross", settle=20)
+    g.until(lambda: manual_state(g, symbols)[0] == 0, guard=30, what="the top level")
+    g.until(lambda: int.from_bytes(g.read(symbols["D_800F4CC0"], 4), "little", signed=True) >= 0, guard=30,
+            what="the top level's rows in")
+    menu_close(g, symbols)
+    manual_open(g, symbols)
+    press("circle", settle=10)
+    manual_wait(g, symbols, MANUAL_PAGE)
+    g.run(12)
+    menu_close(g, symbols)
+    toured("Quick Manual: Cross to the top level, closed; reopened, a page, Triangle", before)
+    g.write(symbols["vs_main_settings"] + 1, memory)
+
+
+STATUS_COMMAND, STATUS_MENU = 4, 5  # the top level's STATUS row; its currentMenu (MENU4)
+STATUS_IDLE, STATUS_EQUIPMENT, STATUS_STATS = 5, 8, 9  # vs_menu4_exec's states (vs_battle_submenuStates[5])
+
+
+STATUS_MOVES = (0x000A010A, 0x010A0200, 0x020A0301, 0x030A0402, 0x040A0503, 0x050A0604, 0x060D0705, 0x070D0806,
+                0x080D0807, 0x0A090B09, 0x0009000A, 0x000B0D09)  # vs_menu4_exec's D_801080FC: an element's up, down,
+STATUS_DIRECTIONS = ("up", "down", "left", "right")                # left, right neighbours (13: the modifiers)
+MENU4 = {}  # MENU4's statics
+
+
+def menu4(g, name, size=1):
+    """One of MENU4's statics: _selectedElement (0..5 the body's parts, 6.. the stat descriptions), _selectedActor
+    (1 Ashley, then the room's other actors)."""
+    if not MENU4:
+        out = subprocess.run([os.environ.get("ROOD_OBJDUMP", "objdump"), "-t", str(rood_rpc.BINARY)],
+                             capture_output=True, text=True).stdout
+        for line in out.splitlines():
+            parts = line.split()
+            if len(parts) >= 6 and parts[-3].startswith("rood_ovl_menu_menu4_prg"):
+                MENU4[parts[-1]] = int(parts[0], 16)
+    return int.from_bytes(g.read(MENU4[name], size), "little")
+
+
+def status_element(g):
+    return menu4(g, "_selectedElement")
+
+
+def status_to(g, symbols, element):
+    """Steps the Status screen's hand to `element` by the game's own neighbours (the shortest way)."""
+    far = {element: 0}
+    while True:  # (distances to `element`, walking the neighbours backwards)
+        more = {e: far[n] + 1 for e, m in enumerate(STATUS_MOVES) for n in (m >> 8 * d & 0xFF for d in range(4))
+                if n in far and e not in far}
+        if not more:
+            break
+        far.update(more)
+    for _ in range(16):
+        at = status_element(g)
+        if at == element:
+            return
+        moves = [(far.get(STATUS_MOVES[at] >> 8 * d & 0xFF, 99), d) for d in range(4)]
+        g.press(STATUS_DIRECTIONS[min(moves)[1]], vsyncs=3, settle=6)
+    raise RpcError(f"Status: the hand never reached element {element} (at {status_element(g)})")
+
+
+def status_state(g, symbols):
+    return g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F, g.read(symbols["vs_battle_submenuStates"] + 5, 1)[0]
+
+
+def menu_rows(g):
+    """The live rows through rood.game.menu(): {id: state}."""
+    rows = str(repl(g, "rood.classic", "local t = {} for _, r in ipairs(rood.game.menu().rows) do "
+                    "t[#t + 1] = r.id .. '=' .. r.state end return table.concat(t, '|')")).strip('"')
+    return {int(i): st for i, st in (r.split("=") for r in rows.split("|") if "=" in r)}
+
+
+def status_wait(g, symbols, state, limit=600):
+    """MENU4 in `state`, then settled (its rows, if any, idle)."""
+    for _ in range(limit):
+        if status_state(g, symbols) == (STATUS_MENU, state):
+            calm = 0
+            for _ in range(200):
+                calm = calm + 1 if all(st in ("inactive", "shown") for st in menu_rows(g).values()) else 0
+                if calm >= 3:
+                    break
+                g.run(1)
+            g.run(12)
+            return
+        g.run(1)
+    raise RpcError(f"Status: never reached state {state} ({status_state(g, symbols)})")
+
+
+def status_open(g, symbols):
+    """Triangle, STATUS, Circle: MENU4 at rest on Ashley."""
+    from menu_nav import top_command
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, STATUS_COMMAND)
+    for _ in range(5):
+        g.press("circle", vsyncs=2, settle=2)
+        if g.until(lambda: status_state(g, symbols)[0] == STATUS_MENU, guard=10):
+            break
+    status_wait(g, symbols, STATUS_IDLE)
+    g.run(20)
+
+
+def status_into(g, symbols, button, state, opened=False):
+    """`button` until MENU4 is in `state` (a press while the screen still glides is not taken); Status opened first
+    unless `opened`."""
+    if not opened:
+        status_open(g, symbols)
+    for _ in range(6):
+        was = status_state(g, symbols)
+        g.press(button, vsyncs=3, settle=2)
+        for _ in range(30):  # (taken: the state moves on)
+            if status_state(g, symbols) != was:
+                break
+            g.run(1)
+        for _ in range(120):  # (on its way, through other states: not pressed again)
+            if status_state(g, symbols) in ((STATUS_MENU, state), was):
+                break
+            g.run(1)
+        if status_state(g, symbols) == (STATUS_MENU, state):
+            status_wait(g, symbols, state)
+            return
+    raise RpcError(f"Status: {button} never reached state {state} ({status_state(g, symbols)})")
+
+
+def tour_status(g, symbols, toured, frames):
+    """Status (MENU4, currentMenu 5) through the original menus: opened; the body's parts and the stat descriptions
+    walked every way past their ends; a part's equipment (Circle): its list walked down and up past its ends, each
+    piece's detail opened (Circle), its elements walked, out; back (Cross); a part's stats (Square): its rows walked
+    past both ends, the parts stepped round with R1 and L1, back; R1 / L1 through the room's actors and back to Ashley;
+    closed with Triangle."""
+    def press(button, settle=6):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def detail():  # (a piece's detail up: its rows from 32)
+        return any(i >= 32 for i in menu_rows(g))
+
+    def into(button, state):
+        status_into(g, symbols, button, state, opened=True)
+
+    before = frames()
+    status_open(g, symbols)
+    toured("Status opened", before)
+    before = frames()
+    for button in ("down",) * 8 + ("up",) * 8 + ("right",) * 3 + ("left",) * 3 + ("down",) * 3 + ("right",) * 2 \
+            + ("up",) * 10:
+        press(button)
+    status_wait(g, symbols, STATUS_IDLE)
+    toured("Status: the parts and the stat descriptions walked every way", before)
+    before = frames()
+    actors = []
+    for button in ("r1",) * 2 + ("l1",) * 2:  # the room's other actors (each one's figure and parts), round and back
+        press(button, settle=40)
+        status_wait(g, symbols, STATUS_IDLE)
+        actors.append(menu4(g, "_selectedActor", 4))
+    for _ in range(16):
+        if menu4(g, "_selectedActor", 4) == 1:
+            break
+        press("l1", settle=40)
+        status_wait(g, symbols, STATUS_IDLE)
+    if menu4(g, "_selectedActor", 4) != 1:
+        raise RpcError(f"Status: never back on Ashley (actor {menu4(g, '_selectedActor', 4)})")
+    g.run(30)
+    toured(f"Status: R1 / L1 through the actors {actors}", before, actors=actors)
+    for part in range(2):
+        before = frames()
+        status_to(g, symbols, part)
+        into("circle", STATUS_EQUIPMENT)
+        n = len([i for i in menu_rows(g) if 10 <= i < 20])  # (the part's equipment: rows 10..)
+        for button in ("down",) * (n + 1) + ("up",) * (n + 1):
+            press(button)
+        details = 0
+        for row in range(n):
+            status_wait(g, symbols, STATUS_EQUIPMENT)
+            press("circle", settle=20)  # the piece's detail (refused on an empty slot: nothing changes)
+            if g.until(detail, guard=5):
+                details += 1
+                g.run(20)
+                for button in ("down",) * 4 + ("right",) * 2 + ("up",) * 4 + ("left",) * 2 + ("r1", "l1"):
+                    press(button)
+                press("cross", settle=20)
+                g.until(lambda: not detail(), guard=10, what="Status: the detail closed")
+                status_wait(g, symbols, STATUS_EQUIPMENT)
+            press("down")
+        into("cross", STATUS_IDLE)
+        print(f"Status: part {part}'s equipment toured ({n} rows, {details} details)", flush=True)  # (progress)
+        toured(f"Status: part {part}'s equipment, {n} rows, {details} details", before, part=part)
+    before = frames()
+    status_to(g, symbols, 0)
+    into("square", STATUS_STATS)
+    for button in ("down",) * 12 + ("up",) * 3 + ("r1",) * 7 + ("l1",) * 2:
+        press(button)
+    into("cross", STATUS_IDLE)
+    toured("Status: a part's stats, its rows, the parts round", before)
+    before = frames()
+    menu_close(g, symbols)
+    toured("Status closed", before)
+
+
+def screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener):
+    """A toured screen at rest (opener: from the menu closed): the default and the fallback of every frame kind it
+    draws there, the state proof (from whatever screen was up: the menu closed first, the cursor memory off)."""
+    g.rewind()
+    menu_close(g, symbols)
+    memory = g.read(symbols["vs_main_settings"] + 1, 1)
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")
+    opener(g, symbols)
+    drawn = {k: g.call("hud", action="stats")["kinds"][k]["drawn"] for k in frame_kinds}
+    g.run(10)
+    shown = [k for k in frame_kinds if g.call("hud", action="stats")["kinds"][k]["drawn"] > drawn[k]]
+    check(bool(shown), f"{name}: drawn by rood.classic at rest ({shown})")
+    g.pause()
+    g.mark()
+    for kind in shown:
+        g.rewind()
+        default_and_fallback(g, kind, check)
+    toured_kinds[:] = shown
+    state_proof(f"{name} at rest", shown)
+    g.rewind()
+    g.write(symbols["vs_main_settings"] + 1, memory)
+
+
 def run_menus(out, card, env, check, waivers, kinds):
     """MAINMENU's shared frame through the game's Option screen (MENU8 and our pages; Rename excluded), its own game
     from the save room (the original menus): the menu opened; the list walked down through every entry (the
@@ -1484,6 +1804,8 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
         g.run(30)
         tour_items(g, symbols, toured, frames)
+        tour_manual(g, symbols, toured, frames)
+        tour_status(g, symbols, toured, frames)
         reports = {kind: opening_report(g, check, waivers, kind, covered, set()) for kind in kinds
                    if kind in MENU_TOURED}
         for kind in kinds:
@@ -1564,6 +1886,12 @@ def run_menus(out, card, env, check, waivers, kinds):
             default_and_fallback(g, kind, check)
         toured_kinds[:] = items_kinds
         state_proof("the Items list at rest", items_kinds)
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "the Quick Manual list", manual_open)
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status", status_open)
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, the equipment list",
+                      lambda g, symbols: status_into(g, symbols, "circle", STATUS_EQUIPMENT))
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, a part's stats",
+                      lambda g, symbols: status_into(g, symbols, "square", STATUS_STATS))
         for kind, report in reports.items():
             (out / f"{kind}.json").write_text(json.dumps(report, indent=1))
             print(f"report: {out / (kind + '.json')}: {report['frames']} frames, {report['states']} states, "
