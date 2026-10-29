@@ -15,6 +15,28 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 
 ## Progress
 
+2026-10-28, late (branch `quick-manual-crash`, from main `1a9b4875`; no merge or publication):
+
+- **The Quick Manual crash, fixed (root cause).** Reproduced with currentMenu 10 added to `MENU_TOURED_SCREENS`
+  (ui_text_smoke: signal 11 at battle frame 286) and traced with a log of every `pc_text_box_line` query: the
+  line asked for was never a Lua row (their glyphs are table 0, the menu style, which never takes the bubble path)
+  but the manual page's own text (x 13, y 55, table-1 glyphs: the dialogue style, so `bubble_segments`), which
+  text box 0 prints. MENUE's `_copyNextPageText` hands `vs_battle_setTextBox(0, buffer)` a **local** 1024-byte
+  buffer: box 0's `string` points into a dead stack frame (0x63fff920 in the log). The game reprints the page from
+  it in `func_800CB83C` before anything deeper reuses that stack (as on the PS1); `text_lines.c` walks it later,
+  inside `DrawOTag`'s text flush, where the frames below have overwritten it: garbage, an inline `0xFF` string
+  through a wild pointer, the crash. Lua's drawing only changed what the dead frame held, so it crashed with the
+  kinds on and happened not to without. Also walked every query: box 7, closed (state 0) with a stale `string`.
+- **Fix:** (1) `src/MENU/MENUE.PRG/494.c`: under `ROOD_PC` the page buffer is `static` (the box's pointer stays
+  valid until the next page); (2) `text_lines.c`: `pc_text_box_line` walks only boxes the game prints this frame
+  (`printed()`: `func_800CB83C`'s own test: state open and fully grown (`state == unk22 + 1`), not held (bit 31),
+  not kind 3 or 6), so a closed box's stale string is never read. `MENU_TOURED_SCREENS` stays 4 and 8 (no Quick
+  Manual tour yet); with 10 added (not committed) ui_text_smoke and button_roles_symbols_smoke pass on GL and
+  Vulkan.
+- **Verification:** 64-bit build; Docker `make commit-check`: **All files match** (formatter rewrites of 5BF94.c
+  and 58EC.c discarded). Gate results in the commit message / hand-back.
+- **Left:** a `classic_parity` tour of the Quick Manual, then 10 in `MENU_TOURED_SCREENS`.
+
 2026-10-28, evening (branch `classic-lua-items`, from main `e1c639bc`; no merge or publication):
 
 - **Phase 3, screen 1 (Items, MENU3), piece 1: the shared frame's kinds on Items, done.** `pc_hud_menu`

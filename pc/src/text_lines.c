@@ -129,13 +129,25 @@ static int walk(vs_battle_textBox* box, int x, int y, int glyph, int* glyphs, in
     }
 }
 
+/* Whether the game prints this box's page (_printVariableWidthFont) this frame, as func_800CB83C (BATTLE
+ * 5BF94.c) decides: open (state), not held (flag bit 31), fully grown (state past its duration) and of a kind that
+ * prints its page. A closed box keeps the string it last showed, often freed since (or, before the Quick
+ * Manual's page buffer was kept, a dead stack frame): only a printed box's string is the game's to walk. */
+static int printed(const vs_battle_textBox* box)
+{
+    int state = box->state, kind = box->unk0.unk0_0;
+    if (!psx_get(box->string) || state <= 0 || box->unk0.unk0_31 || state != box->unk22 + 1)
+        return 0;
+    return kind != 3 && kind != 6;
+}
+
 int pc_text_box_line(int x, int y, int glyph, int* glyphs, int* xs, int max)
 {
     if (max > LINE_MAX)
         max = LINE_MAX;
     for (int i = 0; i < BOXES; i++) {
         vs_battle_textBox* box = &vs_battle_textBoxes[i];
-        if (!psx_get(box->string))
+        if (!printed(box))
             continue;
         int n = walk(box, x, y, glyph, glyphs, xs, max);
         if (n)

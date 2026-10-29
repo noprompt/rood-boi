@@ -535,7 +535,15 @@ static int _getRoundedLineCount(void)
 
 static void _copyNextPageText(void)
 {
+#ifdef ROOD_PC
+    /* Text box 0 keeps a pointer to the page (vs_battle_setTextBox) and prints it every
+     * frame: on the PS1 the dead stack frame happened to survive until then; here it is
+     * kept (ui_text's whole-line lookup, pc/src/text_lines.c, walks it later in the
+     * frame, after deeper calls have reused that stack). */
+    static char buffer[1024];
+#else
     char buffer[1024];
+#endif
     int i;
     int nextPage;
     u_short* offsets;
