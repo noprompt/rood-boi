@@ -75,8 +75,10 @@ int pc_dev_actors(struct pc_dev_actor* out, int max)
     }
     return n;
 }
-/* The actor slot whose record holds p (its model, its weapon and shield are in it), -1 none
- * (actor_native.c: rood.ui.hide{actors}). */
+/* The actor slot whose record holds p (its model), or whose held weapon or shield record
+ * (vs_battle_wepModels: drawn by func_800B217C from the holder's bone; their own records, outside the
+ * actor's) does while photo_ui.cpp actors_held is on; -1 none (actor_native.c: rood.ui.hide{actors}). */
+extern int pc_photo_actors_held __attribute__((weak));
 int pc_dev_actor_of(const void* p)
 {
     for (int i = 0; i < 17; i++) {
@@ -84,6 +86,14 @@ int pc_dev_actor_of(const void* p)
         if (guest_pointer(actor, sizeof *actor) && (const char*)p >= (const char*)actor
             && (const char*)p < (const char*)actor + sizeof *actor)
             return i;
+    }
+    if (!&pc_photo_actors_held || !pc_photo_actors_held)
+        return -1;
+    for (int i = 0; i < 20; i++) {
+        vs_battle_wepModels_t* held = vs_battle_wepModels[i];
+        if (guest_pointer(held, sizeof *held) && (const char*)p >= (const char*)held
+            && (const char*)p < (const char*)held + sizeof *held)
+            return held->actorId;
     }
     return -1;
 }

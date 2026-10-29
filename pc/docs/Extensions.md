@@ -863,7 +863,9 @@ were.
 `hide{hud = true, game2d = true, overlay = true}` (any of them; no table:
 all three), `show()` (this plugin's), `hidden()` (every plugin's together).
 `hud`: the HUD's elements (the status display: figure, gauges, status icons;
-timing words, chains, buffs, damage numbers), every `PC_CLASSIC` / `PC_HUD`
+timing words, chains, buffs, damage numbers; the words over the actors and
+the time attack's timer too, RPC `photo {hud_words, hud_timer}`, 1 by
+default), every `PC_CLASSIC` / `PC_HUD`
 site's packets made no-ops after the game ran them (claims' classic packets
 too), and the modern pass (Lua claims, the Travel prompt, the save state
 notice). `game2d`: the rest of the game's 2D in the field: the packets
@@ -877,9 +879,11 @@ markers and mode packets are kept. `overlay`: the
 developer overlay (its windows and the free camera's grid) as if closed.
 `actors = "ashley" | "others" | "all" | "none"`: characters left out of the
 renders (actor_native.c: a model drawn from an actor record's memory, slot
-0 Ashley, the others enemies and NPCs; its weapon and shield, which live in
-the record, and its drop shadow too; props stay); `hidden().actors` says
-which (nil: none).
+0 Ashley, the others enemies and NPCs; its drop shadow too, and the weapon
+and shield it holds (their own records, `vs_battle_wepModels`, by their
+holder's slot; RPC `photo {actors_held}`, 1 by default); props stay);
+`hidden().actors` says which (nil: none); `hidden().hud_words`,
+`hud_timer`, `actors_held` the tunables.
 While held, a change is drawn by a render.
 
 ### rood.capture
@@ -923,7 +927,8 @@ RPC `photo` (`pc/tools/rood_rpc.py`: `Game.call("photo")`): `phase`
 (`running`, `asked`, `held`, `rendering`), `owners`, `held_vsync`,
 `renders`, `last_render_ms`, `last_render_vsyncs`, `mark`, `error`,
 `camera` (owner and pose), `hidden`, `format`, `input`, `captures`; params
-`render_frames`, `game2d_slots` tune it. An engine reload
+`render_frames`, `game2d_slots`, `hud_words`, `hud_timer`, `actors_held`
+tune it. An engine reload
 (`build_boot.py --engine-library`) is refused while a render runs
 (`retry`); otherwise every hold is given back first (the state is M's) and
 the plugins, started again by the next library, ask again.

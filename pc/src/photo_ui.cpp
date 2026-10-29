@@ -19,6 +19,12 @@
 extern "C" {
 int pc_photo_hide_game2d;
 int pc_photo_hide_actors;
+/* Tunables (RPC photo {hud_words, hud_timer, actors_held}; rood.ui.hidden() reports them): rood.ui.hide{hud}
+ * also hides the words over the actors (damage, MISS, ailments) and the time attack's timer; a hidden
+ * character's held weapon and shield go with it. */
+int pc_photo_hud_words = 1;
+int pc_photo_hud_timer = 1;
+int pc_photo_actors_held = 1;
 int pc_photo_game2d_slots = 35; /* the field's ordering table: entries 0..34, vs_scratch.unk4 (entry 18) +- 16 */
 extern int pc_gl_view[4] __attribute__((weak));
 }
@@ -151,9 +157,11 @@ void reset()
 }
 void json(std::string& out)
 {
-    char text[96];
-    snprintf(text, sizeof text, ",\"hidden\":%d,\"game2d_slots\":%d,\"format\":%.4f", hidden_flags,
-        pc_photo_game2d_slots, pc_photo_format());
+    char text[192];
+    snprintf(text, sizeof text,
+        ",\"hidden\":%d,\"game2d_slots\":%d,\"hud_words\":%d,\"hud_timer\":%d,\"actors_held\":%d,\"format\":%.4f",
+        hidden_flags, pc_photo_game2d_slots, pc_photo_hud_words, pc_photo_hud_timer, pc_photo_actors_held,
+        pc_photo_format());
     out += text;
 }
 void params(const char* json)
@@ -161,6 +169,12 @@ void params(const char* json)
     int n;
     if (photo::json_int(json, "game2d_slots", &n))
         pc_photo_game2d_slots = std::max(0, std::min(0x822, n));
+    if (photo::json_int(json, "hud_words", &n) && pc_photo_hud_words != (n != 0))
+        pc_photo_hud_words = n != 0, pc_photo_redraw();
+    if (photo::json_int(json, "hud_timer", &n) && pc_photo_hud_timer != (n != 0))
+        pc_photo_hud_timer = n != 0, pc_photo_redraw();
+    if (photo::json_int(json, "actors_held", &n) && pc_photo_actors_held != (n != 0))
+        pc_photo_actors_held = n != 0, pc_photo_redraw();
 }
 photo::Register part({ "ui", release, owners, reset, json, params });
 } // namespace

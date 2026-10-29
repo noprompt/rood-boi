@@ -35,7 +35,10 @@ input path):
     plugin's budget: no faults, no kills;
   - disabled by faults: F12 brings it back at once, open, with a notice; the
     cool-down brings it back by itself;
-  - settings.cfg unchanged; no plugin errors in the log (before the faults).
+  - settings.cfg unchanged; no plugin errors in the log (before the faults);
+  - (a game of its own, run_hide_more; PHOTO_SMOKE_ONLY=hide runs only it) the
+    HUD hidden takes the words over the actors and the timer with it, Ashley
+    hidden the weapon in her hands (RPC photo actors_held: kept when 0).
 Deterministic: every wait is on a condition (the paused loop redraws in real
 time); nothing depends on how long a wait took."""
 import argparse
@@ -79,9 +82,102 @@ def main():
     for d in ("plugins", "plugin_data", "photos"):
         shutil.rmtree(out / d, ignore_errors=True)
     (out / "plugins").mkdir(parents=True, exist_ok=True)
+    only_hide = os.environ.get("PHOTO_SMOKE_ONLY") == "hide"
     with card_guard(out / "cards", source=args.card) as cards:
-        status = run(out, cards.card1)
-    return run_bubbles(out) or status
+        status = 0 if only_hide else run(out, cards.card1)
+        status = run_hide_more(out, cards.card1) or status
+    return status if only_hide else (run_bubbles(out) or status)
+
+
+def run_hide_more(out, card):
+    """rood.ui.hide{hud} takes the words over the actors and the time attack's timer with it, rood.ui.hide{actors
+    = "ashley"} the weapon (and shield) in Ashley's hands: the save room, Circle (the weapon drawn), a combat label
+    over Ashley and the timer shown (classic_parity's fixtures), held (rood.game.pause). Each against its tunable
+    off (RPC photo {hud_words, hud_timer, actors_held} 0): the pictures differ by what the tunable keeps."""
+    from classic_parity import spawn_word, timer_fixture
+    failures = []
+
+    def check(ok, message):
+        print(("ok:   " if ok else "FAIL: ") + message, flush=True)
+        if not ok:
+            failures.append(message)
+        return ok
+
+    settings = out / "settings-hide.cfg"
+    settings.write_text("aspect 4:3\nui_menus 0\n")
+    env = {"ROOD_WINDOW": "960x720", "ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(out / "plugins"),
+           "ROOD_PLUGIN_DATA": str(out / "plugin_data"), "ROOD_PHOTOS": str(out / "photos"), "ROOD_GI": "0",
+           "ROOD_PAUSED_REDRAW_HZ": "60", "ROOD_DETERMINISTIC": "1"}
+    g = launch_at("save_room", card=card, fast=True, log=out / "game-hide.log", extra_env=env)
+    try:
+        def value(code):
+            r = g.repl("eval", session="photo-hide", plugin=PLUGIN, code=code)
+            if not r.get("ok"):
+                raise rood_rpc.RpcError(f"{code}: {r.get('error')}")
+            return r["results"][0] if r.get("results") else None
+
+        def shot(name, **tune):
+            if tune:
+                g.call("photo", **tune)
+            g.wait_presents(8)
+            path = out / f"hide-{name}.ppm"
+            path.unlink(missing_ok=True)
+            g.call("present_dump", path=str(path))
+            if not rood_rpc.wait_for_file(path, 30):
+                raise rood_rpc.RpcError("no frame presented")
+            return ppm(path)
+
+        g.run(30)
+        p = g.call("photo")
+        check(p.get("hud_words") == 1 and p.get("hud_timer") == 1 and p.get("actors_held") == 1,
+              f"RPC photo: the tunables, on by default ({p.get('hud_words')}, {p.get('hud_timer')}, "
+              f"{p.get('actors_held')})")
+        check(value("local h = rood.ui.hidden() return h.hud_words and h.hud_timer and h.actors_held") is True,
+              "rood.ui.hidden(): the tunables")
+        for _ in range(6):
+            if g.call("weapon_slots")["weapon_drawn"]:
+                break
+            g.press("circle", vsyncs=3, settle=40)
+        check(bool(g.call("weapon_slots")["weapon_drawn"]), "Circle: Ashley's weapon drawn")
+        word = spawn_word(g, index=5, age=4)
+        check(word is not None, "a combat label over Ashley")
+        timer_fixture(g, 12, 34, 56)
+
+        g.run(8)
+        live = [e["kind"] for e in g.call("hud", action="list")["elements"] if e["live"]]
+        check("actor_word" in live and "timer" in live, f"the word and the timer on screen ({sorted(set(live))})")
+        check(value("return rood.game.pause()") is True, "held (rood.game.pause)")
+
+        # ---- the HUD hidden as the photo mode hides it (rood.ui.hide{hud, game2d}): the word and the timer gone
+        value("rood.camera.begin() rood.camera.orbit(0.5, 0) return true")  # (a render of the held moment)
+        shown = shot("hud-shown")
+        value("return rood.ui.hide { hud = true, game2d = true }")
+        gone = shot("hud-gone")
+        word_box, timer_box, scene_box = (0.33, 0.31, 0.58, 0.39), (0.38, 0.86, 0.62, 0.95), (0.05, 0.45, 0.3, 0.7)
+        d_word, d_timer = difference(shown, gone, word_box), difference(shown, gone, timer_box)
+        d_scene = difference(shown, gone, scene_box)
+        check(d_word > 4 and d_word > 4 * d_scene, f"hidden HUD: the word over Ashley gone ({d_word:.2f}, the scene "
+                                                    f"{d_scene:.2f})")
+        check(d_timer > 4 and d_timer > 4 * d_scene, f"hidden HUD: the timer gone ({d_timer:.2f})")
+        again = shot("hud-gone-again")
+        check(difference(again, gone) < 0.05, "the same hidden picture again")
+
+        # ---- Ashley hidden: the weapon in her hands with her ----
+        value("return rood.ui.hide { hud = true, game2d = true, actors = 'ashley' }")
+        held = shot("ashley-weapon-kept", actors_held=0)
+        hidden = shot("ashley-weapon-gone", actors_held=1)
+        d_weapon = difference(held, hidden)
+        check(d_weapon > 0.05, f"Ashley hidden: her weapon gone with her ({d_weapon:.3f} against it kept)")
+        value("return rood.ui.hide { hud = true, game2d = true }")
+        her = shot("ashley-shown")
+        check(difference(her, hidden) > d_weapon, "(Ashley shown again: more than her weapon back)")
+        value("rood.ui.show() rood.game.resume() return true")
+    finally:
+        g.close()
+    log = (out / "game-hide.log").read_text(errors="replace")
+    check("[crash]" not in log, "no crash")
+    print(f"photo_mode_smoke (hide more): {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s))")
+    return 1 if failures else 0
 
 
 def run_bubbles(out):

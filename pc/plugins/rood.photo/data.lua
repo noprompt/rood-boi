@@ -148,7 +148,7 @@ M.bars = {
 -- unless that post value is set (a LUT file); needs_grade: unless the filter is a grade (not Off, a preset).
 -- There is no Pose row: the game has no pose system, and Ashley's animation is game state (a paused moment
 -- is rewound after every render), so changing it is not read-only. Show Ashley / Show others: the
--- characters left out of the renders (rood.ui.hide{actors}: their models, weapons and drop shadows).
+-- characters left out of the renders (rood.ui.hide{actors}: their models, the weapons and shields they hold, drop shadows).
 M.tabs = {
   { id = "camera", label = "Camera", rows = {
     { id = "mode", label = "Camera", kind = "choice", state = "mode", choices = "camera_modes" },

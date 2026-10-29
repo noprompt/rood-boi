@@ -311,7 +311,8 @@ def run(out, card, engine_reload):
         check(value("rood.ui.hide { hud = true, game2d = true }") is True, "rood.ui.hide{hud, game2d}")
         rendered(r, "hide")
         hidden = value("rood.ui.hidden()")
-        check(hidden == {"hud": True, "game2d": True, "overlay": False}, f"rood.ui.hidden() ({hidden})")
+        check({k: hidden.get(k) for k in ("hud", "game2d", "overlay", "actors")}
+              == {"hud": True, "game2d": True, "overlay": False, "actors": None}, f"rood.ui.hidden() ({hidden})")
         image_hidden = shot("hidden")
         corner = (0.0, 0.0, 0.3, 0.1)  # the HP / MP gauges' row
         d_corner = difference(image_shown, image_hidden, corner)

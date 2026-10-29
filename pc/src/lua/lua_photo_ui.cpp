@@ -14,6 +14,8 @@
 extern "C" {
 void pc_photo_ui_hide(const char* owner, int flags) __attribute__((weak));
 int pc_photo_ui_hidden(void) __attribute__((weak));
+extern int pc_photo_hud_words __attribute__((weak)), pc_photo_hud_timer __attribute__((weak)),
+    pc_photo_actors_held __attribute__((weak));
 }
 
 namespace rl {
@@ -84,6 +86,13 @@ int ui_hidden(lua_State* L)
     lua_setfield(L, -2, "game2d");
     lua_pushboolean(L, (flags & PC_PHOTO_HIDE_OVERLAY) != 0);
     lua_setfield(L, -2, "overlay");
+    /* the tunables (RPC photo {hud_words, hud_timer, actors_held}): what the HUD and the actors take along */
+    lua_pushboolean(L, &pc_photo_hud_words && pc_photo_hud_words);
+    lua_setfield(L, -2, "hud_words");
+    lua_pushboolean(L, &pc_photo_hud_timer && pc_photo_hud_timer);
+    lua_setfield(L, -2, "hud_timer");
+    lua_pushboolean(L, &pc_photo_actors_held && pc_photo_actors_held);
+    lua_setfield(L, -2, "actors_held");
     int actors = flags & (PC_PHOTO_HIDE_ASHLEY | PC_PHOTO_HIDE_OTHERS);
     if (actors) {
         lua_pushstring(L, actors == PC_PHOTO_HIDE_ASHLEY ? "ashley" : actors == PC_PHOTO_HIDE_OTHERS ? "others" : "all");

@@ -96,13 +96,16 @@ static const int panel_slots[] = { -4, -8, -12, -16 };
 /* photo.cpp (rood.ui.hide{hud}): the HUD hidden; every site's packets become no-ops after it ran (its
  * element recorded, its state stepped, as the game does). */
 extern int pc_photo_hide_hud(void) __attribute__((weak));
+extern int pc_photo_hud_words __attribute__((weak)), pc_photo_hud_timer __attribute__((weak));
 
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end)
 {
     static pc_classic_packet captured[PC_CLASSIC_CAPTURE];
-    /* (the HUD's sites only: the words over the actors, the timer, the emotes, the text boxes and the images were
-     * never the HUD's to hide; the dialogue has its own, GAME2D) */
-    int hide = pc_photo_hide_hud && pc_photo_hide_hud() && kind != PC_CLASSIC_ACTOR_WORD && kind != PC_CLASSIC_TIMER
+    /* (the HUD's sites, the words over the actors and the timer with them (photo_ui.cpp hud_words, hud_timer);
+     * the emotes, the text boxes and the images were never the HUD's to hide; the dialogue has its own, GAME2D) */
+    int hide = pc_photo_hide_hud && pc_photo_hide_hud()
+        && (kind != PC_CLASSIC_ACTOR_WORD || (&pc_photo_hud_words && pc_photo_hud_words))
+        && (kind != PC_CLASSIC_TIMER || (&pc_photo_hud_timer && pc_photo_hud_timer))
         && kind != PC_CLASSIC_EMOTE && kind != PC_CLASSIC_TEXT_FRAME && kind != PC_CLASSIC_TEXT_BAND
         && kind != PC_CLASSIC_BOX_TEXT && kind != PC_CLASSIC_IMAGE;
     if (kind >= PC_CLASSIC_MENU_BACKGROUND && kind <= PC_CLASSIC_OPTION_VALUE) { /* (the menus: never the HUD's to hide) */

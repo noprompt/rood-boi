@@ -97,6 +97,10 @@ enum { PC_PHOTO_HIDE_HUD = 1, PC_PHOTO_HIDE_GAME2D = 2, PC_PHOTO_HIDE_OVERLAY = 
 /* The characters not drawn (actor_native.c: their models, weapons and shields; every owner's together):
  * bit 1 Ashley (actor slot 0), bit 2 the others (enemies, NPCs). */
 extern int pc_photo_hide_actors;
+/* Tunables (RPC photo params, 1 by default): the HUD hidden takes the words over the actors (hud_words)
+ * and the time attack's timer (hud_timer) with it; a hidden character's held weapon and shield go with
+ * it (actors_held: dev_state.c pc_dev_actor_of). */
+extern int pc_photo_hud_words, pc_photo_hud_timer, pc_photo_actors_held;
 void pc_photo_ui_hide(const char* owner, int flags); /* this owner's (0: shown again) */
 int pc_photo_ui_hidden(void);                        /* every owner's together */
 int pc_photo_hide_hud(void);                         /* hud_elements.cpp, the classic hooks, dev_overlay.cpp */

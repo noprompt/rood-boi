@@ -4082,7 +4082,7 @@ static void handle_method(int fd, const char* request)
         reply(fd, id, out);
     } else if (!strcmp(method, "photo")) {
         /* The photo mode's state (photo.cpp): {phase, owners, renders, camera, ...}; params
-         * {render_frames, game2d_slots, full_room} tune it. */
+         * {render_frames, game2d_slots, hud_words, hud_timer, actors_held, full_room} tune it. */
         extern int pc_photo_rpc(const char*, char*, int) __attribute__((weak));
         static char args[4096], out[4096];
         const char* end = params ? value_end(params) : NULL;
