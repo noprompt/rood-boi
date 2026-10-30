@@ -354,7 +354,8 @@ void rood_colour::draw()
     ImGui::SetNextWindowPos(ImVec2(anchor[0] + 12, anchor[1] + 12), ImGuiCond_Appearing);
     bool open_now = true;
     if (ImGui::Begin("Colour##popover", &open_now,
-            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse)) {
+            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse
+                | ImGuiWindowFlags_NoDocking)) { /* a popover, never a panel (editor_shell.cpp) */
         ImGui::TextDisabled("%s", rood_scene::label(target).c_str());
         if (ImGui::BeginTabBar("##colour tabs")) {
             bool first = select_frames > 0;

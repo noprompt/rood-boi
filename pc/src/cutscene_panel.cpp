@@ -1,6 +1,7 @@
 // The Cutscene window (Window > Cutscene; the instant replay key opens it): the story scene viewer (pick a
 // scene by chapter, Play, a video player's controls) over the cutscene player's engine (cutscene.cpp), whose
 // expert controls are folded under Advanced (pc/docs/Cutscene_Player.md).
+#include "editor_shell.h" /* the tool windows' dock node */
 #include "cutscene_internal.h"
 #include "cutscene_sequencer.h"
 #include "imgui.h"
@@ -949,6 +950,7 @@ extern "C" void pc_cutscene_window(void)
     if (!window_open)
         return;
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 65, ImGui::GetFontSize() * 49), ImGuiCond_FirstUseEver);
+    rood_shell::dock_tool_window("Cutscene");
     if (!ImGui::Begin("Cutscene", &window_open)) {
         ImGui::End();
         return;

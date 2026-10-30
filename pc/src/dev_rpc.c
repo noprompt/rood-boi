@@ -341,6 +341,14 @@
  *                                lighting, inspector, atmosphere, post, graphics,
  *                                emissive, material, diagnostics); replies the states and
  *                                the Details tab shown
+ *   editor_shell {action "state" | "reset" | "palette" | "window", open, query, name}  the editor
+ *                                shell (editor_shell.cpp): the dock layout's state (nodes,
+ *                                the Game panel's rectangle, the inset, the view, the
+ *                                palette), Reset layout, the command palette (open, its
+ *                                query), one window's docking by name
+ *   editor_command {action "list" | "query" | "run", query, id}  the command registry
+ *                                (editor_commands.cpp): every command (query: ranked as
+ *                                the palette ranks them), run one
  *   editor_select {action, ids, source, x, y | u, v, shift, ctrl, ...}  the
  *                                editor's selection (editor_scene.cpp): list,
  *                                set / add / toggle / remove {ids}, clear;
@@ -549,6 +557,10 @@ extern int pc_interp_uv __attribute__((weak));
 extern int pc_drop_shadow_mode __attribute__((weak));
 extern int pc_editor_hide_masks __attribute__((weak)), pc_editor_game_cutaway __attribute__((weak));
 extern int pc_editor_cutaway __attribute__((weak));
+/* editor_shell.cpp: the default layout's proportions and the palette's size (C names of rood_shell::'s) */
+extern float pc_editor_shell_left __attribute__((weak)), pc_editor_shell_right __attribute__((weak)),
+    pc_editor_shell_bottom __attribute__((weak)), pc_editor_palette_width __attribute__((weak));
+extern float pc_editor_palette_rows __attribute__((weak));
 extern float pc_editor_cutaway_radius __attribute__((weak));
 extern float pc_editor_cutaway_opacity __attribute__((weak));
 extern int pc_editor_cutaway_auto __attribute__((weak));
@@ -2185,6 +2197,11 @@ static void handle_method(int fd, const char* request)
             { "editor_snap_radius", NULL, &pc_snap_radius },
             { "editor_snap_highlight", NULL, &pc_snap_highlight },
             { "editor_snap_offset", NULL, &pc_snap_offset },
+            { "editor_shell_left", NULL, &pc_editor_shell_left },
+            { "editor_shell_right", NULL, &pc_editor_shell_right },
+            { "editor_shell_bottom", NULL, &pc_editor_shell_bottom },
+            { "editor_palette_width", NULL, &pc_editor_palette_width },
+            { "editor_palette_rows", NULL, &pc_editor_palette_rows },
         };
         int editor_count = &pc_overlay_wire ? (int)(sizeof editor_keys / sizeof editor_keys[0]) : 0;
         /* Lighting quality (lighting_quality.h): the preset first, then any
@@ -3217,7 +3234,8 @@ static void handle_method(int fd, const char* request)
             shown ? "library" : "outliner", pc_overlay_details_tab ? pc_overlay_details_tab() : "");
         reply(fd, id, result);
     } else if (!strcmp(method, "editor_select") || !strcmp(method, "editor_schema") || !strcmp(method, "editor_transform")
-        || !strcmp(method, "editor_handles") || !strcmp(method, "editor_library")) {
+        || !strcmp(method, "editor_handles") || !strcmp(method, "editor_library") || !strcmp(method, "editor_shell")
+        || !strcmp(method, "editor_command")) {
         /* The editor's selection (editor_scene.cpp), property schema
          * (editor_schema.cpp) and transform tools (lights.cpp); they parse the
          * params object themselves. */
@@ -3226,10 +3244,14 @@ static void handle_method(int fd, const char* request)
         extern int pc_editor_transform_rpc(const char*, char*, int) __attribute__((weak));
         extern int pc_editor_handles_rpc(const char*, char*, int) __attribute__((weak));
         extern int pc_editor_library_rpc(const char*, char*, int) __attribute__((weak));
+        extern int pc_editor_shell_rpc(const char*, char*, int) __attribute__((weak));
+        extern int pc_editor_command_rpc(const char*, char*, int) __attribute__((weak));
         int (*handler)(const char*, char*, int) = !strcmp(method, "editor_select") ? pc_editor_select_rpc
             : !strcmp(method, "editor_schema")                                     ? pc_editor_schema_rpc
             : !strcmp(method, "editor_transform")                                  ? pc_editor_transform_rpc
             : !strcmp(method, "editor_library")                                    ? pc_editor_library_rpc
+            : !strcmp(method, "editor_shell")                                      ? pc_editor_shell_rpc
+            : !strcmp(method, "editor_command")                                    ? pc_editor_command_rpc
                                                                                    : pc_editor_handles_rpc;
         if (!handler) {
             fail(fd, id, -32000, "needs the editor");

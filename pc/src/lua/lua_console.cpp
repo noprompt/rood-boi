@@ -8,6 +8,7 @@
 // (dev mode: ROOD_RPC set or ROOD_DEV=1): summon each kind (rood.dev.show's
 // defaults), clear, the classic flavour's override, and the gallery
 // (rood.dev.bench: save the moment, load an entry). Game side.
+#include "editor_shell.h" /* the tool windows' dock node */
 #include "imgui.h"
 #include "lua_bench.h"
 #include "lua_runtime.h"
@@ -225,6 +226,7 @@ void bench()
 } // namespace
 
 extern "C" void pc_lua_console_menu_item(void) { ImGui::MenuItem("Lua console", nullptr, &open); }
+extern "C" bool* pc_lua_console_open_flag(void) { return &open; }
 
 extern "C" void pc_lua_console_window(void)
 {
@@ -232,6 +234,7 @@ extern "C" void pc_lua_console_window(void)
         return;
     float em = ImGui::GetFontSize();
     ImGui::SetNextWindowSize(ImVec2(em * 46, em * 28), ImGuiCond_FirstUseEver);
+    rood_shell::dock_tool_window("Lua console");
     if (!ImGui::Begin("Lua console", &open)) {
         ImGui::End();
         return;

@@ -163,6 +163,7 @@ int pc_ui_menu_tint_custom[3] = { 8, 7, 7 }; /* Custom's colour, 0..31 per chann
 #include "hud/hud.h" /* hud_classic_override */
 #include "lua/lua_runtime.h" /* plugins_elevated, plugin_enabled, plugin_order, plugin_grant, plugin_budget_* */
 #include "editor_fit_window.h" /* editor_fit_window_offset, _kelvin */
+#include "editor_shell.h" /* editor_shell_*, editor_palette_* */
 #include "editor_library.h" /* editor_library_view, _docked, _window, _favourites */
 #ifdef ROOD_VULKAN
 #include "shader_reload.h" /* shader_reload, shader_reload_poll_ms */
@@ -629,6 +630,8 @@ int apply_line(const char* line, int* scale, bool now)
         return 1;
     if (rood_fit::parse_setting(key, rest)) /* editor tools: fit to window's offset and colour */
         return 1;
+    if (rood_shell::parse_setting(key, rest)) /* the editor shell: the default layout, the palette */
+        return 1;
     if (rood_colour::parse_setting(key, rest)) /* editor state: the colour popover's tabs and recent colours */
         return 1;
     if (pc_emissive_view_setting(key, rest)) /* editor tools: the emissive texture view's look */
@@ -876,6 +879,7 @@ extern "C" void pc_settings_write(FILE* f)
     rood_colour::write_settings(f);
     rood_library::write_settings(f);
     rood_fit::write_settings(f);
+    rood_shell::write_settings(f);
     pc_emissive_view_settings_write(f);
 }
 

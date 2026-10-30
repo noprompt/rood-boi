@@ -379,6 +379,12 @@ def suites(args, mode="egl"):
             Suite("editor_roomload_smoke", [PY, str(TESTS / "editor_roomload_smoke.py"), "--card", str(args.save)],
                   600, note="editor open through room loads (warps, a walked door) stepped every vsync: its room "
                             "groups are the loaded block's or none (never a freed one), no crash"),
+            Suite("editor_shell_smoke", [PY, str(TESTS / "editor_shell_smoke.py"), "--card", str(args.save)], 600,
+                  note="editor shell: docking, the game picture as the Game panel (picking through it), the default "
+                       "layout and Reset layout, the command registry and palette (Ctrl+Shift+P), plugin windows and "
+                       "commands (rood.dev.window / command), the editor closed gives the picture the window back",
+                  sources=[TESTS / "editor_shell_smoke.py", ROOT / "pc/src/editor_shell.cpp",
+                           ROOT / "pc/src/editor_commands.cpp", TESTS / "lua/plugins/test.shell/main.lua"]),
             Suite("room_browser_smoke", [PY, str(TESTS / "room_browser_smoke.py"), "--card", str(args.save)], 300,
                   note="Room Browser: rooms from the disc, warps across zones and back; lighting layers in the game"),
             Suite("room_entry_sound_smoke", [PY, str(TESTS / "room_entry_sound_smoke.py"), "--card", str(args.save)],

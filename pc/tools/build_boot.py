@@ -1377,6 +1377,8 @@ for source in [
     root / "pc/src/library_thumbs.cpp",
     root / "pc/src/editor_library.cpp",
     root / "pc/src/editor_fit_window.cpp",
+    root / "pc/src/editor_shell.cpp",
+    root / "pc/src/editor_commands.cpp",
     root / "pc/src/probe_overlay.cpp",
     root / "pc/src/ui_upscale_panel.cpp",
     root / "pc/src/ui/ui_shell.cpp",

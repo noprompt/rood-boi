@@ -1028,6 +1028,7 @@ rood.dev.window {
 |---|---|
 | `rood.dev.window{id, title, draw[, open][, keys][, size = {w, h}][, size_em][, flags][, replaces][, menu = "Window"]}` | a checkable entry of Window (sorted by title); `draw()` runs every presented frame while it is open and the overlay shows. Returns `"<plugin>/<id>"`; registering the same id again replaces it. Its open state is yours: kept across reloads (`open` is only the first state) and runs (settings `dev_window <id> 0\|1`). `keys`: while it is focused the editor's shortcuts (Ctrl+Z, H, ...) stand aside. `size_em`: the first size in font heights. `flags`: `imgui.WindowFlags_*`. `replaces`: a C++ window's name (`"material_review"`): while this window is registered the C++ one is neither drawn nor listed, and its open flag is this window's open state (the plugin off: the C++ one is back) |
 | `rood.dev.window_open(id[, open]) -> open`, `rood.dev.remove_window(id)` | |
+| `rood.dev.command{id, title, run[, category][, shortcut]}` | a command in the editor's registry (`pc/src/editor_commands.h`): the command palette (Ctrl+Shift+P) lists and runs it, so does RPC `editor_command`. `run()` runs under the plugin's call budget; `category` defaults to the plugin's id, `shortcut` is a label only. Returns `"<plugin>/<id>"`; registering the same id again replaces it. Every `rood.dev.window` also registers `window.<plugin>/<id>` (opens and focuses it). `rood.dev.remove_command(id)` |
 | `rood.dev.rpc(method[, params]) -> result \| nil, error` | one developer RPC method (`pc/tools/rood_rpc.py`'s, dev_rpc.c) in-process: the same handler, its undo; refused: `lua`, `quit`, `restart`, `reload`, `auth`, memory `read`/`write`, `state_flag`, `record`, `replay`, `input_record`, and a call from inside another |
 | `rood.imgui.*` | Dear ImGui by its own names (below) |
 
@@ -1097,6 +1098,21 @@ in the game"): the C++ window's picture pixel for pixel and its keys, on RPC
 windows (`id, title, plugin, menu, open, keys, focused, replaces, failed, error,
 frames, failures`); `lua {action "window", id, open, focus, retry}` opens,
 focuses or retries one.
+
+The editor is one docked workspace (`pc/src/editor_shell.cpp`, plan
+`pc/docs/plans/2026-10-30-editor-shell-plan.md`): the Outliner (with the
+Library tab) left, the Game panel (the game picture) centre, Details right,
+and the tool windows, yours included, tabbed below it the first time they
+open; drag any tab to dock it elsewhere or float it. Window > Reset layout
+puts the default back (its proportions: Details > Graphics > Editor shell,
+settings keys `editor_shell_left`, `_right`, `_bottom`; RPC `graphics` sets
+them). The layout lives in `pc/build/boot/imgui.ini` (per user; a test's own
+through `ROOD_IMGUI_INI`). RPC `editor_shell {action "state" | "reset" |
+"palette" | "window", open, query, name}` reads the layout (its nodes, the
+Game panel's rectangle, the picture's inset and view, the palette), resets
+it, opens the palette with a query, or reports one window's docking by name;
+`editor_command {action "list" | "query" | "run", query, id}` lists the
+registry (`query`: ranked as the palette ranks) and runs a command.
 
 ## Testing
 

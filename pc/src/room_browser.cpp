@@ -1,6 +1,7 @@
 // The editor's Room Browser (Window > Room Browser, toolbar "Rooms"): every
 // zone and room of the game, searchable, with the current one highlighted,
 // Previous/Next, and Go (the game loads the room: room_warp.c).
+#include "editor_shell.h" /* the tool windows' dock node */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,6 +114,7 @@ extern "C" void pc_room_browser_window(void)
     if (!pc_room_browser_open)
         return;
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 30, ImGui::GetFontSize() * 34), ImGuiCond_FirstUseEver);
+    rood_shell::dock_tool_window("Room Browser");
     if (!ImGui::Begin("Room Browser", &pc_room_browser_open)) {
         ImGui::End();
         return;

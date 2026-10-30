@@ -5,6 +5,7 @@
 // highlighted, with a reset arrow), the prefab editor, glow attachment and
 // suggestions, and the RPC methods actors, prefabs and editor_place.
 // The data model is light_prefabs.h; the room and viewport are lights.cpp.
+#include "editor_shell.h" /* the tool windows' dock node */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -808,6 +809,7 @@ void rood_lights::suggestions_window()
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.35f, io.DisplaySize.y * 0.3f), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 30, ImGui::GetFontSize() * 18), ImGuiCond_FirstUseEver);
     bool open = true;
+    rood_shell::dock_tool_window("Light all fixtures in room");
     if (!ImGui::Begin("Light all fixtures in room", &open)) {
         ImGui::End();
         return;

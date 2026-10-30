@@ -136,8 +136,7 @@ def run(out):
         w = windows()[PANEL]
         check(w["failed"] and "deliberate failure" in w["error"] and w["failures"] == 1,
               f"an error in draw: that window failed, its message kept ({w['error'][:80]!r})")
-        check(lua("return other_frames") >= other + 3 and g.call("editor_ui")["visible"],
-              "the other window and the overlay go on")
+        check(g.call("editor_ui")["visible"], "the overlay goes on")
         lua("fail = false unbalanced = true")
         g.call("lua", action="window", id=PANEL, retry=True)
         frames(3)
@@ -150,6 +149,15 @@ def run(out):
         frames(3)
         w = windows()[PANEL]
         check(not w["failed"] and lua("return frames") >= n + 3, "Retry: drawn again")
+        # The other window went on through the failures. The windows dock as tabs of one node in the
+        # editor shell (the other behind the panel's tab): in front, it draws every frame.
+        g.call("lua", action="window", id=OTHER, open=True, focus=True)
+        frames(1)
+        other = lua("return other_frames")
+        frames(3)
+        check(lua("return other_frames") >= other + 3 and not windows()[OTHER]["failed"], "the other window goes on")
+        g.call("lua", action="window", id=PANEL, open=True, focus=True)  # back in front for the checks below
+        frames(1)
         text = log.read_text(errors="replace") if log.exists() else ""
         check("Assertion" not in text and "imgui-error" not in text, "no Dear ImGui assertion or error")
         # hot reload: the file edited, drawn without a restart, the window still open

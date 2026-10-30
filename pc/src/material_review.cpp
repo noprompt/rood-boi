@@ -21,6 +21,7 @@
 // The window also exists in Lua (pc/plugins/rood.material_review, on RPC
 // material_review alone): while that plugin is on it takes this window's
 // place (rood.dev.window{replaces}) and this one draws nothing.
+#include "editor_shell.h" /* the tool windows' dock node */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1193,6 +1194,7 @@ extern "C" void pc_material_review_window(void)
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 46, ImGui::GetFontSize() * 56), ImGuiCond_FirstUseEver);
     if (focus_window) ImGui::SetNextWindowFocus();
     focus_window = false;
+    rood_shell::dock_tool_window("Material review");
     if (!ImGui::Begin("Material review", &pc_material_review_open)) {
         ImGui::End();
         return;

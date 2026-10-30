@@ -11,6 +11,10 @@
 //       (pc_lua_dev_replaceable: "material_review"): while this window is registered the C++ one is
 //       neither drawn nor in the menu, and its open flag is this window's open state.
 //   rood.dev.window_open(id[, open]) -> open    rood.dev.remove_window(id)
+//   rood.dev.command{id, title, run[, category][, shortcut]} -> the qualified id
+//       a command in the editor's registry (editor_commands.h): the command palette (Ctrl+Shift+P)
+//       and RPC editor_command list and run it; run() runs under the plugin's call budget. Every
+//       window registers "window.<qualified id>" too (opens and focuses it). rood.dev.remove_command(id).
 //   rood.dev.rpc(method[, params]) -> result | nil, error
 //       one developer RPC method (dev_rpc.c), in-process: the same handlers the socket reaches.
 //
@@ -21,6 +25,8 @@
 // "window", id, open} opens or closes one.
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "editor_commands.h" /* rood.dev.command, a window's command */
+#include "editor_shell.h"    /* the tool windows' dock node */
 #include "light_prefabs.h"
 #include "lua_imgui.h"
 #include "lua_runtime.h"
@@ -130,8 +136,109 @@ void drop_window(Window& w, lua_State* L)
         luaL_unref(L, LUA_REGISTRYINDEX, w.ref);
     w.ref = LUA_NOREF;
 }
+// rood.dev.command: a plugin's command (editor_commands.h), its run function kept in the registry.
+struct LuaCommand {
+    std::string id;
+    Plugin* plugin = nullptr;
+    int ref = LUA_NOREF;
+};
+std::vector<LuaCommand>& lua_commands()
+{
+    static auto* list = new std::vector<LuaCommand>();
+    return *list;
+}
+void drop_command(const std::string& id, bool from_registry)
+{
+    auto& list = lua_commands();
+    for (auto it = list.begin(); it != list.end(); ++it)
+        if (it->id == id) {
+            if (it->plugin && it->plugin->L && it->ref != LUA_NOREF)
+                luaL_unref(it->plugin->L, LUA_REGISTRYINDEX, it->ref);
+            list.erase(it);
+            break;
+        }
+    if (from_registry)
+        rood_commands::remove(id);
+}
+void drop_commands(Plugin* p)
+{
+    auto& list = lua_commands();
+    for (auto it = list.begin(); it != list.end();)
+        if (it->plugin == p) {
+            if (p->L && it->ref != LUA_NOREF)
+                luaL_unref(p->L, LUA_REGISTRYINDEX, it->ref);
+            it = list.erase(it);
+        } else
+            ++it;
+    rood_commands::remove_owner(p);
+}
+void run_command(const std::string& id)
+{
+    Plugin* p = nullptr;
+    int ref = LUA_NOREF;
+    for (const LuaCommand& c : lua_commands())
+        if (c.id == id)
+            p = c.plugin, ref = c.ref;
+    if (!p || ref == LUA_NOREF)
+        return;
+    std::string error;
+    if (!run(p, "command", BUDGET_CALL, [ref](lua_State* L) {
+            lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+            lua_call(L, 0, 0);
+        }, &error))
+        fault(p, "command", error, false, true);
+}
+// rood.dev.command{id, title, run[, category][, shortcut]}
+int api_command(lua_State* L)
+{
+    Plugin* p = plugin_of(L);
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_getfield(L, 1, "id");
+    std::string id = own_id(L, p, -1, "command");
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "run");
+    if (lua_type(L, -1) != LUA_TFUNCTION)
+        return luaL_error(L, "rood.dev.command: run is a function");
+    int ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    lua_getfield(L, 1, "title");
+    std::string title = lua_type(L, -1) == LUA_TSTRING ? lua_tostring(L, -1) : id.substr(p->id().size() + 1);
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "category");
+    std::string category = lua_type(L, -1) == LUA_TSTRING ? lua_tostring(L, -1) : p->id();
+    lua_pop(L, 1);
+    lua_getfield(L, 1, "shortcut");
+    std::string shortcut = lua_type(L, -1) == LUA_TSTRING ? lua_tostring(L, -1) : "";
+    lua_pop(L, 1);
+    if (title.empty() || title.size() > 64 || category.size() > 32 || shortcut.size() > 32)
+        return luaL_error(L, "rood.dev.command: a title of 1 to 64 bytes (category and shortcut up to 32)");
+    size_t mine = 0;
+    for (const LuaCommand& c : lua_commands())
+        mine += c.plugin == p;
+    if (mine >= MAX_WINDOWS && !std::any_of(lua_commands().begin(), lua_commands().end(), [&](const LuaCommand& c) { return c.id == id; }))
+        return luaL_error(L, "rood.dev.command: at most %d commands per plugin", (int)MAX_WINDOWS);
+    drop_command(id, false);
+    lua_commands().push_back({ id, p, ref });
+    rood_commands::Command c;
+    c.id = id, c.title = title, c.category = category, c.shortcut = shortcut, c.owner = p;
+    c.run = [id] { run_command(id); };
+    rood_commands::add(c);
+    lua_pushstring(L, id.c_str());
+    return 1;
+}
+int api_remove_command(lua_State* L)
+{
+    Plugin* p = plugin_of(L);
+    std::string id = own_id(L, p, 1, "command");
+    drop_command(id, true);
+    return 0;
+}
+
 void drop_windows(Plugin* p)
 {
+    for (const Window& w : windows())
+        if (w.plugin == p)
+            rood_commands::remove("window." + w.id);
+    drop_commands(p);
     auto& list = windows();
     for (auto it = list.begin(); it != list.end();)
         if (it->plugin == p) {
@@ -222,6 +329,22 @@ int api_window(lua_State* L)
     // The remembered state wins over open = ...: a reload keeps the window as the player left it.
     if (!w.bound && window_state().find(id) == window_state().end() && has_open)
         window_state()[id] = open;
+    /* Its command: open and focus it (the palette, the Window menu's twin). */
+    rood_commands::Command c;
+    c.id = "window." + id, c.title = w.title, c.category = "Window", c.owner = p;
+    c.run = [id] {
+        if (Window* x = find_window(id)) {
+            if (!is_open(*x))
+                set_open(id, true, true);
+            x->failed = false;
+            x->focus_request = true;
+        }
+    };
+    c.checked = [id] {
+        Window* x = find_window(id);
+        return x && is_open(*x);
+    };
+    rood_commands::add(c);
     lua_pushstring(L, id.c_str());
     return 1;
 }
@@ -331,6 +454,8 @@ void open_dev_tools(lua_State* L, Plugin*)
     set_cfunction(L, -1, "window", api_window);
     set_cfunction(L, -1, "window_open", api_window_open);
     set_cfunction(L, -1, "remove_window", api_remove_window);
+    set_cfunction(L, -1, "command", api_command);
+    set_cfunction(L, -1, "remove_command", api_remove_command);
     set_cfunction(L, -1, "rpc", api_rpc);
 }
 
@@ -361,6 +486,7 @@ void draw_window(size_t index)
         w.focus_request = false;
         ImGui::SetNextWindowFocus();
     }
+    rood_shell::dock_tool_window(label.c_str()); /* the layout's bottom node, first time (and after Reset layout) */
     if (w.failed) {
         w.focused = false;
         if (ImGui::Begin(label.c_str(), &open)) {
@@ -463,7 +589,7 @@ struct Register {
     Register()
     {
         dev_openers().push_back(open_dev_tools);
-        unload_hooks().push_back(drop_windows);
+        unload_hooks().push_back(drop_windows); /* (and the plugin's commands) */
         rpc_actions().push_back(windows_rpc);
     }
 } register_dev_tools;

@@ -31,6 +31,8 @@
 #include "editor_library.h"
 #include "editor_colour.h"
 #include "editor_scene.h"
+#include "editor_shell.h"    /* docking, the Game panel, the command palette */
+#include "editor_commands.h" /* the command registry (the palette, RPC editor_command) */
 #include "environment_internal.h"
 #include "particles.h"
 #include "particles_internal.h"
@@ -91,6 +93,7 @@ extern "C" void pc_editor_input(void);
 extern "C" void pc_editor_panel(void);
 extern "C" void pc_editor_grid(void);
 static bool active, visible;
+static void register_commands(); /* the command registry: File/Edit/View/Window items, tools, shortcuts */
 static bool show_help; /* Help > Keyboard shortcuts */
 static int outliner_tab_request = -1; /* Window menu / toolbar: 0 Outliner, 1 the Library */
 static bool place_tab_shown;
@@ -177,6 +180,8 @@ extern "C" void pc_overlay_init(SDL_Window* window, SDL_GLContext context)
     ImGui::GetStyle().Alpha = 0.95f;
     base_style = ImGui::GetStyle();
     ui_scale = detect_scale(window);
+    rood_shell::init(); /* docking on, the layout's ini section */
+    register_commands();
 #ifdef ROOD_VULKAN
     if (pc_vk_on()) {
         if (!ImGui_ImplSDL3_InitForVulkan(window) || !pc_vk_overlay_init()) {
@@ -1305,6 +1310,7 @@ static void memory_cards_window()
     /* Fixed width; the height follows the content (a long path adds lines). */
     float width = ImGui::GetFontSize() * 40;
     ImGui::SetNextWindowSizeConstraints(ImVec2(width, 0), ImVec2(width, io.DisplaySize.y));
+    rood_shell::dock_tool_window("Memory cards");
     if (ImGui::Begin("Memory cards", &show_memory_cards,
             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize))
         memory_cards_panel();
@@ -1533,10 +1539,15 @@ static void menu_bar(float* height)
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Window")) {
+        if (ImGui::MenuItem("Game"))
+            rood_shell::focus_window("Game");
         if (ImGui::MenuItem("Outliner"))
-            outliner_tab_request = 0;
+            outliner_tab_request = 0, rood_shell::focus_window("Outliner");
         if (ImGui::MenuItem("Library", "Shift+1", place_tab_shown || !rood_library::docked()))
-            outliner_tab_request = 1;
+            outliner_tab_request = 1, rood_shell::focus_window(rood_library::docked() ? "Outliner" : "Library##floating");
+        if (ImGui::MenuItem("Details"))
+            rood_shell::focus_window("Details");
+        ImGui::Separator();
         ImGui::MenuItem("Room Browser", "Ctrl+R", &pc_room_browser_open);
         if (!pc_lua_dev_replaced("material_review")) /* else the Lua window (rood.material_review) */
             ImGui::MenuItem("Material review", nullptr, &pc_material_review_open);
@@ -1544,6 +1555,14 @@ static void menu_bar(float* height)
         pc_lua_console_menu_item();
         pc_lua_dev_menu_items(); /* plugins' tool windows (rood.dev.window) */
         ImGui::MenuItem("Keyboard shortcuts", nullptr, &show_help);
+        ImGui::Separator();
+        if (ImGui::MenuItem("Command palette...", "Ctrl+Shift+P"))
+            rood_shell::palette_open(true);
+        if (ImGui::MenuItem("Reset layout"))
+            rood_shell::reset_layout();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Outliner and Library left, Game centre, Details right, the tool windows tabbed below\n"
+                              "(proportions: Details > Graphics > Editor shell)");
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Help")) {
@@ -1774,7 +1793,7 @@ static void toolbar(float x, float y, float w, float* height)
     ImGui::Begin("##toolbar", nullptr,
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove
             | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings
-            | ImGuiWindowFlags_NoBringToFrontOnFocus);
+            | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking);
     float em = ImGui::GetFontSize();
     /* Undo and redo (curved arrows, as Unreal's toolbar). */
     for (int redo = 0; redo < 2; redo++) {
@@ -1954,6 +1973,8 @@ static void help_window()
         { "Fields", "Enter / Tab", "Commit the value / commit and move to the next field" },
         { "Fields", "Esc (typing)", "Cancel the edit (the editor stays open); no shortcut fires while typing" },
         { "Editor", "Ctrl+Shift+S", "Save settings (pc/user/settings.cfg)" },
+        { "Editor", "Ctrl+Shift+P", "Command palette: every command by name (panels, tools, menu items, plugins'); Enter runs" },
+        { "Editor", "Drag a panel's tab", "Dock it beside or over another panel, or float it; Window > Reset layout puts the default back" },
         { "Camera", "RMB drag", "Look (starts the free camera from the game camera)" },
         { "Camera", "RMB + W A S D", "Fly" },
         { "Camera", "RMB + Q / E", "Fly down / up" },
@@ -1998,6 +2019,7 @@ static void help_window()
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver,
         ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetFontSize() * 46, ImGui::GetFontSize() * 30), ImGuiCond_FirstUseEver);
+    rood_shell::dock_tool_window("Keyboard shortcuts");
     if (!ImGui::Begin("Keyboard shortcuts", &show_help, ImGuiWindowFlags_NoCollapse)) {
         ImGui::End();
         return;
@@ -2036,11 +2058,8 @@ static void help_window()
 
 static void outliner(float x, float y, float w, float h)
 {
-    ImGui::SetNextWindowPos(ImVec2(x, y));
-    ImGui::SetNextWindowSize(ImVec2(w, h));
-    ImGui::Begin("Outliner", nullptr,
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse
-            | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar); /* the tabs are its title */
+    (void)x, (void)y, (void)w, (void)h; /* a docked panel now (editor_shell.cpp): the layout places it */
+    ImGui::Begin("Outliner", nullptr, ImGuiWindowFlags_NoCollapse);
     /* The Outliner and the Library (UE's Place Actors, with every kind of thing to place). */
     place_tab_shown = false;
     if (ImGui::BeginTabBar("outliner tabs")) {
@@ -2119,11 +2138,8 @@ static void outliner(float x, float y, float w, float h)
 
 static void details(float x, float y, float w, float h, double frame_ms)
 {
-    ImGui::SetNextWindowPos(ImVec2(x, y));
-    ImGui::SetNextWindowSize(ImVec2(w, h));
-    ImGui::Begin("Details", nullptr,
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse
-            | ImGuiWindowFlags_NoSavedSettings);
+    (void)x, (void)y, (void)w, (void)h; /* a docked panel now (editor_shell.cpp) */
+    ImGui::Begin("Details", nullptr, ImGuiWindowFlags_NoCollapse);
     ImGui::PushItemWidth(-ImGui::GetFontSize() * 13);
     ImGuiTabItemFlags select[TAB_COUNT] = {};
     /* Selection follows you: a new selection shows in Details, unless Details
@@ -2212,6 +2228,8 @@ static void details(float x, float y, float w, float h, double frame_ms)
                 shader_reload_panel();
 #endif
             rood_details::kind_section("menu_model_light", "Menu model light"); /* ui/menu_light_kind.cpp */
+            if (ImGui::CollapsingHeader("Editor shell"))
+                rood_shell::settings_panel();
             if (ImGui::CollapsingHeader("Controls")) {
                 camera_stick_panel();
                 look_panel();
@@ -2274,6 +2292,9 @@ static void editor_shortcuts()
     /* The Material review's window, when it has the keyboard, takes Ctrl+Z
      * (its decisions' undo) and H (its highlight). */
     bool review = pc_material_review_keys() || pc_lua_dev_keys(); /* or a Lua tool window's (keys = true) */
+    /* The command palette: Ctrl+Shift+P (editor_shell.cpp). */
+    if (io.KeyCtrl && io.KeyShift && !io.KeyAlt && ImGui::IsKeyPressed(ImGuiKey_P, false))
+        rood_shell::palette_toggle();
     /* Undo: Ctrl+Z; redo: Ctrl+Y or Ctrl+Shift+Z (held: repeats). */
     if (io.KeyCtrl && !io.KeyAlt && !review) {
         if (ImGui::IsKeyPressed(ImGuiKey_Z, true))
@@ -2440,23 +2461,14 @@ extern "C" void pc_overlay_frame(int width, int height)
     if (visible) {
         float bar = 0, tools = 0;
         menu_bar(&bar);
-        float panel = (float)width * 0.3f;
-        float least = ImGui::GetFontSize() * 26;
-        if (panel < least)
-            panel = least;
-        if (panel > width * 0.5f)
-            panel = width * 0.5f;
-        float view_w = width - panel;
-        toolbar(0, bar, view_w, &tools);
-        /* The Library gets more of the column (its tiles are the point of it). */
-        float split = place_tab_shown ? 0.55f : 0.35f;
-        outliner(view_w, bar, panel, (height - bar) * split);
-        details(view_w, bar + (height - bar) * split, panel, (height - bar) * (1 - split), dt * 1000.0);
+        toolbar(0, bar, (float)width, &tools);
+        /* The workspace (editor_shell.cpp): the dock space below the toolbar; the Game panel's
+         * rectangle is the picture's inset (pc_gl_inset), the Outliner and Details dock around it. */
+        rood_shell::frame(bar + tools, (float)width, (float)height);
+        rood_shell::game_panel();
+        outliner(0, 0, 0, 0);
+        details(0, 0, 0, 0, dt * 1000.0);
         rood_library::window(); /* the Library when popped out */
-        pc_gl_inset[0] = 0;
-        pc_gl_inset[1] = (int)(bar + tools);
-        pc_gl_inset[2] = (int)panel;
-        pc_gl_inset[3] = 0;
         if (pc_hw_active)
             pc_lights_viewport();
         viewport_keys();
@@ -2471,10 +2483,11 @@ extern "C" void pc_overlay_frame(int width, int height)
         memory_cards_window();
         pc_lua_console_window();
         pc_lua_dev_windows(); /* plugins' tool windows (lua_dev_tools.cpp) */
+        rood_shell::palette_frame(); /* the command palette, over everything of the editor's */
         /* What the panels changed becomes a transaction (once released). */
         pc_undo_frame_end();
     } else {
-        memset(pc_gl_inset, 0, sizeof pc_gl_inset);
+        rood_shell::closed(); /* the picture fills the window (pc_gl_inset zero) */
     }
     if (pc_photo_format_draw)
         pc_photo_format_draw(); /* the photo format's bars (the background: under everything else) */
@@ -2502,4 +2515,141 @@ extern "C" void pc_overlay_frame(int width, int height)
         return; /* vk_present.c records the draw data (pc_vk_overlay_render) */
 #endif
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+/* The command registry (editor_commands.h): what the menus, toolbar and shortcuts do, by name, for
+ * the command palette (Ctrl+Shift+P), the Window menu and RPC editor_command. Plugins add theirs
+ * with rood.dev.command. */
+extern "C" bool* pc_lua_console_open_flag(void);
+static void register_commands()
+{
+    using rood_commands::Command;
+    auto add = [](const char* id, const char* title, const char* category, const char* shortcut, std::function<void()> run,
+                   std::function<bool()> enabled = nullptr, std::function<bool()> checked = nullptr) {
+        Command c;
+        c.id = id, c.title = title, c.category = category, c.shortcut = shortcut;
+        c.run = std::move(run), c.enabled = std::move(enabled), c.checked = std::move(checked);
+        rood_commands::add(c);
+    };
+    auto flag = [](int* v) { return [v] { return *v != 0; }; };
+    auto toggle_flag = [](int* v) { return [v] { *v = !*v; }; };
+    auto bflag = [](bool* v) { return [v] { return *v; }; };
+    auto toggle_bflag = [](bool* v) { return [v] { *v = !*v; }; };
+    /* File */
+    add("file.save_area", "Save area", "File", "Ctrl+S", [] { save_area(); });
+    add("file.reload_area", "Reload area", "File", "", [] { pc_lights_reload(); });
+    add("file.save_settings", "Save settings", "File", "Ctrl+Shift+S", [] { pc_settings_save(); });
+    add("file.reload_settings", "Reload settings", "File", "", [] { pc_settings_load(); });
+    add("file.quit_title", "Quit to title", "File", "", [] { quit_menu_pick = PC_QUIT_TITLE; });
+    add("file.quit_desktop", "Quit to desktop", "File", "", [] { quit_menu_pick = PC_QUIT_DESKTOP; });
+    /* Edit */
+    add("edit.undo", "Undo", "Edit", "Ctrl+Z", [] { pc_undo_undo(); }, [] { return pc_undo_name(0) != nullptr; });
+    add("edit.redo", "Redo", "Edit", "Ctrl+Y", [] { pc_undo_redo(); }, [] { return pc_undo_name(1) != nullptr; });
+    auto any = [] { return !rood_selection::empty(); };
+    add("edit.copy", "Copy", "Edit", "Ctrl+C", [] { rood_scene::copy_selection(); }, any);
+    add("edit.paste", "Paste", "Edit", "Ctrl+V", [] { rood_scene::paste_clipboard(); });
+    add("edit.duplicate", "Duplicate", "Edit", "Ctrl+D", [] { rood_scene::duplicate_selection(); }, any);
+    add("edit.delete", "Delete", "Edit", "Delete", [] { rood_scene::delete_selection(); }, any);
+    add("edit.hide", "Hide the selection", "Edit", "H", [] { rood_scene::hide_selection(); }, any);
+    add("edit.isolate", "Hide everything else", "Edit", "Shift+H", [] { rood_scene::isolate_selection(); }, any);
+    add("edit.unhide_all", "Show everything", "Edit", "Ctrl+H", [] { rood_scene::unhide_all(); });
+    /* View */
+    add("view.lights", "Lights and glows", "View", "", toggle_bflag(pc_lights_show()), nullptr, bflag(pc_lights_show()));
+    add("view.fog_volumes", "Fog volumes", "View", "", toggle_bflag(pc_atmosphere_show_volumes()), nullptr,
+        bflag(pc_atmosphere_show_volumes()));
+    add("view.emitters", "Emitters", "View", "", toggle_bflag(rood_particles::emitters_shown_flag()), nullptr,
+        bflag(rood_particles::emitters_shown_flag()));
+    add("view.room_wireframe", "Room wireframe", "View", "", toggle_flag(&pc_overlay_wire), nullptr, flag(&pc_overlay_wire));
+    add("view.room_points", "Room points", "View", "", toggle_flag(&pc_overlay_points), nullptr, flag(&pc_overlay_points));
+    add("view.character_wireframe", "Character wireframe", "View", "", toggle_flag(&pc_overlay_actor_wire), nullptr,
+        flag(&pc_overlay_actor_wire));
+    add("view.free_camera", "Free camera", "View", "F2", [] { pc_editor_toggle(); }, nullptr, [] { return pc_editor_active() != 0; });
+    add("view.cut_to_focus", "Cut to focus", "View", "C", toggle_flag(&pc_editor_cutaway), nullptr, flag(&pc_editor_cutaway));
+    add("view.play_pause", "Play / Pause", "View", "", [] {
+        if (pc_editor_active())
+            pc_editor_toggle();
+        else
+            pc_rpc_set_paused(!pc_rpc_is_paused());
+    });
+    add("view.step", "Step one frame", "View", "", [] { pc_rpc_request_step(1); });
+    static const char* const modes[] = { "Lit", "Unlit", "Lighting only", "Base colour (textures)", "Vertex colours",
+        "World normals", "Indirect light", "Shadow visibility", "Baked light visibility", "Depth", "Baked shadow" };
+    for (int i = 0; i < 11; i++) {
+        char id[48], title[64];
+        snprintf(id, sizeof id, "view.mode.%d", i);
+        snprintf(title, sizeof title, "View mode: %s", modes[i]);
+        add(id, title, "View", "", [i] {
+            pc_gl_view_mode = i <= 5 ? i : i == 10 ? 11 : 0;
+            pc_gi_debug = i >= 6 && i <= 8 ? i - 5 : 0;
+            pc_gl_show_depth = i == 9;
+        }, nullptr, [i] {
+            int show = pc_gl_show_depth ? 9 : pc_gi_debug ? 5 + pc_gi_debug : pc_gl_view_mode == 11 ? 10 : pc_gl_view_mode;
+            return show == i;
+        });
+    }
+    /* Window */
+    add("window.outliner", "Outliner", "Window", "", [] { outliner_tab_request = 0; rood_shell::focus_window("Outliner"); });
+    add("window.library", "Library", "Window", "Shift+1", [] {
+        outliner_tab_request = 1;
+        rood_shell::focus_window(rood_library::docked() ? "Outliner" : "Library##floating");
+    });
+    add("window.details", "Details", "Window", "", [] { rood_shell::focus_window("Details"); });
+    for (int i = 0; i < TAB_COUNT; i++) {
+        static const char* const titles[TAB_COUNT] = { "Details", "Lighting", "Inspector", "Atmosphere", "Post-processing",
+            "Graphics", "Emissive", "Material", "Diagnostics" };
+        char id[48], title[64];
+        snprintf(id, sizeof id, "window.details.%s", details_tabs[i]);
+        snprintf(title, sizeof title, "Details: %s tab", titles[i]);
+        add(id, title, "Window", "", [i] { details_tab_request = i; rood_shell::focus_window("Details"); });
+    }
+    add("window.room_browser", "Room Browser", "Window", "Ctrl+R", [] {
+        pc_room_browser_open = !pc_room_browser_open;
+        if (pc_room_browser_open)
+            rood_shell::focus_window("Room Browser");
+    }, nullptr, bflag(&pc_room_browser_open));
+    add("window.material_review", "Material review", "Window", "", [] {
+        pc_material_review_open = !pc_material_review_open;
+        if (pc_material_review_open)
+            rood_shell::focus_window("Material review");
+    }, [] { return !pc_lua_dev_replaced("material_review"); }, bflag(&pc_material_review_open));
+    add("window.cutscene", "Cutscene", "Window", "", [] {
+        cutscene::window_open = !cutscene::window_open;
+        if (cutscene::window_open)
+            rood_shell::focus_window("Cutscene");
+    }, nullptr, bflag(&cutscene::window_open));
+    add("window.lua_console", "Lua console", "Window", "", [] {
+        bool* open = pc_lua_console_open_flag();
+        *open = !*open;
+        if (*open)
+            rood_shell::focus_window("Lua console");
+    }, nullptr, [] { return *pc_lua_console_open_flag(); });
+    add("window.keyboard_shortcuts", "Keyboard shortcuts", "Window", "", [] {
+        show_help = !show_help;
+        if (show_help)
+            rood_shell::focus_window("Keyboard shortcuts");
+    }, nullptr, bflag(&show_help));
+    add("window.memory_cards", "Memory cards", "Window", "", [] {
+        show_memory_cards = !show_memory_cards;
+        if (show_memory_cards)
+            rood_shell::focus_window("Memory cards");
+    }, nullptr, bflag(&show_memory_cards));
+    /* Tools (the toolbar) */
+    int* op = pc_lights_gizmo_operation();
+    add("tool.move", "Move tool", "Tools", "W", [op] { *op = 0; }, nullptr, [op] { return *op == 0; });
+    add("tool.rotate", "Rotate tool", "Tools", "E", [op] { *op = 1; }, nullptr, [op] { return *op == 1; });
+    add("tool.scale", "Scale tool", "Tools", "R", [op] { *op = 2; }, nullptr, [op] { return *op == 2; });
+    add("tool.local_space", "Local / World space", "Tools", "", toggle_flag(&pc_lights_gizmo_space), nullptr,
+        flag(&pc_lights_gizmo_space));
+    add("tool.inspect", "Inspect (probe a surface)", "Tools", "I", toggle_bflag(pc_lights_probe_mode()), nullptr,
+        bflag(pc_lights_probe_mode()));
+    add("tool.light_fixture", "Light fixture tool", "Tools", "", toggle_bflag(pc_lights_fixture_mode()), nullptr,
+        bflag(pc_lights_fixture_mode()));
+    add("tool.light_all_fixtures", "Light all fixtures in room...", "Tools", "", [] { pc_lights_light_all_fixtures(); });
+    add("tool.fit_rect_to_window", "Rect light on a window...", "Tools", "", [] { rood_fit::arm(rood_selection::Ref()); });
+    add("tool.snap_grid", "Snap to grid", "Tools", "", toggle_flag(&pc_lights_snap), nullptr, flag(&pc_lights_snap));
+    add("tool.snap_point", "Snap to room points", "Tools", "", toggle_flag(&pc_snap_point), nullptr, flag(&pc_snap_point));
+    add("tool.snap_edge", "Snap to room edges", "Tools", "", toggle_flag(&pc_snap_edge), nullptr, flag(&pc_snap_edge));
+    add("tool.snap_surface", "Snap to surfaces", "Tools", "", toggle_flag(&pc_snap_surface), nullptr, flag(&pc_snap_surface));
+    /* Help */
+    add("help.shortcuts", "Keyboard shortcuts", "Help", "", [] { show_help = true; rood_shell::focus_window("Keyboard shortcuts"); });
 }

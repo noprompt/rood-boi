@@ -1,6 +1,6 @@
 # Editor shell: design (slice 1 of the Vagrant Story editor)
 
-Status: draft for the user's approval, 2026-10-30.
+Status: approved by the user, 2026-10-30 (mockup reviewed in chat). Built by a Fable worker in worktree `editor-shell`.
 
 ## Intent
 
