@@ -6,6 +6,9 @@
 #include "gpu.h"
 #include "scratch.h"
 #include <libetc.h>
+#ifdef ROOD_PC
+#include "pc/src/classic/classic_hook.h"
+#endif
 
 /**
  * Process L1/R1 input.
@@ -53,6 +56,19 @@ static void _renderItemCategory(int animationStep, int highlightSelected)
     }
 
     animationStep = (animationStep * 8) - 16;
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the eight icons, from the step, the highlight and the
+     * selected category (on_row: the one the loop hands to row 31 instead, by its test). */
+    {
+        pc_classic_items_category pcCategory = { animationStep, highlightSelected,
+            selectedCategory,
+            highlightSelected == 1
+                    && (((selectedCategory + 1) & 7) * 16) + 32
+                           >= vs_battle_getMenuItem(31)->x - 12
+                ? selectedCategory
+                : -1 };
+        PC_CLASSIC(PC_CLASSIC_SITE_ITEMS_CATEGORY, &pcCategory, 0, 0, {
+#endif
 
     for (i = 0; i < 8; ++i) {
         u_long* texPage;
@@ -78,6 +94,10 @@ static void _renderItemCategory(int animationStep, int highlightSelected)
                    | (i == selectedCategory ? vs_getUV0Clut(0, 0, 976, 223)
                                             : vs_getUV0Clut(0, 0, 992, 223));
     }
+#ifdef ROOD_PC
+        });
+    }
+#endif
 }
 
 /**

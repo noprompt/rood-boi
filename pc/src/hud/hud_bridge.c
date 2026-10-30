@@ -38,6 +38,7 @@
 #include "../ui/vs_encode.h"
 #include "../classic/classic_parity.h"
 #include "../classic/classic_hook.h"
+#include "../../../src/include/gpu.h" /* (vs_mainmenu_renderButtonBackground's packets) */
 #include "hud.h"
 
 
@@ -73,7 +74,8 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
  * emit links at unk8 - 4 .. + 12: d.menu_row's own). A classic draw links its packets there too, unless it names another (d.layer). */
 static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4,
     PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, -4,
-    PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8 };
+    PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8,
+    PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, -24, -12, PC_HUD_LAYER_UNK8, -12 };
 static int element_slot; /* PC_HUD_LAYER_ELEMENT: the slot the element just recorded was linked into */
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
@@ -89,6 +91,10 @@ typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC
             && PC_CLASSIC_MENU_BACKGROUND == PC_HUD_MENU_BACKGROUND && PC_CLASSIC_MENU_COMMAND == PC_HUD_MENU_COMMAND
             && PC_CLASSIC_MENU_ROW == PC_HUD_MENU_ROW && PC_CLASSIC_MENU_CURSOR == PC_HUD_MENU_CURSOR
             && PC_CLASSIC_MENU_TABS == PC_HUD_MENU_TABS && PC_CLASSIC_OPTION_VALUE == PC_HUD_OPTION_VALUE
+            && PC_CLASSIC_ITEMS_CATEGORY == PC_HUD_ITEMS_CATEGORY
+            && PC_CLASSIC_ITEMS_STATUS_BUTTON == PC_HUD_ITEMS_STATUS_BUTTON && PC_CLASSIC_EQUIP_STATS == PC_HUD_EQUIP_STATS
+            && PC_CLASSIC_DP_PP_BARS == PC_HUD_DP_PP_BARS && PC_CLASSIC_GEM_SLOTS == PC_HUD_GEM_SLOTS
+            && PC_CLASSIC_STAT_PAGE == PC_HUD_STAT_PAGE
         ? 1
         : -1];
 
@@ -283,6 +289,8 @@ static int slot_offset(int kind, int layer)
     int slot = layer != PC_HUD_LAYER_KIND ? layer : kind_slot[kind >= 1 && kind < PC_HUD_KINDS ? kind : 1];
     if (slot == PC_HUD_LAYER_ELEMENT)
         slot = element_slot;
+    if (PC_HUD_LAYER_IS_UNK8_AT(slot)) /* (vs_scratch.unk8 + bytes) */
+        return (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4)) + (slot + 0x7F00);
     /* Resolve before shadow lookup/sort: aliases coalesce and real OT order is preserved. */
     return slot == PC_HUD_LAYER_UNK8
         ? (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4)) : slot;
@@ -604,7 +612,63 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
     if ((vs_battle_menuState.currentMenu & 0x3F) > 31
         || !(MENU_TOURED_SCREENS & (1u << (vs_battle_menuState.currentMenu & 0x3F))))
         return;
-    if (kind == PC_HUD_OPTION_VALUE) { /* our Option pages' value column (classic_options.c) */
+    /* The Items screen's own panels: on Items only (MENU3, currentMenu 4; items0.h is MENUB's too, untoured). */
+    if (kind >= PC_HUD_ITEMS_CATEGORY && (vs_battle_menuState.currentMenu & 0x3F) != 4)
+        return;
+    if (kind == PC_HUD_STAT_PAGE) {
+        static pc_hud_fields page;
+        const pc_classic_stat_page* p = record;
+        typedef char pc_hud_stat_page_agrees[sizeof page.stat_page == sizeof *p ? 1 : -1];
+        f = &page;
+        *f = (pc_hud_fields) { 0 };
+        f->key = f;
+        memcpy(&f->stat_page, p, sizeof f->stat_page);
+        f->x = p->x_offset + 16, f->y = 46, f->w = 160, f->h = 128;
+        slots[0] = -12, slots[1] = -16;
+        nslots = 2;
+    } else if (kind == PC_HUD_EQUIP_STATS || kind == PC_HUD_DP_PP_BARS || kind == PC_HUD_GEM_SLOTS) {
+        static pc_hud_fields panels[3];
+        f = &panels[kind - PC_HUD_EQUIP_STATS];
+        *f = (pc_hud_fields) { 0 };
+        f->key = f;
+        if (kind == PC_HUD_EQUIP_STATS) {
+            const pc_classic_equip_stats* q = record;
+            typedef char pc_hud_equip_agrees[sizeof f->equip == sizeof *q ? 1 : -1];
+            memcpy(&f->equip, q, sizeof f->equip);
+            f->x = (short)f->equip.position, f->y = f->equip.position >> 16, f->w = 72, f->h = 60;
+            slots[0] = -24;
+        } else if (kind == PC_HUD_DP_PP_BARS) {
+            const pc_classic_dp_pp_bars* b = record;
+            typedef char pc_hud_bars_agree[sizeof f->bars == sizeof *b ? 1 : -1];
+            memcpy(&f->bars, b, sizeof f->bars);
+            f->x = 10, f->y = f->bars.step * 8 - 8, f->w = 136, f->h = 16;
+            slots[0] = -12;
+        } else {
+            f->gem_count = ((const pc_classic_gem_slots*)record)->count;
+            f->x = 256, f->y = 32, f->w = 56, f->h = 16;
+            slots[0] = unk8 + 4, slots[1] = unk8;
+            nslots = 2;
+        }
+    } else if (kind == PC_HUD_ITEMS_CATEGORY || kind == PC_HUD_ITEMS_STATUS_BUTTON) {
+        static pc_hud_fields items[2];
+        f = &items[kind - PC_HUD_ITEMS_CATEGORY];
+        *f = (pc_hud_fields) { 0 };
+        f->key = f;
+        if (kind == PC_HUD_ITEMS_CATEGORY) {
+            const pc_classic_items_category* c = record;
+            f->items_step = c->step, f->items_highlight = c->highlight, f->items_selected = c->selected;
+            f->items_on_row = c->on_row;
+            f->x = 32, f->y = c->step, f->w = 128, f->h = 16;
+            slots[0] = 0, slots[1] = unk8;
+            nslots = 2;
+        } else {
+            const pc_classic_items_status_button* b = record;
+            f->items_step = b->row, f->items_highlight = b->state;
+            f->x = 8 - b->row, f->y = 36, f->w = 96, f->h = 16;
+            slots[0] = -12, slots[1] = unk8;
+            nslots = 2;
+        }
+    } else if (kind == PC_HUD_OPTION_VALUE) { /* our Option pages' value column (classic_options.c) */
         static pc_hud_fields values[16];
         const pc_classic_option_value* v = record;
         f = &values[v->row % 16];
@@ -707,6 +771,28 @@ static void option_packets(const pc_hud_classic_cmd* c, int shadowed)
         pc_options_text_draw(text, c->a, c->w, c->x, c->y, (int)c->color);
     }
     psx_set(vs_scratch.unk8, slot);
+}
+
+int vs_mainMenu_renderIntColor(int value, int xy, int color, u_long* before); /* MAINMENU 58EC.c (d.menu_int) */
+/* A button's window as MAINMENU's vs_mainmenu_renderButtonBackground builds it (58EC.c; its own copy: the game's
+ * links at vs_scratch.unk4 - 12 always): h lines, each a draw mode (dithered), a shaded line (64, 56, 32 at x to
+ * 16, 16, 8 at x + w - i) and a draw mode (semi-transparent, half), into ot. */
+static void button_background_packets(u_long* ot, int x, int y, int w, int h)
+{
+    u_long* p = psx_get(vs_scratch.unk0);
+    int i;
+    for (i = 0; i < h; ++i) {
+        p[0] = vs_getTag(u_long[6], ot[0]);
+        p[1] = vs_getTpage(0, 0, 0, 0, ditheringOn);
+        p[2] = vs_getRGB0(primLineG2, 64, 56, 32);
+        p[3] = ((x & 0xFFFF) | ((y + i) << 0x10));
+        p[4] = vs_getRGB888(16, 16, 8);
+        p[5] = vs_getXY_2((x + w) - i, y + i);
+        p[6] = vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff);
+        ot[0] = ((psx_to_int(u_long, p) << 8) >> 8);
+        p += 7;
+    }
+    psx_set(vs_scratch.unk0, p);
 }
 
 /* A text box's text (_printVariableWidthFont): the glyphs it set this frame (recorded as it set them); the box. */
@@ -1620,6 +1706,35 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
         case PC_HUD_CMD_OPTION_TEXT:
         case PC_HUD_CMD_OPTION_BAR:
             option_packets(c, shadowed);
+            break;
+        case PC_HUD_CMD_BUTTON_BACKGROUND:
+            button_background_packets(ot, c->x, c->y, c->w, c->h);
+            break;
+        case PC_HUD_CMD_PACKET: {
+            u_long* p = psx_get(vs_scratch.unk0);
+            const int words[4] = { c->a, c->b, c->c, c->d };
+            int k, n = c->w < 1 ? 1 : c->w > 4 ? 4 : c->w;
+            p[0] = ((u_long)n << 24) | (ot[0] & 0xFFFFFF);
+            for (k = 0; k < n; ++k)
+                p[1 + k] = (u_long)(unsigned)words[k];
+            ot[0] = (psx_to_int(u_long, p) << 8) >> 8;
+            psx_set(vs_scratch.unk0, p + 1 + n);
+            break;
+        }
+        case PC_HUD_CMD_FONT_TEXT: {
+            char table = _fontTable, style = D_800F4CB8;
+            int brightness = _fontBrightness, k, x = c->x;
+            vs_battle_setFontStyle(c->a);
+            for (k = 0; k < c->length; ++k)
+                x = vs_battle_printVariableWidthFontChar((u_char)c->text[k], x, c->y, ot - 3);
+            _fontTable = table, D_800F4CB8 = style, _fontBrightness = brightness;
+            break;
+        }
+        case PC_HUD_CMD_MENU_INT:
+            vs_mainMenu_renderIntColor(c->a, (int)xy(c->x, c->y), (int)c->color, ot);
+            break;
+        case PC_HUD_CMD_STAT_BAR:
+            vs_battle_renderStatBar(c->a, c->b, ot, (int)xy(c->x, c->y));
             break;
         case PC_HUD_CMD_PLATE:
             plate_packets(ot, c);

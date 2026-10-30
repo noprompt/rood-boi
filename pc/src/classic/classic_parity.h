@@ -56,8 +56,14 @@ enum {
     PC_CLASSIC_MENU_CURSOR = 26, /* the pointing hand (vs_mainMenu_renderCursor) */
     PC_CLASSIC_MENU_TABS = 27, /* the tab arrows, L1 / R1 (vs_mainMenu_renderTabNavigation) */
     PC_CLASSIC_OPTION_VALUE = 28, /* a row's value in our Option pages (classic_options.c draw_values) */
-    PC_CLASSIC_STATUS_PANEL = 29, /* the whole status display (func_800CA2DC): captured only */
-    PC_CLASSIC_KINDS = 30
+    PC_CLASSIC_ITEMS_CATEGORY = 29, /* Items' category icons (MENU3 items0.h _renderItemCategory) */
+    PC_CLASSIC_ITEMS_STATUS_BUTTON = 30, /* Items' STATUS strip (MENU3 16C.c: its button, window and word) */
+    PC_CLASSIC_EQUIP_STATS = 31, /* the equipment stats panel (MAINMENU C48.c vs_mainMenu_renderEquipStats) */
+    PC_CLASSIC_DP_PP_BARS = 32, /* the DP / PP bars (C48.c vs_mainMenu_renderDpPpBars) */
+    PC_CLASSIC_GEM_SLOTS = 33, /* a grip's gem slots (MENU3 items1.h _gripStatusView) */
+    PC_CLASSIC_STAT_PAGE = 34, /* the class / affinity / type table (C48.c _renderStatPage) */
+    PC_CLASSIC_STATUS_PANEL = 35, /* the whole status display (func_800CA2DC): captured only */
+    PC_CLASSIC_KINDS = 36
 };
 const char* pc_classic_kind_name(int kind); /* "status", ...; "" for none */
 int pc_classic_kind_of(const char* name);   /* 0 unknown */

@@ -416,7 +416,7 @@ set(ROOD_LUA_RUNTIME src/lua/lua_limits.cpp src/lua/lua_value.cpp src/lua/lua_ru
     src/lua/lua_photo_capture.cpp src/lua/lua_photo_input.cpp
     src/hud/hud_elements.cpp)
 find_package(Threads REQUIRED)
-add_executable(lua_probe tests/lua_probe.cpp ${ROOD_LUA_RUNTIME})
+add_executable(lua_probe tests/lua_probe.cpp ${ROOD_LUA_RUNTIME} src/ui/vs_encode.c)
 target_include_directories(lua_probe PRIVATE src src/lua)
 target_link_libraries(lua_probe PRIVATE rood_lua Threads::Threads)
 target_compile_options(lua_probe PRIVATE -Wall -Wextra -Werror)

@@ -40,6 +40,12 @@ int pc_hud_classic_menu_command = 1, pc_hud_classic_menu_row = 1, pc_hud_classic
 int pc_hud_classic_menu_background = 1, pc_hud_classic_menu_tabs = 1;
 // Our Option pages' value column (classic_options.c's draws, its fallback): on (its Option screen tour is green).
 int pc_hud_classic_option_value = 1;
+// The Items screen's own panels (MENU3): the category icons, the STATUS strip: on (their Items tour is green).
+int pc_hud_classic_items_category = 1, pc_hud_classic_items_status_button = 1;
+// The equipment panels as Items draws them (C48.c's stats panel and DP / PP bars) and a grip's gem slots.
+int pc_hud_classic_equip_stats = 1, pc_hud_classic_dp_pp_bars = 1, pc_hud_classic_gem_slots = 1;
+// The class / affinity / type table (C48.c _renderStatPage) as Items draws it.
+int pc_hud_classic_stat_page = 1;
 int pc_hud_classic_default(int kind)
 {
     switch (kind) {
@@ -68,6 +74,12 @@ int pc_hud_classic_default(int kind)
     case PC_HUD_MENU_CURSOR: return pc_hud_classic_menu_cursor != 0;
     case PC_HUD_MENU_TABS: return pc_hud_classic_menu_tabs != 0;
     case PC_HUD_OPTION_VALUE: return pc_hud_classic_option_value != 0;
+    case PC_HUD_ITEMS_CATEGORY: return pc_hud_classic_items_category != 0;
+    case PC_HUD_ITEMS_STATUS_BUTTON: return pc_hud_classic_items_status_button != 0;
+    case PC_HUD_EQUIP_STATS: return pc_hud_classic_equip_stats != 0;
+    case PC_HUD_DP_PP_BARS: return pc_hud_classic_dp_pp_bars != 0;
+    case PC_HUD_GEM_SLOTS: return pc_hud_classic_gem_slots != 0;
+    case PC_HUD_STAT_PAGE: return pc_hud_classic_stat_page != 0;
     }
     return 0;
 }
@@ -99,7 +111,7 @@ Hold holds[PC_HUD_KINDS];
 
 const char* const KINDS[PC_HUD_KINDS] = { "", "status", "chain", "buff", "damage", "travel", "notice",
     "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker",
-    "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value" };
+    "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value", "items_category", "items_status_button", "equip_stats", "dp_pp_bars", "gem_slots", "stat_page" };
 const char* const TIMINGS[] = { "too_fast", "fast", "success", "slow", "too_slow" };
 // BATTLE.PRG func_800958A4's words and colours (PS1 BGR, 0x80 full).
 const char* const TIMING_WORDS[] = { "TOO FAST!", "FAST!", "", "SLOW!", "TOO SLOW!" };
@@ -135,7 +147,9 @@ bool single(int kind)
     return kind == PC_HUD_STATUS || kind == PC_HUD_CHAIN || kind == PC_HUD_TRAVEL || kind == PC_HUD_NOTICE
         || kind == PC_HUD_NAME_WINDOW || kind == PC_HUD_GAUGES || kind == PC_HUD_FIGURE || kind == PC_HUD_STATUS_ICONS || kind == PC_HUD_BATTLE_MODE
         || kind == PC_HUD_TIMER || kind == PC_HUD_TARGET_MARKER || kind == PC_HUD_MENU_BACKGROUND
-        || kind == PC_HUD_MENU_COMMAND || kind == PC_HUD_MENU_CURSOR || kind == PC_HUD_MENU_TABS;
+        || kind == PC_HUD_MENU_COMMAND || kind == PC_HUD_MENU_CURSOR || kind == PC_HUD_MENU_TABS
+        || kind == PC_HUD_ITEMS_CATEGORY || kind == PC_HUD_ITEMS_STATUS_BUTTON || kind == PC_HUD_EQUIP_STATS
+        || kind == PC_HUD_DP_PP_BARS || kind == PC_HUD_GEM_SLOTS || kind == PC_HUD_STAT_PAGE;
 }
 
 Appearance appeared[64];

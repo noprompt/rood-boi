@@ -988,6 +988,143 @@ int api_option_bar(lua_State* L)
     return 1;
 }
 
+// d.menu_int(value, x, y, word) -> x, y: classic only: a number by MAINMENU's printer (vs_mainMenu_renderIntColor:
+// its digits right to left from x, each 8 pixels, then a '-' for a negative one; word the PS1 colour word,
+// 0xBBGGRR, 0x80 full); returns the pen the game's call returns (left of its last digit, before the sign).
+uint32_t packed_xy(lua_Integer x, lua_Integer y);
+void push_xy(lua_State* L, uint32_t xy);
+int api_menu_int(lua_State* L)
+{
+    const char* fn = "rood.draw.menu_int";
+    lua_Integer value = luaL_checkinteger(L, 1);
+    float x = coordinate(L, 2, fn), y = coordinate(L, 3, fn);
+    lua_Integer word = luaL_checkinteger(L, 4);
+    if (value < -99999999 || value > 99999999 || word < 0 || word > 0xFFFFFF)
+        return luaL_error(L, "%s: value -99999999..99999999, the colour word 0..0xFFFFFF", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* c = next_classic(PC_HUD_CMD_MENU_INT);
+    if (c)
+        c->x = pixel(x), c->y = pixel(y), c->a = (int)value, c->color = (unsigned)word;
+    uint32_t xy = packed_xy(pixel(x), pixel(y));
+    lua_Integer v = value < 0 ? -value : value;
+    do { // (one digit per decimal digit, each 8 pixels left)
+        xy -= 8;
+        v /= 10;
+    } while (v);
+    push_xy(L, xy);
+    return 2;
+}
+
+// d.stat_bar(x, y, fill, colour): classic only: the game's gauge (vs_battle_renderStatBar: the HP / MP / RISK bars,
+// the DP / PP bars; colour 0..3 its table's, fill its width in pixels, 0..64 within the frame) at x, y.
+int api_stat_bar(lua_State* L)
+{
+    const char* fn = "rood.draw.stat_bar";
+    float x = coordinate(L, 1, fn), y = coordinate(L, 2, fn);
+    lua_Integer fill = luaL_checkinteger(L, 3), colour = luaL_checkinteger(L, 4);
+    if (fill < 0 || fill > 4096 || colour < 0 || colour > 3)
+        return luaL_error(L, "%s: fill 0..4096, colour 0..3", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* c = next_classic(PC_HUD_CMD_STAT_BAR);
+    if (c)
+        c->x = pixel(x), c->y = pixel(y), c->a = (int)colour, c->b = (int)fill;
+    lua_pushboolean(L, c != nullptr);
+    return 1;
+}
+
+// d.packet(w1[, w2[, w3[, w4]]]): classic only: one primitive of the game's own words (1..4 of them, after its tag,
+// which links it into the layer's slot as vs_battle_addTile and vs_battle_insertTpage link theirs): a tile
+// (code and colour, place, size), a draw mode word, a shaded line (colour, place, colour, place).
+int api_packet(lua_State* L)
+{
+    const char* fn = "rood.draw.packet";
+    int n = lua_gettop(L);
+    if (n < 1 || n > 4)
+        return luaL_error(L, "%s: 1..4 words", fn);
+    lua_Integer w[4] = { 0, 0, 0, 0 };
+    for (int i = 0; i < n; ++i) {
+        w[i] = luaL_checkinteger(L, i + 1);
+        if (w[i] < -0x80000000LL || w[i] > 0xFFFFFFFFLL)
+            return luaL_error(L, "%s: word %d is not 32 bits", fn, i + 1);
+    }
+    need_classic(L, fn);
+    pc_hud_classic_cmd* c = next_classic(PC_HUD_CMD_PACKET);
+    if (c) {
+        c->w = n;
+        c->a = (int)(uint32_t)w[0], c->b = (int)(uint32_t)w[1], c->c = (int)(uint32_t)w[2], c->d = (int)(uint32_t)w[3];
+    }
+    lua_pushboolean(L, c != nullptr);
+    return 1;
+}
+
+// d.font_text(s, x, y, style) -> x: classic only: s (UTF-8, the menu charset: vs_encode) in the text boxes' font by
+// the game's printer (vs_battle_printVariableWidthFontChar, after vs_battle_setFontStyle(style): table 0, its
+// brightness 384), from x along y; returns the pen after it (each glyph's width, the game's table).
+extern "C" int vs_encode(const char* utf8, unsigned char* out, int cap, int* bad);
+extern "C" char vs_battle_characterWidths[];
+int api_font_text(lua_State* L)
+{
+    const char* fn = "rood.draw.font_text";
+    const char* text = luaL_checkstring(L, 1);
+    float x = coordinate(L, 2, fn), y = coordinate(L, 3, fn);
+    lua_Integer style = luaL_checkinteger(L, 4);
+    if (style < 0 || style > 15)
+        return luaL_error(L, "%s: style 0..15", fn);
+    need_classic(L, fn);
+    unsigned char glyphs[64];
+    int n = vs_encode(text, glyphs, sizeof glyphs, nullptr) - 1; // (without its 0xE7)
+    if (n < 0)
+        n = 0;
+    int pen = pixel(x);
+    for (int i = 0; i < n; ++i)
+        pen += glyphs[i] == ' ' ? 6 : vs_battle_characterWidths[glyphs[i]];
+    pc_hud_classic_cmd* c = classic_arena_used + n + 1 <= sizeof classic_arena ? next_classic(PC_HUD_CMD_FONT_TEXT)
+                                                                                : nullptr;
+    if (c) {
+        std::memcpy(classic_arena + classic_arena_used, glyphs, (size_t)n);
+        classic_arena[classic_arena_used + n] = 0;
+        c->text = classic_arena + classic_arena_used;
+        c->length = n;
+        classic_arena_used += (unsigned)n + 1;
+        c->x = pixel(x), c->y = pixel(y), c->a = (int)style;
+    }
+    lua_pushinteger(L, pen);
+    return 1;
+}
+
+// d.font_width(s, x) -> x: the pen d.font_text would leave from x (nothing drawn).
+int api_font_width(lua_State* L)
+{
+    const char* fn = "rood.draw.font_width";
+    const char* text = luaL_checkstring(L, 1);
+    int pen = pixel(coordinate(L, 2, fn));
+    unsigned char glyphs[64];
+    int n = vs_encode(text, glyphs, sizeof glyphs, nullptr) - 1;
+    for (int i = 0; i < n; ++i)
+        pen += glyphs[i] == ' ' ? 6 : vs_battle_characterWidths[glyphs[i]];
+    lua_pushinteger(L, pen);
+    return 1;
+}
+
+// d.button_background(x, y, w, h): classic only: a button's window as MAINMENU draws it behind a button and its word
+// (vs_mainmenu_renderButtonBackground: h shaded lines, the i-th from x to x + w - i, dark gold to near black, each
+// semi-transparent; the Items screen's STATUS strip), at x, y. In the kind's slot unless d.layer names another (the
+// game's: vs_scratch.unk4 - 12).
+int api_button_background(lua_State* L)
+{
+    const char* fn = "rood.draw.button_background";
+    float x = coordinate(L, 1, fn), y = coordinate(L, 2, fn);
+    lua_Integer w = luaL_checkinteger(L, 3), h = luaL_checkinteger(L, 4);
+    if (w < 0 || w > 320 || h < 0 || h > 64)
+        return luaL_error(L, "%s: w 0..320, h 0..64", fn);
+    need_classic(L, fn);
+    pc_hud_classic_cmd* c = next_classic(PC_HUD_CMD_BUTTON_BACKGROUND);
+    if (c)
+        c->x = pixel(x), c->y = pixel(y), c->w = (int)w, c->h = (int)h;
+    lua_pushboolean(L, c != nullptr);
+    return 1;
+}
+
 // d.plate(x, y, w, h, left, right, shadow_x, shadow_y, shadow_w, shadow_h): classic only (target_row's): a target
 // row's plate as func_800C1DC4 builds it, one packet: a black tile (shadow_x, shadow_y, shadow_w x shadow_h), then a
 // gradient across x, y, w x h from the colour word left to right (PS1 BGR, 0x80 full), dithered.
@@ -1223,7 +1360,8 @@ int api_anchor(lua_State* L)
 
 // d.layer(offset | nil): classic only: the ordering-table slot the commands that follow link into, as the
 // game names its slots: bytes from vs_scratch.unk4 (-64..64, a multiple of 4; the status words' -16, the
-// gauges' bars -12 and digits -16); nil: the kind's own. The slot orders packets as the game's do.
+// gauges' bars -12 and digits -16), "unk8" (vs_scratch.unk8: the menus'), "unk8", n (unk8 + n bytes, -64..64,
+// a multiple of 4: a menu row icon's + 4); nil: the kind's own. The slot orders packets as the game's do.
 int api_layer(lua_State* L)
 {
     const char* fn = "rood.draw.layer";
@@ -1232,6 +1370,12 @@ int api_layer(lua_State* L)
         if (strcmp(lua_tostring(L, 1), "unk8"))
             return luaL_error(L, "%s: the named slot is 'unk8'", fn);
         layer = PC_HUD_LAYER_UNK8;
+        if (!lua_isnoneornil(L, 2)) { // ("unk8", bytes): vs_scratch.unk8 + bytes
+            lua_Integer v = luaL_checkinteger(L, 2);
+            if (v < -64 || v > 64 || v % 4)
+                return luaL_error(L, "%s: unk8's offset is -64..64 bytes, a multiple of 4", fn);
+            layer = PC_HUD_LAYER_UNK8_AT((int)v);
+        }
     } else if (!lua_isnoneornil(L, 1)) {
         lua_Integer v = luaL_checkinteger(L, 1);
         if (v < -64 || v > 64 || v % 4)
@@ -1252,7 +1396,8 @@ void push_xy(lua_State* L, uint32_t xy)
 }
 
 // d.value(font, x, y, value) -> x, y: classic only: the HUD's digits (vs_battle_renderValue), the rightmost at
-// x, y, leftwards; font 0 the small digits, 1 the large; returns where the game's call leaves its pen (the
+// x, y, leftwards; font 0 the small digits, 1 the large, 2 the separator (value 0: the DP / PP slash); returns
+// where the game's call leaves its pen (the
 // position left of the last digit, as the game's packed arithmetic gives it).
 int api_value(lua_State* L)
 {
@@ -1260,8 +1405,8 @@ int api_value(lua_State* L)
     lua_Integer font = luaL_checkinteger(L, 1);
     float x = coordinate(L, 2, fn), y = coordinate(L, 3, fn);
     lua_Integer value = luaL_checkinteger(L, 4);
-    if (font < 0 || font > 1 || value < 0 || value > 99999999)
-        return luaL_error(L, "%s: font 0 or 1, value 0..99999999", fn);
+    if (font < 0 || font > 2 || value < 0 || value > 99999999)
+        return luaL_error(L, "%s: font 0..2, value 0..99999999", fn);
     need_classic(L, fn);
     pc_hud_classic_cmd* k = next_classic(PC_HUD_CMD_VALUE);
     if (k)
@@ -1655,7 +1800,7 @@ void fill_menu(lua_State* L, const pc_hud_fields& f)
     int k = f.kind;
     // ("fade" is target_row's too: nil for the other kinds by its block, above)
     static const char* const keys[] = { "brightness", "ot_slot", "buffer", "action", "color", "mode", "lit", "row",
-        "option" };
+        "option", "items", "equip", "bars", "gems", "page" };
     for (const char* key : keys)
         set_nil(L, key);
     if (k == PC_HUD_MENU_BACKGROUND) {
@@ -1728,6 +1873,76 @@ void fill_menu(lua_State* L, const pc_hud_fields& f)
         lua_setfield(L, -2, "label");
         lock_table(L);
         lua_setfield(L, -2, "option");
+    } else if (k == PC_HUD_ITEMS_CATEGORY) { // Items' category icons: what the loop draws them from
+        lua_createtable(L, 0, 4);
+        set_int(L, "step", f.items_step);
+        set_bool(L, "highlight", f.items_highlight == 1);
+        set_int(L, "selected", f.items_selected);
+        set_int(L, "on_row", f.items_on_row);
+        lock_table(L);
+        lua_setfield(L, -2, "items");
+    } else if (k == PC_HUD_EQUIP_STATS) { // the stats panel: what vs_mainMenu_renderEquipStats prints, as it reads it
+        const auto& q = f.equip;
+        auto three = [&](const char* key, const int* v) {
+            lua_createtable(L, 3, 0);
+            for (int i = 0; i < 3; ++i) {
+                lua_pushinteger(L, v[i]);
+                lua_rawseti(L, -2, i + 1);
+            }
+            lua_setfield(L, -2, key);
+        };
+        lua_createtable(L, 0, 14);
+        set_int(L, "x", (int16_t)(q.position & 0xFFFF));
+        set_int(L, "y", (int16_t)((unsigned)q.position >> 16));
+        set_int(L, "known", q.known);
+        set_bool(L, "range_risk", q.range_risk_shown != 0);
+        set_int(L, "range", q.range_risk[0]);
+        set_int(L, "risk", q.range_risk[1]);
+        set_int(L, "range_delta", q.range_delta);
+        set_int(L, "subtype", q.subtype);
+        three("stat", q.stat);
+        three("threshold", q.threshold);
+        three("base", q.base);
+        three("total", q.total);
+        three("accessory", q.accessory);
+        lock_table(L);
+        lua_setfield(L, -2, "equip");
+    } else if (k == PC_HUD_DP_PP_BARS) { // the DP / PP bars: the step and the values
+        lua_createtable(L, 0, 6);
+        set_int(L, "step", f.bars.step);
+        set_int(L, "target", f.bars.target);
+        set_int(L, "dp", f.bars.dp);
+        set_int(L, "max_dp", f.bars.max_dp);
+        set_int(L, "pp", f.bars.pp);
+        set_int(L, "max_pp", f.bars.max_pp);
+        lock_table(L);
+        lua_setfield(L, -2, "bars");
+    } else if (k == PC_HUD_STAT_PAGE) { // the class / affinity / type table: what _renderStatPage reads
+        const auto& p = f.stat_page;
+        lua_createtable(L, 0, 5);
+        set_int(L, "x_offset", p.x_offset);
+        set_int(L, "page", p.page);
+        set_int(L, "enabled", p.enabled);
+        set_int(L, "subtype", p.subtype);
+        lua_createtable(L, 63, 1); // (0-based, as the game indexes it)
+        for (int i = 0; i < 64; ++i) {
+            lua_pushinteger(L, p.stats[i]);
+            lua_rawseti(L, -2, i);
+        }
+        lua_setfield(L, -2, "stats");
+        lock_table(L);
+        lua_setfield(L, -2, "page");
+    } else if (k == PC_HUD_GEM_SLOTS) { // a grip's gem slots
+        lua_createtable(L, 0, 1);
+        set_int(L, "count", f.gem_count);
+        lock_table(L);
+        lua_setfield(L, -2, "gems");
+    } else if (k == PC_HUD_ITEMS_STATUS_BUTTON) { // Items' STATUS strip: its slide and state
+        lua_createtable(L, 0, 2);
+        set_int(L, "row", f.items_step);
+        set_int(L, "state", f.items_highlight);
+        lock_table(L);
+        lua_setfield(L, -2, "items");
     }
 }
 
@@ -2130,6 +2345,12 @@ void open_hud(lua_State* L, Plugin* p)
     set_cfunction(L, -1, "menu_row", api_menu_row);
     set_cfunction(L, -1, "option_text", api_option_text);
     set_cfunction(L, -1, "option_bar", api_option_bar);
+    set_cfunction(L, -1, "button_background", api_button_background);
+    set_cfunction(L, -1, "menu_int", api_menu_int);
+    set_cfunction(L, -1, "packet", api_packet);
+    set_cfunction(L, -1, "font_text", api_font_text);
+    set_cfunction(L, -1, "font_width", api_font_width);
+    set_cfunction(L, -1, "stat_bar", api_stat_bar);
     set_cfunction(L, -1, "option_width", api_option_width);
     set_cfunction(L, -1, "frame", api_frame);
     set_cfunction(L, -1, "band", api_band);

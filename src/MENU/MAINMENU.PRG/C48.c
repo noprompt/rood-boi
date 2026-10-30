@@ -34,6 +34,7 @@
 #include <limits.h>
 
 #ifdef ROOD_PC
+#include "pc/src/classic/classic_hook.h"
 /* pc/src/ui/menu_bridge.c: the modern menus run a direct entry (the loot) */
 extern int pc_ui_direct_tick(int selectedMenu, char* state, int* result);
 /* pc/src/ui/data_bridge.c: the shell armed the native Data screen's frame */
@@ -1005,7 +1006,18 @@ void vs_mainMenu_drawClassAffinityType(int arg0)
     }
 
     if (var_s1 <= 0) {
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the class / affinity / type table, from its slide,
+         * its page, the pages enabled, the subtype and the stats it prints (copied). */
+        pc_classic_stat_page pcPage = { var_s1, vs_mainMenu_itemStatPage,
+            vs_mainMenu_enabledStatPages, vs_mainMenu_equipmentSubtype };
+        vs_battle_memcpy(pcPage.stats, vs_mainMenu_equipmentStats, sizeof pcPage.stats);
+        PC_CLASSIC(PC_CLASSIC_SITE_STAT_PAGE, &pcPage, 0, 0, {
+#endif
         _renderStatPage(var_s1);
+#ifdef ROOD_PC
+        });
+#endif
     }
 
     vs_mainMenu_itemStatPage = statPage;
@@ -1106,6 +1118,22 @@ void vs_mainMenu_renderEquipStats(int animate)
         position += ((8 - D_80102131) << 5);
         --D_80102131;
     }
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the panel, from its place (slid) and the values it
+     * prints, copied as it reads them. */
+    {
+        pc_classic_equip_stats pcStats = { position, valuesKnown, _rangeRiskData[3],
+            actor->currentRange - actor->weapon.range.range, vs_mainMenu_equipmentSubtype,
+            { _rangeRiskData[0], _rangeRiskData[1] } };
+        for (i = 0; i < 3; ++i) {
+            pcStats.stat[i] = vs_mainMenu_strIntAgi[i];
+            pcStats.threshold[i] = vs_mainMenu_strIntAgi[i + 4];
+            pcStats.base[i] = D_80102488[i];
+            pcStats.total[i] = D_80102488[i + 4];
+            pcStats.accessory[i] = D_80102498[i];
+        }
+        PC_CLASSIC(PC_CLASSIC_SITE_EQUIP_STATS, &pcStats, 0, 0, {
+#endif
 
     if (_rangeRiskData[3] != 0) {
         vs_battle_renderTextRaw("ORG/EQP", position + 4, temp_s4);
@@ -1156,6 +1184,10 @@ void vs_mainMenu_renderEquipStats(int animate)
             vs_battle_renderTextRaw("#??", position + 60, temp_s4);
         }
     }
+#ifdef ROOD_PC
+        });
+    }
+#endif
 }
 
 static u_short dpPpBarAnimState = 0;
@@ -1210,6 +1242,13 @@ void vs_mainMenu_renderDpPpBars(int flags)
         if (dpPpBarAnimState != 0) {
 
             int temp_s1 = ((dpPpBarAnimState * 8) - 8) << 0x10;
+#ifdef ROOD_PC
+            /* PC_CLASSIC (classic_hook.h): the bars, from the step, the target and the
+             * values (DP in hundreds, as set). */
+            pc_classic_dp_pp_bars pcBars = { dpPpBarAnimState, target, _currentDp, _maxDp,
+                _currentPp, _maxPp };
+            PC_CLASSIC(PC_CLASSIC_SITE_DP_PP_BARS, &pcBars, 0, 0, {
+#endif
 
             if (target & 1) {
                 vs_battle_renderTextRaw("DP", (temp_s1 + vs_getXY(0, -1)) | 10, before);
@@ -1251,6 +1290,9 @@ void vs_mainMenu_renderDpPpBars(int flags)
                 vs_battle_renderStatBar(
                     1, (((_currentPp << 6) + temp) - 1) / temp, before, temp_s1 | 80);
             }
+#ifdef ROOD_PC
+            });
+#endif
         }
     }
 }

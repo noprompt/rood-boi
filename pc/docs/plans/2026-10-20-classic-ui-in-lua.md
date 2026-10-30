@@ -9,7 +9,8 @@ below), with the remaining phase 1 work listed separately. Phase 2 is under
 way (branch `classic-lua-phase2`): the menu model, the shared frame's hooks,
 and its rows, hand and command title drawn in Lua through the Option screen. Phase 3 has begun with
 Items (branch `classic-lua-items`): the shared frame's kinds, the tab arrows and the background with them; the Quick
-Manual and Status followed (branch `classic-lua-manual`). It
+Manual and Status followed (branch `classic-lua-manual`); Items' own panels are piece 2 (branch
+`classic-lua-items2`). It
 follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 `2026-10-18-lua-m1-options.md` (done) and F5 of
 `2026-10-18-freedom-and-fast-iteration.md` (the lint).
@@ -85,6 +86,53 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
   save list after it. Loot: MENUB's own cursor (`vs_battle_drawCursor`), the button strip and its background,
   the counts (`renderIntColor`), raw text. Not toured: MENU7's game over screen (currentMenu 7 at a game over),
   MENU8's rename grid from Setup (currentMenu 8, the Option screen's overlay), MENUF.
+2026-10-30 (branch `classic-lua-items2`, from main `3fc0edbd`; no merge or publication):
+
+- **Phase 3, screen 1 (Items, MENU3), piece 2: the Items screen's own panels, done (Ashley's 3D stays the game's).**
+  Six kinds, each a `ROOD_PC`-only `PC_CLASSIC` emit-only range (every state step stays the game's; the PS1 code
+  unchanged), a copy of what its draw reads, a rood.classic look drawn with the game's own leaf routines, a
+  `hud_classic_*` setting. All six are claimed on Items only (`currentMenu & 0x3F == 4`, in `pc_hud_menu`): items0.h
+  is MENUB's too and the MAINMENU panels draw on Status as well, both untoured, so the game draws them there.
+
+  | Element / HUD kind | Hook | Slots | Frames | Scenarios |
+  |---|---|---|---:|---:|
+  | Category icons / `items_category` | items0.h `_renderItemCategory`'s loop (`on_row`: the icon handed to row 31, by the loop's own test) | unk4, unk8 | 4,672 | 81 |
+  | STATUS strip / `items_status_button` | 16C.c (window, Square button, word) | unk4 - 12, unk8 | 2,233 | 81 |
+  | Stats panel / `equip_stats` | C48.c `vs_mainMenu_renderEquipStats`, after its slide | unk4 - 24 | 2,543 | 81 |
+  | DP / PP bars / `dp_pp_bars` | C48.c `vs_mainMenu_renderDpPpBars`, after its step | unk4 - 12 | 1,673 | 81 |
+  | Gem slots / `gem_slots` | items1.h `_gripStatusView` (gem icon, `X     n`) | unk8 + 4, unk8 | 386 | 81 |
+  | Class / affinity / type table / `stat_page` | C48.c `_renderStatPage` as `drawClassAffinityType` calls it | unk4 - 12, - 16 | 2,579 | 81 |
+
+  0 mismatches, 0 skips, no waivers (each green on its first run). The equip menus' stat panels are these same
+  kinds (MENU3's Equip on the Manage page calls the same C48.c routines), toured by `tour_items`' Equip walk.
+  **Defaults on:** `hud_classic_items_category`, `hud_classic_items_status_button`, `hud_classic_equip_stats`,
+  `hud_classic_dp_pp_bars`, `hud_classic_gem_slots`, `hud_classic_stat_page`.
+- **Draw primitives added** (Extensions.md): `d.menu_int` (`vs_mainMenu_renderIntColor`, returns its pen),
+  `d.stat_bar` (`vs_battle_renderStatBar` in any slot), `d.button_background` (the button window's shaded lines,
+  a copy: the game's links at unk4 - 12 always), `d.packet` (one primitive of the game's words: the table's lines,
+  tiles and draw modes, as `vs_battle_addTile` / `insertTpage` link them), `d.font_text` / `d.font_width` (the
+  text boxes' font after `vs_battle_setFontStyle`: the table's header); `d.layer("unk8", n)`; `d.value`'s font 2
+  (the DP / PP slash). Gotcha kept in the look: the game's `temp + vs_getXY(-7, -2)` is 7 left and **1** up (the
+  packed borrow), done with `d.xy`.
+- **Tours** (`classic_parity.py`): `tour_status_views` after `tour_items` (cursor memory off): a fixture of what
+  play reaches (`status_view_fixture`: two blades broken (DP 0, PP full) and full (PP 0), a grip with no gem slot
+  and one with three, two loose gems in an empty gem bag; the bag and its indices restored after); each category's
+  status view opened (Square on its first row), every item paged with R1 and back with L1, Square on each (the
+  table's next page: class, affinity, type), the view's own hand walked down, across and up, left with Cross
+  (the panels sliding out); misc has no status view. Proofs: the default and the fallback (setting off, a
+  raising draw, the plugin off) of every kind drawn at rest, and state parity 120/120 vsyncs, at the Items list
+  (icons, strip), a weapon's status view (icons, stats, bars, table) and a grip's (icons, stats, gem slots, table).
+- **Verification:** `--arch 64` and `--battle` builds. Docker `make commit-check`: **All files match** (run in a
+  copy of the tree; the formatter's re-indents of the new ranges discarded, as for 58EC.c). The gate (`run.py -j
+  1`, nice 10: classic_parity, hud, classic, cutscene_player_smoke, widescreen_smoke and every manual, ui_, menu,
+  prompts, button, options, items, equip suite): **40/40 on GL, 40/40 on Vulkan**; classic_parity rerun on GL
+  with the final tour (the fixture): PASS.
+- **Not a bug, a trap:** editing `pc/plugins/rood.classic/main.lua` while a test runs hot-reloads it into the
+  running game; with a kind the binary does not know yet the plugin fails to load and every later kind fails
+  (emote "0 frames compared" in one run here). Edit the plugin only between runs.
+- **Left on Items:** Ashley (`_renderAshley.h`, the 3D: the game's by decision). The same MAINMENU panels on
+  Status (MENU4: its equipment detail's stats, the table) stay the game's until Status's tour covers them (widen
+  the `currentMenu == 4` test in `pc_hud_menu` then); MENUB's (`items0.h`'s icons in its own screen) likewise.
 
 2026-10-28, night (branch `classic-lua-skills`, from main `95adc53e`; no merge or publication):
 

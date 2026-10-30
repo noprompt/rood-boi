@@ -926,7 +926,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,menu_tabs,menu_background,option_value", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,menu_tabs,menu_background,option_value,items_category,items_status_button,equip_stats,dp_pp_bars,gem_slots,stat_page", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -1214,11 +1214,16 @@ def run_marker(out, card, env, check, waivers):
         g.close()
 
 
+ITEMS_PANELS = ("items_category", "items_status_button",  # the Items screen's own (MENU3: Items only), and
+                "equip_stats", "dp_pp_bars", "gem_slots",   # MAINMENU's equipment panels and a grip's gem slots there,
+                "stat_page")                                # the class / affinity / type table
 MENUS = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # MAINMENU's shared frame
-         "option_value")  # (and our Option pages' value column)
+         "option_value") + ITEMS_PANELS  # (and our Option pages' value column)
 MENU_TOURED = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # (Items: the tabs,
-               "option_value")                                                            # the background)
-ITEMS_ONLY = ("menu_tabs", "menu_background")  # (not on the Option screen: their default and fallback in Items)
+               "option_value") + ITEMS_PANELS                                             # the background)
+STATUS_VIEW_PANELS = ("equip_stats", "dp_pp_bars", "gem_slots", "stat_page")  # (drawn in a status view, not the list)
+ITEMS_ONLY = ("menu_tabs", "menu_background") + ITEMS_PANELS  # (not on the Option screen: their default and
+                                                              # fallback in Items)
 OPTION_COMMAND, VANILLA_OPTIONS = 7, 9  # the top level's Option row (MENU8), its nine rows of the game's options
 
 
@@ -1355,6 +1360,128 @@ def tour_items(g, symbols, toured, frames):
     g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="Items closed")
     toured("Items closed", before)
     g.write(symbols["vs_main_stateFlags"] + INTRO_STATE, intro)
+
+
+ITEM_CATEGORIES = {0: "weapons", 1: "blades", 2: "grips", 3: "shields", 4: "armor", 5: "gems", 6: "misc"}
+
+
+def items_category_now(g, symbols):
+    return (g.read(symbols["D_800F4EE8"] + ITEM_CATEGORY, 1)[0] - 1) & 7
+
+
+def items_rows_now(g, symbols):
+    """The live rows and their places (a status view slides them)."""
+    p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
+    raw = g.read(p, 64 * 40) if p else b""
+    return [(i, raw[i * 64 + 20:i * 64 + 24]) for i in range(len(raw) // 64) if raw[i * 64]]
+
+
+def items_to_category(g, symbols, want):
+    """R1 round the categories to `want` (Items open, its list at rest)."""
+    for _ in range(9):
+        if items_category_now(g, symbols) == want:
+            return True
+        g.press("r1", vsyncs=3, settle=10)
+        items_ready(g, symbols)
+    return items_category_now(g, symbols) == want
+
+
+def status_view_open(g, symbols, category):
+    """From the menu closed: Items, the category, Square on its first row: the item's status view (its panels at
+    rest). False when the category is empty or has no status view."""
+    items_open(g, symbols)
+    if not items_to_category(g, symbols, category) or not any(20 <= i < 30 for i in items_live(g, symbols)):
+        return False
+    rows = items_rows_now(g, symbols)
+    g.press("square", vsyncs=3, settle=20)
+    g.run(40)
+    return items_rows_now(g, symbols) != rows
+
+
+# vs_main_inventory_t / vs_main_inventoryIndices_t (BATTLE func_8006B57C_t.h; ui_items_smoke's)
+INVENTORY_BYTES, INDICES_BYTES = 0xF00, 176
+INV_BLADES, INV_GRIPS, INV_GEMS, BLADE_BYTES, GRIP_BYTES, GEM_BYTES = 0x280, 0x540, 0x8C0, 44, 16, 28
+WEAPON_BYTES = 32  # weapons[8] at 0: index, blade, grip (1-based), isEquipped, gems[4]
+GEM_INDICES = 64  # vs_main_inventoryIndices: the gems' list (48)
+
+
+def status_view_fixture(g, symbols):
+    """What play reaches, for the panels' every state: a broken blade (DP 0, PP full) and a full one (DP full,
+    PP 0); a grip with no gem slot and one with three (empty); two loose gems in an empty gem bag (one raising, one
+    lowering classes and affinities). Returns the inventory and its indices as they were (restored after)."""
+    import struct
+    inv, idx = symbols["vs_main_inventory"], symbols["vs_main_inventoryIndices"]
+    saved = (g.read(inv, INVENTORY_BYTES), g.read(idx, INDICES_BYTES))
+    raw = saved[0]
+    blades = [i for i in range(16) if raw[INV_BLADES + i * BLADE_BYTES]]
+    for n, i in enumerate(blades[:2]):
+        at = INV_BLADES + i * BLADE_BYTES
+        max_dp, max_pp = struct.unpack_from("<HH", raw, at + 4)
+        g.write(inv + at + 8, struct.pack("<HH", 0, max_pp) if n == 0 else struct.pack("<HH", max_dp, 0))
+    # grips: one with three slots (the empty ones its weapon's rows show), one with none where its weapon holds no
+    # gem (a loose grip first, else an assembled one: weapons[w].grip, its gems[0..2])
+    gemless = [raw[w * WEAPON_BYTES + 2] - 1 for w in range(8) if raw[w * WEAPON_BYTES + 2]
+               and not any(raw[w * WEAPON_BYTES + 4:w * WEAPON_BYTES + 7])]
+    loose = [i for i in range(16) if raw[INV_GRIPS + i * GRIP_BYTES]
+             and not struct.unpack_from("<H", raw, INV_GRIPS + i * GRIP_BYTES + 12)[0]]
+    grips = [i for i in range(16) if raw[INV_GRIPS + i * GRIP_BYTES]]
+    none = (loose + gemless)[:1]
+    three = [i for i in grips if i not in none][:1]
+    for i in none:
+        g.write(inv + INV_GRIPS + i * GRIP_BYTES + 4, b"\x00")
+    for i in three:
+        g.write(inv + INV_GRIPS + i * GRIP_BYTES + 4, b"\x03")
+    if not any(raw[INV_GEMS + i * GEM_BYTES] or raw[INV_GEMS + i * GEM_BYTES + 1] for i in range(48)):
+        gems = [struct.pack("<HBBBbbb8b8bHh", 261, 0, 0, 0, 2, 0, 1, 5, 0, 0, 0, 0, -3, 0, 0,
+                            0, 4, 0, 0, 0, 0, 0, 0, 0, 1),
+                struct.pack("<HBBBbbb8b8bHh", 262, 0, 0, 0, -1, 3, 0, 0, -6, 2, 0, 0, 0, 0, 0,
+                            -4, 0, 0, 7, 0, 0, -2, 0, 0, 2)]
+        g.write(inv + INV_GEMS, b"".join(gems))
+        g.write(idx + GEM_INDICES, bytes([1, 2]))
+    g.run(2)
+    print(f"Items: the status views' fixture: blades {blades[:2]} broken / full, grips {none} no gem slot, {three} "
+          "three, gems in the bag", flush=True)
+    return saved
+
+
+def tour_status_views(g, symbols, toured, frames):
+    """Each category's status view (Square on its first row): the panels sliding in, at rest, then every item of
+    the category paged through with R1 (each its own values: DP / PP, stats, a grip's gem slots, a gem's affinities;
+    Square on each: the class / affinity / type table's next page) and back with L1, the view left with Cross (the
+    panels sliding out); the Items screen closed at the end."""
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")  # (the cursor memory off: lists open on their first row)
+    saved = status_view_fixture(g, symbols)
+    before = frames()
+    items_open(g, symbols)
+    toured("Items reopened for the status views", before)
+    for category, name in ITEM_CATEGORIES.items():
+        before = frames()
+        if not items_to_category(g, symbols, category) or not any(20 <= i < 30 for i in items_live(g, symbols)):
+            print(f"Items: {name}: empty", flush=True)
+            continue
+        rows = items_rows_now(g, symbols)
+        g.press("square", vsyncs=3, settle=20)
+        g.run(40)
+        if items_rows_now(g, symbols) == rows:
+            print(f"Items: {name}: no status view", flush=True)
+            continue
+        for button in ("r1",) * 12 + ("l1",) * 12:  # (every item of the category, round and back)
+            g.press(button, vsyncs=3, settle=12)
+            if button == "r1":  # (Square: the class / affinity / type table's next page, each item's)
+                g.press("square", vsyncs=3, settle=12)
+        for button in ("down",) * 8 + ("right", "left") + ("up",) * 8:  # (the view's own hand, its rows)
+            g.press(button, vsyncs=3, settle=6)
+        g.run(20)
+        g.press("cross", vsyncs=3, settle=20)
+        items_ready(g, symbols)
+        print(f"Items: {name}: status view toured", flush=True)
+        toured(f"Items: {name}' status view: in, every item (R1 / L1), out", before, category=category)
+    before = frames()
+    g.press("triangle", vsyncs=3, settle=60)
+    g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="Items closed")
+    toured("Items closed after the status views", before)
+    g.write(symbols["vs_main_inventory"], saved[0])  # (the bag as it was)
+    g.write(symbols["vs_main_inventoryIndices"], saved[1])
 
 
 # Magic (MENU0), Break Arts (MENU1), Battle Abilities (MENU2): currentMenu & 0x3F (menu_model.c SCREENS) and the top
@@ -2740,6 +2867,9 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
         g.run(30)
         tour_items(g, symbols, toured, frames)
+        g.run(30)
+        tour_status_views(g, symbols, toured, frames)
+        g.run(30)
         tour_magic(g, symbols, toured, frames)
         tour_arts(g, symbols, toured, frames)
         tour_abilities(g, symbols, toured, frames)
@@ -2821,11 +2951,16 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.pause()
         g.mark()
         items_kinds = [k for k in toured_kinds if k != "option_value"]
-        for kind in items_kinds:
+        list_kinds = [k for k in items_kinds if k not in STATUS_VIEW_PANELS]
+        for kind in list_kinds:
             g.rewind()
             default_and_fallback(g, kind, check)
         toured_kinds[:] = items_kinds
-        state_proof("the Items list at rest", items_kinds)
+        state_proof("the Items list at rest", list_kinds)
+        for category in (0, 2):  # (a weapon's status view: the stats, the DP / PP bars; a grip's: its gem slots)
+            screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof,
+                          f"Items, the {ITEM_CATEGORIES[category]}' status view",
+                          lambda g, symbols, c=category: status_view_open(g, symbols, c))
         skills_proofs(g, symbols, check, state_proof)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "the Quick Manual list", manual_open)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status", status_open)

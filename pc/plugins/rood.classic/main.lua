@@ -368,6 +368,74 @@ local function make_look()
     -- numbers are rood.options' M.style, read as the page draws them): ON / OFF, a choice between arrows, a
     -- slider's gauge and value, a binding's or an info's text, a link's arrow, a note.
     option_value = { place = { anchor = "game", dx = 0, dy = 0 }, arrow_gap = 2, note_x = 6, bar_room = 8 },
+    -- The Items screen's own panels (MENU3). The category icons (items0.h _renderItemCategory): eight 16 x 16 icons
+    -- from x = left + ((i + 1) % 8) * gap (the Manage page's first), at the loop's step (y); the selected one in
+    -- `lit` CLUT, the others `dim`; with the highlight on, the selected one raised to `raised_y` (unk8) or handed to
+    -- row 31 (drawn by it). Their texels from u = u0 + i * 16, v.
+    items_category = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      left = 32, gap = 16, raised_y = 16, u0 = 120, v = 128, cluts = { lit = 976, dim = 992 },
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 0, v = 0, w = 16, h = 16, clut_x = 992, clut_y = 223,
+        bgr = 0x808080 },
+    },
+    -- MAINMENU's equipment panels as Items draws them (C48.c). The stats panel (vs_mainMenu_renderEquipStats): from
+    -- its place (slid by the game), ORG/EQP over RANGE and RISK (when shown; else ORG/EQP lower), then STR / INT /
+    -- AGI (their names by the subtype: the item's own, ATTACK or DEFENSE), each with its value and the equipped
+    -- total at `columns`; numbers above or below their threshold in `up` / `down`; "#??" when not known.
+    equip_stats = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      layer = -24, line = 10, header_x = 4, columns = { 28, 60 }, colour = 0x808080, up = 0x804020,
+      down = 0x204080, header = "ORG/EQP", unknown = "#??", range_risk = { "#RANGE", "#RISK" },
+      names = { [0] = "#STRENGTH", "#INTELLIGENCE", "#AGILITY", false, "#ATTACK/STR", "#ATTACK/INT", "#AGILITY",
+        false, "#DEFENSE/STR", "#DEFENSE/INT", "#AGILITY" },
+    },
+    -- The DP / PP bars (vs_mainMenu_renderDpPpBars): sliding down by the step (8 a step, from -8), each a word, its
+    -- maximum (small digits), the slash and the current value (large), and its gauge 8 lower.
+    dp_pp_bars = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      layer = -12, colour = 0x808080,
+      bars = { { word = "DP", x = 10, digits = 66, gauge = 0 }, { word = "PP", x = 80, digits = 136, gauge = 1 } },
+    },
+    -- A grip's gem slots (items1.h _gripStatusView): the gem row icon (vs_mainMenu_renderMenuRowIcon: unk8 + 4) and
+    -- "X     n" by the raw printer.
+    gem_slots = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      icon = { 256, 32 }, text = { 280, 36 }, prefix = "X     ", colour = 0x808080,
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 32, v = 96, w = 16, h = 16, clut_x = 992, clut_y = 223,
+        bgr = 0x808080 },
+    },
+    -- The class / affinity / type table (C48.c _renderStatPage), sliding in by x_offset (0 or less): per row its
+    -- name, its value (and, comparing, the difference with + or *), a gauge of four shaded lines (`positive` or
+    -- `negative`, 24 pixels a hundred), its frame (`frame`, `frame_light`), the box's shading (`shade`, `shade_dark`)
+    -- and the draw modes between; then the Square button over its window and the header CLASS / AFFINITY / TYPE in
+    -- the text boxes' font, each name in its style (1 shown, 0 enabled, 3 not; `styles` + the font's 4).
+    stat_page = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      rows = { [0] = { 0, 8, 0x30, 0x60 }, { 16, 24, 56, 0x70 }, { 33, 33, nil, 48 } }, -- each page: its values,
+      -- the compared ones, the equipped ones (offsets in the stats) and its rows' extent (16 a row)
+      top = 0x40, name_x = 0x40, value_x = 88, diff_x = 0xA4, gauge_x = 116,
+      white = 0x808080, grey = 0x404040, up = 0x804020, down = 0x204080,
+      positive = { 0x40817318, 0x40D0E030, 0x40D0E030, 0x40817318 },
+      negative = { 0x40693F6E, 0x409F78DC, 0x409F78DC, 0x40693F6E },
+      frame = 0x40D0E030, frame_light = 0x40978918, shade = 0x40330500, shade_dark = 0x405D3200,
+      line = { 0x50330500, 0x5D3200 }, modes = { 0xE1000000, 0xE1000200 },
+      names = { [0] = "#HUMAN", "#BEAST", "#UNDEAD", "#PHANTOM", "#DRAGON", "#EVIL", false, false, "#PHYSICAL",
+        "#AIR", "#FIRE", "#EARTH", "#WATER", "#LIGHT", "#DARK", false, "#BLUNT", "#EDGED", "#PIERCING" },
+      window = { 24, 48, 135, 12 }, button = { 16, 46 },
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 16, v = 128, w = 16, h = 16, clut_x = 944, clut_y = 223,
+        bgr = 0x808080 },
+      header = { x = 0x22, y = 0x30, parts = { { "CLASS", 0 }, { "/" }, { "AFFINITY", 1 }, { "/" }, { "TYPE", 2 } } },
+      styles = { shown = 1, enabled = 0, off = 3 }, font_style = 4,
+    },
+    -- The STATUS strip (16C.c): the button's window (vs_mainmenu_renderButtonBackground), the Square button
+    -- (vs_mainmenu_renderButton: its texels by the button's id) and the word, lit by the state (colour << state),
+    -- all sliding in by `row` (x - row).
+    items_status_button = {
+      place = { anchor = "game", dx = 0, dy = 0 },
+      window = { 16, 38, 88, 10 }, button = { 8, 36 }, word = { "STATUS", 28, 38 }, colour = 0x202020,
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 16, v = 128, w = 16, h = 16, clut_x = 944, clut_y = 223,
+        bgr = 0x808080 },
+    },
     -- How ui_text sets both (with ui_text font; the packets stay the game's): the status style,
     -- typeset as one word centred where the game centres it.
     typeset = {
@@ -1019,10 +1087,266 @@ M.draw.option_value = function(e, d)
   end
 end
 
+-- items_category: _renderItemCategory's loop (each icon links at the head of its slot: the commands go last to first).
+M.draw.items_category = function(e, d)
+  local c, it = look.items_category, e.items
+  local s, dx, dy = c.sprite, c.place.dx, c.place.dy
+  d.anchor(c.place.anchor)
+  for i = 7, 0, -1 do
+    local x = ((i + 1) % 8) * c.gap + c.left
+    s.u, s.v = c.u0 + i * 16, c.v
+    s.clut_x = i == it.selected and c.cluts.lit or c.cluts.dim
+    if i == it.selected and it.highlight then
+      if it.on_row ~= i then
+        d.layer("unk8")
+        d.sprite(x + dx, c.raised_y + dy, s)
+      end
+    else
+      d.layer(0)
+      d.sprite(x + dx, it.step + dy, s)
+    end
+  end
+end
+
+-- equip_stats: vs_mainMenu_renderEquipStats' calls, last to first (each links at the head of unk4 - 24).
+local function threshold_colour(c, value, threshold)
+  return threshold < value and c.up or value < threshold and c.down or c.colour
+end
+M.draw.equip_stats = function(e, d)
+  local c, q = look.equip_stats, e.equip
+  local x, y = q.x + c.place.dx, q.y + c.place.dy
+  local known, cols = q.known ~= 0, c.columns
+  d.anchor(c.place.anchor)
+  d.layer(c.layer)
+  local name = (q.subtype & 7) ~= 0 and 4 or 0
+  for i = 2, 0, -1 do
+    local row = y + c.line * (3 + i)
+    if known then
+      local stat = q.stat[i + 1]
+      local total = stat + q.total[i + 1]
+      local a3 = (q.known & 1) ~= 0 and q.accessory[i + 1] or 0
+      local shown = stat + q.base[i + 1] + a3
+      d.menu_int(shown, x + cols[2], row, threshold_colour(c, shown, total + a3))
+      d.menu_int(stat, x + cols[1], row, threshold_colour(c, stat, q.threshold[i + 1]))
+    else
+      d.text_raw(c.unknown, x + cols[2], row, c.colour)
+      d.text_raw(c.unknown, x + cols[1], row, c.colour)
+    end
+    local label = c.names[(q.subtype & 0x18) ~= 0 and 8 + name + i or name + i]
+    if label then d.text_raw(label, x, row, c.colour) end
+  end
+  if q.range_risk then
+    for i = 1, 0, -1 do
+      local row = y + c.line * (1 + i)
+      if known then
+        local stat = i == 0 and q.range or q.risk
+        d.menu_int(i == 0 and stat + q.range_delta or stat, x + cols[2], row, c.colour)
+        d.menu_int(stat, x + cols[1], row, c.colour)
+      else
+        d.text_raw(c.unknown, x + cols[2], row, c.colour)
+        d.text_raw(c.unknown, x + cols[1], row, c.colour)
+      end
+      d.text_raw(c.range_risk[i + 1], x, row, c.colour)
+    end
+    d.text_raw(c.header, x + c.header_x, y, c.colour)
+  else
+    d.text_raw(c.header, x + c.header_x, y + 2 * c.line, c.colour)
+  end
+end
+
+-- dp_pp_bars: vs_mainMenu_renderDpPpBars' calls, last to first (unk4 - 12): the gauges, then each bar's numbers
+-- (the current value at the slash's pen moved by the game's packed (-7, -2): 7 left, 1 up) and word.
+local function decimal_digits(v)
+  local n = 1
+  while v >= 10 do v, n = v // 10, n + 1 end
+  return n
+end
+M.draw.dp_pp_bars = function(e, d)
+  local c, b = look.dp_pp_bars, e.bars
+  local dx, dy = c.place.dx, c.place.dy
+  local top = b.step * 8 - 8 + dy
+  local values = { { b.dp, b.max_dp }, { b.pp, b.max_pp } }
+  d.anchor(c.place.anchor)
+  d.layer(c.layer)
+  for k = 2, 1, -1 do
+    if b.target & k ~= 0 then
+      local cur, max = values[k][1], values[k][2]
+      local m = max == 0 and 1 or max
+      d.stat_bar(c.bars[k].x + dx, top + 8, ((cur << 6) + m - 1) // m, c.bars[k].gauge)
+    end
+  end
+  for k = 2, 1, -1 do
+    if b.target & k ~= 0 then
+      local bar, cur, max = c.bars[k], values[k][1], values[k][2]
+      local px = bar.digits + dx - 5 * decimal_digits(max)
+      local cx, cy = d.xy(px, top, 0xFFFEFFF9)
+      d.value(1, cx, cy, cur)
+      d.value(2, px, top, 0)
+      d.value(0, bar.digits + dx, top, max)
+      d.text_raw(bar.word, bar.x + dx, top - 1, c.colour)
+    end
+  end
+end
+
+-- gem_slots: the count by the raw printer (unk8), then the gem icon (unk8 + 4).
+M.draw.gem_slots = function(e, d)
+  local c = look.gem_slots
+  local dx, dy = c.place.dx, c.place.dy
+  d.anchor(c.place.anchor)
+  d.layer("unk8")
+  d.text_raw(c.prefix .. string.char(48 + e.gems.count), c.text[1] + dx, c.text[2] + dy, c.colour)
+  d.layer("unk8", 4)
+  d.sprite(c.icon[1] + dx, c.icon[2] + dy, c.sprite)
+end
+
+-- stat_page: _renderStatPage's calls in its order, recorded, then made last to first (each links at its slot's
+-- head). The packed places as the game packs them (u16 x, y above).
+local page_ops, page_n = {}, 0
+local function page_op(kind, layer, a, b, c, w, x)
+  page_n = page_n + 1
+  local o = page_ops[page_n]
+  if not o then o = {} page_ops[page_n] = o end
+  o[1], o[2], o[3], o[4], o[5], o[6], o[7] = kind, layer, a, b, c, w, x
+end
+local function u16(v) return v & 0xFFFF end
+local function int_pen(value, x, y) -- vs_mainMenu_renderIntColor's returned place (d.xy: its packed arithmetic)
+  local n, v = 1, value < 0 and -value or value
+  while v >= 10 do v, n = v // 10, n + 1 end
+  return x - 8 * n, y
+end
+local function trunc_div(a, b) local q = a // b if q < 0 and q * b ~= a then q = q + 1 end return q end
+M.draw.stat_page = function(e, d)
+  local c, p = look.stat_page, e.page
+  local s, xo, page = p.stats, p.x_offset + c.place.dx, p.page
+  local dy = c.place.dy
+  local rows = c.rows[page]
+  if not rows then return end
+  page_n = 0
+  local v0, cmp0, eq0, extent = rows[1], rows[2], rows[3], rows[4]
+  local best
+  if page == 1 then
+    best = s[v0]
+    for i = 0, 6 do if best < s[v0 + i] then best = s[v0 + i] end end
+  end
+  local comparing = p.enabled == 7
+  for row = 0, extent - 1, 16 do
+    local j = row >> 4
+    local gx = u16(xo + c.gauge_x)
+    local y = c.top + row + dy
+    local value = s[v0 + j]
+    if s[63] ~= 0 and comparing and page ~= 2 then
+      local diff = value - s[eq0 + j]
+      local x = u16(xo + c.diff_x)
+      page_op("int", -12, diff, 0 < diff and c.up or diff < 0 and c.down or c.white, nil, x, y)
+      local px, py = int_pen(diff, x, y)
+      if value > s[eq0 + j] then page_op("text", -12, "#+", px + 1, py, nil, c.up) end
+      if value == s[eq0 + j] then page_op("text", -12, "#*", px + 1, py, nil, c.white) end
+    end
+    local colour = c.white
+    local vx = u16(xo + c.value_x)
+    if p.subtype == 1 and comparing and page ~= 0 then
+      if page == p.subtype then
+        local other = s[cmp0 + j]
+        if other ~= value then
+          colour = other < value and c.up or c.down
+        else
+          colour = other ~= best and c.grey or c.white
+        end
+        page_op("int", -12, value, colour, nil, vx, y)
+        colour = c.grey
+        if value == best then colour, best = c.white, 0xFFFF end
+      else
+        if j ~= s[36] - 1 then colour = c.grey end
+        page_op("int", -12, value, colour, nil, vx, y)
+      end
+    else
+      local t = s[cmp0 + j]
+      page_op("int", -12, value, t < value and c.up or value < t and c.down or c.white, nil, vx, y)
+    end
+    local name = c.names[j + page * 8]
+    if name then page_op("text", -12, name, u16(xo + c.name_x), y, nil, colour) end
+    page_op("packet3", -12, c.frame, gx | ((row + 0x42 + dy) << 16), gx | ((row + 0x45 + dy) << 16))
+    page_op("packet3", -12, c.frame_light, gx | (y << 16), gx | ((row + 0x47 + dy) << 16))
+    local w = trunc_div(value * 24, 100)
+    if w > 24 then w = 24 end
+    if w < -24 then w = -24 end
+    if w >= 0 then
+      for i = 0, 3 do
+        local ly = (row + i + 66 + dy) << 16
+        page_op("packet3", -12, c.positive[i + 1], gx | ly, u16(xo + w + 116) | ly)
+        if w == 24 - i then w = w - 1 end
+      end
+    else
+      for i = 0, 3 do
+        local ly = (row - i + 0x45 + dy) << 16
+        page_op("packet3", -12, c.negative[i + 1], gx | ly, u16(xo + w + 0x74) | ly)
+        if w == i - 24 then w = i - 23 end
+      end
+    end
+    for k = 2, 5 do
+      local ly = (row + k + 64 + dy) << 16
+      page_op("packet3", -12, c.shade, u16(xo - k + 97) | ly, u16(xo - k + 142) | ly)
+    end
+    for k = 0, 7 do
+      local ly = (row + k + 64 + dy) << 16
+      page_op("packet3", -12, c.shade_dark, u16(xo - k + 97) | ly, u16(xo - k + 145) | ly)
+    end
+    page_op("packet1", -12, c.modes[1])
+    for k = 0, 10 do
+      local ly = (row + k + 0x40 + dy) << 16
+      page_op("packet4", -12, u16(xo) | ly, u16(xo - (k - 0x60)) | ly)
+    end
+    page_op("packet1", -12, c.modes[2])
+  end
+  local win = c.window
+  page_op("window", -12, xo + win[1], win[2] + dy, win[3], win[4])
+  page_op("button", -16, xo + c.button[1], c.button[2] + dy)
+  -- the header: its parts' styles as the game sets them (the page shown 1, an enabled one 0, the others 3)
+  local x = u16(xo) + c.header.x
+  for _, part in ipairs(c.header.parts) do
+    local style = 0
+    if part[2] then
+      style = part[2] == page and c.styles.shown or ((p.enabled >> part[2]) & 1) ~= 0 and c.styles.enabled
+        or c.styles.off
+    end
+    page_op("font", -16, part[1], x, c.header.y + dy, style + c.font_style)
+    x = d.font_width(part[1], x)
+  end
+  d.anchor(c.place.anchor)
+  for i = page_n, 1, -1 do
+    local o = page_ops[i]
+    local k = o[1]
+    d.layer(o[2])
+    if k == "int" then d.menu_int(o[3], o[6], o[7], o[4])
+    elseif k == "text" then d.text_raw(o[3], o[4], o[5], o[7])
+    elseif k == "packet3" then d.packet(o[3], o[4], o[5])
+    elseif k == "packet1" then d.packet(o[3])
+    elseif k == "packet4" then d.packet(c.line[1], o[3], c.line[2], o[4])
+    elseif k == "window" then d.button_background(o[3], o[4], o[5], o[6])
+    elseif k == "button" then d.sprite(o[3], o[4], c.sprite)
+    elseif k == "font" then d.font_text(o[3], o[4], o[5], o[6])
+    end
+  end
+end
+
+-- items_status_button: the window, the button, the word (in the reverse of the game's calls).
+M.draw.items_status_button = function(e, d)
+  local c, row = look.items_status_button, e.items.row
+  local dx, dy = c.place.dx, c.place.dy
+  d.anchor(c.place.anchor)
+  d.layer("unk8")
+  d.text_raw(c.word[1], c.word[2] - row + dx, c.word[3] + dy, (c.colour << e.items.state) & 0xFFFFFF)
+  d.sprite(c.button[1] - row + dx, c.button[2] + dy, c.sprite)
+  d.layer(-12)
+  local w = c.window
+  d.button_background(w[1] - row + dx, w[2] + dy, w[3], w[4])
+end
+
 for _, kind in ipairs({ "status", "chain", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "buff",
                         "damage", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image",
                         "target_row", "target_line", "target_marker", "menu_row", "menu_cursor", "menu_command",
-                        "menu_tabs", "menu_background", "option_value" }) do
+                        "menu_tabs", "menu_background", "option_value", "items_category", "items_status_button", "equip_stats",
+                        "dp_pp_bars", "gem_slots", "stat_page" }) do
   rood.hud.claim(kind, function(e, d) return M.draw[kind](e, d) end, { flavour = "classic" })
 end
 

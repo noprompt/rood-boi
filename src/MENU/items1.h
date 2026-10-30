@@ -349,8 +349,18 @@ static int _gripStatusView(int itemInfo)
                 .gemSlots
             + '0';
 
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the gem icon and the slot count, from the count. */
+        {
+            pc_classic_gem_slots pcGems = { gemSlotCountBuf[6] - '0' };
+            PC_CLASSIC(PC_CLASSIC_SITE_GEM_SLOTS, &pcGems, 0, 0, {
+#endif
         vs_mainMenu_renderMenuRowIcon(mainMenuIconGem | (1 << 8), 256, 32);
         vs_battle_renderTextRaw(gemSlotCountBuf, vs_getXY(280, 36), NULL);
+#ifdef ROOD_PC
+            });
+        }
+#endif
 
         break;
 

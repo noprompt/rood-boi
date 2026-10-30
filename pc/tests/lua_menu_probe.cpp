@@ -35,6 +35,10 @@ static int failures;
 /* rood.game's source (lua_api_game.cpp): nothing in this probe. */
 extern "C" void pc_game_query_fill(pc_game_query* out) { *out = pc_game_query(); }
 extern "C" int pc_game_query_room_names(int, int, char*, int, char*, int) { return 0; }
+/* The game's glyph advances (BATTLE.PRG; rood.classic's d.font_width in lua_api_hud.cpp): none in this probe. */
+extern "C" {
+char vs_battle_characterWidths[512];
+}
 
 static std::string scratch, shipped;
 static bool contains(const std::string& s, const std::string& part) { return s.find(part) != std::string::npos; }

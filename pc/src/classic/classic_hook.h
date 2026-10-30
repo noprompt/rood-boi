@@ -98,7 +98,39 @@ typedef struct {
     const char *value, *on, *off, *label;
 } pc_classic_option_value;
 #define PC_CLASSIC_SITE_OPTION_VALUE 28
-#define PC_CLASSIC_SITE_STATUS_PANEL 29 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* The Items screen's own panels (MENU3): its category icons (items0.h _renderItemCategory's loop: the step as the
+ * loop uses it, (animationStep * 8) - 16; the highlight; the selected category; on_row the icon the loop hands to row
+ * 31 instead of drawing, -1 none) and the STATUS strip (16C.c: its slide, row, and its state: lit when 1). */
+typedef struct { int step, highlight, selected, on_row; } pc_classic_items_category;
+#define PC_CLASSIC_SITE_ITEMS_CATEGORY 29
+typedef struct { int row, state; } pc_classic_items_status_button;
+#define PC_CLASSIC_SITE_ITEMS_STATUS_BUTTON 30
+/* MAINMENU's equipment panels (C48.c), the Items screen's status views and its Equip menus: the stats panel
+ * (vs_mainMenu_renderEquipStats, after its slide is stepped: its packed place; whether the values are known
+ * (vs_mainMenu_strIntAgi[3]); RANGE / RISK shown (_rangeRiskData[3]); the range's equipment delta (the actor's
+ * currentRange - weapon range); the stat names' subtype (vs_mainMenu_equipmentSubtype); RANGE, RISK; STR / INT /
+ * AGI, their thresholds (strIntAgi[4..6]), the base and total columns (D_80102488[0..2], [4..6]) and the accessory's
+ * (D_80102498)) and the DP / PP bars (vs_mainMenu_renderDpPpBars after its step: the step, target (1 DP, 2 PP),
+ * current and max DP (hundreds), PP). */
+typedef struct {
+    int position, known, range_risk_shown, range_delta, subtype, range_risk[2];
+    int stat[3], threshold[3], base[3], total[3], accessory[3];
+} pc_classic_equip_stats;
+#define PC_CLASSIC_SITE_EQUIP_STATS 31
+typedef struct { int step, target, dp, max_dp, pp, max_pp; } pc_classic_dp_pp_bars;
+#define PC_CLASSIC_SITE_DP_PP_BARS 32
+/* A grip's gem slots in its Items status view (items1.h _gripStatusView: the gem icon and "X     n"): the count. */
+typedef struct { int count; } pc_classic_gem_slots;
+#define PC_CLASSIC_SITE_GEM_SLOTS 33
+/* The class / affinity / type table (C48.c _renderStatPage, as vs_mainMenu_drawClassAffinityType calls it): its slide
+ * (x_offset, 0 or less), the page shown (vs_mainMenu_itemStatPage), the pages enabled, the equipment subtype and a
+ * copy of vs_mainMenu_equipmentStats (the rows, the compared item's, the equipped's, [36] and [63] its flags). */
+typedef struct {
+    int x_offset, page, enabled, subtype;
+    short stats[64];
+} pc_classic_stat_page;
+#define PC_CLASSIC_SITE_STAT_PAGE 34
+#define PC_CLASSIC_SITE_STATUS_PANEL 35 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
 /* MAINMENU's shared frame (58EC.c), read for the menu model (pc/src/classic/menu_model.c, rood.game.menu()): the
  * statics its list and command title keep (the list's cursor row and page, the sub-menu's id, row info and row
  * count, whether its rows take input (_itemsText), the rows' y offset; the command title's current and next). */

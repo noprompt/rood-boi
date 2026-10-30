@@ -1532,6 +1532,8 @@ void call(const std::string& c) { calls.push_back(c); }
 bool called(const std::string& c) { return std::find(calls.begin(), calls.end(), c) != calls.end(); }
 }
 extern "C" {
+/* The game's glyph advances (BATTLE.PRG; rood.classic's d.font_width in lua_api_hud.cpp): none in this probe. */
+char vs_battle_characterWidths[512];
 int pc_photo_pause(const char* owner, char* why, int size)
 {
     if (!fake_photo::refuse.empty()) {

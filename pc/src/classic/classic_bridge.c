@@ -29,6 +29,10 @@ typedef char pc_classic_sites_agree[PC_CLASSIC_SITE_GAUGES == PC_CLASSIC_GAUGES
             && PC_CLASSIC_SITE_MENU_COMMAND == PC_CLASSIC_MENU_COMMAND && PC_CLASSIC_SITE_MENU_ROW == PC_CLASSIC_MENU_ROW
             && PC_CLASSIC_SITE_MENU_CURSOR == PC_CLASSIC_MENU_CURSOR && PC_CLASSIC_SITE_MENU_TABS == PC_CLASSIC_MENU_TABS
             && PC_CLASSIC_SITE_OPTION_VALUE == PC_CLASSIC_OPTION_VALUE
+            && PC_CLASSIC_SITE_ITEMS_CATEGORY == PC_CLASSIC_ITEMS_CATEGORY
+            && PC_CLASSIC_SITE_ITEMS_STATUS_BUTTON == PC_CLASSIC_ITEMS_STATUS_BUTTON
+            && PC_CLASSIC_SITE_EQUIP_STATS == PC_CLASSIC_EQUIP_STATS && PC_CLASSIC_SITE_DP_PP_BARS == PC_CLASSIC_DP_PP_BARS
+            && PC_CLASSIC_SITE_GEM_SLOTS == PC_CLASSIC_GEM_SLOTS && PC_CLASSIC_SITE_STAT_PAGE == PC_CLASSIC_STAT_PAGE
         ? 1
         : -1];
 
@@ -108,7 +112,7 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
         && (kind != PC_CLASSIC_TIMER || (&pc_photo_hud_timer && pc_photo_hud_timer))
         && kind != PC_CLASSIC_EMOTE && kind != PC_CLASSIC_TEXT_FRAME && kind != PC_CLASSIC_TEXT_BAND
         && kind != PC_CLASSIC_BOX_TEXT && kind != PC_CLASSIC_IMAGE;
-    if (kind >= PC_CLASSIC_MENU_BACKGROUND && kind <= PC_CLASSIC_OPTION_VALUE) { /* (the menus: never the HUD's to hide) */
+    if (kind >= PC_CLASSIC_MENU_BACKGROUND && kind <= PC_CLASSIC_STAT_PAGE) { /* (the menus: never the HUD's to hide) */
         pc_hud_menu(kind, record, first, end);
         return;
     }

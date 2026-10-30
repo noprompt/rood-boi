@@ -34,7 +34,7 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_MENU_BACKGROUND, PC_HUD_MENU_COMMAND, PC_HUD_MENU_ROW, PC_HUD_MENU_CURSOR, PC_HUD_MENU_TABS, PC_HUD_OPTION_VALUE, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_MENU_BACKGROUND, PC_HUD_MENU_COMMAND, PC_HUD_MENU_ROW, PC_HUD_MENU_CURSOR, PC_HUD_MENU_TABS, PC_HUD_OPTION_VALUE, PC_HUD_ITEMS_CATEGORY, PC_HUD_ITEMS_STATUS_BUTTON, PC_HUD_EQUIP_STATS, PC_HUD_DP_PP_BARS, PC_HUD_GEM_SLOTS, PC_HUD_STAT_PAGE, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
  * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
@@ -56,7 +56,15 @@ enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAM
  * background's four sprites (its own slot), the command title's sprite, a row of vs_battle_menuItems (its window,
  * label, counts and icons in vs_scratch.unk8 - 4 .. + 12), the pointing hand and the tab arrows (vs_scratch.unk8).
  * option_value: a row's value in our Option pages (pc/src/ui/classic_options.c, the game's printers and gauge, in
- * vs_scratch.unk8 - 4 and + 8). The kinds from gauges on
+ * vs_scratch.unk8 - 4 and + 8). items_category, items_status_button: the Items screen's own (MENU3): its eight
+ * category icons (items0.h _renderItemCategory: vs_scratch.unk4 and, the selected one raised, unk8) and the STATUS
+ * strip (16C.c: the button's window, vs_scratch.unk4 - 12; the Square button and the word, unk8). equip_stats,
+ * dp_pp_bars: MAINMENU's equipment panels (C48.c) as Items draws them (its status views, its Equip menus): the stats
+ * panel (vs_mainMenu_renderEquipStats: its words and numbers in vs_scratch.unk4 - 24) and the DP / PP bars
+ * (vs_mainMenu_renderDpPpBars: words, digits and gauges in unk4 - 12). gem_slots: a grip's status view's gem icon
+ * and slot count (items1.h: unk8 + 4, unk8). stat_page: the class / affinity / type table (C48.c _renderStatPage:
+ * its rows' numbers, names, gauges and tiles, the shaded lines, vs_scratch.unk4 - 12; the Square button and the
+ * header's glyphs, unk4 - 16). The kinds from gauges on
  * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
 #define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
@@ -126,6 +134,19 @@ typedef struct {
         opt_bar_width, opt_fill, opt_link, opt_upper, opt_window_x; /* option_value: pc_classic_option_value's (call_x
                                                                     * the column's x, call_y the row's y) */
     char opt_value[64], opt_on[24], opt_off[24], opt_label[96];
+    struct { /* equip_stats: pc_classic_equip_stats's (classic_hook.h) */
+        int position, known, range_risk_shown, range_delta, subtype, range_risk[2];
+        int stat[3], threshold[3], base[3], total[3], accessory[3];
+    } equip;
+    struct { int step, target, dp, max_dp, pp, max_pp; } bars; /* dp_pp_bars: pc_classic_dp_pp_bars's */
+    int gem_count;                /* gem_slots: the grip's slots */
+    struct { /* stat_page: pc_classic_stat_page's */
+        int x_offset, page, enabled, subtype;
+        short stats[64];
+    } stat_page;
+    int items_step, items_highlight, items_selected, items_on_row; /* items_category: pc_classic_items_category's;
+                                                                    * items_status_button: items_step its slide (row),
+                                                                    * items_highlight its state */
     int word_miss, word_label, word_lowered; /* actor_word: MISS (1) or a combat label (D_800690B4's index; lowered:
                                               * a lowered stat's, with the arrow) */
     int icon_previous, icon_current, icon_next, icon_count, icon_selected, icon_offset;
@@ -159,7 +180,9 @@ extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_
     pc_hud_classic_text_frame, pc_hud_classic_text_band, pc_hud_classic_box_text, pc_hud_classic_image,
     pc_hud_classic_target_row, pc_hud_classic_target_line, pc_hud_classic_target_marker,
     pc_hud_classic_menu_background, pc_hud_classic_menu_command, pc_hud_classic_menu_row, pc_hud_classic_menu_cursor,
-    pc_hud_classic_menu_tabs, pc_hud_classic_option_value;
+    pc_hud_classic_menu_tabs, pc_hud_classic_option_value, pc_hud_classic_items_category,
+    pc_hud_classic_items_status_button, pc_hud_classic_equip_stats, pc_hud_classic_dp_pp_bars, pc_hud_classic_gem_slots,
+    pc_hud_classic_stat_page;
 /* hud_bridge.c: the glyphs the last box_text element set (6 ints each: code, font table, colour style, x, y,
  * brightness), their count. */
 int pc_hud_box_text_glyphs(const int** out) __attribute__((weak));
@@ -233,6 +256,16 @@ enum {
     PC_HUD_CMD_OPTION_TEXT, /* our Option pages' value text (classic_options.c pc_options_text_draw: encoded as the page
                              * draws it, a: capitals, w: the room it is cut to, 0 none; color the font colour 0..3) */
     PC_HUD_CMD_OPTION_BAR,  /* their slider's gauge (pc_options_bar_draw: a the colour, b the fill) */
+    PC_HUD_CMD_MENU_INT, /* a number by MAINMENU's printer (vs_mainMenu_renderIntColor: its digits right to left from
+                          * x, a '-' before a negative): a the value, color the colour word */
+    PC_HUD_CMD_STAT_BAR, /* the game's gauge (vs_battle_renderStatBar): a the colour (0..3), b the fill; x, y */
+    PC_HUD_CMD_PACKET,   /* a primitive of the game's words as given (w of them, 1..4: a, b, c, d; the tag its own),
+                          * linked into the slot as the game's vs_battle_addTile / vs_battle_insertTpage do */
+    PC_HUD_CMD_FONT_TEXT, /* the text boxes' font by the game's printer (vs_battle_printVariableWidthFontChar) after
+                           * vs_battle_setFontStyle(a): text its glyph codes (length of them), x, y; linked at the
+                           * slot (the printer's ot + 3) */
+    PC_HUD_CMD_BUTTON_BACKGROUND, /* a button's window as MAINMENU's vs_mainmenu_renderButtonBackground builds it (h
+                                   * shaded lines, each a draw mode, a POLY_G2 and a draw mode): x, y, w x h */
     PC_HUD_CMD_MENU_ROW  /* a menu row by the game's own emit (58EC.c pc_mainmenu_render_row) on a copy of the row
                           * the menu_row element recorded: x, y its place, w its window's width (a: which of them
                           * are set, bits 1 x, 2 y, 4 w; else the record's) */
@@ -256,6 +289,8 @@ typedef struct {
 #define PC_HUD_LAYER_KIND (-0x7FFF)
 #define PC_HUD_LAYER_UNK8 (-0x7FFE) /* resolve the actual scratchpad OT pointer each draw */
 #define PC_HUD_LAYER_ELEMENT (-0x7FFD) /* the element's own slot, as the game linked it (an emote's depth) */
+#define PC_HUD_LAYER_UNK8_AT(bytes) (-0x7F00 + (bytes)) /* vs_scratch.unk8 + bytes (-64..64), resolved each draw */
+#define PC_HUD_LAYER_IS_UNK8_AT(layer) ((layer) >= -0x7F40 && (layer) <= -0x7EC0)
 #define PC_HUD_CLASSIC_COMMANDS 256
 /* lua_api_hud.cpp: the claim on the element just recorded draws in the classic flavour;
  * its commands (in drawing order) in *out, their count, or -1 when it failed (the game

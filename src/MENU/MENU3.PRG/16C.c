@@ -1538,10 +1538,18 @@ int vs_menu3_exec(u_char* state)
     }
 
     if (_statusCommandAnimationStep != 0) {
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the STATUS strip, from its slide and its state. */
+        pc_classic_items_status_button pcStatus = { row, _statusCommandState };
+        PC_CLASSIC(PC_CLASSIC_SITE_ITEMS_STATUS_BUTTON, &pcStatus, 0, 0, {
+#endif
         vs_mainmenu_renderButtonBackground(16 - row, 38, 88, 10);
         vs_mainmenu_renderButton(buttonIdSquare, 8 - row, 36, NULL);
         vs_battle_renderTextRawColor("STATUS", vs_getXY(28 - row, 38),
             vs_getRGB888(32, 32, 32) << _statusCommandState, NULL);
+#ifdef ROOD_PC
+        });
+#endif
     }
 
     return 0;
