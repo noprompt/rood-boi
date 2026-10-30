@@ -62,8 +62,13 @@ enum {
     PC_CLASSIC_DP_PP_BARS = 32, /* the DP / PP bars (C48.c vs_mainMenu_renderDpPpBars) */
     PC_CLASSIC_GEM_SLOTS = 33, /* a grip's gem slots (MENU3 items1.h _gripStatusView) */
     PC_CLASSIC_STAT_PAGE = 34, /* the class / affinity / type table (C48.c _renderStatPage) */
-    PC_CLASSIC_STATUS_PANEL = 35, /* the whole status display (func_800CA2DC): captured only */
-    PC_CLASSIC_KINDS = 36
+    PC_CLASSIC_OK_MARK = 35, /* the pulsing OK beside a menu's last choice (MENUC _drawOk, MENUD's top menu) */
+    PC_CLASSIC_STORAGE_BUTTONS = 36, /* Storage's button strip (MENUD vs_menuD_exec) */
+    PC_CLASSIC_STORAGE_COUNTS = 37, /* Storage's category counts (MENUD func_80106464's callers) */
+    PC_CLASSIC_LOOT_CAPACITIES = 38, /* Loot's capacities strip (MENUB _displayInventoryCapacities) */
+    PC_CLASSIC_DISCARD_COUNT = 39, /* a misc item's discard amount (items1.h _discardMenu, MENUD's copy) */
+    PC_CLASSIC_STATUS_PANEL = 40, /* the whole status display (func_800CA2DC): captured only */
+    PC_CLASSIC_KINDS = 41
 };
 const char* pc_classic_kind_name(int kind); /* "status", ...; "" for none */
 int pc_classic_kind_of(const char* name);   /* 0 unknown */

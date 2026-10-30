@@ -418,6 +418,11 @@ const Entry entries[] = {
     I("hud_classic_dp_pp_bars", pc_hud_classic_dp_pp_bars),
     I("hud_classic_gem_slots", pc_hud_classic_gem_slots),
     I("hud_classic_stat_page", pc_hud_classic_stat_page),
+    I("hud_classic_ok_mark", pc_hud_classic_ok_mark),
+    I("hud_classic_storage_buttons", pc_hud_classic_storage_buttons),
+    I("hud_classic_storage_counts", pc_hud_classic_storage_counts),
+    I("hud_classic_loot_capacities", pc_hud_classic_loot_capacities),
+    I("hud_classic_discard_count", pc_hud_classic_discard_count),
     I("save_states", pc_save_states), /* the save state slots (savestate_slots.c), 0 off */
 #ifdef ROOD_VULKAN
     I("shader_reload", pc_shader_reload), /* shader hot reload (shader_reload.cpp), 0 off */

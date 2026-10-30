@@ -17,6 +17,50 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 
 ## Progress
 
+2026-10-30, evening (branch `classic-lua-panels2`, from main `d91b54af`; no merge or publication):
+
+- **Phase 3, the screens' own panels after Items piece 2's kinds: Storage's, Setup's and Loot's, done.** Each a
+  `ROOD_PC` `PC_CLASSIC` emit-only range (no MENUx function has a Zig port: no port touched), drawn by rood.classic,
+  claimed on its screens only (`PANEL_SCREENS`, hud_bridge.c):
+
+  | Kind | Game routine | Screens | Frames (GL) |
+  |---|---|---|---:|
+  | `items_category` (widened) | MENUD's own copy of the icon loop (234.c `func_80103E24`: the one that calls `vs_mainMenu_renderTabNavigation`; the record's new `slot`, its dim icons in `unk4 - 12`) | Items, Loot, now Storage | 11,029 (whole game) |
+  | `ok_mark` (new) | the pulsing OK: MENUC 168.c `_drawOk` (Assemble, Gems, Combine), MENUD's top menu (`func_801089BC`) | Setup, Storage | 174 |
+  | `storage_buttons` (new) | `vs_menuD_exec`'s strip: two windows, Square / Triangle / Cross, STATUS / CANCEL / END | Storage | 1,801 |
+  | `storage_counts` (new) | `func_80106464`'s `capacity / count` rows: the strip's (the bag's or the container's name, the categories, the transfer list) and the top menu's (`func_80106504`, both columns) | Storage | 1,979 |
+  | `loot_capacities` (new) | MENUB 260.c `_displayInventoryCapacities`: GADGET BAG, the counts coloured by the row looked at, GET / ALL / END | Loot | 289 |
+  | `discard_count` (new) | a misc item's discard amount (items1.h `_discardMenu`, MENUD's copy) | Items, Storage | 122 |
+
+  0 mismatches, 0 skips, no waivers. Lua: look tables for each (places, words, colours, the buttons' texels:
+  `look.buttons`), the calls recorded in the game's order and made last to first, the packed places by `d.xy` (the
+  slide's borrow into y kept, CANCEL's carry too); no new primitive. The gate was shown to catch a change (Loot's
+  count column one pixel left: 289 of 289 mismatched on `xy`). Tours: none new (tour_storage, tour_setup's Gems and
+  tour_loot already pass every state drawn: the top menu, Remove and Store, the slides in and out; the loot list's
+  leave row, an item, none). Proofs (default and fallback at rest, state parity 120/120): Setup's Gems, a weapon's
+  gem slots (new, the OK), Storage's top menu (OK, the two columns), Storage's Store list (icons, strip, counts), the
+  Loot list and its leave Yes / No (capacities); Items' and Storage's discard picker (the digits).
+- **MENUD's item action menu** is drawn by the shared pieces (`vs_mainMenu_renderItemActionMenu`: rows 32..
+  through `_renderActionRow`, the hand by `vs_mainMenu_renderCursor`: Lua already, menu_row / menu_cursor) and,
+  for a misc item's Discard, the amount picker's digits: now **`discard_count`** (new kind), items1.h
+  `_discardMenu` on Items and MENUD's copy on Storage (three digits in the text boxes' font, style 5, by
+  `d.font_text`, split as the game splits them). items1.h's is in a `#pragma vsstring` region: the transformer
+  rewrites the strings of the *preprocessed* text, so a `#ifdef` block or a macro over several lines there leaves a
+  line marker whose file name it rewrites (`invalid #line` in the PS1 build, `'{' is not a valid filename` in the
+  PC's); the hook is two one-line macros defined above the function (`PC_DISCARD_COUNT_BEGIN` / `_END`: the site
+  called by hand; empty in the PS1 build). Tours: tour_items' misc Discard walks the picker (up by ones, tens,
+  hundreds, down); tour_storage adds Store's misc tab, a row's Discard, the picker walked (Circle twice: picked,
+  then its actions). Proofs at Items' and Storage's picker at rest. Docker commit-check: All files match.
+- **Verification:** `--arch 64` and `--battle` builds. Docker `make commit-check` (a copy of the tree, MENUB / MENUC /
+  MENUD touched): **All files match**; the formatter's re-indents of the new ranges discarded, its wraps of the new
+  record lines kept. `run.py -j 1 --cpu-jobs 1` (nice 10) `classic_parity hud classic cutscene_player_smoke
+  widescreen_smoke` plus every suite matching `manual ui_ menu prompts button options items equip status workshop
+  container loot` (40 suites): **40/40 on GL and 40/40 on Vulkan**, first time; the same classic_parity counts on
+  both (33 menus state-parity marks, all 120/120), run again after discard_count: the same.
+- **Left:** Setup's Assemble / Combine OK (same kind; their two-picks states untoured), Loot's Organize inventory's
+  discard picker (items1.h's, claimed on Items and Storage only: untoured on Loot), MENU8's rename grid from Setup, MENU7's save list after Storage. Every other draw of MENUB's and MENUD's own is now
+  in a claimed range or a shared piece.
+
 2026-10-30, afternoon (branch `classic-lua-panels`, from main `8257f69d`; no merge or publication):
 
 - **Phase 3: Items piece 2's kinds widened to every screen that draws them: Status, Setup, Storage, Loot, done.**

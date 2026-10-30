@@ -926,7 +926,7 @@ def main():
     parser.add_argument("--card", default=str(default_save()))
     parser.add_argument("--out", help="logs and reports (default pc/build/tests/classic_parity)")
     parser.add_argument("--renderer", choices=["null", "gl", "vulkan"], default="null")
-    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,menu_tabs,menu_background,option_value,items_category,items_status_button,equip_stats,dp_pp_bars,gem_slots,stat_page", help="the kinds to check (comma-separated)")
+    parser.add_argument("--kind", default="status,chain,gauges,figure,status_icons,battle_mode,ability_icons,buff,damage,actor_word,timer,emote,text_frame,text_band,box_text,image,target_row,target_line,target_marker,menu_row,menu_cursor,menu_command,menu_tabs,menu_background,option_value,items_category,items_status_button,equip_stats,dp_pp_bars,gem_slots,stat_page,ok_mark,storage_buttons,storage_counts,loot_capacities,discard_count", help="the kinds to check (comma-separated)")
     parser.add_argument("--candidate", action="store_true", help="explicitly opt in ability_icons before its default is gated")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
@@ -1217,12 +1217,17 @@ def run_marker(out, card, env, check, waivers):
 ITEMS_PANELS = ("items_category", "items_status_button",  # the Items screen's own (MENU3: Items only), and
                 "equip_stats", "dp_pp_bars", "gem_slots",   # MAINMENU's equipment panels and a grip's gem slots there,
                 "stat_page")                                # the class / affinity / type table
+SCREEN_PANELS = ("ok_mark", "storage_buttons",  # the other screens' own: Setup's and Storage's OK mark, Storage's
+                 "storage_counts", "loot_capacities",  # button strip and counts, Loot's capacities strip, and a misc
+                 "discard_count")  # item's discard amount (Items, Storage: not at the Items list's rest)
+PICKER_WALK = ("up",) * 3 + ("left",) + ("up",) * 2 + ("left",) + ("up",) + ("right",) * 2 + ("down",) * 2
+# (a misc item's discard amount picker: the count up by ones, tens, hundreds (to its maximum), back down)
 MENUS = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # MAINMENU's shared frame
-         "option_value") + ITEMS_PANELS  # (and our Option pages' value column)
+         "option_value") + ITEMS_PANELS + SCREEN_PANELS  # (and our Option pages' value column)
 MENU_TOURED = ("menu_row", "menu_cursor", "menu_command", "menu_tabs", "menu_background",  # (Items: the tabs,
-               "option_value") + ITEMS_PANELS                                             # the background)
+               "option_value") + ITEMS_PANELS + SCREEN_PANELS                             # the background)
 STATUS_VIEW_PANELS = ("equip_stats", "dp_pp_bars", "gem_slots", "stat_page")  # (drawn in a status view, not the list)
-ITEMS_ONLY = ("menu_tabs", "menu_background") + ITEMS_PANELS  # (not on the Option screen: their default and
+ITEMS_ONLY = ("menu_tabs", "menu_background") + ITEMS_PANELS + SCREEN_PANELS  # (not on the Option screen: their default and
                                                               # fallback in Items)
 OPTION_COMMAND, VANILLA_OPTIONS = 7, 9  # the top level's Option row (MENU8), its nine rows of the game's options
 
@@ -1340,9 +1345,12 @@ def tour_items(g, symbols, toured, frames):
             if "discard" in names:
                 for _ in range(names.index("discard")):  # (the actions open on their first row)
                     press("down")
-                press("circle", settle=10)  # Discard: the Yes / No (on No)
+                press("circle", settle=10)  # Discard: the Yes / No (on No); misc: the amount picker
                 g.run(20)
-                press("cross", settle=10)  # left on No
+                if c == 6:
+                    for button in PICKER_WALK:
+                        press(button, settle=4)
+                press("cross", settle=10)  # left on No (the picker: left)
                 g.run(20)
             at_rest()
             if any(i >= 32 for i in items_live(g, symbols)):  # (the actions again: Cross to the list)
@@ -1384,6 +1392,38 @@ def items_to_category(g, symbols, want):
         g.press("r1", vsyncs=3, settle=10)
         items_ready(g, symbols)
     return items_category_now(g, symbols) == want
+
+
+def action_names(g):
+    """The live action rows' texts (rows 32.., in order), lower case."""
+    actions = str(repl(g, "rood.classic", "local t = {} for _, r in ipairs(rood.game.menu().rows) do "
+                       "if r.id >= 32 and r.state ~= 'inactive' then t[#t + 1] = r.id .. '=' .. r.text end end "
+                       "return table.concat(t, '|')")).strip('"').split("|")
+    return [a.split("=", 1)[1].strip().lower()
+            for a in sorted((a for a in actions if "=" in a), key=lambda a: int(a.split("=")[0]))]
+
+
+def discard_picker(g, symbols, opens):
+    """A misc row's actions (opens: the presses that open them), Discard: its amount picker at rest."""
+    for button in opens:
+        g.press(button, vsyncs=3, settle=10)
+        items_ready(g, symbols)
+    g.run(20)
+    names = action_names(g)
+    if "discard" not in names:
+        raise RpcError(f"no Discard in the misc row's actions ({names})")
+    for _ in range(names.index("discard")):
+        g.press("down", vsyncs=3, settle=6)
+    g.press("circle", vsyncs=3, settle=10)
+    g.run(40)
+
+
+def items_discard_open(g, symbols):
+    """Items, the misc category, its first row's Discard: the amount picker at rest (items1.h _discardMenu)."""
+    items_open(g, symbols)
+    if not items_to_category(g, symbols, 6):
+        raise RpcError("Items: the misc category never reached")
+    discard_picker(g, symbols, ("circle", "circle"))  # (picked up, its actions)
 
 
 def status_view_open(g, symbols, category):
@@ -2473,6 +2513,20 @@ def setup_assemble_open(g, symbols):
     g.run(40)
 
 
+def setup_gems_open(g, symbols):
+    """Setup in a workshop, Gems (row 11), Weapons (row 20), the first weapon: its gem slots at rest (the OK mark
+    beside them: MENUC's _drawOk)."""
+    workshop_setup_open(g, symbols)
+    setup_select(g, symbols, 11)
+    g.press("circle", vsyncs=3, settle=10)
+    items_ready(g, symbols)
+    setup_select(g, symbols, 20)
+    for _ in range(2):
+        g.press("circle", vsyncs=3, settle=10)
+        items_ready(g, symbols)
+    g.run(40)
+
+
 def setup_repair_open(g, symbols):
     """Setup in a workshop, Repair (row 14): its Yes / No at rest (MENUC's own hand: vs_battle_drawCursor)."""
     workshop_setup_open(g, symbols)
@@ -2798,6 +2852,23 @@ def storage_store(g, symbols):
     g.run(30)
 
 
+STORAGE_CATEGORY = 0xA0  # D_800F4EE8 + 0xA0: MENUD's list's category + 1 (234.c: unkA0[0], unk85[0x1B])
+
+
+def storage_discard_open(g, symbols):
+    """Storage's Store, the bag's misc tab, its first row's Discard: the amount picker at rest (MENUD's copy)."""
+    storage_store(g, symbols)
+    for _ in range(8):
+        if g.read(symbols["D_800F4EE8"] + STORAGE_CATEGORY, 1)[0] == 7:
+            break
+        g.press("r1", vsyncs=3, settle=10)
+        items_ready(g, symbols)
+    if g.read(symbols["D_800F4EE8"] + STORAGE_CATEGORY, 1)[0] != 7:
+        raise RpcError("Storage: the misc tab never reached")
+    g.run(10)
+    discard_picker(g, symbols, ("circle", "circle"))  # (picked, its actions)
+
+
 def storage_status_view(g, symbols, press):
     """In a Storage list at rest: Square on its row, the item's status view (refused on an empty list or misc:
     False); every item paged with R1 and back with L1 (Square after each: the class / affinity / type table's next
@@ -2908,6 +2979,20 @@ def tour_storage(g, symbols, toured, frames):
         back()
         print(f"Storage: {name} toured ({views} status views)", flush=True)  # (progress)
         toured(f"Storage: {name}: every tab round, the lists walked, {views} status views", before, views=views)
+    before = frames()  # Store, the misc tab, a row's Discard: its amount picker walked and left
+    top_to(1)
+    press("circle", settle=20)
+    g.run(20)
+    for _ in range(8):
+        if g.read(symbols["D_800F4EE8"] + STORAGE_CATEGORY, 1)[0] == 7:
+            break
+        press("r1", settle=10)
+    discard_picker(g, symbols, ("circle", "circle"))  # (picked, its actions)
+    for button in PICKER_WALK:
+        press(button, settle=4)
+    press("cross", settle=10)
+    back()
+    toured("Storage: Store, a misc row's Discard: its amount picker walked", before)
     before = frames()
     press_until(g, "cross", lambda: current_menu(g, symbols) & 0x3F == DATA_MENU, frames=60)  # MENUD left: MENU7
     g.run(60)
@@ -2932,8 +3017,10 @@ def remaining_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof):
                          ("Data's rows", data_open), ("Setup's commands (a workshop)", workshop_setup_open),
                          ("Setup's Assemble, the blades' list (a workshop)", setup_assemble_open),
                          ("Setup's Repair, its Yes / No (a workshop)", setup_repair_open),
+                         ("Setup's Gems, a weapon's gem slots and the OK (a workshop)", setup_gems_open),
                          ("Storage's top menu", storage_open), ("Storage's Store list (the tabs)", storage_store),
                          ("Storage's Store, a status view", storage_status_open),
+                         ("Storage's Store, a misc row's discard amount", storage_discard_open),
                          ("Storage's Store, a grip's status view", lambda g, symbols: storage_status_open(g, symbols, True))):
         screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener)
     bags = []  # (Organize inventory: MENUB's Items, its category icons; a weapon's and a grip's status views; the
@@ -3189,7 +3276,7 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.pause()
         g.mark()
         items_kinds = [k for k in toured_kinds if k != "option_value"]
-        list_kinds = [k for k in items_kinds if k not in STATUS_VIEW_PANELS]
+        list_kinds = [k for k in items_kinds if k not in STATUS_VIEW_PANELS + SCREEN_PANELS]
         for kind in list_kinds:
             g.rewind()
             default_and_fallback(g, kind, check)
@@ -3200,6 +3287,8 @@ def run_menus(out, card, env, check, waivers, kinds):
                           f"Items, the {ITEM_CATEGORIES[category]}' status view",
                           lambda g, symbols, c=category: status_view_open(g, symbols, c))
         skills_proofs(g, symbols, check, state_proof)
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof,
+                      "Items, a misc row's discard amount", items_discard_open)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "the Quick Manual list", manual_open)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status", status_open)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, the equipment list",

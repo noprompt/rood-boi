@@ -34,7 +34,7 @@ extern "C" {
  * state slots': "Saved to slot 3", savestate_notice.cpp); name_window, the action's name in
  * text box 7 (5BF94.c vs_battle_displaySceneMessage: an event, not claimed: the game draws it). */
 enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAMAGE, PC_HUD_TRAVEL, PC_HUD_NOTICE,
-    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_MENU_BACKGROUND, PC_HUD_MENU_COMMAND, PC_HUD_MENU_ROW, PC_HUD_MENU_CURSOR, PC_HUD_MENU_TABS, PC_HUD_OPTION_VALUE, PC_HUD_ITEMS_CATEGORY, PC_HUD_ITEMS_STATUS_BUTTON, PC_HUD_EQUIP_STATS, PC_HUD_DP_PP_BARS, PC_HUD_GEM_SLOTS, PC_HUD_STAT_PAGE, PC_HUD_KINDS };
+    PC_HUD_NAME_WINDOW, PC_HUD_GAUGES, PC_HUD_FIGURE, PC_HUD_STATUS_ICONS, PC_HUD_BATTLE_MODE, PC_HUD_ABILITY_ICONS, PC_HUD_ACTOR_WORD, PC_HUD_TIMER, PC_HUD_EMOTE, PC_HUD_TEXT_FRAME, PC_HUD_TEXT_BAND, PC_HUD_BOX_TEXT, PC_HUD_IMAGE, PC_HUD_TARGET_ROW, PC_HUD_TARGET_LINE, PC_HUD_TARGET_MARKER, PC_HUD_MENU_BACKGROUND, PC_HUD_MENU_COMMAND, PC_HUD_MENU_ROW, PC_HUD_MENU_CURSOR, PC_HUD_MENU_TABS, PC_HUD_OPTION_VALUE, PC_HUD_ITEMS_CATEGORY, PC_HUD_ITEMS_STATUS_BUTTON, PC_HUD_EQUIP_STATS, PC_HUD_DP_PP_BARS, PC_HUD_GEM_SLOTS, PC_HUD_STAT_PAGE, PC_HUD_OK_MARK, PC_HUD_STORAGE_BUTTONS, PC_HUD_STORAGE_COUNTS, PC_HUD_LOOT_CAPACITIES, PC_HUD_DISCARD_COUNT, PC_HUD_KINDS };
 /* gauges: the status display's HP / MP / RISK gauges with their digits and labels, or RISK ZERO (5BF94.c
  * func_800CA2DC's _renderStatBar calls). figure: its five limb sprites, with the game's stance and
  * condition indices. actor_word: a word over an actor (2842C.c's label loop: MISS, func_8009506C; a combat
@@ -64,7 +64,12 @@ enum { PC_HUD_NONE = 0, PC_HUD_STATUS = 1, PC_HUD_CHAIN, PC_HUD_BUFF, PC_HUD_DAM
  * (vs_mainMenu_renderDpPpBars: words, digits and gauges in unk4 - 12). gem_slots: a grip's status view's gem icon
  * and slot count (items1.h: unk8 + 4, unk8). stat_page: the class / affinity / type table (C48.c _renderStatPage:
  * its rows' numbers, names, gauges and tiles, the shaded lines, vs_scratch.unk4 - 12; the Square button and the
- * header's glyphs, unk4 - 16). The kinds from gauges on
+ * header's glyphs, unk4 - 16). ok_mark: the pulsing OK beside a menu's last choice (MENUC _drawOk, MENUD's top menu:
+ * vs_scratch.unk4 - 12). storage_buttons, storage_counts: Storage's (MENUD) button strip (its windows, unk4 - 12; the
+ * buttons and words, unk8) and its category counts (the strip's or the top menu's, unk8). loot_capacities: Loot's
+ * (MENUB) capacities strip (the bag's counts, its windows, unk4 - 12, buttons and words, unk8). discard_count: a misc
+ * item's discard amount (items1.h _discardMenu, MENUD's copy: three digits in the text boxes' font, unk8). The kinds
+ * from gauges on
  * are classic-only (no modern drawing: the game's own there); visibility stays the game's. */
 #define PC_HUD_CLASSIC_ONLY(kind) ((kind) >= PC_HUD_GAUGES && (kind) < PC_HUD_KINDS)
 #define PC_HUD_CLAIMABLE(kind) ((kind) > PC_HUD_NONE && (kind) < PC_HUD_KINDS && (kind) != PC_HUD_NAME_WINDOW)
@@ -144,6 +149,12 @@ typedef struct {
         int x_offset, page, enabled, subtype;
         short stats[64];
     } stat_page;
+    struct { int x, y, level; } ok;                   /* ok_mark: pc_classic_ok_mark's */
+    struct { int x, state; } storage_buttons;         /* storage_buttons: pc_classic_storage_buttons's */
+    struct { int layout, x, container, capacity[2][7], count[2][7]; } storage_counts; /* pc_classic_storage_counts's */
+    struct { int x, controls, looking, all, capacity[7], count[7], incoming[7]; } loot; /* loot_capacities' */
+    struct { int count, x, y; } discard;              /* discard_count: pc_classic_discard_count's */
+    int items_slot; /* items_category: the dim icons' slot (bytes from vs_scratch.unk4) */
     int items_step, items_highlight, items_selected, items_on_row; /* items_category: pc_classic_items_category's;
                                                                     * items_status_button: items_step its slide (row),
                                                                     * items_highlight its state */
@@ -182,7 +193,8 @@ extern int pc_hud_classic_status, pc_hud_classic_chain, pc_hud_classic_buff, pc_
     pc_hud_classic_menu_background, pc_hud_classic_menu_command, pc_hud_classic_menu_row, pc_hud_classic_menu_cursor,
     pc_hud_classic_menu_tabs, pc_hud_classic_option_value, pc_hud_classic_items_category,
     pc_hud_classic_items_status_button, pc_hud_classic_equip_stats, pc_hud_classic_dp_pp_bars, pc_hud_classic_gem_slots,
-    pc_hud_classic_stat_page;
+    pc_hud_classic_stat_page, pc_hud_classic_ok_mark, pc_hud_classic_storage_buttons, pc_hud_classic_storage_counts,
+    pc_hud_classic_loot_capacities, pc_hud_classic_discard_count;
 /* hud_bridge.c: the glyphs the last box_text element set (6 ints each: code, font table, colour style, x, y,
  * brightness), their count. */
 int pc_hud_box_text_glyphs(const int** out) __attribute__((weak));

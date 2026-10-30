@@ -12,15 +12,26 @@
 #include "gpu.h"
 #include <libetc.h>
 #include <memory.h>
+#ifdef ROOD_PC
+#include "pc/src/classic/classic_hook.h"
+#endif
 
 /**
  * Animates and renders the small "OK" confirmation prompt.
  */
 static void _drawOk(int row, int brightness)
 {
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the OK mark, from its place and level. */
+    pc_classic_ok_mark pcOk = { 175, row * 16 + 32, (rsin(brightness * 8) >> 5) + 64 };
+    PC_CLASSIC(PC_CLASSIC_SITE_OK_MARK, &pcOk, 0, 0, {
+#endif
     vs_battle_renderTextRawColor("OK", vs_getXY(175, row * 16 + 32),
         ((rsin(brightness * 8) >> 5) + 64) * vs_getRGB888(1, 1, 1),
         psx_get(vs_scratch.unk4) - 0xC);
+#ifdef ROOD_PC
+    });
+#endif
 }
 
 /**

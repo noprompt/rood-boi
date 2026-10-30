@@ -104,7 +104,8 @@ typedef struct {
 /* The Items screen's own panels (MENU3): its category icons (items0.h _renderItemCategory's loop: the step as the
  * loop uses it, (animationStep * 8) - 16; the highlight; the selected category; on_row the icon the loop hands to row
  * 31 instead of drawing, -1 none) and the STATUS strip (16C.c: its slide, row, and its state: lit when 1). */
-typedef struct { int step, highlight, selected, on_row; } pc_classic_items_category;
+typedef struct { int step, highlight, selected, on_row, slot; } pc_classic_items_category; /* slot: the dim icons'
+ * ordering-table slot, bytes from vs_scratch.unk4 (items0.h's 0; MENUD's copy, 234.c func_80103E24, -12) */
 #define PC_CLASSIC_SITE_ITEMS_CATEGORY 29
 typedef struct { int row, state; } pc_classic_items_status_button;
 #define PC_CLASSIC_SITE_ITEMS_STATUS_BUTTON 30
@@ -133,7 +134,30 @@ typedef struct {
     short stats[64];
 } pc_classic_stat_page;
 #define PC_CLASSIC_SITE_STAT_PAGE 34
-#define PC_CLASSIC_SITE_STATUS_PANEL 35 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
+/* The OK mark beside a menu's last choice, pulsing (MENUC 168.c _drawOk: Setup's Assemble, Gems, Combine; MENUD 234.c
+ * func_801089BC: Storage's top menu): its place and its level ((rsin(step * 8) >> 5) + 64: the grey it is drawn in). */
+typedef struct { int x, y, level; } pc_classic_ok_mark;
+#define PC_CLASSIC_SITE_OK_MARK 35
+/* Storage's button strip (MENUD 234.c vs_menuD_exec: two windows, Square / Triangle / Cross and STATUS / CANCEL / END):
+ * its slide (x) and its state (D_80109A7D: STATUS lit by bits 0..1, END dimmed by bit 2). */
+typedef struct { int x, state; } pc_classic_storage_buttons;
+#define PC_CLASSIC_SITE_STORAGE_BUTTONS 36
+/* Storage's counts (func_80106464's "count / capacity" per category, MENUD 234.c): layout 0 the strip's
+ * (vs_menuD_exec: the bag's or the container's name, its categories and counts from x, the last row the transfer
+ * list's), 1 the top menu's (func_80106504: GADGET BAG and CONTAINER, both columns); container (D_80109A7A); each
+ * column's capacities and counts (layout 0: column 0 only, row 6 the transfer list's). */
+typedef struct { int layout, x, container, capacity[2][7], count[2][7]; } pc_classic_storage_counts;
+#define PC_CLASSIC_SITE_STORAGE_COUNTS 37
+/* Loot's capacities strip (MENUB 260.c _displayInventoryCapacities): its slide (x), whether the controls are on
+ * (_controlsEnabled), the row looked at (0 none, 1 the list's leave row, 2 an item), ALL lit (var_fp), and per category
+ * the bag's capacity, its count and how many the item looked at adds (_itemIncludesItemsInCategory: an item's only). */
+typedef struct { int x, controls, looking, all, capacity[7], count[7], incoming[7]; } pc_classic_loot_capacities;
+#define PC_CLASSIC_SITE_LOOT_CAPACITIES 38
+/* A misc item's discard amount (items1.h _discardMenu's picker: Items; MENUD 234.c's copy: Storage): its three
+ * digits in the text boxes' font (style 5) right to left from x (6 apart), the count (0..999). */
+typedef struct { int count, x, y; } pc_classic_discard_count;
+#define PC_CLASSIC_SITE_DISCARD_COUNT 39
+#define PC_CLASSIC_SITE_STATUS_PANEL 40 /* classic_parity.h PC_CLASSIC_STATUS_PANEL: func_800CA2DC */
 /* MAINMENU's shared frame (58EC.c), read for the menu model (pc/src/classic/menu_model.c, rood.game.menu()): the
  * statics its list and command title keep (the list's cursor row and page, the sub-menu's id, row info and row
  * count, whether its rows take input (_itemsText), the rows' y offset; the command title's current and next). */

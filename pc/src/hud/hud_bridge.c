@@ -75,7 +75,8 @@ void _renderDigit(int font, int xy, int digit, u_long* before); /* 5BF94.c */
 static const int kind_slot[PC_HUD_KINDS] = { 0, -16, -16, 8, -20, 0, 0, 0, -12, -4, -4, -12, PC_HUD_LAYER_UNK8, -20, -4,
     PC_HUD_LAYER_ELEMENT, 0, 0, 0, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, -4,
     PC_HUD_LAYER_ELEMENT, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8,
-    PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, -24, -12, PC_HUD_LAYER_UNK8, -12 };
+    PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8, -24, -12, PC_HUD_LAYER_UNK8, -12, -12, PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8,
+    PC_HUD_LAYER_UNK8, PC_HUD_LAYER_UNK8 };
 static int element_slot; /* PC_HUD_LAYER_ELEMENT: the slot the element just recorded was linked into */
 static const int gauge_slots[2] = { -12, -16 };
 /* (the classic layer's kinds are the HUD layer's, by number) */
@@ -94,7 +95,9 @@ typedef char pc_hud_classic_kinds_agree[PC_CLASSIC_STATUS == PC_HUD_STATUS && PC
             && PC_CLASSIC_ITEMS_CATEGORY == PC_HUD_ITEMS_CATEGORY
             && PC_CLASSIC_ITEMS_STATUS_BUTTON == PC_HUD_ITEMS_STATUS_BUTTON && PC_CLASSIC_EQUIP_STATS == PC_HUD_EQUIP_STATS
             && PC_CLASSIC_DP_PP_BARS == PC_HUD_DP_PP_BARS && PC_CLASSIC_GEM_SLOTS == PC_HUD_GEM_SLOTS
-            && PC_CLASSIC_STAT_PAGE == PC_HUD_STAT_PAGE
+            && PC_CLASSIC_STAT_PAGE == PC_HUD_STAT_PAGE && PC_CLASSIC_OK_MARK == PC_HUD_OK_MARK
+            && PC_CLASSIC_STORAGE_BUTTONS == PC_HUD_STORAGE_BUTTONS && PC_CLASSIC_STORAGE_COUNTS == PC_HUD_STORAGE_COUNTS
+            && PC_CLASSIC_LOOT_CAPACITIES == PC_HUD_LOOT_CAPACITIES && PC_CLASSIC_DISCARD_COUNT == PC_HUD_DISCARD_COUNT
         ? 1
         : -1];
 
@@ -610,19 +613,26 @@ void pc_hud_target_marker(void* record, void* first, void* end)
 /* The screens each of the Items screen's own panels is claimed on (bits as above, by kind from PC_HUD_ITEMS_CATEGORY),
  * each where a tour covers it: 4 Items (MENU3) all six; 5 Status (MENU4), 13 Setup (MENUC) and 14 Storage (MENUD) the
  * C48.c panels (stats, DP / PP bars, table); 12 Loot (MENUB's Organize inventory: items0.h's icons, items1.h's status
- * views, its own copy of the STATUS strip, 260.c) all six; MENUD's own copy of the gem slots (234.c _gripNavigation). */
+ * views, its own copy of the STATUS strip, 260.c) all six; MENUD's own copy of the gem slots (234.c _gripNavigation)
+ * and of the category icons (234.c func_80103E24); a misc item's discard amount (items1.h, MENUD's copy). The other screens' own: the OK mark on 13 Setup (MENUC _drawOk) and
+ * 14 Storage (its top menu), Storage's button strip and counts (14), Loot's capacities strip (12). */
 #define PANEL_C48 (1u << 4 | 1u << 5 | 1u << 12 | 1u << 13 | 1u << 14)
 /* The screens BATTLE's hand (5BF94.c vs_battle_drawCursor, drawn as menu_cursor) is claimed on: 12 Loot (MENUB's Yes / No
  * and row menus), 13 Setup (MENUC's Yes / No). Not: Battle Abilities (MENU2), Data (MENU7), the rename grid (MENU8 from
  * Setup), the battle command list (the menu closed): untoured there. */
 #define BATTLE_CURSOR_SCREENS (1u << 12 | 1u << 13)
 static const unsigned short PANEL_SCREENS[PC_HUD_KINDS - PC_HUD_ITEMS_CATEGORY] = {
-    [PC_HUD_ITEMS_CATEGORY - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12,
+    [PC_HUD_ITEMS_CATEGORY - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12 | 1u << 14, /* (14: MENUD's copy, 234.c) */
     [PC_HUD_ITEMS_STATUS_BUTTON - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12,
     [PC_HUD_EQUIP_STATS - PC_HUD_ITEMS_CATEGORY] = PANEL_C48,
     [PC_HUD_DP_PP_BARS - PC_HUD_ITEMS_CATEGORY] = PANEL_C48,
     [PC_HUD_GEM_SLOTS - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12 | 1u << 14,
     [PC_HUD_STAT_PAGE - PC_HUD_ITEMS_CATEGORY] = PANEL_C48,
+    [PC_HUD_OK_MARK - PC_HUD_ITEMS_CATEGORY] = 1u << 13 | 1u << 14,     /* MENUC's _drawOk, MENUD's top menu */
+    [PC_HUD_STORAGE_BUTTONS - PC_HUD_ITEMS_CATEGORY] = 1u << 14,
+    [PC_HUD_STORAGE_COUNTS - PC_HUD_ITEMS_CATEGORY] = 1u << 14,
+    [PC_HUD_LOOT_CAPACITIES - PC_HUD_ITEMS_CATEGORY] = 1u << 12,
+    [PC_HUD_DISCARD_COUNT - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 14, /* items1.h on Items, MENUD's copy */
 };
 static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
 void pc_hud_menu(int kind, void* record, void* first, void* end)
@@ -688,9 +698,9 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
         if (kind == PC_HUD_ITEMS_CATEGORY) {
             const pc_classic_items_category* c = record;
             f->items_step = c->step, f->items_highlight = c->highlight, f->items_selected = c->selected;
-            f->items_on_row = c->on_row;
+            f->items_on_row = c->on_row, f->items_slot = c->slot;
             f->x = 32, f->y = c->step, f->w = 128, f->h = 16;
-            slots[0] = 0, slots[1] = unk8;
+            slots[0] = c->slot, slots[1] = unk8;
             nslots = 2;
         } else {
             const pc_classic_items_status_button* b = record;
@@ -698,6 +708,43 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
             f->x = 8 - b->row, f->y = 36, f->w = 96, f->h = 16;
             slots[0] = -12, slots[1] = unk8;
             nslots = 2;
+        }
+    } else if (kind >= PC_HUD_OK_MARK && kind <= PC_HUD_DISCARD_COUNT) { /* Setup's, Storage's and Loot's own */
+        static pc_hud_fields own[PC_HUD_DISCARD_COUNT - PC_HUD_OK_MARK + 1];
+        f = &own[kind - PC_HUD_OK_MARK];
+        *f = (pc_hud_fields) { 0 };
+        f->key = f;
+        slots[0] = unk8, slots[1] = -12;
+        nslots = 2;
+        if (kind == PC_HUD_OK_MARK) {
+            const pc_classic_ok_mark* o = record;
+            typedef char pc_hud_ok_agrees[sizeof f->ok == sizeof *o ? 1 : -1];
+            memcpy(&f->ok, o, sizeof f->ok);
+            f->x = o->x, f->y = o->y, f->w = 16, f->h = 8;
+            slots[0] = -12;
+            nslots = 1;
+        } else if (kind == PC_HUD_DISCARD_COUNT) {
+            const pc_classic_discard_count* q = record;
+            typedef char pc_hud_discard_agrees[sizeof f->discard == sizeof *q ? 1 : -1];
+            memcpy(&f->discard, q, sizeof f->discard);
+            f->x = q->x - 12, f->y = q->y, f->w = 18, f->h = 12;
+            nslots = 1;
+        } else if (kind == PC_HUD_STORAGE_BUTTONS) {
+            const pc_classic_storage_buttons* b = record;
+            typedef char pc_hud_storage_buttons_agree[sizeof f->storage_buttons == sizeof *b ? 1 : -1];
+            memcpy(&f->storage_buttons, b, sizeof f->storage_buttons);
+            f->x = b->x - 8, f->y = 36, f->w = 152, f->h = 28;
+        } else if (kind == PC_HUD_STORAGE_COUNTS) {
+            const pc_classic_storage_counts* c = record;
+            typedef char pc_hud_storage_counts_agree[sizeof f->storage_counts == sizeof *c ? 1 : -1];
+            memcpy(&f->storage_counts, c, sizeof f->storage_counts);
+            f->x = c->layout ? 32 : c->x, f->y = c->layout ? 88 : 76, f->w = c->layout ? 224 : 136, f->h = 96;
+            nslots = 1;
+        } else {
+            const pc_classic_loot_capacities* l = record;
+            typedef char pc_hud_loot_agrees[sizeof f->loot == sizeof *l ? 1 : -1];
+            memcpy(&f->loot, l, sizeof f->loot);
+            f->x = l->x + 176, f->y = 12, f->w = 136, f->h = 128;
         }
     } else if (kind == PC_HUD_OPTION_VALUE) { /* our Option pages' value column (classic_options.c) */
         static pc_hud_fields values[16];

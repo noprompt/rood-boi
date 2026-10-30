@@ -371,7 +371,8 @@ local function make_look()
     -- The Items screen's own panels (MENU3). The category icons (items0.h _renderItemCategory): eight 16 x 16 icons
     -- from x = left + ((i + 1) % 8) * gap (the Manage page's first), at the loop's step (y); the selected one in
     -- `lit` CLUT, the others `dim`; with the highlight on, the selected one raised to `raised_y` (unk8) or handed to
-    -- row 31 (drawn by it). Their texels from u = u0 + i * 16, v.
+    -- row 31 (drawn by it). Their texels from u = u0 + i * 16, v. (Storage draws its own copy: the same, the dim
+    -- icons in its slot, e.items.slot.)
     items_category = {
       place = { anchor = "game", dx = 0, dy = 0 },
       left = 32, gap = 16, raised_y = 16, u0 = 120, v = 128, cluts = { lit = 976, dim = 992 },
@@ -435,6 +436,52 @@ local function make_look()
       window = { 16, 38, 88, 10 }, button = { 8, 36 }, word = { "STATUS", 28, 38 }, colour = 0x202020,
       sprite = { page_x = 768, page_y = 0, bits = 4, u = 16, v = 128, w = 16, h = 16, clut_x = 944, clut_y = 223,
         bgr = 0x808080 },
+    },
+    -- The OK mark beside a menu's last choice (MENUC _drawOk: Setup's Assemble, Gems, Combine; MENUD's top menu): the
+    -- word at the game's place, in the grey of its pulse (`grey` times the level the game steps), in `layer`.
+    ok_mark = { place = { anchor = "game", dx = 0, dy = 0 }, word = "OK", grey = 0x010101, layer = -12 },
+    -- A misc item's discard amount (items1.h _discardMenu's picker, MENUD's copy): its three digits in the text boxes'
+    -- font (`style`), right to left from the game's place, `step` apart, in the slot after unk8 (the printer's own).
+    discard_count = { place = { anchor = "game", dx = 0, dy = 0 }, style = 5, step = 6 },
+    -- The buttons' 16 x 16 sprites (vs_mainmenu_renderButton: texels at u by the button, v 128; the CLUT at 944).
+    buttons = { u = { triangle = 0, square = 16, circle = 32, cross = 48 },
+      sprite = { page_x = 768, page_y = 0, bits = 4, u = 0, v = 128, w = 16, h = 16, clut_x = 944, clut_y = 223,
+        bgr = 0x808080 } },
+    -- Storage's (MENUD) button strip, sliding in by x: two button windows (`windows`: x offset, y, w, h; in
+    -- `window_layer`), the buttons (`buttons`: which, x offset, y) and the words (`words`: text, x offset, y, colour
+    -- and how the state lights it: STATUS `colour << (state & 3)`, END `colour >> (state >> 2)`).
+    storage_buttons = {
+      place = { anchor = "game", dx = 0, dy = 0 }, window_layer = -12,
+      windows = { { 0, 0x26, 0x90, 0xA }, { 0, 0x36, 0x48, 0xA } },
+      buttons = { { "square", -8, 0x24 }, { "triangle", 0x40, 0x24 }, { "cross", -8, 0x34 } },
+      words = { { "STATUS", 12, 0x26, 0x202020, "lit" }, { "CANCEL", 12 + 0x48, 0x26, 0x808080 },
+        { "END", 12, 0x36, 0x808080, "dim" } },
+    },
+    -- Storage's counts (func_80106464: "capacity" right-aligned at x, "/" 32 left, the count 32 left of it, `low`
+    -- when under half full). The strip's (layout 0): the bag's or the container's name at (x, name_y), each
+    -- category's name (`categories`, from x + name_x) and its counts (x + count_x), `line` apart from `top`, the
+    -- last row the transfer list's. The top menu's (layout 1): `heads` at `head_x`, `head_y`; per category the bag's
+    -- counts (column 1), the name centred (`$`) at `name_x` and the container's counts (column 2), from `top`.
+    storage_counts = {
+      place = { anchor = "game", dx = 0, dy = 0 }, colour = 0x808080, low = 0x804020, slash = "/", slash_dx = -0x20,
+      strip = { names = { [0] = "GADGET BAG", "CONTAINER" }, name_y = 0x4C, top = 0x58, line = 12, name_x = 8,
+        count_x = 0x70, categories = { "WEAPON", "BLADE", "GRIP", "SHIELD", "ARMOR", "GEM", "MISC" } },
+      summary = { heads = { "GADGET BAG", "CONTAINER" }, head_x = { 0x3A, 0xBA }, head_y = 0x58, top = 0x64, line = 12,
+        columns = { 0x70, 0xF8 }, name_x = 0xA0,
+        categories = { "$WEAPON", "$BLADE", "$GRIP", "$SHIELD", "$ARMOR", "$GEM", "$MISC" } },
+    },
+    -- Loot's (MENUB) capacities strip, sliding in by x: GADGET BAG, then per category (`line` apart from `top`) its
+    -- name, "/" and the bag's capacity and count, grey (`colour`), dimmed (`dim`, lit `<< 1`) for the categories the
+    -- row looked at does not touch; a count under half its capacity `low`, one the item would overflow `over`. Then
+    -- the windows and the GET / ALL / END buttons and words (lit by the controls; ALL by ALL's state too).
+    loot_capacities = {
+      place = { anchor = "game", dx = 0, dy = 0 }, colour = 0x808080, dim = 0x404040, low = 0x804020,
+      over = 0x204080, window_layer = -12, head = { "GADGET BAG", 176, 12 }, top = 24, line = 12,
+      name_x = 192, slash_x = 272, capacity_x = 296, count_x = 272, slash = "/",
+      categories = { "WEAPON", "BLADE", "GRIP", "SHIELD", "ARMOR", "GEM", "MISC" },
+      windows = { { 184, 112, 112, 10 }, { 184, 128, 64, 10 } },
+      words = { { "GET", 196, 112, "circle", 176, 110 }, { "ALL", 252, 112, "square", 232, 110, "all" },
+        { "END", 196, 128, "cross", 176, 126 } },
     },
     -- How ui_text sets both (with ui_text font; the packets stay the game's): the status style,
     -- typeset as one word centred where the game centres it.
@@ -1102,7 +1149,7 @@ M.draw.items_category = function(e, d)
         d.sprite(x + dx, c.raised_y + dy, s)
       end
     else
-      d.layer(0)
+      d.layer(it.slot)
       d.sprite(x + dx, it.step + dy, s)
     end
   end
@@ -1342,11 +1389,143 @@ M.draw.items_status_button = function(e, d)
   d.button_background(w[1] - row + dx, w[2] + dy, w[3], w[4])
 end
 
+-- The screens' own strips: each game call recorded in its order (op: its kind, layer, arguments), then made last
+-- to first (each links at its slot's head).
+local strip_ops, strip_n = {}, 0
+local function strip_op(kind, layer, a, b, c, w, x)
+  strip_n = strip_n + 1
+  local o = strip_ops[strip_n]
+  if not o then o = {} strip_ops[strip_n] = o end
+  o[1], o[2], o[3], o[4], o[5], o[6], o[7] = kind, layer, a, b, c, w, x
+end
+local function strip_flush(d)
+  local sprite, u = look.buttons.sprite, look.buttons.u
+  for i = strip_n, 1, -1 do
+    local o = strip_ops[i]
+    local k = o[1]
+    if o[2] then d.layer(o[2]) else d.layer("unk8") end
+    if k == "text" then d.text_raw(o[3], o[4], o[5], o[6])
+    elseif k == "int" then d.menu_int(o[3], o[4], o[5], o[6])
+    elseif k == "window" then d.button_background(o[3], o[4], o[5], o[6])
+    elseif k == "button" then sprite.u = u[o[3]] d.sprite(o[4], o[5], sprite)
+    end
+  end
+  strip_n = 0
+end
+local function s16(v) v = v & 0xFFFF return v >= 0x8000 and v - 0x10000 or v end
+
+-- ok_mark: the word in its pulse's grey.
+M.draw.ok_mark = function(e, d)
+  local c, o = look.ok_mark, e.ok
+  d.anchor(c.place.anchor)
+  d.layer(c.layer)
+  d.text_raw(c.word, o.x + c.place.dx, o.y + c.place.dy, o.level * c.grey)
+end
+
+-- discard_count: the units, tens and hundreds as the game splits them (vs_battle_toBCD twice), made last to first.
+local function to_bcd(v) return v % 10 | (v // 10) * 16 end
+local digit_chars = {} -- (the menu charset's digits: codes 0..9, vs_encode's "0".."9")
+for i = 0, 9 do digit_chars[i] = tostring(i) end
+M.draw.discard_count = function(e, d)
+  local c, q = look.discard_count, e.discard
+  local x, y = q.x + c.place.dx, q.y + c.place.dy
+  local b = to_bcd(q.count)
+  local units = b & 0xF
+  b = to_bcd(b >> 4)
+  d.anchor(c.place.anchor)
+  d.layer("unk8")
+  d.font_text(digit_chars[b >> 4], x - 2 * c.step, y, c.style)
+  d.font_text(digit_chars[b & 0xF], x - c.step, y, c.style)
+  d.font_text(digit_chars[units], x, y, c.style)
+end
+
+-- storage_buttons: the windows, the buttons, the words (the game's packed places: STATUS / END at (x + 12) as 16
+-- bits, CANCEL 0x48 further, its carry into y kept).
+M.draw.storage_buttons = function(e, d)
+  local c, b = look.storage_buttons, e.storage
+  local dx, dy, x = c.place.dx, c.place.dy, e.storage.x
+  d.anchor(c.place.anchor)
+  for _, w in ipairs(c.windows) do strip_op("window", c.window_layer, x + w[1] + dx, w[2] + dy, w[3], w[4]) end
+  for _, t in ipairs(c.buttons) do strip_op("button", nil, t[1], x + t[2] + dx, t[3] + dy) end
+  for _, t in ipairs(c.words) do
+    local p = ((x + 12) & 0xFFFF) + (t[2] - 12)
+    local word = t[5] == "lit" and t[4] << (b.state & 3) or t[5] == "dim" and t[4] >> (b.state >> 2) or t[4]
+    strip_op("text", nil, t[1], s16(p) + dx, (t[3] | (p >> 16)) + dy, word)
+  end
+  strip_flush(d)
+end
+
+-- storage_counts: func_80106464's calls (capacity, "/", count) at a packed place, and the names.
+local function counts(d, c, capacity, count, x, y)
+  strip_op("int", nil, capacity, x, y, c.colour)
+  local sx, sy = d.xy(x, y, c.slash_dx)
+  strip_op("text", nil, c.slash, sx, sy, c.colour)
+  strip_op("int", nil, count, sx, sy, count * 2 < capacity and c.low or c.colour)
+end
+M.draw.storage_counts = function(e, d)
+  local c, t = look.storage_counts, e.storage
+  local dx, dy = c.place.dx, c.place.dy
+  d.anchor(c.place.anchor)
+  if t.layout == 0 then
+    local s, x = c.strip, t.x
+    local nx, ny = d.xy(dx, s.name_y + dy, x)
+    strip_op("text", nil, s.names[t.container], nx, ny, c.colour)
+    for i = 1, 7 do
+      local y = s.top + (i - 1) * s.line + dy
+      local tx, ty = d.xy(dx, y, s.name_x + x)
+      strip_op("text", nil, s.categories[i], tx, ty, c.colour)
+      local cx, cy = d.xy(s.count_x + dx, y, x)
+      counts(d, c, t.capacity[1][i], t.count[1][i], cx, cy)
+    end
+  else
+    local s = c.summary
+    for i = 1, 2 do strip_op("text", nil, s.heads[i], s.head_x[i] + dx, s.head_y + dy, c.colour) end
+    for i = 1, 7 do
+      local y = s.top + (i - 1) * s.line + dy
+      counts(d, c, t.capacity[1][i], t.count[1][i], s.columns[1] + dx, y)
+      strip_op("text", nil, s.categories[i], s.name_x + dx, y, c.colour)
+      counts(d, c, t.capacity[2][i], t.count[2][i], s.columns[2] + dx, y)
+    end
+  end
+  strip_flush(d)
+end
+
+-- loot_capacities: _displayInventoryCapacities' calls.
+M.draw.loot_capacities = function(e, d)
+  local c, l = look.loot_capacities, e.loot
+  local x, dy = l.x + c.place.dx, c.place.dy
+  d.anchor(c.place.anchor)
+  strip_op("text", nil, c.head[1], x + c.head[2], c.head[3] + dy, c.colour)
+  for i = 1, 7 do
+    local colour, capacity, count = c.colour, l.capacity[i], l.count[i]
+    if l.looking ~= 0 then
+      colour = c.dim << ((l.looking == 1 or l.incoming[i] ~= 0) and 1 or 0)
+    end
+    local y = c.top + (i - 1) * c.line + dy
+    strip_op("text", nil, c.slash, x + c.slash_x, y, colour)
+    strip_op("text", nil, c.categories[i], x + c.name_x, y, colour)
+    strip_op("int", nil, capacity, x + c.capacity_x, y, colour)
+    if colour >> 23 ~= 0 then
+      if count * 2 < capacity then colour = c.low end
+      if l.looking == 2 and capacity < l.incoming[i] + count then colour = c.over end
+    end
+    strip_op("int", nil, count, x + c.count_x, y, colour)
+  end
+  for _, w in ipairs(c.windows) do strip_op("window", c.window_layer, x + w[1], w[2] + dy, w[3], w[4]) end
+  for _, w in ipairs(c.words) do
+    local lit = w[7] == "all" and (l.all and (l.controls & 1) or 0) or l.controls
+    strip_op("text", nil, w[1], x + w[2], w[3] + dy, c.dim << lit)
+    strip_op("button", nil, w[4], x + w[5], w[6] + dy)
+  end
+  strip_flush(d)
+end
+
 for _, kind in ipairs({ "status", "chain", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "buff",
                         "damage", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image",
                         "target_row", "target_line", "target_marker", "menu_row", "menu_cursor", "menu_command",
                         "menu_tabs", "menu_background", "option_value", "items_category", "items_status_button", "equip_stats",
-                        "dp_pp_bars", "gem_slots", "stat_page" }) do
+                        "dp_pp_bars", "gem_slots", "stat_page", "ok_mark", "storage_buttons",
+                        "storage_counts", "loot_capacities", "discard_count" }) do
   rood.hud.claim(kind, function(e, d) return M.draw[kind](e, d) end, { flavour = "classic" })
 end
 

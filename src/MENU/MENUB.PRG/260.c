@@ -965,6 +965,23 @@ void _displayInventoryCapacities(int edgeX)
         }
     }
 
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the capacities strip, from its slide, the controls,
+     * the row looked at, ALL's state and per category what the calls read (copied). */
+    {
+        pc_classic_loot_capacities pcLoot = { edgeX, _controlsEnabled,
+            item == NULL                ? 0
+            : item == (_lootListItem*)1 ? 1
+                                        : 2,
+            var_fp };
+        for (i = 0; i < 7; ++i) {
+            pcLoot.capacity[i] = vs_mainMenu_inventoryItemCapacities[i];
+            pcLoot.count[i] = vs_mainMenu_getItemCount(i, NULL);
+            pcLoot.incoming[i] =
+                pcLoot.looking == 2 ? _itemIncludesItemsInCategory(i, item) : 0;
+        }
+        PC_CLASSIC(PC_CLASSIC_SITE_LOOT_CAPACITIES, &pcLoot, 0, 0, {
+#endif
     vs_battle_renderTextRaw("GADGET BAG", (edgeX + 176) | (12 << 16), NULL);
 
     itemCountPos = edgeX + 272;
@@ -1030,6 +1047,10 @@ void _displayInventoryCapacities(int edgeX)
     vs_battle_renderTextRawColor("END", (edgeX + 196) | (128 << 16),
         vs_getRGB(64, 64, 64) << _controlsEnabled, NULL);
     vs_mainmenu_renderButton(buttonIdCross, edgeX + 176, 126, NULL);
+#ifdef ROOD_PC
+        });
+    }
+#endif
 }
 
 static int _droppableUnderCurrentDifficulty(int arg0)

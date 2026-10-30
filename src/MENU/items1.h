@@ -1185,6 +1185,23 @@ static int _sortItems(int initItemCategory)
     return 0;
 }
 
+#ifdef ROOD_PC
+/* PC_CLASSIC (classic_hook.h) around the amount's digits below, from the count: the site
+ * called by hand through these one-line macros (the function is a vsstring region, which
+ * rewrites the strings of the preprocessed text: a directive or a macro over lines there
+ * leaves a line marker whose file name it would rewrite). Nothing in the PS1 build. */
+#define PC_DISCARD_COUNT_BEGIN(count)                                                            \
+    pc_classic_discard_count pcDiscard = { (count), 66, 130 };                                   \
+    void* pcDiscardFirst = psx_load(void*, (u_int*)0x1F800000);
+#define PC_DISCARD_COUNT_END()                                                                   \
+    if (pc_classic_site)                                                                         \
+        pc_classic_site(PC_CLASSIC_SITE_DISCARD_COUNT, &pcDiscard, 0, 0, pcDiscardFirst,         \
+            psx_load(void*, (u_int*)0x1F800000));
+#else
+#define PC_DISCARD_COUNT_BEGIN(count)
+#define PC_DISCARD_COUNT_END()
+#endif
+
 /**
  * Sets up and processes discarding one or more items.
  *
@@ -1421,6 +1438,7 @@ static int _discardMenu(int params)
 
         vs_battle_setFontStyle(5);
 
+        PC_DISCARD_COUNT_BEGIN(discardCount)
         i = vs_battle_toBCD(discardCount);
         vs_battle_printVariableWidthFontChar(
             i & 0xF, 66, 130, psx_get(vs_scratch.unk8) - 12);
@@ -1429,6 +1447,7 @@ static int _discardMenu(int params)
             i & 0xF, 60, 130, psx_get(vs_scratch.unk8) - 12);
         vs_battle_printVariableWidthFontChar(
             i >> 4, 54, 130, psx_get(vs_scratch.unk8) - 12);
+        PC_DISCARD_COUNT_END()
 
         cursorBrightness = vs_mainMenu_renderCursor(
             cursorBrightness, (54 - (discardStep * 6)) | (114 << 16));

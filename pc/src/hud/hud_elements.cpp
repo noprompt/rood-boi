@@ -46,6 +46,11 @@ int pc_hud_classic_items_category = 1, pc_hud_classic_items_status_button = 1;
 int pc_hud_classic_equip_stats = 1, pc_hud_classic_dp_pp_bars = 1, pc_hud_classic_gem_slots = 1;
 // The class / affinity / type table (C48.c _renderStatPage) as Items draws it.
 int pc_hud_classic_stat_page = 1;
+// Setup's and Storage's OK mark, Storage's button strip and counts, Loot's capacities strip: on (their tours are green).
+int pc_hud_classic_ok_mark = 1, pc_hud_classic_storage_buttons = 1, pc_hud_classic_storage_counts = 1;
+int pc_hud_classic_loot_capacities = 1;
+// A misc item's discard amount (Items, Storage): on (their tours are green).
+int pc_hud_classic_discard_count = 1;
 int pc_hud_classic_default(int kind)
 {
     switch (kind) {
@@ -80,6 +85,11 @@ int pc_hud_classic_default(int kind)
     case PC_HUD_DP_PP_BARS: return pc_hud_classic_dp_pp_bars != 0;
     case PC_HUD_GEM_SLOTS: return pc_hud_classic_gem_slots != 0;
     case PC_HUD_STAT_PAGE: return pc_hud_classic_stat_page != 0;
+    case PC_HUD_OK_MARK: return pc_hud_classic_ok_mark != 0;
+    case PC_HUD_STORAGE_BUTTONS: return pc_hud_classic_storage_buttons != 0;
+    case PC_HUD_STORAGE_COUNTS: return pc_hud_classic_storage_counts != 0;
+    case PC_HUD_LOOT_CAPACITIES: return pc_hud_classic_loot_capacities != 0;
+    case PC_HUD_DISCARD_COUNT: return pc_hud_classic_discard_count != 0;
     }
     return 0;
 }
@@ -111,7 +121,7 @@ Hold holds[PC_HUD_KINDS];
 
 const char* const KINDS[PC_HUD_KINDS] = { "", "status", "chain", "buff", "damage", "travel", "notice",
     "name_window", "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker",
-    "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value", "items_category", "items_status_button", "equip_stats", "dp_pp_bars", "gem_slots", "stat_page" };
+    "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value", "items_category", "items_status_button", "equip_stats", "dp_pp_bars", "gem_slots", "stat_page", "ok_mark", "storage_buttons", "storage_counts", "loot_capacities", "discard_count" };
 const char* const TIMINGS[] = { "too_fast", "fast", "success", "slow", "too_slow" };
 // BATTLE.PRG func_800958A4's words and colours (PS1 BGR, 0x80 full).
 const char* const TIMING_WORDS[] = { "TOO FAST!", "FAST!", "", "SLOW!", "TOO SLOW!" };
@@ -149,7 +159,9 @@ bool single(int kind)
         || kind == PC_HUD_TIMER || kind == PC_HUD_TARGET_MARKER || kind == PC_HUD_MENU_BACKGROUND
         || kind == PC_HUD_MENU_COMMAND || kind == PC_HUD_MENU_CURSOR || kind == PC_HUD_MENU_TABS
         || kind == PC_HUD_ITEMS_CATEGORY || kind == PC_HUD_ITEMS_STATUS_BUTTON || kind == PC_HUD_EQUIP_STATS
-        || kind == PC_HUD_DP_PP_BARS || kind == PC_HUD_GEM_SLOTS || kind == PC_HUD_STAT_PAGE;
+        || kind == PC_HUD_DP_PP_BARS || kind == PC_HUD_GEM_SLOTS || kind == PC_HUD_STAT_PAGE || kind == PC_HUD_OK_MARK
+        || kind == PC_HUD_STORAGE_BUTTONS || kind == PC_HUD_STORAGE_COUNTS || kind == PC_HUD_LOOT_CAPACITIES
+        || kind == PC_HUD_DISCARD_COUNT;
 }
 
 Appearance appeared[64];

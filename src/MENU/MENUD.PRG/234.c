@@ -713,6 +713,20 @@ void func_80103E24(int arg0, int arg1)
     }
 
     arg0 = (arg0 * 8) - 16;
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the eight category icons (items0.h's loop, copied
+     * here: the dim ones in unk4 - 12), from the step, the highlight and the selected
+     * category (on_row: the one the loop hands to row 31 instead, by its test). */
+    {
+        pc_classic_items_category pcCategory = { arg0, arg1, temp_s4,
+            arg1 == 1
+                    && (((temp_s4 + 1) & 7) * 0x10) + 0x20
+                           >= vs_battle_getMenuItem(0x1F)->x - 0xC
+                ? temp_s4
+                : -1,
+            -12 };
+        PC_CLASSIC(PC_CLASSIC_SITE_ITEMS_CATEGORY, &pcCategory, 0, 0, {
+#endif
 
     for (i = 0; i < 8; ++i) {
 
@@ -733,6 +747,10 @@ void func_80103E24(int arg0, int arg1)
 
         var_v1[4] = (0x78 + i * 0x10) | 0x8000 | (i == temp_s4 ? 0x37FD0000 : 0x37FE0000);
     }
+#ifdef ROOD_PC
+        });
+    }
+#endif
 }
 
 void func_80103F64(int arg0)
@@ -1889,6 +1907,13 @@ int _discardMenu(int arg0)
             vs_battle_playMenuChangeSfx();
         }
         vs_battle_setFontStyle(5);
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the amount's digits (items1.h's, copied here),
+         * from the count. */
+        {
+            pc_classic_discard_count pcDiscard = { discardCount, 0x42, 0x82 };
+            PC_CLASSIC(PC_CLASSIC_SITE_DISCARD_COUNT, &pcDiscard, 0, 0, {
+#endif
         temp_v0_7 = vs_battle_toBCD(discardCount);
         vs_battle_printVariableWidthFontChar(
             temp_v0_7 & 0xF, 0x42, 0x82, psx_get(vs_scratch.unk8) - 0xC);
@@ -1897,6 +1922,10 @@ int _discardMenu(int arg0)
             temp_v0_7 & 0xF, 0x3C, 0x82, psx_get(vs_scratch.unk8) - 0xC);
         vs_battle_printVariableWidthFontChar(
             temp_v0_7 >> 4, 0x36, 0x82, psx_get(vs_scratch.unk8) - 0xC);
+#ifdef ROOD_PC
+            });
+        }
+#endif
         D_80109A07 =
             vs_mainMenu_renderCursor(D_80109A07, (0x36 - (discardStep * 6)) | 0x720000);
         break;
@@ -1961,6 +1990,20 @@ void func_80106504(void)
 {
     int i;
     int var_s1_2;
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the bag's and the container's counts, from the
+     * capacities and the counts (copied as the calls read them). */
+    pc_classic_storage_counts pcCounts = { 1 };
+    for (i = 0; i < 7; ++i) {
+        pcCounts.capacity[0][i] = vs_mainMenu_inventoryItemCapacities[i];
+        pcCounts.count[0][i] =
+            _countContainerItems(i, &vs_menu_inventoryStorage->unk105B0.data);
+        pcCounts.capacity[1][i] = _containerItemCapacities[i];
+        pcCounts.count[1][i] =
+            _countContainerItems(i, &vs_menu_inventoryStorage->unkC430.data);
+    }
+    PC_CLASSIC(PC_CLASSIC_SITE_STORAGE_COUNTS, &pcCounts, 0, 0, {
+#endif
 
     for (i = 0; i < 2; ++i) {
         vs_battle_renderTextRaw(D_80109A08[i], (0x3A + i * 0x80) | 0x580000, NULL);
@@ -1974,6 +2017,9 @@ void func_80106504(void)
         func_80106464(_containerItemCapacities[i], ((0x64 + 0xC * i) << 16) | 0xF8,
             _countContainerItems(i, &vs_menu_inventoryStorage->unkC430.data));
     }
+#ifdef ROOD_PC
+    });
+#endif
 }
 
 int _getWeaponsubItemCount(int arg0)
@@ -3112,9 +3158,20 @@ int func_801089BC(int arg0)
             return var_s1 + 1;
         }
         D_80109A2C += 16;
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the OK mark, from its place and level. */
+        {
+            pc_classic_ok_mark pcOk = { 0xC8, 0x42,
+                (rsin((D_80109A2C) * 8) >> 5) + 0x40 };
+            PC_CLASSIC(PC_CLASSIC_SITE_OK_MARK, &pcOk, 0, 0, {
+#endif
         vs_battle_renderTextRawColor("OK", 0x4200C8,
             ((rsin((D_80109A2C) * 8) >> 5) + 0x40) * 0x10101,
             psx_get(vs_scratch.unk4) - 0xC);
+#ifdef ROOD_PC
+            });
+        }
+#endif
         v = 0x1A;
         D_80109A2D = vs_mainMenu_renderCursor(
             D_80109A2D, (((var_s1 * 0x10) - (((var_s1 * 2) & 4) - v)) << 0x10) | 0xB4);
@@ -3317,6 +3374,12 @@ int vs_menuD_exec(u_char* arg0)
     if (D_80109A80 != 0) {
         int s3;
         i = 0x10 - i;
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the button strip, from its slide and state. */
+        {
+            pc_classic_storage_buttons pcButtons = { i, D_80109A7D };
+            PC_CLASSIC(PC_CLASSIC_SITE_STORAGE_BUTTONS, &pcButtons, 0, 0, {
+#endif
         vs_mainmenu_renderButtonBackground(i, 0x26, 0x90, 0xA);
         vs_mainmenu_renderButtonBackground(i, 0x36, 0x48, 0xA);
         temp_s0 = i - 8;
@@ -3329,6 +3392,10 @@ int vs_menuD_exec(u_char* arg0)
         vs_battle_renderTextRaw("CANCEL", (s3 + 0x48) | 0x260000, NULL);
         vs_battle_renderTextRawColor(
             "END", s3 | 0x360000, 0x808080 >> (D_80109A7D >> 2), NULL);
+#ifdef ROOD_PC
+            });
+        }
+#endif
 
         if ((D_80109A7D >> 2) != 0) {
             if (D_80109A79 < 0xAU) {
@@ -3343,6 +3410,23 @@ int vs_menuD_exec(u_char* arg0)
         }
 
         i -= var_v0;
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the bag's or the container's counts, from the
+         * slide, which, the capacities and the counts (copied as the calls read them). */
+        {
+            pc_classic_storage_counts pcCounts = { 0, i, D_80109A7A };
+            for (s3 = 0; s3 < 6; ++s3) {
+                pcCounts.capacity[0][s3] = D_80109A7A != 0
+                                             ? _containerItemCapacities[s3]
+                                             : vs_mainMenu_inventoryItemCapacities[s3];
+                pcCounts.count[0][s3] =
+                    _countContainerItems(s3, &D_80109A88->data)
+                    + _countContainerItems(s3, &vs_menu_inventoryStorage->unk87B0);
+            }
+            pcCounts.capacity[0][6] = D_80109A7A != 0 ? 0x100 : 0x40;
+            pcCounts.count[0][6] = D_80109A82;
+            PC_CLASSIC(PC_CLASSIC_SITE_STORAGE_COUNTS, &pcCounts, 0, 0, {
+#endif
         vs_battle_renderTextRaw(D_80109A08[D_80109A7A], vs_getXY_4(i, 0x4C), NULL);
         s3 = 0;
         var_s6 = vs_getXY_4(0x70, 0x58);
@@ -3365,6 +3449,10 @@ int vs_menuD_exec(u_char* arg0)
             var_s6 += vs_getXY_4(0, 12);
         }
         func_80106464(D_80109A7A != 0 ? 0x100 : 0x40, i + 0xA00070, D_80109A82);
+#ifdef ROOD_PC
+            });
+        }
+#endif
     }
     return 0;
 }

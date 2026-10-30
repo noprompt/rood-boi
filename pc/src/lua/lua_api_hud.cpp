@@ -1800,7 +1800,7 @@ void fill_menu(lua_State* L, const pc_hud_fields& f)
     int k = f.kind;
     // ("fade" is target_row's too: nil for the other kinds by its block, above)
     static const char* const keys[] = { "brightness", "ot_slot", "buffer", "action", "color", "mode", "lit", "row",
-        "option", "items", "equip", "bars", "gems", "page" };
+        "option", "items", "equip", "bars", "gems", "page", "ok", "storage", "loot", "discard" };
     for (const char* key : keys)
         set_nil(L, key);
     if (k == PC_HUD_MENU_BACKGROUND) {
@@ -1874,8 +1874,9 @@ void fill_menu(lua_State* L, const pc_hud_fields& f)
         lock_table(L);
         lua_setfield(L, -2, "option");
     } else if (k == PC_HUD_ITEMS_CATEGORY) { // Items' category icons: what the loop draws them from
-        lua_createtable(L, 0, 4);
+        lua_createtable(L, 0, 5);
         set_int(L, "step", f.items_step);
+        set_int(L, "slot", f.items_slot);
         set_bool(L, "highlight", f.items_highlight == 1);
         set_int(L, "selected", f.items_selected);
         set_int(L, "on_row", f.items_on_row);
@@ -1937,6 +1938,66 @@ void fill_menu(lua_State* L, const pc_hud_fields& f)
         set_int(L, "count", f.gem_count);
         lock_table(L);
         lua_setfield(L, -2, "gems");
+    } else if (k == PC_HUD_OK_MARK) { // the OK mark: its place and level
+        lua_createtable(L, 0, 3);
+        set_int(L, "x", f.ok.x);
+        set_int(L, "y", f.ok.y);
+        set_int(L, "level", f.ok.level);
+        lock_table(L);
+        lua_setfield(L, -2, "ok");
+    } else if (k == PC_HUD_DISCARD_COUNT) { // a misc item's discard amount: the count, the units' place
+        lua_createtable(L, 0, 3);
+        set_int(L, "count", f.discard.count);
+        set_int(L, "x", f.discard.x);
+        set_int(L, "y", f.discard.y);
+        lock_table(L);
+        lua_setfield(L, -2, "discard");
+    } else if (k == PC_HUD_STORAGE_BUTTONS) { // Storage's button strip: its slide and state
+        lua_createtable(L, 0, 2);
+        set_int(L, "x", f.storage_buttons.x);
+        set_int(L, "state", f.storage_buttons.state);
+        lock_table(L);
+        lua_setfield(L, -2, "storage");
+    } else if (k == PC_HUD_STORAGE_COUNTS) { // Storage's counts: the layout, the slide, the columns (1-based)
+        const auto& c = f.storage_counts;
+        lua_createtable(L, 0, 5);
+        set_int(L, "layout", c.layout);
+        set_int(L, "x", c.x);
+        set_int(L, "container", c.container);
+        for (int which = 0; which < 2; ++which) {
+            lua_createtable(L, 2, 0);
+            for (int col = 0; col < 2; ++col) {
+                lua_createtable(L, 7, 0);
+                for (int i = 0; i < 7; ++i) {
+                    lua_pushinteger(L, which ? c.count[col][i] : c.capacity[col][i]);
+                    lua_rawseti(L, -2, i + 1);
+                }
+                lua_rawseti(L, -2, col + 1);
+            }
+            lua_setfield(L, -2, which ? "count" : "capacity");
+        }
+        lock_table(L);
+        lua_setfield(L, -2, "storage");
+    } else if (k == PC_HUD_LOOT_CAPACITIES) { // Loot's capacities strip: what _displayInventoryCapacities reads
+        const auto& l = f.loot;
+        auto seven = [&](const char* key, const int* v) {
+            lua_createtable(L, 7, 0);
+            for (int i = 0; i < 7; ++i) {
+                lua_pushinteger(L, v[i]);
+                lua_rawseti(L, -2, i + 1);
+            }
+            lua_setfield(L, -2, key);
+        };
+        lua_createtable(L, 0, 7);
+        set_int(L, "x", l.x);
+        set_int(L, "controls", l.controls);
+        set_int(L, "looking", l.looking);
+        set_bool(L, "all", l.all != 0);
+        seven("capacity", l.capacity);
+        seven("count", l.count);
+        seven("incoming", l.incoming);
+        lock_table(L);
+        lua_setfield(L, -2, "loot");
     } else if (k == PC_HUD_ITEMS_STATUS_BUTTON) { // Items' STATUS strip: its slide and state
         lua_createtable(L, 0, 2);
         set_int(L, "row", f.items_step);

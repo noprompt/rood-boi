@@ -44,6 +44,11 @@ Read this first, then the plan the task names (`pc/docs/plans/...`) and its late
     main checkout's with `-v`.
   - The formatter rewrites unrelated files (`5BF94.c`, `58EC.c` are known): discard those, keep
     its changes to the lines you wrote.
+- Inside a `#pragma vsstring` region the string transformer also rewrites line markers, so a
+  multi-line `#ifdef` block or macro there breaks both builds ("invalid #line"): define one-line
+  hook macros above the function (empty on the PS1 build) and use those inside it.
+- Check a build by its summary, not by grepping for "error": `build_boot.py` reports
+  "units failed to compile".
 - The toolchain is GCC 16 (C23 by default): the game compiles as `-std=gnu17` (`-fpermissive` on
   GCC 14+); declare what you call.
 
