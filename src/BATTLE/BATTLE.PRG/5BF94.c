@@ -4671,9 +4671,19 @@ void vs_battle_insertTpage(int tpage, u_long* before)
 
 int vs_battle_drawCursor(int animStep, int position)
 {
+#ifdef ROOD_PC
+    /* PC_CLASSIC (classic_hook.h): the hand, as MAINMENU's (vs_mainMenu_renderCursor's
+     * packets, colour 0), from its step and place; `battle` marks this caller. */
+    pc_classic_menu_cursor pcCursor = { animStep,
+        (((position * 0x10) + 0xA) << 0x10) | 0xB4, 0, 1 };
+    PC_CLASSIC(PC_CLASSIC_SITE_MENU_CURSOR, &pcCursor, 0, 0, {
+#endif
     vs_battle_setSpriteDefaultTexPage(vs_battle_cursorBrightnessAnimation[animStep],
         (((position * 0x10) + 0xA) << 0x10) | 0xB4, 0x100010,
         psx_get(vs_scratch.unk8))[4] = 0x37F83020;
+#ifdef ROOD_PC
+    });
+#endif
     return (animStep + 1) & 0xF;
 }
 

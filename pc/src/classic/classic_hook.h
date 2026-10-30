@@ -83,7 +83,10 @@ typedef struct {
     unsigned char item[0x40];
 } pc_classic_menu_row;
 #define PC_CLASSIC_SITE_MENU_ROW 25
-typedef struct { int step, xy, color; } pc_classic_menu_cursor;
+/* The hand: MAINMENU's (58EC.c vs_mainMenu_renderCursor) or BATTLE's (5BF94.c vs_battle_drawCursor: the same packets,
+ * colour 0; `battle` 1), the Yes / No and small menus of Setup (MENUC), Loot (MENUB), Data (MENU7), Battle Abilities
+ * (MENU2), the rename grid (MENU8) and the battle command list use. */
+typedef struct { int step, xy, color, battle; } pc_classic_menu_cursor;
 #define PC_CLASSIC_SITE_MENU_CURSOR 26
 typedef struct { int mode, step, lit; } pc_classic_menu_tabs;
 #define PC_CLASSIC_SITE_MENU_TABS 27

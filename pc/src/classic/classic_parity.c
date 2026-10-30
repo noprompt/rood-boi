@@ -178,6 +178,36 @@ int pc_classic_suppress(void* lo, void* hi)
     return count;
 }
 
+/* The packets of [lo, hi) linked from head, turned into no-ops as pc_classic_suppress does. The links, not the
+ * allocation: a packet can own more words than its length says (vs_battle_renderStatBar's empty bar: a 3-word tile
+ * in 14 words allocated, the rest stale), and the allocation walk ends there, leaving the packets after it drawn. */
+int pc_classic_suppress_linked(const unsigned* head, void* lo, void* hi)
+{
+    pc_classic_walker walker = pc_classic_guest();
+    int count = 0, steps = 0;
+    unsigned frame = pc_vsync_count ? pc_vsync_count() : 0;
+    if (!head)
+        return 0;
+    if (frame != suppressed_frame)
+        suppressed_frame = frame, suppressed_count = 0;
+    for (unsigned* tag = (unsigned*)walker.resolve(head[0], NULL);
+         tag && (void*)tag >= lo && (void*)(tag + 1) <= hi && steps++ < 4096;
+         tag = (unsigned*)walker.resolve(tag[0], NULL)) {
+        unsigned n = tag[0] >> 24;
+        if (!n)
+            n = suppressed_length(tag);
+        if (n >= PC_CLASSIC_PACKET_WORDS || (void*)(tag + 1 + n) > hi)
+            break;
+        if (tag[0] >> 24 && !mode_only(tag)) {
+            if (suppressed_count < (int)(sizeof suppressed / sizeof suppressed[0]))
+                suppressed[suppressed_count].tag = tag, suppressed[suppressed_count++].n = (unsigned char)n;
+            tag[0] &= 0x00FFFFFFu;
+            ++count;
+        }
+    }
+    return count;
+}
+
 /* ---- fields ---- */
 
 static const char* const FIELD_NAMES[PC_CLASSIC_FIELDS] = { "count", "length", "code", "colour", "xy", "uv", "clut",

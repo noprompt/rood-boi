@@ -17,6 +17,76 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 
 ## Progress
 
+2026-10-30, afternoon (branch `classic-lua-panels`, from main `8257f69d`; no merge or publication):
+
+- **Phase 3: Items piece 2's kinds widened to every screen that draws them: Status, Setup, Storage, Loot, done.**
+  The claim is now per kind and screen (`PANEL_SCREENS` in hud_bridge.c, beside `MENU_TOURED_SCREENS`), each bit
+  set once that screen's tour covered the panel. Two of the screens draw a kind through **their own copy** of the
+  routine, not the shared one: MENUB's STATUS strip (260.c `_topLevelMenuTransition`, a copy of 16C.c's) and MENUD's
+  gem slots (234.c `_gripNavigation`, a copy of items1.h's). Each copy got the same `ROOD_PC` `PC_CLASSIC` emit-only
+  range and record as the original; the packets match exactly (0 mismatches), so both are claimed too.
+
+  | Kind | Items (4) | Status (5) | Setup (13) | Storage (14) | Loot (12) |
+  |---|---|---|---|---|---|
+  | `items_category` | on | not drawn | not drawn | not drawn | on (items0.h, Organize inventory) |
+  | `items_status_button` | on | not drawn | not drawn | not drawn | on (MENUB's copy) |
+  | `equip_stats` | on | on | on | on | on (items1.h's status views) |
+  | `dp_pp_bars` | on | on | on | on | on |
+  | `gem_slots` | on | not drawn | not drawn | on (MENUD's copy) | on (items1.h) |
+  | `stat_page` | on | on | on | on | on |
+
+  Frames compared per screen (classic_parity's menus game; Setup's tour also counts the Items screen it passes
+  through):
+
+  | Screen | `items_category` | `items_status_button` | `equip_stats` | `dp_pp_bars` | `gem_slots` | `stat_page` |
+  |---|---:|---:|---:|---:|---:|---:|
+  | Status | | | 2,177 | 1,392 | | 1,838 |
+  | Setup | | | 600 | 491 | | 699 |
+  | Storage | | | 1,122 | 728 | 169 | 1,140 |
+  | Loot | 3,085 | 3,071 | 2,364 | 1,537 | 376 | 2,382 |
+  | The whole menus game | 7,798 | 5,327 | 8,806 | 5,821 | 931 | 8,638 |
+
+  0 mismatches, 0 skips, no waivers. **Tours** (`classic_parity.py`): `tour_status`' equipment walk runs with
+  Ashley's weapon broken (its and its blade's DP 0) and her shield's PP spent (`status_equipment_fixture`, put back
+  after), and pages each detail's table with Square; `tour_setup` pages the table with Square after every list
+  it walks (MENUC takes no Square); `tour_storage` opens the status view of every Store tab's first row (R1 / L1
+  through the items, Square through the table, the view's hand walked, Cross out) with Items' fixture
+  (`status_view_fixture`: broken / full blades, gem slots 0 / 3, loose gems); `tour_loot`'s Organize inventory
+  opens every category's status view the same way (the fixture again). **Proofs** (default and fallback of every
+  kind drawn at rest, state parity 120/120): Status's weapon detail, and again broken (the regression mark below);
+  Setup's Assemble, the blades' list; Storage's Store status view and a grip's (the gem slots); Loot's Organize
+  inventory, a weapon's and a grip's status view (`screen_proofs(after=...)`: the bag put back and the loot menu
+  left, the mark taken again). 28 menus marks green.
+- **Bug found and fixed (all claims, also on main's Items):** a claim suppressed the game's packets by walking its
+  allocation (`pc_classic_suppress`: each tag's length to the next), but `vs_battle_renderStatBar`'s empty bar (fill
+  0) is a 3-word tile in a 14-word allocation; the walk read the stale tpage word as a tag and stopped, so every
+  packet allocated after it stayed live. With an empty DP bar (a broken weapon, any blade in Setup's lists) the
+  game's own PP bar was drawn a second time, over Lua's PP word and digits (a pixel row, on the picture only: the
+  packets the gate compares are equal; state parity caught it in VRAM at Setup's Assemble list). Fix
+  (`pc_classic_suppress_linked`, classic_parity.c): after the allocation walk, `classic_finish` also suppresses the
+  range's packets reached through the kind's slots' links. Regression mark: Status's weapon detail, broken (fails
+  without the fix: first difference at vsync 2 in VRAM). Any claim whose range holds an empty stat bar before other packets shares the exposure (the HUD gauges at 0 MP or 0 HP: not checked; the fix covers them, `classic_finish` is theirs too).
+- **Verification:** `--arch 64` and `--battle` builds. Docker `make commit-check` (a copy of the tree, MENUB /
+  MENUD touched): **All files match**; the formatter's re-indents of the new ranges discarded (as before), its
+  comment wrap in 234.c kept. `run.py -j 1 --cpu-jobs 1` (nice 10) `classic_parity hud classic
+  cutscene_player_smoke widescreen_smoke` plus every suite matching `manual ui_ menu prompts button options items
+  equip status workshop container loot` (40 suites): **40/40 on GL and 40/40 on Vulkan**, first time; the same
+  classic_parity counts on both (115 scenarios; 28 menus state-parity marks, all 120/120).
+- **Next panel: Setup's and Loot's own hand, done.** `vs_battle_drawCursor` (5BF94.c, BATTLE's: MENUC's Yes / No,
+  MENUB's Yes / No and row menus, also MENU2, MENU7, MENU8 and the battle command list) draws exactly
+  `vs_mainMenu_renderCursor`'s packets with colour 0 at x 180, so it is hooked as `menu_cursor` (a `ROOD_PC`
+  `PC_CLASSIC` emit-only range; the record's new `battle` flag) and claimed on Setup and Loot only
+  (`BATTLE_CURSOR_SCREENS`, hud_bridge.c); no new kind, no Lua change. menu_cursor frames: Setup's Disassemble /
+  Rename / Repair +16 / +16 / +22, Loot's leave / Organize / Consolidate +3 / +24 / +17 (whole game 13,605); 0
+  mismatches. Proofs: Setup's Repair Yes / No and the Loot list's leave Yes / No (the default and the fallback,
+  state parity 120/120; the loot menu left after). Docker commit-check: All files match (the new range's re-indent
+  discarded). The same gate again: **40/40 on GL and 40/40 on Vulkan**, the same classic_parity counts on both
+  (30 menus state-parity marks, all 120/120); `--arch 64` and `--battle` builds.
+- **Left:** `items_category`, `items_status_button` and `gem_slots` are not drawn on Status or Setup (nothing to
+  claim); MENU8's rename grid from Setup and MENU7's save list after Storage are still untoured; BATTLE's hand on
+  Battle Abilities, Data and the rename grid stays the game's until their tours walk it. The screen-specific drawing
+  listed below stays the game's; next by the plan's order: Storage's `renderTabNavigation` counts and MENUD's item
+  action menu, then Setup's OK mark and Loot's button strip and counts.
 2026-10-30 (branch `classic-lua-screens`, from main `3fc0edbd`; no merge or publication):
 
 - **Phase 3, the remaining MAINMENU screens: the shared frame's kinds on Score, the Map, Data, Setup, Storage
@@ -79,11 +149,11 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
   the button strip (`vs_mainmenu_renderButton`). Map: MENU5's 3D map, compass, icons, door and connecting area
   names (`_renderScreen` and friends, raw text), its controls help (`_drawUIControls`, the button strip), the room
   name (text box 0). Data: MENU7's whole file menu (`_drawFileMenu`: the card and file panels, its own Yes / No
-  elements, `vs_battle_drawCursor`, the play time, HP / MP, the progress animations). Setup: the stat panels
-  (`vs_mainMenu_renderEquipStats`, `renderDpPpBars`, `drawClassAffinityType`), MENUC's own cursor
-  (`vs_battle_drawCursor`), the OK mark; the information box is text box 7 (Lua already). Storage: MENUD's item
-  action menu, status view and stat panels, `renderTabNavigation`'s counts, the button strips, raw text; MENU7's
-  save list after it. Loot: MENUB's own cursor (`vs_battle_drawCursor`), the button strip and its background,
+  elements, `vs_battle_drawCursor`, the play time, HP / MP, the progress animations). Setup: ~~the stat panels~~
+  (Lua since the afternoon entry above), ~~MENUC's own cursor
+  (`vs_battle_drawCursor`)~~ (Lua, the afternoon entry), the OK mark; the information box is text box 7 (Lua already). Storage: MENUD's item
+  action menu, ~~status view and stat panels~~ (Lua since the afternoon entry), `renderTabNavigation`'s counts, the button strips, raw text; MENU7's
+  save list after it. Loot: ~~MENUB's own cursor (`vs_battle_drawCursor`)~~ (Lua, the afternoon entry), the button strip and its background,
   the counts (`renderIntColor`), raw text. Not toured: MENU7's game over screen (currentMenu 7 at a game over),
   MENU8's rename grid from Setup (currentMenu 8, the Option screen's overlay), MENUF.
 2026-10-30 (branch `classic-lua-items2`, from main `3fc0edbd`; no merge or publication):

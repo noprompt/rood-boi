@@ -202,10 +202,19 @@ static int _topLevelMenuTransition(int category)
     }
 
     if (_statusCommandAnimationStep != 0) {
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the STATUS strip (MENU3's, 16C.c, copied here),
+         * from its slide and its state. */
+        pc_classic_items_status_button pcStatus = { stepValue, _statusCommandState };
+        PC_CLASSIC(PC_CLASSIC_SITE_ITEMS_STATUS_BUTTON, &pcStatus, 0, 0, {
+#endif
         vs_mainmenu_renderButtonBackground(0x10 - stepValue, 0x26, 0x58, 10);
         vs_mainmenu_renderButton(buttonIdSquare, 8 - stepValue, 0x24, NULL);
         vs_battle_renderTextRawColor("STATUS", ((0x1C - stepValue) & 0xFFFF) | 0x260000,
             0x202020 << _statusCommandState, NULL);
+#ifdef ROOD_PC
+        });
+#endif
     }
 
     return 0;

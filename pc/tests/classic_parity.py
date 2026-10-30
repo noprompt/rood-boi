@@ -1983,12 +1983,59 @@ def status_into(g, symbols, button, state, opened=False):
     raise RpcError(f"Status: {button} never reached state {state} ({status_state(g, symbols)})")
 
 
+ACTOR2_WEAPON, ACTOR2_SHIELD = 0x3C, 0x1D4  # vs_battle_actor2: weapon (vs_battle_uiWeapon), shield (vs_battle_uiShield)
+WEAPON_BLADE_DP, WEAPON_DP, SHIELD_PP, SHIELD_BASE_PP = 0x18 + 8, 0x114, 0xDC, 0x18 + 0xC  # (current DP / PP)
+
+
+def actor2(g):
+    """Ashley's vs_battle_actor2 (vs_battle_actors[0] -> +0x3c): what Status reads."""
+    actor = int.from_bytes(g.read(rood_rpc.symbols()["vs_battle_actors"], PTR), "little")
+    return int.from_bytes(g.read(actor + 0x3C, 4), "little")
+
+
+def status_equipment_fixture(g):
+    """What play reaches, for the DP / PP bars' ends on Status: Ashley's weapon broken (its DP and its blade's 0, PP
+    as it is) and her shield's PP spent (DP as it is). Returns what it overwrote (status_equipment_restore)."""
+    a = actor2(g)
+    places = (a + ACTOR2_WEAPON + WEAPON_BLADE_DP, a + ACTOR2_WEAPON + WEAPON_DP, a + ACTOR2_SHIELD + SHIELD_PP,
+              a + ACTOR2_SHIELD + SHIELD_BASE_PP)
+    saved = [(at, g.read(at, 2)) for at in places]
+    for at in places:
+        g.write(at, b"\x00\x00")
+    print(f"Status: the equipment's fixture: the weapon broken, the shield's PP spent (was "
+          f"{[int.from_bytes(v, 'little') for _, v in saved]})", flush=True)
+    return saved
+
+
+def status_equipment_restore(g, saved):
+    for at, value in saved:
+        g.write(at, value)
+
+
+def status_detail_open(g, symbols):
+    """Status, the equipment list, Circle on its first row (the weapon): the piece's detail at rest (its stats
+    panel, DP / PP bars and table)."""
+    status_into(g, symbols, "circle", STATUS_EQUIPMENT)
+    for _ in range(10):  # (the weapon's row: 10, the list's first; the hand opens on the part's own)
+        if any(i == 10 and sel for i, _, sel in live_rows(g)):
+            break
+        g.press("up", vsyncs=3, settle=6)
+    status_wait(g, symbols, STATUS_EQUIPMENT)
+    for _ in range(6):
+        g.press("circle", vsyncs=3, settle=20)
+        if g.until(lambda: any(i >= 32 for i in menu_rows(g)), guard=10):
+            break
+    g.run(40)
+
+
 def tour_status(g, symbols, toured, frames):
     """Status (MENU4, currentMenu 5) through the original menus: opened; the body's parts and the stat descriptions
     walked every way past their ends; a part's equipment (Circle): its list walked down and up past its ends, each
     piece's detail opened (Circle), its elements walked, out; back (Cross); a part's stats (Square): its rows walked
     past both ends, the parts stepped round with R1 and L1, back; R1 / L1 through the room's actors and back to Ashley;
-    closed with Triangle."""
+    closed with Triangle. The equipment walked with Ashley's weapon broken (DP 0) and her shield's PP spent
+    (status_equipment_fixture: the DP / PP bars' ends; restored after); each detail's class / affinity / type table
+    paged with Square."""
     def press(button, settle=6):
         g.press(button, vsyncs=3, settle=settle)
 
@@ -2022,6 +2069,7 @@ def tour_status(g, symbols, toured, frames):
         raise RpcError(f"Status: never back on Ashley (actor {menu4(g, '_selectedActor', 4)})")
     g.run(30)
     toured(f"Status: R1 / L1 through the actors {actors}", before, actors=actors)
+    saved = status_equipment_fixture(g)
     for part in range(2):
         before = frames()
         status_to(g, symbols, part)
@@ -2036,7 +2084,8 @@ def tour_status(g, symbols, toured, frames):
             if g.until(detail, guard=5):
                 details += 1
                 g.run(20)
-                for button in ("down",) * 4 + ("right",) * 2 + ("up",) * 4 + ("left",) * 2 + ("r1", "l1"):
+                for button in ("square",) * 4 + ("down",) * 4 + ("right",) * 2 + ("up",) * 4 + ("left",) * 2 \
+                        + ("r1", "l1"):  # (Square: the table's next page, round)
                     press(button)
                 press("cross", settle=20)
                 g.until(lambda: not detail(), guard=10, what="Status: the detail closed")
@@ -2045,6 +2094,7 @@ def tour_status(g, symbols, toured, frames):
         into("cross", STATUS_IDLE)
         print(f"Status: part {part}'s equipment toured ({n} rows, {details} details)", flush=True)  # (progress)
         toured(f"Status: part {part}'s equipment, {n} rows, {details} details", before, part=part)
+    status_equipment_restore(g, saved)
     before = frames()
     status_to(g, symbols, 0)
     into("square", STATUS_STATS)
@@ -2400,27 +2450,64 @@ def workshop_setup_open(g, symbols):
     setup_open(g, symbols)
 
 
+def setup_select(g, symbols, row_id):
+    """Down until MENUC's row `row_id` is the selected one."""
+    for _ in range(12):
+        if any(i == row_id and sel for i, _, sel in live_rows(g)):
+            return
+        g.press("down", vsyncs=3, settle=6)
+        items_ready(g, symbols)
+    raise RpcError(f"Setup: row {row_id} never selected ({live_rows(g)})")
+
+
+def setup_assemble_open(g, symbols):
+    """Setup in a workshop (workshop_setup_open), Assemble, the blades' pick list at rest: a blade's stats panel,
+    DP / PP bars and table."""
+    workshop_setup_open(g, symbols)
+    setup_select(g, symbols, 10)
+    g.press("circle", vsyncs=3, settle=10)
+    items_ready(g, symbols)
+    setup_select(g, symbols, 11)
+    g.press("circle", vsyncs=3, settle=10)
+    items_ready(g, symbols)
+    g.run(40)
+
+
+def setup_repair_open(g, symbols):
+    """Setup in a workshop, Repair (row 14): its Yes / No at rest (MENUC's own hand: vs_battle_drawCursor)."""
+    workshop_setup_open(g, symbols)
+    setup_select(g, symbols, 14)
+    g.press("circle", vsyncs=3, settle=10)
+    items_ready(g, symbols)
+    g.run(40)
+
+
+def loot_leave_open(g, symbols):
+    """The loot menu (loot_open), Cross: leave's Yes / No at rest (MENUB's own hand: vs_battle_drawCursor)."""
+    loot_open(g, symbols)
+    g.press("cross", vsyncs=3, settle=6)
+    items_ready(g, symbols)
+    g.run(40)
+
+
 def tour_setup(g, symbols, toured, frames):
     """Setup (MENUC, currentMenu 13; Items > Setup) through the original menus, in a workshop (warped there; the
     save room's state rewound to after; ui_workshop_smoke's bag: gems, gem slots, damage), nothing changed: opened; its commands walked past both ends; Assemble:
     the blade's and the grip's lists walked; Gems: Weapons, a weapon's gem slots, a slot's gem list, Shields'
     list; Disassemble: a weapon's Yes / No (Cross); Rename: a weapon's Yes / No (Cross); Repair's Yes / No
-    (Cross); Combine: its categories, the blades' first pick list; each left with Cross; closed."""
+    (Cross); Combine: its categories, the blades' first pick list; each left with Cross; closed. Every list walked
+    is paged with Square after (the stats' table, where one is up)."""
     def press(button, settle=6):
         g.press(button, vsyncs=3, settle=settle)
         items_ready(g, symbols)
 
     def walk(count=10):
-        for button in ("down",) * count + ("up",) * count:
-            g.press(button, vsyncs=3, settle=4)
+        for button in ("down",) * count + ("up",) * count + ("square",) * 4:  # (Square: the table's pages, round;
+            g.press(button, vsyncs=3, settle=4)                               # MENUC takes no Square)
         items_ready(g, symbols)
 
     def select(row_id):
-        for _ in range(12):
-            if any(i == row_id and sel for i, _, sel in live_rows(g)):
-                return
-            press("down")
-        raise RpcError(f"Setup: row {row_id} never selected ({live_rows(g)})")
+        setup_select(g, symbols, row_id)
 
     def commands():
         """Cross until MENUC's command list takes input again."""
@@ -2525,6 +2612,73 @@ def loot_open(g, symbols, lists=None):
     loot_input(g, symbols)
 
 
+def loot_organize_open(g, symbols, walk=False):
+    """The misc bag full (ui_loot_smoke's fill_misc) and the status views' fixture (status_view_fixture: broken /
+    full blades, gem slots 0 / 3, loose gems); the loot menu opened with three misc items, the first row (it does
+    not fit): Consolidate / Organize, Organize inventory: MENUB's Items at rest (its first category's list).
+    Returns the bag as it was (inventory, indices)."""
+    import ui_loot_smoke as loot
+    saved = (g.read(symbols["vs_main_inventory"], INVENTORY_BYTES), g.read(symbols["vs_main_inventoryIndices"],
+                                                                            INDICES_BYTES))
+    status_view_fixture(g, symbols)
+    recs = [(loot.CURE_ROOT, 90)] + [(loot.CURE_BULB, 1)] * 63
+    g.write(symbols["vs_main_inventory"] + loot.MISC,
+            b"".join(i.to_bytes(2, "little") + bytes([n, k + 1]) for k, (i, n) in enumerate(recs)))
+    lo, _ = loot.IDX[6]
+    g.write(symbols["vs_main_inventoryIndices"] + lo, bytes(range(1, 65)))
+    g.run(2)
+    loot_open(g, symbols, [loot.Loot().misc((loot.CURE_ROOT, 50), (loot.CURE_ROOT, 30), (341, 1))])
+    g.press("circle", vsyncs=3, settle=6)  # the first row: Consolidate / Organize
+    items_ready(g, symbols)
+    for button in ("down", "up", "down") if walk else ():
+        g.press(button, vsyncs=3, settle=6)
+        items_ready(g, symbols)
+    loot_pick(g, symbols, 31)  # Organize inventory: MENUB's Items
+    menu_wait(g, "Organize inventory", lambda: 20 in items_live(g, symbols))
+    items_ready(g, symbols)
+    return saved
+
+
+def loot_status_open(g, symbols, category):
+    """Loot's Organize inventory (loot_organize_open), the category, Square on its first row: the item's status
+    view at rest. Returns the bag as it was."""
+    saved = loot_organize_open(g, symbols)
+    if not items_to_category(g, symbols, category):
+        raise RpcError(f"Loot: Organize inventory never reached category {category}")
+    rows = items_rows_now(g, symbols)
+    g.press("square", vsyncs=3, settle=20)
+    g.run(40)
+    if items_rows_now(g, symbols) == rows:
+        raise RpcError(f"Loot: category {category}'s status view never opened")
+    items_ready(g, symbols)
+    g.run(20)
+    return saved
+
+
+def loot_leave(g, symbols):
+    """From anywhere in the loot menu (Organize inventory, a status view): Cross back to MENUB's list, Cross, leave:
+    Yes; the menu closed."""
+    for _ in range(3):  # (a status view: Cross to the list; the list: Cross to MENUB's)
+        g.press("cross", vsyncs=3, settle=20)
+        items_ready(g, symbols)
+        try:
+            loot_input(g, symbols, limit=120)
+            break
+        except RpcError:
+            continue
+    else:
+        raise RpcError("Loot: never back on MENUB's list")
+    g.press("cross", vsyncs=3, settle=6)
+    loot_pick(g, symbols, 30)  # leave: Yes
+    loot_closed(g, symbols)
+
+
+def loot_restore(g, saved):
+    symbols = rood_rpc.symbols()
+    g.write(symbols["vs_main_inventory"], saved[0])
+    g.write(symbols["vs_main_inventoryIndices"], saved[1])
+
+
 def tour_loot(g, symbols, toured, frames):
     """Loot (MENUB, currentMenu 12) through the original menus, opened as the game opens it after a battle (RPC
     loot: ui_loot_smoke's lists, from the bag's own records; the save room's state rewound to after): a weapon,
@@ -2560,29 +2714,37 @@ def tour_loot(g, symbols, toured, frames):
     loot_closed(g, symbols)
     toured("Loot: a row taken, the rest (Square)", before)
     before = frames()
-    recs = [(loot.CURE_ROOT, 90)] + [(loot.CURE_BULB, 1)] * 63  # ui_loot_smoke's fill_misc: the misc bag full
-    g.write(symbols["vs_main_inventory"] + loot.MISC,
-            b"".join(i.to_bytes(2, "little") + bytes([n, k + 1]) for k, (i, n) in enumerate(recs)))
-    lo, _ = loot.IDX[6]
-    g.write(symbols["vs_main_inventoryIndices"] + lo, bytes(range(1, 65)))
-    g.run(2)
-    loot_open(g, symbols, [loot.Loot().misc((loot.CURE_ROOT, 50), (loot.CURE_ROOT, 30), (341, 1))])
-    press("circle")  # the first row: Consolidate / Organize
-    items_ready(g, symbols)
-    for button in ("down", "up", "down"):
-        press(button)
-    loot_pick(g, symbols, 31)  # Organize inventory: MENUB's Items
-    menu_wait(g, "Organize inventory", lambda: 20 in items_live(g, symbols))
-    items_ready(g, symbols)
+    loot_organize_open(g, symbols, walk=True)
     for button in ("r1",) * 8 + ("l1",) * 8:
         press(button, settle=10)
         items_ready(g, symbols)
     for button in ("down",) * 6 + ("up",) * 6:
         press(button, settle=4)
     items_ready(g, symbols)
+    views = []
+    for category, name in ITEM_CATEGORIES.items():  # (each category's status view, as Items' tour_status_views)
+        if not items_to_category(g, symbols, category) or not any(20 <= i < 30 for i in items_live(g, symbols)):
+            continue
+        rows = items_rows_now(g, symbols)
+        press("square", settle=20)
+        g.run(40)
+        if items_rows_now(g, symbols) == rows:
+            continue
+        for button in ("r1",) * 12 + ("l1",) * 12:  # (every item of the category, round and back)
+            press(button, settle=12)
+            if button == "r1":  # (Square: the table's next page)
+                press("square", settle=12)
+        for button in ("down",) * 8 + ("right", "left") + ("up",) * 8:
+            press(button)
+        g.run(20)
+        press("cross", settle=20)
+        items_ready(g, symbols)
+        views.append(name)
     press("cross", settle=10)
     loot_input(g, symbols)
-    toured("Loot: a row that does not fit, Organize inventory (its categories round), back", before)
+    print(f"Loot: Organize inventory's status views {views}", flush=True)  # (progress)
+    toured("Loot: a row that does not fit, Organize inventory (its categories round, their status views), back",
+           before, views=views)
     before = frames()
     press("circle")
     loot_pick(g, symbols, 30)  # Consolidate
@@ -2636,12 +2798,65 @@ def storage_store(g, symbols):
     g.run(30)
 
 
+def storage_status_view(g, symbols, press):
+    """In a Storage list at rest: Square on its row, the item's status view (refused on an empty list or misc:
+    False); every item paged with R1 and back with L1 (Square after each: the class / affinity / type table's next
+    page), the view's hand walked, left with Cross (to the list)."""
+    rows = items_rows_now(g, symbols)
+    if not any(20 <= i < 30 for i, _ in rows):
+        return False
+    g.press("square", vsyncs=3, settle=20)
+    g.run(40)
+    if items_rows_now(g, symbols) == rows:
+        return False
+    for button in ("r1",) * 4 + ("l1",) * 4:
+        g.press(button, vsyncs=3, settle=12)
+        if button == "r1":
+            g.press("square", vsyncs=3, settle=12)
+    for button in ("down",) * 6 + ("up",) * 6:
+        g.press(button, vsyncs=3, settle=6)
+    g.run(20)
+    press("cross", settle=20)
+    g.run(30)
+    items_ready(g, symbols)
+    return True
+
+
+def storage_status_open(g, symbols, grip=False):
+    """Storage's Store, the bag's first tab (`grip`: the first whose status view shows a grip's gem slots), Square:
+    its first item's status view at rest (its stats panel, DP / PP bars or the gem slots, and table)."""
+    def gems():
+        return g.call("hud", action="stats")["kinds"]["gem_slots"]["drawn"]
+
+    storage_store(g, symbols)
+    for _ in range(8):  # (the tabs round until one's status view is the one wanted)
+        rows = items_rows_now(g, symbols)
+        if any(20 <= i < 30 for i, _ in rows):
+            g.press("square", vsyncs=3, settle=20)
+            g.run(40)
+            if items_rows_now(g, symbols) != rows:
+                items_ready(g, symbols)
+                drawn = gems()
+                g.run(20)
+                if not grip or gems() > drawn:
+                    return
+                g.press("cross", vsyncs=3, settle=20)
+                g.run(30)
+                items_ready(g, symbols)
+        g.press("r1", vsyncs=3, settle=10)
+        items_ready(g, symbols)
+        g.run(10)
+    raise RpcError(f"Storage: no Store list's status view opened (grip {grip})")
+
+
 def tour_storage(g, symbols, toured, frames):
     """Storage (MENUD, currentMenu 14: the container; MENU7's prompt before it) through the original menus,
     opened as the field opens it (RPC container: the card's own container; the save room's state rewound to
     after: nothing saved): MENU7's Yes / No; MENUD's top menu walked; Remove: every tab round with R1 and L1
-    (the container's lists), each walked; Store: the bag's tabs round, a list walked, a row's actions walked and
-    left; Cross at the top (MENUD left for MENU7's save; rewound there, nothing saved)."""
+    (the container's lists), each walked; Store: the bag's tabs round, each list walked and its first row's status
+    view (Square: every item paged with R1 / L1, the table's pages with Square, the view's hand walked, left with
+    Cross), a row's actions walked and left; Cross at the top (MENUD left for MENU7's save; rewound there, nothing
+    saved). The bag: the status views' fixture (status_view_fixture: broken / full blades, gem slots 0 / 3)."""
     def press(button, settle=8):
         g.press(button, vsyncs=3, settle=settle)
         items_ready(g, symbols)
@@ -2663,6 +2878,7 @@ def tour_storage(g, symbols, toured, frames):
     g.pause()
     g.mark()  # (the save room again after; nothing saved)
     g.write(symbols["vs_main_settings"] + 1, b"\x00")
+    status_view_fixture(g, symbols)  # (rewound after)
     before = frames()
     storage_open(g, symbols)
     toured("Storage opened: MENU7's Yes / No, MENUD's top menu", before)
@@ -2675,10 +2891,13 @@ def tour_storage(g, symbols, toured, frames):
         top_to(row)
         press("circle", settle=20)
         g.run(20)
-        for _ in range(8):  # every tab round: each list walked
+        views = 0
+        for _ in range(8):  # every tab round: each list walked (Store: its first row's status view)
             press("r1", settle=10)
             for button in ("down",) * 4 + ("up",) * 4:
                 press(button, settle=4)
+            if row == 1 and storage_status_view(g, symbols, press):
+                views += 1
         for _ in range(8):
             press("l1", settle=10)
         if row == 1:  # a row's actions, walked and left
@@ -2687,8 +2906,8 @@ def tour_storage(g, symbols, toured, frames):
                 press(button, settle=4)
             press("cross", settle=10)
         back()
-        print(f"Storage: {name} toured", flush=True)  # (progress)
-        toured(f"Storage: {name}: every tab round, the lists walked", before)
+        print(f"Storage: {name} toured ({views} status views)", flush=True)  # (progress)
+        toured(f"Storage: {name}: every tab round, the lists walked, {views} status views", before, views=views)
     before = frames()
     press_until(g, "cross", lambda: current_menu(g, symbols) & 0x3F == DATA_MENU, frames=60)  # MENUD left: MENU7
     g.run(60)
@@ -2711,14 +2930,29 @@ def remaining_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof):
     state proof from that mark."""
     for name, opener in (("Score's top menu", score_open), ("the Map", map_open), ("the Map's area list", map_list),
                          ("Data's rows", data_open), ("Setup's commands (a workshop)", workshop_setup_open),
+                         ("Setup's Assemble, the blades' list (a workshop)", setup_assemble_open),
+                         ("Setup's Repair, its Yes / No (a workshop)", setup_repair_open),
                          ("Storage's top menu", storage_open), ("Storage's Store list (the tabs)", storage_store),
-                         ("the Loot list", loot_open)):
+                         ("Storage's Store, a status view", storage_status_open),
+                         ("Storage's Store, a grip's status view", lambda g, symbols: storage_status_open(g, symbols, True))):
         screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener)
+    bags = []  # (Organize inventory: MENUB's Items, its category icons; a weapon's and a grip's status views; the
+    for name, opener in (  # loot menu left after each, its bag put back: the next proof opens from the field)
+            ("Loot's Organize inventory", lambda g, symbols: loot_organize_open(g, symbols)),
+            ("Loot's Organize inventory, a weapon's status view", lambda g, symbols: loot_status_open(g, symbols, 0)),
+            ("Loot's Organize inventory, a grip's status view", lambda g, symbols: loot_status_open(g, symbols, 2))):
+        screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name,
+                      lambda g, symbols, o=opener: bags.append(o(g, symbols)),
+                      after=lambda g: (loot_leave(g, symbols), loot_restore(g, bags[-1])))
+    screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, "the Loot list's leave, its Yes / No",
+                  loot_leave_open, after=lambda g: loot_leave(g, symbols))
+    screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, "the Loot list", loot_open)
 
 
-def screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener):
+def screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener, after=None):
     """A toured screen at rest (opener: from the menu closed): the default and the fallback of every frame kind it
-    draws there, the state proof (from whatever screen was up: the menu closed first, the cursor memory off)."""
+    draws there, the state proof (from whatever screen was up: the menu closed first, the cursor memory off).
+    after(g): what the opener changed put back at the end (a fixture), the mark taken again without it."""
     g.rewind()
     menu_close(g, symbols)
     memory = g.read(symbols["vs_main_settings"] + 1, 1)
@@ -2737,6 +2971,10 @@ def screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, nam
     state_proof(f"{name} at rest", shown)
     g.rewind()
     g.write(symbols["vs_main_settings"] + 1, memory)
+    if after:
+        after(g)
+        g.pause()
+        g.mark()
 
 
 def run_menus(out, card, env, check, waivers, kinds):
@@ -2968,6 +3206,13 @@ def run_menus(out, card, env, check, waivers, kinds):
                       lambda g, symbols: status_into(g, symbols, "circle", STATUS_EQUIPMENT))
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, a part's stats",
                       lambda g, symbols: status_into(g, symbols, "square", STATUS_STATS))
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, the weapon's detail",
+                      status_detail_open)
+        broken = []  # (Ashley's weapon broken: both bars empty, the DP one a 3-word tile in its 14 words)
+        screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof,
+                      "Status, the weapon's detail (broken, the shield's PP spent)",
+                      lambda g, symbols: (broken.append(status_equipment_fixture(g)), status_detail_open(g, symbols)),
+                      after=lambda g: status_equipment_restore(g, broken[-1]))
         remaining_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof)
         for kind, report in reports.items():
             (out / f"{kind}.json").write_text(json.dumps(report, indent=1))

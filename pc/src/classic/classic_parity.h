@@ -102,6 +102,9 @@ int pc_classic_scan(const pc_classic_walker* walker, const void* lo, const void*
  * nothing drawn after them changes (a packet of a draw mode and a sprite, as
  * the game's sprites are, draws: it goes); how many. */
 int pc_classic_suppress(void* lo, void* hi);
+/* The same for the packets of [lo, hi) linked from an ordering-table slot (head), by the links: what the
+ * allocation walk cannot reach past a packet shorter than its allocation. */
+int pc_classic_suppress_linked(const unsigned* head, void* lo, void* hi);
 
 /* A word's field ("code", "colour", "xy", "uv", "clut", "tpage", "wh",
  * "mode", "word") by the packet's command; fields for waivers. */

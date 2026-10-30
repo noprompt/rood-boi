@@ -435,6 +435,14 @@ static int classic_finish(int kind, pc_hud_fields* f, void* first, void* end, co
         if (count < 0)
             return 0; /* it failed: the game's own drawing */
         pc_classic_suppress(first, end); /* (emit-only: the game's call ran, its packets are no-ops) */
+        { /* (and by the slots' links: an empty stat bar's 3-word tile in 14 words ends the allocation walk) */
+            char* base = psx_get(vs_scratch.unk4);
+            int i;
+            for (i = 0; i < nslots; ++i)
+                pc_classic_suppress_linked((const unsigned*)(base + slots[i]), first, end);
+            if (kind == PC_HUD_ABILITY_ICONS)
+                pc_classic_suppress_linked((const unsigned*)psx_get(vs_scratch.unk8), first, end);
+        }
         classic_packets(cmds, count, f->anchor, kind, 0);
     }
     return amount;
@@ -599,6 +607,23 @@ void pc_hud_target_marker(void* record, void* first, void* end)
  * (MENU7), 8 the Option screen (MENU8), 9 Score (MENU9), 10 the Quick Manual (MENUE), 12 Loot (MENUB), 13 Setup
  * (MENUC), 14 Storage (MENUD). Not claimed: 15 (MENUF: the time attack and congratulations screens; 11 unused). */
 #define MENU_TOURED_SCREENS 0x77FEu /* bits 1..10, 12..14 */
+/* The screens each of the Items screen's own panels is claimed on (bits as above, by kind from PC_HUD_ITEMS_CATEGORY),
+ * each where a tour covers it: 4 Items (MENU3) all six; 5 Status (MENU4), 13 Setup (MENUC) and 14 Storage (MENUD) the
+ * C48.c panels (stats, DP / PP bars, table); 12 Loot (MENUB's Organize inventory: items0.h's icons, items1.h's status
+ * views, its own copy of the STATUS strip, 260.c) all six; MENUD's own copy of the gem slots (234.c _gripNavigation). */
+#define PANEL_C48 (1u << 4 | 1u << 5 | 1u << 12 | 1u << 13 | 1u << 14)
+/* The screens BATTLE's hand (5BF94.c vs_battle_drawCursor, drawn as menu_cursor) is claimed on: 12 Loot (MENUB's Yes / No
+ * and row menus), 13 Setup (MENUC's Yes / No). Not: Battle Abilities (MENU2), Data (MENU7), the rename grid (MENU8 from
+ * Setup), the battle command list (the menu closed): untoured there. */
+#define BATTLE_CURSOR_SCREENS (1u << 12 | 1u << 13)
+static const unsigned short PANEL_SCREENS[PC_HUD_KINDS - PC_HUD_ITEMS_CATEGORY] = {
+    [PC_HUD_ITEMS_CATEGORY - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12,
+    [PC_HUD_ITEMS_STATUS_BUTTON - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12,
+    [PC_HUD_EQUIP_STATS - PC_HUD_ITEMS_CATEGORY] = PANEL_C48,
+    [PC_HUD_DP_PP_BARS - PC_HUD_ITEMS_CATEGORY] = PANEL_C48,
+    [PC_HUD_GEM_SLOTS - PC_HUD_ITEMS_CATEGORY] = 1u << 4 | 1u << 12 | 1u << 14,
+    [PC_HUD_STAT_PAGE - PC_HUD_ITEMS_CATEGORY] = PANEL_C48,
+};
 static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
 void pc_hud_menu(int kind, void* record, void* first, void* end)
 {
@@ -612,8 +637,14 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
     if ((vs_battle_menuState.currentMenu & 0x3F) > 31
         || !(MENU_TOURED_SCREENS & (1u << (vs_battle_menuState.currentMenu & 0x3F))))
         return;
-    /* The Items screen's own panels: on Items only (MENU3, currentMenu 4; items0.h is MENUB's too, untoured). */
-    if (kind >= PC_HUD_ITEMS_CATEGORY && (vs_battle_menuState.currentMenu & 0x3F) != 4)
+    /* The Items screen's own panels (piece 2): each on the screens whose tour covers it in every state (PANEL_SCREENS);
+     * elsewhere the game draws it (items0.h / items1.h are MENUB's too; C48.c's panels are MENU4's, MENUC's, MENUD's). */
+    if (kind >= PC_HUD_ITEMS_CATEGORY && kind < PC_HUD_KINDS
+        && !(PANEL_SCREENS[kind - PC_HUD_ITEMS_CATEGORY] & (1u << (vs_battle_menuState.currentMenu & 0x3F))))
+        return;
+    /* BATTLE's hand (vs_battle_drawCursor) as menu_cursor: on the screens whose tours walk its menus only. */
+    if (kind == PC_HUD_MENU_CURSOR && ((const pc_classic_menu_cursor*)record)->battle
+        && !(BATTLE_CURSOR_SCREENS & (1u << (vs_battle_menuState.currentMenu & 0x3F))))
         return;
     if (kind == PC_HUD_STAT_PAGE) {
         static pc_hud_fields page;

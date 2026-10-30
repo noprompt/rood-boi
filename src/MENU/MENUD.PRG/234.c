@@ -13,6 +13,9 @@
 #include <memory.h>
 #include <libetc.h>
 #include <limits.h>
+#ifdef ROOD_PC
+#include "pc/src/classic/classic_hook.h"
+#endif
 
 enum copyContainerFlags { copyContainerFlagsCopy = 0x10 };
 static int _copyContainerItem(int, vs_menu_containerData*, int, vs_menu_containerData*);
@@ -1029,8 +1032,19 @@ int _gripNavigation(int arg0)
                              .gemSlots
                          + 0x30);
 
+#ifdef ROOD_PC
+        /* PC_CLASSIC (classic_hook.h): the gem icon and the slot count (items1.h's,
+         * copied here), from the count. */
+        {
+            pc_classic_gem_slots pcGems = { D_80109954[6] - '0' };
+            PC_CLASSIC(PC_CLASSIC_SITE_GEM_SLOTS, &pcGems, 0, 0, {
+#endif
         vs_mainMenu_renderMenuRowIcon(mainMenuIconGem | (1 << 8), 256, 32);
         vs_battle_renderTextRaw(D_80109954, vs_getXY(280, 36), NULL);
+#ifdef ROOD_PC
+            });
+        }
+#endif
         break;
 
     case 3:
