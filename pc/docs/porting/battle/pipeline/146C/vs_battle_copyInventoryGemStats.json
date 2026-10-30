@@ -1,0 +1,217 @@
+{
+ "function": "vs_battle_copyInventoryGemStats",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_copyInventoryGemStats",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006ae0c",
+  "difficulty": "S",
+  "zig_name": "copyInventoryGemStats",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "copy_inventory_gem_stats",
+  "spec_file": "copyInventoryGemStats.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn copyInventoryGemStats(target: ?*v.vs_battle_uiEquipment, source: ?*v.vs_main_inventoryGem) callconv(.c) void",
+  "params": [
+   [
+    "target",
+    "?*v.vs_battle_uiEquipment"
+   ],
+   [
+    "source",
+    "?*v.vs_main_inventoryGem"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "vs_main_inventoryGem"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11770,
+     "completion_tokens": 4598,
+     "reasoning_tokens": 3424,
+     "cost": 0.001738,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "index-negative": "11692",
+   "index-non-negative": "18308"
+  },
+  "mutations": [
+   {
+    "name": "G1: agility copied from intelligence",
+    "caught": true
+   },
+   {
+    "name": "G2: classes loop one short",
+    "caught": true
+   },
+   {
+    "name": "G3: affinities read from classes",
+    "caught": true
+   },
+   {
+    "name": "G4: index store dropped",
+    "caught": true
+   },
+   {
+    "name": "G5: gemEffects masked to 7 bits",
+    "caught": true
+   },
+   {
+    "name": "G6: affinities loop runs to 7 inclusive",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 13,
+     "text": "for (i = 0; i < 6; ++i) {",
+     "size": 4,
+     "count": 210000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 150000, > 30000 (signed); < 150000, > 30000 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..6"
+    },
+    {
+     "line": 17,
+     "text": "for (i = 0; i < 7; ++i) {",
+     "size": 4,
+     "count": 240000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 180000, > 30000 (signed); < 180000, > 30000 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35201,
+     "completion_tokens": 1427,
+     "reasoning_tokens": 1015,
+     "cost": 0.0021168,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/copyInventoryGemStats.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/copy_inventory_gem_stats.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 331.78200592899884,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 6023.33898639679,
+ "totals": {
+  "cost": 0.00385,
+  "prompt_tokens": 46971,
+  "completion_tokens": 6025,
+  "model_seconds": 0.0,
+  "check_seconds": 331.8,
+  "calls": 2,
+  "wall_seconds": 6023.3
+ }
+}

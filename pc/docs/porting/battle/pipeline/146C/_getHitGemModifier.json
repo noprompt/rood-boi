@@ -1,0 +1,245 @@
+{
+ "function": "_getHitGemModifier",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_getHitGemModifier",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007e99c",
+  "difficulty": "S",
+  "zig_name": "getHitGemModifier",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "get_hit_gem_modifier",
+  "spec_file": "getHitGemModifier.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn getHitGemModifier(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, hitNumber: c_int, arg4: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "action",
+    "?*v.vs_action_t"
+   ],
+   [
+    "source",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "target",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "hitNumber",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15548,
+     "completion_tokens": 15913,
+     "reasoning_tokens": 14005,
+     "cost": 0.00475565,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-source": "5096",
+   "source-busy": "11166",
+   "no-target": "2287",
+   "target-busy": "5134",
+   "both-active": "6317"
+  },
+  "mutations": [
+   {
+    "name": "G1: gem base 99",
+    "caught": true
+   },
+   {
+    "name": "G2: defense gets hitNumber 0",
+    "caught": true
+   },
+   {
+    "name": "G3: defense sign flipped",
+    "caught": true
+   },
+   {
+    "name": "G4: source gate as signed <= 0",
+    "caught": true
+   },
+   {
+    "name": "G5: target gate as < 1",
+    "caught": true
+   },
+   {
+    "name": "G6: attack buff subtracted",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147444030, max 2147466400, unsigned 490826..4294874695, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if ((source != 0) && (source->unk40 == 0)) {",
+     "size": 4,
+     "count": 24904,
+     "kind": "against a constant",
+     "outcomes": "== 13738, < 5468, > 5698 (signed); < 0, > 11166 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 8,
+     "text": "if ((target != 0) && (target->unk40 == 0)) {",
+     "size": 4,
+     "count": 25005,
+     "kind": "against a constant",
+     "outcomes": "== 12193, < 6471, > 6341 (signed); < 0, > 12812 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38912,
+     "completion_tokens": 3287,
+     "reasoning_tokens": 2735,
+     "cost": 0.00276735,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/getHitGemModifier.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_hit_gem_modifier.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 365.33388672800174,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 16554.906143426895,
+ "totals": {
+  "cost": 0.00752,
+  "prompt_tokens": 54460,
+  "completion_tokens": 19200,
+  "model_seconds": 0.0,
+  "check_seconds": 365.3,
+  "calls": 2,
+  "wall_seconds": 16554.9
+ }
+}

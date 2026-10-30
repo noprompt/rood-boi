@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 15274,
-     "completion_tokens": 10747,
-     "reasoning_tokens": 9156,
-     "cost": 0.00345045,
+     "completion_tokens": 9326,
+     "reasoning_tokens": 7903,
+     "cost": 0.0030951999999999998,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800841C8: 1238 iterations, seed 1, 1000 mismatches; classes: masked-out=199 clear=39 partial=729 full=271"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_800841C8: 1286 iterations, seed 1, 1000 mismatches; classes: no-status=286 status-bit13=557 status-bit14=217 status-bit15=226"
     ]
    },
    {
@@ -85,45 +85,45 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 17063,
-     "completion_tokens": 3800,
-     "reasoning_tokens": 2178,
-     "cost": 0.00180315,
+     "prompt_tokens": 16904,
+     "completion_tokens": 3082,
+     "reasoning_tokens": 1542,
+     "cost": 0.0016156999999999999,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800841C8: 1285 iterations, seed 1, 1000 mismatches; classes: masked-out=218 clear=67 partial=731 full=269"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_800841C8: 1286 iterations, seed 1, 1000 mismatches; classes: no-status=286 status-bit13=557 status-bit14=217 status-bit15=226"
     ]
    }
   ],
   "classes": {
-   "masked-out": "218",
-   "clear": "67",
-   "partial": "731",
-   "full": "269"
+   "no-status": "286",
+   "status-bit13": "557",
+   "status-bit14": "217",
+   "status-bit15": "226"
   },
   "mutations": [
    {
-    "name": "S1: wrong status mask (0x6000 for 0xE000)",
+    "name": "S1: status mask drops bit 15",
     "caught": true
    },
    {
-    "name": "S2: test only bit 13 of the masked status",
+    "name": "S2: inflicted statuses overwritten, not OR-ed",
     "caught": true
    },
    {
-    "name": "S3: unk1C_16 set to 3, not 2",
+    "name": "S3: the branch tests bit 15 only",
     "caught": true
    },
    {
-    "name": "S4: inflictStatuses overwritten instead of OR-ed",
+    "name": "S4: wrong field (unk954) for the statuses word",
     "caught": true
    },
    {
-    "name": "S5: statuses read from unk944 (wrong field)",
+    "name": "S5: dropped unk1C_16 store",
     "caught": true
    }
   ],
@@ -140,12 +140,12 @@
     {
      "arg": 0,
      "count": 30000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 1,
      "count": 30000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 2,
@@ -155,12 +155,12 @@
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147054554, max 2147351169, unsigned 100815..4294912437, seen negative, never zero"
+     "text": "32-bit: min -2147427357, max 2147413576, unsigned 34794..4294894962, seen negative, never zero"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147394820, max 2147438373, unsigned 37575..4294720269, seen negative, never zero"
+     "text": "32-bit: min -2147290666, max 2147221782, unsigned 242194..4294526599, seen negative, never zero"
     }
    ],
    "compares": [
@@ -170,7 +170,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 6363, < 0, > 23637 (signed); < 0, > 23637 (unsigned)",
+     "outcomes": "== 6806, < 0, > 23194 (signed); < 0, > 23194 (unsigned)",
      "operand": "constant 0",
      "a": "0..57344"
     }
@@ -182,17 +182,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 22.968228212999747,
+ "check_seconds": 25.79797992100066,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56678.86931705475,
+ "wall_seconds": 4469.80296421051,
  "totals": {
-  "cost": 0.00525,
-  "prompt_tokens": 32337,
-  "completion_tokens": 14547,
+  "cost": 0.00471,
+  "prompt_tokens": 32178,
+  "completion_tokens": 12408,
   "model_seconds": 0.0,
-  "check_seconds": 23.0,
+  "check_seconds": 25.8,
   "calls": 2,
-  "wall_seconds": 56678.9
+  "wall_seconds": 4469.8
  }
 }

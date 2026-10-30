@@ -1,0 +1,181 @@
+{
+ "function": "func_800CFC8C",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CFC8C",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cfc8c",
+  "difficulty": "M",
+  "zig_name": "func_800CFC8C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CFC8C",
+  "spec_file": "func_800CFC8C.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CFC8C(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11292,
+     "completion_tokens": 7489,
+     "reasoning_tokens": 6046,
+     "cost": 0.00243685,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F1: divide by 8192 as a shift (negative results round toward -inf): gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018func_800CFC8C__standin\u2019:\nzdiff_standin.c:5:20: error: expected \u2018;\u2019 before \u2018)\u2019 token\nzdiff_standin.c:5:20: error: expected statement before \u2018)\u2019 token\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12901,
+     "completion_tokens": 4909,
+     "reasoning_tokens": 3409,
+     "cost": 0.0018723,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F3: the /2 of the angle dropped: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: call 0 (rcos): argument 0: C 0, Zig 0xffffffff\nzdiff: MISMATCH iteration 3: call 0 (rcos): argument 0: C 0xfffffc00, Zig 0xfffff800\nzdiff: MISMATCH iteration 4: call 0 (rcos): argument 0: C 0x2, Zig 0x4\nzdiff: CRASH (signal 8) in the Zig run, iteration 335"
+    ]
+   }
+  ],
+  "classes": {
+   "arg3-negative": "14676",
+   "arg3-nonnegative": "8211",
+   "arg2-negative": "7113"
+  },
+  "mutations": [
+   {
+    "name": "F1: divide by 8192 as a shift (negative results round toward -inf)",
+    "caught": true
+   },
+   {
+    "name": "F2: rcos added, not subtracted",
+    "caught": true
+   },
+   {
+    "name": "F3: the /2 of the angle dropped",
+    "caught": false
+   },
+   {
+    "name": "F4: unsigned slip in the angle division",
+    "caught": true
+   },
+   {
+    "name": "F5: difference operator flipped",
+    "caught": true
+   },
+   {
+    "name": "F6: rcos call dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 3,
+   "lines_hit": 3,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147117297, max 2147337042, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147153002, max 2145917160, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483647, max 2147483647, unsigned 1..4294967295, seen negative/signed max/all ones, never zero"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2146837508, max 2147020274, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 18.96673637999993,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 5170.526437520981,
+ "totals": {
+  "cost": 0.00431,
+  "prompt_tokens": 24193,
+  "completion_tokens": 12398,
+  "model_seconds": 0.0,
+  "check_seconds": 19.0,
+  "calls": 2,
+  "wall_seconds": 5170.5
+ }
+}

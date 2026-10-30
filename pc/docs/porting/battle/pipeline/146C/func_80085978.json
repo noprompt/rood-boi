@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_80085978",
@@ -51,61 +51,45 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13089,
-     "completion_tokens": 8781,
-     "reasoning_tokens": 7690,
-     "cost": 0.0028496999999999997,
+     "completion_tokens": 10228,
+     "reasoning_tokens": 8811,
+     "cost": 0.00321145,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation F2: the table entry read is arg0's: mutation F2: the table entry read is arg0's: its `from` text occurs 2 times in the C body of func_80085978 (copy it exactly from the C)"
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 14282,
-     "completion_tokens": 1921,
-     "reasoning_tokens": 812,
-     "cost": 0.0011943499999999998,
-     "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
-     "sample": 1
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation F2: the table entry read is arg0's: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 0, a wild pointer (a non-canonical address: random bytes used as a pointer?)\nzdiff: crashed on arguments: 0 0x5 (class stats)"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
   "classes": {
-   "no-stats": "3702",
-   "stats": "26298"
+   "stats-null": "15010",
+   "stats-low": "11153",
+   "stats-high": "3837"
   },
   "mutations": [
    {
-    "name": "F1: the first argument is arg1",
+    "name": "M1: the actor index passed as the first argument",
     "caught": true
    },
    {
-    "name": "F2: the table entry read is arg0's",
-    "caught": false
-   },
-   {
-    "name": "F3: the third argument is 1, not 0",
+    "name": "M2: the third argument 1, not 0",
     "caught": true
    },
    {
-    "name": "F4: the call is dropped",
+    "name": "M3: the stats pointer offset by 4 bytes",
+    "caught": true
+   },
+   {
+    "name": "M4: the stats raw read as a signed int (sign-extended)",
+    "caught": true
+   },
+   {
+    "name": "M5: the call dropped",
     "caught": true
    }
   ],
@@ -132,23 +116,76 @@
    ],
    "compares": [],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36477,
+     "completion_tokens": 2228,
+     "reasoning_tokens": 1936,
+     "cost": 0.00238085,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 19.896860069999093,
+ "written": [
+  "pc/tests/zig_diff/func_80085978.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80085978.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 377.74123396100003,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56740.489263772964,
+ "wall_seconds": 19655.37236213684,
  "totals": {
-  "cost": 0.00404,
-  "prompt_tokens": 27371,
-  "completion_tokens": 10702,
+  "cost": 0.00559,
+  "prompt_tokens": 49566,
+  "completion_tokens": 12456,
   "model_seconds": 0.0,
-  "check_seconds": 19.9,
+  "check_seconds": 377.7,
   "calls": 2,
-  "wall_seconds": 56740.5
+  "wall_seconds": 19655.4
  }
 }

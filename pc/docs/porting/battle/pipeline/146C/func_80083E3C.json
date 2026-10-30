@@ -63,18 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13059,
-     "completion_tokens": 7608,
-     "reasoning_tokens": 6128,
-     "cost": 0.00255495,
+     "completion_tokens": 9211,
+     "reasoning_tokens": 7802,
+     "cost": 0.0029557000000000003,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: MISMATCH iteration 7: return value\nzdiff: func_80083E3C: 2331 iterations, seed 1, 1000 mismatches; classes: arg2-null=377 arg2-valid=1954",
-     "FAIL: mutation S2: callee given arg1 instead of arg2: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x406088 [arena] (zdiff_state+0x18): C 56, Zig 164\nzdiff: MISMATCH iteration 1: memory at 0x406088 [arena] (zdiff_state+0x18): C 29, Zig 132\nzdiff: MISMATCH iteration 2: memory at 0x4060c8 [arena] (zdiff_state+0x58): C 84, Zig 42\nzdiff: CRASH (signal 11) in the Zig run, iteration 31, fault address 0x1e [NULL+0x1e: a field of a null pointer]",
-     "FAIL: mutation S4: inverted test on the callee's result: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: memory at 0x40608e [arena] (zdiff_state+0x1e): C 244, Zig 245\nzdiff: MISMATCH iteration 2: return value\nzdiff: CRASH (signal 11) in the Zig run, iteration 4, fault address 0x1e [NULL+0x1e: a field of a null pointer]"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80083E3C: 1761 iterations, seed 1, 1000 mismatches; classes: arg2-null=242 no-status=519 status=1000"
     ]
    },
    {
@@ -87,43 +85,45 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 15297,
-     "completion_tokens": 5353,
-     "reasoning_tokens": 3781,
-     "cost": 0.0021031,
+     "prompt_tokens": 14665,
+     "completion_tokens": 5249,
+     "reasoning_tokens": 3740,
+     "cost": 0.0020455,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: MISMATCH iteration 7: return value\nzdiff: func_80083E3C: 2331 iterations, seed 1, 1000 mismatches; classes: arg2-null=377 arg2-valid=1954"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80083E3C: 1761 iterations, seed 1, 1000 mismatches; classes: arg2-null=242 no-status=519 status=1000",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80083E3C: branches 2/2 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 4/4\n  FLAG +4 sign: every value above 0 had the sign bit set (a port testing the sign, `< 0`, for this test would pass): `if (_setApplicableStatuses(14, arg2) != 0) {`\ncoverage func_80083E3C: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (_setApplicableStatuses(14, arg2) != 0) {` (+4): this compares a value with 0. Every input where the value was above 0 also had its sign bit set (negative as a signed 32-bit number), so a port that tests the sign instead (`< 0`, or a signed read where the C reads unsigned) would pass your spec. Add inputs where the value is above 0 AND positive (e.g. 1, 256, 2147483647).\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80083E3C.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "arg2-null": "377",
-   "arg2-valid": "1954"
+   "arg2-null": "242",
+   "no-status": "519",
+   "status": "1000"
   },
   "mutations": [
    {
-    "name": "S1: wrong status id (15 for 14)",
+    "name": "S1: wrong status constant in the store",
     "caught": true
    },
    {
-    "name": "S2: callee given arg1 instead of arg2 (the store then hits a null arg2)",
+    "name": "S2: wrong status id passed to the callee",
     "caught": true
    },
    {
-    "name": "S3: wrong stored value (3 for 1)",
+    "name": "S3: signed slip, result tested with > 0",
     "caught": true
    },
    {
-    "name": "S4: inverted test on the callee's result (the store then hits a null arg2)",
+    "name": "S4: dropped call (the status is never applied)",
     "caught": true
    },
    {
-    "name": "S5: callee dropped, branch decided by a constant",
+    "name": "S5: dropped store",
     "caught": true
    }
   ],
@@ -135,7 +135,17 @@
    "lines": 4,
    "lines_hit": 4,
    "uncovered": [],
-   "flags": [],
+   "flags": [
+    {
+     "id": "+4 sign",
+     "line": 4,
+     "text": "if (_setApplicableStatuses(14, arg2) != 0) {",
+     "kind": "sign",
+     "bits": 32,
+     "constant": 0,
+     "what": "every value above 0 had the sign bit set (a port testing the sign, `< 0`, for this test would pass)"
+    }
+   ],
    "args": [
     {
      "arg": 0,
@@ -155,12 +165,12 @@
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+     "text": "32-bit: min -2146832332, max 2147327099, unsigned 54118..4294951798, seen negative, never zero"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+     "text": "32-bit: min -2147323181, max 2147477681, unsigned 102771..4294948561, seen negative, never zero"
     }
    ],
    "compares": [
@@ -170,29 +180,29 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 17539, < 6201, > 6260 (signed); < 0, > 12461 (unsigned)",
+     "outcomes": "== 12649, < 17351, > 0 (signed); < 0, > 17351 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147244839..2147171453"
+     "a": "-2147436601..0"
     }
    ],
-   "passed": true
+   "passed": false
   }
  },
  "port": {
   "attempts": []
  },
  "written": [],
- "check_seconds": 20.957089826999436,
+ "check_seconds": 23.374714348999987,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56646.51053452492,
+ "wall_seconds": 4430.82001376152,
  "totals": {
-  "cost": 0.00466,
-  "prompt_tokens": 28356,
-  "completion_tokens": 12961,
+  "cost": 0.005,
+  "prompt_tokens": 27724,
+  "completion_tokens": 14460,
   "model_seconds": 0.0,
-  "check_seconds": 21.0,
+  "check_seconds": 23.4,
   "calls": 2,
-  "wall_seconds": 56646.5
+  "wall_seconds": 4430.8
  }
 }

@@ -16,6 +16,68 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 
 ## Progress
 
+2026-10-28, night (branch `classic-lua-skills`, from main `95adc53e`; no merge or publication):
+
+- **Phase 3, screens 2-4 (Magic, Break Arts, Battle Abilities): the shared frame's kinds on, done.**
+  `MENU_TOURED_SCREENS` now 1 Magic (MENU0), 2 Break Arts (MENU1), 3 Battle Abilities (MENU2), 4 Items, 8 the
+  Option screen. No capture change was needed: their rows, hand and title are the shared ones (58EC.c), and the
+  screens' own drawing (below) lands outside the rows' packet ranges (MENU2's button icons go to
+  `vs_scratch.unk8 + 8`, MENU0's LV picker to `unk4 - 4`): 0 mismatches from the first run.
+- **Tours** (`classic_parity.py tour_magic`, `tour_arts`, `tour_abilities`, in the menus game after Items; the
+  original menus; nothing cast; rows found by text through `rood.game.menu()` and the shared list's cursor, never
+  fixed ids). The save room's card has no spells or arts, so each tour first sets up what play learns (no state
+  play cannot reach): every spell (every grimoire read) with the Magic command flag, and Teleport's Circles of Magic
+  (the save room's and four others); arts of three categories (the equipped one's first three, all four of
+  another, one of a third; `artsLearned` to match); every chain and defense ability. Magic: opened; each school
+  (Warlock, Shaman, Sorcerer, Enchanter, Teleportation) in, its list walked past both ends (18 rows scroll), Warlock's
+  Explosion into the LV picker (levels right past the end and back), Cross out; closed. Break Arts: the equipped
+  category's arts walked, View Arts, the ten categories walked (they scroll), three categories' arts in and View
+  Arts out again, Cross on the categories, closed. Battle Abilities: Chain then Defense (found by text), the list
+  walked (14 learned, 8 shown: it scrolls), a row put on Circle, Triangle, Square (moves) and taken off again,
+  Cross; closed; the mapping restored. Counts (the menus game: Option, Items and these together, GL):
+
+  | Element / HUD kind | Frames | Scenarios |
+  |---|---:|---:|
+  | Menu rows / `menu_row` | 51,842 | 49 |
+  | The hand / `menu_cursor` | 2,604 | 49 |
+  | The command title / `menu_command` | 5,475 | 49 |
+  | The tab arrows / `menu_tabs` | 1,807 (Items only) | 49 |
+  | The background / `menu_background` | 1,977 (Items only) | 49 |
+  | Our pages' values / `option_value` | 2,791 (Option only) | 49 |
+
+  0 mismatches, 0 skips, no packet waivers. The default and the fallback (setting off, a raising draw, the plugin
+  off) of rows, hand and title on each of the three screens; state parity 120/120 vsyncs at each one's first list
+  at rest (Magic's schools, Break Arts' list, Battle Abilities' Chain / Defense). The tab arrows and the background
+  are not drawn on these screens.
+- **A bug found by the Break Arts tour, fixed (`c6b91f1a`):** with a category's four arts learned, Circle on View
+  Arts closed the menu (0x3F) to "cast" an art. MENU1 `_weaponArtsMenu`'s init writes View Arts' `0xFFFF` to
+  `actionIds[rowCount]`, rowCount 4: one past `actionIds[4]`. On the PS1 that slot keeps the value until the
+  selection; on the PC it is another static, so the selection read a stale action id. Game code, with the kinds on
+  or off. Under `ROOD_PC` the array has a fifth slot. commit-check: All files match.
+- **Verification:** 64-bit and 32-bit (`--battle`) builds; Docker `make commit-check`: **All files match** (after
+  the 30.c change; formatter rewrites of 5BF94.c and 58EC.c discarded). `run.py classic_parity hud classic
+  cutscene_player_smoke widescreen_smoke` plus every `manual`, `ui_`, `menu`, `prompts`, `button`, `options`,
+  `items`, `magic`, `arts`, `abilit` suite: **41/41 on GL**. Vulkan: stopped at time with 27/41 passed, 0 failed
+  (classic_parity among them); the remaining 14 not run.
+- **Left (the game's own drawing still):** Magic: the LV picker's level boxes and arrows (84.c `levelledSpell`, into
+  `unk4 - 4`), the MP cost box (`vs_mainMenu_displayActionCost`); Break Arts: the HP cost and the kills to the next
+  art (`_setHPCost`, `_setNextArtUnlockPointsRemaining`); Battle Abilities: its list's hand (MENU2 `_abilityMenu` draws
+  it with BATTLE's `vs_battle_drawCursor`, not the shared hand: `menu_cursor` there is the Chain / Defense rows'), the button icons on mapped rows
+  (`vs_mainmenu_renderButton`), the RISK cost, the kills to the next ability; MENU2's "learned" screen
+  (143C.c `vs_menu2_actionUnlock`: reached by kills in battle, not from the menu, so not toured). The information
+  box is text box 7 (already Lua).
+- **2026-10-29, main merged in (`4a98c503`: the Quick Manual and Status tours, wave 6's ports, photo mode, the
+  GCC 16 build fixes); re-gated on the new OS (GCC 16.2), no fixes needed.** `MENU_TOURED_SCREENS` is the union
+  1, 2, 3, 4, 5, 8, 10. The menus game now tours Option, Items, Magic, Break Arts, Battle Abilities, the Quick
+  Manual and Status in one run with no interaction between the tours: `menu_row` 81,026 frames, `menu_cursor`
+  4,704, `menu_command` 8,804, `menu_tabs` 2,877, `menu_background` 6,660, `option_value` 2,791; 0 mismatches,
+  0 skips, no waivers on the menu kinds; state parity 120/120 vsyncs at all ten marks (Option list, Display,
+  Items, Magic's schools, Break Arts, Battle Abilities, the Quick Manual, Status, its equipment list and a part's
+  stats). The same counts on GL and on Vulkan. Builds: `--arch 64` and `--battle`. Docker `make commit-check`:
+  **All files match** (formatter rewrites of 5BF94.c and 58EC.c discarded). The gate (`run.py -j 1`, nice 10):
+  classic_parity plus the 36 other matching suites, **37/37 on GL and 37/37 on Vulkan**. Not run (scipy is not
+  installed on the new system; each imports it at the top): `ui_text_smoke`, `button_prompts_smoke`,
+  `button_roles_symbols_smoke`, `interp_menu_2d_smoke`.
 2026-10-28, night (branch `classic-lua-manual`, from main `95adc53e`; no merge or publication):
 
 - **Phase 3, the Quick Manual (MENUE, currentMenu 10) and Status (MENU4, currentMenu 5): the shared frame's kinds,

@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 15183,
-     "completion_tokens": 9547,
-     "reasoning_tokens": 8053,
-     "cost": 0.0031459,
+     "completion_tokens": 7433,
+     "reasoning_tokens": 6229,
+     "cost": 0.0026173999999999998,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_8008418C/spec1/build/spec.zig:53:22: error: type '?*views_146C.vs_battle_actor2' does not support field access\n    return if ((stats.statuses & 0x1FFE1FE0) == 0) 1 else 2;\n                ~~~~~^~~~~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:443:36\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_8008418C: 1267 iterations, seed 1, 1000 mismatches; classes: masked-zero=267 masked-nonzero=1000"
     ]
    },
    {
@@ -85,40 +85,97 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 16965,
-     "completion_tokens": 2544,
-     "reasoning_tokens": 1069,
-     "cost": 0.00148425,
+     "prompt_tokens": 16583,
+     "completion_tokens": 3867,
+     "reasoning_tokens": 2617,
+     "cost": 0.0017959,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: CRASH (signal 11) in the C run, iteration 3, fault address 0x948 [NULL+0x948: a field of a null pointer]\nzdiff: crashed on arguments: 0 0 0x40fc70 [arena] 0x11e58574 0x6226145 (class stats-null)",
-     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_8008418C: 1279 iterations, seed 1, 1000 mismatches; classes: masked-zero=279 masked-nonzero=1000"
     ]
    }
   ],
-  "classes": {},
-  "mutations": [],
-  "coverage": null
+  "classes": {
+   "masked-zero": "279",
+   "masked-nonzero": "1000"
+  },
+  "mutations": [
+   {
+    "name": "F1: wrong mask constant (bit 5 dropped)",
+    "caught": true
+   },
+   {
+    "name": "F2: store overwrites instead of OR-ing",
+    "caught": true
+   },
+   {
+    "name": "F3: wrong field (removeStatuses)",
+    "caught": true
+   },
+   {
+    "name": "F4: sign bit leaks through the mask",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 20000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 20000,
+     "text": "32-bit: min 0, max 0, seen zero, never negative, 1 value(s): 0"
+    },
+    {
+     "arg": 4,
+     "count": 20000,
+     "text": "32-bit: min 0, max 0, seen zero, never negative, 1 value(s): 0"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
  },
  "port": {
   "attempts": []
  },
  "written": [],
- "check_seconds": 2.459360247001314,
+ "check_seconds": 20.151896330000454,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56667.25808429718,
+ "wall_seconds": 4464.345483779907,
  "totals": {
-  "cost": 0.00463,
-  "prompt_tokens": 32148,
-  "completion_tokens": 12091,
+  "cost": 0.00441,
+  "prompt_tokens": 31766,
+  "completion_tokens": 11300,
   "model_seconds": 0.0,
-  "check_seconds": 2.5,
+  "check_seconds": 20.2,
   "calls": 2,
-  "wall_seconds": 56667.3
+  "wall_seconds": 4464.3
  }
 }

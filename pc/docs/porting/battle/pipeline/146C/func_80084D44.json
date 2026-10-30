@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 16221,
-     "completion_tokens": 10337,
-     "reasoning_tokens": 8865,
-     "cost": 0.0033952999999999995,
+     "completion_tokens": 11364,
+     "reasoning_tokens": 9909,
+     "cost": 0.0036520499999999996,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084D44: 1000 iterations, seed 1, 1000 mismatches; classes: no-weapon=119 weapon-no-wrap=485 weapon-wrap=396"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084D44: 1000 iterations, seed 1, 1000 mismatches; classes: blade-zero=89 blade-one=77 blade-high-bit=417 blade-other=417"
     ]
    },
    {
@@ -85,44 +85,45 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 17900,
-     "completion_tokens": 3834,
-     "reasoning_tokens": 2161,
-     "cost": 0.0018535,
+     "prompt_tokens": 17885,
+     "completion_tokens": 3944,
+     "reasoning_tokens": 2481,
+     "cost": 0.00188025,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084D44: 1000 iterations, seed 1, 1000 mismatches; classes: no-weapon=119 weapon-no-wrap=485 weapon-wrap=396"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084D44: 1000 iterations, seed 1, 1000 mismatches; classes: blade-zero=93 blade-one=99 blade-high-bit=387 blade-other=421"
     ]
    }
   ],
   "classes": {
-   "no-weapon": "119",
-   "weapon-no-wrap": "485",
-   "weapon-wrap": "396"
+   "blade-zero": "93",
+   "blade-one": "99",
+   "blade-high-bit": "387",
+   "blade-other": "421"
   },
   "mutations": [
    {
-    "name": "F1: blade id compared against 0x8000",
+    "name": "W1: blade id compared to 1, not 0",
     "caught": true
    },
    {
-    "name": "F2: amount is the max PP, not the current PP",
+    "name": "W2: maxPp read instead of currentPp",
     "caught": true
    },
    {
-    "name": "F3: amount truncated to a byte",
+    "name": "W3: amount added to value0 (wrong limb field)",
     "caught": true
    },
    {
-    "name": "F4: value0 added instead of value1",
+    "name": "W4: weaponPpEffect store dropped",
     "caught": true
    },
    {
-    "name": "F5: weaponPpEffect store dropped",
+    "name": "W5: amount stored, not accumulated",
     "caught": true
    }
   ],
@@ -138,28 +139,28 @@
    "args": [
     {
      "arg": 0,
-     "count": 30000,
+     "count": 40000,
      "text": "pointer: null seen"
     },
     {
      "arg": 1,
-     "count": 30000,
+     "count": 40000,
      "text": "pointer: null seen"
     },
     {
      "arg": 2,
-     "count": 30000,
+     "count": 40000,
      "text": "pointer: never null"
     },
     {
      "arg": 3,
-     "count": 30000,
-     "text": "32-bit: min -2147427357, max 2147413576, unsigned 34794..4294894962, seen negative, never zero"
+     "count": 40000,
+     "text": "32-bit: min 0, max 0, seen zero, never negative, 1 value(s): 0"
     },
     {
      "arg": 4,
-     "count": 30000,
-     "text": "32-bit: min -2147290666, max 2147221782, unsigned 242194..4294526599, seen negative, never zero"
+     "count": 40000,
+     "text": "32-bit: min 0, max 0, seen zero, never negative, 1 value(s): 0"
     }
    ],
    "compares": [
@@ -167,9 +168,9 @@
      "line": 4,
      "text": "if (((__typeof__((vs_battle_actors[arg2->unk0.targetActor]->unk3C).psx_type_[0]))(long unsigned int)(vs_battle_actors[arg2->unk0.targetActor]->unk3C).raw)->weapon.blade.id != 0) {",
      "size": 2,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 2984, < 13412, > 13604 (signed); < 0, > 27016 (unsigned)",
+     "outcomes": "== 3366, < 16649, > 19985 (signed); < 0, > 36634 (unsigned)",
      "operand": "constant 0",
      "a": "-32768..32767"
     }
@@ -181,17 +182,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 20.08708012599891,
+ "check_seconds": 25.47047649600063,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56720.52753973007,
+ "wall_seconds": 4539.324674367905,
  "totals": {
-  "cost": 0.00525,
-  "prompt_tokens": 34121,
-  "completion_tokens": 14171,
+  "cost": 0.00553,
+  "prompt_tokens": 34106,
+  "completion_tokens": 15308,
   "model_seconds": 0.0,
-  "check_seconds": 20.1,
+  "check_seconds": 25.5,
   "calls": 2,
-  "wall_seconds": 56720.5
+  "wall_seconds": 4539.3
  }
 }

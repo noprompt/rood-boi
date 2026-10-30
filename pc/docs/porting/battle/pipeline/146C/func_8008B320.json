@@ -44,16 +44,23 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 11271,
-     "completion_tokens": 3441,
-     "reasoning_tokens": 2410,
-     "cost": 0.0014238,
+     "completion_tokens": 7127,
+     "reasoning_tokens": 5656,
+     "cost": 0.0023453,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: no input classes declared (`classes` and `classify`)"
+     "FAIL: the C differs from a copy of itself under this spec (exit 3: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x4019c1)",
+     "FAIL: no input classes declared (`classes` and `classify`)",
+     "FAIL: mutation F1: CLUT slot 1 offset 0x180 instead of 0x100: not caught as mismatch (exit 3): zdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x4019c1)",
+     "FAIL: mutation F2: colorOffset slip on slot 2: not caught as mismatch (exit 3): zdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x4019c1)",
+     "FAIL: mutation F3: slot 0 count 0x101 instead of 0x100: not caught as mismatch (exit 3): zdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x4019c1)",
+     "FAIL: mutation F4: final func_80099960 at offset 0x304: not caught as mismatch (exit 3): zdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x4019c1)",
+     "FAIL: mutation F5: dropped func_80099960 call: not caught as mismatch (exit 3): zdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x4019c1)",
+     "FAIL: the coverage run: coverage run: exit 3: zdiff: PANIC in the C run, iteration 0: incorrect alignment (return address 0x401a49)\n"
     ]
    },
    {
@@ -66,17 +73,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 12353,
-     "completion_tokens": 2040,
-     "reasoning_tokens": 855,
-     "cost": 0.00112765,
+     "prompt_tokens": 13345,
+     "completion_tokens": 3026,
+     "reasoning_tokens": 1381,
+     "cost": 0.00142375,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 1, fault address 0x200 [NULL+0x200: a field of a null pointer]: argument 0 of the call of vs_main_loadClut, which reads through it\nzdiff: crashed on arguments: (class null-table)",
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 2, fault address 0x600 [NULL+0x600: a field of a null pointer]: argument 0 of the call of func_80099960, which reads through it\nzdiff: crashed on arguments: (class arena-clut-base)",
      "(the mutations and the coverage gate are checked once the C runs crash-free)"
     ]
    }
@@ -89,17 +96,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 11.822903615999167,
+ "check_seconds": 8.060967274001086,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56769.267149448395,
+ "wall_seconds": 4605.547926187515,
  "totals": {
-  "cost": 0.00255,
-  "prompt_tokens": 23624,
-  "completion_tokens": 5481,
+  "cost": 0.00377,
+  "prompt_tokens": 24616,
+  "completion_tokens": 10153,
   "model_seconds": 0.0,
-  "check_seconds": 11.8,
+  "check_seconds": 8.1,
   "calls": 2,
-  "wall_seconds": 56769.3
+  "wall_seconds": 4605.5
  }
 }

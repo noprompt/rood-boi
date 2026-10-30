@@ -22,7 +22,9 @@ sys.path.insert(0, str(ROOT / "pc/tools"))
 import shared_cache  # noqa: E402
 
 PROBE = ROOT / "pc/tests/replace_file_probe.c"
-MINGW = "x86_64-w64-mingw32-gcc-posix"
+MINGW = "x86_64-w64-mingw32-gcc-posix"  # Ubuntu; Arch's plain gcc is POSIX-thread already
+if not shutil.which(MINGW) and shutil.which("x86_64-w64-mingw32-gcc"):
+    MINGW = "x86_64-w64-mingw32-gcc"
 
 
 def run(command, **kwargs):

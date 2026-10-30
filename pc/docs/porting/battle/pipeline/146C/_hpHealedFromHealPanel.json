@@ -67,16 +67,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 20168,
-     "completion_tokens": 23825,
-     "reasoning_tokens": 21162,
-     "cost": 0.006964649999999999,
+     "completion_tokens": 34827,
+     "reasoning_tokens": 31699,
+     "cost": 0.009715149999999999,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x407f20 [arena] 0 0x407f60 [arena] 0 0xffffffff (class rand-shield-stowed)",
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x407070 [arena] 0x407100 [arena] 0x4070b0 [arena] 0x1 0xffffffff (class zero-heal)",
      "(the mutations and the coverage gate are checked once the C runs crash-free)"
     ]
    },
@@ -90,17 +90,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 23274,
-     "completion_tokens": 6410,
-     "reasoning_tokens": 3528,
-     "cost": 0.0027662,
+     "prompt_tokens": 23745,
+     "completion_tokens": 8453,
+     "reasoning_tokens": 5209,
+     "cost": 0.0033005,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x407fe0 [arena] 0 0x408020 [arena] 0 0xffffffff (class rand-shield-stowed)",
+     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x18751323 [memory the harness does not own: a pointer from random bytes?]\nzdiff: crashed on arguments: 0x407070 [arena] 0x407100 [arena] 0x4070b0 [arena] 0x1 0xffffffff (class zero-heal)",
      "(the mutations and the coverage gate are checked once the C runs crash-free)"
     ]
    }
@@ -113,17 +113,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 1.901263468000252,
+ "check_seconds": 2.1070019910002884,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56213.20312523842,
+ "wall_seconds": 4375.057740449905,
  "totals": {
-  "cost": 0.00973,
-  "prompt_tokens": 43442,
-  "completion_tokens": 30235,
+  "cost": 0.01302,
+  "prompt_tokens": 43913,
+  "completion_tokens": 43280,
   "model_seconds": 0.0,
-  "check_seconds": 1.9,
+  "check_seconds": 2.1,
   "calls": 2,
-  "wall_seconds": 56213.2
+  "wall_seconds": 4375.1
  }
 }

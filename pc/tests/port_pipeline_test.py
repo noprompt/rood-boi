@@ -206,10 +206,7 @@ def review_7CD68(tmp, table):
         failures.append("views: D_800F58C8 as a many-item u16 pointer")
     # The functions these cases plan, unrouted (the review ported them since).
     import ownership
-    text = "\n".join(l for l in (ROOT / "game/ownership.toml").read_text().split("\n")
-                     if 'name = "func_800E5698"' not in l and 'name = "func_800E5A9C"' not in l)
-    table_path = tmp / "ownership-7CD68.toml"
-    table_path.write_text(text)
+    table_path = unrouted_table(tmp / "ownership-7CD68.toml", UNROUTED + ["func_800E5698", "func_800E5A9C"])
     unrouted = ownership.load(table_path)
     # An unsized table's length in the spec prompt (D_800F1790: 10 function pointers, sized from battle_movement.o).
     rows, names = pp.functions_tsv(), pp.meanings()
@@ -230,7 +227,7 @@ def review_7CD68(tmp, table):
     for k in (1, 2):
         (work / f"func_8006B214/port_reply{k}.md").write_text(broken)
     (work / "func_8006B214/port_reply3.md").write_text(good)
-    run = pipeline(["func_8006B214", "--no-write"], work)
+    run = pipeline(["func_8006B214", "--no-write"], work, table=table_path)
     r = record(work, "func_8006B214")
     rounds = r and [(a["round"], a["passed"]) for a in r["port"]["attempts"]]
     if not r or r["status"] != "passed (not written)" or rounds != [(1, False), (2, False), (3, True)]:
@@ -238,7 +235,7 @@ def review_7CD68(tmp, table):
     work = tmp / "no-compile-fix"
     shutil.copytree(tmp / "compile-fix/func_8006B214", work / "func_8006B214",
                     ignore=shutil.ignore_patterns("port1*", "port2*", "port3*", "spec1*", "*.json"))
-    pipeline(["func_8006B214", "--no-write", "--compile-fixes", "0"], work)
+    pipeline(["func_8006B214", "--no-write", "--compile-fixes", "0"], work, table=table_path)
     r = record(work, "func_8006B214")
     if not r or r["status"] != "port-failed" or len(r["port"]["attempts"]) != 2:
         failures.append(f"--compile-fixes 0: {r and r['status']} {r and len(r['port']['attempts'])}")
@@ -414,7 +411,15 @@ def record(work, function, unit="146C"):
 
 
 PILOT = ["func_800A1AF8", "func_800A17BC"]
-UNROUTED = PILOT + ["func_800A208C"]  # planned by the tests, ported since
+UNROUTED = PILOT + ["func_800A208C", "func_8006B214", "_removeActor"]  # planned by the tests, ported since
+
+
+def unrouted_table(path, names=UNROUTED):
+    """A copy of game/ownership.toml without the routes of `names` (a later wave may port the fixtures)."""
+    text = "\n".join(l for l in (ROOT / "game/ownership.toml").read_text().split("\n")
+                     if not any(f'name = "{f}"' in l for f in names))
+    path.write_text(text)
+    return path
 
 
 def pilot_38C1C(tmp, rows, names):
@@ -424,10 +429,7 @@ def pilot_38C1C(tmp, rows, names):
     import zig_diff
     failures = []
     # A table where the canned functions are not routed (a later run may port them).
-    text = "\n".join(l for l in (ROOT / "game/ownership.toml").read_text().split("\n")
-                     if not any(f'name = "{f}"' in l for f in UNROUTED))
-    table_path = tmp / "ownership-38C1C.toml"
-    table_path.write_text(text)
+    table_path = unrouted_table(tmp / "ownership-38C1C.toml")
     table = ownership.load(table_path)
     units = {}
     # (A) typedef'd pointer parameters as Zig types.
@@ -533,14 +535,15 @@ def rounds_end_to_end(tmp):
     prt.FakeBatches.respond = lambda cid, body: spec if "Write the zig_diff spec" in body["messages"][0]["content"] else port
     posts = len(prt.FakeBatches.posts)
     work = tmp / "rounds-e2e"
+    table = unrouted_table(tmp / "ownership-rounds.toml")
     try:
         def go(die=None):
             env = dict(os.environ, PORT_ROUNDS_DIE=die or "")
             return subprocess.run([sys.executable, ROOT / "pc/tools/port_pipeline.py", "run", "func_8006B214",
                                    "--mode", "rounds", "--no-write", "--base-url", url, "--api-key-env", "",
                                    "--transport", "batch", "--poll", "0.2", "--budget", "1", "--work", work,
-                                   "--records", work / "records", "--build", BUILD], capture_output=True, text=True,
-                                  env=env)
+                                   "--records", work / "records", "--build", BUILD, "--table", table],
+                                  capture_output=True, text=True, env=env)
         killed = go("after-reply-saved:2")  # the port's reply saved, the function not yet told
         resumed = go()
         r = record(work, "func_8006B214")
@@ -578,9 +581,17 @@ def main():
             failures.append(f"names of {name}: {(zig, pp.snake(zig))}, expected {want}")
     with tempfile.TemporaryDirectory(prefix="port-pipeline-test-") as tmp:
         tmp = pathlib.Path(tmp)
-        table = ownership.load()
+        # The canned functions unrouted: the gates plan them, the writers write them anew.
+        table_path = unrouted_table(tmp / "ownership-unrouted.toml")
+        table = ownership.load(table_path)
         units = {}
+        # A copy of game/battle without _removeActor's port (wave 6 ported it): its module name is free again.
+        game = tmp / "game"
+        shutil.copytree(ROOT / "game/battle", game / "battle")
+        (game / "battle/remove_actor.zig").unlink(missing_ok=True)
+        real_game, pp.GAME = pp.GAME, game
         plan, _ = pp.plan_function("_removeActor", rows["_removeActor"], table, names, units, BUILD, tmp / "plan")
+        pp.GAME = real_game
         if plan.signature != "pub fn removeActor(actor: ?*v.vs_battle_actor) callconv(.c) c_int":
             failures.append(f"signature of _removeActor: {plan.signature}")
         if plan.subsystem != "battle_146C_port" or plan.module != "remove_actor":
@@ -590,14 +601,14 @@ def main():
             failures.append(f"func_8007C088 not skipped as ported: {skipped.skip!r}")
 
         # The gates, with canned replies.
-        good = pipeline(["func_8006B214", "--no-write"], tmp / "good", CANNED / "func_8006B214")
+        good = pipeline(["func_8006B214", "--no-write"], tmp / "good", CANNED / "func_8006B214", table=table_path)
         r = record(tmp / "good", "func_8006B214")
         if not r or r["status"] != "passed (not written)":
             failures.append(f"canned func_8006B214: {r and r['status']}: {good.stderr[-1500:]}")
         elif not r["spec"]["coverage"]["passed"] or len(r["port"]["attempts"][0]["runs"]) != 3:
             failures.append(f"canned func_8006B214: gates incomplete: {json.dumps(r)[:800]}")
         bad_port = pipeline(["func_8006B214", "--no-write"], tmp / "bad-port", CANNED / "func_8006B214",
-                            {"port_reply1.md": ("0, 0x100000, 1);", "0, 0x100000, 0);")})
+                            {"port_reply1.md": ("0, 0x100000, 1);", "0, 0x100000, 0);")}, table=table_path)
         r = record(tmp / "bad-port", "func_8006B214")
         if not r or r["status"] != "stopped" or r["port"]["attempts"][0]["passed"] \
                 or "differs" not in " ".join(r["port"]["attempts"][0]["errors"]):
@@ -605,7 +616,7 @@ def main():
         bad_spec = pipeline(["func_8006B214", "--no-write"], tmp / "bad-spec", CANNED / "func_8006B214",
                             {"spec_reply1.md": ("        0 => 0x100000,\n        1 => ctx.int(i32) | 0x100000,\n",
                                                 "        0, 1 => ctx.int(i32) & ~@as(i32, 0x100000),\n"),
-                             "port_reply1.md": ("0x100000 != 0", "0x100000 != 0")})
+                             "port_reply1.md": ("0x100000 != 0", "0x100000 != 0")}, table=table_path)
         r = record(tmp / "bad-spec", "func_8006B214")
         errors = " ".join(r["spec"]["attempts"][0]["errors"]) if r else ""
         if not r or r["status"] != "stopped" or "never generated: status-set" not in errors \
@@ -619,7 +630,7 @@ def main():
         weak.write_text(weak.read_text().replace("        0 => 0x100000,\n        1 => ctx.int(i32) | 0x100000,\n",
                                                  "        0, 1 => ctx.int(i32) & ~@as(i32, 0x100000),\n")
                    .replace("else => ctx.pick(i32, &.{ 0, 0x80000, 0x200000, -1 }),", "else => 0x80000,"))
-        best = pipeline(["func_8006B214", "--no-write", "--attempts", "2"], work)
+        best = pipeline(["func_8006B214", "--no-write", "--attempts", "2"], work, table=table_path)
         r = record(work, "func_8006B214")
         verdicts = r and [(a["round"], a["sample"], a["passed"]) for a in r["spec"]["attempts"]]
         if not r or r["status"] != "passed (not written)" or verdicts != [(1, 1, False), (1, 2, True)] \
@@ -640,9 +651,10 @@ def main():
                 failures.append(f"{p.name}: a local path in the record")
 
         # The writers, on copies of the table, root.zig and specs.toml.
-        game = tmp / "game"
-        shutil.copytree(ROOT / "game/battle", game / "battle")
-        shutil.copy(ROOT / "game/ownership.toml", game / "ownership.toml")
+        shutil.copy(table_path, game / "ownership.toml")
+        (game / "battle/root.zig").write_text("".join(  # _removeActor's import gone with its route
+            l for l in (game / "battle/root.zig").read_text().splitlines(keepends=True)
+            if l != 'pub const remove_actor = @import("remove_actor.zig");\n'))
         pp.GAME, pp.OWNERSHIP, pp.ROOT_ZIG = game, game / "ownership.toml", game / "battle/root.zig"
         plan.types, plan.globals = ["vs_battle_actor"], ["vs_battle_actors"]
         pp.write_ownership(plan)

@@ -4,7 +4,9 @@
 //! random with zero entries and high-bit entries, so the signed and unsigned
 //! tests differ). The stub func_80095C18 writes the next table entry and
 //! sometimes the flag, so the C's later reads depend on the call and a port
-//! that reads the table before the call is caught.
+//! that reads the table before the call is caught. It sometimes sets the
+//! emote record's draw, and the classic site stub copies the draw it is
+//! handed into entry 0, so a port that does not clear it first is caught.
 const std = @import("std");
 const zd = @import("zdiff");
 const v = @import("views_2842C");
@@ -18,6 +20,23 @@ pub const stubs = struct {
         const k: usize = @intCast(i);
         v.g.D_800F2260()[(k + 1) & 15] = ctx.value(u8);
         if (ctx.value(u2) == 0) v.g.D_800F2270().* = ctx.value(i16);
+        // As the real one, it sets the emote record's draw only on some paths.
+        if (ctx.value(u2) == 0) v.g.pc_emote_record().draw = ctx.value(u2);
+    }
+
+    /// The classic site (PC_CLASSIC_SITE_EMOTE): the record (pc_emote_record,
+    /// which the C object defines: not a compared region) must be the C's and
+    /// its draw cleared before the call; its draw goes to the table's entry 0,
+    /// which this function never reads.
+    pub fn pc_classic_site(ctx: *zd.Ctx, kind: anytype, record: anytype, x: anytype, y: anytype, first: anytype, end: anytype) void {
+        _ = ctx;
+        _ = kind;
+        _ = x;
+        _ = y;
+        _ = first;
+        _ = end;
+        const emote: *const v.pc_classic_emote = @ptrCast(@alignCast(record.?));
+        v.g.D_800F2260()[0] = @truncate(@as(c_uint, @bitCast(emote.draw)));
     }
 };
 

@@ -1,0 +1,217 @@
+{
+ "function": "vs_battle_chainAbilitiesUnlocked",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_chainAbilitiesUnlocked",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cafb4",
+  "difficulty": "S",
+  "zig_name": "chainAbilitiesUnlocked",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "chain_abilities_unlocked",
+  "spec_file": "chainAbilitiesUnlocked.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn chainAbilitiesUnlocked(defense: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "defense",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_battle_chainAbilityOffsets",
+   "vs_battle_defenseAbilityOffsets"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12479,
+     "completion_tokens": 6469,
+     "reasoning_tokens": 4923,
+     "cost": 0.0022412,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "zero-hit": "1081",
+   "zero-miss": "8986",
+   "nonzero-hit": "2090",
+   "nonzero-miss": "17843"
+  },
+  "mutations": [
+   {
+    "name": "A1: loop drops the last ability offset",
+    "caught": true
+   },
+   {
+    "name": "A2: the defense test is inverted",
+    "caught": true
+   },
+   {
+    "name": "A3: defense case reads the chain table",
+    "caught": true
+   },
+   {
+    "name": "A4: a hit returns 2, not 1",
+    "caught": true
+   },
+   {
+    "name": "A5: the loop steps by two",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147204665, max 2147476594, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "for (i = 0; i < 14; ++i) {",
+     "size": 4,
+     "count": 423521,
+     "kind": "against a constant",
+     "outcomes": "== 26992, < 369700, > 26829 (signed); < 369700, > 26829 (unsigned)",
+     "operand": "constant 13",
+     "a": "0..14"
+    },
+    {
+     "line": 7,
+     "text": "if (v0[defense == 0 ? vs_battle_chainAbilityOffsets[i]",
+     "size": 4,
+     "count": 396692,
+     "kind": "against a constant",
+     "outcomes": "== 132951, < 88189, > 175552 (signed); < 0, > 263741 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147204665..2147476594"
+    },
+    {
+     "line": 7,
+     "text": "if (v0[defense == 0 ? vs_battle_chainAbilityOffsets[i]",
+     "size": 1,
+     "count": 396692,
+     "kind": "against a constant",
+     "outcomes": "== 393521, < 3171, > 0 (signed); < 0, > 3171 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..0"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35727,
+     "completion_tokens": 1842,
+     "reasoning_tokens": 1408,
+     "cost": 0.00224685,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/chainAbilitiesUnlocked.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/chain_abilities_unlocked.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 76.43462567799725,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30338.111002922058,
+ "totals": {
+  "cost": 0.00449,
+  "prompt_tokens": 48206,
+  "completion_tokens": 8311,
+  "model_seconds": 0.0,
+  "check_seconds": 76.4,
+  "calls": 2,
+  "wall_seconds": 30338.1
+ }
+}

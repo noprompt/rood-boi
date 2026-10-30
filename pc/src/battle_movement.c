@@ -17,6 +17,9 @@ extern void pc_require_native_callback(unsigned, const char*, unsigned);
 extern int func_800DAD9C(void*);
 extern int func_800DB0BC(void*);
 extern void func_800E1EAC(void*, unsigned, int);
+extern void func_800D820C(int, int);
+extern void func_800E7370(void*);
+int func_800E4180(void* state, int chance, int kind, int slot);
 
 /* 7BDD4.s: rebuild the movement flags at 0x190: keep bits outside 0xFE1
  * (mask 0xFFFFF01E) and set 0x3C0 when the signed byte at 0x23 is nonzero. */

@@ -1,0 +1,225 @@
+{
+ "function": "func_800CB45C",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CB45C",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cb45c",
+  "difficulty": "S",
+  "zig_name": "func_800CB45C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CB45C",
+  "spec_file": "func_800CB45C.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CB45C() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_gametime_tickspeed"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12667,
+     "completion_tokens": 11256,
+     "reasoning_tokens": 9409,
+     "cost": 0.0034473499999999996,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-window": "4978",
+   "box-busy": "8283",
+   "not-held": "4190",
+   "held-low-timer": "3250",
+   "held-ticking-down": "6035",
+   "held-timer-reaches-zero": "3264"
+  },
+  "mutations": [
+   {
+    "name": "F1: the timer's < 4 becomes <= 4",
+    "caught": true
+   },
+   {
+    "name": "F2: the timer ticks down by 1, not the tick speed",
+    "caught": true
+   },
+   {
+    "name": "F3: the timer test is > 1, not != 0",
+    "caught": true
+   },
+   {
+    "name": "F4: busy box returns -1",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong text box index (6, not 7)",
+    "caught": true
+   },
+   {
+    "name": "F6: held test inverted",
+    "caught": true
+   },
+   {
+    "name": "F7: the timer's clear to 0 is dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 10,
+   "branches_hit": 10,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 13,
+   "lines_hit": 13,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (!vs_battle_textBoxes[7].unk0.done) {",
+     "size": 1,
+     "count": 25022,
+     "kind": "against a constant",
+     "outcomes": "== 8283, < 0, > 16739 (signed); < 0, > 16739 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..64"
+    },
+    {
+     "line": 8,
+     "text": "if (D_800F4E69 != 0) {",
+     "size": 1,
+     "count": 16739,
+     "kind": "against a constant",
+     "outcomes": "== 4190, < 5256, > 7293 (signed); < 0, > 12549 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 10,
+     "text": "if (D_800F4E68 < 4) {",
+     "size": 1,
+     "count": 12549,
+     "kind": "against a constant",
+     "outcomes": "== 849, < 6248, > 5452 (signed); < 2401, > 9299 (unsigned)",
+     "operand": "constant 3",
+     "a": "-128..127"
+    },
+    {
+     "line": 16,
+     "text": "if (D_800F4E68 != 0) {",
+     "size": 1,
+     "count": 12549,
+     "kind": "against a constant",
+     "outcomes": "== 6554, < 2655, > 3340 (signed); < 0, > 5995 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36030,
+     "completion_tokens": 2632,
+     "reasoning_tokens": 2148,
+     "cost": 0.0024595,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CB45C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CB45C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 80.68102883199754,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30671.95881009102,
+ "totals": {
+  "cost": 0.00591,
+  "prompt_tokens": 48697,
+  "completion_tokens": 13888,
+  "model_seconds": 0.0,
+  "check_seconds": 80.7,
+  "calls": 2,
+  "wall_seconds": 30672.0
+ }
+}

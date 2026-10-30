@@ -41,6 +41,29 @@ fn hudSite(kind: c_int, label: *v.D_800F1BAC_t, x: c_int, y: c_int, first: ?*any
     if (psx.weak(SiteFn, "pc_classic_site")) |site| site(kind, label, x, y, first, scratchPtr());
 }
 
+/// classic_hook.h PC_CLASSIC_SITE_ACTOR_WORD (a macro: not in `c`).
+const site_actor_word: c_int = 13;
+
+/// PC_ACTOR_WORD (2842C.c): a word over an actor for the classic layer, MISS
+/// (func_8009506C) or the combat label (func_80095258); which draw and its
+/// inputs are copied before it runs, the site told after.
+fn actorWord(miss: c_int, x: c_int, y: c_int, label: *v.D_800F1BAC_t) void {
+    var word: c.pc_classic_actor_word = .{
+        .label = label,
+        .miss = miss,
+        .age = label.unkB,
+        .index = label.unkC,
+        .lowered = label.unkE & 1,
+    };
+    const first = scratchPtr();
+    if (miss != 0) {
+        _ = c.func_8009506C(x, y, psx.cptr(c.D_800F1BAC_t, label));
+    } else {
+        _ = c.func_80095258(x, y, psx.cptr(c.D_800F1BAC_t, label));
+    }
+    if (psx.weak(SiteFn, "pc_classic_site")) |site| site(site_actor_word, &word, x, y, first, scratchPtr());
+}
+
 /// PC_ANCHOR_PACKETS: the widescreen anchor over the packets the draw wrote.
 fn anchorPackets(start: ?*anyopaque) void {
     if (psx.weak(AnchorFn, "pc_hw_anchor_packets")) |hook| {
@@ -123,7 +146,7 @@ pub fn func_800941FC() callconv(.c) void {
                         screen[1] = psx.conv(i16, @as(c_int, screen[1]) +% 8);
                         _ = c.func_80094844(&screen, psx.cptr(c.D_800F1BAC_t, label));
                         if (label.unkE == 2) {
-                            _ = c.func_8009506C(@as(c_int, screen[0]), @as(c_int, screen[1]), psx.cptr(c.D_800F1BAC_t, label));
+                            actorWord(1, @as(c_int, screen[0]), @as(c_int, screen[1]), label);
                         } else {
                             const first = scratchPtr();
                             _ = c.func_80094B0C(@as(c_int, screen[0]), @as(c_int, screen[1]), psx.cptr(c.D_800F1BAC_t, label));
@@ -151,9 +174,9 @@ pub fn func_800941FC() callconv(.c) void {
                     screen[1] = psx.conv(i16, @as(c_int, screen[1]) -% @as(c_int, label.displayTextLen));
                     if (label.unk8.u8[1] != 0 or v.g.D_800F227A().* == 0) {
                         if (label.unkE == 2) {
-                            _ = c.func_8009506C(@as(c_int, screen[0]), @as(c_int, screen[1]), psx.cptr(c.D_800F1BAC_t, label));
+                            actorWord(1, @as(c_int, screen[0]), @as(c_int, screen[1]), label);
                         } else {
-                            _ = c.func_80095258(@as(c_int, screen[0]), @as(c_int, screen[1]), psx.cptr(c.D_800F1BAC_t, label));
+                            actorWord(0, @as(c_int, screen[0]), @as(c_int, screen[1]), label);
                         }
                     }
                     advance(label);
@@ -164,7 +187,7 @@ pub fn func_800941FC() callconv(.c) void {
                     }
                 },
                 3 => {
-                    _ = c.func_8009506C(@as(c_int, screen[0]), @as(c_int, screen[1]), psx.cptr(c.D_800F1BAC_t, label));
+                    actorWord(1, @as(c_int, screen[0]), @as(c_int, screen[1]), label);
                     advance(label);
                     if (label.unkB >= 31) {
                         label.unk8.u8[0] = 0;

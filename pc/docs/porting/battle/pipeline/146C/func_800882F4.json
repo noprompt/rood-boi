@@ -42,17 +42,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12013,
-     "completion_tokens": 13519,
-     "reasoning_tokens": 11574,
-     "cost": 0.0039804,
+     "completion_tokens": 17239,
+     "reasoning_tokens": 15251,
+     "cost": 0.0049104000000000005,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation M2: hours reset only past 1 (a bound slip on the hours carry): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800882F4: 40000 iterations, seed 1, 0 mismatches; classes: unk0-zero=5384 running=18741 countdown=15042 stopped=833",
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800882F4: branches 31/32 (96.9%), conditions not measured (GCC < 14: branch coverage only), lines 37/37\n  UNCOVERED +54 b1: branch never taken: `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {`\n  FLAG +29 eq: boundary equality occurred only 4 time(s) in 4169 (8-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (--D_80050468.seconds < 0) {`\n  FLAG +31 eq: boundary equality occurred only 1 time(s) in 3649 (8-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `if (--D_80050468.minutes < 0) {`\ncoverage func_800882F4: FAILED (threshold 100%: 1 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {` (+54): one way out of this test (+54 b1) was never taken; add inputs that take it.\n- `if (--D_80050468.seconds < 0) {` (+29): the two sides of this ordered compare were equal 4 time(s) in 4169. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (--D_80050468.minutes < 0) {` (+31): the two sides of this ordered compare were equal 1 time(s) in 3649. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800882F4.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800882F4: branches 31/32 (96.9%), conditions not measured (GCC < 14: branch coverage only), lines 37/37\n  UNCOVERED +54 b1: branch never taken: `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {`\ncoverage func_800882F4: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {` (+54): one way out of this test (+54 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800882F4.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -65,49 +64,50 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14825,
-     "completion_tokens": 9889,
-     "reasoning_tokens": 7464,
-     "cost": 0.0032135,
+     "prompt_tokens": 14371,
+     "completion_tokens": 4506,
+     "reasoning_tokens": 2304,
+     "cost": 0.00184505,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800882F4: branches 31/32 (96.9%), conditions not measured (GCC < 14: branch coverage only), lines 37/37\n  UNCOVERED +54 b1: branch never taken: `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {`\ncoverage func_800882F4: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {` (+54): one way out of this test (+54 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800882F4.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800882F4: branches 31/32 (96.9%), conditions not measured (GCC < 14: branch coverage only), lines 37/37\n  UNCOVERED +54 b1: branch never taken: `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {`\n  FLAG +16 eq: boundary equality occurred only 9 time(s) in 2693 (8-bit compare, constant 59: both sides seen; a port's `<` for `<=` could pass): `if (++D_80050468.minutes > 59) {`\ncoverage func_800882F4: FAILED (threshold 100%: 1 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {` (+54): one way out of this test (+54 b1) was never taken; add inputs that take it.\n- `if (++D_80050468.minutes > 59) {` (+16): the two sides of this ordered compare were equal 9 time(s) in 2693. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800882F4.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "unk0-zero": "3257",
-   "running": "14424",
-   "countdown": "15473",
-   "stopped": "6846"
+   "idle": "3777",
+   "count-up": "11666",
+   "count-up-held": "5778",
+   "count-down": "10158",
+   "count-stopped": "8621"
   },
   "mutations": [
    {
-    "name": "M1: frames rollover at >= 59 (a 59 frame count rolls over early)",
+    "name": "F1: frames rollover tests >= 59",
     "caught": true
    },
    {
-    "name": "M2: hours carry tests >= 0 (hours at -1 counts up to 0 and resets)",
+    "name": "F2: hours wrap tests >= 0",
     "caught": true
    },
    {
-    "name": "M3: hours tested as unsigned (negative hours count as running)",
+    "name": "F3: the hold check compares func_800BEC58 != 0",
     "caught": true
    },
    {
-    "name": "M4: seconds borrow at <= 0 (one second early)",
+    "name": "F4: the minutes state flag is dropped",
     "caught": true
    },
    {
-    "name": "M5: hours stateflag call dropped",
+    "name": "F5: hours tested unsigned",
     "caught": true
    },
    {
-    "name": "M6: wrong constant in the random frame scaling (4u for 5u)",
+    "name": "F6: seconds reset to 59, not 60, when frames run out",
     "caught": true
    }
   ],
@@ -126,7 +126,18 @@
      "what": "branch never taken"
     }
    ],
-   "flags": [],
+   "flags": [
+    {
+     "id": "+16 eq",
+     "line": 16,
+     "text": "if (++D_80050468.minutes > 59) {",
+     "kind": "eq",
+     "bits": 8,
+     "equal": 9,
+     "count": 2693,
+     "what": "boundary equality occurred only 9 time(s) in 2693 (8-bit compare, constant 59: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
    "args": [],
    "compares": [
     {
@@ -135,7 +146,7 @@
      "size": 4,
      "count": 40000,
      "kind": "a == b / a < b",
-     "outcomes": "== 3257, < 36743, > 0 (signed); < 36743, > 0 (unsigned)",
+     "outcomes": "== 3777, < 36223, > 0 (signed); < 36223, > 0 (unsigned)",
      "operand": "b 0..255",
      "a": "0..0"
     },
@@ -143,29 +154,29 @@
      "line": 9,
      "text": "if (D_80050468.unk0 == 1) {",
      "size": 1,
-     "count": 36743,
+     "count": 36223,
      "kind": "against a constant",
-     "outcomes": "== 14424, < 7410, > 14909 (signed); < 0, > 22319 (unsigned)",
+     "outcomes": "== 17444, < 12471, > 6308 (signed); < 0, > 18779 (unsigned)",
      "operand": "constant 1",
-     "a": "-1..3"
+     "a": "-128..2"
     },
     {
      "line": 10,
      "text": "if (D_80050468.hours <= 0) {",
      "size": 1,
-     "count": 14424,
+     "count": 17444,
      "kind": "against a constant",
-     "outcomes": "== 4826, < 6416, > 3182 (signed); < 0, > 9598 (unsigned)",
+     "outcomes": "== 5556, < 6110, > 5778 (signed); < 0, > 11888 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "-100..100"
     },
     {
      "line": 12,
      "text": "if (D_80050468.frames > 59) {",
      "size": 1,
-     "count": 11242,
+     "count": 11666,
      "kind": "against a constant",
-     "outcomes": "== 91, < 2107, > 9044 (signed); < 808, > 10343 (unsigned)",
+     "outcomes": "== 928, < 6872, > 3866 (signed); < 3377, > 7361 (unsigned)",
      "operand": "constant 59",
      "a": "-128..127"
     },
@@ -173,89 +184,89 @@
      "line": 14,
      "text": "if (++D_80050468.seconds > 59) {",
      "size": 1,
-     "count": 9044,
+     "count": 3866,
      "kind": "against a constant",
-     "outcomes": "== 74, < 669, > 8301 (signed); < 360, > 8610 (unsigned)",
+     "outcomes": "== 77, < 1096, > 2693 (signed); < 919, > 2870 (unsigned)",
      "operand": "constant 59",
-     "a": "-128..127"
+     "a": "-99..101"
     },
     {
      "line": 16,
      "text": "if (++D_80050468.minutes > 59) {",
      "size": 1,
-     "count": 8301,
+     "count": 2693,
      "kind": "against a constant",
-     "outcomes": "== 12, < 154, > 8135 (signed); < 81, > 8208 (unsigned)",
+     "outcomes": "== 9, < 156, > 2528 (signed); < 123, > 2561 (unsigned)",
      "operand": "constant 59",
-     "a": "-128..127"
+     "a": "-99..100"
     },
     {
      "line": 18,
      "text": "if (++D_80050468.hours > 0) {",
      "size": 1,
-     "count": 8135,
+     "count": 2528,
      "kind": "against a constant",
-     "outcomes": "== 4075, < 26, > 4034 (signed); < 0, > 4060 (unsigned)",
+     "outcomes": "== 1301, < 13, > 1214 (signed); < 0, > 1227 (unsigned)",
      "operand": "constant 0",
-     "a": "-123..1"
+     "a": "-98..1"
     },
     {
      "line": 25,
      "text": "} else if (D_80050468.frames | D_80050468.seconds | D_80050468.minutes",
      "size": 1,
-     "count": 22319,
+     "count": 18779,
      "kind": "against a constant",
-     "outcomes": "== 6846, < 9870, > 5603 (signed); < 0, > 15473 (unsigned)",
+     "outcomes": "== 8621, < 8272, > 1886 (signed); < 0, > 10158 (unsigned)",
      "operand": "constant 0",
-     "a": "-125..127"
+     "a": "-100..127"
     },
     {
      "line": 27,
      "text": "if (D_80050468.frames == 0) {",
      "size": 1,
-     "count": 15473,
+     "count": 10158,
      "kind": "against a constant",
-     "outcomes": "== 6780, < 3149, > 5544 (signed); < 0, > 8693 (unsigned)",
+     "outcomes": "== 5494, < 1608, > 3056 (signed); < 0, > 4664 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "-100..100"
     },
     {
      "line": 29,
      "text": "if (--D_80050468.seconds < 0) {",
      "size": 1,
-     "count": 6780,
+     "count": 5494,
      "kind": "against a constant",
-     "outcomes": "== 3264, < 3091, > 425 (signed); < 0, > 3516 (unsigned)",
+     "outcomes": "== 295, < 3427, > 1772 (signed); < 0, > 5199 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..127"
+     "a": "-101..99"
     },
     {
      "line": 31,
      "text": "if (--D_80050468.minutes < 0) {",
      "size": 1,
-     "count": 3091,
+     "count": 3427,
      "kind": "against a constant",
-     "outcomes": "== 1687, < 1241, > 163 (signed); < 0, > 1404 (unsigned)",
+     "outcomes": "== 217, < 2078, > 1132 (signed); < 0, > 3210 (unsigned)",
      "operand": "constant 0",
-     "a": "-128..126"
+     "a": "-101..99"
     },
     {
      "line": 33,
      "text": "if (--D_80050468.hours < 0) {",
      "size": 1,
-     "count": 1241,
+     "count": 2078,
      "kind": "against a constant",
-     "outcomes": "== 604, < 576, > 61 (signed); < 0, > 637 (unsigned)",
+     "outcomes": "== 151, < 1269, > 658 (signed); < 0, > 1927 (unsigned)",
      "operand": "constant 0",
-     "a": "-123..126"
+     "a": "-101..99"
     },
     {
      "line": 43,
      "text": "if (D_80050468.frames != 0) {",
      "size": 1,
-     "count": 36743,
+     "count": 36223,
      "kind": "against a constant",
-     "outcomes": "== 16512, < 6457, > 13774 (signed); < 0, > 20231 (unsigned)",
+     "outcomes": "== 15037, < 7383, > 13803 (signed); < 0, > 21186 (unsigned)",
      "operand": "constant 0",
      "a": "-128..127"
     },
@@ -263,9 +274,9 @@
      "line": 54,
      "text": "if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {",
      "size": 4,
-     "count": 36743,
+     "count": 36223,
      "kind": "against a constant",
-     "outcomes": "== 36743, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 36223, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "constant 0",
      "a": "0..0"
     },
@@ -273,9 +284,9 @@
      "line": 54,
      "text": "if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {",
      "size": 1,
-     "count": 36743,
+     "count": 36223,
      "kind": "against a constant",
-     "outcomes": "== 16512, < 6457, > 13774 (signed); < 0, > 20231 (unsigned)",
+     "outcomes": "== 15037, < 7383, > 13803 (signed); < 0, > 21186 (unsigned)",
      "operand": "constant 0",
      "a": "-128..127"
     },
@@ -283,11 +294,11 @@
      "line": 54,
      "text": "if ((var_s2 == 0) && (D_80050468.frames == 0) && (func_800BEC58(16, 0, 0, 0) == 1)) {",
      "size": 2,
-     "count": 16512,
+     "count": 15037,
      "kind": "against a constant",
-     "outcomes": "== 6120, < 7326, > 3066 (signed); < 2063, > 8329 (unsigned)",
+     "outcomes": "== 7508, < 4692, > 2837 (signed); < 1885, > 5644 (unsigned)",
      "operand": "constant 1",
-     "a": "-32759..32756"
+     "a": "-32739..32734"
     }
    ],
    "passed": false
@@ -297,17 +308,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 51.27244195700041,
+ "check_seconds": 57.808942393001416,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56762.22009515762,
+ "wall_seconds": 4583.915210485458,
  "totals": {
-  "cost": 0.00719,
-  "prompt_tokens": 26838,
-  "completion_tokens": 23408,
+  "cost": 0.00676,
+  "prompt_tokens": 26384,
+  "completion_tokens": 21745,
   "model_seconds": 0.0,
-  "check_seconds": 51.3,
+  "check_seconds": 57.8,
   "calls": 2,
-  "wall_seconds": 56762.2
+  "wall_seconds": 4583.9
  }
 }

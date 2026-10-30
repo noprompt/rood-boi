@@ -63,17 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13034,
-     "completion_tokens": 4820,
-     "reasoning_tokens": 3702,
-     "cost": 0.0018566999999999998,
+     "completion_tokens": 5046,
+     "reasoning_tokens": 3735,
+     "cost": 0.0019131999999999999,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083FBC: 1000 iterations, seed 1, 1000 mismatches",
-     "FAIL: no input classes declared (`classes` and `classify`)"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083FBC: 1000 iterations, seed 1, 1000 mismatches; classes: arg2-null=247 arg2-valid=753"
     ]
    },
    {
@@ -86,23 +85,23 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14350,
-     "completion_tokens": 3825,
-     "reasoning_tokens": 2545,
-     "cost": 0.0016737499999999999,
+     "prompt_tokens": 14540,
+     "completion_tokens": 3254,
+     "reasoning_tokens": 1896,
+     "cost": 0.0015405,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083FBC: 1000 iterations, seed 1, 1000 mismatches; classes: arg1-null=502 arg1-set=498"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083FBC: 1000 iterations, seed 1, 1000 mismatches; classes: arg2-null=247 arg2-valid=753"
     ]
    }
   ],
   "classes": {
-   "arg1-null": "502",
-   "arg1-set": "498"
+   "arg2-null": "247",
+   "arg2-valid": "753"
   },
   "mutations": [
    {
@@ -110,19 +109,15 @@
     "caught": true
    },
    {
-    "name": "F2: wrong target block (arg1 for arg2)",
+    "name": "F2: arg1 passed instead of arg2",
     "caught": true
    },
    {
-    "name": "F3: call dropped",
+    "name": "F3: the status argument is the unused arg3",
     "caught": true
    },
    {
-    "name": "F4: call made twice",
-    "caught": true
-   },
-   {
-    "name": "F5: null target passed",
+    "name": "F4: the call made twice",
     "caught": true
    }
   ],
@@ -149,17 +144,17 @@
     {
      "arg": 2,
      "count": 30000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147421339, max 2147334991, unsigned 29849..4294825503, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147448891, max 2147377835, unsigned 445864..4294640048, seen negative, never zero"
+     "text": "32-bit: min -2146693019, max 2147112104, unsigned 0..4294967295, seen zero/negative/all ones"
     }
    ],
    "compares": [],
@@ -170,17 +165,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 20.522394604999135,
+ "check_seconds": 18.41335955300019,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56662.68773031235,
+ "wall_seconds": 4443.364381313324,
  "totals": {
-  "cost": 0.00353,
-  "prompt_tokens": 27384,
-  "completion_tokens": 8645,
+  "cost": 0.00345,
+  "prompt_tokens": 27574,
+  "completion_tokens": 8300,
   "model_seconds": 0.0,
-  "check_seconds": 20.5,
+  "check_seconds": 18.4,
   "calls": 2,
-  "wall_seconds": 56662.7
+  "wall_seconds": 4443.4
  }
 }

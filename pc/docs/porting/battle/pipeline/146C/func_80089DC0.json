@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_80089DC0",
@@ -65,11 +65,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 25652,
-     "completion_tokens": 37919,
-     "reasoning_tokens": 34632,
-     "cost": 0.01076235,
+     "completion_tokens": 37971,
+     "reasoning_tokens": 33645,
+     "cost": 0.01077535,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": true,
@@ -81,34 +81,34 @@
    "sample": 1
   },
   "classes": {
-   "cd-slot-null": "7445",
-   "zone-27-map-1": "642",
-   "loot-section": "14551",
-   "no-loot": "7362"
+   "cd-null": "9987",
+   "bounds-null": "10053",
+   "zone27-map1": "305",
+   "other": "9655"
   },
   "mutations": [
    {
-    "name": "F1: map bounds maxX taken from unk3E",
+    "name": "U1: unk3E shifted unsigned (negative scene dimension)",
     "caught": true
    },
    {
-    "name": "F2: unsigned slip in the unk3E shift",
+    "name": "U2: unk3C divided by 8, not 16",
     "caught": true
    },
    {
-    "name": "F3: wrong mode threshold constant",
+    "name": "U3: scene change handler dropped",
     "caught": true
    },
    {
-    "name": "F4: zone id 28 instead of 27",
+    "name": "U4: startState passed as 0, not 1",
     "caught": true
    },
    {
-    "name": "F5: the character-state CD call dropped",
+    "name": "U5: zone 27/map 1 camera pitch -384 (wrong constant)",
     "caught": true
    },
    {
-    "name": "F6: start state 4 instead of 5",
+    "name": "U6: signed slip on the D_800F18AC test",
     "caught": true
    }
   ],
@@ -125,7 +125,7 @@
     {
      "arg": 0,
      "count": 30000,
-     "text": "32-bit: min -2147093996, max 2147418632, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2145642871, max 2147108758, unsigned 0..4294967295, seen zero/negative/all ones"
     }
    ],
    "compares": [
@@ -135,19 +135,19 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 7445, < 0, > 22555 (signed); < 0, > 22555 (unsigned)",
+     "outcomes": "== 9987, < 0, > 20013 (signed); < 0, > 20013 (unsigned)",
      "operand": "constant 0",
-     "a": "0..4256448"
+     "a": "0..4260544"
     },
     {
      "line": 14,
      "text": "while (((__typeof__((_zoneContext.mpdCdFile).psx_type_[0]))(long unsigned int)(_zoneContext.mpdCdFile).raw)->state != vs_main_CdQueueStateLoaded) {",
      "size": 2,
-     "count": 39990,
+     "count": 59907,
      "kind": "against a constant",
-     "outcomes": "== 30000, < 9990, > 0 (signed); < 9990, > 0 (unsigned)",
+     "outcomes": "== 30000, < 19979, > 9928 (signed); < 10132, > 19775 (unsigned)",
      "operand": "constant 4",
-     "a": "0..4"
+     "a": "-32758..32764"
     },
     {
      "line": 36,
@@ -155,9 +155,9 @@
      "size": 4,
      "count": 30000,
      "kind": "a == b / a < b",
-     "outcomes": "== 15018, < 7445, > 7537 (signed); < 7460, > 7522 (unsigned)",
-     "operand": "b -2147443670..2147210811",
-     "a": "-2147427718..2147410238"
+     "outcomes": "== 15587, < 8114, > 6299 (signed); < 5706, > 8707 (unsigned)",
+     "operand": "b -2147312243..2147269275",
+     "a": "-2147048218..2147167224"
     },
     {
      "line": 41,
@@ -165,9 +165,9 @@
      "size": 2,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 10081, < 10030, > 9889 (signed); < 0, > 19919 (unsigned)",
+     "outcomes": "== 14962, < 7557, > 7481 (signed); < 0, > 15038 (unsigned)",
      "operand": "constant 0",
-     "a": "-32764..32760"
+     "a": "-32741..32766"
     },
     {
      "line": 49,
@@ -175,9 +175,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 7413, < 11225, > 11362 (signed); < 0, > 22587 (unsigned)",
+     "outcomes": "== 7622, < 12993, > 9385 (signed); < 0, > 22378 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147440590..2147192191"
+     "a": "-2147467140..2147360570"
     },
     {
      "line": 76,
@@ -185,9 +185,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 10056, < 10058, > 9886 (signed); < 0, > 19944 (unsigned)",
+     "outcomes": "== 5005, < 12501, > 12494 (signed); < 0, > 24995 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147442707..2147462061"
+     "a": "-2147307860..2147336316"
     },
     {
      "line": 94,
@@ -195,8 +195,8 @@
      "size": 4,
      "count": 30000,
      "kind": "a == b / a < b",
-     "outcomes": "== 5113, < 12534, > 12353 (signed); < 20003, > 4884 (unsigned)",
-     "operand": "b -2147156662..2147167616",
+     "outcomes": "== 15236, < 7394, > 7370 (signed); < 12869, > 1895 (unsigned)",
+     "operand": "b -2146486566..2147285426",
      "a": "1..1"
     },
     {
@@ -205,9 +205,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 5113, < 12353, > 12534 (signed); < 4884, > 20003 (unsigned)",
+     "outcomes": "== 15236, < 7370, > 7394 (signed); < 1895, > 12869 (unsigned)",
      "operand": "constant 1",
-     "a": "-2147156662..2147167616"
+     "a": "-2146486566..2147285426"
     },
     {
      "line": 148,
@@ -215,9 +215,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 5039, < 17477, > 7484 (signed); < 9991, > 14970 (unsigned)",
+     "outcomes": "== 15113, < 11118, > 3769 (signed); < 4912, > 9975 (unsigned)",
      "operand": "constant 3",
-     "a": "-2147394261..2147139521"
+     "a": "-2146692515..2146298754"
     },
     {
      "line": 164,
@@ -225,9 +225,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 5154, < 12512, > 12334 (signed); < 5042, > 19804 (unsigned)",
+     "outcomes": "== 14978, < 8706, > 6316 (signed); < 2442, > 12580 (unsigned)",
      "operand": "constant 1536",
-     "a": "-2146702247..2147369636"
+     "a": "-2147311175..2147090270"
     },
     {
      "line": 173,
@@ -235,7 +235,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 5124, < 6439, > 18437 (signed); < 6439, > 18437 (unsigned)",
+     "outcomes": "== 5078, < 11694, > 13228 (signed); < 11694, > 13228 (unsigned)",
      "operand": "constant 27",
      "a": "0..255"
     },
@@ -243,9 +243,9 @@
      "line": 173,
      "text": "if ((_zoneContext.zndId == 27) && (_zoneContext.mapId == 1)) {",
      "size": 4,
-     "count": 5124,
+     "count": 5078,
      "kind": "against a constant",
-     "outcomes": "== 841, < 894, > 3389 (signed); < 894, > 3389 (unsigned)",
+     "outcomes": "== 849, < 859, > 3370 (signed); < 859, > 3370 (unsigned)",
      "operand": "constant 1",
      "a": "0..255"
     },
@@ -255,29 +255,29 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 15047, < 7525, > 7428 (signed); < 0, > 14953 (unsigned)",
+     "outcomes": "== 7587, < 11288, > 11125 (signed); < 0, > 22413 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147418112..2147287040"
+     "a": "-2147418112..2147418112"
     },
     {
      "line": 201,
      "text": "if (func_800BEC58(1, 0, 0, 0) == 1) {",
      "size": 2,
-     "count": 15047,
+     "count": 7587,
      "kind": "against a constant",
-     "outcomes": "== 7505, < 3735, > 3807 (signed); < 0, > 7542 (unsigned)",
+     "outcomes": "== 1903, < 2802, > 2882 (signed); < 0, > 5684 (unsigned)",
      "operand": "constant 1",
-     "a": "-32752..32767"
+     "a": "-32759..32748"
     },
     {
      "line": 212,
      "text": "if (D_800F18AC != 0) {",
      "size": 4,
-     "count": 7542,
+     "count": 5684,
      "kind": "against a constant",
-     "outcomes": "== 1237, < 3149, > 3156 (signed); < 0, > 6305 (unsigned)",
+     "outcomes": "== 694, < 2824, > 2166 (signed); < 0, > 4990 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147463183..2144226805"
+     "a": "-2147483648..2147408751"
     }
    ],
    "passed": true
@@ -297,71 +297,60 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 48986,
-     "completion_tokens": 31926,
-     "reasoning_tokens": 28153,
-     "cost": 0.010430799999999999,
+     "completion_tokens": 32681,
+     "reasoning_tokens": 29003,
+     "cost": 0.01061955,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x42c320 [vs_scratch+0x50] (zdiff_state+0x202a0): C 51, Zig 0\nzdiff: func_80089DC0: 30000 iterations, seed 1, 1 mismatches; classes: cd-slot-null=7445 zone-27-map-1=642 loot-section=14551 no-loot=7362"
-    ],
+    "passed": true,
+    "errors": [],
     "runs": [
      {
       "seed": 1,
-      "exit": 1,
-      "mismatches": 1,
-      "first": "MISMATCH iteration 0: memory at 0x42c320 (zdiff_state+0x202a0): C 51, Zig 0"
-     }
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 52948,
-     "completion_tokens": 5951,
-     "reasoning_tokens": 2011,
-     "cost": 0.00413515,
-     "seconds": null,
-     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
-     "sample": 1
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x42c320 [vs_scratch+0x50] (zdiff_state+0x202a0): C 64, Zig 170\nzdiff: func_80089DC0: 30000 iterations, seed 1, 1 mismatches; classes: cd-slot-null=7445 zone-27-map-1=642 loot-section=14551 no-loot=7362"
-    ],
-    "runs": [
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
      {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1,
-      "first": "MISMATCH iteration 0: memory at 0x42c320 (zdiff_state+0x202a0): C 64, Zig 170"
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
      }
     ]
    }
-  ]
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 92.64532393799891,
+ "written": [
+  "pc/tests/zig_diff/func_80089DC0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80089DC0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 469.89188582300267,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 97222.07997870445,
+ "wall_seconds": 20355.552351236343,
  "totals": {
-  "cost": 0.02533,
-  "prompt_tokens": 127586,
-  "completion_tokens": 75796,
+  "cost": 0.02139,
+  "prompt_tokens": 74638,
+  "completion_tokens": 70652,
   "model_seconds": 0.0,
-  "check_seconds": 92.6,
-  "calls": 3,
-  "wall_seconds": 97222.1
+  "check_seconds": 469.9,
+  "calls": 2,
+  "wall_seconds": 20355.6
  }
 }

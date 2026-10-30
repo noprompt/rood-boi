@@ -1,0 +1,141 @@
+{
+ "function": "func_800CA97C",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CA97C",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ca97c",
+  "difficulty": "S",
+  "zig_name": "func_800CA97C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CA97C",
+  "spec_file": "func_800CA97C.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CA97C() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F4ED8"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11433,
+     "completion_tokens": 3553,
+     "reasoning_tokens": 2750,
+     "cost": 0.0014598999999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)",
+     "FAIL: mutation M2: memset misses the last element: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CA97C: 20000 iterations, seed 1, 0 mismatches"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12376,
+     "completion_tokens": 2483,
+     "reasoning_tokens": 1394,
+     "cost": 0.0012395499999999999,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation M2: memset misses the last element: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CA97C: 20000 iterations, seed 1, 0 mismatches; classes: ptr-null=10005 ptr-set=9995"
+    ]
+   }
+  ],
+  "classes": {
+   "ptr-null": "10005",
+   "ptr-set": "9995"
+  },
+  "mutations": [
+   {
+    "name": "M1: the pointer global is not cleared",
+    "caught": true
+   },
+   {
+    "name": "M2: memset misses the last element",
+    "caught": false
+   },
+   {
+    "name": "M3: the store lands in element 3",
+    "caught": true
+   },
+   {
+    "name": "M4: wrong constant stored",
+    "caught": true
+   },
+   {
+    "name": "M5: the memset is dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 18.353695711999535,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 4840.790698051453,
+ "totals": {
+  "cost": 0.0027,
+  "prompt_tokens": 23809,
+  "completion_tokens": 6036,
+  "model_seconds": 0.0,
+  "check_seconds": 18.4,
+  "calls": 2,
+  "wall_seconds": 4840.8
+ }
+}

@@ -51,16 +51,19 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12012,
-     "completion_tokens": 3654,
-     "reasoning_tokens": 2865,
-     "cost": 0.0015141,
+     "completion_tokens": 2276,
+     "reasoning_tokens": 1552,
+     "cost": 0.0011695999999999998,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused1: 1000 iterations, seed 1, 1000 mismatches; classes: action-null=270 action-set=730"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused1: 1000 iterations, seed 1, 1000 mismatches; classes: null-action=270 action=730",
+     "FAIL: mutation H1: returns 1 instead of the empty body's value: mutation H1: returns 1 instead of the empty body's value: its `from` text occurs 0 times in the C body of _hitPrerequisiteUnused1 (copy it exactly from the C)",
+     "FAIL: mutation H2: returns -1 instead of the empty body's value: mutation H2: returns -1 instead of the empty body's value: its `from` text occurs 0 times in the C body of _hitPrerequisiteUnused1 (copy it exactly from the C)",
+     "FAIL: mutation H3: stores through arg1 (a dropped or added store): mutation H3: stores through arg1 (a dropped or added store): its `from` text occurs 0 times in the C body of _hitPrerequisiteUnused1 (copy it exactly from the C)"
     ]
    },
    {
@@ -73,40 +76,39 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 12998,
-     "completion_tokens": 2332,
-     "reasoning_tokens": 1293,
-     "cost": 0.0012328999999999999,
+     "prompt_tokens": 13206,
+     "completion_tokens": 3063,
+     "reasoning_tokens": 2181,
+     "cost": 0.0014260499999999999,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused1: 1000 iterations, seed 1, 1000 mismatches; classes: action-null=270 action-set=730"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused1: 1000 iterations, seed 1, 1000 mismatches; classes: null-action=270 action=730",
+     "FAIL: mutation H1: returns 1 instead of the empty body's value: mutation H1: returns 1 instead of the empty body's value: its `from` text occurs 0 times in the C body of _hitPrerequisiteUnused1 (copy it exactly from the C)",
+     "FAIL: mutation H2: returns -1 instead of the empty body's value: mutation H2: returns -1 instead of the empty body's value: its `from` text occurs 0 times in the C body of _hitPrerequisiteUnused1 (copy it exactly from the C)",
+     "FAIL: mutation H3: stores through arg1 (a dropped or added store): mutation H3: stores through arg1 (a dropped or added store): its `from` text occurs 0 times in the C body of _hitPrerequisiteUnused1 (copy it exactly from the C)"
     ]
    }
   ],
   "classes": {
-   "action-null": "270",
-   "action-set": "730"
+   "null-action": "270",
+   "action": "730"
   },
   "mutations": [
    {
-    "name": "H1: stores a byte through arg1 that the original does not",
-    "caught": true
+    "name": "H1: returns 1 instead of the empty body's value",
+    "caught": false
    },
    {
-    "name": "H2: guarded store to action->unk1 that the original does not make",
-    "caught": true
+    "name": "H2: returns -1 instead of the empty body's value",
+    "caught": false
    },
    {
-    "name": "H3: store at index 1 instead of 0 (off-by-one)",
-    "caught": true
-   },
-   {
-    "name": "H4: unchecked dereference of a null action",
-    "caught": true
+    "name": "H3: stores through arg1 (a dropped or added store)",
+    "caught": false
    }
   ],
   "coverage": {
@@ -138,17 +140,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 11.995848902999569,
+ "check_seconds": 8.676988772000186,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56212.171316862106,
+ "wall_seconds": 4371.262343645096,
  "totals": {
-  "cost": 0.00275,
-  "prompt_tokens": 25010,
-  "completion_tokens": 5986,
+  "cost": 0.0026,
+  "prompt_tokens": 25218,
+  "completion_tokens": 5339,
   "model_seconds": 0.0,
-  "check_seconds": 12.0,
+  "check_seconds": 8.7,
   "calls": 2,
-  "wall_seconds": 56212.2
+  "wall_seconds": 4371.3
  }
 }

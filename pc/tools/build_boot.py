@@ -125,6 +125,11 @@ generated.mkdir(parents=True, exist_ok=True)
 
 
 def run(args, **kwargs):
+    # The probes' C compiles get the game's C dialect (GCC 15 defaults to C23, where the PSX
+    # headers' `void exit();` takes no arguments) unless they name one.
+    if args and args[0] == "gcc" and any(str(a).endswith(".c") for a in args) \
+            and not any(str(a).startswith("-std=") or str(a) == "-x" for a in args):
+        args = [args[0], *c_only_flags, *args[1:]]
     return subprocess.run(args, cwd=root, check=True, **kwargs)
 
 
@@ -256,8 +261,11 @@ arch64_results = []
 # twins are what rood.exe links.
 MINGW = "x86_64-w64-mingw32-"
 # Ubuntu's MinGW-w64 compilers come in two thread models; the build uses the
-# POSIX one. On a Windows host (MSYS2's MINGW64) they are plain gcc and g++.
+# POSIX one. Arch's plain gcc and g++ are POSIX already (no -posix names). On a
+# Windows host (MSYS2's MINGW64) they are plain gcc and g++.
 MINGW_GCC, MINGW_GXX = MINGW + "gcc-posix", MINGW + "g++-posix"
+if not shutil.which(MINGW_GCC) and shutil.which(MINGW + "gcc"):
+    MINGW_GCC, MINGW_GXX = MINGW + "gcc", MINGW + "g++"
 if os.name == "nt":
     MINGW, MINGW_GCC, MINGW_GXX = "", "gcc", "g++"
 mingw_permissive = win and gcc_major(MINGW_GCC) >= 14

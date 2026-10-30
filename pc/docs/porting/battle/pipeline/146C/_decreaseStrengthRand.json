@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13091,
-     "completion_tokens": 5721,
-     "reasoning_tokens": 4490,
-     "cost": 0.0020848,
+     "completion_tokens": 5399,
+     "reasoning_tokens": 4147,
+     "cost": 0.0020043,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _decreaseStrengthRand: 1000 iterations, seed 1, 1000 mismatches; classes: strength-max=111 strength-min=91 strength-other=798"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_decreaseStrengthRand/spec1/build/spec.zig:27:5: error: use of undeclared identifier 'psx'\n    psx.setBits(target, \"strengthEffect\", ctx.int(u2));\n    ^~~\n"
     ]
    },
    {
@@ -86,43 +86,43 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 14525,
-     "completion_tokens": 2722,
-     "reasoning_tokens": 1384,
-     "cost": 0.00140675,
+     "completion_tokens": 1841,
+     "reasoning_tokens": 576,
+     "cost": 0.0011865,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _decreaseStrengthRand: 1000 iterations, seed 1, 1000 mismatches; classes: strength-max=91 strength-min=102 strength-other=807"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _decreaseStrengthRand: 1000 iterations, seed 1, 1000 mismatches; classes: strength-normal=341 strength-negative=465 strength-near-max=194"
     ]
    }
   ],
   "classes": {
-   "strength-max": "91",
-   "strength-min": "102",
-   "strength-other": "807"
+   "strength-normal": "341",
+   "strength-negative": "465",
+   "strength-near-max": "194"
   },
   "mutations": [
    {
-    "name": "D1: getRand asked for 3, not 4",
+    "name": "D1: amount is rand + 2",
     "caught": true
    },
    {
-    "name": "D2: strengthEffect store dropped",
+    "name": "D2: rand asked for a different range",
     "caught": true
    },
    {
-    "name": "D3: amount off by one (+2)",
+    "name": "D3: strength decreased, not increased",
     "caught": true
    },
    {
-    "name": "D4: wrong field (intelligence, not strength)",
+    "name": "D4: wrong strengthEffect constant",
     "caught": true
    },
    {
-    "name": "D5: getRand call dropped",
+    "name": "D5: strengthEffect store dropped",
     "caught": true
    }
   ],
@@ -154,12 +154,12 @@
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2146936418, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+     "text": "32-bit: min -2146832332, max 2147327099, unsigned 54118..4294951798, seen negative, never zero"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147097250, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+     "text": "32-bit: min -2147323181, max 2147477681, unsigned 102771..4294948561, seen negative, never zero"
     }
    ],
    "compares": [],
@@ -170,17 +170,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 13.73722878999979,
+ "check_seconds": 12.311448643999029,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56094.10694479942,
+ "wall_seconds": 4529.305727720261,
  "totals": {
-  "cost": 0.00349,
+  "cost": 0.00319,
   "prompt_tokens": 27616,
-  "completion_tokens": 8443,
+  "completion_tokens": 7240,
   "model_seconds": 0.0,
-  "check_seconds": 13.7,
+  "check_seconds": 12.3,
   "calls": 2,
-  "wall_seconds": 56094.1
+  "wall_seconds": 4529.3
  }
 }

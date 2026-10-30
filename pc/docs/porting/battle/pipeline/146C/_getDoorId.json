@@ -47,16 +47,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12404,
-     "completion_tokens": 14816,
-     "reasoning_tokens": 13319,
-     "cost": 0.0043242,
+     "completion_tokens": 28077,
+     "reasoning_tokens": 26181,
+     "cost": 0.007639449999999999,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation D3: returned byte read unsigned (signed char slip): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _getDoorId: 30000 iterations, seed 1, 0 mismatches; classes: null-section=4998 negative-door=6800 door-past-limit=14829 door-in-table=3373"
+     "FAIL: mutation D3: return byte read unsigned: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _getDoorId: 40000 iterations, seed 1, 0 mismatches; classes: no-scene=4957 wrapped-room-count=10024 negative-door=5288 door-at-bound=3735 door-past-bound=10706 door-in-range=5290"
     ]
    },
    {
@@ -69,45 +69,51 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14062,
-     "completion_tokens": 7388,
-     "reasoning_tokens": 5874,
-     "cost": 0.0025501,
+     "prompt_tokens": 14477,
+     "completion_tokens": 7079,
+     "reasoning_tokens": 5081,
+     "cost": 0.0024936,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation D3: returned byte read unsigned (signed char slip): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _getDoorId: 30000 iterations, seed 1, 0 mismatches; classes: null-section=5075 negative-door=7276 door-past-limit=15011 door-in-table=2638"
+     "FAIL: mutation D3: return byte read unsigned: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _getDoorId: 40000 iterations, seed 1, 0 mismatches; classes: no-scene=4957 wrapped-room-count=10024 negative-door=3442 door-at-bound=1996 door-past-bound=14030 door-in-range=5551"
     ]
    }
   ],
   "classes": {
-   "null-section": "5075",
-   "negative-door": "7276",
-   "door-past-limit": "15011",
-   "door-in-table": "2638"
+   "no-scene": "4957",
+   "wrapped-room-count": "10024",
+   "negative-door": "3442",
+   "door-at-bound": "1996",
+   "door-past-bound": "14030",
+   "door-in-range": "5551"
   },
   "mutations": [
    {
-    "name": "D1: limit compared with <= (door == limit reads a slot)",
+    "name": "D1: bound compared with <= (door == bound is accepted)",
     "caught": true
    },
    {
-    "name": "D2: door >= 0 becomes door > 0",
+    "name": "D2: door >= 0 written as door > 0 (door 0 rejected)",
     "caught": true
    },
    {
-    "name": "D3: returned byte read unsigned (signed char slip)",
+    "name": "D3: return byte read unsigned",
     "caught": false
    },
    {
-    "name": "D4: door offset off by one slot",
+    "name": "D4: bound's post-increment dropped (indexes from the bound word)",
     "caught": true
    },
    {
-    "name": "D5: miss case returns 0 instead of -1",
+    "name": "D5: no-scene result is 0, not -1",
+    "caught": true
+   },
+   {
+    "name": "D6: door index off by one",
     "caught": true
    }
   ],
@@ -123,7 +129,7 @@
    "args": [
     {
      "arg": 0,
-     "count": 30000,
+     "count": 40000,
      "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     }
    ],
@@ -132,31 +138,31 @@
      "line": 4,
      "text": "if (((__typeof__((vs_battle_roomData.sectionF).psx_type_[0]))(long unsigned int)(vs_battle_roomData.sectionF).raw) != 0) {",
      "size": 4,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 5075, < 0, > 24925 (signed); < 0, > 24925 (unsigned)",
+     "outcomes": "== 4957, < 0, > 35043 (signed); < 0, > 35043 (unsigned)",
      "operand": "constant 0",
-     "a": "0..4231792"
+     "a": "0..4231856"
     },
     {
      "line": 12,
      "text": "if ((door < *temp_v1++) && (door >= 0)) {",
      "size": 4,
-     "count": 24925,
+     "count": 35043,
      "kind": "a == b / a < b",
-     "outcomes": "== 1378, < 8659, > 14888 (signed); < 1383, > 22164 (unsigned)",
-     "operand": "b 0..2",
+     "outcomes": "== 3444, < 11478, > 20121 (signed); < 15563, > 16036 (unsigned)",
+     "operand": "b -3..12",
      "a": "-2147483648..2147483647"
     },
     {
      "line": 12,
      "text": "if ((door < *temp_v1++) && (door >= 0)) {",
      "size": 4,
-     "count": 8659,
+     "count": 11478,
      "kind": "against a constant",
-     "outcomes": "== 915, < 7276, > 468 (signed); < 0, > 7744 (unsigned)",
+     "outcomes": "== 2230, < 3682, > 5566 (signed); < 0, > 9248 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..1"
+     "a": "-2147483648..11"
     }
    ],
    "passed": true
@@ -166,17 +172,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 31.067265427000166,
+ "check_seconds": 37.07909032399948,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56139.914155483246,
+ "wall_seconds": 4656.736241340637,
  "totals": {
-  "cost": 0.00687,
-  "prompt_tokens": 26466,
-  "completion_tokens": 22204,
+  "cost": 0.01013,
+  "prompt_tokens": 26881,
+  "completion_tokens": 35156,
   "model_seconds": 0.0,
-  "check_seconds": 31.1,
+  "check_seconds": 37.1,
   "calls": 2,
-  "wall_seconds": 56139.9
+  "wall_seconds": 4656.7
  }
 }

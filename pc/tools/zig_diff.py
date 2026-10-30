@@ -85,7 +85,15 @@ COVERAGE_FLAGS = ["--coverage", "-fsanitize-coverage=trace-cmp", "-fsanitize=thr
 # and a recording stub cannot be variadic with fixed parameters: 2842C's
 # func_80093B68 and func_80096768 format text with sprintf and measure it
 # with strlen, which reads the stack buffer the trace only tags).
-LIBC = {"__stack_chk_fail", "sprintf", "strlen"}
+# GCC's block-move libcalls run as themselves too: a large struct copy
+# (`*source = *result`, 0x84C bytes, in 146C's func_80085B10) is a memcpy
+# call under GCC 16 where GCC 13 copied inline, and the game links libc's.
+LIBC = {"__stack_chk_fail", "sprintf", "strlen", "memcpy", "memmove", "memset"}
+# The libc functions main.zig calls itself (snapshot, restore and report
+# go through memcpy and printf) are never stubs: a recording stub of the
+# same name would take over the harness's own calls (an unrestored state).
+HARNESS_LIBC = set(re.findall(r"^extern fn (\w+)\(", HARNESS.read_text(), re.M)) - {
+    "zdiff_cov_enable", "zdiff_cov_arg", "zdiff_cov_dump"}
 
 
 class Failure(Exception):
@@ -376,7 +384,7 @@ class Build:
         ctext = self.c.read_text()
         c_functions = set(re.findall(r"^pub extern fn (\w+)\(", ctext, re.M))
         statics = set(re.findall(r"^pub const (\w+) = @compileError", ctext, re.M))
-        undefined -= HARNESS_DEFINED | LIBC
+        undefined -= HARNESS_DEFINED | LIBC | HARNESS_LIBC
         undefined = {u for u in undefined if not u.startswith(("__gcov", "__sanitizer_cov", "__tsan_"))}
         stubs = sorted(u for u in undefined if u in c_functions)
         traps = sorted(u for u in undefined if u in statics)

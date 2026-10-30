@@ -50,16 +50,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 20755,
-     "completion_tokens": 25032,
-     "reasoning_tokens": 22118,
-     "cost": 0.00729575,
+     "completion_tokens": 28159,
+     "reasoning_tokens": 25339,
+     "cost": 0.0080775,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80072734: branches 25/26 (96.2%), conditions not measured (GCC < 14: branch coverage only), lines 53/57\n  UNCOVERED +25 b0: branch never taken: `if ((*(u_int*)&spec->rangeX >> 27) == 0xFF) {`\n  FLAG +49 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\n  note: waivers no longer needed: +26 b1\ncoverage func_80072734: FAILED (threshold 100%: 1 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if ((*(u_int*)&spec->rangeX >> 27) == 0xFF) {` (+25): one way out of this test (+25 b0) was never taken; add inputs that take it.\n- `&& !(actor->unk1C & 0x8000)) {` (+49): the two sides of this ordered compare were equal 0 time(s) in 30878. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80072734.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80072734: branches 25/26 (96.2%), conditions not measured (GCC < 14: branch coverage only), lines 53/57\n  UNCOVERED +25 b0: branch never taken: `if ((*(u_int*)&spec->rangeX >> 27) == 0xFF) {`\n  FLAG +49 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\n  note: waivers no longer needed: +? b0\ncoverage func_80072734: FAILED (threshold 100%: 1 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if ((*(u_int*)&spec->rangeX >> 27) == 0xFF) {` (+25): one way out of this test (+25 b0) was never taken; add inputs that take it.\n- `&& !(actor->unk1C & 0x8000)) {` (+49): the two sides of this ordered compare were equal 0 time(s) in 124435. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80072734.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -72,49 +72,51 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 24186,
-     "completion_tokens": 6909,
-     "reasoning_tokens": 3907,
-     "cost": 0.0029365499999999996,
+     "prompt_tokens": 24091,
+     "completion_tokens": 6591,
+     "reasoning_tokens": 3435,
+     "cost": 0.0028523,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80072734: branches 25/26 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 53/57\n  waived +25 b0: branch never taken: `if ((*(u_int*)&spec->rangeX >> 27) == 0xFF) {` ((u_int)rangeX >> 27 yields at most 31 (5 bits), so the then-branch cannot be taken)\n  FLAG +49 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\ncoverage func_80072734: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `&& !(actor->unk1C & 0x8000)) {` (+49): the two sides of this ordered compare were equal 0 time(s) in 32318. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80072734.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_80072734: branches 25/26 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 53/57\n  waived +25 b0: branch never taken: `if ((*(u_int*)&spec->rangeX >> 27) == 0xFF) {` (*(u_int*)&spec->rangeX >> 27 is at most 31 (five bits): it can never equal 0xFF)\n  FLAG +49 eq: boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `&& !(actor->unk1C & 0x8000)) {`\ncoverage func_80072734: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `&& !(actor->unk1C & 0x8000)) {` (+49): the two sides of this ordered compare were equal 0 time(s) in 90158. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_80072734.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "limb-hook": "9967",
-   "limb-nohook": "9985",
-   "single-hook": "4913",
-   "single-nohook": "5135"
+   "t0-single": "7",
+   "t0-limbs": "1851",
+   "t1-9-single": "66",
+   "t1-9-limbs": "16552",
+   "t10-15-single": "53",
+   "t10-15-limbs": "11471"
   },
   "mutations": [
    {
-    "name": "M1: stored count off by one",
+    "name": "M1: the actor loop stops before slot 9",
     "caught": true
    },
    {
-    "name": "M2: hook tested as > 0 (negative hook missed)",
+    "name": "M2: the status mask drops bit 24",
     "caught": true
    },
    {
-    "name": "M3: loop stops at 9 actors",
+    "name": "M3: wrong camera mode constant",
     "caught": true
    },
    {
-    "name": "M4: target comparison as a bound",
+    "name": "M4: the target's pad is not cleared",
     "caught": true
    },
    {
-    "name": "M5: aoe mask 0xF instead of 7",
+    "name": "M5: a limb part of 0 is dropped",
     "caught": true
    },
    {
-    "name": "M6: pad read-back dropped",
+    "name": "M6: signed slip on the call guard",
     "caught": true
    }
   ],
@@ -141,7 +143,7 @@
      "kind": "eq",
      "bits": 16,
      "equal": 0,
-     "count": 32318,
+     "count": 90158,
      "what": "boundary equality never occurred (16-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
     }
    ],
@@ -149,7 +151,7 @@
     {
      "arg": 0,
      "count": 30000,
-     "text": "32-bit: min -2147341863, max 2147253878, unsigned 5258..4294935760, seen negative, never zero"
+     "text": "32-bit: min -2147441591, max 2147294223, unsigned 622441..4294813030, seen negative, never zero"
     }
    ],
    "compares": [
@@ -177,9 +179,9 @@
      "line": 45,
      "text": "if (actor && (status & 0x3000001) == 1",
      "size": 4,
-     "count": 230292,
+     "count": 206203,
      "kind": "against a constant",
-     "outcomes": "== 65021, < 7174, > 158097 (signed); < 7174, > 158097 (unsigned)",
+     "outcomes": "== 138434, < 9638, > 58131 (signed); < 9638, > 58131 (unsigned)",
      "operand": "constant 1",
      "a": "0..50331649"
     },
@@ -187,9 +189,9 @@
      "line": 46,
      "text": "&& (i != D_800F19CC->unk8.unk4.unk0.targetActor",
      "size": 4,
-     "count": 65021,
+     "count": 138434,
      "kind": "a == b / a < b",
-     "outcomes": "== 5936, < 33779, > 25306 (signed); < 33779, > 25306 (unsigned)",
+     "outcomes": "== 12409, < 88814, > 37211 (signed); < 88814, > 37211 (unsigned)",
      "operand": "b 0..15",
      "a": "0..9"
     },
@@ -197,19 +199,19 @@
      "line": 47,
      "text": "|| D_800E81B4[vs_main_actions[action].unk2_4])",
      "size": 1,
-     "count": 5936,
+     "count": 12409,
      "kind": "against a constant",
-     "outcomes": "== 2974, < 0, > 2962 (signed); < 0, > 2962 (unsigned)",
+     "outcomes": "== 48, < 6322, > 6039 (signed); < 0, > 12361 (unsigned)",
      "operand": "constant 0",
-     "a": "0..1"
+     "a": "-128..127"
     },
     {
      "line": 48,
      "text": "&& (actor->unk1C & D_800E81D4[vs_main_actions[action].unk2_4])",
      "size": 4,
-     "count": 62047,
+     "count": 138386,
      "kind": "against a constant",
-     "outcomes": "== 29729, < 0, > 32318 (signed); < 0, > 32318 (unsigned)",
+     "outcomes": "== 48228, < 0, > 90158 (signed); < 0, > 90158 (unsigned)",
      "operand": "constant 0",
      "a": "0..255"
     },
@@ -217,29 +219,29 @@
      "line": 49,
      "text": "&& !(actor->unk1C & 0x8000)) {",
      "size": 2,
-     "count": 32318,
+     "count": 90158,
      "kind": "against a constant",
-     "outcomes": "== 0, < 15349, > 16969 (signed); < 0, > 32318 (unsigned)",
+     "outcomes": "== 0, < 40923, > 49235 (signed); < 0, > 90158 (unsigned)",
      "operand": "constant 0",
-     "a": "-32767..32761"
+     "a": "-32765..32767"
     },
     {
      "line": 50,
      "text": "if (D_800E81C4[vs_main_actions[action].unk2_4]) {",
      "size": 1,
-     "count": 16969,
+     "count": 49235,
      "kind": "against a constant",
-     "outcomes": "== 5780, < 5584, > 5605 (signed); < 0, > 11189 (unsigned)",
+     "outcomes": "== 192, < 24780, > 24263 (signed); < 0, > 49043 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..1"
+     "a": "-128..127"
     },
     {
      "line": 51,
      "text": "for (limb = 0; limb < 6; ++limb) {",
      "size": 4,
-     "count": 78323,
+     "count": 343301,
      "kind": "against a constant",
-     "outcomes": "== 11189, < 55945, > 11189 (signed); < 55945, > 11189 (unsigned)",
+     "outcomes": "== 49043, < 245215, > 49043 (signed); < 245215, > 49043 (unsigned)",
      "operand": "constant 5",
      "a": "0..6"
     },
@@ -247,11 +249,11 @@
      "line": 53,
      "text": "if (part >= 0) {",
      "size": 4,
-     "count": 67134,
+     "count": 294258,
      "kind": "against a constant",
-     "outcomes": "== 7832, < 41430, > 17872 (signed); < 0, > 59302 (unsigned)",
+     "outcomes": "== 73788, < 110643, > 109827 (signed); < 0, > 220470 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147125874..2147251531"
+     "a": "-2147434703..2147452273"
     },
     {
      "line": 73,
@@ -259,7 +261,7 @@
      "size": 1,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 4284, < 0, > 25716 (signed); < 0, > 25716 (unsigned)",
+     "outcomes": "== 1858, < 0, > 28142 (signed); < 0, > 28142 (unsigned)",
      "operand": "constant 0",
      "a": "0..15"
     },
@@ -269,9 +271,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 15120, < 4865, > 10015 (signed); < 0, > 14880 (unsigned)",
+     "outcomes": "== 7419, < 15050, > 7531 (signed); < 0, > 22581 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..2147483647"
+     "a": "-2147330529..2146753370"
     }
    ],
    "passed": false
@@ -281,17 +283,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 54.61069802200109,
+ "check_seconds": 83.25224910399811,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56358.01071858406,
+ "wall_seconds": 4206.263060569763,
  "totals": {
-  "cost": 0.01023,
-  "prompt_tokens": 44941,
-  "completion_tokens": 31941,
+  "cost": 0.01093,
+  "prompt_tokens": 44846,
+  "completion_tokens": 34750,
   "model_seconds": 0.0,
-  "check_seconds": 54.6,
+  "check_seconds": 83.3,
   "calls": 2,
-  "wall_seconds": 56358.0
+  "wall_seconds": 4206.3
  }
 }

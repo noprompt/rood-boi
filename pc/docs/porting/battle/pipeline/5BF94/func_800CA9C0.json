@@ -1,0 +1,202 @@
+{
+ "function": "func_800CA9C0",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CA9C0",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ca9c0",
+  "difficulty": "S",
+  "zig_name": "func_800CA9C0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CA9C0",
+  "spec_file": "func_800CA9C0.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CA9C0(arg0: ?*anyopaque) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*anyopaque"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "D_800F4EE8_t"
+  ],
+  "globals": [
+   "D_800EB9AC",
+   "D_800EB9AE",
+   "D_800EB9AF",
+   "D_800EB9B0",
+   "D_800EB9CC",
+   "D_800EB9CD",
+   "D_800EB9CE",
+   "D_800EB9D0",
+   "D_800F4CD0",
+   "D_800F4ED4",
+   "D_800F4EE8",
+   "D_800F51B8",
+   "vs_battle_lowerScreenUiState",
+   "vs_battle_submenuStates"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15817,
+     "completion_tokens": 8232,
+     "reasoning_tokens": 6860,
+     "cost": 0.00284885,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "arena-pointer": "15055",
+   "scratchpad-pointer": "14945"
+  },
+  "mutations": [
+   {
+    "name": "M1: D_800EB9CD cleared to 1",
+    "caught": true
+   },
+   {
+    "name": "M2: the D_800EB9D0 store moved after func_800CA97C",
+    "caught": true
+   },
+   {
+    "name": "M3: wrong menu constant",
+    "caught": true
+   },
+   {
+    "name": "M4: menu state memzero one byte short",
+    "caught": true
+   },
+   {
+    "name": "M5: DrawSync dropped",
+    "caught": true
+   },
+   {
+    "name": "M6: second render reads the wrong offset",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 32,
+   "lines_hit": 32,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39171,
+     "completion_tokens": 7736,
+     "reasoning_tokens": 6643,
+     "cost": 0.00389255,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CA9C0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CA9C0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 85.39069820300028,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30235.741279363632,
+ "totals": {
+  "cost": 0.00674,
+  "prompt_tokens": 54988,
+  "completion_tokens": 15968,
+  "model_seconds": 0.0,
+  "check_seconds": 85.4,
+  "calls": 2,
+  "wall_seconds": 30235.7
+ }
+}

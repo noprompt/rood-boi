@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's bug). The harness fills every global and the arena with r",
+ "reviewed": false,
  "plan": {
   "name": "_printVariableWidthFont",
   "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
@@ -45,24 +45,25 @@
     "round": 1,
     "sample": 1,
     "call": {
-     "finish_reason": "length",
+     "finish_reason": "stop",
      "model": "anthropic/claude-haiku-5.5",
      "endpoint": "remote",
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 19370,
-     "completion_tokens": 64000,
-     "reasoning_tokens": 60450,
-     "cost": 0.033937,
-     "seconds": 274.3,
-     "sample": 1,
-     "conversation": "cc9b54d98a7265886b93a3d3ca9c80ecf00469e9891ee226f3ffdb456d74ec97"
+     "completion_tokens": 56888,
+     "reasoning_tokens": 53398,
+     "cost": 0.0151905,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: no ```zig block in the reply",
-     "FAIL: no ```toml block in the reply"
+     "FAIL: mutation V1: FA offset test on the signed char read (0x80-0xEF take the subtract path): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _printVariableWidthFont: 30000 iterations, seed 1, 0 mismatches; classes: idle=2265 font2=3381 button=12122 unk2C-zero=3634 default=8598",
+     "FAIL: mutation V2: FB y offset shifts arithmetically, not logically: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _printVariableWidthFont: 30000 iterations, seed 1, 0 mismatches; classes: idle=2265 font2=3381 button=12122 unk2C-zero=3634 default=8598",
+     "FAIL: mutation V3: the opcode test takes 0xEC as an opcode (<= for <): not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 1: call 4 (vs_battle_printVariableWidthFontChar): argument 0: C 0x6d, Zig 0x9b\nzdiff: MISMATCH iteration 12: call 1 (vs_battle_printVariableWidthFontChar): argument 0: C 0xdb, Zig 0x1e\nzdiff: MISMATCH iteration 17: memory at 0x40a58e [arena] (zdiff_state+0x50e): C 10, Zig 11\nzdiff: CRASH (signal 11) in the Zig run, iteration 2631, fault address 0x0 [NULL+0x0: a field of a null pointer]"
     ]
    },
    {
@@ -75,42 +76,530 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 22982,
-     "completion_tokens": 24832,
-     "reasoning_tokens": 20062,
-     "cost": 0.0147142,
-     "seconds": 99.9,
-     "sample": 1,
-     "conversation": "e902b1e6a40c5edd3b0781e6198db74e2c387c8e8a0ae86cb46385a3c74b4ed7"
+     "prompt_tokens": 23515,
+     "completion_tokens": 11918,
+     "reasoning_tokens": 8141,
+     "cost": 0.00415525,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 0, fault address 0x0 [NULL+0x0: a field of a null pointer]\nzdiff: crashed on arguments: 0x40c260 [arena] (class newline-justify)",
-     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+     "FAIL: mutation V1: FA offset test on the signed char read (0x80-0xEF take the subtract path): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _printVariableWidthFont: 30000 iterations, seed 1, 0 mismatches; classes: idle=781 font2=3664 button=12796 unk2C-zero=3868 default=8891",
+     "FAIL: mutation V2: FB y offset shifts arithmetically, not logically: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _printVariableWidthFont: 30000 iterations, seed 1, 0 mismatches; classes: idle=781 font2=3664 button=12796 unk2C-zero=3868 default=8891"
     ]
    }
   ],
-  "classes": {},
-  "mutations": [],
-  "coverage": null
+  "classes": {
+   "idle": "781",
+   "font2": "3664",
+   "button": "12796",
+   "unk2C-zero": "3868",
+   "default": "8891"
+  },
+  "mutations": [
+   {
+    "name": "V1: FA offset test on the signed char read (0x80-0xEF take the subtract path)",
+    "caught": false
+   },
+   {
+    "name": "V2: FB y offset shifts arithmetically, not logically",
+    "caught": false
+   },
+   {
+    "name": "V3: the opcode test takes 0xEC as an opcode (<= for <)",
+    "caught": true
+   },
+   {
+    "name": "V4: the offset-zero call to func_800AAD4C is dropped",
+    "caught": true
+   },
+   {
+    "name": "V5: the tick speed is halved by two at the end of the text",
+    "caught": true
+   },
+   {
+    "name": "V6: the 0xFC unk2C store loses its negation",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 96,
+   "branches_hit": 96,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 186,
+   "lines_hit": 186,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 27,
+     "text": "if (charsRemaining != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 781, < 0, > 29219 (signed); < 0, > 29219 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..65535"
+    },
+    {
+     "line": 29,
+     "text": "_fontTable = arg0->unk0.unk0_0 != 4;",
+     "size": 1,
+     "count": 29219,
+     "kind": "against a constant",
+     "outcomes": "== 3631, < 14695, > 10893 (signed); < 14695, > 10893 (unsigned)",
+     "operand": "constant 4",
+     "a": "0..15"
+    },
+    {
+     "line": 31,
+     "text": "D_800F4CB8 = (1 - (*((char*)arg0) & 1)) * 4;",
+     "size": 4,
+     "count": 29219,
+     "kind": "against a constant",
+     "outcomes": "== 14640, < 0, > 14579 (signed); < 0, > 14579 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 33,
+     "text": "if (arg0->unk0.unk0_0 == 2) {",
+     "size": 1,
+     "count": 29219,
+     "kind": "against a constant",
+     "outcomes": "== 3664, < 7393, > 18162 (signed); < 7393, > 18162 (unsigned)",
+     "operand": "constant 2",
+     "a": "0..15"
+    },
+    {
+     "line": 43,
+     "text": "while (charsRemaining > 0) {",
+     "size": 4,
+     "count": 461541,
+     "kind": "against a constant",
+     "outcomes": "== 4562, < 1712, > 455267 (signed); < 0, > 456979 (unsigned)",
+     "operand": "constant 0",
+     "a": "-254..65535"
+    },
+    {
+     "line": 44,
+     "text": "if (postContinuation != 0) {",
+     "size": 4,
+     "count": 455267,
+     "kind": "against a constant",
+     "outcomes": "== 415384, < 0, > 39883 (signed); < 0, > 39883 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 49,
+     "text": "if (currentChar < 0xEC) {",
+     "size": 4,
+     "count": 455267,
+     "kind": "against a constant",
+     "outcomes": "== 2594, < 276262, > 176411 (signed); < 276262, > 176411 (unsigned)",
+     "operand": "constant 235",
+     "a": "0..255"
+    },
+    {
+     "line": 50,
+     "text": "if (currentChar < 229) {",
+     "size": 4,
+     "count": 278856,
+     "kind": "against a constant",
+     "outcomes": "== 707, < 195218, > 82931 (signed); < 195218, > 82931 (unsigned)",
+     "operand": "constant 228",
+     "a": "0..235"
+    },
+    {
+     "line": 58,
+     "text": "switch (currentChar - 0xE5) {",
+     "size": 4,
+     "count": 82931,
+     "kind": "switch",
+     "outcomes": "== 75336, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6"
+    },
+    {
+     "line": 65,
+     "text": "if (charsRemaining == 1) {",
+     "size": 4,
+     "count": 21919,
+     "kind": "against a constant",
+     "outcomes": "== 586, < 0, > 21333 (signed); < 0, > 21333 (unsigned)",
+     "operand": "constant 1",
+     "a": "1..65535"
+    },
+    {
+     "line": 66,
+     "text": "if ((*(&vs_main_buttonsPressed.pad[0].low)) != 0) {",
+     "size": 1,
+     "count": 586,
+     "kind": "against a constant",
+     "outcomes": "== 314, < 125, > 147 (signed); < 0, > 272 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..126"
+    },
+    {
+     "line": 82,
+     "text": "if (inInlineString != 0) {",
+     "size": 4,
+     "count": 30630,
+     "kind": "against a constant",
+     "outcomes": "== 14964, < 0, > 15666 (signed); < 0, > 15666 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 88,
+     "text": "if (temp_v0 > 0) {",
+     "size": 4,
+     "count": 14964,
+     "kind": "against a constant",
+     "outcomes": "== 4581, < 5669, > 4714 (signed); < 0, > 10383 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147418112"
+    },
+    {
+     "line": 92,
+     "text": "if (((*(&vs_main_buttonsPressed.pad[0].low)) != 0)",
+     "size": 1,
+     "count": 14964,
+     "kind": "against a constant",
+     "outcomes": "== 7427, < 3879, > 3658 (signed); < 0, > 7537 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 93,
+     "text": "|| (postContinuation != 0)) {",
+     "size": 4,
+     "count": 7427,
+     "kind": "against a constant",
+     "outcomes": "== 6948, < 0, > 479 (signed); < 0, > 479 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 101,
+     "text": "if (justify != 0) {",
+     "size": 4,
+     "count": 15392,
+     "kind": "against a constant",
+     "outcomes": "== 14731, < 0, > 661 (signed); < 0, > 661 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 109,
+     "text": "if (done != 0) {",
+     "size": 4,
+     "count": 82931,
+     "kind": "against a constant",
+     "outcomes": "== 59986, < 0, > 22945 (signed); < 0, > 22945 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 116,
+     "text": "switch (currentChar) {",
+     "size": 4,
+     "count": 176411,
+     "kind": "switch",
+     "outcomes": "== 102976, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "236..255"
+    },
+    {
+     "line": 125,
+     "text": "if (opcodeParam >= 240) {",
+     "size": 4,
+     "count": 33980,
+     "kind": "against a constant",
+     "outcomes": "== 3415, < 24511, > 6054 (signed); < 24511, > 6054 (unsigned)",
+     "operand": "constant 239",
+     "a": "0..255"
+    },
+    {
+     "line": 132,
+     "text": "if (opcodeParam & 0xF8) {",
+     "size": 4,
+     "count": 33889,
+     "kind": "against a constant",
+     "outcomes": "== 5178, < 0, > 28711 (signed); < 0, > 28711 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..248"
+    },
+    {
+     "line": 135,
+     "text": "if (opcodeParam == 6) {",
+     "size": 4,
+     "count": 5178,
+     "kind": "against a constant",
+     "outcomes": "== 1634, < 3465, > 79 (signed); < 3465, > 79 (unsigned)",
+     "operand": "constant 6",
+     "a": "0..7"
+    },
+    {
+     "line": 137,
+     "text": "} else if (opcodeParam == 5) {",
+     "size": 4,
+     "count": 3544,
+     "kind": "against a constant",
+     "outcomes": "== 1600, < 1865, > 79 (signed); < 1865, > 79 (unsigned)",
+     "operand": "constant 5",
+     "a": "0..7"
+    },
+    {
+     "line": 139,
+     "text": "} else if (opcodeParam == 4) {",
+     "size": 4,
+     "count": 1944,
+     "kind": "against a constant",
+     "outcomes": "== 1586, < 279, > 79 (signed); < 279, > 79 (unsigned)",
+     "operand": "constant 4",
+     "a": "0..7"
+    },
+    {
+     "line": 141,
+     "text": "if (justify != 0) {",
+     "size": 4,
+     "count": 1586,
+     "kind": "against a constant",
+     "outcomes": "== 57, < 0, > 1529 (signed); < 0, > 1529 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 154,
+     "text": "if (arg0->unk2C > 0) {",
+     "size": 2,
+     "count": 6071,
+     "kind": "against a constant",
+     "outcomes": "== 1886, < 2157, > 2028 (signed); < 0, > 4185 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 162,
+     "text": "if (var_a2 < 0) {",
+     "size": 4,
+     "count": 5639,
+     "kind": "against a constant",
+     "outcomes": "== 122, < 2361, > 3156 (signed); < 0, > 5517 (unsigned)",
+     "operand": "constant 0",
+     "a": "-100000..2147483647"
+    },
+    {
+     "line": 167,
+     "text": "if (opcodeParam < 10) {",
+     "size": 4,
+     "count": 5639,
+     "kind": "against a constant",
+     "outcomes": "== 326, < 833, > 4480 (signed); < 833, > 4480 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..127"
+    },
+    {
+     "line": 168,
+     "text": "if (var_a2 == 0) {",
+     "size": 4,
+     "count": 1159,
+     "kind": "against a constant",
+     "outcomes": "== 22, < 0, > 1137 (signed); < 0, > 1137 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2147483647"
+    },
+    {
+     "line": 172,
+     "text": "while ((var_a2 / var_a0) == 0) {",
+     "size": 4,
+     "count": 5582,
+     "kind": "against a constant",
+     "outcomes": "== 4445, < 0, > 1137 (signed); < 0, > 1137 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..15"
+    },
+    {
+     "line": 176,
+     "text": "while (var_a0 != 0) {",
+     "size": 4,
+     "count": 5788,
+     "kind": "against a constant",
+     "outcomes": "== 1137, < 0, > 4651 (signed); < 0, > 4651 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..268435456"
+    },
+    {
+     "line": 184,
+     "text": "while (opcodeParam != 0) {",
+     "size": 4,
+     "count": 25080,
+     "kind": "against a constant",
+     "outcomes": "== 4480, < 0, > 20600 (signed); < 0, > 20600 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..11"
+    },
+    {
+     "line": 188,
+     "text": "while (var_a0 != 0) {",
+     "size": 4,
+     "count": 13902,
+     "kind": "against a constant",
+     "outcomes": "== 4480, < 0, > 9422 (signed); < 0, > 9422 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..268435456"
+    },
+    {
+     "line": 202,
+     "text": "if (decInt < 0) {",
+     "size": 4,
+     "count": 5572,
+     "kind": "against a constant",
+     "outcomes": "== 131, < 2385, > 3056 (signed); < 0, > 5441 (unsigned)",
+     "operand": "constant 0",
+     "a": "-100000..2147483647"
+    },
+    {
+     "line": 207,
+     "text": "if (opcodeParam < 10) {",
+     "size": 4,
+     "count": 5572,
+     "kind": "against a constant",
+     "outcomes": "== 323, < 809, > 4440 (signed); < 809, > 4440 (unsigned)",
+     "operand": "constant 9",
+     "a": "0..127"
+    },
+    {
+     "line": 208,
+     "text": "if (decInt == 0) {",
+     "size": 4,
+     "count": 1132,
+     "kind": "against a constant",
+     "outcomes": "== 28, < 0, > 1104 (signed); < 0, > 1104 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2147483647"
+    },
+    {
+     "line": 213,
+     "text": "while ((decInt / var_a2) == 0) {",
+     "size": 4,
+     "count": 6892,
+     "kind": "against a constant",
+     "outcomes": "== 5788, < 0, > 1104 (signed); < 0, > 1104 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..9"
+    },
+    {
+     "line": 217,
+     "text": "while (var_a2 != 0) {",
+     "size": 4,
+     "count": 6356,
+     "kind": "against a constant",
+     "outcomes": "== 1104, < 0, > 5252 (signed); < 0, > 5252 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1000000000"
+    },
+    {
+     "line": 225,
+     "text": "while (opcodeParam != 0) {",
+     "size": 4,
+     "count": 24559,
+     "kind": "against a constant",
+     "outcomes": "== 4440, < 0, > 20119 (signed); < 0, > 20119 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..11"
+    },
+    {
+     "line": 229,
+     "text": "while (var_a2 != 0) {",
+     "size": 4,
+     "count": 27819,
+     "kind": "against a constant",
+     "outcomes": "== 4440, < 0, > 23379 (signed); < 0, > 23379 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1410065408"
+    },
+    {
+     "line": 249,
+     "text": "if (charsRemaining <= 0) {",
+     "size": 4,
+     "count": 29219,
+     "kind": "against a constant",
+     "outcomes": "== 4834, < 1712, > 22673 (signed); < 0, > 24385 (unsigned)",
+     "operand": "constant 0",
+     "a": "-254..65535"
+    },
+    {
+     "line": 253,
+     "text": "if ((arg0->prevChunksPrinted != chunksPrinted) && (sfx != 0)) {",
+     "size": 4,
+     "count": 29219,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2860, < 8075, > 18284 (signed); < 8075, > 18284 (unsigned)",
+     "operand": "b 0..65535",
+     "a": "0..49"
+    },
+    {
+     "line": 253,
+     "text": "if ((arg0->prevChunksPrinted != chunksPrinted) && (sfx != 0)) {",
+     "size": 4,
+     "count": 26359,
+     "kind": "against a constant",
+     "outcomes": "== 22037, < 0, > 4322 (signed); < 0, > 4322 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 257,
+     "text": "if (!(arg0->unk0.unk0_24 & 0x20)) {",
+     "size": 4,
+     "count": 29219,
+     "kind": "against a constant",
+     "outcomes": "== 14572, < 0, > 14647 (signed); < 0, > 14647 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..32"
+    },
+    {
+     "line": 258,
+     "text": "if (arg0->unk2C != 0) {",
+     "size": 2,
+     "count": 14572,
+     "kind": "against a constant",
+     "outcomes": "== 4391, < 7783, > 2398 (signed); < 0, > 10181 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    }
+   ],
+   "passed": true
+  }
  },
  "port": {
   "attempts": []
  },
  "written": [],
- "check_seconds": 0.7142756280009053,
- "wall_seconds": 375.17524778699953,
+ "check_seconds": 51.290635471001224,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 4731.901099920273,
  "totals": {
-  "cost": 0.04865,
-  "prompt_tokens": 42352,
-  "completion_tokens": 88832,
-  "model_seconds": 374.2,
-  "check_seconds": 0.7,
+  "cost": 0.01935,
+  "prompt_tokens": 42885,
+  "completion_tokens": 68806,
+  "model_seconds": 0.0,
+  "check_seconds": 51.3,
   "calls": 2,
-  "wall_seconds": 375.2
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 4731.9
  }
 }

@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 15594,
-     "completion_tokens": 10669,
-     "reasoning_tokens": 9013,
-     "cost": 0.00344695,
+     "completion_tokens": 9552,
+     "reasoning_tokens": 8222,
+     "cost": 0.0031677,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80076D50/spec1/build/spec.zig:22:42: error: expected type 'usize', found 'c_int'\n        const p = v.g.vs_battle_actors()[id] orelse return;\n                                         ^~\npc/build/port-pipeline/func_80076D50/spec1/build/spec.zig:22:42: note: unsigned 64-bit int cannot represent all possible signed 32-bit values\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_80076D50/spec1/build/game/common/route.zig:34:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80076D50/spec1/build/spec.zig:20:46: error: expected type 'usize', found 'c_int'\n        const actor = v.g.vs_battle_actors()[id] orelse return;\n                                             ^~\npc/build/port-pipeline/func_80076D50/spec1/build/spec.zig:20:46: note: unsigned 64-bit int cannot represent all possible signed 32-bit values\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_80076D50/spec1/build/game/common/route.zig:34:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
     ]
    },
    {
@@ -85,12 +85,12 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 17590,
-     "completion_tokens": 3397,
-     "reasoning_tokens": 1683,
-     "cost": 0.0017287499999999998,
+     "prompt_tokens": 17265,
+     "completion_tokens": 2351,
+     "reasoning_tokens": 976,
+     "cost": 0.001451,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
@@ -100,37 +100,31 @@
    }
   ],
   "classes": {
-   "id0": "1838",
-   "id1": "1765",
-   "arg1-41": "2151",
-   "arg1-48": "2280",
-   "arg4-1": "4029",
-   "arg4-0": "6944",
-   "arg4-2-3": "10993"
+   "id0": "3968",
+   "id1": "3906",
+   "default-sel1": "5552",
+   "default-sel0": "5480",
+   "default-sel2-3": "11094"
   },
   "mutations": [
    {
-    "name": "M1: id 1 gets unk1C 3 instead of 2",
+    "name": "F1: maxHP starts at 101",
     "caught": true
    },
    {
-    "name": "M2: arg1 48 gets unk32 9 instead of 8",
+    "name": "F2: arg1 == 48 tests 49",
     "caught": true
    },
    {
-    "name": "M3: the func_8009D934 call is dropped",
+    "name": "F3: unk24 keeps the wrong mask bit",
     "caught": true
    },
    {
-    "name": "M4: weaponDrawn |= 1 re-applied after the call (stub's write is seen)",
+    "name": "F4: the callee is given 0 instead of 1",
     "caught": true
    },
    {
-    "name": "M5: unk24 keeps only mask 0x0C of arg4 (wrong constant)",
-    "caught": true
-   },
-   {
-    "name": "M6: unk27 written to the wrong field (unk26)",
+    "name": "F5: a dropped weaponDrawn store in the selector-1 prong",
     "caught": true
    }
   ],
@@ -159,22 +153,22 @@
     {
      "arg": 1,
      "count": 30000,
-     "text": "32-bit: min -2146757979, max 2147071684, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2146745279, max 2147384343, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 2,
      "count": 30000,
-     "text": "32-bit: min -2147114444, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+     "text": "32-bit: min -2147367668, max 2147472020, unsigned 181637..4294749928, seen negative, never zero"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147483648, max 2147367033, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147369212, max 2147434968, unsigned 31861..4294961861, seen negative, never zero"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147022498, max 2147221782, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147376358, max 2147399475, unsigned 202451..4294900366, seen negative, never zero"
     }
    ],
    "compares": [
@@ -184,7 +178,7 @@
      "size": 4,
      "count": 30000,
      "kind": "switch",
-     "outcomes": "== 3603, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 7874, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "0..15"
     },
@@ -192,9 +186,9 @@
      "line": 20,
      "text": "switch (arg4 & 3) {",
      "size": 4,
-     "count": 26397,
+     "count": 22126,
      "kind": "switch",
-     "outcomes": "== 26397, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 22126, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "0..3"
     },
@@ -204,19 +198,19 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 2452, < 15068, > 12480 (signed); < 4989, > 22559 (unsigned)",
+     "outcomes": "== 2982, < 16510, > 10508 (signed); < 6029, > 20989 (unsigned)",
      "operand": "constant 41",
-     "a": "-2146757979..2147071684"
+     "a": "-2146745279..2147384343"
     },
     {
      "line": 53,
      "text": "} else if (arg1 == 48) {",
      "size": 4,
-     "count": 27548,
+     "count": 27018,
      "kind": "against a constant",
-     "outcomes": "== 2609, < 15068, > 9871 (signed); < 4989, > 19950 (unsigned)",
+     "outcomes": "== 2979, < 16510, > 7529 (signed); < 6029, > 18010 (unsigned)",
      "operand": "constant 48",
-     "a": "-2146757979..2147071684"
+     "a": "-2146745279..2147384343"
     }
    ],
    "passed": false
@@ -226,17 +220,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 15.841331276998972,
+ "check_seconds": 12.207250838999244,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56438.480600595474,
+ "wall_seconds": 4254.3387677669525,
  "totals": {
-  "cost": 0.00518,
-  "prompt_tokens": 33184,
-  "completion_tokens": 14066,
+  "cost": 0.00462,
+  "prompt_tokens": 32859,
+  "completion_tokens": 11903,
   "model_seconds": 0.0,
-  "check_seconds": 15.8,
+  "check_seconds": 12.2,
   "calls": 2,
-  "wall_seconds": 56438.5
+  "wall_seconds": 4254.3
  }
 }

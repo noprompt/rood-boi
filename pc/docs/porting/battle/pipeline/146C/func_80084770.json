@@ -63,17 +63,17 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13982,
-     "completion_tokens": 10825,
-     "reasoning_tokens": 9133,
-     "cost": 0.0034053499999999997,
+     "completion_tokens": 14106,
+     "reasoning_tokens": 12267,
+     "cost": 0.0042255999999999995,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084770: 1000 iterations, seed 1, 1000 mismatches; classes: not-five=858 five-arg0-null=38 five-arg0-set=93 five-hp-at-limit=11",
-     "FAIL: mutation F4: masked selector (unk2 & 5) == 5: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: PANIC in the Zig run, iteration 3: attempt to use null value (return address 0x40194a)"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084770: 1000 iterations, seed 1, 1000 mismatches; classes: skip=186 skip-null-arg2=87 five-hp-edge=250 five=477",
+     "FAIL: mutation F1: branch taken for unk2 >= 5, not == 5: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 3: memory at 0x409c84 [arena] (zdiff_state+0x2c14): C 237, Zig 108\nzdiff: MISMATCH iteration 4: memory at 0x409c84 [arena] (zdiff_state+0x2c14): C 91, Zig 185\nzdiff: MISMATCH iteration 8: memory at 0x409c84 [arena] (zdiff_state+0x2c14): C 8, Zig 87\nzdiff: PANIC in the Zig run, iteration 24: attempt to use null value (return address 0x40194a)"
     ]
    },
    {
@@ -86,29 +86,29 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 16030,
-     "completion_tokens": 4145,
-     "reasoning_tokens": 2465,
-     "cost": 0.0018377499999999998,
+     "prompt_tokens": 16276,
+     "completion_tokens": 5002,
+     "reasoning_tokens": 3007,
+     "cost": 0.0020643,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084770: 1000 iterations, seed 1, 1000 mismatches; classes: not-five=871 five-arg0-null=34 five-arg0-set=76 five-hp-at-limit=19"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084770: 1000 iterations, seed 1, 1000 mismatches; classes: skip=214 skip-null-arg2=35 five-hp-edge=268 five=483"
     ]
    }
   ],
   "classes": {
-   "not-five": "871",
-   "five-arg0-null": "34",
-   "five-arg0-set": "76",
-   "five-hp-at-limit": "19"
+   "skip": "214",
+   "skip-null-arg2": "35",
+   "five-hp-edge": "268",
+   "five": "483"
   },
   "mutations": [
    {
-    "name": "F1: hp set, not added",
+    "name": "F1: branch taken for unk2 >= 5, not == 5",
     "caught": true
    },
    {
@@ -116,15 +116,15 @@
     "caught": true
    },
    {
-    "name": "F3: callee gets arg1 instead of arg2",
+    "name": "F3: func_800801E0 call dropped",
     "caught": true
    },
    {
-    "name": "F4: masked selector (unk2 & 5) == 5",
+    "name": "F4: hp store dropped",
     "caught": true
    },
    {
-    "name": "F5: _calculateStatChange arguments swapped",
+    "name": "F5: arg3 and arg4 swapped in the call",
     "caught": true
    }
   ],
@@ -151,17 +151,17 @@
     {
      "arg": 2,
      "count": 30000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147468754, max 2147348883, unsigned 77569..4294928713, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147234702, max 2147467587, unsigned 190417..4294676040, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     }
    ],
    "compares": [
@@ -171,9 +171,9 @@
      "size": 1,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 3885, < 13404, > 12711 (signed); < 2192, > 23923 (unsigned)",
+     "outcomes": "== 22566, < 5582, > 1852 (signed); < 3788, > 3646 (unsigned)",
      "operand": "constant 5",
-     "a": "-128..127"
+     "a": "-1..6"
     }
    ],
    "passed": true
@@ -183,17 +183,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 23.46456262600077,
+ "check_seconds": 26.220023878000575,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56710.184987306595,
+ "wall_seconds": 4510.728477239609,
  "totals": {
-  "cost": 0.00524,
-  "prompt_tokens": 30012,
-  "completion_tokens": 14970,
+  "cost": 0.00629,
+  "prompt_tokens": 30258,
+  "completion_tokens": 19108,
   "model_seconds": 0.0,
-  "check_seconds": 23.5,
+  "check_seconds": 26.2,
   "calls": 2,
-  "wall_seconds": 56710.2
+  "wall_seconds": 4510.7
  }
 }

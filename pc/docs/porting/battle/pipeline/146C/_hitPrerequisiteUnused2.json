@@ -51,17 +51,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12012,
-     "completion_tokens": 3225,
-     "reasoning_tokens": 2382,
-     "cost": 0.0014068499999999999,
+     "completion_tokens": 3202,
+     "reasoning_tokens": 2367,
+     "cost": 0.0014011,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused2: 1000 iterations, seed 1, 1000 mismatches",
-     "FAIL: no input classes declared (`classes` and `classify`)"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused2: 1000 iterations, seed 1, 1000 mismatches; classes: null-action=270 action=730"
     ]
    },
    {
@@ -74,39 +73,32 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 13060,
-     "completion_tokens": 3341,
-     "reasoning_tokens": 2206,
-     "cost": 0.00148825,
+     "prompt_tokens": 13042,
+     "completion_tokens": 2384,
+     "reasoning_tokens": 1401,
+     "cost": 0.0012480999999999998,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused2: 1000 iterations, seed 1, 1000 mismatches; classes: unk10-nonnegative=495 unk10-negative=505"
+     "FAIL: 2 mutation(s); give 3-6 (`target = \"c\"`)",
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: _hitPrerequisiteUnused2: 1000 iterations, seed 1, 1000 mismatches; classes: null-action=270 action=730"
     ]
    }
   ],
   "classes": {
-   "unk10-nonnegative": "495",
-   "unk10-negative": "505"
+   "null-action": "270",
+   "action": "730"
   },
   "mutations": [
    {
-    "name": "H1: the C writes arg1[0]",
+    "name": "H1: stray store to arg1",
     "caught": true
    },
    {
-    "name": "H2: the C writes action->unk10",
-    "caught": true
-   },
-   {
-    "name": "H3: the C returns 1",
-    "caught": true
-   },
-   {
-    "name": "H4: the C writes arg1[15] (the last byte of the 16-byte buffer)",
+    "name": "H2: stray store to action->unk10 when action is set",
     "caught": true
    }
   ],
@@ -123,7 +115,7 @@
     {
      "arg": 0,
      "count": 20000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 1,
@@ -139,17 +131,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 12.443801695999355,
+ "check_seconds": 12.473782240998844,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56215.1744222641,
+ "wall_seconds": 4374.016984939575,
  "totals": {
-  "cost": 0.0029,
-  "prompt_tokens": 25072,
-  "completion_tokens": 6566,
+  "cost": 0.00265,
+  "prompt_tokens": 25054,
+  "completion_tokens": 5586,
   "model_seconds": 0.0,
-  "check_seconds": 12.4,
+  "check_seconds": 12.5,
   "calls": 2,
-  "wall_seconds": 56215.2
+  "wall_seconds": 4374.0
  }
 }

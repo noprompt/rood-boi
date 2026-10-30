@@ -93,7 +93,8 @@ void test_slow_call(lua_State* L)
     double until = budget_now() + config.slow_call_ms / 1000.0, wall = now_seconds() + 1;
     volatile unsigned spin = 0;
     while (budget_now() < until && now_seconds() < wall)
-        ++spin;
+        spin = spin + 1;
+    (void)spin;
 }
 
 /* Every rood function: the budget checked on the way in; the time inside it is the host's (host_time),

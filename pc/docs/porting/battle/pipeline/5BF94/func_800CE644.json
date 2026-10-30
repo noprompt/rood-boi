@@ -1,0 +1,145 @@
+{
+ "function": "func_800CE644",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CE644",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ce644",
+  "difficulty": "S",
+  "zig_name": "func_800CE644",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CE644",
+  "spec_file": "func_800CE644.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CE644(arg0: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11006,
+     "completion_tokens": 2290,
+     "reasoning_tokens": 1588,
+     "cost": 0.0011228,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800CE644: 1000 iterations, seed 1, 1000 mismatches; classes: negative=438 non-negative=562"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11897,
+     "completion_tokens": 2193,
+     "reasoning_tokens": 1182,
+     "cost": 0.0011431,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800CE644: 1000 iterations, seed 1, 1000 mismatches; classes: negative=438 non-negative=562"
+    ]
+   }
+  ],
+  "classes": {
+   "negative": "438",
+   "non-negative": "562"
+  },
+  "mutations": [
+   {
+    "name": "M1: returns its argument",
+    "caught": true
+   },
+   {
+    "name": "M2: returns 1",
+    "caught": true
+   },
+   {
+    "name": "M3: returns the argument with bit 0 flipped",
+    "caught": true
+   },
+   {
+    "name": "M4: returns the sign of the argument",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 9.2282853050001,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 5046.490300178528,
+ "totals": {
+  "cost": 0.00227,
+  "prompt_tokens": 22903,
+  "completion_tokens": 4483,
+  "model_seconds": 0.0,
+  "check_seconds": 9.2,
+  "calls": 2,
+  "wall_seconds": 5046.5
+ }
+}

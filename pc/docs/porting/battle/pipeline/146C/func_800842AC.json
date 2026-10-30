@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13220,
-     "completion_tokens": 5950,
-     "reasoning_tokens": 4659,
-     "cost": 0.0021485,
+     "completion_tokens": 7618,
+     "reasoning_tokens": 6296,
+     "cost": 0.0025655,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842AC: 1000 iterations, seed 1, 1000 mismatches; classes: limb-in-range=508 limb-negative=253 limb-past-end=239"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842AC: 1000 iterations, seed 1, 1000 mismatches; classes: limb-in-range=63 limb-outside=445 hp-overflows=492"
     ]
    },
    {
@@ -85,44 +85,44 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14714,
-     "completion_tokens": 3084,
-     "reasoning_tokens": 1628,
-     "cost": 0.0015067,
+     "prompt_tokens": 14745,
+     "completion_tokens": 3412,
+     "reasoning_tokens": 2003,
+     "cost": 0.0015902499999999999,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842AC: 1000 iterations, seed 1, 1000 mismatches; classes: limb-in-range=508 limb-negative=253 limb-past-end=239"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842AC: 1000 iterations, seed 1, 1000 mismatches; classes: limb-in-range=63 limb-outside=445 hp-overflows=492"
     ]
    }
   ],
   "classes": {
-   "limb-in-range": "508",
-   "limb-negative": "253",
-   "limb-past-end": "239"
+   "limb-in-range": "63",
+   "limb-outside": "445",
+   "hp-overflows": "492"
   },
   "mutations": [
    {
-    "name": "A1: armorDp read from maxHp, not hp",
+    "name": "A1: armorDp uses hp * 3",
     "caught": true
    },
    {
-    "name": "A2: targetLimb read as unsigned (signed/unsigned slip)",
+    "name": "A2: value1 written to value0",
     "caught": true
    },
    {
-    "name": "A3: limb value halved instead of doubled",
+    "name": "A3: targetLimb read as unsigned char",
     "caught": true
    },
    {
-    "name": "A4: armorDpEffect set to 3 (wrong constant)",
+    "name": "A4: armorDpEffect store dropped",
     "caught": true
    },
    {
-    "name": "A5: armorDpEffect store dropped",
+    "name": "A5: value1 store dropped",
     "caught": true
    }
   ],
@@ -154,12 +154,12 @@
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2146832332, max 2147327099, unsigned 54118..4294951798, seen negative, never zero"
+     "text": "32-bit: min -2147337123, max 2147396402, unsigned 298668..4294723089, seen negative, never zero"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147323181, max 2147477681, unsigned 102771..4294948561, seen negative, never zero"
+     "text": "32-bit: min -2147253588, max 2147254541, unsigned 295490..4294807146, seen negative, never zero"
     }
    ],
    "compares": [],
@@ -170,17 +170,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 20.08750553400023,
+ "check_seconds": 22.58705811999971,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56684.77464413643,
+ "wall_seconds": 4476.801376581192,
  "totals": {
-  "cost": 0.00366,
-  "prompt_tokens": 27934,
-  "completion_tokens": 9034,
+  "cost": 0.00416,
+  "prompt_tokens": 27965,
+  "completion_tokens": 11030,
   "model_seconds": 0.0,
-  "check_seconds": 20.1,
+  "check_seconds": 22.6,
   "calls": 2,
-  "wall_seconds": 56684.8
+  "wall_seconds": 4476.8
  }
 }

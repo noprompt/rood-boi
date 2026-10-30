@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation G3: the row count is read as signed char: not caught as mismatch (exit 0) (no input made the mutated copy behave differently:",
+ "status": "ported",
+ "reviewed": false,
  "plan": {
   "name": "func_800C8778",
   "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
@@ -23,9 +23,7 @@
   "signature": "pub fn func_800C8778() callconv(.c) void",
   "params": [],
   "ret": "void",
-  "types": [
-   "vs_main_CdQueueSlot"
-  ],
+  "types": [],
   "globals": [],
   "hooks": [],
   "statics": [],
@@ -44,76 +42,54 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 15718,
-     "completion_tokens": 31319,
-     "reasoning_tokens": 29082,
-     "cost": 0.0172313,
-     "seconds": 138.6,
-     "sample": 1,
-     "conversation": "89aa7dfc1fff6de5aedd781f13ae6e8dff9080dd6cad5da5393b6236da2c8230"
+     "completion_tokens": 39876,
+     "reasoning_tokens": 37240,
+     "cost": 0.010754899999999998,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800C8778/spec1/build/spec.zig:72:9: error: pointless discard of local variable\n    _ = count;\n        ^~~~~\npc/build/port-pipeline/func_800C8778/spec1/build/spec.zig:70:52: note: used here\n        if (data[3] == 2) count = block(ctx, data, count);\n                                                   ^~~~~\n"
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 18183,
-     "completion_tokens": 6682,
-     "reasoning_tokens": 4359,
-     "cost": 0.0051593,
-     "seconds": 28.4,
-     "sample": 1,
-     "conversation": "a64557bb8091139b26a59c22bdee8774a1efeb4ba560a1e3651c5a0f30200bc4"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation G3: the row count is read as signed char: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800C8778: 30000 iterations, seed 1, 0 mismatches; classes: null=2495 queued=3115 load-one-block=2039 load-two-blocks=8187 load-three-blocks=2125 idle=1723 heap-free=1744 reap=1734 unknown-state=6838"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
   "classes": {
-   "null": "2495",
-   "queued": "3115",
-   "load-one-block": "2039",
-   "load-two-blocks": "8187",
-   "load-three-blocks": "2125",
-   "idle": "1723",
-   "heap-free": "1744",
-   "reap": "1734",
-   "unknown-state": "6838"
+   "null-gim": "2403",
+   "idle": "10631",
+   "cd-not-ready": "1652",
+   "single-image": "1469",
+   "double-image": "3821",
+   "triple-image": "1491",
+   "free-heap": "4316",
+   "clear-flags": "4217"
   },
   "mutations": [
    {
-    "name": "G1: copies one element too many",
+    "name": "G1: unk2 offset 25 instead of 24",
     "caught": true
    },
    {
-    "name": "G2: the CD image offset rounds with +2",
+    "name": "G2: third image read only when data[3] == 3",
     "caught": true
    },
    {
-    "name": "G3: the row count is read as signed char",
-    "caught": false
-   },
-   {
-    "name": "G4: CLUT count 255, not 256",
+    "name": "G3: first image count off by one",
     "caught": true
    },
    {
-    "name": "G5: the 2-color flag of case 2 is dropped",
+    "name": "G4: frame loop steps 16 not 17",
     "caught": true
    },
    {
-    "name": "G6: the reap callee gets the wrong gim",
+    "name": "G5: CLUT count 255 not 256",
+    "caught": true
+   },
+   {
+    "name": "G6: CD slot ready test on state 3",
     "caught": true
    }
   ],
@@ -132,9 +108,9 @@
      "line": 18,
      "text": "switch (gim->unk0_6) {",
      "size": 4,
-     "count": 27505,
+     "count": 27597,
      "kind": "switch",
-     "outcomes": "== 20667, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 19103, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "0..7"
     },
@@ -142,29 +118,29 @@
      "line": 22,
      "text": "if (((__typeof__((gim->cdQueueSlot).psx_type_[0]))(long unsigned int)(gim->cdQueueSlot).raw)->state != 4) {",
      "size": 2,
-     "count": 15466,
+     "count": 8433,
      "kind": "against a constant",
-     "outcomes": "== 12351, < 2332, > 783 (signed); < 1526, > 1589 (unsigned)",
+     "outcomes": "== 6781, < 1253, > 399 (signed); < 860, > 792 (unsigned)",
      "operand": "constant 4",
-     "a": "-1..5"
+     "a": "-4..5"
     },
     {
      "line": 33,
      "text": "for (i = 0; i < count; ++i) {",
      "size": 4,
-     "count": 418610,
+     "count": 584189,
      "kind": "a == b / a < b",
-     "outcomes": "== 12351, < 406259, > 0 (signed); < 406259, > 0 (unsigned)",
-     "operand": "b 4..324",
-     "a": "0..324"
+     "outcomes": "== 6781, < 577408, > 0 (signed); < 577408, > 0 (unsigned)",
+     "operand": "b 4..404",
+     "a": "0..404"
     },
     {
      "line": 37,
      "text": "if (((__typeof__((gim->data).psx_type_[0]))(long unsigned int)(gim->data).raw)[3] != 0) {",
      "size": 2,
-     "count": 12351,
+     "count": 6781,
      "kind": "against a constant",
-     "outcomes": "== 2039, < 4070, > 6242 (signed); < 0, > 10312 (unsigned)",
+     "outcomes": "== 1469, < 2293, > 3019 (signed); < 0, > 5312 (unsigned)",
      "operand": "constant 0",
      "a": "-32768..3"
     },
@@ -172,19 +148,19 @@
      "line": 43,
      "text": "for (i = 0; i < width; ++i) {",
      "size": 4,
-     "count": 345950,
+     "count": 462251,
      "kind": "a == b / a < b",
-     "outcomes": "== 10312, < 335638, > 0 (signed); < 335638, > 0 (unsigned)",
-     "operand": "b 4..324",
-     "a": "0..324"
+     "outcomes": "== 5312, < 456939, > 0 (signed); < 456939, > 0 (unsigned)",
+     "operand": "b 4..404",
+     "a": "0..404"
     },
     {
      "line": 48,
      "text": "if (((__typeof__((gim->data).psx_type_[0]))(long unsigned int)(gim->data).raw)[3] == 2) {",
      "size": 2,
-     "count": 10312,
+     "count": 5312,
      "kind": "against a constant",
-     "outcomes": "== 2125, < 6122, > 2065 (signed); < 2052, > 6135 (unsigned)",
+     "outcomes": "== 1491, < 3088, > 733 (signed); < 795, > 3026 (unsigned)",
      "operand": "constant 2",
      "a": "-32768..3"
     },
@@ -192,19 +168,19 @@
      "line": 54,
      "text": "for (i = 0; i < width; ++i) {",
      "size": 4,
-     "count": 72182,
+     "count": 130347,
      "kind": "a == b / a < b",
-     "outcomes": "== 2125, < 70057, > 0 (signed); < 70057, > 0 (unsigned)",
-     "operand": "b 4..324",
-     "a": "0..324"
+     "outcomes": "== 1491, < 128856, > 0 (signed); < 128856, > 0 (unsigned)",
+     "operand": "b 4..404",
+     "a": "0..404"
     },
     {
      "line": 66,
      "text": "for (j = 0; j < 3; ++j) {",
      "size": 4,
-     "count": 49404,
+     "count": 27124,
      "kind": "against a constant",
-     "outcomes": "== 12351, < 24702, > 12351 (signed); < 24702, > 12351 (unsigned)",
+     "outcomes": "== 6781, < 13562, > 6781 (signed); < 13562, > 6781 (unsigned)",
      "operand": "constant 2",
      "a": "0..3"
     },
@@ -212,9 +188,9 @@
      "line": 68,
      "text": "switch (current->imageTable[2]) {",
      "size": 4,
-     "count": 37053,
+     "count": 20343,
      "kind": "switch",
-     "outcomes": "== 7388, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 7843, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "0..65535"
     },
@@ -222,29 +198,29 @@
      "line": 100,
      "text": "while (i > 0) {",
      "size": 4,
-     "count": 23549,
+     "count": 27771,
      "kind": "against a constant",
-     "outcomes": "== 8592, < 3759, > 11198 (signed); < 0, > 14957 (unsigned)",
+     "outcomes": "== 2703, < 4078, > 20990 (signed); < 0, > 25068 (unsigned)",
      "operand": "constant 0",
-     "a": "-16..34"
+     "a": "-16..255"
     },
     {
      "line": 101,
      "text": "vs_battle_renderImage((width + 512) | 0x1000000, ((__typeof__((gim->data).psx_type_[0]))(long unsigned int)(gim->data).raw) + count,",
      "size": 4,
-     "count": 11198,
+     "count": 20990,
      "kind": "against a constant",
-     "outcomes": "== 1242, < 2517, > 7439 (signed); < 2517, > 7439 (unsigned)",
+     "outcomes": "== 1393, < 2685, > 16912 (signed); < 2685, > 16912 (unsigned)",
      "operand": "constant 16",
-     "a": "1..34"
+     "a": "1..255"
     },
     {
      "line": 111,
      "text": "for (j = 0; j < 3; ++j) {",
      "size": 4,
-     "count": 6976,
+     "count": 17264,
      "kind": "against a constant",
-     "outcomes": "== 1744, < 3488, > 1744 (signed); < 3488, > 1744 (unsigned)",
+     "outcomes": "== 4316, < 8632, > 4316 (signed); < 8632, > 4316 (unsigned)",
      "operand": "constant 2",
      "a": "0..3"
     },
@@ -252,9 +228,9 @@
      "line": 117,
      "text": "for (j = 0; j < 3; ++j) {",
      "size": 4,
-     "count": 6936,
+     "count": 16868,
      "kind": "against a constant",
-     "outcomes": "== 1734, < 3468, > 1734 (signed); < 3468, > 1734 (unsigned)",
+     "outcomes": "== 4217, < 8434, > 4217 (signed); < 8434, > 4217 (unsigned)",
      "operand": "constant 2",
      "a": "0..3"
     },
@@ -262,33 +238,84 @@
      "line": 118,
      "text": "if (gim[j].unk0_0) {",
      "size": 1,
-     "count": 5202,
+     "count": 12651,
      "kind": "against a constant",
-     "outcomes": "== 2625, < 0, > 2577 (signed); < 0, > 2577 (unsigned)",
+     "outcomes": "== 6364, < 0, > 6287 (signed); < 0, > 6287 (unsigned)",
      "operand": "constant 0",
      "a": "0..1"
     }
    ],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39198,
+     "completion_tokens": 23944,
+     "reasoning_tokens": 21745,
+     "cost": 0.0079459,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 22.920664298999327,
- "wall_seconds": 190.4988169899989,
+ "written": [
+  "pc/tests/zig_diff/func_800C8778.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800C8778.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 66.80438055400009,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 29788.00305533409,
  "totals": {
-  "cost": 0.02239,
-  "prompt_tokens": 33901,
-  "completion_tokens": 38001,
-  "model_seconds": 167.0,
-  "check_seconds": 22.9,
+  "cost": 0.0187,
+  "prompt_tokens": 54916,
+  "completion_tokens": 63820,
+  "model_seconds": 0.0,
+  "check_seconds": 66.8,
   "calls": 2,
-  "wall_seconds": 190.5
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 29788.0
  }
 }

@@ -150,6 +150,8 @@ def ensure(mode=None, quiet=False):
 
 
 MINGW = "x86_64-w64-mingw32-"
+# The POSIX-thread g++: Ubuntu names it -posix, Arch's plain g++ is POSIX already.
+MINGW_GXX = MINGW + "g++-posix" if shutil.which(MINGW + "g++-posix") or not shutil.which(MINGW + "g++") else MINGW + "g++"
 # MathLib calls abs() on floats unqualified; MinGW's C++ headers leave
 # only C's int abs() global (glibc's also bring std::abs's overloads).
 ABS_SHIM = "#include <cstdlib>\n#include <cmath>\nusing std::abs;\n"
@@ -170,7 +172,7 @@ def _build_windows(tmp, nrd_entry, quiet):
                 continue
             # The compile only: no dependency files, PIC or warnings-as-errors
             # (MinGW's headers warn where glibc's do not).
-            command, skip = [MINGW + "g++-posix", "-include", str(shim)], False
+            command, skip = [MINGW_GXX, "-include", str(shim)], False
             for a in args[1:]:
                 if skip:
                     skip = False
@@ -205,7 +207,7 @@ def ensure_windows(paths, quiet=False):
                          f"install Ninja and remove {nrd_entry} to rebuild it\n")
         return None
     key = {"nrd": nrd_entry.name, "shim": ABS_SHIM,
-           "tools": tool_identity([MINGW + "g++-posix", MINGW + "ar"])}
+           "tools": tool_identity([MINGW_GXX, MINGW + "ar"])}
     entry = shared_cache.entry("nrd_win", key, lambda tmp: _build_windows(tmp, nrd_entry, quiet))
     return {"include": paths["include"],
             "libraries": [str(entry / pathlib.Path(p).name) for p in paths["libraries"]], "entry": str(entry)}

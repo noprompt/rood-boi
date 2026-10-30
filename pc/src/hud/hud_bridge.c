@@ -586,9 +586,10 @@ void pc_hud_target_marker(void* record, void* first, void* end)
 /* MAINMENU's shared frame (58EC.c's PC_CLASSIC sites, classic_hook.h): each piece as the game drew it, with what
  * it drew it from. A row is one element per row (0..39); the others one each. The game's packets are walked from
  * its slots: the background's own, vs_scratch.unk8 (a row's: unk8 - 4 .. + 12). */
-/* The screens toured (vs_battle_menuState.currentMenu & 0x3F, a bit each; menu_model.c SCREENS): 4 Items
- * (MENU3), 5 Status (MENU4), 8 the Option screen (MENU8), 10 the Quick Manual (MENUE). */
-#define MENU_TOURED_SCREENS ((1u << 4) | (1u << 5) | (1u << 8) | (1u << 10))
+/* The screens toured (vs_battle_menuState.currentMenu & 0x3F, a bit each; menu_model.c SCREENS): 1 Magic (MENU0),
+ * 2 Break Arts (MENU1), 3 Battle Abilities (MENU2), 4 Items (MENU3), 5 Status (MENU4), 8 the Option screen (MENU8),
+ * 10 the Quick Manual (MENUE). */
+#define MENU_TOURED_SCREENS ((1u << 1) | (1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 8) | (1u << 10))
 static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
 void pc_hud_menu(int kind, void* record, void* first, void* end)
 {

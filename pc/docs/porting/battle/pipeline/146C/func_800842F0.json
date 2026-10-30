@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12980,
-     "completion_tokens": 3401,
-     "reasoning_tokens": 2492,
-     "cost": 0.00149925,
+     "completion_tokens": 3308,
+     "reasoning_tokens": 2411,
+     "cost": 0.0014759999999999999,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842F0: 1000 iterations, seed 1, 1000 mismatches; classes: store=1000"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842F0: 1000 iterations, seed 1, 1000 mismatches; classes: arg0-null=508 arg0-valid=492"
     ]
    },
    {
@@ -86,41 +86,38 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 14071,
-     "completion_tokens": 2765,
-     "reasoning_tokens": 1796,
-     "cost": 0.0013947999999999999,
+     "completion_tokens": 2970,
+     "reasoning_tokens": 1901,
+     "cost": 0.00144605,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842F0: 1000 iterations, seed 1, 1000 mismatches; classes: store=1000"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_800842F0: 1000 iterations, seed 1, 1000 mismatches; classes: arg0-null=508 arg0-valid=492"
     ]
    }
   ],
   "classes": {
-   "store": "1000"
+   "arg0-null": "508",
+   "arg0-valid": "492"
   },
   "mutations": [
    {
-    "name": "F1: wrong constant (1 for 2)",
+    "name": "M1: wrong constant (1 for 2)",
     "caught": true
    },
    {
-    "name": "F2: wrong bitfield (unk1C_16 for unk1C_26)",
+    "name": "M2: wrong bitfield (unk1C_28 for unk1C_26)",
     "caught": true
    },
    {
-    "name": "F3: wrong bitfield (unk1C_28, bits 4-7, for unk1C_26)",
+    "name": "M3: dropped store",
     "caught": true
    },
    {
-    "name": "F4: store goes to arg2, not arg1",
-    "caught": true
-   },
-   {
-    "name": "F5: dropped store",
+    "name": "M4: store goes to arg2 instead of arg1",
     "caught": true
    }
   ],
@@ -168,17 +165,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 19.0909959060009,
+ "check_seconds": 18.489646318999803,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56686.32524251938,
+ "wall_seconds": 4476.879383087158,
  "totals": {
-  "cost": 0.00289,
+  "cost": 0.00292,
   "prompt_tokens": 27051,
-  "completion_tokens": 6166,
+  "completion_tokens": 6278,
   "model_seconds": 0.0,
-  "check_seconds": 19.1,
+  "check_seconds": 18.5,
   "calls": 2,
-  "wall_seconds": 56686.3
+  "wall_seconds": 4476.9
  }
 }

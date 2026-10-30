@@ -51,11 +51,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 14370,
-     "completion_tokens": 29317,
-     "reasoning_tokens": 26942,
-     "cost": 0.00804775,
+     "completion_tokens": 21734,
+     "reasoning_tokens": 19552,
+     "cost": 0.0061519999999999995,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
@@ -73,49 +73,48 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 17084,
-     "completion_tokens": 3445,
-     "reasoning_tokens": 1070,
-     "cost": 0.0017154499999999999,
+     "prompt_tokens": 16891,
+     "completion_tokens": 3037,
+     "reasoning_tokens": 862,
+     "cost": 0.0016037999999999998,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8008DA24: branches 20/20 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 45/45\n  FLAG +45 eq: boundary equality never occurred (32-bit compare, constant 63: both sides seen; a port's `<` for `<=` could pass): `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {`\n  FLAG +56 eq: boundary equality never occurred (32-bit compare, constant 63: both sides seen; a port's `<` for `<=` could pass): `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {`\ncoverage func_8008DA24: FAILED (threshold 100%: 0 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {` (+45): the two sides of this ordered compare were equal 0 time(s) in 6403. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {` (+56): the two sides of this ordered compare were equal 0 time(s) in 6495. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8008DA24.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8008DA24: branches 20/20 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 45/45\n  FLAG +45 eq: boundary equality never occurred (32-bit compare, constant 63: both sides seen; a port's `<` for `<=` could pass): `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {`\n  FLAG +56 eq: boundary equality never occurred (32-bit compare, constant 63: both sides seen; a port's `<` for `<=` could pass): `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {`\ncoverage func_8008DA24: FAILED (threshold 100%: 0 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {` (+45): the two sides of this ordered compare were equal 0 time(s) in 4362. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {` (+56): the two sides of this ordered compare were equal 0 time(s) in 4390. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8008DA24.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "null-section": "3918",
-   "x-out": "19115",
-   "y-out": "8815",
-   "in-range": "8152"
+   "no-collision-map": "8127",
+   "out-of-range": "25277",
+   "in-range": "6596"
   },
   "mutations": [
    {
-    "name": "M1: the callee's third argument is 1, not 0",
+    "name": "F1: tile column compared as signed against width",
     "caught": true
    },
    {
-    "name": "M2: the x bound is exclusive (> for >=)",
+    "name": "F2: right-side height offset subtracted instead of added",
     "caught": true
    },
    {
-    "name": "M3: the y bound compared as signed (negative tiles pass)",
+    "name": "F3: weight sum accepted only when strictly positive",
     "caught": true
    },
    {
-    "name": "M4: the clamp difference is one off (ABS(diff - 1) >= 0x40)",
+    "name": "F4: out-of-range return off by one",
     "caught": true
    },
    {
-    "name": "M5: the weight test is > 0, not >= 0",
+    "name": "F5: wrong term in the weighted sum (temp_s0_3 for temp_v0)",
     "caught": true
    },
    {
-    "name": "M6: the sign bit is shifted to 0x8000 by 7, not 8",
+    "name": "F6: neighbour tile offsets swapped by the ternary",
     "caught": true
    }
   ],
@@ -135,7 +134,7 @@
      "kind": "eq",
      "bits": 32,
      "equal": 0,
-     "count": 6403,
+     "count": 4362,
      "what": "boundary equality never occurred (32-bit compare, constant 63: both sides seen; a port's `<` for `<=` could pass)"
     },
     {
@@ -145,7 +144,7 @@
      "kind": "eq",
      "bits": 32,
      "equal": 0,
-     "count": 6495,
+     "count": 4390,
      "what": "boundary equality never occurred (32-bit compare, constant 63: both sides seen; a port's `<` for `<=` could pass)"
     }
    ],
@@ -153,12 +152,12 @@
     {
      "arg": 0,
      "count": 40000,
-     "text": "32-bit: min -2146993357, max 2147281464, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147483648, max 2147284105, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 1,
      "count": 40000,
-     "text": "32-bit: min -2147068121, max 2147359004, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147483648, max 2147165724, unsigned 0..4294967295, seen zero/negative/all ones"
     }
    ],
    "compares": [
@@ -168,7 +167,7 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 3918, < 0, > 36082 (signed); < 0, > 36082 (unsigned)",
+     "outcomes": "== 8127, < 0, > 31873 (signed); < 0, > 31873 (unsigned)",
      "operand": "constant 0",
      "a": "0..4235888"
     },
@@ -176,29 +175,29 @@
      "line": 26,
      "text": "if (((arg0 >> 2) >= (u_int)collisionMap->width)",
      "size": 4,
-     "count": 36082,
+     "count": 31873,
      "kind": "a == b / a < b",
-     "outcomes": "== 8053, < 18044, > 9985 (signed); < 16967, > 11062 (unsigned)",
+     "outcomes": "== 8164, < 16576, > 7133 (signed); < 14516, > 9193 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-16773386..16775636"
+     "a": "-16777216..16775657"
     },
     {
      "line": 27,
      "text": "|| ((arg1 >> 2) >= (u_int)collisionMap->height)) {",
      "size": 4,
-     "count": 16967,
+     "count": 14516,
      "kind": "a == b / a < b",
-     "outcomes": "== 3749, < 8539, > 4679 (signed); < 8152, > 5066 (unsigned)",
+     "outcomes": "== 3744, < 7578, > 3194 (signed); < 6596, > 4176 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-16770485..16771347"
+     "a": "-16777216..16765859"
     },
     {
      "line": 34,
      "text": "var_s3 = temp_s7 < 0x10 ? arg0 - 1 : arg0 + 1;",
      "size": 4,
-     "count": 8152,
+     "count": 6596,
      "kind": "against a constant",
-     "outcomes": "== 265, < 3730, > 4157 (signed); < 3730, > 4157 (unsigned)",
+     "outcomes": "== 135, < 3415, > 3046 (signed); < 3415, > 3046 (unsigned)",
      "operand": "constant 15",
      "a": "0..31"
     },
@@ -206,9 +205,9 @@
      "line": 37,
      "text": "if (temp_fp >= 0x10) {",
      "size": 4,
-     "count": 8152,
+     "count": 6596,
      "kind": "against a constant",
-     "outcomes": "== 255, < 3809, > 4088 (signed); < 3809, > 4088 (unsigned)",
+     "outcomes": "== 150, < 3379, > 3067 (signed); < 3379, > 3067 (unsigned)",
      "operand": "constant 15",
      "a": "0..31"
     },
@@ -216,39 +215,39 @@
      "line": 41,
      "text": "if ((var_s3 >> 2) < (u_int)collisionMap->width) {",
      "size": 4,
-     "count": 8152,
+     "count": 6596,
      "kind": "a == b / a < b",
-     "outcomes": "== 1669, < 4382, > 2101 (signed); < 6403, > 80 (unsigned)",
+     "outcomes": "== 1771, < 3454, > 1371 (signed); < 4362, > 463 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-16770146..16749071"
+     "a": "-16777217..16750140"
     },
     {
      "line": 45,
      "text": "if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {",
      "size": 4,
-     "count": 6403,
+     "count": 4362,
      "kind": "against a constant",
-     "outcomes": "== 0, < 1317, > 5086 (signed); < 1317, > 5086 (unsigned)",
+     "outcomes": "== 0, < 221, > 4141 (signed); < 221, > 4141 (unsigned)",
      "operand": "constant 63",
-     "a": "0..2032"
+     "a": "0..1968"
     },
     {
      "line": 52,
      "text": "if ((var_s1 >> 2) < (u_int)collisionMap->height) {",
      "size": 4,
-     "count": 8152,
+     "count": 6596,
      "kind": "a == b / a < b",
-     "outcomes": "== 1583, < 4446, > 2123 (signed); < 6495, > 74 (unsigned)",
+     "outcomes": "== 1763, < 3466, > 1367 (signed); < 4390, > 443 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-16767308..16771347"
+     "a": "-16777217..16765859"
     },
     {
      "line": 56,
      "text": "if ((((var_v0)>=0)?(var_v0):(-(var_v0))) >= 0x40) {",
      "size": 4,
-     "count": 6495,
+     "count": 4390,
      "kind": "against a constant",
-     "outcomes": "== 0, < 1316, > 5179 (signed); < 1316, > 5179 (unsigned)",
+     "outcomes": "== 0, < 252, > 4138 (signed); < 252, > 4138 (unsigned)",
      "operand": "constant 63",
      "a": "0..2032"
     },
@@ -256,11 +255,11 @@
      "line": 74,
      "text": "if (temp_v0_2 >= 0) {",
      "size": 4,
-     "count": 8152,
+     "count": 6596,
      "kind": "against a constant",
-     "outcomes": "== 1976, < 790, > 5386 (signed); < 0, > 6176 (unsigned)",
+     "outcomes": "== 1650, < 2517, > 2429 (signed); < 0, > 4946 (unsigned)",
      "operand": "constant 0",
-     "a": "-982..3062"
+     "a": "-128..127"
     }
    ],
    "passed": false
@@ -270,17 +269,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 21.507516802999817,
+ "check_seconds": 23.329750197000976,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56837.87348937988,
+ "wall_seconds": 4662.799038171768,
  "totals": {
-  "cost": 0.00976,
-  "prompt_tokens": 31454,
-  "completion_tokens": 32762,
+  "cost": 0.00776,
+  "prompt_tokens": 31261,
+  "completion_tokens": 24771,
   "model_seconds": 0.0,
-  "check_seconds": 21.5,
+  "check_seconds": 23.3,
   "calls": 2,
-  "wall_seconds": 56837.9
+  "wall_seconds": 4662.8
  }
 }

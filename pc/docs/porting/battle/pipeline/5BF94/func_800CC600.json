@@ -1,0 +1,68 @@
+{
+ "function": "func_800CC600",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "stopped",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CC600",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cc600",
+  "difficulty": "M",
+  "zig_name": "func_800CC600",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CC600",
+  "spec_file": "func_800CC600.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CC600(image: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv(.c) void",
+  "params": [
+   [
+    "image",
+    "?*v.gim_t"
+   ],
+   [
+    "clut",
+    "c_int"
+   ],
+   [
+    "ot",
+    "[*c]c_uint"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "vs_main_frameBuf"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": []
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 0.0,
+ "mode": "rounds",
+ "transport": "batch",
+ "stopped": "gate error: TimeoutExpired: Command '['pc/build/port-pipeline/func_800CC600/spec1/build/cov/zdiff', '30000', '1']' timed out after 600 seconds",
+ "wall_seconds": 3342.3915321826935,
+ "totals": {
+  "cost": 0,
+  "prompt_tokens": 0,
+  "completion_tokens": 0,
+  "model_seconds": 0,
+  "check_seconds": 0.0,
+  "calls": 0,
+  "wall_seconds": 3342.4
+ }
+}

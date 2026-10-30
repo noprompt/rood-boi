@@ -1,0 +1,191 @@
+{
+ "function": "vs_battle_equipArmor",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_equipArmor",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8006b4b8",
+  "difficulty": "S",
+  "zig_name": "equipArmor",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "equip_armor",
+  "spec_file": "equipArmor.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn equipArmor(bodyPart: c_int, armor: ?*v.vs_main_inventoryArmor) callconv(.c) void",
+  "params": [
+   [
+    "bodyPart",
+    "c_int"
+   ],
+   [
+    "armor",
+    "?*v.vs_main_inventoryArmor"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14339,
+     "completion_tokens": 12508,
+     "reasoning_tokens": 11009,
+     "cost": 0.00384395,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-armor": "4837",
+   "armor-body-part-0-5": "16897",
+   "armor-body-part-out-of-range": "8266"
+  },
+  "mutations": [
+   {
+    "name": "E1: armor argument dropped",
+    "caught": true
+   },
+   {
+    "name": "E2: wrong limb (bodyPart ^ 1)",
+    "caught": true
+   },
+   {
+    "name": "E3: vs_battle_nop0 call dropped",
+    "caught": true
+   },
+   {
+    "name": "E4: func_8006B2D4 call dropped",
+    "caught": true
+   },
+   {
+    "name": "E5: the two calls swapped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -1, max 7, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37812,
+     "completion_tokens": 7006,
+     "reasoning_tokens": 6361,
+     "cost": 0.0036420999999999997,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/equipArmor.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/equip_armor.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 338.16947818000153,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 7250.9699058532715,
+ "totals": {
+  "cost": 0.00749,
+  "prompt_tokens": 52151,
+  "completion_tokens": 19514,
+  "model_seconds": 0.0,
+  "check_seconds": 338.2,
+  "calls": 2,
+  "wall_seconds": 7251.0
+ }
+}

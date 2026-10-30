@@ -82,8 +82,12 @@ def main():
         # port_pipeline's prompts and a retry's feedback (dry run: no calls).
         pipeline = ROOT / "pc/tools/port_pipeline.py"
         if pipeline.exists():
+            # The canned function unrouted in a copy of the table: a wave may port it.
+            table = tmp / "ownership-unrouted.toml"
+            table.write_text("\n".join(l for l in (ROOT / "game/ownership.toml").read_text().split("\n")
+                                       if 'name = "func_8006B214"' not in l))
             r = subprocess.run([sys.executable, pipeline, "--dry-run", "--out", tmp / "pipe", "--build", BUILD,
-                                "--leak-probe", "func_8006B214", "_insertActor"], capture_output=True, text=True)
+                                "--table", table, "--leak-probe", "func_8006B214"], capture_output=True, text=True)
             if r.returncode:
                 failures.append(f"port_pipeline --dry-run: exit {r.returncode}: {(r.stderr or r.stdout)[-800:]}")
             sent = list((tmp / "pipe").rglob("*.md"))

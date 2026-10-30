@@ -1,0 +1,225 @@
+{
+ "function": "vs_battle_renderValue",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_renderValue",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c9950",
+  "difficulty": "S",
+  "zig_name": "renderValue",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "render_value",
+  "spec_file": "renderValue.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn renderValue(font: c_int, xy: c_int, value: c_int, before: [*c]c_uint) callconv(.c) c_int",
+  "params": [
+   [
+    "font",
+    "c_int"
+   ],
+   [
+    "xy",
+    "c_int"
+   ],
+   [
+    "value",
+    "c_int"
+   ],
+   [
+    "before",
+    "[*c]c_uint"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11704,
+     "completion_tokens": 16191,
+     "reasoning_tokens": 14691,
+     "cost": 0.00463295,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "before-null": "10001",
+   "given-negative": "9423",
+   "given-one-digit": "3390",
+   "given-several-digits": "7186"
+  },
+  "mutations": [
+   {
+    "name": "R1: the null test flipped (a given before is replaced)",
+    "caught": true
+   },
+   {
+    "name": "R2: before taken 8 words back, not 16",
+    "caught": true
+   },
+   {
+    "name": "R3: logical shift of a signed value",
+    "caught": true
+   },
+   {
+    "name": "R4: digit loop continues only while positive",
+    "caught": true
+   },
+   {
+    "name": "R5: the digit is never drawn",
+    "caught": true
+   },
+   {
+    "name": "R6: xy stepped by 6, not 5",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 10,
+   "lines_hit": 10,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967291, seen zero/negative/signed max"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 16,
+     "text": "} while (value != 0);",
+     "size": 4,
+     "count": 95266,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 38007, > 27259 (signed); < 0, > 65266 (unsigned)",
+     "operand": "constant 0",
+     "a": "-8388608..8388608"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35186,
+     "completion_tokens": 4163,
+     "reasoning_tokens": 3685,
+     "cost": 0.00280005,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/renderValue.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/render_value.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 71.52249449399824,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30001.15589928627,
+ "totals": {
+  "cost": 0.00743,
+  "prompt_tokens": 46890,
+  "completion_tokens": 20354,
+  "model_seconds": 0.0,
+  "check_seconds": 71.5,
+  "calls": 2,
+  "wall_seconds": 30001.2
+ }
+}

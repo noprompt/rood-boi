@@ -1,0 +1,197 @@
+{
+ "function": "func_8008E2D4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008E2D4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e2d4",
+  "difficulty": "S",
+  "zig_name": "func_8008E2D4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008E2D4",
+  "spec_file": "func_8008E2D4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008E2D4(arg0: c_int) callconv(.c) ?*anyopaque",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "?*anyopaque",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12887,
+     "completion_tokens": 9950,
+     "reasoning_tokens": 8729,
+     "cost": 0.00313185,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "null-section": "4947",
+   "negative-index": "9963",
+   "nonnegative-index": "15090"
+  },
+  "mutations": [
+   {
+    "name": "S1: record offset 8 becomes 12",
+    "caught": true
+   },
+   {
+    "name": "S2: stride 16 becomes 15",
+    "caught": true
+   },
+   {
+    "name": "S3: off-by-one record index",
+    "caught": true
+   },
+   {
+    "name": "S4: index wrapped to 3 bits (negative arg0 slip)",
+    "caught": true
+   },
+   {
+    "name": "S5: NULL result is 1, not NULL",
+    "caught": true
+   },
+   {
+    "name": "S6: NULL guard dropped (dereferences a NULL base)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -8, max 8, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (((__typeof__((vs_battle_roomData.section12).psx_type_[0]))(long unsigned int)(vs_battle_roomData.section12).raw) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 4947, < 0, > 25053 (signed); < 0, > 25053 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4248176"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36351,
+     "completion_tokens": 2336,
+     "reasoning_tokens": 1982,
+     "cost": 0.00240155,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008E2D4.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008E2D4.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 378.19149473299876,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 24777.442257881165,
+ "totals": {
+  "cost": 0.00553,
+  "prompt_tokens": 49238,
+  "completion_tokens": 12286,
+  "model_seconds": 0.0,
+  "check_seconds": 378.2,
+  "calls": 2,
+  "wall_seconds": 24777.4
+ }
+}

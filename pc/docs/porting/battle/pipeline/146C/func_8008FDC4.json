@@ -1,0 +1,529 @@
+{
+ "function": "func_8008FDC4",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "XL",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008FDC4",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008fdc4",
+  "difficulty": "XL",
+  "zig_name": "func_8008FDC4",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008FDC4",
+  "spec_file": "func_8008FDC4.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008FDC4() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [
+   "pc_gte_anchored",
+   "pc_gte_widescreen",
+   "pc_insert_tpage",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18218,
+     "completion_tokens": 34642,
+     "reasoning_tokens": 31362,
+     "cost": 0.009571399999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8008FDC4: branches 71/72 (98.6%), conditions not measured (GCC < 14: branch coverage only), lines 90/90\n  UNCOVERED +80 b5: branch never taken: `&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {`\n  FLAG +58 eq: boundary equality never occurred (16-bit compare, constant 1598: both sides seen; a port's `<` for `<=` could pass): `if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {`\n  FLAG +58 eq: boundary equality never occurred (32-bit compare, constant 2047: both sides seen; a port's `<` for `<=` could pass): `if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {`\ncoverage func_8008FDC4: FAILED (threshold 100%: 1 uncovered, 2 value flag(s) not waived)\nWhat to add:\n- `&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {` (+80): one way out of this test (+80 b5) was never taken; add inputs that take it.\n- `if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {` (+58): the two sides of this ordered compare were equal 0 time(s) in 51768. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {` (+58): the two sides of this ordered compare were equal 0 time(s) in 36270. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8008FDC4.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 22260,
+     "completion_tokens": 7669,
+     "reasoning_tokens": 3986,
+     "cost": 0.00303025,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8008FDC4: branches 71/72 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 90/90\n  waived +80 b5: branch never taken: `&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {` (The inner `depth > 4` in `&& (projection < ...) && (depth > 4)` sits inside the enclosing `if (depth > 4) {` block, and depth is not reassigned between the two tests (projection and flags are the only variables written). Its false edge cannot be taken.)\n  FLAG +58 eq: boundary equality never occurred (16-bit compare, constant 1598: both sides seen; a port's `<` for `<=` could pass): `if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {`\ncoverage func_8008FDC4: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {` (+58): the two sides of this ordered compare were equal 0 time(s) in 51768. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8008FDC4.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "no-particles": "10115",
+   "widescreen": "14935",
+   "paused": "5976",
+   "short-tick": "3871",
+   "stepping": "5103"
+  },
+  "mutations": [
+   {
+    "name": "F1: depth bound <= 2048 instead of < 2048",
+    "caught": true
+   },
+   {
+    "name": "F2: near-depth test >= 4 instead of > 4",
+    "caught": true
+   },
+   {
+    "name": "F3: widescreen left edge inclusive",
+    "caught": true
+   },
+   {
+    "name": "F4: particle recycle at > 8 instead of >= 8",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong table index for the drift term",
+    "caught": true
+   },
+   {
+    "name": "F6: timer advances by tickspeed >> 2",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 72,
+   "branches_hit": 71,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 90,
+   "lines_hit": 90,
+   "uncovered": [
+    {
+     "id": "+80 b5",
+     "line": 80,
+     "text": "&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [
+    {
+     "id": "+58 eq",
+     "line": 58,
+     "text": "if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {",
+     "kind": "eq",
+     "bits": 16,
+     "equal": 0,
+     "count": 51768,
+     "what": "boundary equality never occurred (16-bit compare, constant 1598: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [],
+   "compares": [
+    {
+     "line": 16,
+     "text": "for (i = 0; i < D_800F1DC0; ++i, ++particle) {",
+     "size": 4,
+     "count": 194467,
+     "kind": "a == b / a < b",
+     "outcomes": "== 34934, < 154467, > 5066 (signed); < 159533, > 0 (unsigned)",
+     "operand": "b -1..12",
+     "a": "0..12"
+    },
+    {
+     "line": 17,
+     "text": "if (particle->unkC == 0) {",
+     "size": 1,
+     "count": 154467,
+     "kind": "against a constant",
+     "outcomes": "== 51768, < 25600, > 77099 (signed); < 0, > 102699 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..2"
+    },
+    {
+     "line": 18,
+     "text": "if (D_800F1BA4 == 0) {",
+     "size": 2,
+     "count": 51768,
+     "kind": "against a constant",
+     "outcomes": "== 30970, < 10425, > 10373 (signed); < 0, > 20798 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 19,
+     "text": "for (j = 0; j < (vs_gametime_tickspeed >> 1); ++j) {",
+     "size": 4,
+     "count": 57190,
+     "kind": "a == b / a < b",
+     "outcomes": "== 26550, < 26220, > 4420 (signed); < 30640, > 0 (unsigned)",
+     "operand": "b -1..2",
+     "a": "0..2"
+    },
+    {
+     "line": 20,
+     "text": "if (particle->unkE != 0) {",
+     "size": 1,
+     "count": 26220,
+     "kind": "against a constant",
+     "outcomes": "== 8582, < 0, > 17638 (signed); < 0, > 17638 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..7"
+    },
+    {
+     "line": 25,
+     "text": "if (particle->unkD != 0) {",
+     "size": 1,
+     "count": 8582,
+     "kind": "against a constant",
+     "outcomes": "== 1919, < 649, > 6014 (signed); < 0, > 6663 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..33"
+    },
+    {
+     "line": 32,
+     "text": "if (particle->unkD > 32) {",
+     "size": 1,
+     "count": 6663,
+     "kind": "against a constant",
+     "outcomes": "== 629, < 4450, > 1584 (signed); < 4450, > 1584 (unsigned)",
+     "operand": "constant 32",
+     "a": "0..34"
+    },
+    {
+     "line": 40,
+     "text": "if ((rand() & 127) == 0) {",
+     "size": 4,
+     "count": 1919,
+     "kind": "against a constant",
+     "outcomes": "== 10, < 0, > 1909 (signed); < 0, > 1909 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..127"
+    },
+    {
+     "line": 58,
+     "text": "if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {",
+     "size": 2,
+     "count": 51768,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 40591, > 11177 (signed); < 34604, > 17164 (unsigned)",
+     "operand": "constant 1598",
+     "a": "-32768..32763"
+    },
+    {
+     "line": 58,
+     "text": "if (((u_short)(prim->x0 + 639) < 1599) && (depth < 2048)) {",
+     "size": 4,
+     "count": 34604,
+     "kind": "against a constant",
+     "outcomes": "== 4137, < 19931, > 10536 (signed); < 12577, > 17890 (unsigned)",
+     "operand": "constant 2047",
+     "a": "-2147400861..2147360528"
+    },
+    {
+     "line": 59,
+     "text": "if (depth > 4) {",
+     "size": 4,
+     "count": 24068,
+     "kind": "against a constant",
+     "outcomes": "== 2570, < 10145, > 11353 (signed); < 2791, > 18707 (unsigned)",
+     "operand": "constant 4",
+     "a": "-2147400861..2047"
+    },
+    {
+     "line": 62,
+     "text": "if (((u_int)((u_short)y - 1) < 239) && (x > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 11353,
+     "kind": "against a constant",
+     "outcomes": "== 274, < 8109, > 2970 (signed); < 7783, > 3296 (unsigned)",
+     "operand": "constant 238",
+     "a": "-1..65534"
+    },
+    {
+     "line": 62,
+     "text": "if (((u_int)((u_short)y - 1) < 239) && (x > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 8057,
+     "kind": "against a constant",
+     "outcomes": "== 4096, < 0, > 3961 (signed); < 0, > 3961 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 62,
+     "text": "if (((u_int)((u_short)y - 1) < 239) && (x > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 8057,
+     "kind": "a == b / a < b",
+     "outcomes": "== 168, < 7480, > 409 (signed); < 4245, > 3644 (unsigned)",
+     "operand": "b -637..947",
+     "a": "-54..0"
+    },
+    {
+     "line": 63,
+     "text": "&& (x < (320 + (pc_gte_widescreen ? 54 : 0)))) {",
+     "size": 4,
+     "count": 7480,
+     "kind": "against a constant",
+     "outcomes": "== 3641, < 0, > 3839 (signed); < 0, > 3839 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 63,
+     "text": "&& (x < (320 + (pc_gte_widescreen ? 54 : 0)))) {",
+     "size": 4,
+     "count": 7480,
+     "kind": "a == b / a < b",
+     "outcomes": "== 166, < 329, > 6985 (signed); < 550, > 6764 (unsigned)",
+     "operand": "b -53..947",
+     "a": "320..374"
+    },
+    {
+     "line": 66,
+     "text": "if (i & 1) {",
+     "size": 4,
+     "count": 6985,
+     "kind": "against a constant",
+     "outcomes": "== 3773, < 0, > 3212 (signed); < 0, > 3212 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 79,
+     "text": "if (((u_int)(flags - 1) < 239) && (projection > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 11353,
+     "kind": "against a constant",
+     "outcomes": "== 117, < 7939, > 3297 (signed); < 4418, > 6818 (unsigned)",
+     "operand": "constant 238",
+     "a": "-32948..33028"
+    },
+    {
+     "line": 79,
+     "text": "if (((u_int)(flags - 1) < 239) && (projection > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 4535,
+     "kind": "against a constant",
+     "outcomes": "== 2304, < 0, > 2231 (signed); < 0, > 2231 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 79,
+     "text": "if (((u_int)(flags - 1) < 239) && (projection > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 4535,
+     "kind": "a == b / a < b",
+     "outcomes": "== 42, < 3401, > 1092 (signed); < 2415, > 2078 (unsigned)",
+     "operand": "b -637..1072",
+     "a": "-54..0"
+    },
+    {
+     "line": 80,
+     "text": "&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "size": 4,
+     "count": 3401,
+     "kind": "against a constant",
+     "outcomes": "== 1662, < 0, > 1739 (signed); < 0, > 1739 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 80,
+     "text": "&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "size": 4,
+     "count": 3401,
+     "kind": "a == b / a < b",
+     "outcomes": "== 27, < 875, > 2499 (signed); < 1006, > 2368 (unsigned)",
+     "operand": "b -53..1072",
+     "a": "320..374"
+    },
+    {
+     "line": 80,
+     "text": "&& (projection < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "size": 4,
+     "count": 2499,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 0, > 2499 (signed); < 0, > 2499 (unsigned)",
+     "operand": "constant 4",
+     "a": "5..2047"
+    },
+    {
+     "line": 84,
+     "text": "if ((i & 1) == 0) {",
+     "size": 4,
+     "count": 2499,
+     "kind": "against a constant",
+     "outcomes": "== 1357, < 0, > 1142 (signed); < 0, > 1142 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 95,
+     "text": "if (particle->unkE == 0) {",
+     "size": 1,
+     "count": 11353,
+     "kind": "against a constant",
+     "outcomes": "== 7207, < 0, > 4146 (signed); < 0, > 4146 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 103,
+     "text": "if (particle->unk2 > 0) {",
+     "size": 2,
+     "count": 51768,
+     "kind": "against a constant",
+     "outcomes": "== 3628, < 20307, > 27833 (signed); < 0, > 48140 (unsigned)",
+     "operand": "constant 0",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 104,
+     "text": "if ((particle->unkE == 0) && (i & 1)) {",
+     "size": 1,
+     "count": 27833,
+     "kind": "against a constant",
+     "outcomes": "== 3924, < 0, > 23909 (signed); < 0, > 23909 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 104,
+     "text": "if ((particle->unkE == 0) && (i & 1)) {",
+     "size": 4,
+     "count": 3924,
+     "kind": "against a constant",
+     "outcomes": "== 2139, < 0, > 1785 (signed); < 0, > 1785 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 123,
+     "text": "if (((u_int)((u_short)prim->y0 - 1) < 239) && (prim->x0 > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 102699,
+     "kind": "against a constant",
+     "outcomes": "== 3522, < 63990, > 35187 (signed); < 60412, > 38765 (unsigned)",
+     "operand": "constant 238",
+     "a": "-1..65534"
+    },
+    {
+     "line": 123,
+     "text": "if (((u_int)((u_short)prim->y0 - 1) < 239) && (prim->x0 > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 63934,
+     "kind": "against a constant",
+     "outcomes": "== 32121, < 0, > 31813 (signed); < 0, > 31813 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 123,
+     "text": "if (((u_int)((u_short)prim->y0 - 1) < 239) && (prim->x0 > (-(pc_gte_widescreen ? 54 : 0)))",
+     "size": 4,
+     "count": 63934,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1490, < 52467, > 9977 (signed); < 33450, > 28994 (unsigned)",
+     "operand": "b -32767..32767",
+     "a": "-54..0"
+    },
+    {
+     "line": 124,
+     "text": "&& (prim->x0 < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "size": 4,
+     "count": 52467,
+     "kind": "against a constant",
+     "outcomes": "== 24934, < 0, > 27533 (signed); < 0, > 27533 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 124,
+     "text": "&& (prim->x0 < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "size": 4,
+     "count": 52467,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1415, < 18687, > 32365 (signed); < 20778, > 30274 (unsigned)",
+     "operand": "b -53..32767",
+     "a": "320..374"
+    },
+    {
+     "line": 124,
+     "text": "&& (prim->x0 < (320 + (pc_gte_widescreen ? 54 : 0))) && (depth > 4)) {",
+     "size": 4,
+     "count": 32365,
+     "kind": "against a constant",
+     "outcomes": "== 1975, < 8391, > 21999 (signed); < 2333, > 28057 (unsigned)",
+     "operand": "constant 4",
+     "a": "-2145570761..2147348706"
+    },
+    {
+     "line": 134,
+     "text": "if (D_800F1BA4 == 0) {",
+     "size": 2,
+     "count": 21999,
+     "kind": "against a constant",
+     "outcomes": "== 13201, < 4372, > 4426 (signed); < 0, > 8798 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..1"
+    },
+    {
+     "line": 137,
+     "text": "if (particle->unkD >= 8) {",
+     "size": 1,
+     "count": 21999,
+     "kind": "against a constant",
+     "outcomes": "== 2014, < 9324, > 10661 (signed); < 7469, > 12516 (unsigned)",
+     "operand": "constant 7",
+     "a": "-2..35"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 94.24080372099888,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 4726.733532905579,
+ "totals": {
+  "cost": 0.0126,
+  "prompt_tokens": 40478,
+  "completion_tokens": 42311,
+  "model_seconds": 0.0,
+  "check_seconds": 94.2,
+  "calls": 2,
+  "wall_seconds": 4726.7
+ }
+}

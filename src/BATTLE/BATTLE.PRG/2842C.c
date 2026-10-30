@@ -2383,8 +2383,9 @@ void func_80095B7C(int arg0, int arg1)
 
 #ifdef ROOD_PC
 /* PC_CLASSIC: what func_80095C18 decided, as it decides it, for the classic layer
- * (classic_hook.h). */
-static pc_classic_emote pc_emote;
+ * (classic_hook.h). Not static: func_8009627C's Zig port hands it to the site too
+ * (a file static is out of a port's reach, PORTING.md 6.5). */
+pc_classic_emote pc_emote_record;
 #endif
 
 void func_80095C18(int actor, int kind)
@@ -2430,8 +2431,10 @@ void func_80095C18(int actor, int kind)
         ot = (u_long*)psx_get(((vs_scratch_t*)0x1F800000)->unk4) + z;
         side = (D_800F2274 >> actor) & 1;
 #ifdef ROOD_PC
-        pc_emote.draw = 1, pc_emote.kind = kind, pc_emote.side = side;
-        pc_emote.x = position.vx, pc_emote.y = position.vy, pc_emote.z = z;
+        pc_emote_record.draw = 1, pc_emote_record.kind = kind,
+        pc_emote_record.side = side;
+        pc_emote_record.x = position.vx, pc_emote_record.y = position.vy,
+        pc_emote_record.z = z;
 #endif
         switch (kind) {
         case 0:
@@ -2470,15 +2473,15 @@ void func_80095C18(int actor, int kind)
             }
             if (flags) {
 #ifdef ROOD_PC
-                pc_emote.draw = 2, pc_emote.direction = flags;
-                pc_emote.x = position.vx, pc_emote.y = position.vy;
+                pc_emote_record.draw = 2, pc_emote_record.direction = flags;
+                pc_emote_record.x = position.vx, pc_emote_record.y = position.vy;
 #endif
                 func_8009651C(&position, flags);
                 return;
             }
             side += 2;
 #ifdef ROOD_PC
-            pc_emote.side = side;
+            pc_emote_record.side = side;
 #endif
             vs_battle_setSprite(128, xy + D_80068F94[side], 0xC0007, ot)[4] = 0x373E1198;
             break;
@@ -2489,7 +2492,7 @@ void func_80095C18(int actor, int kind)
         case 6:
             side += 4;
 #ifdef ROOD_PC
-            pc_emote.side = side;
+            pc_emote_record.side = side;
 #endif
             break;
         case 7:
@@ -2552,8 +2555,9 @@ void func_80095C18(int actor, int kind)
                     }
                 }
 #ifdef ROOD_PC
-                pc_emote.draw = 3, pc_emote.kind = kind, pc_emote.frame = depth;
-                pc_emote.x = position.vx, pc_emote.y = position.vy;
+                pc_emote_record.draw = 3, pc_emote_record.kind = kind,
+                pc_emote_record.frame = depth;
+                pc_emote_record.x = position.vx, pc_emote_record.y = position.vy;
 #endif
                 prim = vs_battle_setSprite(128, xy, 0x100010, ot);
                 prim[1] = 0xE100000C;
@@ -2579,8 +2583,8 @@ void func_8009627C(void)
         for (i = 1; i < 16; ++i) {
             if (D_800F2260[i] != 0) {
 #ifdef ROOD_PC
-                pc_emote.draw = 0;
-                PC_CLASSIC(PC_CLASSIC_SITE_EMOTE, &pc_emote, i, 0,
+                pc_emote_record.draw = 0;
+                PC_CLASSIC(PC_CLASSIC_SITE_EMOTE, &pc_emote_record, i, 0,
                     func_80095C18(i, D_800F2260[i]));
 #else
                 func_80095C18(i, D_800F2260[i]);

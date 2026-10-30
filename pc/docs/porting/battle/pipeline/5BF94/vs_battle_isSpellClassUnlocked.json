@@ -1,0 +1,207 @@
+{
+ "function": "vs_battle_isSpellClassUnlocked",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_isSpellClassUnlocked",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800caeac",
+  "difficulty": "S",
+  "zig_name": "isSpellClassUnlocked",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "is_spell_class_unlocked",
+  "spec_file": "isSpellClassUnlocked.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn isSpellClassUnlocked(spellClass: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "spellClass",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "_spellClassCounts",
+   "_spellIds"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12330,
+     "completion_tokens": 14124,
+     "reasoning_tokens": 12608,
+     "cost": 0.0041475,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "count-zero": "1963",
+   "found": "7869",
+   "not-found": "10224",
+   "slot-above-3": "9944"
+  },
+  "mutations": [
+   {
+    "name": "S1: unlocked test inverted",
+    "caught": true
+   },
+   {
+    "name": "S2: the scan skips every other id",
+    "caught": true
+   },
+   {
+    "name": "S3: the id read one past the current index",
+    "caught": true
+   },
+   {
+    "name": "S4: an unlock continues the scan instead of returning",
+    "caught": true
+   },
+   {
+    "name": "S5: wrong constant on the not-found return",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 19, seen zero, never negative"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < _spellClassCounts[spellClass]; ++i) {",
+     "size": 4,
+     "count": 943400,
+     "kind": "a == b / a < b",
+     "outcomes": "== 22131, < 921269, > 0 (signed); < 921269, > 0 (unsigned)",
+     "operand": "b 0..255",
+     "a": "0..255"
+    },
+    {
+     "line": 5,
+     "text": "if (vs_main_actions[_spellIds[spellClass][i]].unlocked) {",
+     "size": 1,
+     "count": 921269,
+     "kind": "against a constant",
+     "outcomes": "== 913400, < 0, > 7869 (signed); < 0, > 7869 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35619,
+     "completion_tokens": 2920,
+     "reasoning_tokens": 2464,
+     "cost": 0.0025109499999999996,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/isSpellClassUnlocked.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/is_spell_class_unlocked.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 74.42088293699635,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30286.51802778244,
+ "totals": {
+  "cost": 0.00666,
+  "prompt_tokens": 47949,
+  "completion_tokens": 17044,
+  "model_seconds": 0.0,
+  "check_seconds": 74.4,
+  "calls": 2,
+  "wall_seconds": 30286.5
+ }
+}

@@ -63,18 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13061,
-     "completion_tokens": 7165,
-     "reasoning_tokens": 5721,
-     "cost": 0.0024443,
+     "completion_tokens": 8624,
+     "reasoning_tokens": 7199,
+     "cost": 0.00280905,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 4: return value\nzdiff: func_80083CB8: 1688 iterations, seed 1, 1000 mismatches; classes: arg2-null=201 arg2-valid=1487",
-     "FAIL: mutation M1: callee gets arg1 instead of arg2: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x4060c4 [arena] (zdiff_state+0x54): C 221, Zig 56\nzdiff: MISMATCH iteration 1: memory at 0x4060c4 [arena] (zdiff_state+0x54): C 60, Zig 211\nzdiff: MISMATCH iteration 2: memory at 0x4060c4 [arena] (zdiff_state+0x54): C 222, Zig 200\nzdiff: CRASH (signal 11) in the Zig run, iteration 22, fault address 0x1e [NULL+0x1e: a field of a null pointer]",
-     "FAIL: mutation M6: store made unconditional: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: CRASH (signal 11) in the Zig run, iteration 0, fault address 0x1e [NULL+0x1e: a field of a null pointer]\nzdiff: crashed on arguments: 0x406070 [arena] 0x4060b0 [arena] 0 0x85b98aa4 0x90cbeb0a (class arg2-null)"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083CB8: 1333 iterations, seed 1, 1000 mismatches; classes: arg0-null=661 arg0-set-flag-clear=121 arg0-set-flag-set=551"
     ]
    },
    {
@@ -87,47 +85,48 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 15236,
-     "completion_tokens": 6528,
-     "reasoning_tokens": 4947,
-     "cost": 0.0023937999999999997,
+     "prompt_tokens": 14699,
+     "completion_tokens": 4557,
+     "reasoning_tokens": 3063,
+     "cost": 0.0018742,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 4: return value\nzdiff: MISMATCH iteration 5: return value\nzdiff: func_80083CB8: 1680 iterations, seed 1, 1000 mismatches; classes: arg2-null=171 arg2-valid=1509"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 5: return value\nzdiff: func_80083CB8: 1341 iterations, seed 1, 1000 mismatches; classes: arg0-null=665 arg0-set-flag-clear=117 arg0-set-flag-set=559"
     ]
    }
   ],
   "classes": {
-   "arg2-null": "171",
-   "arg2-valid": "1509"
+   "arg0-null": "665",
+   "arg0-set-flag-clear": "117",
+   "arg0-set-flag-set": "559"
   },
   "mutations": [
    {
-    "name": "M1: callee gets arg1 instead of arg2",
+    "name": "F1: status test is > 0 (negative results read as applicable-no)",
     "caught": true
    },
    {
-    "name": "M2: store 2 instead of 1",
+    "name": "F2: wrong status constant passed",
     "caught": true
    },
    {
-    "name": "M3: test > 0 instead of != 0",
+    "name": "F3: wrong stored value",
     "caught": true
    },
    {
-    "name": "M4: wrong callee id 13",
+    "name": "F4: wrong field stored",
     "caught": true
    },
    {
-    "name": "M5: store dropped",
+    "name": "F5: callee handed arg1 instead of arg2",
     "caught": true
    },
    {
-    "name": "M6: store made unconditional",
+    "name": "F6: dropped store",
     "caught": true
    }
   ],
@@ -154,17 +153,17 @@
     {
      "arg": 2,
      "count": 30000,
-     "text": "pointer: null seen"
+     "text": "pointer: never null"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147357358, max 2147410512, unsigned 188960..4294952113, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147450587, max 2147482546, unsigned 160900..4294856388, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     }
    ],
    "compares": [
@@ -174,9 +173,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 12441, < 8735, > 8824 (signed); < 0, > 17559 (unsigned)",
+     "outcomes": "== 7493, < 11207, > 11300 (signed); < 0, > 22507 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147471619..2147382551"
+     "a": "-2147432914..2147183174"
     }
    ],
    "passed": true
@@ -186,17 +185,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 23.847044731001006,
+ "check_seconds": 23.855293589000212,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56638.35412335396,
+ "wall_seconds": 4421.349848747253,
  "totals": {
-  "cost": 0.00484,
-  "prompt_tokens": 28297,
-  "completion_tokens": 13693,
+  "cost": 0.00468,
+  "prompt_tokens": 27760,
+  "completion_tokens": 13181,
   "model_seconds": 0.0,
-  "check_seconds": 23.8,
+  "check_seconds": 23.9,
   "calls": 2,
-  "wall_seconds": 56638.4
+  "wall_seconds": 4421.3
  }
 }

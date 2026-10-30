@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13009,
-     "completion_tokens": 5697,
-     "reasoning_tokens": 4298,
-     "cost": 0.0020747,
+     "completion_tokens": 5520,
+     "reasoning_tokens": 4369,
+     "cost": 0.00203045,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084004: 1000 iterations, seed 1, 1000 mismatches; classes: arg2-null=198 arg2-valid=802"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80084004/spec1/build/spec.zig:33:38: error: expected type '?*views_146C._hitEntity_t', found '*views_146C.vs_action_t'\n        if (ctx.chance(4)) null else a1,\n                                     ^~\npc/build/port-pipeline/func_80084004/spec1/build/spec.zig:33:38: note: pointer type child 'views_146C.vs_action_t' cannot cast into pointer type child 'views_146C._hitEntity_t'\npc/build/port-pipeline/gen/146C/fn-func_80084004/views_146C.zig:1867:32: note: struct declared here\npub const vs_action_t = extern struct {\n                        ~~~~~~~^~~~~~\npc/build/port-pipeline/gen/146C/fn-func_80084004/views_146C.zig:93:33: note: struct declared here\npub const _hitEntity_t = extern struct {\n                         ~~~~~~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
     ]
    },
    {
@@ -85,27 +85,27 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14601,
-     "completion_tokens": 4014,
-     "reasoning_tokens": 2644,
-     "cost": 0.00173355,
+     "prompt_tokens": 14675,
+     "completion_tokens": 1673,
+     "reasoning_tokens": 502,
+     "cost": 0.0011519999999999998,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084004: 1000 iterations, seed 1, 1000 mismatches; classes: arg2-null=198 arg2-valid=802"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084004: 1000 iterations, seed 1, 1000 mismatches; classes: arg2-null=332 arg2-valid=668"
     ]
    }
   ],
   "classes": {
-   "arg2-null": "198",
-   "arg2-valid": "802"
+   "arg2-null": "332",
+   "arg2-valid": "668"
   },
   "mutations": [
    {
-    "name": "F1: wrong status constant (0x1A for 0x1B)",
+    "name": "F1: wrong status constant",
     "caught": true
    },
    {
@@ -113,15 +113,11 @@
     "caught": true
    },
    {
-    "name": "F3: result changed by one",
+    "name": "F3: call dropped",
     "caught": true
    },
    {
-    "name": "F4: call dropped, result forced to 0",
-    "caught": true
-   },
-   {
-    "name": "F5: entity passed as null",
+    "name": "F4: null arg2 falls back to arg1",
     "caught": true
    }
   ],
@@ -137,28 +133,28 @@
    "args": [
     {
      "arg": 0,
-     "count": 20000,
+     "count": 30000,
      "text": "pointer: null seen"
     },
     {
      "arg": 1,
-     "count": 20000,
+     "count": 30000,
      "text": "pointer: null seen"
     },
     {
      "arg": 2,
-     "count": 20000,
+     "count": 30000,
      "text": "pointer: null seen"
     },
     {
      "arg": 3,
-     "count": 20000,
-     "text": "32-bit: min -2147427147, max 2147339985, unsigned 2328..4294890133, seen negative, never zero"
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 4,
-     "count": 20000,
-     "text": "32-bit: min -2147438915, max 2147436110, unsigned 134837..4294808508, seen negative, never zero"
+     "count": 30000,
+     "text": "32-bit: min -2147408990, max 2147274942, unsigned 346475..4294769564, seen negative, never zero"
     }
    ],
    "compares": [],
@@ -169,17 +165,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 19.879903707000267,
+ "check_seconds": 11.926073352999083,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56664.927983522415,
+ "wall_seconds": 4452.568370819092,
  "totals": {
-  "cost": 0.00381,
-  "prompt_tokens": 27610,
-  "completion_tokens": 9711,
+  "cost": 0.00318,
+  "prompt_tokens": 27684,
+  "completion_tokens": 7193,
   "model_seconds": 0.0,
-  "check_seconds": 19.9,
+  "check_seconds": 11.9,
   "calls": 2,
-  "wall_seconds": 56664.9
+  "wall_seconds": 4452.6
  }
 }

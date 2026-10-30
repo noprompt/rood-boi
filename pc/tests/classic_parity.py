@@ -1357,6 +1357,283 @@ def tour_items(g, symbols, toured, frames):
     g.write(symbols["vs_main_stateFlags"] + INTRO_STATE, intro)
 
 
+# Magic (MENU0), Break Arts (MENU1), Battle Abilities (MENU2): currentMenu & 0x3F (menu_model.c SCREENS) and the top
+# level's commands (menu_nav)
+MAGIC_MENU, ARTS_MENU, ABILITIES_MENU = 1, 2, 3
+ACTION_SIZE, ACTION_UNLOCKED = 52, 13  # vs_action_t: 52 bytes, unlocked = bit 7 of byte 13
+SPELL_TABLES = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))  # vs_battle_<school>SpellIds
+FIRST_ART = 184  # vs_main_actions_daggerArt1: category c's four arts from FIRST_ART + (c - 1) * 4
+MENU_FLAGS, UNK_B5, SAVE_POINTS = 2, 0xB5, 0x156  # vs_main_settings.menuFlags; vs_main_stateFlags.unkB5 / savePointStates
+MAPPED = 12  # vs_main_settings.mappedChainAbilities[4], mappedDefenseAbilities[4]
+
+
+def live_rows(g):
+    """rood.game.menu()'s live rows: [(id, text, selected)] by id."""
+    out = str(repl(g, "rood.classic", "local t = {} for _, r in ipairs(rood.game.menu().rows) do "
+                   "if r.state ~= 'inactive' then t[#t + 1] = r.id .. '@@' .. (r.selected and 1 or 0) .. '@@' "
+                   ".. (r.text or '') end end return table.concat(t, '##')")).strip('"')
+    rows = []
+    for item in out.split("##") if out else []:
+        parts = item.split("@@", 2)
+        if len(parts) == 3:
+            rows.append((int(parts[0]), parts[2].strip(), parts[1] == "1"))
+    return sorted(rows)
+
+
+def learn(g, symbols, action):
+    a = symbols["vs_main_actions"] + action * ACTION_SIZE + ACTION_UNLOCKED
+    g.write(a, bytes([g.read(a, 1)[0] | 0x80]))
+
+
+def screen_open(g, symbols, command, screen):
+    """Triangle, the top level's `command`, Circle: the screen (`screen`, currentMenu & 0x3F) with its rows at rest."""
+    from menu_nav import top_command
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, command)
+    for _ in range(5):  # (Circle once the top level takes it)
+        g.press("circle", vsyncs=2, settle=2)
+        if g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F == screen, guard=10):
+            break
+    items_ready(g, symbols)
+
+
+def menu_cursor(g):
+    """The shared list's cursor (rood.game.menu().cursor): (its row, how many rows the list has)."""
+    row, rows = str(repl(g, "rood.classic", "local c = rood.game.menu().cursor return c.row .. ',' .. c.rows")
+                    ).strip('"').split(",")
+    return int(row), int(rows)
+
+
+def skills_tour_helpers(g, symbols, screen, name):
+    def press(button, settle=6):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def at_rest():
+        items_ready(g, symbols)
+        menu = g.read(symbols["vs_battle_menuState"], 1)[0]
+        if menu & 0x3F != screen:
+            raise RpcError(f"{name}: left the screen ({menu:#x})")
+        rows = None
+        for _ in range(60):  # (a list's rows come in one a frame: until they stop coming)
+            now = [i for i, _, _ in live_rows(g)]
+            if now == rows:
+                return
+            rows = now
+            g.run(4)
+
+    def select(row_id, ids):
+        """Down (the lists wrap) until row `row_id` is the selected one."""
+        for _ in range(2 * len(ids) + 20):
+            if any(i == row_id and sel for i, _, sel in live_rows(g)):
+                return
+            press("down")
+        raise RpcError(f"{name}: row {row_id} never selected ({live_rows(g)})")
+
+    def seek(want):
+        """Down (the shared list wraps and scrolls) until its cursor is on row `want` (an index), or on a row whose
+        text starts with `want` (a string)."""
+        for _ in range(menu_cursor(g)[1] + 3):
+            row, _ = menu_cursor(g)
+            if (row == want if isinstance(want, int)
+                    else any(i >= 20 and sel and t.lower().startswith(want) for i, t, sel in live_rows(g))):
+                return True
+            press("down")
+        return False
+
+    def walk(count):
+        """Down past the list's end and back up past its top (the scroll, the wrap)."""
+        for button in ("down",) * (count + 2) + ("up",) * (count + 2):
+            press(button, settle=4)
+
+    def close(before, toured):
+        for _ in range(6):  # (Triangle closes the menu from the screen's first page)
+            press("triangle", settle=60)
+            if g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=60):
+                break
+        g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what=f"{name} closed")
+        g.run(30)
+        toured(f"{name} closed", before)
+
+    return press, at_rest, select, seek, walk, close
+
+
+def magic_fixture(g, symbols):
+    """Every spell learned (as at the game's end: every grimoire read), the Magic command on (menuFlags bit 0, set
+    when the first is learned), MP full, Teleport's Circles of Magic: the save room's and a few others visited."""
+    for table, size in SPELL_TABLES:
+        for spell in g.read(symbols[f"vs_battle_{table}SpellIds"], size):
+            if spell:
+                learn(g, symbols, spell)
+    f = symbols["vs_main_settings"] + MENU_FLAGS
+    g.write(f, bytes([g.read(f, 1)[0] | 1]))
+    flags = symbols["vs_main_stateFlags"]
+    g.write(flags + UNK_B5, bytes([1]))
+    points = bytearray(g.read(flags + SAVE_POINTS, 48))
+    for p in (0, 1, 3, 10):
+        points[p] = points[p] or 1
+    g.write(flags + SAVE_POINTS, bytes(points))
+    g.run(2)
+
+
+def tour_magic(g, symbols, toured, frames):
+    """Magic (MENU0) through the original menus: opened; each school (Warlock, Shaman, Sorcerer, Enchanter,
+    Teleport) in turn: its list walked past both ends; Warlock's levelled spell (found by its text: Explosion) into
+    its LV picker, the levels walked right and left, Cross out; Cross back to the schools; closed. Nothing is cast."""
+    press, at_rest, select, seek, walk, close = skills_tour_helpers(g, symbols, MAGIC_MENU, "Magic")
+    magic_fixture(g, symbols)
+    before = frames()
+    screen_open(g, symbols, 0, MAGIC_MENU)
+    at_rest()
+    schools = [(i, t) for i, t, _ in live_rows(g) if 10 <= i < 20]
+    toured("Magic opened", before, schools=[t for _, t in schools])
+    for school, text in schools:
+        before = frames()
+        select(school, [i for i, _ in schools])
+        press("circle", settle=20)
+        at_rest()
+        rows = menu_cursor(g)[1]
+        walk(rows)
+        picker = False
+        if seek("explosion"):  # (Warlock's levelled spell: its LV picker)
+            press("circle", settle=20)  # the LV picker (the list flies out right)
+            g.run(20)
+            for button in ("right",) * 4 + ("left",) * 4:
+                press(button)
+            press("cross", settle=20)  # back to the list
+            at_rest()
+            picker = True
+        press("cross", settle=20)  # back to the schools
+        at_rest()
+        print(f"Magic: {text} toured ({rows} rows, LV picker {picker})", flush=True)  # (progress)
+        toured(f"Magic: {text}: its list walked{', the LV picker' if picker else ''}", before, school=text,
+               rows=rows)
+    close(frames(), toured)
+
+
+def equipped_category(g, symbols):
+    """vs_battle_characterState->equippedWeaponCategory (vs_battle_actor + 37)."""
+    actor = int.from_bytes(g.read(symbols["vs_battle_characterState"], PTR), "little")
+    return g.read(actor + 37, 1)[0]
+
+
+def tour_arts(g, symbols, toured, frames):
+    """Break Arts (MENU1) through the original menus: opened on the equipped category's arts; its list walked past
+    both ends; View Arts (found by its text) into the ten categories, walked past both ends; each category with an
+    art learned opened, walked, and back to the categories (Cross); closed. Nothing is cast."""
+    press, at_rest, select, seek, walk, close = skills_tour_helpers(g, symbols, ARTS_MENU, "Break Arts")
+    equipped = equipped_category(g, symbols)
+    status, others = symbols["vs_main_artsStatus"], [c for c in (1, 3, 5) if c != equipped][:2]
+    for cat, count in ((equipped, 3), (others[0], 4), (others[1], 1)):
+        for art in range(count):
+            learn(g, symbols, FIRST_ART + (cat - 1) * 4 + art)
+        g.write(status + (cat % 10), bytes([max(g.read(status + (cat % 10), 1)[0], count)]))
+    g.run(2)
+    before = frames()
+    screen_open(g, symbols, 1, ARTS_MENU)
+    at_rest()
+    toured("Break Arts opened", before)
+
+    def view_arts():
+        """The arts list walked, then View Arts (its last row, found by its text): the categories."""
+        rows = menu_cursor(g)[1]
+        walk(rows)
+        texts = []
+        if seek(rows - 1):  # (View Arts: the list's last row, after the learned arts)
+            row, _ = menu_cursor(g)
+            texts = [t for i, t, sel in live_rows(g) if i == 20 + row and sel]
+        if texts != ["View Arts"]:  # (never Circle on an art: that casts it)
+            raise RpcError(f"Break Arts: View Arts not reached ({menu_cursor(g)}, {live_rows(g)})")
+        press("circle", settle=20)
+        at_rest()
+        return rows
+
+    before = frames()
+    rows = view_arts()
+    toured("Break Arts: the equipped category's arts walked, View Arts", before, rows=rows)
+    before = frames()
+    cats = menu_cursor(g)[1]
+    walk(cats)
+    toured("Break Arts: the ten categories walked", before, rows=cats)
+    for cat in (others[0], others[1], equipped):
+        before = frames()
+        if not seek(cat - 1):
+            raise RpcError(f"Break Arts: category {cat} never reached ({menu_cursor(g)})")
+        press("circle", settle=20)  # the category's arts
+        at_rest()
+        rows = view_arts()  # (and back to the categories through View Arts)
+        print(f"Break Arts: category {cat} toured ({rows} rows)", flush=True)  # (progress)
+        toured(f"Break Arts: category {cat}: its arts walked, View Arts", before, category=cat, rows=rows)
+    before = frames()
+    press("cross", settle=20)  # Cross on the categories: the arts list again
+    at_rest()
+    toured("Break Arts: Cross on the categories", before)
+    close(frames(), toured)
+
+
+def tour_abilities(g, symbols, toured, frames):
+    """Battle Abilities (MENU2) through the original menus: every chain and defense ability learned (as by kills in
+    play); opened; Chain, then Defense (found by their text): the list walked past both ends (it scrolls: 8 rows
+    shown), a row put on Circle, Triangle and Square (the button icons) and taken off again (the same button), Cross
+    back; closed. The mapping is restored after."""
+    press, at_rest, select, seek, walk, close = skills_tour_helpers(g, symbols, ABILITIES_MENU, "Battle Abilities")
+    for kind in ("chain", "defense"):
+        for action in g.read(symbols[f"vs_battle_{kind}AbilityOffsets"], 14):
+            if action:
+                learn(g, symbols, action)
+    mapped = g.read(symbols["vs_main_settings"] + MAPPED, 8)
+    g.run(2)
+    before = frames()
+    screen_open(g, symbols, 2, ABILITIES_MENU)
+    at_rest()
+    types = [(i, t) for i, t, _ in live_rows(g) if 10 <= i < 20]
+    toured("Battle Abilities opened", before, types=[t for _, t in types])
+    for row, text in types:
+        before = frames()
+        select(row, [i for i, _ in types])
+        press("circle", settle=20)
+        at_rest()
+        g.run(10)  # (MENU2's list: waitReady, then abilityMenu takes presses)
+        count = sum(1 for i, _, _ in live_rows(g) if i >= 20)
+        walk(16)  # (the learned list: up to 14, 8 shown)
+        press("down")
+        for button in ("circle", "triangle", "square"):
+            press(button, settle=10)  # on that button
+        for button in ("square", "triangle", "circle"):
+            press(button, settle=10)  # (already on Circle: Triangle and Square moved it; the same button: off)
+        press("cross", settle=20)
+        at_rest()
+        print(f"Battle Abilities: {text} toured ({count} rows shown)", flush=True)  # (progress)
+        toured(f"Battle Abilities: {text}: its list walked, the buttons put on and off", before, kind=text,
+               rows=count)
+    close(frames(), toured)
+    g.write(symbols["vs_main_settings"] + MAPPED, mapped)
+
+
+SKILL_PROOFS = (  # (the top level's command, the screen, where, its kinds at rest)
+    (0, MAGIC_MENU, "the Magic schools at rest", ("menu_row", "menu_cursor", "menu_command")),
+    (1, ARTS_MENU, "the Break Arts list at rest", ("menu_row", "menu_cursor", "menu_command")),
+    (2, ABILITIES_MENU, "the Battle Abilities types at rest", ("menu_row", "menu_cursor", "menu_command")),
+)
+
+
+def skills_proofs(g, symbols, check, state_proof):
+    """Magic, Break Arts, Battle Abilities (their fixtures from the tours still learned): each opened to its first
+    list at rest, the default and the fallback of each kind there, the state proof (§3.4) from that mark."""
+    for command, screen, label, kinds in SKILL_PROOFS:
+        g.rewind()
+        for _ in range(8):  # (out of whatever the last mark had open)
+            if g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F:
+                break
+            g.press("triangle", vsyncs=3, settle=60)
+        g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
+        g.run(30)
+        screen_open(g, symbols, command, screen)
+        g.pause()
+        g.mark()
+        for kind in kinds:
+            g.rewind()
+            default_and_fallback(g, kind, check)
+        state_proof(label, kinds)
 MANUAL_COMMAND, MANUAL_MENU, MANUAL_TOPICS = 9, 10, 14  # the top level's QUICK MANUAL row (menuFlags bit 9),
 MANUAL_LIST, MANUAL_PAGE = 2, 5                         # its currentMenu (MENUE), topics; MENUE's _showMenuState
 MENUE = {}  # MENUE's statics (ui_manual_smoke.menue_symbols)
@@ -1804,6 +2081,9 @@ def run_menus(out, card, env, check, waivers, kinds):
         g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] == 0x3F, guard=600, what="the menu closed")
         g.run(30)
         tour_items(g, symbols, toured, frames)
+        tour_magic(g, symbols, toured, frames)
+        tour_arts(g, symbols, toured, frames)
+        tour_abilities(g, symbols, toured, frames)
         tour_manual(g, symbols, toured, frames)
         tour_status(g, symbols, toured, frames)
         reports = {kind: opening_report(g, check, waivers, kind, covered, set()) for kind in kinds
@@ -1886,6 +2166,7 @@ def run_menus(out, card, env, check, waivers, kinds):
             default_and_fallback(g, kind, check)
         toured_kinds[:] = items_kinds
         state_proof("the Items list at rest", items_kinds)
+        skills_proofs(g, symbols, check, state_proof)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "the Quick Manual list", manual_open)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status", status_open)
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, the equipment list",

@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
- "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 2: call 3 (vs_main_freeHeap): argument 0: C 0x19e3137a, Zig 0x",
+ "status": "ported",
+ "reviewed": false,
  "plan": {
   "name": "func_8008ABF0",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -46,13 +46,13 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 12205,
-     "completion_tokens": 12121,
-     "reasoning_tokens": 10464,
-     "cost": 0.007281,
-     "seconds": 50.5,
-     "sample": 1,
-     "conversation": "25f3ade34416472e9d4cf3f38941e53365ba3241582c642ea34ab9b270a786f9"
+     "prompt_tokens": 12208,
+     "completion_tokens": 11302,
+     "reasoning_tokens": 9646,
+     "cost": 0.0034359,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": true,
     "errors": []
@@ -63,35 +63,31 @@
    "sample": 1
   },
   "classes": {
-   "not-active": "7437",
-   "alias-no-match": "2941",
-   "other-room": "9480",
-   "match-no-geometry": "2597",
-   "match-geometry": "7545"
+   "not-active": "5946",
+   "wrong-room": "15485",
+   "match-null-geometry": "2100",
+   "match-geometry-low": "2157",
+   "match-geometry-sign": "4312"
   },
   "mutations": [
    {
-    "name": "M1: unk2 compared as unsigned short (alias -1 vs 65535 matches)",
+    "name": "F1: the free guard inverted (frees only null, never the block)",
     "caught": true
    },
    {
-    "name": "M2: bzero clears 0xC0 bytes, not 0xC4",
+    "name": "F2: func_80092A18 dropped",
     "caught": true
    },
    {
-    "name": "M3: func_80091378 call dropped",
+    "name": "F3: room id compared with != (the wrong room is cleared)",
     "caught": true
    },
    {
-    "name": "M4: success returns 2",
+    "name": "F4: returns 2 on a clear",
     "caught": true
    },
    {
-    "name": "M5: geometrySection test inverted (free when null)",
-    "caught": true
-   },
-   {
-    "name": "M6: room check tests unk0 == 0",
+    "name": "F5: bzero one word short",
     "caught": true
    }
   ],
@@ -108,7 +104,7 @@
     {
      "arg": 0,
      "count": 30000,
-     "text": "32-bit: min -2147115553, max 2146525724, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2146996449, max 2146774829, unsigned 0..4294967295, seen zero/negative/all ones"
     }
    ],
    "compares": [
@@ -118,29 +114,29 @@
      "size": 1,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 22563, < 4957, > 2480 (signed); < 2471, > 4966 (unsigned)",
+     "outcomes": "== 24054, < 3444, > 2502 (signed); < 971, > 4975 (unsigned)",
      "operand": "constant 1",
-     "a": "-1..2"
+     "a": "-128..127"
     },
     {
      "line": 3,
      "text": "if (vs_battle_roomData.unk2 == arg0) {",
      "size": 4,
-     "count": 22563,
+     "count": 24054,
      "kind": "a == b / a < b",
-     "outcomes": "== 10142, < 3895, > 8526 (signed); < 7743, > 4678 (unsigned)",
+     "outcomes": "== 8569, < 7694, > 7791 (signed); < 7453, > 8032 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-2147115553..2145999129"
+     "a": "-2146551488..2146774829"
     },
     {
      "line": 7,
      "text": "if (((__typeof__((vs_battle_roomData.geometrySection).psx_type_[0]))(long unsigned int)(vs_battle_roomData.geometrySection).raw) != 0) {",
      "size": 4,
-     "count": 10142,
+     "count": 8569,
      "kind": "against a constant",
-     "outcomes": "== 1003, < 4597, > 4542 (signed); < 0, > 9139 (unsigned)",
+     "outcomes": "== 4872, < 3176, > 521 (signed); < 0, > 3697 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147431873..2147376152"
+     "a": "-2147483648..4235888"
     }
    ],
    "passed": true
@@ -159,74 +155,61 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 35669,
-     "completion_tokens": 1686,
-     "reasoning_tokens": 1243,
-     "cost": 0.0044099,
-     "seconds": 7.5,
-     "sample": 1,
-     "conversation": "4e1facdf585cfbdc538c9bfd93926153b3cd2c317eb7bf7eb637950ce98ef50a"
+     "prompt_tokens": 35672,
+     "completion_tokens": 2781,
+     "reasoning_tokens": 2369,
+     "cost": 0.00247885,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 3):\nzdiff: PANIC in the Zig run, iteration 2: incorrect alignment (return address 0x403908)"
-    ],
+    "passed": true,
+    "errors": [],
     "runs": [
      {
       "seed": 1,
-      "exit": 3,
-      "mismatches": null,
-      "first": "PANIC in the Zig run, iteration 2: incorrect alignment (return address 0x403908)"
-     }
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 36202,
-     "completion_tokens": 1565,
-     "reasoning_tokens": 1034,
-     "cost": 0.0044027,
-     "seconds": 7.1,
-     "sample": 1,
-     "conversation": "6e5cf8f8ae47293e2e9944b89edc49d9edbce0c29e4ec26573d2ae6d689b5373"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 2: call 3 (vs_main_freeHeap): argument 0: C 0x19e3137a, Zig 0x4260d4\nzdiff: MISMATCH iteration 11: call 3 (vs_main_freeHeap): argument 0: C 0xb929e911, Zig 0x4260d4\nzdiff: MISMATCH iteration 16: call 3 (vs_main_freeHeap): argument 0: C 0xfeb29d1b, Zig 0x4260d4\nzdiff: func_8008ABF0: 3000 iterations, seed 1, 1000 mismatches; classes: not-active=742 alias-no-match=264 other-room=994 match-no-geometry=255 match-geometry=745"
-    ],
-    "runs": [
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
      {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 2: call 3 (vs_main_freeHeap): argument 0: C 0x19e3137a, Zig 0x4260d4"
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
      }
     ]
    }
-  ]
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 15.215228613004001,
- "wall_seconds": 80.82769871900018,
+ "written": [
+  "pc/tests/zig_diff/func_8008ABF0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008ABF0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 377.9804948140045,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 21081.737516641617,
  "totals": {
-  "cost": 0.01609,
-  "prompt_tokens": 84076,
-  "completion_tokens": 15372,
-  "model_seconds": 65.1,
-  "check_seconds": 15.2,
-  "calls": 3,
-  "wall_seconds": 80.8
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.00591,
+  "prompt_tokens": 47880,
+  "completion_tokens": 14083,
+  "model_seconds": 0.0,
+  "check_seconds": 378.0,
+  "calls": 2,
+  "wall_seconds": 21081.7
  }
 }

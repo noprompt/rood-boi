@@ -1,0 +1,135 @@
+{
+ "function": "func_80073ACC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_80073ACC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x80073acc",
+  "difficulty": "S",
+  "zig_name": "func_80073ACC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_80073ACC",
+  "spec_file": "func_80073ACC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_80073ACC() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11071,
+     "completion_tokens": 2514,
+     "reasoning_tokens": 1568,
+     "cost": 0.00118205,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: specs.toml entry: Illegal character '\\n' (at line 14, column 25)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12078,
+     "completion_tokens": 1428,
+     "reasoning_tokens": 478,
+     "cost": 0.0009609,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [
+   {
+    "name": "F1: the second call is dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: the first two calls swap",
+    "caught": true
+   },
+   {
+    "name": "F3: the last call runs twice",
+    "caught": true
+   },
+   {
+    "name": "F4: the last call is dropped",
+    "caught": true
+   },
+   {
+    "name": "F5: the last two calls swap",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 8.871688724000705,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 4213.489298820496,
+ "totals": {
+  "cost": 0.00214,
+  "prompt_tokens": 23149,
+  "completion_tokens": 3942,
+  "model_seconds": 0.0,
+  "check_seconds": 8.9,
+  "calls": 2,
+  "wall_seconds": 4213.5
+ }
+}

@@ -1,0 +1,148 @@
+{
+ "function": "func_800CF8BC",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CF8BC",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cf8bc",
+  "difficulty": "S",
+  "zig_name": "func_800CF8BC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CF8BC",
+  "spec_file": "func_800CF8BC.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CF8BC() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [
+   "func_800CF0E8_t"
+  ],
+  "globals": [
+   "D_800F5238"
+  ],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12244,
+     "completion_tokens": 4696,
+     "reasoning_tokens": 3518,
+     "cost": 0.0017862,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_800CF8BC/spec1/build/harness.o: in function `spec.stubs.func_800CF3F8__func_12':\npc/build/port-pipeline/func_800CF8BC/spec1/build/spec.zig:20:(.text.route.withSignature__struct_5.f+0x24a): undefined reference to `D_800F5230'\n/usr/bin/ld: pc/build/port-pipeline/func_800CF8BC/spec1/build/harness.o:(.debug_info+0x1404): undefined reference to `D_800F5230'\n/usr/bin/ld: pc/build/port-pipeline/func_800CF8BC/spec1/build/zdiff: hidden symbol `D_800F5230' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13771,
+     "completion_tokens": 1888,
+     "reasoning_tokens": 733,
+     "cost": 0.00116055,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F1: effectId off by one: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CF8BC: 20000 iterations, seed 1, 0 mismatches; classes: flag-zero=3892 flag-sign=8177 flag-low=7931",
+     "FAIL: mutation F2: unk8 read from a constant, not D_800F5238: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CF8BC: 20000 iterations, seed 1, 0 mismatches; classes: flag-zero=3892 flag-sign=8177 flag-low=7931",
+     "FAIL: mutation F4: unk14 stored as 1: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CF8BC: 20000 iterations, seed 1, 0 mismatches; classes: flag-zero=3892 flag-sign=8177 flag-low=7931",
+     "FAIL: mutation F5: unk3 store dropped: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CF8BC: 20000 iterations, seed 1, 0 mismatches; classes: flag-zero=3892 flag-sign=8177 flag-low=7931"
+    ]
+   }
+  ],
+  "classes": {
+   "flag-zero": "3892",
+   "flag-sign": "8177",
+   "flag-low": "7931"
+  },
+  "mutations": [
+   {
+    "name": "F1: effectId off by one",
+    "caught": false
+   },
+   {
+    "name": "F2: unk8 read from a constant, not D_800F5238",
+    "caught": false
+   },
+   {
+    "name": "F3: callee mode argument 1",
+    "caught": true
+   },
+   {
+    "name": "F4: unk14 stored as 1",
+    "caught": false
+   },
+   {
+    "name": "F5: unk3 store dropped",
+    "caught": false
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 16.813284528998338,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 5150.8237137794495,
+ "totals": {
+  "cost": 0.00295,
+  "prompt_tokens": 26015,
+  "completion_tokens": 6584,
+  "model_seconds": 0.0,
+  "check_seconds": 16.8,
+  "calls": 2,
+  "wall_seconds": 5150.8
+ }
+}

@@ -1,0 +1,183 @@
+{
+ "function": "func_800CF7A8",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CF7A8",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cf7a8",
+  "difficulty": "S",
+  "zig_name": "func_800CF7A8",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CF7A8",
+  "spec_file": "func_800CF7A8.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CF7A8(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "func_800CF0E8_t"
+  ],
+  "globals": [],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12439,
+     "completion_tokens": 5465,
+     "reasoning_tokens": 4276,
+     "cost": 0.0019882,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_800CF7A8/spec1/build/harness.o: in function `spec.stubs.func_800CF3F8__func_12':\npc/build/port-pipeline/func_800CF7A8/spec1/build/spec.zig:21:(.text.route.withSignature__struct_5.f+0xd3): undefined reference to `D_800F5230'\n/usr/bin/ld: pc/build/port-pipeline/func_800CF7A8/spec1/build/harness.o:(.debug_info+0x1404): undefined reference to `D_800F5230'\n/usr/bin/ld: pc/build/port-pipeline/func_800CF7A8/spec1/build/zdiff: hidden symbol `D_800F5230' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13977,
+     "completion_tokens": 3070,
+     "reasoning_tokens": 1867,
+     "cost": 0.00146635,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)",
+     "FAIL: mutation F1: effectId off by one: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CF7A8: 20000 iterations, seed 1, 0 mismatches",
+     "FAIL: mutation F2: unk4 wrong constant: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800CF7A8: 20000 iterations, seed 1, 0 mismatches"
+    ]
+   }
+  ],
+  "classes": {},
+  "mutations": [
+   {
+    "name": "F1: effectId off by one",
+    "caught": false
+   },
+   {
+    "name": "F2: unk4 wrong constant",
+    "caught": false
+   },
+   {
+    "name": "F3: arg2 masked to 3 bits",
+    "caught": true
+   },
+   {
+    "name": "F4: arg3 shifted one bit short",
+    "caught": true
+   },
+   {
+    "name": "F5: wrong high tag byte",
+    "caught": true
+   },
+   {
+    "name": "F6: dropped call to func_800CF3F8",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 16,
+   "lines_hit": 16,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 17.076964062000116,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 5138.9441504478455,
+ "totals": {
+  "cost": 0.00345,
+  "prompt_tokens": 26416,
+  "completion_tokens": 8535,
+  "model_seconds": 0.0,
+  "check_seconds": 17.1,
+  "calls": 2,
+  "wall_seconds": 5138.9
+ }
+}

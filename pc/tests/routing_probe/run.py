@@ -26,7 +26,7 @@ with tempfile.TemporaryDirectory() as d:
     d = pathlib.Path(d)
     for abi, cc, flags, exe in [("i386", "gcc", ["-m32", "-no-pie", "-fno-pie"], "probe32"),
                                 ("sysv64", "gcc", ["-m64", "-no-pie", "-fpie"], "probe64"),
-                                ("win64", "x86_64-w64-mingw32-gcc-posix", ["-mcmodel=small", "-static"], "probe.exe")]:
+                                ("win64", "x86_64-w64-mingw32-gcc-posix" if shutil.which("x86_64-w64-mingw32-gcc-posix") else "x86_64-w64-mingw32-gcc", ["-mcmodel=small", "-static"], "probe.exe")]:
         if not shutil.which(cc):
             failures.append(f"{abi}: no {cc}")
             continue

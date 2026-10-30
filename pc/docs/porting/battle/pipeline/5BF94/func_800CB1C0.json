@@ -1,0 +1,187 @@
+{
+ "function": "func_800CB1C0",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CB1C0",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cb1c0",
+  "difficulty": "S",
+  "zig_name": "func_800CB1C0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CB1C0",
+  "spec_file": "func_800CB1C0.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CB1C0(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F4E6B"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11210,
+     "completion_tokens": 4255,
+     "reasoning_tokens": 2989,
+     "cost": 0.00162425,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "negative": "9483",
+   "nonnegative": "10517"
+  },
+  "mutations": [
+   {
+    "name": "F1: wrong constant in the store (0x41)",
+    "caught": true
+   },
+   {
+    "name": "F2: wrong callee argument (2 -> 3)",
+    "caught": true
+   },
+   {
+    "name": "F3: wrong bit set in D_800F4EA0",
+    "caught": true
+   },
+   {
+    "name": "F4: dropped call",
+    "caught": true
+   },
+   {
+    "name": "F5: store moved across the call",
+    "caught": true
+   },
+   {
+    "name": "F6: wrong mask on the stored byte",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483583, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34674,
+     "completion_tokens": 1479,
+     "reasoning_tokens": 1135,
+     "cost": 0.0021034499999999998,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CB1C0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CB1C0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 72.34284537699932,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30557.383643865585,
+ "totals": {
+  "cost": 0.00373,
+  "prompt_tokens": 45884,
+  "completion_tokens": 5734,
+  "model_seconds": 0.0,
+  "check_seconds": 72.3,
+  "calls": 2,
+  "wall_seconds": 30557.4
+ }
+}

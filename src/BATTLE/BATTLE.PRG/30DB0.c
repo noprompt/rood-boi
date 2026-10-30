@@ -3764,6 +3764,11 @@ int func_8009FFA8(int arg0, int arg1)
 
     temp_a0->unk0.unk9_5 = 0;
     // BUG: no return value, in practice it isn't read by the only caller.
+#ifdef ROOD_PC
+    /* Falling off the end returns whatever the compiler left in the return
+       register (-1 under GCC 13, -2 under GCC 16): pin GCC 13's -1. */
+    return -1;
+#endif
 }
 
 int func_800A0024(int arg0, func_800A0024_t* arg1)

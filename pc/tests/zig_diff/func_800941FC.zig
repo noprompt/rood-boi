@@ -7,10 +7,13 @@
 //! negative and extreme values, so the halving and the u8/i16 wraps are hit.
 //! Countdown inputs make every label a type-6 entry so the inner loop runs.
 //! Stubs draw screen, visible, position and return values from edge lists, so
-//! the clamps, the remove paths and the zero tests each go both ways.
+//! the clamps, the remove paths and the zero tests each go both ways. The
+//! classic site stub folds an actor word's record (on the caller's stack, so
+//! not compared) into its label, and the word draws step the timer it copies.
 const std = @import("std");
 const zd = @import("zdiff");
 const v = @import("views_2842C");
+const c = @import("c_2842C");
 
 pub const Args = std.meta.ArgsTuple(@TypeOf(@import("port").func_800941FC));
 
@@ -126,6 +129,36 @@ pub const stubs = struct {
     pub fn func_80094AF8(ctx: *zd.Ctx, label: anytype) void {
         const l: *align(1) v.D_800F1BAC_t = @ptrCast(label);
         if (ctx.value(u8) < 128) l.unk6 = ctx.value(i16);
+    }
+
+    pub fn func_8009506C(ctx: *zd.Ctx, x: anytype, y: anytype, label: anytype) void {
+        _ = x;
+        _ = y;
+        touchTimer(ctx, label);
+    }
+
+    pub fn func_80095258(ctx: *zd.Ctx, x: anytype, y: anytype, label: anytype) void {
+        _ = x;
+        _ = y;
+        touchTimer(ctx, label);
+    }
+
+    /// The classic site (PC_CLASSIC): an actor word's record (kind 13) is on
+    /// the caller's stack, which the trace logs as a tag only, so its fields
+    /// are folded into its label's unkA (a byte this function never reads):
+    /// a record copied after the draw (whose stub steps unkB) or a wrong
+    /// MISS flag shows in memory.
+    pub fn pc_classic_site(ctx: *zd.Ctx, kind: anytype, record: anytype, x: anytype, y: anytype, first: anytype, end: anytype) void {
+        _ = ctx;
+        _ = x;
+        _ = y;
+        _ = first;
+        _ = end;
+        if (kind != 13) return;
+        const word: *const c.pc_classic_actor_word = @ptrCast(@alignCast(record.?));
+        const l: *align(1) v.D_800F1BAC_t = @ptrCast(@constCast(word.label.?));
+        const fields = [_]c_int{ word.miss, word.age, word.index, word.lowered };
+        l.unkA = @truncate(std.hash.Wyhash.hash(0, std.mem.asBytes(&fields)));
     }
 
     pub fn func_800958A4(ctx: *zd.Ctx, x: anytype, y: anytype, label: anytype) void {

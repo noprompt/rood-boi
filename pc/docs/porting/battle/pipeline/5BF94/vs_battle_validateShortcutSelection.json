@@ -1,0 +1,239 @@
+{
+ "function": "vs_battle_validateShortcutSelection",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_validateShortcutSelection",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cb030",
+  "difficulty": "S",
+  "zig_name": "validateShortcutSelection",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "validate_shortcut_selection",
+  "spec_file": "validateShortcutSelection.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn validateShortcutSelection(shortcut: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "shortcut",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11852,
+     "completion_tokens": 7309,
+     "reasoning_tokens": 5580,
+     "cost": 0.00241985,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "spell-classes": "8295",
+   "menu-5": "2072",
+   "break-arts": "2049",
+   "chain": "4130",
+   "other": "13454"
+  },
+  "mutations": [
+   {
+    "name": "S1: spell class queried with shortcut instead of shortcut - 1",
+    "caught": true
+   },
+   {
+    "name": "S2: chain ability index off by one",
+    "caught": true
+   },
+   {
+    "name": "S3: case 5 menu state is 3, not 4",
+    "caught": true
+   },
+   {
+    "name": "S4: invalid-shortcut sound dropped",
+    "caught": true
+   },
+   {
+    "name": "S5: invoked shortcut stored minus one",
+    "caught": true
+   },
+   {
+    "name": "S6: menu function passed flag 1, not 0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 7,
+   "branches_hit": 7,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 28,
+   "lines_hit": 28,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147323181, max 2146706076, unsigned 0..4294967295, seen zero/negative/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "switch (shortcut) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "switch",
+     "outcomes": "== 12367, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-2147323181..2146706076"
+    },
+    {
+     "line": 10,
+     "text": "noneUnlocked = vs_battle_isSpellClassUnlocked(shortcut - 1) == 0;",
+     "size": 4,
+     "count": 8295,
+     "kind": "against a constant",
+     "outcomes": "== 2049, < 3164, > 3082 (signed); < 0, > 6246 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146974968..2146764423"
+    },
+    {
+     "line": 17,
+     "text": "noneUnlocked = _breakArtsUnlocked() == 0;",
+     "size": 4,
+     "count": 2049,
+     "kind": "against a constant",
+     "outcomes": "== 525, < 786, > 738 (signed); < 0, > 1524 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2144530517..2145791937"
+    },
+    {
+     "line": 22,
+     "text": "noneUnlocked = vs_battle_chainAbilitiesUnlocked(shortcut - 7) == 0;",
+     "size": 4,
+     "count": 4130,
+     "kind": "against a constant",
+     "outcomes": "== 1045, < 1496, > 1589 (signed); < 0, > 3085 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2138861617..2147298710"
+    },
+    {
+     "line": 27,
+     "text": "if (noneUnlocked) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 26381, < 0, > 3619 (signed); < 0, > 3619 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35292,
+     "completion_tokens": 2106,
+     "reasoning_tokens": 1414,
+     "cost": 0.0022911,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/validateShortcutSelection.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/validate_shortcut_selection.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 76.54841573200247,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30391.637825012207,
+ "totals": {
+  "cost": 0.00471,
+  "prompt_tokens": 47144,
+  "completion_tokens": 9415,
+  "model_seconds": 0.0,
+  "check_seconds": 76.5,
+  "calls": 2,
+  "wall_seconds": 30391.6
+ }
+}

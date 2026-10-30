@@ -1,0 +1,264 @@
+{
+ "function": "func_800CF218",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CF218",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cf218",
+  "difficulty": "S",
+  "zig_name": "func_800CF218",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CF218",
+  "spec_file": "func_800CF218.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CF218(arg0: ?*v.func_800CF0E8_t, arg1: c_int, arg2: c_int) callconv(.c) u8",
+  "params": [
+   [
+    "arg0",
+    "?*v.func_800CF0E8_t"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "u8",
+  "types": [
+   "D_800F53B8_t2",
+   "D_800F53B8_t3",
+   "func_800CF0E8_t",
+   "vs_battle_actor2"
+  ],
+  "globals": [
+   "D_800F53C0"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16143,
+     "completion_tokens": 23358,
+     "reasoning_tokens": 21404,
+     "cost": 0.0066466500000000005,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives u8 where the C prototype has c_int: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800CF218/spec1/build/game/common/route.zig:19:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18436,
+     "completion_tokens": 3207,
+     "reasoning_tokens": 1224,
+     "cost": 0.00172355,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800CF218: branches 14/14 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 32/32\n  FLAG +19 eq: boundary equality never occurred (32-bit compare, constant 43: both sides seen; a port's `<` for `<=` could pass): `if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {`\ncoverage func_800CF218: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {` (+19): the two sides of this ordered compare were equal 0 time(s) in 2494740. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800CF218.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "no-children": "3026",
+   "block-40-41": "2076",
+   "block-44-53": "3136",
+   "switch-23-25": "2051",
+   "id-54": "1043",
+   "other-id": "18668"
+  },
+  "mutations": [
+   {
+    "name": "M1: the 54 case gets 2 instead of 4",
+    "caught": true
+   },
+   {
+    "name": "M2: spawn.unk18 uses effectId * 2",
+    "caught": true
+   },
+   {
+    "name": "M3: loop runs one entry past unk2",
+    "caught": true
+   },
+   {
+    "name": "M4: the token is not stored in the spawn",
+    "caught": true
+   },
+   {
+    "name": "M5: the 40-41 range loses 41",
+    "caught": true
+   },
+   {
+    "name": "M6: child gets the count instead of the effectId",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 32,
+   "lines_hit": 32,
+   "uncovered": [],
+   "flags": [
+    {
+     "id": "+19 eq",
+     "line": 19,
+     "text": "if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 2494740,
+     "what": "boundary equality never occurred (32-bit compare, constant 43: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147090831, max 2147459942, unsigned 123592..4294912437, seen negative, never zero"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147280551, max 2147460722, unsigned 210350..4294944798, seen negative, never zero"
+    }
+   ],
+   "compares": [
+    {
+     "line": 17,
+     "text": "for (i = 0; i < arg0->unk2; ++i) {",
+     "size": 4,
+     "count": 2735290,
+     "kind": "a == b / a < b",
+     "outcomes": "== 30000, < 2705290, > 0 (signed); < 2705290, > 0 (unsigned)",
+     "operand": "b 0..255",
+     "a": "0..255"
+    },
+    {
+     "line": 19,
+     "text": "if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {",
+     "size": 4,
+     "count": 2705290,
+     "kind": "against a constant",
+     "outcomes": "== 104087, < 307823, > 2293380 (signed); < 307823, > 2293380 (unsigned)",
+     "operand": "constant 39",
+     "a": "0..65535"
+    },
+    {
+     "line": 19,
+     "text": "if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {",
+     "size": 4,
+     "count": 2293380,
+     "kind": "against a constant",
+     "outcomes": "== 100170, < 110380, > 2082830 (signed); < 110380, > 2082830 (unsigned)",
+     "operand": "constant 41",
+     "a": "40..65535"
+    },
+    {
+     "line": 19,
+     "text": "if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {",
+     "size": 4,
+     "count": 2494740,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 515473, > 1979267 (signed); < 515473, > 1979267 (unsigned)",
+     "operand": "constant 43",
+     "a": "0..65535"
+    },
+    {
+     "line": 19,
+     "text": "if ((id >= 40 && id <= 41) || (id >= 44 && id <= 53)) {",
+     "size": 4,
+     "count": 1979267,
+     "kind": "against a constant",
+     "outcomes": "== 107013, < 211834, > 1660420 (signed); < 211834, > 1660420 (unsigned)",
+     "operand": "constant 53",
+     "a": "44..65535"
+    },
+    {
+     "line": 23,
+     "text": "switch ((u_short)id) {",
+     "size": 4,
+     "count": 2175893,
+     "kind": "switch",
+     "outcomes": "== 206665, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..65535"
+    },
+    {
+     "line": 40,
+     "text": "if (arg0->effectId == 54) {",
+     "size": 2,
+     "count": 2705290,
+     "kind": "against a constant",
+     "outcomes": "== 106520, < 1816878, > 781892 (signed); < 1044870, > 1553900 (unsigned)",
+     "operand": "constant 54",
+     "a": "-32762..32763"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 252.20774334200178,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 5340.184563159943,
+ "totals": {
+  "cost": 0.00837,
+  "prompt_tokens": 34579,
+  "completion_tokens": 26565,
+  "model_seconds": 0.0,
+  "check_seconds": 252.2,
+  "calls": 2,
+  "wall_seconds": 5340.2
+ }
+}

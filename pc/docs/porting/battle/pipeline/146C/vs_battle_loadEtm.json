@@ -1,0 +1,169 @@
+{
+ "function": "vs_battle_loadEtm",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_loadEtm",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007cc18",
+  "difficulty": "S",
+  "zig_name": "loadEtm",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "load_etm_146c",
+  "spec_file": "loadEtm_146C.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn loadEtm(index: c_int, wepId: c_int, arg2: c_int) callconv(.c) void",
+  "params": [
+   [
+    "index",
+    "c_int"
+   ],
+   [
+    "wepId",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11341,
+     "completion_tokens": 7305,
+     "reasoning_tokens": 5906,
+     "cost": 0.0023933,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L4: unk11 store moved after the call: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: vs_battle_loadEtm: 30000 iterations, seed 1, 0 mismatches; classes: index-negative=13627 index-nonnegative=3369 wide-wep=13004",
+     "FAIL: mutation L5: arg2 stored into the wrong field: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: vs_battle_loadEtm: 30000 iterations, seed 1, 0 mismatches; classes: index-negative=13627 index-nonnegative=3369 wide-wep=13004"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13024,
+     "completion_tokens": 5724,
+     "reasoning_tokens": 4234,
+     "cost": 0.0020822,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation L4: dataType store moved after the call: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: vs_battle_loadEtm: 30000 iterations, seed 1, 0 mismatches; classes: index-negative=13627 index-nonnegative=3369 wide-wep=13004"
+    ]
+   }
+  ],
+  "classes": {
+   "index-negative": "13627",
+   "index-nonnegative": "3369",
+   "wide-wep": "13004"
+  },
+  "mutations": [
+   {
+    "name": "L1: wrong dataType constant",
+    "caught": true
+   },
+   {
+    "name": "L2: modelId takes arg2 instead of wepId",
+    "caught": true
+   },
+   {
+    "name": "L3: populateDataSlot call dropped",
+    "caught": true
+   },
+   {
+    "name": "L4: dataType store moved after the call",
+    "caught": false
+   },
+   {
+    "name": "L5: arg2 stored into the wrong field",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 7,
+   "lines_hit": 7,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 30.91058166699986,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 4329.753093719482,
+ "totals": {
+  "cost": 0.00448,
+  "prompt_tokens": 24365,
+  "completion_tokens": 13029,
+  "model_seconds": 0.0,
+  "check_seconds": 30.9,
+  "calls": 2,
+  "wall_seconds": 4329.8
+ }
+}

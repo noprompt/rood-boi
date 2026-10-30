@@ -45,16 +45,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 15310,
-     "completion_tokens": 31203,
-     "reasoning_tokens": 28333,
-     "cost": 0.00856625,
+     "completion_tokens": 26716,
+     "reasoning_tokens": 24005,
+     "cost": 0.0074445,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800793C0/spec1/build/spec.zig:43:15: error: no field named 'unk4C' in struct 'views_146C.D_800F19CC_t'\n            d.unk4C[0].unk40 = ctx.value(i32);\n              ^~~~~\npc/build/port-pipeline/gen/146C/fn-func_800793C0/views_146C.zig:192:33: note: struct declared here\npub const D_800F19CC_t = extern struct {\n                         ~~~~~~~^~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_800793C0/spec1/build/game/common/route.zig:34:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800793C0: branches 63/66 (95.5%), conditions not measured (GCC < 14: branch coverage only), lines 73/76\n  UNCOVERED +43 b0: branch never taken: `if (var_s3 < 0) {`\n  UNCOVERED +71 b0: branch never taken: `if (var_s3 < 0) {`\n  UNCOVERED +92 b0: branch never taken: `if (var_s3 < 0) {`\n  FLAG +21 eq: boundary equality never occurred (32-bit compare, constant 511: both sides seen; a port's `<` for `<=` could pass): `if (vs_main_projectionDistance >= 512)`\n  note: waivers no longer needed: +44 b0, +72 b0, +93 b0\ncoverage func_800793C0: FAILED (threshold 100%: 3 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (var_s3 < 0) {` (+43): one way out of this test (+43 b0) was never taken; add inputs that take it.\n- `if (var_s3 < 0) {` (+71): one way out of this test (+71 b0) was never taken; add inputs that take it.\n- `if (var_s3 < 0) {` (+92): one way out of this test (+92 b0) was never taken; add inputs that take it.\n- `if (vs_main_projectionDistance >= 512)` (+21): the two sides of this ordered compare were equal 0 time(s) in 9192. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800793C0.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -67,48 +67,49 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 18555,
-     "completion_tokens": 4210,
-     "reasoning_tokens": 1334,
-     "cost": 0.0019802500000000002,
+     "prompt_tokens": 18673,
+     "completion_tokens": 5811,
+     "reasoning_tokens": 2919,
+     "cost": 0.0023864,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800793C0: branches 63/66 (95.5%), conditions not measured (GCC < 14: branch coverage only), lines 73/76\n  UNCOVERED +43 b0: branch never taken: `if (var_s3 < 0) {`\n  UNCOVERED +71 b0: branch never taken: `if (var_s3 < 0) {`\n  UNCOVERED +92 b0: branch never taken: `if (var_s3 < 0) {`\n  FLAG +21 eq: boundary equality never occurred (32-bit compare, constant 511: both sides seen; a port's `<` for `<=` could pass): `if (vs_main_projectionDistance >= 512)`\n  note: waivers no longer needed: +44 b1, +71 b1, +92 b1\ncoverage func_800793C0: FAILED (threshold 100%: 3 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (var_s3 < 0) {` (+43): one way out of this test (+43 b0) was never taken; add inputs that take it.\n- `if (var_s3 < 0) {` (+71): one way out of this test (+71 b0) was never taken; add inputs that take it.\n- `if (var_s3 < 0) {` (+92): one way out of this test (+92 b0) was never taken; add inputs that take it.\n- `if (vs_main_projectionDistance >= 512)` (+21): the two sides of this ordered compare were equal 0 time(s) in 3612. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800793C0.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800793C0: branches 63/66 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 73/76\n  waived +43 b0: branch never taken: `if (var_s3 < 0) {` (if (var_s3 < 0) in the first table loop: var_s3 is an int counting up from 0 by one, bounded by unk4, so it is never negative)\n  waived +71 b0: branch never taken: `if (var_s3 < 0) {` (if (var_s3 < 0) in the second table loop: var_s3 is an int counting up from 0 by one, bounded by unk4, so it is never negative)\n  waived +92 b0: branch never taken: `if (var_s3 < 0) {` (if (var_s3 < 0) in the third table loop: var_s3 is an int counting up from 0 by one, bounded by unk4, so it is never negative)\n  FLAG +21 eq: boundary equality never occurred (32-bit compare, constant 511: both sides seen; a port's `<` for `<=` could pass): `if (vs_main_projectionDistance >= 512)`\ncoverage func_800793C0: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if (vs_main_projectionDistance >= 512)` (+21): the two sides of this ordered compare were equal 0 time(s) in 10683. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800793C0.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
   ],
   "classes": {
-   "gate-closed": "26654",
-   "gate-open-not-at-dest": "10036",
-   "at-dest": "3310"
+   "gate-off": "19946",
+   "outer-false": "17858",
+   "table-empty": "315",
+   "table-used": "1881"
   },
   "mutations": [
    {
-    "name": "F1: projection step of 63, not 64",
+    "name": "F1: gate drops the value 3",
     "caught": true
    },
    {
-    "name": "F2: camera step of 191, not 192",
+    "name": "F2: hostile test accepts a stub return of 0",
     "caught": true
    },
    {
-    "name": "F3: the kill-check call dropped",
+    "name": "F3: wrong constant in the loop-3 call",
     "caught": true
    },
    {
-    "name": "F4: unsigned slip, a return of 0 counts as a kill",
+    "name": "F4: dropped kill-clear call",
     "caught": true
    },
    {
-    "name": "F5: wrong constant in the 'not at the destination' gate",
+    "name": "F5: camera step 191 instead of 192",
     "caught": true
    },
    {
-    "name": "F6: wrong argument to the third-pass call",
+    "name": "F6: projection test at 0x201, not 0x200",
     "caught": true
    }
   ],
@@ -147,7 +148,7 @@
      "kind": "eq",
      "bits": 32,
      "equal": 0,
-     "count": 3612,
+     "count": 10683,
      "what": "boundary equality never occurred (32-bit compare, constant 511: both sides seen; a port's `<` for `<=` could pass)"
     }
    ],
@@ -159,27 +160,27 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 6677, < 13313, > 20010 (signed); < 3350, > 29973 (unsigned)",
+     "outcomes": "== 10185, < 9966, > 19849 (signed); < 4910, > 24905 (unsigned)",
      "operand": "constant 1",
-     "a": "-2147300626..2147185500"
+     "a": "-1..4"
     },
     {
      "line": 13,
      "text": "if (D_800F19EC == 1 || D_800F19EC == 3) {",
      "size": 4,
-     "count": 33323,
+     "count": 29815,
      "kind": "against a constant",
-     "outcomes": "== 6669, < 16652, > 10002 (signed); < 6689, > 19965 (unsigned)",
+     "outcomes": "== 9869, < 14986, > 4960 (signed); < 9930, > 10016 (unsigned)",
      "operand": "constant 3",
-     "a": "-2147300626..2147185500"
+     "a": "-1..4"
     },
     {
      "line": 14,
      "text": "if (vs_main_projectionDistance > 512) {",
      "size": 4,
-     "count": 13346,
+     "count": 20054,
      "kind": "against a constant",
-     "outcomes": "== 6562, < 3612, > 3172 (signed); < 1140, > 5644 (unsigned)",
+     "outcomes": "== 3607, < 10683, > 5764 (signed); < 6361, > 10086 (unsigned)",
      "operand": "constant 512",
      "a": "-2147483648..2147483647"
     },
@@ -187,9 +188,9 @@
      "line": 16,
      "text": "if (vs_main_projectionDistance <= 512)",
      "size": 4,
-     "count": 3172,
+     "count": 5764,
      "kind": "against a constant",
-     "outcomes": "== 376, < 395, > 2401 (signed); < 395, > 2401 (unsigned)",
+     "outcomes": "== 466, < 478, > 4820 (signed); < 478, > 4820 (unsigned)",
      "operand": "constant 512",
      "a": "449..2147483583"
     },
@@ -197,9 +198,9 @@
      "line": 19,
      "text": "} else if (vs_main_projectionDistance < 512) {",
      "size": 4,
-     "count": 10174,
+     "count": 14290,
      "kind": "against a constant",
-     "outcomes": "== 399, < 3213, > 6562 (signed); < 741, > 9034 (unsigned)",
+     "outcomes": "== 1595, < 9088, > 3607 (signed); < 4766, > 7929 (unsigned)",
      "operand": "constant 511",
      "a": "-2147483648..512"
     },
@@ -207,9 +208,9 @@
      "line": 21,
      "text": "if (vs_main_projectionDistance >= 512)",
      "size": 4,
-     "count": 3612,
+     "count": 10683,
      "kind": "against a constant",
-     "outcomes": "== 0, < 2835, > 777 (signed); < 750, > 2862 (unsigned)",
+     "outcomes": "== 0, < 4796, > 5887 (signed); < 992, > 9691 (unsigned)",
      "operand": "constant 511",
      "a": "-2147483584..575"
     },
@@ -217,41 +218,41 @@
      "line": 25,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance < D_800F19CC->unk2C0C) {",
      "size": 4,
-     "count": 13346,
+     "count": 20054,
      "kind": "a == b / a < b",
-     "outcomes": "== 890, < 6232, > 6224 (signed); < 5423, > 7033 (unsigned)",
+     "outcomes": "== 4959, < 6846, > 8249 (signed); < 7105, > 7990 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-2147483648..2147483647"
+     "a": "-32961..33767"
     },
     {
      "line": 27,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance > D_800F19CC->unk2C0C)",
      "size": 4,
-     "count": 6232,
+     "count": 6846,
      "kind": "a == b / a < b",
-     "outcomes": "== 895, < 3509, > 1828 (signed); < 1954, > 3383 (unsigned)",
+     "outcomes": "== 1658, < 1748, > 3440 (signed); < 2019, > 3169 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-2147483456..32958"
+     "a": "-32769..32958"
     },
     {
      "line": 29,
      "text": "} else if (vs_battle_cameraCurrentSpherical.values.distance",
      "size": 4,
-     "count": 7114,
+     "count": 13208,
      "kind": "a == b / a < b",
-     "outcomes": "== 890, < 0, > 6224 (signed); < 1236, > 4988 (unsigned)",
+     "outcomes": "== 4959, < 0, > 8249 (signed); < 1208, > 7041 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-32768..2147483647"
+     "a": "-32768..33767"
     },
     {
      "line": 32,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance < D_800F19CC->unk2C0C)",
      "size": 4,
-     "count": 6224,
+     "count": 8249,
      "kind": "a == b / a < b",
-     "outcomes": "== 888, < 1774, > 3562 (signed); < 2632, > 2704 (unsigned)",
+     "outcomes": "== 1614, < 3337, > 3298 (signed); < 3367, > 3268 (unsigned)",
      "operand": "b -32768..32767",
-     "a": "-32959..2147483455"
+     "a": "-32959..33575"
     },
     {
      "line": 36,
@@ -259,7 +260,7 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 21396, < 9888, > 8716 (signed); < 3008, > 15596 (unsigned)",
+     "outcomes": "== 14077, < 15374, > 10549 (signed); < 7374, > 18549 (unsigned)",
      "operand": "constant 512",
      "a": "-2147483648..2147483647"
     },
@@ -267,29 +268,29 @@
      "line": 36,
      "text": "if ((vs_main_projectionDistance == 0x200) && (D_800F19D8 == D_800F19CC->unk2C0C)",
      "size": 4,
-     "count": 21396,
+     "count": 14077,
      "kind": "a == b / a < b",
-     "outcomes": "== 10844, < 5139, > 5413 (signed); < 5075, > 5477 (unsigned)",
-     "operand": "b -2147219851..2147456504",
+     "outcomes": "== 8529, < 2264, > 3284 (signed); < 2017, > 3531 (unsigned)",
+     "operand": "b -32768..32767",
      "a": "-32768..32767"
     },
     {
      "line": 37,
      "text": "&& (_isLookAtAtDestination() != 0)) {",
      "size": 4,
-     "count": 10844,
+     "count": 8529,
      "kind": "against a constant",
-     "outcomes": "== 3854, < 1250, > 5740 (signed); < 0, > 6990 (unsigned)",
+     "outcomes": "== 2988, < 2765, > 2776 (signed); < 0, > 5541 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..1"
+     "a": "-2147292905..2146588479"
     },
     {
      "line": 40,
      "text": "if (D_800F19CC->unk4 != 0) {",
      "size": 4,
-     "count": 6990,
+     "count": 5541,
      "kind": "against a constant",
-     "outcomes": "== 853, < 0, > 6137 (signed); < 0, > 6137 (unsigned)",
+     "outcomes": "== 817, < 0, > 4724 (signed); < 0, > 4724 (unsigned)",
      "operand": "constant 0",
      "a": "0..6"
     },
@@ -297,9 +298,9 @@
      "line": 43,
      "text": "if (var_s3 < 0) {",
      "size": 4,
-     "count": 21347,
+     "count": 16700,
      "kind": "against a constant",
-     "outcomes": "== 6137, < 0, > 15210 (signed); < 0, > 15210 (unsigned)",
+     "outcomes": "== 4724, < 0, > 11976 (signed); < 0, > 11976 (unsigned)",
      "operand": "constant 0",
      "a": "0..5"
     },
@@ -307,9 +308,9 @@
      "line": 48,
      "text": "if (temp_s2->unk4A != 0) {",
      "size": 2,
-     "count": 21347,
+     "count": 16700,
      "kind": "against a constant",
-     "outcomes": "== 6374, < 0, > 14973 (signed); < 0, > 14973 (unsigned)",
+     "outcomes": "== 3364, < 0, > 13336 (signed); < 0, > 13336 (unsigned)",
      "operand": "constant 0",
      "a": "0..30"
     },
@@ -317,29 +318,29 @@
      "line": 50,
      "text": "if ((temp_s2->unk4C[var_s1].unk40 == 0)",
      "size": 4,
-     "count": 57475,
+     "count": 118236,
      "kind": "against a constant",
-     "outcomes": "== 11447, < 26029, > 19999 (signed); < 0, > 46028 (unsigned)",
+     "outcomes": "== 59277, < 29739, > 29220 (signed); < 0, > 58959 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2147450432"
+     "a": "-1..1"
     },
     {
      "line": 51,
      "text": "&& ((unsigned int)(func_8009E4B0((int)temp_s2->unk4C[var_s1]",
      "size": 4,
-     "count": 11447,
+     "count": 59277,
      "kind": "against a constant",
-     "outcomes": "== 1340, < 6807, > 3300 (signed); < 3587, > 6520 (unsigned)",
+     "outcomes": "== 18385, < 29740, > 11152 (signed); < 18659, > 22233 (unsigned)",
      "operand": "constant 1",
-     "a": "-2147307451..2146592331"
+     "a": "-2147444826..2147223607"
     },
     {
      "line": 58,
      "text": "} while (var_s1 < (int)temp_s2->unk4A);",
      "size": 4,
-     "count": 57475,
+     "count": 118236,
      "kind": "a == b / a < b",
-     "outcomes": "== 14973, < 42502, > 0 (signed); < 42502, > 0 (unsigned)",
+     "outcomes": "== 13336, < 104900, > 0 (signed); < 104900, > 0 (unsigned)",
      "operand": "b 1..30",
      "a": "1..30"
     },
@@ -347,9 +348,9 @@
      "line": 61,
      "text": "} while ((unsigned int)var_s3 < (unsigned int)D_800F19CC->unk4);",
      "size": 4,
-     "count": 21347,
+     "count": 16700,
      "kind": "a == b / a < b",
-     "outcomes": "== 6137, < 0, > 15210 (signed); < 0, > 15210 (unsigned)",
+     "outcomes": "== 4724, < 0, > 11976 (signed); < 0, > 11976 (unsigned)",
      "operand": "b 1..6",
      "a": "1..6"
     },
@@ -357,9 +358,9 @@
      "line": 63,
      "text": "if (var_s4 != 0) {",
      "size": 4,
-     "count": 6990,
+     "count": 5541,
      "kind": "against a constant",
-     "outcomes": "== 2753, < 0, > 4237 (signed); < 0, > 4237 (unsigned)",
+     "outcomes": "== 3536, < 0, > 2005 (signed); < 0, > 2005 (unsigned)",
      "operand": "constant 0",
      "a": "0..1"
     },
@@ -367,9 +368,9 @@
      "line": 68,
      "text": "if (D_800F19CC->unk4 != 0) {",
      "size": 4,
-     "count": 4237,
+     "count": 2005,
      "kind": "against a constant",
-     "outcomes": "== 853, < 0, > 3384 (signed); < 0, > 3384 (unsigned)",
+     "outcomes": "== 817, < 0, > 1188 (signed); < 0, > 1188 (unsigned)",
      "operand": "constant 0",
      "a": "0..6"
     },
@@ -377,9 +378,9 @@
      "line": 71,
      "text": "if (var_s3 < 0) {",
      "size": 4,
-     "count": 10149,
+     "count": 2948,
      "kind": "against a constant",
-     "outcomes": "== 3384, < 0, > 6765 (signed); < 0, > 6765 (unsigned)",
+     "outcomes": "== 1188, < 0, > 1760 (signed); < 0, > 1760 (unsigned)",
      "operand": "constant 0",
      "a": "0..5"
     },
@@ -387,9 +388,9 @@
      "line": 76,
      "text": "if (temp_s2_2->unk4A != 0) {",
      "size": 2,
-     "count": 10149,
+     "count": 2948,
      "kind": "against a constant",
-     "outcomes": "== 3723, < 0, > 6426 (signed); < 0, > 6426 (unsigned)",
+     "outcomes": "== 1028, < 0, > 1920 (signed); < 0, > 1920 (unsigned)",
      "operand": "constant 0",
      "a": "0..30"
     },
@@ -397,19 +398,19 @@
      "line": 78,
      "text": "if (temp_s2_2->unk4C[var_s1_2].unk40 == 0) {",
      "size": 4,
-     "count": 11962,
+     "count": 3661,
      "kind": "against a constant",
-     "outcomes": "== 1002, < 6241, > 4719 (signed); < 0, > 10960 (unsigned)",
+     "outcomes": "== 1352, < 1188, > 1121 (signed); < 0, > 2309 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2145296968"
+     "a": "-1..1"
     },
     {
      "line": 83,
      "text": "} while (var_s1_2 < (int)temp_s2_2->unk4A);",
      "size": 4,
-     "count": 11962,
+     "count": 3661,
      "kind": "a == b / a < b",
-     "outcomes": "== 6426, < 5536, > 0 (signed); < 5536, > 0 (unsigned)",
+     "outcomes": "== 1920, < 1741, > 0 (signed); < 1741, > 0 (unsigned)",
      "operand": "b 1..30",
      "a": "1..30"
     },
@@ -417,9 +418,9 @@
      "line": 86,
      "text": "} while ((unsigned int)var_s3 < (unsigned int)D_800F19CC->unk4);",
      "size": 4,
-     "count": 10149,
+     "count": 2948,
      "kind": "a == b / a < b",
-     "outcomes": "== 3384, < 0, > 6765 (signed); < 0, > 6765 (unsigned)",
+     "outcomes": "== 1188, < 0, > 1760 (signed); < 0, > 1760 (unsigned)",
      "operand": "b 1..6",
      "a": "1..6"
     },
@@ -427,9 +428,9 @@
      "line": 89,
      "text": "if (D_800F19CC->unk4 != 0) {",
      "size": 4,
-     "count": 4237,
+     "count": 2005,
      "kind": "against a constant",
-     "outcomes": "== 853, < 0, > 3384 (signed); < 0, > 3384 (unsigned)",
+     "outcomes": "== 817, < 0, > 1188 (signed); < 0, > 1188 (unsigned)",
      "operand": "constant 0",
      "a": "0..6"
     },
@@ -437,9 +438,9 @@
      "line": 92,
      "text": "if (var_s3 < 0) {",
      "size": 4,
-     "count": 10149,
+     "count": 2948,
      "kind": "against a constant",
-     "outcomes": "== 3384, < 0, > 6765 (signed); < 0, > 6765 (unsigned)",
+     "outcomes": "== 1188, < 0, > 1760 (signed); < 0, > 1760 (unsigned)",
      "operand": "constant 0",
      "a": "0..5"
     },
@@ -447,19 +448,19 @@
      "line": 96,
      "text": "if (temp_s2->unk4.unk40 == 0) {",
      "size": 4,
-     "count": 10149,
+     "count": 2948,
      "kind": "against a constant",
-     "outcomes": "== 1803, < 4609, > 3737 (signed); < 0, > 8346 (unsigned)",
+     "outcomes": "== 1377, < 771, > 800 (signed); < 0, > 1571 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2147042792"
+     "a": "-2146948640..2146579276"
     },
     {
      "line": 101,
      "text": "} while ((unsigned int)var_s3 < (unsigned int)D_800F19CC->unk4);",
      "size": 4,
-     "count": 10149,
+     "count": 2948,
      "kind": "a == b / a < b",
-     "outcomes": "== 3384, < 0, > 6765 (signed); < 0, > 6765 (unsigned)",
+     "outcomes": "== 1188, < 0, > 1760 (signed); < 0, > 1760 (unsigned)",
      "operand": "b 1..6",
      "a": "1..6"
     },
@@ -467,21 +468,21 @@
      "line": 103,
      "text": "if (D_800F196C != 3) {",
      "size": 4,
-     "count": 4237,
+     "count": 2005,
      "kind": "against a constant",
-     "outcomes": "== 1106, < 2092, > 1039 (signed); < 1032, > 2099 (unsigned)",
+     "outcomes": "== 635, < 1370, > 0 (signed); < 1028, > 342 (unsigned)",
      "operand": "constant 3",
-     "a": "-2144617987..2146266922"
+     "a": "-1..3"
     },
     {
      "line": 104,
      "text": "if (func_800BEC58(0xC, 0, 0, 0) == 1) {",
      "size": 2,
-     "count": 3131,
+     "count": 1370,
      "kind": "against a constant",
-     "outcomes": "== 1602, < 789, > 740 (signed); < 0, > 1529 (unsigned)",
+     "outcomes": "== 587, < 531, > 252 (signed); < 311, > 472 (unsigned)",
      "operand": "constant 1",
-     "a": "-32745..32756"
+     "a": "-32739..32390"
     }
    ],
    "passed": false
@@ -491,17 +492,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 24.776624234000337,
+ "check_seconds": 55.3413370269991,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56475.172909498215,
+ "wall_seconds": 4293.144300937653,
  "totals": {
-  "cost": 0.01055,
-  "prompt_tokens": 33865,
-  "completion_tokens": 35413,
+  "cost": 0.00983,
+  "prompt_tokens": 33983,
+  "completion_tokens": 32527,
   "model_seconds": 0.0,
-  "check_seconds": 24.8,
+  "check_seconds": 55.3,
   "calls": 2,
-  "wall_seconds": 56475.2
+  "wall_seconds": 4293.1
  }
 }

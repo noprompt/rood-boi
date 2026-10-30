@@ -114,7 +114,16 @@ static int _weaponArtsMenu(int typeCursorMem)
     static char artsLearned;
     static char remainingRows;
     static char _[12];
+#ifdef ROOD_PC
+    /* Four arts and View Arts: init writes actionIds[rowCount] with rowCount 4 when a
+     * category's four arts are all learned (BUG: one past the end). On the PS1 what lies
+     * there keeps the 0xFFFF until the selection (View Arts works); on the PC it is
+     * another static, and Circle on View Arts read a stale id: the menu closed to cast
+     * it. */
+    static u_short actionIds[5];
+#else
     static u_short actionIds[4];
+#endif
 
     int i;
 

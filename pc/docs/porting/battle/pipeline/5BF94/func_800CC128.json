@@ -1,0 +1,225 @@
+{
+ "function": "func_800CC128",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CC128",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cc128",
+  "difficulty": "S",
+  "zig_name": "func_800CC128",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CC128",
+  "spec_file": "func_800CC128.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CC128(arg0: ?*v.gim_t, arg1: c_int, arg2: [*c]c_uint) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.gim_t"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "[*c]c_uint"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F51C8",
+   "vs_main_frameBuf"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12206,
+     "completion_tokens": 10521,
+     "reasoning_tokens": 8852,
+     "cost": 0.0032405499999999996,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "early-0x80": "7641",
+   "frame-zero": "7392",
+   "frame-negative": "6693",
+   "frame-positive": "8274"
+  },
+  "mutations": [
+   {
+    "name": "S1: the early-return test uses 0x81",
+    "caught": true
+   },
+   {
+    "name": "S2: the zero frame buffer offset is 0x100, not 0x140",
+    "caught": true
+   },
+   {
+    "name": "S3: the second sprite's shift is 5, not 6",
+    "caught": true
+   },
+   {
+    "name": "S4: the second sprite's wh word is off by one",
+    "caught": true
+   },
+   {
+    "name": "S5: the early return is dropped (falls through to the sprites)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 15,
+   "lines_hit": 15,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 7,
+     "text": "if (temp_s0 == 0x80) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 7641, < 12366, > 9993 (signed); < 12366, > 9993 (unsigned)",
+     "operand": "constant 128",
+     "a": "0..255"
+    },
+    {
+     "line": 17,
+     "text": "if (vs_main_frameBuf == 0) {",
+     "size": 4,
+     "count": 22359,
+     "kind": "against a constant",
+     "outcomes": "== 7935, < 6543, > 7881 (signed); < 0, > 14424 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35686,
+     "completion_tokens": 5177,
+     "reasoning_tokens": 4545,
+     "cost": 0.00307855,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CC128.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CC128.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 79.34640181600116,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 30966.65708756447,
+ "totals": {
+  "cost": 0.00632,
+  "prompt_tokens": 47892,
+  "completion_tokens": 15698,
+  "model_seconds": 0.0,
+  "check_seconds": 79.3,
+  "calls": 2,
+  "wall_seconds": 30966.7
+ }
+}

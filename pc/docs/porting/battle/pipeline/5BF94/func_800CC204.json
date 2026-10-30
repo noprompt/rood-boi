@@ -1,0 +1,463 @@
+{
+ "function": "func_800CC204",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CC204",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cc204",
+  "difficulty": "M",
+  "zig_name": "func_800CC204",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CC204",
+  "spec_file": "func_800CC204.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CC204(image: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv(.c) void",
+  "params": [
+   [
+    "image",
+    "?*v.gim_t"
+   ],
+   [
+    "clut",
+    "c_int"
+   ],
+   [
+    "ot",
+    "[*c]c_uint"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "pc_gte_widescreen"
+  ],
+  "hooks": [
+   "pc_gte_widescreen",
+   "pc_hw_anchor_packets",
+   "pc_hw_anchor_recorded",
+   "pc_margin",
+   "pc_wipe_start",
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15717,
+     "completion_tokens": 33207,
+     "reasoning_tokens": 30944,
+     "cost": 0.0090876,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800CC204: branches 54/56 (96.4%), conditions not measured (GCC < 14: branch coverage only), lines 77/77\n  UNCOVERED +56 b3: branch never taken: `if (pc_gte_widescreen && pc_hw_anchor_recorded`\n  UNCOVERED +58 b1: branch never taken: `pc_margin = (pc_gte_widescreen ? 54 : 0);`\ncoverage func_800CC204: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (pc_gte_widescreen && pc_hw_anchor_recorded` (+56): one way out of this test (+56 b3) was never taken; add inputs that take it.\n- `pc_margin = (pc_gte_widescreen ? 54 : 0);` (+58): one way out of this test (+58 b1) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800CC204.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 18405,
+     "completion_tokens": 6184,
+     "reasoning_tokens": 3535,
+     "cost": 0.0024662499999999997,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800CC204: branches 55/56 (98.2%), conditions not measured (GCC < 14: branch coverage only), lines 77/77\n  UNCOVERED +56 b3: branch never taken: `if (pc_gte_widescreen && pc_hw_anchor_recorded`\ncoverage func_800CC204: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (pc_gte_widescreen && pc_hw_anchor_recorded` (+56): one way out of this test (+56 b3) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800CC204.coverage_waiver]] with its `id` and a `reason`."
+    ]
+   }
+  ],
+  "classes": {
+   "full-one": "1161",
+   "before": "2298",
+   "after": "2525",
+   "wide-before": "6807",
+   "wide-after": "7493",
+   "wide-unrecorded": "4900",
+   "wide-dropped": "4816"
+  },
+  "mutations": [
+   {
+    "name": "W1: the full-wipe test is >= 4096 (past the edge too)",
+    "caught": true
+   },
+   {
+    "name": "W2: the column product shifted by 11, not 12",
+    "caught": true
+   },
+   {
+    "name": "W3: widescreen margin 53, not 54",
+    "caught": true
+   },
+   {
+    "name": "W4: margin span taken when end equals x (off by one)",
+    "caught": true
+   },
+   {
+    "name": "W5: colour test ignores the sign bit",
+    "caught": true
+   },
+   {
+    "name": "W6: the anchor packets are dropped unless the margin is large",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 56,
+   "branches_hit": 55,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 77,
+   "lines_hit": 77,
+   "uncovered": [
+    {
+     "id": "+56 b3",
+     "line": 56,
+     "text": "if (pc_gte_widescreen && pc_hw_anchor_recorded",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147216338, max 2147269845, unsigned 0..4294967295, seen zero/negative/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 20,
+     "text": "if (x == 4096) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1161, < 13696, > 15143 (signed); < 13696, > 15143 (unsigned)",
+     "operand": "constant 4096",
+     "a": "0..16383"
+    },
+    {
+     "line": 26,
+     "text": "if (x < 4096) {",
+     "size": 4,
+     "count": 28839,
+     "kind": "against a constant",
+     "outcomes": "== 1083, < 12613, > 15143 (signed); < 12613, > 15143 (unsigned)",
+     "operand": "constant 4095",
+     "a": "0..16383"
+    },
+    {
+     "line": 27,
+     "text": "for (y = 0; y < 240; y++) {",
+     "size": 4,
+     "count": 3300736,
+     "kind": "against a constant",
+     "outcomes": "== 13696, < 3273344, > 13696 (signed); < 3273344, > 13696 (unsigned)",
+     "operand": "constant 239",
+     "a": "0..240"
+    },
+    {
+     "line": 29,
+     "text": "if (end) {",
+     "size": 4,
+     "count": 3287040,
+     "kind": "against a constant",
+     "outcomes": "== 431520, < 0, > 2855520 (signed); < 0, > 2855520 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 38,
+     "text": "for (y = 0; y < 240; y++) {",
+     "size": 4,
+     "count": 3649463,
+     "kind": "against a constant",
+     "outcomes": "== 15143, < 3619177, > 15143 (signed); < 3619177, > 15143 (unsigned)",
+     "operand": "constant 239",
+     "a": "0..240"
+    },
+    {
+     "line": 40,
+     "text": "if (end) {",
+     "size": 4,
+     "count": 3634320,
+     "kind": "against a constant",
+     "outcomes": "== 467040, < 0, > 3167280 (signed); < 0, > 3167280 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 56,
+     "text": "if (pc_gte_widescreen && pc_hw_anchor_recorded",
+     "size": 4,
+     "count": 28839,
+     "kind": "against a constant",
+     "outcomes": "== 4823, < 9999, > 14017 (signed); < 0, > 24016 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147389700..2147289449"
+    },
+    {
+     "line": 57,
+     "text": "&& pc_hw_anchor_recorded(PC_ANCHOR_SCENE)) {",
+     "size": 4,
+     "count": 24016,
+     "kind": "against a constant",
+     "outcomes": "== 4900, < 0, > 19116 (signed); < 0, > 19116 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 58,
+     "text": "pc_margin = (pc_gte_widescreen ? 54 : 0);",
+     "size": 4,
+     "count": 19116,
+     "kind": "against a constant",
+     "outcomes": "== 4816, < 5950, > 8350 (signed); < 0, > 14300 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2145859382..2147289449"
+    },
+    {
+     "line": 59,
+     "text": "for (y = 0; y < 240; y++) {",
+     "size": 4,
+     "count": 4606956,
+     "kind": "against a constant",
+     "outcomes": "== 19116, < 4568724, > 19116 (signed); < 4568724, > 19116 (unsigned)",
+     "operand": "constant 239",
+     "a": "0..240"
+    },
+    {
+     "line": 65,
+     "text": "for (y = 0; y < 240; y++) {",
+     "size": 4,
+     "count": 6950199,
+     "kind": "against a constant",
+     "outcomes": "== 28839, < 6892521, > 28839 (signed); < 6892521, > 28839 (unsigned)",
+     "operand": "constant 239",
+     "a": "0..240"
+    },
+    {
+     "line": 66,
+     "text": "for (column = 0; column < 5; column++) {",
+     "size": 4,
+     "count": 41528160,
+     "kind": "against a constant",
+     "outcomes": "== 6921360, < 27685440, > 6921360 (signed); < 27685440, > 6921360 (unsigned)",
+     "operand": "constant 4",
+     "a": "0..5"
+    },
+    {
+     "line": 68,
+     "text": "if (x >= (column + 1) * 64) {",
+     "size": 4,
+     "count": 34606800,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1029772, < 21644227, > 11932801 (signed); < 9663102, > 23913926 (unsigned)",
+     "operand": "b 64..320",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 72,
+     "text": "if (end <= column * 64) {",
+     "size": 4,
+     "count": 21644227,
+     "kind": "a == b / a < b",
+     "outcomes": "== 168587, < 9795838, > 11679802 (signed); < 857868, > 20617772 (unsigned)",
+     "operand": "b 0..256",
+     "a": "-32768..32767"
+    },
+    {
+     "line": 75,
+     "text": "if (x < column * 64) {",
+     "size": 4,
+     "count": 11679802,
+     "kind": "a == b / a < b",
+     "outcomes": "== 862390, < 10645708, > 171704 (signed); < 3587221, > 7230191 (unsigned)",
+     "operand": "b 0..256",
+     "a": "-32768..319"
+    },
+    {
+     "line": 78,
+     "text": "if (end > (column + 1) * 64) {",
+     "size": 4,
+     "count": 11679802,
+     "kind": "a == b / a < b",
+     "outcomes": "== 643897, < 257150, > 10778755 (signed); < 257150, > 10778755 (unsigned)",
+     "operand": "b 64..320",
+     "a": "1..32767"
+    },
+    {
+     "line": 82,
+     "text": "if (tile) {",
+     "size": 4,
+     "count": 11679802,
+     "kind": "against a constant",
+     "outcomes": "== 3895543, < 0, > 7784259 (signed); < 0, > 7784259 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..65535"
+    },
+    {
+     "line": 86,
+     "text": "prim = vs_battle_setSprite(0x80, x | (y << 16),",
+     "size": 4,
+     "count": 7851184,
+     "kind": "against a constant",
+     "outcomes": "== 7784259, < 0, > 66925 (signed); < 0, > 66925 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 92,
+     "text": "if (x & 1) {",
+     "size": 4,
+     "count": 7851184,
+     "kind": "against a constant",
+     "outcomes": "== 7784259, < 0, > 66925 (signed); < 0, > 66925 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 96,
+     "text": "} else if (color) {",
+     "size": 4,
+     "count": 3895543,
+     "kind": "against a constant",
+     "outcomes": "== 321608, < 0, > 3573935 (signed); < 0, > 3573935 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..65535"
+    },
+    {
+     "line": 104,
+     "text": "for (column = 0; pc_margin && color && column < 2; column++) {",
+     "size": 4,
+     "count": 13237200,
+     "kind": "against a constant",
+     "outcomes": "== 3489360, < 0, > 9747840 (signed); < 0, > 9747840 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..54"
+    },
+    {
+     "line": 104,
+     "text": "for (column = 0; pc_margin && color && column < 2; column++) {",
+     "size": 4,
+     "count": 9747840,
+     "kind": "against a constant",
+     "outcomes": "== 274080, < 0, > 9473760 (signed); < 0, > 9473760 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..65535"
+    },
+    {
+     "line": 104,
+     "text": "for (column = 0; pc_margin && color && column < 2; column++) {",
+     "size": 4,
+     "count": 9473760,
+     "kind": "against a constant",
+     "outcomes": "== 3157920, < 3157920, > 3157920 (signed); < 3157920, > 3157920 (unsigned)",
+     "operand": "constant 1",
+     "a": "0..2"
+    },
+    {
+     "line": 105,
+     "text": "x = column ? 320 : -pc_margin;",
+     "size": 4,
+     "count": 6315840,
+     "kind": "against a constant",
+     "outcomes": "== 3157920, < 0, > 3157920 (signed); < 0, > 3157920 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 106,
+     "text": "end = column ? 320 + pc_margin : 0;",
+     "size": 4,
+     "count": 6315840,
+     "kind": "against a constant",
+     "outcomes": "== 3157920, < 0, > 3157920 (signed); < 0, > 3157920 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 109,
+     "text": "if (end > x) {",
+     "size": 4,
+     "count": 6315840,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1084697, < 3042272, > 2188871 (signed); < 3193769, > 2037374 (unsigned)",
+     "operand": "b -54..32767",
+     "a": "-32768..374"
+    },
+    {
+     "line": 119,
+     "text": "if (pc_margin) {",
+     "size": 4,
+     "count": 28839,
+     "kind": "against a constant",
+     "outcomes": "== 14539, < 0, > 14300 (signed); < 0, > 14300 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..54"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 896.0394305379996,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 5379.242933034897,
+ "totals": {
+  "cost": 0.01155,
+  "prompt_tokens": 34122,
+  "completion_tokens": 39391,
+  "model_seconds": 0.0,
+  "check_seconds": 896.0,
+  "calls": 2,
+  "wall_seconds": 5379.2
+ }
+}

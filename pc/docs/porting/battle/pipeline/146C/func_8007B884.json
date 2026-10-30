@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_8007B884",
@@ -24,10 +24,7 @@
   "params": [],
   "ret": "void",
   "types": [],
-  "globals": [
-   "D_800F1860",
-   "D_800F1864"
-  ],
+  "globals": [],
   "hooks": [],
   "statics": [],
   "skip": ""
@@ -45,11 +42,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 11328,
-     "completion_tokens": 6890,
-     "reasoning_tokens": 5558,
-     "cost": 0.0022889,
+     "completion_tokens": 7050,
+     "reasoning_tokens": 5853,
+     "cost": 0.0023289,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": true,
@@ -61,30 +58,30 @@
    "sample": 1
   },
   "classes": {
-   "both-zero": "493",
-   "1864-only": "3337",
-   "1860-only": "3317",
-   "both-set": "22853"
+   "both-zero": "305",
+   "d1860-set": "2681",
+   "d1864-set": "2720",
+   "both-set": "24294"
   },
   "mutations": [
    {
-    "name": "F1: unk0 compared with 0, not 1",
+    "name": "F1: first call dropped",
     "caught": true
    },
    {
-    "name": "F2: func_800CB114 call dropped",
+    "name": "F2: wrong constant in the unk0 test",
     "caught": true
    },
    {
-    "name": "F3: D_800F1864 tested signed (> 0)",
+    "name": "F3: D_800F1860 test inverted",
     "caught": true
    },
    {
-    "name": "F4: D_800F1860 branch inverted",
+    "name": "F4: else branch calls the wrong function",
     "caught": true
    },
    {
-    "name": "F5: func_8007B470 replaced by func_8007B508",
+    "name": "F5: conditional call to func_8007B470 dropped",
     "caught": true
    }
   ],
@@ -105,29 +102,29 @@
      "size": 2,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 15070, < 7448, > 7482 (signed); < 0, > 14930 (unsigned)",
+     "outcomes": "== 16814, < 7507, > 5679 (signed); < 1924, > 11262 (unsigned)",
      "operand": "constant 1",
-     "a": "-32767..32764"
+     "a": "-32751..32736"
     },
     {
      "line": 4,
      "text": "if (D_800F1864 != 0) {",
      "size": 4,
-     "count": 14930,
+     "count": 13186,
      "kind": "against a constant",
-     "outcomes": "== 990, < 7447, > 6493 (signed); < 0, > 13940 (unsigned)",
+     "outcomes": "== 1278, < 5924, > 5984 (signed); < 0, > 11908 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2147039198"
+     "a": "-2147483648..2147483647"
     },
     {
      "line": 8,
      "text": "if (D_800F1860 != 0) {",
      "size": 4,
-     "count": 14930,
+     "count": 13186,
      "kind": "against a constant",
-     "outcomes": "== 938, < 7335, > 6657 (signed); < 0, > 13992 (unsigned)",
+     "outcomes": "== 1351, < 5877, > 5958 (signed); < 0, > 11835 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2147384871"
+     "a": "-2147483648..2147483647"
     }
    ],
    "passed": true
@@ -147,48 +144,15 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 34808,
-     "completion_tokens": 2277,
-     "reasoning_tokens": 1882,
-     "cost": 0.00230965,
+     "completion_tokens": 2601,
+     "reasoning_tokens": 2234,
+     "cost": 0.0023906500000000002,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 270: memory at 0x426070 [D_800F1860+0x0] (zdiff_state+0x20000): C 124, Zig 163\nzdiff: MISMATCH iteration 3313: C makes 5 external calls, Zig 2 (first unmatched: func_8007B470)\nzdiff: MISMATCH iteration 3820: memory at 0x426070 [D_800F1860+0x0] (zdiff_state+0x20000): C 13, Zig 0\nzdiff: func_8007B884: 30000 iterations, seed 1, 52 mismatches; classes: both-zero=493 1864-only=3337 1860-only=3317 both-set=22853"
-    ],
-    "runs": [
-     {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 52,
-      "first": "MISMATCH iteration 270: memory at 0x426070 (zdiff_state+0x20000): C 124, Zig 163"
-     }
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 35492,
-     "completion_tokens": 2509,
-     "reasoning_tokens": 2076,
-     "cost": 0.0024018499999999996,
-     "seconds": null,
-     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
-     "sample": 1
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 2: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 11375: C makes 2 external calls, Zig 5 (first unmatched: func_8007B470)\nzdiff: MISMATCH iteration 19027: C makes 2 external calls, Zig 5 (first unmatched: func_8007B470)\nzdiff: func_8007B884: 30000 iterations, seed 2, 2 mismatches; classes: both-zero=481 1864-only=3208 1860-only=3257 both-set=23054"
-    ],
+    "passed": true,
+    "errors": [],
     "runs": [
      {
       "seed": 1,
@@ -198,26 +162,42 @@
      },
      {
       "seed": 2,
-      "exit": 1,
-      "mismatches": 2,
-      "first": "MISMATCH iteration 11375: C makes 2 external calls, Zig 5 (first unmatched: func_8007B470)"
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
      }
     ]
    }
-  ]
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 27.185209171999304,
+ "written": [
+  "pc/tests/zig_diff/func_8007B884.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007B884.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 381.160409721002,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 97170.98014616966,
+ "wall_seconds": 13158.869471549988,
  "totals": {
-  "cost": 0.007,
-  "prompt_tokens": 81628,
-  "completion_tokens": 11676,
+  "cost": 0.00472,
+  "prompt_tokens": 46136,
+  "completion_tokens": 9651,
   "model_seconds": 0.0,
-  "check_seconds": 27.2,
-  "calls": 3,
-  "wall_seconds": 97171.0
+  "check_seconds": 381.2,
+  "calls": 2,
+  "wall_seconds": 13158.9
  }
 }

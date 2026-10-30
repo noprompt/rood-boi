@@ -24,8 +24,8 @@ pub fn func_8009FFA8(arg0: c_int, _: c_int) callconv(.c) c_int {
 
     psx.setBits(&temp_a0.unk0, "unk9_5", 0);
 
-    // BUG (original): the C falls off the end with no return statement. The 64-bit
-    // object returns %edx, which GCC set to -1 before the nBones test and never
-    // changed on this path (the only caller ignores it), so that is what this returns.
+    // BUG (original): the C falls off the end with no return statement (the only
+    // caller ignores the result); under ROOD_PC it returns -1 there, what GCC 13's
+    // 64-bit object left in %eax, and so does this.
     return -1;
 }
