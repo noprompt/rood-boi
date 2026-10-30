@@ -136,15 +136,40 @@ static int mode_only(const unsigned* tag)
     return n != 0;
 }
 
+/* The packets suppressed this frame and their lengths: a site's range can enclose another's (the status panel's
+ * holds the gauges'), and a walk over the outer range meets the inner one's tags with their length gone. */
+extern unsigned pc_vsync_count(void) __attribute__((weak));
+static struct {
+    const unsigned* tag;
+    unsigned char n;
+} suppressed[1024];
+static int suppressed_count;
+static unsigned suppressed_frame;
+
+static unsigned suppressed_length(const unsigned* tag)
+{
+    for (int i = suppressed_count - 1; i >= 0; i--)
+        if (suppressed[i].tag == tag)
+            return suppressed[i].n;
+    return 0;
+}
+
 int pc_classic_suppress(void* lo, void* hi)
 {
     unsigned* tag = lo;
     int count = 0;
+    unsigned frame = pc_vsync_count ? pc_vsync_count() : 0;
+    if (frame != suppressed_frame)
+        suppressed_frame = frame, suppressed_count = 0;
     while ((void*)(tag + 1) <= hi) {
         unsigned n = tag[0] >> 24;
+        if (!n)
+            n = suppressed_length(tag); /* (one suppressed already: its payload is still there) */
         if (n >= PC_CLASSIC_PACKET_WORDS || (void*)(tag + 1 + n) > hi)
             break;
-        if (n && !mode_only(tag)) {
+        if (tag[0] >> 24 && !mode_only(tag)) {
+            if (suppressed_count < (int)(sizeof suppressed / sizeof suppressed[0]))
+                suppressed[suppressed_count].tag = tag, suppressed[suppressed_count++].n = (unsigned char)n;
             tag[0] &= 0x00FFFFFFu;
             ++count;
         }

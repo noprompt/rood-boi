@@ -151,9 +151,20 @@ def run_hide_more(out, card):
         # ---- the HUD hidden as the photo mode hides it (rood.ui.hide{hud, game2d}): the word and the timer gone
         value("rood.camera.begin() rood.camera.orbit(0.5, 0) return true")  # (a render of the held moment)
         shown = shot("hud-shown")
+        word_box, timer_box, scene_box = (0.33, 0.31, 0.58, 0.39), (0.38, 0.86, 0.62, 0.95), (0.05, 0.45, 0.3, 0.7)
+        # ---- the HUD alone (no game2d): the status panel goes by its sites, the gauges' inside it suppressed first
+        # (classic_parity.c pc_classic_suppress walks past packets already suppressed)
+        value("return rood.ui.hide { hud = true }")
+        hud_only = shot("hud-only-gone")
+        panel_box = (0.02, 0.02, 0.45, 0.13)
+        d_panel, d_only_scene = difference(shown, hud_only, panel_box), difference(shown, hud_only, scene_box)
+        check(d_panel > 4 and d_panel > 4 * d_only_scene, f"HUD alone hidden: the status panel gone ({d_panel:.2f}, "
+                                                          f"the scene {d_only_scene:.2f})")
+        d_only_word = difference(shown, hud_only, word_box)
+        check(d_only_word > 4 and d_only_word > 4 * d_only_scene,
+              f"HUD alone hidden: the word over Ashley gone ({d_only_word:.2f})")
         value("return rood.ui.hide { hud = true, game2d = true }")
         gone = shot("hud-gone")
-        word_box, timer_box, scene_box = (0.33, 0.31, 0.58, 0.39), (0.38, 0.86, 0.62, 0.95), (0.05, 0.45, 0.3, 0.7)
         d_word, d_timer = difference(shown, gone, word_box), difference(shown, gone, timer_box)
         d_scene = difference(shown, gone, scene_box)
         check(d_word > 4 and d_word > 4 * d_scene, f"hidden HUD: the word over Ashley gone ({d_word:.2f}, the scene "

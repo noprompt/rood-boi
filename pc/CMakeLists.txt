@@ -118,7 +118,7 @@ if(ROOD_ZIG_MISSING EQUAL 0)
         # The port pipeline's plan, gates and writers, offline (canned replies, budget 0).
         add_test(NAME port_pipeline COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/port_pipeline_test.py
             ${CMAKE_CURRENT_BINARY_DIR}/boot64)
-        set_tests_properties(port_pipeline PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 1500)
+        set_tests_properties(port_pipeline PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 3000)
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(SHADOW_ZIG_OBJECT ${CMAKE_CURRENT_BINARY_DIR}/shadow_zig_probe.o)

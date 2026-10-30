@@ -34,6 +34,7 @@
 -- game draws them itself (the fallback, typography from ui_text's defaults).
 local M = { draw = {} }
 local S = rood.settings.get
+local function widescreen() return S("widescreen") == true end -- (the 16:9 view; the "edges" anchors' test)
 
 local function make_look()
   return {
@@ -273,7 +274,9 @@ local function make_look()
     -- by _lerpColor, the row's fade step between them, selected the last step; mirrored on the left half), and its
     -- black shadow (dx, dy from the plate; on the left half `wider` more to the left).
     target_row = {
-      place = { anchor = "game", dx = 0, dy = 0 }, -- (as the game's own 2D: rows slide in from the screen's edges)
+      -- anchor "game": as the game's own 2D (16:9: centre-compressed, the rows slide in from the 4:3 edges);
+      -- "edges": 16:9 only, a row on the left half anchored to the 16:9 left edge, on the right half to the right
+      place = { anchor = "game", dx = 0, dy = 0 },
       half = 160,
       name = { left = 66, right = 6, dy = -1, colour = 0x404040, selected = 0x808080 },
       plate = { w = 72, h = 8, steps = 8, brightness = 0x80 },
@@ -284,7 +287,11 @@ local function make_look()
     -- (`ring`: from the row's place, by the screen's half), swept in by their age (the count `lag` behind it), and
     -- from `trail` on a second one behind (its count the age plus `step`, wrapped at `cycle`).
     target_line = {
+      -- anchor "edges" with target_row's "edges": the lines stay the game's (they start at the part, centre-
+      -- compressed) and their row end moves out by `edge_shift` (16:9: a row anchored to an edge lands 320 / 6 =
+      -- 53.3 game pixels further out than centre-compressed, gpu_hw.c anchor_x)
       place = { anchor = "game", dx = 0, dy = 0 },
+      edge_shift = 53,
       half = 160,
       ring = { left = 71, right = 0, dy = 4 },
       lag = 2, trail = 18, step = 14, cycle = 32,
@@ -847,7 +854,7 @@ M.draw.target_row = function(e, d)
   if left then left_c, right_c = right_c, left_c end
   local x, y = e.call_x + p.dx, e.call_y + p.dy
   local wider = left and sh.wider or 0
-  d.anchor(p.anchor)
+  if p.anchor == "edges" then d.anchor(widescreen() and (left and "left" or "right") or "game") else d.anchor(p.anchor) end
   d.plate(x, y, plate.w, plate.h, left_c, right_c, x + sh.dx - wider, y + sh.dy, plate.w + wider, plate.h)
   d.text_raw(e.text, x + (left and n.left or n.right), y + n.dy, e.selected and n.selected or n.colour)
 end
@@ -860,7 +867,12 @@ M.draw.target_line = function(e, d)
   local left = e.row_x < l.half
   local x0, y0 = e.call_x + p.dx, e.call_y + p.dy
   local x1, y1 = e.row_x + (left and r.left or r.right) + p.dx, e.row_y + r.dy + p.dy
-  d.anchor(p.anchor)
+  if p.anchor == "edges" then
+    if widescreen() then x1 = x1 + (left and -l.edge_shift or l.edge_shift) end
+    d.anchor("game")
+  else
+    d.anchor(p.anchor)
+  end
   if e.age >= l.trail then d.leader(x0, y0, x1, y1, (e.age + l.step) % l.cycle, left) end
   d.leader(x0, y0, x1, y1, e.age - l.lag, left)
 end

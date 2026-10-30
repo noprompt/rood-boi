@@ -177,8 +177,8 @@ def suites(args, mode="egl"):
               sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py",
                        TESTS / "zig_diff_changed.py"]),
         Suite("ctest_pipeline", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--output-on-failure",
-                                 "-R", "^port_pipeline"], 1500, binary=None,
-              note="the port pipeline's CMake test alone (~10-15 min): what a pipeline or model-client change needs, "
+                                 "-R", "^port_pipeline"], 3000, binary=None,
+              note="the port pipeline's CMake test alone (~10-25 min; longer under a full check): what a pipeline or model-client change needs, "
                    "without ctest_long's zig_diff shards",
               sources=[TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),
         *([Suite("null_backend_smoke", [PY, str(TESTS / "null_backend_smoke.py")], 300,
