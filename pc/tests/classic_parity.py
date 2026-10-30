@@ -1930,6 +1930,665 @@ def tour_status(g, symbols, toured, frames):
     toured("Status closed", before)
 
 
+# The remaining MAINMENU screens: Score (MENU9), Map (MENU5), Data (MENU7), Setup (MENUC), Storage (MENUD), Loot
+# (MENUB): currentMenu & 0x3F (menu_model.c SCREENS)
+MAP_MENU, DATA_MENU, SCORE_MENU, LOOT_MENU, SETUP_MENU, STORAGE_MENU = 6, 7, 9, 12, 13, 14
+SCORE_COMMAND = 8  # the top level's SCORE row (menuFlags bit 8)
+SCORE_TOP, SCORE_SECTIONS = 2, (5, 8, 11, 14)  # MENU9 _menuState: the top menu, each section taking input
+SCORE_ROWS = 10  # MENU9's top menu: rows 10.. (TITLE, GAZETTE, RECORD TIME, ENCYCLOPAEDIA; 0..9 the top level's)
+OVERLAY_STATICS = {}  # {(overlay section, name): address}
+
+
+def ovl(g, section, name, size=4, signed=True):
+    """An overlay's static by name (its section rood_ovl_menu_<section>_prg; other overlays have statics of the
+    same name; a function's static by its name without the compiler's .N, the first of that name)."""
+    if not OVERLAY_STATICS:
+        out = subprocess.run([os.environ.get("ROOD_OBJDUMP", "objdump"), "-t", str(rood_rpc.BINARY)],
+                             capture_output=True, text=True).stdout
+        for line in out.splitlines():
+            parts = line.split()
+            if len(parts) >= 6 and parts[-3].startswith("rood_ovl_menu_"):  # (a function's own: its name.N)
+                OVERLAY_STATICS.setdefault((parts[-3].split("_")[3], parts[-1].split(".")[0]), int(parts[0], 16))
+    return int.from_bytes(g.read(OVERLAY_STATICS[(section, name)], size), "little", signed=signed)
+
+
+def current_menu(g, symbols):
+    return g.read(symbols["vs_battle_menuState"], 1)[0]
+
+
+def menu_wait(g, what, ready, limit=900):
+    """Until ready(); then a few frames more."""
+    for _ in range(limit):
+        if ready():
+            g.run(6)
+            return
+        g.run(1)
+    raise RpcError(f"{what}: never reached")
+
+
+def press_until(g, button, taken, tries=4, frames=30):
+    """`button` again until taken() (a press while a screen settles is not taken), a few frames apart."""
+    for _ in range(tries):
+        g.press(button, vsyncs=3, settle=2)
+        for _ in range(frames):
+            if taken():
+                return
+            g.run(1)
+    raise RpcError(f"{button}: never taken")
+
+
+def score_state(g):
+    return ovl(g, "menu9", "_menuState")
+
+
+def score_open(g, symbols):
+    """Triangle, SCORE (the command shown: menuFlags bit 8), Circle: MENU9's top menu taking input."""
+    from menu_nav import top_command
+    flags = int.from_bytes(g.read(symbols["vs_main_settings"] + 2, 2), "little")
+    g.write(symbols["vs_main_settings"] + 2, (flags | 1 << SCORE_COMMAND).to_bytes(2, "little"))
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, SCORE_COMMAND)
+    for _ in range(5):
+        g.press("circle", vsyncs=2, settle=2)
+        if g.until(lambda: current_menu(g, symbols) & 0x3F == SCORE_MENU, guard=10):
+            break
+    menu_wait(g, "Score's top menu", lambda: current_menu(g, symbols) & 0x3F == SCORE_MENU
+              and score_state(g) == SCORE_TOP)
+    g.run(30)  # (the top menu's list flies in)
+
+
+def tour_score(g, symbols, toured, frames):
+    """Score (MENU9, currentMenu 9) through the original menus, with card_fixtures' "maxed" score (every title,
+    record, time attack and foe: the lists page): opened; each section (Titles, Records, Time Attack, the
+    Bestiary) in turn: its list walked down past its end and up past its top (the wraps), back to the top menu
+    (Cross); the top menu walked round; a foe of the Bestiary opened (Circle: its model and description), turned
+    to the next foe and back, out; closed with Triangle (from a section) and again from the top menu."""
+    from card_fixtures import score_fixture
+
+    def press(button, settle=6):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def at(state):
+        menu_wait(g, f"Score state {state}", lambda: current_menu(g, symbols) & 0x3F == SCORE_MENU
+                  and score_state(g) == state)
+
+    f = score_fixture("maxed")
+    for off, data in f["scoredata"].items():
+        g.write(symbols["vs_main_scoredata"] + off, data)
+    for off, data in f["state"].items():
+        g.write(symbols["vs_main_stateFlags"] + off, data)
+    memory = g.read(symbols["vs_main_settings"] + 1, 1)
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")  # (the cursor memory off)
+    before = frames()
+    score_open(g, symbols)
+    toured("Score opened", before)
+    before = frames()
+    for button in ("down",) * 5 + ("up",) * 5:
+        press(button)
+    at(SCORE_TOP)
+    toured("Score: the top menu walked round", before)
+    for section, (downs, name) in enumerate(((40, "Title"), (30, "Gazette"), (12, "Record Time"),
+                                             (80, "Encyclopaedia"))):
+        before = frames()
+        for _ in range(8):  # (the section's row selected, by rood.game.menu(): rows 10.. TITLE, GAZETTE, ..)
+            if any(i == SCORE_ROWS + section and sel for i, _, sel in live_rows(g)):
+                break
+            press("down")
+        press_until(g, "circle", lambda: score_state(g) != SCORE_TOP)
+        at(SCORE_SECTIONS[section])
+        g.run(12)
+        for button in ("down",) * downs + ("up",) * (downs + 2):
+            press(button, settle=2)
+        g.run(6)
+        if section == 3:  # a foe: its model and description, the next foe and back, out
+            press("down")
+            press("circle", settle=10)
+            menu_wait(g, "Score: a foe's page", lambda: score_state(g) == 20)
+            g.run(30)
+            for button in ("right", "left", "select", "select"):
+                press(button, settle=20)
+            press("cross", settle=10)
+            at(SCORE_SECTIONS[section])
+        press("cross", settle=10)
+        at(SCORE_TOP)
+        g.run(12)
+        print(f"Score: {name} toured", flush=True)  # (progress)
+        toured(f"Score: {name}: its list past both ends, back", before, section=section)
+    before = frames()
+    press_until(g, "circle", lambda: score_state(g) != SCORE_TOP)
+    menu_wait(g, "Score: a section", lambda: score_state(g) in SCORE_SECTIONS)
+    menu_close(g, symbols)
+    score_open(g, symbols)
+    menu_close(g, symbols)
+    toured("Score: closed from a section; reopened, closed from the top", before)
+    g.write(symbols["vs_main_settings"] + 1, memory)
+
+
+MAP_COMMAND, MAP_INPUT, MAP_LIST = 5, 1, 2  # the top level's MAP row; MENU5 _menuState: processInput, the list
+MAP_AREAS = range(1, 14)  # ui_map_smoke's fixture: areas 1..13 visited (more than the list's 9 rows: it pages)
+
+
+def map_state(g):
+    return ovl(g, "menu5", "_menuState")
+
+
+def map_fixture(g, symbols):
+    """ui_map_smoke's: areas 1..13 visited (areaFlags), every countable room seen (roomFlags |= the completion
+    flags: an area bit without a seen room would hang MENU5's _updateRoomIndex)."""
+    status, done = symbols["vs_main_mapStatus"], symbols["vs_battle_mapCompletionFlags"]
+    rooms = [a | b for a, b in zip(g.read(status, 64), g.read(done, 64))]
+    g.write(status, bytes(rooms))
+    area = int.from_bytes(g.read(status + 64, 4), "little")
+    for i in MAP_AREAS:
+        area |= 1 << i
+    g.write(status + 64, area.to_bytes(4, "little"))
+
+
+def map_open(g, symbols):
+    """Triangle, MAP, Circle: MENU5 taking input (its map up)."""
+    from menu_nav import top_command
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, MAP_COMMAND)
+    press_until(g, "circle", lambda: current_menu(g, symbols) & 0x3F == MAP_MENU)
+    menu_wait(g, "the map", lambda: current_menu(g, symbols) & 0x3F == MAP_MENU and map_state(g) == MAP_INPUT)
+    g.run(30)
+
+
+def map_list(g, symbols):
+    """The map, then its area list (Circle) at rest."""
+    map_open(g, symbols)
+    press_until(g, "circle", lambda: map_state(g) == MAP_LIST)
+    items_ready(g, symbols)
+
+
+def tour_map(g, symbols, toured, frames):
+    """The Map (MENU5, currentMenu 6) through the original menus, with ui_map_smoke's fixture (13 areas visited:
+    the area list pages): opened; the area list (Circle) walked down past its end and up past its top, left with
+    Cross; again, four rows down and Circle (another area's map loaded); R1 / L1 through its rooms, L2 + Right
+    (the turn), Select (the help hidden and shown); Cross to the top level, closed; reopened, the list, Triangle
+    (closes the menu)."""
+    def press(button, settle=8):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def at(state):
+        menu_wait(g, f"the map's state {state}", lambda: current_menu(g, symbols) & 0x3F == MAP_MENU
+                  and map_state(g) == state)
+
+    map_fixture(g, symbols)
+    before = frames()
+    map_open(g, symbols)
+    toured("Map opened", before)
+    before = frames()
+    press_until(g, "circle", lambda: map_state(g) == MAP_LIST)
+    items_ready(g, symbols)
+    for button in ("down",) * (len(MAP_AREAS) + 2) + ("up",) * (len(MAP_AREAS) + 3):
+        press(button)
+    press("cross")
+    at(MAP_INPUT)
+    toured("Map: the area list walked past both ends, left", before)
+    before = frames()
+    scene = ovl(g, "menu5", "_currentScene")
+    press_until(g, "circle", lambda: map_state(g) == MAP_LIST)
+    items_ready(g, symbols)
+    for _ in range(4):
+        press("down")
+    press("circle")
+    menu_wait(g, "another area's map", lambda: map_state(g) == MAP_INPUT
+              and ovl(g, "menu5", "_currentScene") != scene, limit=1200)
+    g.run(20)
+    for button in ("r1", "r1", "l1"):
+        press(button, settle=10)
+    g.hold(["l2", "right"], 4)
+    g.run(10)
+    for button in ("select", "select"):
+        press(button, settle=20)
+    toured(f"Map: area {scene} to {ovl(g, 'menu5', '_currentScene')}, its rooms, the turn, the help hidden",
+           before)
+    before = frames()
+    press_until(g, "cross", lambda: map_state(g) != MAP_INPUT)
+    menu_wait(g, "the top level", lambda: current_menu(g, symbols) & 0x3F == 0, limit=1200)
+    g.until(lambda: int.from_bytes(g.read(symbols["D_800F4CC0"], 4), "little", signed=True) >= 0, guard=30,
+            what="the top level's rows in")
+    menu_close(g, symbols)
+    map_list(g, symbols)
+    press_until(g, "triangle", lambda: map_state(g) != MAP_LIST)
+    menu_wait(g, "the menu closed", lambda: current_menu(g, symbols) == 0x3F, limit=1200)
+    g.run(30)
+    toured("Map: Cross to the top level, closed; reopened, the list, Triangle", before)
+
+
+DATA_COMMAND, DATA_ROWS, DATA_SAVE, DATA_LOAD = 6, 6, 8, 10  # the top level's DATA row; vs_menu7_dataMenu's
+DATA_FIRST_ROW = 10                                            # states: its rows (SAVE 10, LOAD 11), Save, Load
+
+
+def data_state(g, symbols):
+    return g.read(symbols["vs_battle_submenuStates"] + DATA_MENU, 1)[0]
+
+
+def data_open(g, symbols):
+    """Triangle, DATA, Circle: MENU7's SAVE / LOAD rows at rest."""
+    from menu_nav import top_command
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, DATA_COMMAND)
+    press_until(g, "circle", lambda: current_menu(g, symbols) & 0x3F == DATA_MENU)
+    menu_wait(g, "Data's rows", lambda: data_state(g, symbols) == DATA_ROWS)
+    items_ready(g, symbols)
+
+
+def tour_data(g, symbols, toured, frames):
+    """Data (MENU7, currentMenu 7) through the original menus, nothing saved or loaded: opened; its rows walked
+    past both ends; SAVE: the memory cards walked, card 1's files walked down past the last page and back (the
+    pages), out with Cross to the rows; LOAD the same; Cross to the top level, closed; reopened, Triangle."""
+    def press(button, settle=8):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def row(n):
+        for _ in range(4):
+            if any(i == DATA_FIRST_ROW + n and sel for i, _, sel in live_rows(g)):
+                return
+            press("down")
+        raise RpcError(f"Data: row {n} never selected ({live_rows(g)})")
+
+    before = frames()
+    data_open(g, symbols)
+    toured("Data opened", before)
+    before = frames()
+    for button in ("down",) * 3 + ("up",) * 3:
+        press(button)
+    items_ready(g, symbols)
+    toured("Data: its rows walked", before)
+    for n, (state, name) in enumerate(((DATA_SAVE, "SAVE"), (DATA_LOAD, "LOAD"))):
+        before = frames()
+        row(n)
+        press_until(g, "circle", lambda: data_state(g, symbols) == state)
+        g.run(90)  # (the cards' rows come in, the cards are read)
+        for button in ("down", "up", "down", "up"):  # the two cards (on card 1 again)
+            press(button)
+        press("circle")  # card 1's files
+        g.run(90)
+        for button in ("down",) * 17 + ("up",) * 17:
+            press(button, settle=4)
+        press_until(g, "cross", lambda: data_state(g, symbols) == DATA_ROWS, tries=6, frames=60)
+        items_ready(g, symbols)
+        print(f"Data: {name} toured", flush=True)  # (progress)
+        toured(f"Data: {name}: the cards, card 1's files, out", before)
+    before = frames()
+    press_until(g, "cross", lambda: current_menu(g, symbols) & 0x3F == 0)
+    g.until(lambda: int.from_bytes(g.read(symbols["D_800F4CC0"], 4), "little", signed=True) >= 0, guard=30,
+            what="the top level's rows in")
+    menu_close(g, symbols)
+    data_open(g, symbols)
+    menu_close(g, symbols)
+    toured("Data: Cross to the top level, closed; reopened, Triangle", before)
+
+
+SETUP_ROW, SETUP_COMMANDS = 21, 3  # Items' Manage page: Setup's row; MENUC's state: its command list (rows 10..15)
+WORKSHOP = (47, 0)  # a workshop (vs_battle_inWorkshop 6: every material; ui_workshop_smoke's)
+
+
+def setup_state(g, symbols):
+    return g.read(symbols["vs_battle_submenuStates"] + SETUP_MENU, 1)[0]
+
+
+def warp(g, zone, room):
+    """RPC room_goto (scripts and enemies off; ui_workshop_smoke's warp)."""
+    reply = g.call("room_goto", zone=zone, room=room, scripts=False, enemies=False)
+    if not reply.get("ok"):
+        raise RpcError(f"room_goto {zone}/{room}: {reply}")
+    for _ in range(60):
+        g.run(20)
+        if g.call("room_goto", action="status")["phase"] in (0, 4):
+            break
+    g.run(60)
+    st = g.state()
+    if (st["zone"], st["room"]) != (zone, room):
+        raise RpcError(f"warped to {st['zone']}/{st['room']}, not {zone}/{room}")
+
+
+def setup_open(g, symbols):
+    """Triangle, Items, its Manage page, Setup: MENUC's command list at rest."""
+    items_open(g, symbols)
+    for _ in range(9):
+        if SETUP_ROW in items_live(g, symbols):
+            break
+        g.press("r1", vsyncs=3, settle=10)
+        items_ready(g, symbols)
+    for _ in range(4):
+        if any(i == SETUP_ROW and sel for i, _, sel in live_rows(g)):
+            break
+        g.press("down", vsyncs=3, settle=6)
+    press_until(g, "circle", lambda: current_menu(g, symbols) & 0x3F == SETUP_MENU)
+    menu_wait(g, "Setup's commands", lambda: setup_state(g, symbols) == SETUP_COMMANDS)
+    items_ready(g, symbols)
+
+
+def workshop_setup_open(g, symbols):
+    """Warped to a workshop, ui_workshop_smoke's bag (three gems, gem slots on the grips and shields, some damage),
+    Setup's commands at rest."""
+    import ui_workshop_smoke
+    warp(g, *WORKSHOP)
+    bag = ui_workshop_smoke.Session.__new__(ui_workshop_smoke.Session)
+    bag.g, bag.sym, bag.name = g, symbols, "classic_parity"
+    bag.prepare()
+    setup_open(g, symbols)
+
+
+def tour_setup(g, symbols, toured, frames):
+    """Setup (MENUC, currentMenu 13; Items > Setup) through the original menus, in a workshop (warped there; the
+    save room's state rewound to after; ui_workshop_smoke's bag: gems, gem slots, damage), nothing changed: opened; its commands walked past both ends; Assemble:
+    the blade's and the grip's lists walked; Gems: Weapons, a weapon's gem slots, a slot's gem list, Shields'
+    list; Disassemble: a weapon's Yes / No (Cross); Rename: a weapon's Yes / No (Cross); Repair's Yes / No
+    (Cross); Combine: its categories, the blades' first pick list; each left with Cross; closed."""
+    def press(button, settle=6):
+        g.press(button, vsyncs=3, settle=settle)
+        items_ready(g, symbols)
+
+    def walk(count=10):
+        for button in ("down",) * count + ("up",) * count:
+            g.press(button, vsyncs=3, settle=4)
+        items_ready(g, symbols)
+
+    def select(row_id):
+        for _ in range(12):
+            if any(i == row_id and sel for i, _, sel in live_rows(g)):
+                return
+            press("down")
+        raise RpcError(f"Setup: row {row_id} never selected ({live_rows(g)})")
+
+    def commands():
+        """Cross until MENUC's command list takes input again."""
+        for _ in range(8):
+            if setup_state(g, symbols) == SETUP_COMMANDS and 15 in items_live(g, symbols):
+                items_ready(g, symbols)
+                return
+            press("cross", settle=10)
+        raise RpcError(f"Setup: never back on the commands (state {setup_state(g, symbols)}, {live_rows(g)})")
+
+    g.pause()
+    g.mark()  # (the save room again after: the tours and proofs after this one run there)
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")
+    intro = g.read(symbols["vs_main_stateFlags"] + INTRO_STATE, 1)
+    g.write(symbols["vs_main_stateFlags"] + INTRO_STATE, bytes([max(intro[0], 3)]))
+    before = frames()
+    workshop_setup_open(g, symbols)
+    walk(8)
+    toured("Setup opened (a workshop), its commands walked", before)
+    # each command's script (MENUC's state while in it): "sel N" a row by id, "walk N" its list down and up
+    scripts = (("Assemble", 4, ("sel 11", "circle", "walk 8", "cross", "sel 12", "circle", "walk 8", "cross")),
+               ("Gems", 5, ("walk 2", "sel 20", "circle", "walk 8", "circle", "walk 3", "circle", "walk 8",
+                            "cross", "cross", "cross", "sel 21", "circle", "walk 8", "cross")),
+               ("Disassemble", 6, ("walk 2", "sel 20", "circle", "walk 8", "circle", "walk 1", "cross")),
+               ("Rename", 7, ("walk 8", "circle", "walk 1", "cross")),
+               ("Repair", 8, ("walk 1",)),
+               ("Combine", 9, ("walk 3", "sel 20", "circle", "sel 11", "circle", "walk 8", "cross")))
+    for row, (name, state, script) in enumerate(scripts):
+        before = frames()
+        select(10 + row)
+        press("circle", settle=10)
+        for step in ("in",) + script:
+            if step.startswith("walk"):
+                walk(int(step[5:]))
+            elif step.startswith("sel"):
+                select(int(step[4:]))
+            elif step != "in":
+                press(step, settle=10)
+            g.run(10)
+            if current_menu(g, symbols) & 0x3F != SETUP_MENU or setup_state(g, symbols) != state:
+                raise RpcError(f"Setup: {name}: left the command at {step} (currentMenu "
+                               f"{current_menu(g, symbols):#x}, state {setup_state(g, symbols)})")
+        commands()
+        print(f"Setup: {name} toured", flush=True)  # (progress)
+        toured(f"Setup: {name}", before, command=row)
+    before = frames()
+    menu_close(g, symbols)
+    toured("Setup closed", before)
+    g.rewind()  # (the save room, the cursor memory, introState)
+
+
+def loot_input(g, symbols, limit=600):
+    """MENUB's list takes input (ui_loot_smoke's o_input: _processLootMenu's row + 1, the rows in place)."""
+    calm = 0
+    for _ in range(limit):
+        ok = (1 <= g.read(symbols["D_8010A6B7"], 1)[0] <= 8 and g.read(symbols["_lootLeftEdge"], 1)[0] == 0
+              and g.read(symbols["_controlsEnabled"], 1)[0] == 1)
+        calm = calm + 1 if ok else 0
+        if calm >= 3:
+            g.run(2)
+            return
+        g.run(1)
+    raise RpcError(f"Loot: the list never took input (currentMenu {current_menu(g, symbols):#x})")
+
+
+def loot_pick(g, symbols, want):
+    """A two-row menu of MENUB's (Yes / No; a row's own action / Organize: menu items 30, 31): to `want`, Circle."""
+    items_ready(g, symbols)
+    g.run(4)
+    for _ in range(4):
+        if any(i == want and sel for i, _, sel in live_rows(g)):
+            break
+        g.press("up", vsyncs=3, settle=6)
+    if not any(i == want and sel for i, _, sel in live_rows(g)):
+        raise RpcError(f"Loot: menu item {want} never selected ({live_rows(g)})")
+    g.press("circle", vsyncs=3, settle=6)
+
+
+def loot_closed(g, symbols):
+    menu_wait(g, "the loot menu closed", lambda: current_menu(g, symbols) == 0x3F
+              and int.from_bytes(g.read(symbols["D_800F196C"], 4), "little") == 1, limit=1200)
+    g.run(60)
+
+
+def loot_open(g, symbols, lists=None):
+    """The loot menu opened as after a battle (RPC loot: ui_loot_smoke's lists; by default a weapon and an armor
+    copied from the bag and three misc items), MENUB's list taking input."""
+    import ui_loot_smoke as loot
+    if lists is None:
+        inv = g.read(symbols["vs_main_inventory"], loot.INVENTORY_BYTES)
+        idx = g.read(symbols["vs_main_inventoryIndices"], loot.INDICES_BYTES)
+        weapons = [i for i in loot.list_rows(idx, 0) if inv[loot.WEAPONS + i * loot.WEAPON + 1]
+                   and not inv[loot.WEAPONS + i * loot.WEAPON + 3]]
+        armor = [i for i in loot.list_rows(idx, 4) if inv[loot.ARMOR + i * loot.ARMOR_REC]]
+        if not weapons or not armor:
+            raise RpcError("Loot: the card's bag has no unequipped weapon or no armor")
+        lists = [loot.Loot().weapon(inv, weapons[0]).armor(inv, armor[0])
+                 .misc((loot.CURE_ROOT, 3), (340, 2), (loot.CURE_BULB, 1))]
+    if not g.call("loot", hex="".join(x.hex() for x in lists), chest=False).get("opened"):
+        raise RpcError("Loot: the loot menu did not open")
+    menu_wait(g, "the loot menu", lambda: current_menu(g, symbols) & 0x3F == LOOT_MENU, limit=600)
+    loot_input(g, symbols)
+
+
+def tour_loot(g, symbols, toured, frames):
+    """Loot (MENUB, currentMenu 12) through the original menus, opened as the game opens it after a battle (RPC
+    loot: ui_loot_smoke's lists, from the bag's own records; the save room's state rewound to after): a weapon,
+    an armor and three misc items: the list walked past both ends, Cross's Yes / No left on No, a row taken,
+    Square (the rest taken); the misc bag full and a list of three misc items: a row that does not fit, its
+    Consolidate / Organize menu, Organize inventory (MENUB's Items: every category round with R1 and L1, a list
+    walked), back, Consolidate's Yes / No left on No, Cross, Yes (left)."""
+    import ui_loot_smoke as loot
+
+    def press(button, settle=6):
+        g.press(button, vsyncs=3, settle=settle)
+
+    g.pause()
+    g.mark()  # (the save room's bag again after)
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")
+    before = frames()
+    loot_open(g, symbols)
+    toured("Loot opened (a weapon, an armor, three misc items)", before)
+    before = frames()
+    for button in ("down",) * 7 + ("up",) * 7:
+        press(button)
+    loot_input(g, symbols)
+    press("cross")  # leave? No
+    loot_pick(g, symbols, 31)
+    loot_input(g, symbols)
+    toured("Loot: the list walked, leave's Yes / No left on No", before)
+    before = frames()
+    count = g.read(symbols["_lootListCount"], 1)[0]
+    press("circle")  # the first row taken
+    menu_wait(g, "a row taken", lambda: g.read(symbols["_lootListCount"], 1)[0] < count, limit=240)
+    loot_input(g, symbols)
+    press("square")  # the rest
+    loot_closed(g, symbols)
+    toured("Loot: a row taken, the rest (Square)", before)
+    before = frames()
+    recs = [(loot.CURE_ROOT, 90)] + [(loot.CURE_BULB, 1)] * 63  # ui_loot_smoke's fill_misc: the misc bag full
+    g.write(symbols["vs_main_inventory"] + loot.MISC,
+            b"".join(i.to_bytes(2, "little") + bytes([n, k + 1]) for k, (i, n) in enumerate(recs)))
+    lo, _ = loot.IDX[6]
+    g.write(symbols["vs_main_inventoryIndices"] + lo, bytes(range(1, 65)))
+    g.run(2)
+    loot_open(g, symbols, [loot.Loot().misc((loot.CURE_ROOT, 50), (loot.CURE_ROOT, 30), (341, 1))])
+    press("circle")  # the first row: Consolidate / Organize
+    items_ready(g, symbols)
+    for button in ("down", "up", "down"):
+        press(button)
+    loot_pick(g, symbols, 31)  # Organize inventory: MENUB's Items
+    menu_wait(g, "Organize inventory", lambda: 20 in items_live(g, symbols))
+    items_ready(g, symbols)
+    for button in ("r1",) * 8 + ("l1",) * 8:
+        press(button, settle=10)
+        items_ready(g, symbols)
+    for button in ("down",) * 6 + ("up",) * 6:
+        press(button, settle=4)
+    items_ready(g, symbols)
+    press("cross", settle=10)
+    loot_input(g, symbols)
+    toured("Loot: a row that does not fit, Organize inventory (its categories round), back", before)
+    before = frames()
+    press("circle")
+    loot_pick(g, symbols, 30)  # Consolidate
+    loot_pick(g, symbols, 31)  # No
+    loot_input(g, symbols)
+    press("cross")
+    loot_pick(g, symbols, 30)  # leave: Yes
+    loot_closed(g, symbols)
+    toured("Loot: Consolidate's Yes / No left on No; left", before)
+    g.rewind()  # (the bag, the cursor memory)
+
+
+STORAGE_TOP, STORAGE_ROW = 3, 0x9E  # MENUD's state: its top menu; D_800F4EE8 + 0x9E: its row (ui_container_smoke)
+
+
+def storage_state(g, symbols):
+    return g.read(symbols["vs_battle_submenuStates"] + STORAGE_MENU, 1)[0]
+
+
+def storage_top(g, symbols, limit=2400):
+    """MENUD's top menu taking input (ui_container_smoke's a_ready: its state 3, D_80109A70 3)."""
+    menu_wait(g, "Storage's top menu", lambda: current_menu(g, symbols) & 0x3F == STORAGE_MENU
+              and storage_state(g, symbols) == STORAGE_TOP and ovl(g, "menud", "D_80109A70", 1) == 3, limit=limit)
+    items_ready(g, symbols)
+    g.run(20)
+
+
+def storage_open(g, symbols):
+    """The container opened as the field opens it (RPC container: MENU7's saveContainerMenu), its first prompt
+    answered Yes (rows 0x1E / 0x1F, the shared rows): MENUD's top menu."""
+    if not g.call("container").get("opened"):
+        raise RpcError("Storage: the container did not open")
+    menu_wait(g, "MENU7's prompt", lambda: g.read(symbols["vs_battle_submenuStates"] + DATA_MENU, 1)[0] in (1, 5, 12))
+    g.run(40)
+    if not any(i == 0x1E and sel for i, _, sel in live_rows(g)):
+        g.press("up", vsyncs=3, settle=6)
+    g.press("circle", vsyncs=3, settle=6)
+    storage_top(g, symbols)
+
+
+def storage_store(g, symbols):
+    """Storage's top menu, Store (row 1): the bag's first tab's list at rest (the tab arrows)."""
+    storage_open(g, symbols)
+    for _ in range(4):
+        if g.read(symbols["D_800F4EE8"] + STORAGE_ROW, 1)[0] == 1:
+            break
+        g.press("down", vsyncs=3, settle=8)
+        items_ready(g, symbols)
+    g.press("circle", vsyncs=3, settle=20)
+    items_ready(g, symbols)
+    g.run(30)
+
+
+def tour_storage(g, symbols, toured, frames):
+    """Storage (MENUD, currentMenu 14: the container; MENU7's prompt before it) through the original menus,
+    opened as the field opens it (RPC container: the card's own container; the save room's state rewound to
+    after: nothing saved): MENU7's Yes / No; MENUD's top menu walked; Remove: every tab round with R1 and L1
+    (the container's lists), each walked; Store: the bag's tabs round, a list walked, a row's actions walked and
+    left; Cross at the top (MENUD left for MENU7's save; rewound there, nothing saved)."""
+    def press(button, settle=8):
+        g.press(button, vsyncs=3, settle=settle)
+        items_ready(g, symbols)
+
+    def top_to(row):
+        for _ in range(4):
+            if g.read(symbols["D_800F4EE8"] + STORAGE_ROW, 1)[0] == row:
+                return
+            press("down")
+        raise RpcError(f"Storage: the top menu's row {row} never reached")
+
+    def back():
+        for _ in range(6):
+            if storage_state(g, symbols) == STORAGE_TOP and ovl(g, "menud", "D_80109A70", 1) == 3:
+                break
+            press("cross", settle=10)
+        storage_top(g, symbols)
+
+    g.pause()
+    g.mark()  # (the save room again after; nothing saved)
+    g.write(symbols["vs_main_settings"] + 1, b"\x00")
+    before = frames()
+    storage_open(g, symbols)
+    toured("Storage opened: MENU7's Yes / No, MENUD's top menu", before)
+    before = frames()
+    for button in ("down",) * 4 + ("up",) * 4:
+        press(button)
+    toured("Storage: the top menu walked", before)
+    for row, name in ((0, "Remove"), (1, "Store")):
+        before = frames()
+        top_to(row)
+        press("circle", settle=20)
+        g.run(20)
+        for _ in range(8):  # every tab round: each list walked
+            press("r1", settle=10)
+            for button in ("down",) * 4 + ("up",) * 4:
+                press(button, settle=4)
+        for _ in range(8):
+            press("l1", settle=10)
+        if row == 1:  # a row's actions, walked and left
+            press("circle", settle=10)
+            for button in ("down",) * 4 + ("up",) * 4:
+                press(button, settle=4)
+            press("cross", settle=10)
+        back()
+        print(f"Storage: {name} toured", flush=True)  # (progress)
+        toured(f"Storage: {name}: every tab round, the lists walked", before)
+    before = frames()
+    press_until(g, "cross", lambda: current_menu(g, symbols) & 0x3F == DATA_MENU, frames=60)  # MENUD left: MENU7
+    g.run(60)
+    toured("Storage: Cross at the top: back to MENU7", before)
+    g.rewind()  # (the container never saved: the menu closed, the save room)
+
+
+def tour_remaining(g, symbols, toured, frames):
+    """The remaining MAINMENU screens' tours, in the menus game after Status."""
+    tour_score(g, symbols, toured, frames)
+    tour_map(g, symbols, toured, frames)
+    tour_data(g, symbols, toured, frames)
+    tour_setup(g, symbols, toured, frames)
+    tour_storage(g, symbols, toured, frames)
+    tour_loot(g, symbols, toured, frames)
+
+
+def remaining_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof):
+    """Each remaining screen at rest (screen_proofs): the default and the fallback of every kind it draws there, the
+    state proof from that mark."""
+    for name, opener in (("Score's top menu", score_open), ("the Map", map_open), ("the Map's area list", map_list),
+                         ("Data's rows", data_open), ("Setup's commands (a workshop)", workshop_setup_open),
+                         ("Storage's top menu", storage_open), ("Storage's Store list (the tabs)", storage_store),
+                         ("the Loot list", loot_open)):
+        screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener)
+
+
 def screen_proofs(g, symbols, check, frame_kinds, toured_kinds, state_proof, name, opener):
     """A toured screen at rest (opener: from the menu closed): the default and the fallback of every frame kind it
     draws there, the state proof (from whatever screen was up: the menu closed first, the cursor memory off)."""
@@ -2086,6 +2745,7 @@ def run_menus(out, card, env, check, waivers, kinds):
         tour_abilities(g, symbols, toured, frames)
         tour_manual(g, symbols, toured, frames)
         tour_status(g, symbols, toured, frames)
+        tour_remaining(g, symbols, toured, frames)
         reports = {kind: opening_report(g, check, waivers, kind, covered, set()) for kind in kinds
                    if kind in MENU_TOURED}
         for kind in kinds:
@@ -2173,6 +2833,7 @@ def run_menus(out, card, env, check, waivers, kinds):
                       lambda g, symbols: status_into(g, symbols, "circle", STATUS_EQUIPMENT))
         screen_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof, "Status, a part's stats",
                       lambda g, symbols: status_into(g, symbols, "square", STATUS_STATS))
+        remaining_proofs(g, symbols, check, items_kinds, toured_kinds, state_proof)
         for kind, report in reports.items():
             (out / f"{kind}.json").write_text(json.dumps(report, indent=1))
             print(f"report: {out / (kind + '.json')}: {report['frames']} frames, {report['states']} states, "

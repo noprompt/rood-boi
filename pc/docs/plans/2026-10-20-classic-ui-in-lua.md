@@ -16,6 +16,76 @@ follows `2026-10-18-lua-visible-layer.md` (F1-F3, done),
 
 ## Progress
 
+2026-10-30 (branch `classic-lua-screens`, from main `3fc0edbd`; no merge or publication):
+
+- **Phase 3, the remaining MAINMENU screens: the shared frame's kinds on Score, the Map, Data, Setup, Storage
+  and Loot, done** (`bd4d4efb`, `0ffac3da`). `MENU_TOURED_SCREENS` (hud_bridge.c) is now `0x77FE`: 1..10 and
+  12 Loot (MENUB), 13 Setup (MENUC), 14 Storage (MENUD): every MAINMENU screen but 15 (MENUF: the time attack
+  and congratulations screens, direct entries; not asked for, not toured, not claimed; 11 is unused). No capture
+  gap and no crash: every screen's rows, hand, title, tabs and background are the shared ones, 0 mismatches from
+  the first run. Tours (`classic_parity.py`, `tour_remaining` in the menus game after Status; the original
+  menus, the cursor memory off; rows found by id and text through `rood.game.menu()`, MENU states read from the
+  overlays' statics by name, `ovl()`):
+  - `tour_score` (MENU9; card_fixtures' "maxed" score, so every list pages): opened (SCORE shown: menuFlags
+    bit 8); the top menu walked round; each section (Title, Gazette, Record Time, Encyclopaedia) by its row, its
+    list walked down past its end and up past its top; a foe's page (its model, Right / Left, Select twice), out;
+    closed from a section; reopened, closed from the top.
+  - `tour_map` (MENU5; ui_map_smoke's fixture: areas 1..13 visited, every countable room seen): opened; the area
+    list walked past both ends (it pages), left; four rows down, another area's map loaded; R1 / L1 rooms, L2 +
+    Right (the turn), Select twice (the help); Cross to the top level, closed; reopened, the list, Triangle.
+  - `tour_data` (MENU7, nothing saved or loaded): its rows walked; SAVE and LOAD each: the two cards, card 1's
+    files walked down past the last and back up (the pages), out with Cross; Cross to the top level, closed;
+    reopened, Triangle. (Circle on a file is not pressed: Save writes at once on an empty slot, Load loads.)
+  - `tour_setup` (MENUC, Items > Setup; warped to zone 47 room 0, a workshop, with ui_workshop_smoke's
+    `prepare` bag: gems, gem slots, damage): its six commands walked; Assemble: the blade's and the grip's pick
+    lists; Gems: Weapons, a weapon's gem slots, a slot's gem list, Shields' list; Disassemble and Rename: a
+    weapon's Yes / No; Repair's Yes / No; Combine: its categories, the blades' first pick list; each left with
+    Cross (the tour checks MENUC stays in the command after every step).
+  - `tour_storage` (MENUD, through RPC container as the field opens it; the card's own container, empty):
+    MENU7's Yes / No (rows 30 / 31, shared); MENUD's top menu walked; Remove and Store: every tab round with R1
+    (each list walked) and L1; a Store row's actions walked and left; Cross at the top (to MENU7's save).
+  - `tour_loot` (MENUB, through RPC loot as after a battle; ui_loot_smoke's lists from the bag's own records): a
+    weapon, an armor and three misc items: the list past both ends, leave's Yes / No left on No, a row taken,
+    Square (the rest); the misc bag full (ui_loot_smoke's fill_misc) and three misc items: a row that does not
+    fit, its menu, Organize inventory (MENUB's Items: every category round with R1 and L1, a list walked),
+    back, Consolidate's Yes / No left on No, leave: Yes.
+  - Setup, Storage and Loot mark the save room first and rewind to it after (the classic counters survive a
+    rewind): nothing is saved, the bag and the room are the save room's again for the proofs after.
+
+  | Screen (scenarios) | `menu_row` | `menu_cursor` | `menu_command` | `menu_tabs` | `menu_background` |
+  |---|---:|---:|---:|---:|---:|
+  | Score (7) | 3,765 | 933 | 1,295 | 0 | 1,309 |
+  | Map (4) | 2,934 | 195 | 446 | 0 | 446 |
+  | Data (5) | 984 | 44 | 704 | 0 | 706 |
+  | Setup (8) | 11,464 | 849 | 1,826 | 15 | 1,827 |
+  | Storage (5) | 7,824 | 390 | 1,429 | 1,196 | 1,436 |
+  | Loot (5) | 6,236 | 144 | 378 | 364 | 386 |
+  | The whole menus game (107) | 114,233 | 7,259 | 14,882 | 4,452 | 12,770 |
+
+  0 mismatches, 0 skips, no packet waivers. The default and the fallback (setting off, a raising draw, the plugin
+  off) of every kind drawn at rest, and state parity 120/120 vsyncs, at eight new marks (`remaining_proofs`):
+  Score's top menu, the Map, the Map's area list, Data's rows, Setup's commands (in the workshop), Storage's top
+  menu, Storage's Store list (the tab arrows) and the Loot list (rows and hand only: Loot draws no title or
+  background); all 18 menus marks green.
+- **Verification:** 64-bit and 32-bit (`--battle`) builds; no `src/` change (no commit-check needed).
+  `run.py -j 1 --cpu-jobs 1` (nice 10) `classic_parity hud classic cutscene_player_smoke widescreen_smoke` plus
+  every suite matching `manual ui_ menu prompts button options items status magic arts abilit map data score
+  loot setup storage container workshop` (42 suites, scipy present again: ui_text_smoke, button_prompts_smoke,
+  button_roles_symbols_smoke and interp_menu_2d_smoke ran): **42/42 on GL and 42/42 on Vulkan**, first time
+  (ui_system_smoke too). The same classic_parity counts on both.
+- **Left as the game's own drawing (later work):** Score: MENU9's pages (the titles, gazette, record times and
+  the encyclopaedia's lists and descriptions, `vs_battle_renderTextRaw`), the rank (text box 0), the foe viewer,
+  the button strip (`vs_mainmenu_renderButton`). Map: MENU5's 3D map, compass, icons, door and connecting area
+  names (`_renderScreen` and friends, raw text), its controls help (`_drawUIControls`, the button strip), the room
+  name (text box 0). Data: MENU7's whole file menu (`_drawFileMenu`: the card and file panels, its own Yes / No
+  elements, `vs_battle_drawCursor`, the play time, HP / MP, the progress animations). Setup: the stat panels
+  (`vs_mainMenu_renderEquipStats`, `renderDpPpBars`, `drawClassAffinityType`), MENUC's own cursor
+  (`vs_battle_drawCursor`), the OK mark; the information box is text box 7 (Lua already). Storage: MENUD's item
+  action menu, status view and stat panels, `renderTabNavigation`'s counts, the button strips, raw text; MENU7's
+  save list after it. Loot: MENUB's own cursor (`vs_battle_drawCursor`), the button strip and its background,
+  the counts (`renderIntColor`), raw text. Not toured: MENU7's game over screen (currentMenu 7 at a game over),
+  MENU8's rename grid from Setup (currentMenu 8, the Option screen's overlay), MENUF.
+
 2026-10-28, night (branch `classic-lua-skills`, from main `95adc53e`; no merge or publication):
 
 - **Phase 3, screens 2-4 (Magic, Break Arts, Battle Abilities): the shared frame's kinds on, done.**

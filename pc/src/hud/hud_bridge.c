@@ -587,9 +587,10 @@ void pc_hud_target_marker(void* record, void* first, void* end)
  * it drew it from. A row is one element per row (0..39); the others one each. The game's packets are walked from
  * its slots: the background's own, vs_scratch.unk8 (a row's: unk8 - 4 .. + 12). */
 /* The screens toured (vs_battle_menuState.currentMenu & 0x3F, a bit each; menu_model.c SCREENS): 1 Magic (MENU0),
- * 2 Break Arts (MENU1), 3 Battle Abilities (MENU2), 4 Items (MENU3), 5 Status (MENU4), 8 the Option screen (MENU8),
- * 10 the Quick Manual (MENUE). */
-#define MENU_TOURED_SCREENS ((1u << 1) | (1u << 2) | (1u << 3) | (1u << 4) | (1u << 5) | (1u << 8) | (1u << 10))
+ * 2 Break Arts (MENU1), 3 Battle Abilities (MENU2), 4 Items (MENU3), 5 Status (MENU4), 6 the Map (MENU5), 7 Data
+ * (MENU7), 8 the Option screen (MENU8), 9 Score (MENU9), 10 the Quick Manual (MENUE), 12 Loot (MENUB), 13 Setup
+ * (MENUC), 14 Storage (MENUD). Not claimed: 15 (MENUF: the time attack and congratulations screens; 11 unused). */
+#define MENU_TOURED_SCREENS 0x77FEu /* bits 1..10, 12..14 */
 static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
 void pc_hud_menu(int kind, void* record, void* first, void* end)
 {
