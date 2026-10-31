@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_8008631C",
@@ -65,11 +65,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 14958,
-     "completion_tokens": 13763,
-     "reasoning_tokens": 12003,
-     "cost": 0.0041886499999999995,
+     "completion_tokens": 12815,
+     "reasoning_tokens": 11252,
+     "cost": 0.00395165,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": true,
@@ -81,32 +81,28 @@
    "sample": 1
   },
   "classes": {
-   "limb-negative": "13850",
-   "limb-nonnegative": "16150"
+   "stats-null": "3747",
+   "stats-set": "26253"
   },
   "mutations": [
    {
-    "name": "F1: request targetActor taken from arg1",
+    "name": "F1: unk4A set to 2",
     "caught": true
    },
    {
-    "name": "F2: unk4A written 0 not 1",
+    "name": "F2: cost mask takes the wrong byte",
     "caught": true
    },
    {
-    "name": "F3: the call's flag is 1, not 0",
+    "name": "F3: func_80085B10 called with flag 1",
     "caught": true
    },
    {
-    "name": "F4: targetLimb dropped (stored as 0)",
+    "name": "F4: func_80085B10 call dropped",
     "caught": true
    },
    {
-    "name": "F5: cost mask 0xFF800000 instead of 0xFF000000",
-    "caught": true
-   },
-   {
-    "name": "F6: request's unk4.targetActor taken from targetActor",
+    "name": "F5: actionIndex taken from arg1",
     "caught": true
    }
   ],
@@ -128,22 +124,22 @@
     {
      "arg": 1,
      "count": 30000,
-     "text": "32-bit: min 0, max 15, seen zero, never negative"
+     "text": "32-bit: min 0, max 15, seen zero, never negative, 5 value(s): 7, 8, 0, 15, 1"
     },
     {
      "arg": 2,
      "count": 30000,
-     "text": "32-bit: min -2147336268, max 2147014921, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147258097, max 2147314767, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147357772, max 2147446319, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147408279, max 2146982730, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "pointer: null seen"
+     "text": "pointer: never null"
     }
    ],
    "compares": [],
@@ -164,23 +160,23 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 38339,
-     "completion_tokens": 5757,
-     "reasoning_tokens": 5120,
-     "cost": 0.0033562,
+     "completion_tokens": 6502,
+     "reasoning_tokens": 5871,
+     "cost": 0.00354245,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x406a45 [arena] (zdiff_state+0x9c5): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 96, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 96, Zig 0\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: limb-negative=464 limb-nonnegative=536"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x40fc85 [arena] (zdiff_state+0x9c05): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x40fc82 [arena] (zdiff_state+0x9c02): C 4, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x40fc82 [arena] (zdiff_state+0x9c02): C 4, Zig 0\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: stats-null=138 stats-set=862"
     ],
     "runs": [
      {
       "seed": 1,
       "exit": 1,
       "mismatches": 1000,
-      "first": "MISMATCH iteration 0: memory at 0x406a45 (zdiff_state+0x9c5): C 0, Zig 3"
+      "first": "MISMATCH iteration 0: memory at 0x40fc85 (zdiff_state+0x9c05): C 0, Zig 3"
      }
     ]
    },
@@ -194,41 +190,61 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 39248,
-     "completion_tokens": 5439,
-     "reasoning_tokens": 4666,
-     "cost": 0.00332215,
+     "prompt_tokens": 39240,
+     "completion_tokens": 5352,
+     "reasoning_tokens": 4700,
+     "cost": 0.0033,
      "seconds": null,
-     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x406a45 [arena] (zdiff_state+0x9c5): C 0, Zig 3\nzdiff: MISMATCH iteration 1: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 201, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x406a42 [arena] (zdiff_state+0x9c2): C 201, Zig 0\nzdiff: func_8008631C: 1000 iterations, seed 1, 1000 mismatches; classes: limb-negative=464 limb-nonnegative=536"
-    ],
+    "passed": true,
+    "errors": [],
     "runs": [
      {
       "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 0: memory at 0x406a45 (zdiff_state+0x9c5): C 0, Zig 3"
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
      }
     ]
    }
-  ]
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 18.388992884996696,
+ "written": [
+  "pc/tests/zig_diff/func_8008631C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008631C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 436.3690913800001,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 97203.77555656433,
+ "wall_seconds": 192774.75147509575,
  "totals": {
-  "cost": 0.01087,
-  "prompt_tokens": 92545,
-  "completion_tokens": 24959,
+  "cost": 0.01079,
+  "prompt_tokens": 92537,
+  "completion_tokens": 24669,
   "model_seconds": 0.0,
-  "check_seconds": 18.4,
+  "check_seconds": 436.4,
   "calls": 3,
-  "wall_seconds": 97203.8
+  "wall_seconds": 192774.8
  }
 }

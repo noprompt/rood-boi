@@ -1,0 +1,190 @@
+{
+ "function": "func_800CB550",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CB550",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cb550",
+  "difficulty": "S",
+  "zig_name": "func_800CB550",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CB550",
+  "spec_file": "func_800CB550.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CB550() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "vs_battle_lowerScreenUiState"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11070,
+     "completion_tokens": 2188,
+     "reasoning_tokens": 1529,
+     "cost": 0.0011005,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11780,
+     "completion_tokens": 1014,
+     "reasoning_tokens": 315,
+     "cost": 0.0008424999999999999,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "store": "20000"
+  },
+  "mutations": [
+   {
+    "name": "L1: the screen state is set to 0, not 1",
+    "caught": true
+   },
+   {
+    "name": "L2: the store is dropped",
+    "caught": true
+   },
+   {
+    "name": "L3: the bit is ORed in, not set",
+    "caught": true
+   },
+   {
+    "name": "L4: wrong constant 0x81",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34550,
+     "completion_tokens": 530,
+     "reasoning_tokens": 343,
+     "cost": 0.0018599999999999999,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CB550.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CB550.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 117.4166537989995,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 197564.60644698143,
+ "totals": {
+  "cost": 0.0038,
+  "prompt_tokens": 57400,
+  "completion_tokens": 3732,
+  "model_seconds": 0.0,
+  "check_seconds": 117.4,
+  "calls": 3,
+  "wall_seconds": 197564.6
+ }
+}

@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage _getActionCost: branches 29/30 (96.7%), conditions not measured (GCC < 14: branch",
+ "status": "ported",
+ "reviewed": false,
  "plan": {
   "name": "_getActionCost",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -37,9 +37,7 @@
   ],
   "ret": "c_int",
   "types": [],
-  "globals": [
-   "vs_main_actions"
-  ],
+  "globals": [],
   "hooks": [],
   "statics": [],
   "skip": ""
@@ -56,17 +54,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 15006,
-     "completion_tokens": 27415,
-     "reasoning_tokens": 25102,
-     "cost": 0.0152081,
-     "seconds": 116.3,
-     "sample": 1,
-     "conversation": "578fa7ea7d471e5c390a25a88d231d896338098789e9b99b1dc9c3f1bb95618f"
+     "prompt_tokens": 15013,
+     "completion_tokens": 17146,
+     "reasoning_tokens": 15025,
+     "cost": 0.00503715,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/_getActionCost/spec1/build/spec.zig:43:50: error: expected type 'c_uint', found '@TypeOf(null)'\n    if (defaultType and ctx.chance(4)) return .{ null, id, upd };\n                                                 ^~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:435:40\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _getActionCost: branches 29/30 (96.7%), conditions not measured (GCC < 14: branch coverage only), lines 67/67\n  UNCOVERED +28 b4: branch never taken: `switch (actor->weapon.actionType) {`\n  note: waivers no longer needed: +41 b3\ncoverage _getActionCost: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (actor->weapon.actionType) {` (+28): one way out of this test (+28 b4) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function._getActionCost.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -79,53 +77,57 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 17592,
-     "completion_tokens": 4128,
-     "reasoning_tokens": 1811,
-     "cost": 0.0038232,
-     "seconds": 15.6,
-     "sample": 1,
-     "conversation": "47f7a5adf9bb336d263092bc0ada061dd537e3895d0ea278e38c8e58430a0339"
+     "prompt_tokens": 17445,
+     "completion_tokens": 3747,
+     "reasoning_tokens": 1588,
+     "cost": 0.0018089999999999998,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage _getActionCost: branches 29/30 (96.7%), conditions not measured (GCC < 14: branch coverage only), lines 67/67\n  UNCOVERED +28 b4: branch never taken: `switch (actor->weapon.actionType) {`\n  note: waivers no longer needed: +? b?\ncoverage _getActionCost: FAILED (threshold 100%: 1 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `switch (actor->weapon.actionType) {` (+28): one way out of this test (+28 b4) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function._getActionCost.coverage_waiver]] with its `id` and a `reason`."
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
   "classes": {
-   "no-actor": "3718",
-   "other-type": "11410",
-   "spell": "4952",
-   "ability": "4123",
-   "ability-bonus": "1087",
-   "break-art": "4944",
-   "weapon-pp": "5057",
-   "base-attack": "4709"
+   "default": "14939",
+   "spell": "5093",
+   "ability": "4498",
+   "break-art": "5060",
+   "pp": "4881",
+   "base-spell": "1197",
+   "base-ability": "1154",
+   "base-break-art": "1263",
+   "base-pp": "1287",
+   "ability-bonus": "628"
   },
   "mutations": [
    {
-    "name": "A1: statValue >= cost becomes >",
+    "name": "G1: the bonus test is > 10, not >= 10",
     "caught": true
    },
    {
-    "name": "A2: the ability bound test on a signed value",
+    "name": "G2: signed slip in the action id range test",
     "caught": true
    },
    {
-    "name": "A3: bonus threshold 11, not 10",
+    "name": "G3: the affordability test is > not >=",
     "caught": true
    },
    {
-    "name": "A4: the spent stat is not subtracted",
+    "name": "G4: base attack reads the action's risk field, not the weapon's",
     "caught": true
    },
    {
-    "name": "A5: break art stores its HP into MP",
+    "name": "G5: ability risk stored with the wrong constant",
     "caught": true
    },
    {
-    "name": "A6: the ability bonus divided by 11",
+    "name": "G6: the cost is not subtracted from the stat",
     "caught": true
    }
   ],
@@ -154,12 +156,12 @@
     {
      "arg": 1,
      "count": 40000,
-     "text": "pointer: null seen"
+     "text": "pointer: never null"
     },
     {
      "arg": 2,
      "count": 40000,
-     "text": "32-bit: min -2147342959, max 2147471025, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147483648, max 1073741824, unsigned 0..4294967295, seen zero/negative/all ones, 6 value(s): 0, 4294967295, 2147483648, 256, 1, 1073741824"
     }
    ],
    "compares": [
@@ -169,7 +171,7 @@
      "size": 4,
      "count": 40000,
      "kind": "switch",
-     "outcomes": "== 24872, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 25061, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "0..7"
     },
@@ -177,9 +179,9 @@
      "line": 28,
      "text": "switch (actor->weapon.actionType) {",
      "size": 4,
-     "count": 4928,
+     "count": 5022,
      "kind": "switch",
-     "outcomes": "== 4928, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 5022, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "1..4"
     },
@@ -189,7 +191,7 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 6225, < 11198, > 22577 (signed); < 11198, > 22577 (unsigned)",
+     "outcomes": "== 6280, < 11240, > 22480 (signed); < 11240, > 22480 (unsigned)",
      "operand": "constant 2",
      "a": "0..7"
     },
@@ -197,19 +199,19 @@
      "line": 51,
      "text": "if (D_800F19CC->unk4 >= 10) {",
      "size": 4,
-     "count": 6225,
+     "count": 6280,
      "kind": "against a constant",
-     "outcomes": "== 329, < 2594, > 3302 (signed); < 345, > 5551 (unsigned)",
+     "outcomes": "== 328, < 2630, > 3322 (signed); < 340, > 5612 (unsigned)",
      "operand": "constant 9",
-     "a": "-2147483648..2145353237"
+     "a": "-2147483648..2147483647"
     },
     {
      "line": 52,
      "text": "if ((actionId - 22) < 18) {",
      "size": 4,
-     "count": 5551,
+     "count": 5612,
      "kind": "against a constant",
-     "outcomes": "== 465, < 1797, > 3289 (signed); < 622, > 4464 (unsigned)",
+     "outcomes": "== 164, < 1130, > 4318 (signed); < 464, > 4984 (unsigned)",
      "operand": "constant 17",
      "a": "-22..233"
     },
@@ -219,17 +221,17 @@
      "size": 4,
      "count": 40000,
      "kind": "a == b / a < b",
-     "outcomes": "== 9126, < 24479, > 6395 (signed); < 17084, > 13790 (unsigned)",
-     "operand": "b 0..429483877",
-     "a": "-65435..65535"
+     "outcomes": "== 2386, < 28858, > 8756 (signed); < 23057, > 14557 (unsigned)",
+     "operand": "b 0..428654385",
+     "a": "-65415..65522"
     },
     {
      "line": 58,
      "text": "if (actionType == actionTypeBreakArt) {",
      "size": 4,
-     "count": 15521,
+     "count": 11142,
      "kind": "against a constant",
-     "outcomes": "== 3583, < 5494, > 6444 (signed); < 5494, > 6444 (unsigned)",
+     "outcomes": "== 2567, < 4133, > 4442 (signed); < 4133, > 4442 (unsigned)",
      "operand": "constant 3",
      "a": "0..7"
     },
@@ -237,9 +239,9 @@
      "line": 64,
      "text": "if (actionType == actionTypeAbility) {",
      "size": 4,
-     "count": 24479,
+     "count": 28858,
      "kind": "against a constant",
-     "outcomes": "== 4868, < 7061, > 12550 (signed); < 7061, > 12550 (unsigned)",
+     "outcomes": "== 5481, < 7906, > 15471 (signed); < 7906, > 15471 (unsigned)",
      "operand": "constant 2",
      "a": "0..7"
     },
@@ -249,41 +251,97 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 6767, < 16607, > 16626 (signed); < 0, > 33233 (unsigned)",
+     "outcomes": "== 6708, < 13456, > 19836 (signed); < 0, > 33292 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147342959..2147471025"
+     "a": "-2147483648..1073741824"
     },
     {
      "line": 73,
      "text": "switch (actionType) {",
      "size": 4,
-     "count": 33233,
+     "count": 33292,
      "kind": "switch",
-     "outcomes": "== 20609, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 20837, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "0..7"
     }
    ],
-   "passed": false
-  }
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+28 b4",
+    "reason": "The inner base-attack switch (on actor->weapon.actionType) has no default. Its no-match exit is taken only when the weapon action type is outside 1-4, and then the C reads statValue, which it never assigned: undefined behaviour, a stack value the two runs cannot share. No defined input reaches that exit, so prepare never builds one."
+   }
+  ]
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38503,
+     "completion_tokens": 8636,
+     "reasoning_tokens": 7227,
+     "cost": 0.00408415,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 23.00722805999976,
- "wall_seconds": 155.27415977300006,
+ "written": [
+  "pc/tests/zig_diff/getActionCost.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/get_action_cost.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 412.2800976239996,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 179138.52176737785,
  "totals": {
-  "cost": 0.01903,
-  "prompt_tokens": 32598,
-  "completion_tokens": 31543,
-  "model_seconds": 131.9,
-  "check_seconds": 23.0,
-  "calls": 2,
-  "wall_seconds": 155.3
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.01093,
+  "prompt_tokens": 70961,
+  "completion_tokens": 29529,
+  "model_seconds": 0.0,
+  "check_seconds": 412.3,
+  "calls": 3,
+  "wall_seconds": 179138.5
  }
 }

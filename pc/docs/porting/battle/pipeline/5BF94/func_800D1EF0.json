@@ -1,0 +1,261 @@
+{
+ "function": "func_800D1EF0",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800D1EF0",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d1ef0",
+  "difficulty": "S",
+  "zig_name": "func_800D1EF0",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D1EF0",
+  "spec_file": "func_800D1EF0.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D1EF0(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int, arg6: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ],
+   [
+    "arg1",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ],
+   [
+    "arg5",
+    "c_int"
+   ],
+   [
+    "arg6",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "D_800F54B8_t"
+  ],
+  "globals": [
+   "D_800F54B8"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11880,
+     "completion_tokens": 9170,
+     "reasoning_tokens": 7637,
+     "cost": 0.0028864999999999997,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "mask-low-nibble-zero": "7502",
+   "mask-low-nibble-all": "6037",
+   "mask-low-nibble-some": "16461"
+  },
+  "mutations": [
+   {
+    "name": "F1: the loop stops at 3, entry 3 never filled",
+    "caught": true
+   },
+   {
+    "name": "F2: wrong constant in the DE4 call",
+    "caught": true
+   },
+   {
+    "name": "F3: unk0 store dropped",
+    "caught": true
+   },
+   {
+    "name": "F4: bit slip, unk1_5 takes arg3's bit 1",
+    "caught": true
+   },
+   {
+    "name": "F5: E78 called with entry 0, not the entry being filled",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 14,
+   "lines_hit": 14,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 5,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 6,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 150000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 90000, > 30000 (signed); < 90000, > 30000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 5,
+     "text": "if ((arg0 >> i) & 1) {",
+     "size": 4,
+     "count": 120000,
+     "kind": "against a constant",
+     "outcomes": "== 64666, < 0, > 55334 (signed); < 0, > 55334 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35238,
+     "completion_tokens": 3767,
+     "reasoning_tokens": 3181,
+     "cost": 0.0027036499999999997,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D1EF0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D1EF0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 142.81162325999958,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 200400.70617246628,
+ "totals": {
+  "cost": 0.00559,
+  "prompt_tokens": 47118,
+  "completion_tokens": 12937,
+  "model_seconds": 0.0,
+  "check_seconds": 142.8,
+  "calls": 2,
+  "wall_seconds": 200400.7
+ }
+}

@@ -1,0 +1,209 @@
+{
+ "function": "func_800D1FEC",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800D1FEC",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d1fec",
+  "difficulty": "S",
+  "zig_name": "func_800D1FEC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D1FEC",
+  "spec_file": "func_800D1FEC.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D1FEC(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800F54B8"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11582,
+     "completion_tokens": 3960,
+     "reasoning_tokens": 2819,
+     "cost": 0.0015691,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "no-bits": "7668",
+   "some-bits": "16405",
+   "all-bits": "5927"
+  },
+  "mutations": [
+   {
+    "name": "F1: the store writes 0xFE",
+    "caught": true
+   },
+   {
+    "name": "F2: the call is dropped",
+    "caught": true
+   },
+   {
+    "name": "F3: the call gets the index, not the bit",
+    "caught": true
+   },
+   {
+    "name": "F4: the loop stops before bit 3",
+    "caught": true
+   },
+   {
+    "name": "F5: the bit test accepts bit i+1 as well",
+    "caught": true
+   },
+   {
+    "name": "F6: the store moves after the call",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 4,
+   "branches_hit": 4,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "for (i = 0; i < 4; ++i) {",
+     "size": 4,
+     "count": 150000,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 90000, > 30000 (signed); < 90000, > 30000 (unsigned)",
+     "operand": "constant 3",
+     "a": "0..4"
+    },
+    {
+     "line": 5,
+     "text": "if ((arg0 >> i) & 1) {",
+     "size": 4,
+     "count": 120000,
+     "kind": "against a constant",
+     "outcomes": "== 63462, < 0, > 56538 (signed); < 0, > 56538 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34941,
+     "completion_tokens": 1325,
+     "reasoning_tokens": 916,
+     "cost": 0.0020783,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D1FEC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D1FEC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 138.44820478099973,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 200515.8956940174,
+ "totals": {
+  "cost": 0.00365,
+  "prompt_tokens": 46523,
+  "completion_tokens": 5285,
+  "model_seconds": 0.0,
+  "check_seconds": 138.4,
+  "calls": 2,
+  "wall_seconds": 200515.9
+ }
+}

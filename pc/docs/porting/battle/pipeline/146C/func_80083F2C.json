@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_80083F2C",
@@ -63,16 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13034,
-     "completion_tokens": 4104,
-     "reasoning_tokens": 3029,
-     "cost": 0.0016776999999999999,
+     "completion_tokens": 3913,
+     "reasoning_tokens": 2739,
+     "cost": 0.0016299499999999998,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083F2C: 1000 iterations, seed 1, 1000 mismatches; classes: null-target=213 valid-target=787"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083F2C: 1000 iterations, seed 1, 1000 mismatches; classes: null-target=354 entity-target=646"
     ]
    },
    {
@@ -85,39 +85,41 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14300,
-     "completion_tokens": 3275,
-     "reasoning_tokens": 2102,
-     "cost": 0.00153375,
+     "prompt_tokens": 14399,
+     "completion_tokens": 4139,
+     "reasoning_tokens": 2886,
+     "cost": 0.0017546999999999999,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80083F2C: 1000 iterations, seed 1, 1000 mismatches; classes: null-target=212 valid-target=788"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
   "classes": {
-   "null-target": "212",
-   "valid-target": "788"
+   "null-target": "6610",
+   "entity-target": "13390"
   },
   "mutations": [
    {
-    "name": "F1: wrong status constant",
+    "name": "F1: the status call is dropped",
     "caught": true
    },
    {
-    "name": "F2: arg1 passed instead of arg2",
+    "name": "F2: wrong status constant (0x16)",
     "caught": true
    },
    {
-    "name": "F3: the call dropped",
+    "name": "F3: arg1 passed instead of arg2",
     "caught": true
    },
    {
-    "name": "F4: returns 0 instead of the callee's result",
+    "name": "F4: the call's argument is dropped (null passed)",
     "caught": true
    }
   ],
@@ -134,12 +136,12 @@
     {
      "arg": 0,
      "count": 20000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 1,
      "count": 20000,
-     "text": "pointer: never null"
+     "text": "pointer: null seen"
     },
     {
      "arg": 2,
@@ -149,33 +151,86 @@
     {
      "arg": 3,
      "count": 20000,
-     "text": "32-bit: min -2147089216, max 2147120162, unsigned 16731..4294589001, seen negative, never zero"
+     "text": "32-bit: min 0, max 0, seen zero, never negative, 1 value(s): 0"
     },
     {
      "arg": 4,
      "count": 20000,
-     "text": "32-bit: min -2147378983, max 2147170147, unsigned 29849..4294825503, seen negative, never zero"
+     "text": "32-bit: min 0, max 0, seen zero, never negative, 1 value(s): 0"
     }
    ],
    "compares": [],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36507,
+     "completion_tokens": 1131,
+     "reasoning_tokens": 838,
+     "cost": 0.0021081,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 17.02089131399771,
+ "written": [
+  "pc/tests/zig_diff/func_80083F2C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_80083F2C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 507.8145617930013,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56653.85083246231,
+ "wall_seconds": 192363.44433188438,
  "totals": {
-  "cost": 0.00321,
-  "prompt_tokens": 27334,
-  "completion_tokens": 7379,
+  "cost": 0.00549,
+  "prompt_tokens": 63940,
+  "completion_tokens": 9183,
   "model_seconds": 0.0,
-  "check_seconds": 17.0,
-  "calls": 2,
-  "wall_seconds": 56653.9
+  "check_seconds": 507.8,
+  "calls": 3,
+  "wall_seconds": 192363.4
  }
 }

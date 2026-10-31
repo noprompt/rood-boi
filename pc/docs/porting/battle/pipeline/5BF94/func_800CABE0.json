@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
- "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 103: return value zdiff: MISMATCH iteration 107: return value ",
+ "status": "ported",
+ "reviewed": false,
  "plan": {
   "name": "func_800CABE0",
   "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
@@ -30,12 +30,9 @@
   "ret": "c_int",
   "types": [
    "D_800F4538_unk0",
-   "vs_battle_actor",
    "vs_battle_actor2"
   ],
-  "globals": [
-   "vs_battle_characterState"
-  ],
+  "globals": [],
   "hooks": [],
   "statics": [],
   "skip": ""
@@ -53,16 +50,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 15260,
-     "completion_tokens": 18377,
-     "reasoning_tokens": 16222,
-     "cost": 0.0107145,
-     "seconds": 75.0,
-     "sample": 1,
-     "conversation": "499e50a8c2e7ac0f27cfda89c7d019c0835e561b6fadccb7753fbc385fc1fce6"
+     "completion_tokens": 14222,
+     "reasoning_tokens": 12381,
+     "cost": 0.004318499999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has c_uint: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800CABE0/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has c_uint: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800CABE0/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
     ]
    },
    {
@@ -75,13 +72,13 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 17756,
-     "completion_tokens": 3238,
-     "reasoning_tokens": 1077,
-     "cost": 0.0033946,
-     "seconds": 11.4,
-     "sample": 1,
-     "conversation": "e48c07cd86746c50d503fd0682ee50a1f7bb02fba7b62d0aa6b7e945981724e2"
+     "prompt_tokens": 17442,
+     "completion_tokens": 2534,
+     "reasoning_tokens": 691,
+     "cost": 0.0015056,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
     },
     "passed": true,
     "errors": []
@@ -92,36 +89,37 @@
    "sample": 1
   },
   "classes": {
-   "arg2": "3028",
-   "mp-zero": "2671",
-   "hp-zero": "2438",
-   "ward": "9569",
-   "regen-or-strdown": "8140",
-   "other": "4154"
+   "mp-zero": "2972",
+   "hp-zero": "2776",
+   "undrawn": "12091",
+   "arg2": "1243",
+   "ward": "5054",
+   "regen-strdown": "3673",
+   "plain": "2191"
   },
   "mutations": [
    {
-    "name": "M1: MP test against 1, not 0",
+    "name": "M1: pattern bit 2 instead of 4",
     "caught": true
    },
    {
-    "name": "M2: Ward tested as Regen",
+    "name": "M2: Ward test uses the Regen bit",
     "caught": true
    },
    {
-    "name": "M3: flag mask drops bit 20",
+    "name": "M3: func_800A0BE0 gets the MP test as its argument",
     "caught": true
    },
    {
-    "name": "M4: callee called with 1",
+    "name": "M4: the not-drawn bit (8) dropped from the result",
     "caught": true
    },
    {
-    "name": "M5: dropped store of the weapon-undrawn flag",
+    "name": "M5: arg0 compared with 3, not 2",
     "caught": true
    },
    {
-    "name": "M6: arg0 bound too loose",
+    "name": "M6: StrDown dropped from the Regen mask",
     "caught": true
    }
   ],
@@ -138,7 +136,7 @@
     {
      "arg": 0,
      "count": 30000,
-     "text": "32-bit: min -2147221440, max 2147090414, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147482839, max 2147263966, unsigned 0..4294967295, seen zero/negative/all ones"
     }
    ],
    "compares": [
@@ -148,7 +146,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 7427, < 7431, > 15142 (signed); < 7431, > 15142 (unsigned)",
+     "outcomes": "== 7600, < 7395, > 15005 (signed); < 7395, > 15005 (unsigned)",
      "operand": "constant 1048576",
      "a": "0..1074790400"
     },
@@ -158,7 +156,7 @@
      "size": 1,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 14900, < 15100, > 0 (signed); < 0, > 15100 (unsigned)",
+     "outcomes": "== 15069, < 14931, > 0 (signed); < 0, > 14931 (unsigned)",
      "operand": "constant 0",
      "a": "-128..0"
     },
@@ -168,7 +166,7 @@
      "size": 2,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 2218, < 13863, > 13919 (signed); < 0, > 27782 (unsigned)",
+     "outcomes": "== 1852, < 14072, > 14076 (signed); < 0, > 28148 (unsigned)",
      "operand": "constant 0",
      "a": "-32768..32767"
     },
@@ -178,7 +176,7 @@
      "size": 2,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 2231, < 13768, > 14001 (signed); < 0, > 27769 (unsigned)",
+     "outcomes": "== 1922, < 13989, > 14089 (signed); < 0, > 28078 (unsigned)",
      "operand": "constant 0",
      "a": "-32768..32767"
     },
@@ -188,7 +186,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 9004, < 0, > 20996 (signed); < 0, > 20996 (unsigned)",
+     "outcomes": "== 9291, < 0, > 20709 (signed); < 0, > 20709 (unsigned)",
      "operand": "constant 0",
      "a": "0..4097"
     },
@@ -198,7 +196,7 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 16476, < 0, > 13524 (signed); < 0, > 13524 (unsigned)",
+     "outcomes": "== 15648, < 0, > 14352 (signed); < 0, > 14352 (unsigned)",
      "operand": "constant 0",
      "a": "0..8192"
     },
@@ -208,9 +206,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 3028, < 16431, > 10541 (signed); < 5852, > 21120 (unsigned)",
+     "outcomes": "== 3063, < 16575, > 10362 (signed); < 6042, > 20895 (unsigned)",
      "operand": "constant 2",
-     "a": "-2147221440..2147090414"
+     "a": "-2147482839..2147263966"
     }
    ],
    "passed": true
@@ -230,66 +228,60 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 38732,
-     "completion_tokens": 4548,
-     "reasoning_tokens": 3869,
-     "cost": 0.0061472,
-     "seconds": 19.0,
-     "sample": 1,
-     "conversation": "cae783567df071de0bf125735feb21104efc5695995a799f9699cfa6af717768"
+     "completion_tokens": 5142,
+     "reasoning_tokens": 4421,
+     "cost": 0.0032221,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: does not compile:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_800CABE0.zig:12:43: error: expected type 'c_int', found 'c_uint'\n    const temp_v0: c_int = c.func_800A0BE0(0);\n                           ~~~~~~~~~~~~~~~^~~\ngame/battle/func_800CABE0.zig:12:43: note: signed 32-bit int cannot represent all possible unsigned 32-bit values\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
-    ],
-    "runs": []
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 39718,
-     "completion_tokens": 1229,
-     "reasoning_tokens": 512,
-     "cost": 0.0045863,
-     "seconds": 5.3,
-     "sample": 1,
-     "conversation": "3a60d6c58a9a353cf354cbbf63a498e2afd4f26bbe3d51d5594072b6aae81241"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 103: return value\nzdiff: MISMATCH iteration 107: return value\nzdiff: MISMATCH iteration 108: return value\nzdiff: func_800CABE0: 19003 iterations, seed 1, 1000 mismatches; classes: arg2=1940 mp-zero=1695 hp-zero=1530 ward=6067 regen-or-strdown=5167 other=2604"
-    ],
+    "passed": true,
+    "errors": [],
     "runs": [
      {
       "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 103: return value"
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
      }
     ]
    }
-  ]
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 15.130410933001258,
- "wall_seconds": 126.1594966709963,
+ "written": [
+  "pc/tests/zig_diff/func_800CABE0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CABE0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 120.38299811899924,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 197371.24708366394,
  "totals": {
-  "cost": 0.02484,
-  "prompt_tokens": 111466,
-  "completion_tokens": 27392,
-  "model_seconds": 110.7,
-  "check_seconds": 15.1,
-  "calls": 4,
-  "wall_seconds": 126.2
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.00905,
+  "prompt_tokens": 71434,
+  "completion_tokens": 21898,
+  "model_seconds": 0.0,
+  "check_seconds": 120.4,
+  "calls": 3,
+  "wall_seconds": 197371.2
  }
 }

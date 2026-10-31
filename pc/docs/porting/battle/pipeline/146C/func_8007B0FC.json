@@ -1,0 +1,192 @@
+{
+ "function": "func_8007B0FC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8007B0FC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007b0fc",
+  "difficulty": "S",
+  "zig_name": "func_8007B0FC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007B0FC",
+  "spec_file": "func_8007B0FC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007B0FC() callconv(.c) void",
+  "params": [],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11000,
+     "completion_tokens": 3016,
+     "reasoning_tokens": 2236,
+     "cost": 0.001304,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)",
+     "FAIL: mutation E1: stray byte store into the scratchpad: mutation E1: stray byte store into the scratchpad: its `from` text occurs 0 times in the C body of func_8007B0FC (copy it exactly from the C)",
+     "FAIL: mutation E2: stray word store into the scratchpad: mutation E2: stray word store into the scratchpad: its `from` text occurs 0 times in the C body of func_8007B0FC (copy it exactly from the C)",
+     "FAIL: mutation E3: stray store to the last scratchpad byte: mutation E3: stray store to the last scratchpad byte: its `from` text occurs 0 times in the C body of func_8007B0FC (copy it exactly from the C)",
+     "FAIL: mutation E4: stray store to PS1 low RAM: mutation E4: stray store to PS1 low RAM: its `from` text occurs 0 times in the C body of func_8007B0FC (copy it exactly from the C)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12151,
+     "completion_tokens": 1696,
+     "reasoning_tokens": 951,
+     "cost": 0.00103155,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "empty": "20000"
+  },
+  "mutations": [
+   {
+    "name": "E1: stray byte store into the scratchpad",
+    "caught": true
+   },
+   {
+    "name": "E2: stray word store into the scratchpad",
+    "caught": true
+   },
+   {
+    "name": "E3: stray store to the last scratchpad byte",
+    "caught": true
+   },
+   {
+    "name": "E4: stray store to PS1 low RAM",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 1,
+   "lines_hit": 1,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34465,
+     "completion_tokens": 378,
+     "reasoning_tokens": 256,
+     "cost": 0.00181775,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007B0FC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007B0FC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 467.10077395100143,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 187206.86861014366,
+ "totals": {
+  "cost": 0.00415,
+  "prompt_tokens": 57616,
+  "completion_tokens": 5090,
+  "model_seconds": 0.0,
+  "check_seconds": 467.1,
+  "calls": 3,
+  "wall_seconds": 187206.9
+ }
+}

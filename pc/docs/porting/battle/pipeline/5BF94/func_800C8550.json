@@ -1,0 +1,298 @@
+{
+ "function": "func_800C8550",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "M",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800C8550",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c8550",
+  "difficulty": "M",
+  "zig_name": "func_800C8550",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800C8550",
+  "spec_file": "func_800C8550.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800C8550(arg0: c_uint, arg1: ?*anyopaque, arg2: [*c]u8) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_uint"
+   ],
+   [
+    "arg1",
+    "?*anyopaque"
+   ],
+   [
+    "arg2",
+    "[*c]u8"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12205,
+     "completion_tokens": 19883,
+     "reasoning_tokens": 18122,
+     "cost": 0.005580999999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F6: the upward comparison is unsigned: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800C8550: 30000 iterations, seed 1, 0 mismatches; classes: mode-2=11215 mode-3=11340 other=7445"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14110,
+     "completion_tokens": 4441,
+     "reasoning_tokens": 2638,
+     "cost": 0.0018157499999999999,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "mode-2": "11215",
+   "mode-3": "11340",
+   "other": "7445"
+  },
+  "mutations": [
+   {
+    "name": "F1: the flag store is dropped",
+    "caught": true
+   },
+   {
+    "name": "F2: the target test takes equal values",
+    "caught": true
+   },
+   {
+    "name": "F3: the negative-angle test is unsigned (never true)",
+    "caught": true
+   },
+   {
+    "name": "F4: the restart angle is 127",
+    "caught": true
+   },
+   {
+    "name": "F5: the mode-3 call reads the wrong entry's unk0_9",
+    "caught": true
+   },
+   {
+    "name": "F6: the upward test is strict (equal angle and target skip the reload)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 14,
+   "branches_hit": 14,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 24,
+   "lines_hit": 24,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 127, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: null seen"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (gim->unk0_3 == 2) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 11215, < 2507, > 16278 (signed); < 2507, > 16278 (unsigned)",
+     "operand": "constant 16",
+     "a": "0..56"
+    },
+    {
+     "line": 14,
+     "text": "for (i = 0; i < 240; ++i) {",
+     "size": 4,
+     "count": 2702815,
+     "kind": "against a constant",
+     "outcomes": "== 11215, < 2680385, > 11215 (signed); < 2680385, > 11215 (unsigned)",
+     "operand": "constant 239",
+     "a": "0..240"
+    },
+    {
+     "line": 19,
+     "text": "if (target < angle) {",
+     "size": 4,
+     "count": 2691600,
+     "kind": "a == b / a < b",
+     "outcomes": "== 478, < 1682794, > 1008328 (signed); < 1682794, > 1008328 (unsigned)",
+     "operand": "b 0..2856",
+     "a": "0..1023"
+    },
+    {
+     "line": 22,
+     "text": "if (target >= angle) {",
+     "size": 4,
+     "count": 1682794,
+     "kind": "a == b / a < b",
+     "outcomes": "== 1057, < 1596885, > 84852 (signed); < 1656531, > 25206 (unsigned)",
+     "operand": "b -188..2856",
+     "a": "0..1023"
+    },
+    {
+     "line": 28,
+     "text": "if (angle >= target) {",
+     "size": 4,
+     "count": 1008806,
+     "kind": "a == b / a < b",
+     "outcomes": "== 556, < 961043, > 47207 (signed); < 933484, > 74766 (unsigned)",
+     "operand": "b 0..1023",
+     "a": "-64..1199"
+    },
+    {
+     "line": 33,
+     "text": "if (angle < 0) {",
+     "size": 4,
+     "count": 2691600,
+     "kind": "against a constant",
+     "outcomes": "== 1417, < 87205, > 2602978 (signed); < 0, > 2690183 (unsigned)",
+     "operand": "constant 0",
+     "a": "-188..2856"
+    },
+    {
+     "line": 40,
+     "text": "if (gim->unk0_3 == 3) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 11340, < 13722, > 4938 (signed); < 13722, > 4938 (unsigned)",
+     "operand": "constant 24",
+     "a": "0..56"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35685,
+     "completion_tokens": 6500,
+     "reasoning_tokens": 5662,
+     "cost": 0.00340925,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800C8550.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800C8550.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 1201.6785159220035,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 197077.65657901764,
+ "totals": {
+  "cost": 0.01081,
+  "prompt_tokens": 62000,
+  "completion_tokens": 30824,
+  "model_seconds": 0.0,
+  "check_seconds": 1201.7,
+  "calls": 3,
+  "wall_seconds": 197077.7
+ }
+}

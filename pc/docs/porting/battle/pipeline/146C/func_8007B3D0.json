@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_8007B3D0",
@@ -59,16 +59,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 11136,
-     "completion_tokens": 4642,
-     "reasoning_tokens": 3549,
-     "cost": 0.0017172999999999997,
+     "completion_tokens": 5486,
+     "reasoning_tokens": 4227,
+     "cost": 0.0019283,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:235:46: error: expected 5 argument(s), found 1\n                return adapt(S, @call(.auto, f, .{&ctx} ++ stubArgs(@TypeOf(f), args)));\n                                             ^\npc/build/port-pipeline/func_8007B3D0/spec1/build/spec.zig:15:9: note: function declared here\n    pub fn vs_main_loadClutTransition(ctx: *zd.Ctx, a: anytype, b: anytype, c: anytype, d: anytype) void {\n    ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    f: pc/build/port-pipeline/func_8007B3D0/spec1/build/game/common/route.zig:19:28\n    comptime: pc/tests/zig_diff/main.zig:244:58\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:235:46: error: expected 5 argument(s), found 1\n                return adapt(S, @call(.auto, f, .{&ctx} ++ stubArgs(@TypeOf(f), args)));\n                                             ^\npc/build/port-pipeline/func_8007B3D0/spec1/build/spec.zig:15:9: note: function declared here\n    pub fn vs_main_loadClutTransition(ctx: *zd.Ctx, a: anytype, b: anytype, buf: anytype, d: anytype) void {\n    ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nreferenced by:\n    f: pc/build/port-pipeline/func_8007B3D0/spec1/build/game/common/route.zig:19:28\n    comptime: pc/tests/zig_diff/main.zig:244:58\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
     ]
    },
    {
@@ -81,42 +81,46 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 12717,
-     "completion_tokens": 3163,
-     "reasoning_tokens": 2180,
-     "cost": 0.0014266,
+     "prompt_tokens": 12886,
+     "completion_tokens": 3878,
+     "reasoning_tokens": 2516,
+     "cost": 0.0016137999999999999,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation F1: forwarded arg1 offset is 3, not 4: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8007B3D0: 20000 iterations, seed 1, 0 mismatches; classes: null-buf=4943 arg1-minus-four=1942 other=13115",
-     "FAIL: mutation F2: arg3 replaced by arg0 in the last argument: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8007B3D0: 20000 iterations, seed 1, 0 mismatches; classes: null-buf=4943 arg1-minus-four=1942 other=13115",
-     "FAIL: mutation F3: first argument taken from arg1: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8007B3D0: 20000 iterations, seed 1, 0 mismatches; classes: null-buf=4943 arg1-minus-four=1942 other=13115"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
   "classes": {
-   "null-buf": "4943",
-   "arg1-minus-four": "1942",
-   "other": "13115"
+   "null-buffer": "7637",
+   "wrapping-arg1": "4161",
+   "plain": "18202"
   },
   "mutations": [
    {
-    "name": "F1: forwarded arg1 offset is 3, not 4",
-    "caught": false
+    "name": "L1: the call is dropped",
+    "caught": true
    },
    {
-    "name": "F2: arg3 replaced by arg0 in the last argument",
-    "caught": false
+    "name": "L2: the call is made twice",
+    "caught": true
    },
    {
-    "name": "F3: first argument taken from arg1",
-    "caught": false
+    "name": "L3: a store of arg1 into the buffer before the call",
+    "caught": true
    },
    {
-    "name": "F4: the call is dropped",
+    "name": "L4: a store of arg3 into the buffer after the call",
+    "caught": true
+   },
+   {
+    "name": "L5: the buffer's null test is dropped (stores through null)",
     "caught": true
    }
   ],
@@ -132,44 +136,97 @@
    "args": [
     {
      "arg": 0,
-     "count": 20000,
-     "text": "32-bit: min -2147305298, max 2147147993, unsigned 100561..4294940656, seen negative, never zero"
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 1,
-     "count": 20000,
-     "text": "32-bit: min -2147065995, max 2147483643, unsigned 0..4294967295, seen zero/negative/all ones"
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967292, seen zero/negative/signed max"
     },
     {
      "arg": 2,
-     "count": 20000,
+     "count": 30000,
      "text": "pointer: null seen"
     },
     {
      "arg": 3,
-     "count": 20000,
-     "text": "32-bit: min -2147427147, max 2147339985, unsigned 2328..4294890133, seen negative, never zero"
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     }
    ],
    "compares": [],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34600,
+     "completion_tokens": 818,
+     "reasoning_tokens": 588,
+     "cost": 0.0019345,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 14.295285552001587,
+ "written": [
+  "pc/tests/zig_diff/func_8007B3D0.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007B3D0.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 459.1637744130003,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56479.55869078636,
+ "wall_seconds": 188056.28495693207,
  "totals": {
-  "cost": 0.00314,
-  "prompt_tokens": 23853,
-  "completion_tokens": 7805,
+  "cost": 0.00548,
+  "prompt_tokens": 58622,
+  "completion_tokens": 10182,
   "model_seconds": 0.0,
-  "check_seconds": 14.3,
-  "calls": 2,
-  "wall_seconds": 56479.6
+  "check_seconds": 459.2,
+  "calls": 3,
+  "wall_seconds": 188056.3
  }
 }

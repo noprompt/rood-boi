@@ -1,0 +1,194 @@
+{
+ "function": "func_800D1E2C",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800D1E2C",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d1e2c",
+  "difficulty": "S",
+  "zig_name": "func_800D1E2C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D1E2C",
+  "spec_file": "func_800D1E2C.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D1E2C(arg0: ?*v.D_800F54B8_t) callconv(.c) u8",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F54B8_t"
+   ]
+  ],
+  "ret": "u8",
+  "types": [
+   "D_800F54B8_t"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11512,
+     "completion_tokens": 5469,
+     "reasoning_tokens": 4343,
+     "cost": 0.0019428499999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "flag-clear": "15003",
+   "flag-set": "14997"
+  },
+  "mutations": [
+   {
+    "name": "F1: curve sampled with the arguments swapped",
+    "caught": true
+   },
+   {
+    "name": "F2: flag test inverted",
+    "caught": true
+   },
+   {
+    "name": "F3: the clear-flag path returns unk0",
+    "caught": true
+   },
+   {
+    "name": "F4: wrong bitfield tested (unk1_6 for unk1_5)",
+    "caught": true
+   },
+   {
+    "name": "F5: the curve sampler call dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (arg0->unk1_5) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15003, < 0, > 14997 (signed); < 0, > 14997 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..32"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34977,
+     "completion_tokens": 1609,
+     "reasoning_tokens": 1264,
+     "cost": 0.0021511,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800D1E2C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800D1E2C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 131.0842321249993,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 200171.1536502838,
+ "totals": {
+  "cost": 0.00409,
+  "prompt_tokens": 46489,
+  "completion_tokens": 7078,
+  "model_seconds": 0.0,
+  "check_seconds": 131.1,
+  "calls": 2,
+  "wall_seconds": 200171.2
+ }
+}

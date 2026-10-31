@@ -1,0 +1,244 @@
+{
+ "function": "func_8008E400",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008E400",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008e400",
+  "difficulty": "S",
+  "zig_name": "func_8008E400",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008E400",
+  "spec_file": "func_8008E400.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008E400(arg0: [*c]c_int) callconv(.c) ?*v._mpdRoomSection9",
+  "params": [
+   [
+    "arg0",
+    "[*c]c_int"
+   ]
+  ],
+  "ret": "?*v._mpdRoomSection9",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14111,
+     "completion_tokens": 11162,
+     "reasoning_tokens": 9735,
+     "cost": 0.00349605,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "flagged": "22435",
+   "section9-null": "406",
+   "section9-set": "7159"
+  },
+  "mutations": [
+   {
+    "name": "F1: the unk20 flag is not checked",
+    "caught": true
+   },
+   {
+    "name": "F2: unk40 flag tested inverted",
+    "caught": true
+   },
+   {
+    "name": "F3: wrong divisor (16 for 12)",
+    "caught": true
+   },
+   {
+    "name": "F4: section9Len divided as a signed int",
+    "caught": true
+   },
+   {
+    "name": "F5: the count store is dropped on the set path",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 9,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if ((vs_main_stateFlags.unk20 != 0) || (vs_main_stateFlags.unk40 != 0)) {",
+     "size": 1,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 15018, < 8794, > 6188 (signed); < 0, > 14982 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 2,
+     "text": "if ((vs_main_stateFlags.unk20 != 0) || (vs_main_stateFlags.unk40 != 0)) {",
+     "size": 1,
+     "count": 15018,
+     "kind": "against a constant",
+     "outcomes": "== 7565, < 4368, > 3085 (signed); < 0, > 7453 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..127"
+    },
+    {
+     "line": 6,
+     "text": "if (((__typeof__((vs_battle_roomData.section9).psx_type_[0]))(long unsigned int)(vs_battle_roomData.section9).raw) != 0) {",
+     "size": 4,
+     "count": 7565,
+     "kind": "against a constant",
+     "outcomes": "== 406, < 1696, > 5463 (signed); < 0, > 7159 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37591,
+     "completion_tokens": 1882,
+     "reasoning_tokens": 1504,
+     "cost": 0.0023500500000000002,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 3):\nzdiff: PANIC in the Zig run, iteration 16: incorrect alignment (return address 0x402d05)"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 3,
+      "mismatches": null,
+      "first": "PANIC in the Zig run, iteration 16: incorrect alignment (return address 0x402d05)"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 38060,
+     "completion_tokens": 3289,
+     "reasoning_tokens": 2763,
+     "cost": 0.00272525,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008E400.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008E400.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 424.52261351799734,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 194877.42305707932,
+ "totals": {
+  "cost": 0.00857,
+  "prompt_tokens": 89762,
+  "completion_tokens": 16333,
+  "model_seconds": 0.0,
+  "check_seconds": 424.5,
+  "calls": 3,
+  "wall_seconds": 194877.4
+ }
+}

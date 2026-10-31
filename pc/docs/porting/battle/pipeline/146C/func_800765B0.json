@@ -65,11 +65,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 17726,
-     "completion_tokens": 28011,
-     "reasoning_tokens": 25433,
-     "cost": 0.00788905,
+     "completion_tokens": 27628,
+     "reasoning_tokens": 25522,
+     "cost": 0.0077932999999999995,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": true,
@@ -81,35 +81,34 @@
    "sample": 1
   },
   "classes": {
-   "full-table": "2494",
-   "free-slot-search": "12380",
-   "taken": "10874",
-   "alloc-negative-actor": "2141",
-   "alloc-actor": "2111"
+   "search-found": "9993",
+   "index-free": "13238",
+   "search-full": "3386",
+   "index-occupied": "13383"
   },
   "mutations": [
    {
-    "name": "F1: heap actorId wrap at 0x100 instead of 0xFF",
+    "name": "M1: search bound: slot 15 found but reported as full",
     "caught": true
    },
    {
-    "name": "F2: objData flags keep bit 1 (&= 3 for &= 1)",
+    "name": "M2: actorId offset 0x100 instead of 0xFF for negative ids",
     "caught": true
    },
    {
-    "name": "F3: variant read with the wrong shift",
+    "name": "M3: actor id field takes actorId instead of the slot index",
     "caught": true
    },
    {
-    "name": "F4: the free-slot search starts at slot 1",
+    "name": "M4: dropped func_8007647C call",
     "caught": true
    },
    {
-    "name": "F5: func_800E6178 call dropped",
+    "name": "M5: dropped slot store",
     "caught": true
    },
    {
-    "name": "F6: wait loop runs at most once (while became if)",
+    "name": "M6: wrong constant in the full-table message",
     "caught": true
    }
   ],
@@ -125,28 +124,28 @@
    "args": [
     {
      "arg": 0,
-     "count": 30000,
-     "text": "32-bit: min 0, max 255, seen zero, never negative"
+     "count": 40000,
+     "text": "32-bit: min 0, max 255, seen zero, never negative, 7 value(s): 255, 0, 15, 1, 14, 2, 7"
     },
     {
      "arg": 1,
-     "count": 30000,
+     "count": 40000,
      "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 2,
-     "count": 30000,
+     "count": 40000,
      "text": "pointer: never null"
     },
     {
      "arg": 3,
-     "count": 30000,
-     "text": "32-bit: min -2146828866, max 2147267559, unsigned 0..4294967295, seen zero/negative/all ones"
+     "count": 40000,
+     "text": "32-bit: min -2146934752, max 2147478258, unsigned 0..4294967295, seen zero/negative/all ones"
     },
     {
      "arg": 4,
-     "count": 30000,
-     "text": "32-bit: min -2147378351, max 2147409768, unsigned 159181..4294717456, seen negative, never zero"
+     "count": 40000,
+     "text": "32-bit: min -2147451835, max 2147467672, unsigned 88837..4294644894, seen negative, never zero"
     }
    ],
    "compares": [
@@ -154,9 +153,9 @@
      "line": 8,
      "text": "if (index == 0xFF) {",
      "size": 4,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 14874, < 15126, > 0 (signed); < 15126, > 0 (unsigned)",
+     "outcomes": "== 13379, < 26621, > 0 (signed); < 26621, > 0 (unsigned)",
      "operand": "constant 255",
      "a": "0..255"
     },
@@ -164,9 +163,9 @@
      "line": 9,
      "text": "for (i = 2; i < 16; ++i) {",
      "size": 4,
-     "count": 73559,
+     "count": 98591,
      "kind": "against a constant",
-     "outcomes": "== 2512, < 68553, > 2494 (signed); < 68553, > 2494 (unsigned)",
+     "outcomes": "== 3728, < 91477, > 3386 (signed); < 91477, > 3386 (unsigned)",
      "operand": "constant 15",
      "a": "2..16"
     },
@@ -174,9 +173,9 @@
      "line": 15,
      "text": "if (i >= 16) {",
      "size": 4,
-     "count": 14874,
+     "count": 13379,
      "kind": "against a constant",
-     "outcomes": "== 18, < 12362, > 2494 (signed); < 12362, > 2494 (unsigned)",
+     "outcomes": "== 342, < 9651, > 3386 (signed); < 9651, > 3386 (unsigned)",
      "operand": "constant 15",
      "a": "2..16"
     },
@@ -184,9 +183,9 @@
      "line": 39,
      "text": "if (actorId < 0) {",
      "size": 4,
-     "count": 16632,
+     "count": 23231,
      "kind": "against a constant",
-     "outcomes": "== 731, < 8365, > 7536 (signed); < 0, > 15901 (unsigned)",
+     "outcomes": "== 5787, < 9997, > 7447 (signed); < 0, > 17444 (unsigned)",
      "operand": "constant 0",
      "a": "-2147483648..2147483647"
     },
@@ -194,11 +193,11 @@
      "line": 48,
      "text": "while (vs_battle_getEmptyObjectDataSlot() != 0) {",
      "size": 4,
-     "count": 32859,
+     "count": 105347,
      "kind": "against a constant",
-     "outcomes": "== 16632, < 8156, > 8071 (signed); < 0, > 16227 (unsigned)",
+     "outcomes": "== 23231, < 41052, > 41064 (signed); < 0, > 82116 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147392023..2147352655"
+     "a": "-1..1"
     }
    ],
    "passed": true
@@ -218,23 +217,23 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 41106,
-     "completion_tokens": 14324,
-     "reasoning_tokens": 12931,
-     "cost": 0.0056363,
+     "completion_tokens": 13223,
+     "reasoning_tokens": 11881,
+     "cost": 0.005361049999999999,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 3: memory at 0x408c08 [arena] (zdiff_state+0xb88): C 1, Zig 0\nzdiff: MISMATCH iteration 9: memory at 0x408c08 [arena] (zdiff_state+0xb88): C 238, Zig 0\nzdiff: MISMATCH iteration 11: memory at 0x408c08 [arena] (zdiff_state+0xb88): C 177, Zig 0\nzdiff: func_800765B0: 1878 iterations, seed 1, 1000 mismatches; classes: full-table=162 free-slot-search=789 taken=668 alloc-negative-actor=126 alloc-actor=133"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x409c18 [arena] (zdiff_state+0xb98): C 1, Zig 0\nzdiff: MISMATCH iteration 4: memory at 0x409c18 [arena] (zdiff_state+0xb98): C 16, Zig 0\nzdiff: MISMATCH iteration 7: memory at 0x409c18 [arena] (zdiff_state+0xb98): C 149, Zig 0\nzdiff: func_800765B0: 2304 iterations, seed 1, 1000 mismatches; classes: search-found=549 index-free=784 search-full=183 index-occupied=788"
     ],
     "runs": [
      {
       "seed": 1,
       "exit": 1,
       "mismatches": 1000,
-      "first": "MISMATCH iteration 3: memory at 0x408c08 (zdiff_state+0xb88): C 1, Zig 0"
+      "first": "MISMATCH iteration 0: memory at 0x409c18 (zdiff_state+0xb98): C 1, Zig 0"
      }
     ]
    },
@@ -248,41 +247,41 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 42790,
-     "completion_tokens": 8812,
-     "reasoning_tokens": 7301,
-     "cost": 0.0043425,
+     "prompt_tokens": 42724,
+     "completion_tokens": 8324,
+     "reasoning_tokens": 6982,
+     "cost": 0.0042172,
      "seconds": null,
-     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 3: memory at 0x408c02 [arena] (zdiff_state+0xb82): C 0, Zig 170\nzdiff: MISMATCH iteration 9: memory at 0x408c02 [arena] (zdiff_state+0xb82): C 0, Zig 170\nzdiff: MISMATCH iteration 11: memory at 0x408c02 [arena] (zdiff_state+0xb82): C 0, Zig 170\nzdiff: func_800765B0: 1784 iterations, seed 1, 1000 mismatches; classes: full-table=155 free-slot-search=752 taken=629 alloc-negative-actor=121 alloc-actor=127"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: memory at 0x409c12 [arena] (zdiff_state+0xb92): C 0, Zig 170\nzdiff: func_800765B0: 40000 iterations, seed 1, 1 mismatches; classes: search-found=9993 index-free=13238 search-full=3386 index-occupied=13383"
     ],
     "runs": [
      {
       "seed": 1,
       "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 3: memory at 0x408c02 (zdiff_state+0xb82): C 0, Zig 170"
+      "mismatches": 1,
+      "first": "MISMATCH iteration 0: memory at 0x409c12 (zdiff_state+0xb92): C 0, Zig 170"
      }
     ]
    }
   ]
  },
  "written": [],
- "check_seconds": 25.12944836099632,
+ "check_seconds": 42.48479924500043,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 97145.89005684853,
+ "wall_seconds": 177563.5689458847,
  "totals": {
-  "cost": 0.01787,
-  "prompt_tokens": 101622,
-  "completion_tokens": 51147,
+  "cost": 0.01737,
+  "prompt_tokens": 101556,
+  "completion_tokens": 49175,
   "model_seconds": 0.0,
-  "check_seconds": 25.1,
+  "check_seconds": 42.5,
   "calls": 3,
-  "wall_seconds": 97145.9
+  "wall_seconds": 177563.6
  }
 }

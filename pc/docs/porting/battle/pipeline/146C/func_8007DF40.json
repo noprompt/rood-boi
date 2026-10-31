@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "func_8007DF40",
@@ -42,20 +42,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 10988,
-     "completion_tokens": 2352,
-     "reasoning_tokens": 1570,
-     "cost": 0.0011374,
+     "completion_tokens": 1851,
+     "reasoning_tokens": 1278,
+     "cost": 0.00101215,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: no input classes declared (`classes` and `classify`)",
-     "FAIL: mutation E1: a store to the scratchpad's first byte: mutation E1: a store to the scratchpad's first byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
-     "FAIL: mutation E2: a store to the scratchpad's last byte: mutation E2: a store to the scratchpad's last byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
-     "FAIL: mutation E3: a 32-bit store to PS1 address 0 (lowRam): mutation E3: a 32-bit store to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
-     "FAIL: mutation E4: a store of zero to PS1 address 0 (lowRam): mutation E4: a store of zero to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)"
+     "FAIL: no input classes declared (`classes` and `classify`)"
     ]
    },
    {
@@ -68,42 +64,37 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 12177,
-     "completion_tokens": 2822,
-     "reasoning_tokens": 1810,
-     "cost": 0.00131435,
+     "prompt_tokens": 11612,
+     "completion_tokens": 971,
+     "reasoning_tokens": 329,
+     "cost": 0.00082335,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation E1: a store to the scratchpad's first byte: mutation E1: a store to the scratchpad's first byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
-     "FAIL: mutation E2: a store to the scratchpad's last byte: mutation E2: a store to the scratchpad's last byte: its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
-     "FAIL: mutation E3: a 32-bit store to PS1 address 0 (lowRam): mutation E3: a 32-bit store to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)",
-     "FAIL: mutation E4: a store of zero to PS1 address 0 (lowRam): mutation E4: a store of zero to PS1 address 0 (lowRam): its `from` text occurs 0 times in the C body of func_8007DF40 (copy it exactly from the C)"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
   "classes": {
-   "run": "20000"
+   "empty": "20000"
   },
   "mutations": [
    {
-    "name": "E1: a store to the scratchpad's first byte",
-    "caught": false
+    "name": "E1: a stray byte store to the scratchpad",
+    "caught": true
    },
    {
-    "name": "E2: a store to the scratchpad's last byte",
-    "caught": false
+    "name": "E2: a stray word store to the scratchpad",
+    "caught": true
    },
    {
-    "name": "E3: a 32-bit store to PS1 address 0 (lowRam)",
-    "caught": false
-   },
-   {
-    "name": "E4: a store of zero to PS1 address 0 (lowRam)",
-    "caught": false
+    "name": "E3: a stray store to PS1 address 0",
+    "caught": true
    }
   ],
   "coverage": {
@@ -118,23 +109,76 @@
    "args": [],
    "compares": [],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34460,
+     "completion_tokens": 367,
+     "reasoning_tokens": 241,
+     "cost": 0.00181475,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 12.342322155000147,
+ "written": [
+  "pc/tests/zig_diff/func_8007DF40.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007DF40.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 633.4902661979986,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56602.19355082512,
+ "wall_seconds": 191881.4177994728,
  "totals": {
-  "cost": 0.00245,
-  "prompt_tokens": 23165,
-  "completion_tokens": 5174,
+  "cost": 0.00365,
+  "prompt_tokens": 57060,
+  "completion_tokens": 3189,
   "model_seconds": 0.0,
-  "check_seconds": 12.3,
-  "calls": 2,
-  "wall_seconds": 56602.2
+  "check_seconds": 633.5,
+  "calls": 3,
+  "wall_seconds": 191881.4
  }
 }

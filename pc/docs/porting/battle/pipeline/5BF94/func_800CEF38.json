@@ -1,0 +1,201 @@
+{
+ "function": "func_800CEF38",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CEF38",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cef38",
+  "difficulty": "S",
+  "zig_name": "func_800CEF38",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CEF38",
+  "spec_file": "func_800CEF38.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CEF38(arg0: c_int) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11131,
+     "completion_tokens": 3295,
+     "reasoning_tokens": 2450,
+     "cost": 0.0013802999999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "shift-low": "9993",
+   "shift-high": "10007"
+  },
+  "mutations": [
+   {
+    "name": "F1: counter decremented by 2",
+    "caught": true
+   },
+   {
+    "name": "F2: shift amount masked to 4 bits (high bits lost)",
+    "caught": true
+   },
+   {
+    "name": "F3: bit toggled instead of set",
+    "caught": true
+   },
+   {
+    "name": "F4: counter store dropped",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min 0, max 31, seen zero, never negative"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34603,
+     "completion_tokens": 1026,
+     "reasoning_tokens": 719,
+     "cost": 0.00198665,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_800CEF38.zig:10:63: error: expected unsigned integer type, found 'c_int'\n    v.g.D_800F521C().* |= @as(c_uint, 1) << @as(u5, @truncate(bit));\n                                                              ^~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35171,
+     "completion_tokens": 774,
+     "reasoning_tokens": 443,
+     "cost": 0.0019520499999999999,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CEF38.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CEF38.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 118.4128900789974,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 198297.11806082726,
+ "totals": {
+  "cost": 0.00532,
+  "prompt_tokens": 80905,
+  "completion_tokens": 5095,
+  "model_seconds": 0.0,
+  "check_seconds": 118.4,
+  "calls": 3,
+  "wall_seconds": 198297.1
+ }
+}

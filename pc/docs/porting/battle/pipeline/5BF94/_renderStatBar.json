@@ -1,0 +1,274 @@
+{
+ "function": "_renderStatBar",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_renderStatBar",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800c9b38",
+  "difficulty": "S",
+  "zig_name": "renderStatBar",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "render_stat_bar",
+  "spec_file": "renderStatBar.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn renderStatBar(colorIndex: c_int, current: c_int, max: c_int) callconv(.c) void",
+  "params": [
+   [
+    "colorIndex",
+    "c_int"
+   ],
+   [
+    "current",
+    "c_int"
+   ],
+   [
+    "max",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "D_800EB9B0",
+   "D_800EBBDC",
+   "D_800EBBEC",
+   "D_800EBBFC",
+   "D_800EBC00"
+  ],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13110,
+     "completion_tokens": 15961,
+     "reasoning_tokens": 14116,
+     "cost": 0.00464575,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "max-zero": "2478",
+   "bar-plain": "8027",
+   "bar-digit": "6914",
+   "bar-color3": "6886",
+   "negative-max": "5695"
+  },
+  "mutations": [
+   {
+    "name": "R1: the -1 before the division dropped",
+    "caught": true
+   },
+   {
+    "name": "R2: unsigned shift of current + 0xFF",
+    "caught": true
+   },
+   {
+    "name": "R3: wrong constant in the digit-less offset",
+    "caught": true
+   },
+   {
+    "name": "R4: digit call dropped",
+    "caught": true
+   },
+   {
+    "name": "R5: bar drawn only for positive max",
+    "caught": true
+   },
+   {
+    "name": "R6: wrong table for the start x",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 17,
+   "lines_hit": 17,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 3, seen zero, never negative, 4 value(s): 3, 1, 0, 2"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "if (max != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 2478, < 11361, > 16161 (signed); < 0, > 27522 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 7,
+     "text": "if (colorIndex & 2) {",
+     "size": 4,
+     "count": 27522,
+     "kind": "against a constant",
+     "outcomes": "== 13722, < 0, > 13800 (signed); < 0, > 13800 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 9,
+     "text": "if (colorIndex == 3) {",
+     "size": 4,
+     "count": 13800,
+     "kind": "against a constant",
+     "outcomes": "== 6886, < 6914, > 0 (signed); < 6914, > 0 (unsigned)",
+     "operand": "constant 3",
+     "a": "2..3"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "colorIndex & 2: sign bit",
+    "reason": "colorIndex indexes the four-entry tables D_800EBBDC/D_800EBBEC/D_800EBBFC/D_800EBC00 unguarded, so it is only 0-3 and its sign bit is never set; a negative index would read outside the tables."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36369,
+     "completion_tokens": 10528,
+     "reasoning_tokens": 9527,
+     "cost": 0.00445045,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/render_stat_bar.zig:13:30: error: @ptrCast increases pointer alignment\n    const prim: [*c]c_uint = @ptrCast(psx.byteAt(c_uint, base, -12));\n                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/render_stat_bar.zig:13:49: note: '*align(1) c_uint' has alignment '1'\n    const prim: [*c]c_uint = @ptrCast(psx.byteAt(c_uint, base, -12));\n                                      ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~\ngame/battle/render_stat_bar.zig:13:30: note: '[*c]c_uint' has alignment '4'\ngame/battle/render_stat_bar.zig:13:30: note: use @alignCast to assert pointer alignment\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37853,
+     "completion_tokens": 2365,
+     "reasoning_tokens": 1351,
+     "cost": 0.0024839,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/renderStatBar.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/render_stat_bar.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 117.55723313899944,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 180690.62296891212,
+ "totals": {
+  "cost": 0.01158,
+  "prompt_tokens": 87332,
+  "completion_tokens": 28854,
+  "model_seconds": 0.0,
+  "check_seconds": 117.6,
+  "calls": 3,
+  "wall_seconds": 180690.6
+ }
+}

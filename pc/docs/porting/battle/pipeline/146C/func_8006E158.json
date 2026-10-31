@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: the coverage gate (zig_diff.py --coverage): coverage func_8006E158: branches 113/115 (100.0% with waivers), conditions not measured (G",
+ "status": "ported",
+ "reviewed": false,
  "plan": {
   "name": "func_8006E158",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -24,10 +24,7 @@
   "params": [],
   "ret": "void",
   "types": [],
-  "globals": [
-   "vs_main_buttonsPressed",
-   "vs_main_buttonsPreviousState"
-  ],
+  "globals": [],
   "hooks": [
    "pc_camera_stick_tick",
    "pc_camera_stick_turn",
@@ -49,16 +46,18 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 17980,
-     "completion_tokens": 17455,
-     "reasoning_tokens": 14755,
-     "cost": 0.0105255,
-     "seconds": 71.6,
-     "sample": 1,
-     "conversation": "0feba779355112d57ea11a70cb0c8dc39576f8e8107ffa95cb7d57f5149213a7"
+     "completion_tokens": 18719,
+     "reasoning_tokens": 15973,
+     "cost": 0.0055787499999999995,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006E158: branches 113/115 (98.3%), conditions not measured (GCC < 14: branch coverage only), lines 114/114\n  UNCOVERED +7 b1: branch never taken: `if (pc_camera_stick_tick) {`\n  UNCOVERED +29 b1: branch never taken: `if (pc_camera_stick_turn && vs_battle_cameraCurrentSpherical.delta.yaw) {`\n  FLAG +52 eq: boundary equality never occurred (32-bit compare, constant 40: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.delta.distance > 40) {`\n  FLAG +78 eq: boundary equality never occurred (32-bit compare, constant 40: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.delta.distance > 40) {`\n  FLAG +132 eq: boundary equality never occurred (32-bit compare, constant -64: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.unk24 < -64) {`\n  FLAG +161 eq: boundary equality never occurred (32-bit compare, constant 64: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.unk24 > 64) {`\ncoverage func_8006E158: FAILED (threshold 100%: 2 uncovered, 4 value flag(s) not waived)\nWhat to add:\n- `if (pc_camera_stick_tick) {` (+7): one way out of this test (+7 b1) was never taken; add inputs that take it.\n- `if (pc_camera_stick_turn && vs_battle_cameraCurrentSpherical.delta.yaw) {` (+29): one way out of this test (+29 b1) was never taken; add inputs that take it.\n- `if (vs_battle_cameraCurrentSpherical.delta.distance > 40) {` (+52): the two sides of this ordered compare were equal 0 time(s) in 3464. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.delta.distance > 40) {` (+78): the two sides of this ordered compare were equal 0 time(s) in 3170. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.unk24 < -64) {` (+132): the two sides of this ordered compare were equal 0 time(s) in 3078. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.unk24 > 64) {` (+161): the two sides of this ordered compare were equal 0 time(s) in 4963. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006E158.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: mutation M2: the yaw-turn bound off by one (<= pitch + 0x78 becomes < 0x79): not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_8006E158: 40000 iterations, seed 1, 0 mismatches; classes: locked=4825 turning=21997 mode0=3328 mode2=3338 mode-other=6512",
+     "FAIL: mutation M4: yaw distance clamp at 39, not 40: mutation M4: yaw distance clamp at 39, not 40: its `from` text occurs 2 times in the C body of func_8006E158 (copy it exactly from the C)",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006E158: branches 113/115 (98.3%), conditions not measured (GCC < 14: branch coverage only), lines 114/114\n  UNCOVERED +7 b1: branch never taken: `if (pc_camera_stick_tick) {`\n  UNCOVERED +29 b1: branch never taken: `if (pc_camera_stick_turn && vs_battle_cameraCurrentSpherical.delta.yaw) {`\n  FLAG +40 eq: boundary equality never occurred (32-bit compare, b -32645..32885: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\n  FLAG +56 eq: boundary equality occurred only 1 time(s) in 9909 (32-bit compare, b -32765..32765: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\n  FLAG +66 eq: boundary equality never occurred (32-bit compare, b -32888..32643: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\n  FLAG +82 eq: boundary equality occurred only 2 time(s) in 10185 (32-bit compare, b -32763..32763: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\ncoverage func_8006E158: FAILED (threshold 100%: 2 uncovered, 4 value flag(s) not waived)\nWhat to add:\n- `if (pc_camera_stick_tick) {` (+7): one way out of this test (+7 b1) was never taken; add inputs that take it.\n- `if (pc_camera_stick_turn && vs_battle_cameraCurrentSpherical.delta.yaw) {` (+29): one way out of this test (+29 b1) was never taken; add inputs that take it.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+40): the two sides of this ordered compare were equal 0 time(s) in 9909. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+56): the two sides of this ordered compare were equal 1 time(s) in 9909. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+66): the two sides of this ordered compare were equal 0 time(s) in 10185. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+82): the two sides of this ordered compare were equal 2 time(s) in 10185. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006E158.coverage_waiver]] with its `id` and a `reason`."
     ]
    },
    {
@@ -71,51 +70,52 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 21891,
-     "completion_tokens": 12358,
-     "reasoning_tokens": 8938,
-     "cost": 0.0083681,
-     "seconds": 49.9,
-     "sample": 1,
-     "conversation": "273a13bbf46bd4f31ee39a5f01dc23364ddac2fea6492c2f9e4f175896eef103"
+     "prompt_tokens": 22172,
+     "completion_tokens": 12027,
+     "reasoning_tokens": 9009,
+     "cost": 0.00411535,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_8006E158: branches 113/115 (100.0% with waivers), conditions not measured (GCC < 14: branch coverage only), lines 114/114\n  waived +7 b1: branch never taken: `if (pc_camera_stick_tick) {` (pc_camera_stick_tick is a weak hook the harness always links (it is always a recording stub), so the NULL side of `if (pc_camera_stick_tick)` cannot be reached.)\n  waived +29 b1: branch never taken: `if (pc_camera_stick_turn && vs_battle_cameraCurrentSpherical.delta.yaw) {` (pc_camera_stick_turn is a weak hook the harness always links (always a recording stub), so the NULL side of the weak test in `pc_camera_stick_turn && delta.yaw` cannot be reached; the yaw-zero side is covered by idle button input.)\n  FLAG +40 eq: boundary equality occurred only 8 time(s) in 8384 (32-bit compare, b -3976..4216: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\n  FLAG +56 eq: boundary equality occurred only 8 time(s) in 8384 (32-bit compare, b -4608..4096: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\n  FLAG +66 eq: boundary equality occurred only 8 time(s) in 8208 (32-bit compare, b -4216..3976: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\n  FLAG +82 eq: boundary equality occurred only 3 time(s) in 8208 (32-bit compare, b -4096..4608: both sides seen; a port's `<` for `<=` could pass): `if (vs_battle_cameraCurrentSpherical.values.yaw`\ncoverage func_8006E158: FAILED (threshold 100%: 0 uncovered, 4 value flag(s) not waived)\nWhat to add:\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+40): the two sides of this ordered compare were equal 8 time(s) in 8384. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+56): the two sides of this ordered compare were equal 8 time(s) in 8384. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+66): the two sides of this ordered compare were equal 8 time(s) in 8208. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\n- `if (vs_battle_cameraCurrentSpherical.values.yaw` (+82): the two sides of this ordered compare were equal 3 time(s) in 8208. A port's `<` for `<=` would pass; add inputs that make them exactly equal at least 10 times and in at least 1% of the runs.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_8006E158.coverage_waiver]] with its `id` and a `reason`."
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
   "classes": {
-   "locked": "12493",
-   "pressed": "12385",
-   "idle": "8728",
-   "yaw1": "2475",
-   "yaw2": "2525",
-   "yaw-other": "1394"
+   "locked": "4804",
+   "turning": "21901",
+   "mode0": "3280",
+   "mode2": "3316",
+   "mode-other": "6699"
   },
   "mutations": [
    {
-    "name": "C1: mode-0 distance test as < 0x600 (equal case lost)",
+    "name": "M1: a left press starts the turn the wrong way",
     "caught": true
    },
    {
-    "name": "C2: left turn stores yaw 2 instead of 1",
+    "name": "M2: the yaw-turn bound off by one (<= pitch + 0x78 becomes <= pitch + 0x79)",
     "caught": true
    },
    {
-    "name": "C3: wrong mask on the right-turn button test",
+    "name": "M3: unk24 floor at -15, not -16",
     "caught": true
    },
    {
-    "name": "C4: wrong constant in the unk24 reset",
+    "name": "M4: mode-2 zoom clamp at 0x8FF, not 0x900",
     "caught": true
    },
    {
-    "name": "C5: mode-2 clamp stores 0x8FF",
+    "name": "M5: the R1 turn helper call dropped",
     "caught": true
    },
    {
-    "name": "C6: dropped delta.mode = 3 store before the return",
+    "name": "M6: unsigned compare on unk24 (signed/unsigned slip)",
     "caught": true
    }
   ],
@@ -140,48 +140,7 @@
      "what": "branch never taken"
     }
    ],
-   "flags": [
-    {
-     "id": "+40 eq",
-     "line": 40,
-     "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
-     "kind": "eq",
-     "bits": 32,
-     "equal": 8,
-     "count": 8384,
-     "what": "boundary equality occurred only 8 time(s) in 8384 (32-bit compare, b -3976..4216: both sides seen; a port's `<` for `<=` could pass)"
-    },
-    {
-     "id": "+56 eq",
-     "line": 56,
-     "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
-     "kind": "eq",
-     "bits": 32,
-     "equal": 8,
-     "count": 8384,
-     "what": "boundary equality occurred only 8 time(s) in 8384 (32-bit compare, b -4608..4096: both sides seen; a port's `<` for `<=` could pass)"
-    },
-    {
-     "id": "+66 eq",
-     "line": 66,
-     "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
-     "kind": "eq",
-     "bits": 32,
-     "equal": 8,
-     "count": 8208,
-     "what": "boundary equality occurred only 8 time(s) in 8208 (32-bit compare, b -4216..3976: both sides seen; a port's `<` for `<=` could pass)"
-    },
-    {
-     "id": "+82 eq",
-     "line": 82,
-     "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
-     "kind": "eq",
-     "bits": 32,
-     "equal": 3,
-     "count": 8208,
-     "what": "boundary equality occurred only 3 time(s) in 8208 (32-bit compare, b -4096..4608: both sides seen; a port's `<` for `<=` could pass)"
-    }
-   ],
+   "flags": [],
    "args": [],
    "compares": [
     {
@@ -190,39 +149,39 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 8051, < 23979, > 7970 (signed); < 23979, > 7970 (unsigned)",
+     "outcomes": "== 4005, < 21993, > 14002 (signed); < 11936, > 24059 (unsigned)",
      "operand": "constant 3",
-     "a": "0..4"
+     "a": "-2147467588..2147466952"
     },
     {
      "line": 8,
      "text": "pc_camera_stick_tick(",
      "size": 4,
-     "count": 31949,
+     "count": 35995,
      "kind": "against a constant",
-     "outcomes": "== 7928, < 16051, > 7970 (signed); < 16051, > 7970 (unsigned)",
+     "outcomes": "== 4084, < 17909, > 14002 (signed); < 7852, > 24059 (unsigned)",
      "operand": "constant 2",
-     "a": "0..4"
+     "a": "-2147467588..2147466952"
     },
     {
      "line": 9,
      "text": "&vs_battle_cameraCurrentSpherical, ((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11)))));",
      "size": 4,
-     "count": 7928,
+     "count": 4084,
      "kind": "against a constant",
-     "outcomes": "== 2225, < 2274, > 3429 (signed); < 2274, > 3429 (unsigned)",
+     "outcomes": "== 446, < 1464, > 2174 (signed); < 428, > 3210 (unsigned)",
      "operand": "constant 4",
-     "a": "0..11"
+     "a": "-2147218305..2139343251"
     },
     {
      "line": 9,
      "text": "&vs_battle_cameraCurrentSpherical, ((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11)))));",
      "size": 4,
-     "count": 5703,
+     "count": 3638,
      "kind": "against a constant",
-     "outcomes": "== 2217, < 3486, > 0 (signed); < 3486, > 0 (unsigned)",
+     "outcomes": "== 353, < 1893, > 1392 (signed); < 857, > 2428 (unsigned)",
      "operand": "constant 11",
-     "a": "0..11"
+     "a": "-2147218305..2139343251"
     },
     {
      "line": 13,
@@ -230,57 +189,57 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 16622, < 934, > 22444 (signed); < 0, > 23378 (unsigned)",
+     "outcomes": "== 14486, < 0, > 25514 (signed); < 0, > 25514 (unsigned)",
      "operand": "constant 0",
-     "a": "-1..3"
+     "a": "0..3"
     },
     {
      "line": 14,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 16622,
+     "count": 14486,
      "kind": "against a constant",
-     "outcomes": "== 3397, < 9962, > 3263 (signed); < 9962, > 3263 (unsigned)",
+     "outcomes": "== 1463, < 7969, > 5054 (signed); < 4347, > 8676 (unsigned)",
      "operand": "constant 3",
-     "a": "0..4"
+     "a": "-2146077925..2147466952"
     },
     {
      "line": 14,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 13225,
+     "count": 13023,
      "kind": "against a constant",
-     "outcomes": "== 3339, < 6623, > 3263 (signed); < 6623, > 3263 (unsigned)",
+     "outcomes": "== 1513, < 6456, > 5054 (signed); < 2834, > 8676 (unsigned)",
      "operand": "constant 2",
-     "a": "0..4"
+     "a": "-2146077925..2147466952"
     },
     {
      "line": 14,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 3339,
+     "count": 1513,
      "kind": "against a constant",
-     "outcomes": "== 932, < 962, > 1445 (signed); < 962, > 1445 (unsigned)",
+     "outcomes": "== 159, < 562, > 792 (signed); < 163, > 1191 (unsigned)",
      "operand": "constant 4",
-     "a": "0..11"
+     "a": "-2146807276..2139343251"
     },
     {
      "line": 14,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 2407,
+     "count": 1354,
      "kind": "against a constant",
-     "outcomes": "== 948, < 1459, > 0 (signed); < 1459, > 0 (unsigned)",
+     "outcomes": "== 124, < 715, > 515 (signed); < 316, > 914 (unsigned)",
      "operand": "constant 11",
-     "a": "0..11"
+     "a": "-2146807276..2139343251"
     },
     {
      "line": 15,
      "text": "if ((vs_main_buttonsPreviousState & 0xC) == 8) {",
      "size": 4,
-     "count": 11345,
+     "count": 12740,
      "kind": "against a constant",
-     "outcomes": "== 2805, < 5818, > 2722 (signed); < 5818, > 2722 (unsigned)",
+     "outcomes": "== 3487, < 6847, > 2406 (signed); < 6847, > 2406 (unsigned)",
      "operand": "constant 8",
      "a": "0..12"
     },
@@ -288,9 +247,9 @@
      "line": 19,
      "text": "} else if ((vs_main_buttonsPreviousState & 0xC) == 4) {",
      "size": 4,
-     "count": 8540,
+     "count": 9253,
      "kind": "against a constant",
-     "outcomes": "== 3684, < 2134, > 2722 (signed); < 2134, > 2722 (unsigned)",
+     "outcomes": "== 3439, < 3408, > 2406 (signed); < 3408, > 2406 (unsigned)",
      "operand": "constant 4",
      "a": "0..12"
     },
@@ -298,9 +257,9 @@
      "line": 29,
      "text": "if (pc_camera_stick_turn && vs_battle_cameraCurrentSpherical.delta.yaw) {",
      "size": 4,
-     "count": 11345,
+     "count": 12740,
      "kind": "against a constant",
-     "outcomes": "== 4856, < 0, > 6489 (signed); < 0, > 6489 (unsigned)",
+     "outcomes": "== 5814, < 0, > 6926 (signed); < 0, > 6926 (unsigned)",
      "operand": "constant 0",
      "a": "0..2"
     },
@@ -308,29 +267,29 @@
      "line": 36,
      "text": "switch (vs_battle_cameraCurrentSpherical.delta.yaw) {",
      "size": 4,
-     "count": 23378,
+     "count": 25514,
      "kind": "switch",
-     "outcomes": "== 16592, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 19918, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
-     "a": "-1..3"
+     "a": "1..3"
     },
     {
      "line": 40,
      "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
      "size": 4,
-     "count": 8384,
+     "count": 9960,
      "kind": "a == b / a < b",
-     "outcomes": "== 8, < 4152, > 4224 (signed); < 2070, > 6306 (unsigned)",
-     "operand": "b -3976..4216",
-     "a": "-65037..64955"
+     "outcomes": "== 1410, < 5700, > 2850 (signed); < 5484, > 3066 (unsigned)",
+     "operand": "b -32645..32875",
+     "a": "-4217..4217"
     },
     {
      "line": 42,
      "text": "if (((vs_main_buttonsPreviousState & 0xC) == 8)",
      "size": 4,
-     "count": 4160,
+     "count": 7110,
      "kind": "against a constant",
-     "outcomes": "== 1009, < 2085, > 1066 (signed); < 2085, > 1066 (unsigned)",
+     "outcomes": "== 1892, < 3816, > 1402 (signed); < 3816, > 1402 (unsigned)",
      "operand": "constant 8",
      "a": "0..12"
     },
@@ -338,31 +297,31 @@
      "line": 43,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 1009,
+     "count": 1892,
      "kind": "against a constant",
-     "outcomes": "== 203, < 601, > 205 (signed); < 601, > 205 (unsigned)",
+     "outcomes": "== 185, < 1028, > 679 (signed); < 562, > 1145 (unsigned)",
      "operand": "constant 3",
-     "a": "0..4"
+     "a": "-2146855755..2147454242"
     },
     {
      "line": 43,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 806,
+     "count": 1707,
      "kind": "against a constant",
-     "outcomes": "== 213, < 388, > 205 (signed); < 388, > 205 (unsigned)",
+     "outcomes": "== 179, < 849, > 679 (signed); < 383, > 1145 (unsigned)",
      "operand": "constant 2",
-     "a": "0..4"
+     "a": "-2146855755..2147454242"
     },
     {
      "line": 43,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 213,
+     "count": 179,
      "kind": "against a constant",
-     "outcomes": "== 59, < 66, > 88 (signed); < 66, > 88 (unsigned)",
+     "outcomes": "== 25, < 64, > 90 (signed); < 21, > 133 (unsigned)",
      "operand": "constant 4",
-     "a": "0..11"
+     "a": "-2147218305..2094302365"
     },
     {
      "line": 43,
@@ -370,67 +329,67 @@
      "size": 4,
      "count": 154,
      "kind": "against a constant",
-     "outcomes": "== 59, < 95, > 0 (signed); < 95, > 0 (unsigned)",
+     "outcomes": "== 10, < 88, > 56 (signed); < 45, > 99 (unsigned)",
      "operand": "constant 11",
-     "a": "0..11"
+     "a": "-2147218305..2094302365"
     },
     {
      "line": 47,
      "text": "if (vs_battle_cameraCurrentSpherical.delta.distance > 8) {",
      "size": 4,
-     "count": 4160,
+     "count": 7110,
      "kind": "against a constant",
-     "outcomes": "== 173, < 741, > 3246 (signed); < 331, > 3656 (unsigned)",
+     "outcomes": "== 651, < 2062, > 4397 (signed); < 1434, > 5025 (unsigned)",
      "operand": "constant 8",
-     "a": "-31362..32732"
+     "a": "-8..63"
     },
     {
      "line": 50,
      "text": "} else if (vs_battle_cameraCurrentSpherical.delta.distance < 40) {",
      "size": 4,
-     "count": 4224,
+     "count": 2850,
      "kind": "against a constant",
-     "outcomes": "== 115, < 3511, > 598 (signed); < 1481, > 2628 (unsigned)",
+     "outcomes": "== 232, < 1951, > 667 (signed); < 1750, > 868 (unsigned)",
      "operand": "constant 39",
-     "a": "-32735..32743"
+     "a": "-8..63"
     },
     {
      "line": 52,
      "text": "if (vs_battle_cameraCurrentSpherical.delta.distance > 40) {",
      "size": 4,
-     "count": 3626,
+     "count": 2183,
      "kind": "against a constant",
-     "outcomes": "== 863, < 2648, > 115 (signed); < 784, > 1979 (unsigned)",
+     "outcomes": "== 241, < 1655, > 287 (signed); < 1655, > 287 (unsigned)",
      "operand": "constant 40",
-     "a": "-32727..47"
+     "a": "0..47"
     },
     {
      "line": 56,
      "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
      "size": 4,
-     "count": 8384,
+     "count": 9960,
      "kind": "a == b / a < b",
-     "outcomes": "== 8, < 3746, > 4630 (signed); < 2618, > 5758 (unsigned)",
-     "operand": "b -4608..4096",
-     "a": "-65037..64955"
+     "outcomes": "== 1118, < 3501, > 5341 (signed); < 3377, > 5465 (unsigned)",
+     "operand": "b -32765..32755",
+     "a": "-4217..4217"
     },
     {
      "line": 66,
      "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
      "size": 4,
-     "count": 8208,
+     "count": 9958,
      "kind": "a == b / a < b",
-     "outcomes": "== 8, < 3776, > 4424 (signed); < 3383, > 4817 (unsigned)",
-     "operand": "b -4216..3976",
-     "a": "-61956..63684"
+     "outcomes": "== 1446, < 2805, > 5707 (signed); < 3063, > 5449 (unsigned)",
+     "operand": "b -32647..32592",
+     "a": "-4217..4217"
     },
     {
      "line": 68,
      "text": "if (((vs_main_buttonsPreviousState & 0xC) == 4)",
      "size": 4,
-     "count": 4432,
+     "count": 7153,
      "kind": "against a constant",
-     "outcomes": "== 1459, < 850, > 2123 (signed); < 850, > 2123 (unsigned)",
+     "outcomes": "== 1938, < 1911, > 3304 (signed); < 1911, > 3304 (unsigned)",
      "operand": "constant 4",
      "a": "0..12"
     },
@@ -438,81 +397,81 @@
      "line": 69,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 1459,
+     "count": 1938,
      "kind": "against a constant",
-     "outcomes": "== 304, < 871, > 284 (signed); < 871, > 284 (unsigned)",
+     "outcomes": "== 179, < 1070, > 689 (signed); < 589, > 1170 (unsigned)",
      "operand": "constant 3",
-     "a": "0..4"
+     "a": "-2146290125..2147193828"
     },
     {
      "line": 69,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 1155,
+     "count": 1759,
      "kind": "against a constant",
-     "outcomes": "== 283, < 588, > 284 (signed); < 588, > 284 (unsigned)",
+     "outcomes": "== 207, < 863, > 689 (signed); < 382, > 1170 (unsigned)",
      "operand": "constant 2",
-     "a": "0..4"
+     "a": "-2146290125..2147193828"
     },
     {
      "line": 69,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 283,
+     "count": 207,
      "kind": "against a constant",
-     "outcomes": "== 80, < 86, > 117 (signed); < 86, > 117 (unsigned)",
+     "outcomes": "== 22, < 68, > 117 (signed); < 16, > 169 (unsigned)",
      "operand": "constant 4",
-     "a": "0..11"
+     "a": "-2079610426..2117184718"
     },
     {
      "line": 69,
      "text": "&& !((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 203,
+     "count": 185,
      "kind": "against a constant",
-     "outcomes": "== 75, < 128, > 0 (signed); < 128, > 0 (unsigned)",
+     "outcomes": "== 18, < 96, > 71 (signed); < 44, > 123 (unsigned)",
      "operand": "constant 11",
-     "a": "0..11"
+     "a": "-2079610426..2117184718"
     },
     {
      "line": 73,
      "text": "if (vs_battle_cameraCurrentSpherical.delta.distance > 8) {",
      "size": 4,
-     "count": 4432,
+     "count": 7153,
      "kind": "against a constant",
-     "outcomes": "== 189, < 815, > 3428 (signed); < 372, > 3871 (unsigned)",
+     "outcomes": "== 643, < 2054, > 4456 (signed); < 1395, > 5115 (unsigned)",
      "operand": "constant 8",
-     "a": "-31106..32760"
+     "a": "-8..63"
     },
     {
      "line": 76,
      "text": "} else if (vs_battle_cameraCurrentSpherical.delta.distance < 40) {",
      "size": 4,
-     "count": 3776,
+     "count": 2805,
      "kind": "against a constant",
-     "outcomes": "== 90, < 3152, > 534 (signed); < 1312, > 2374 (unsigned)",
+     "outcomes": "== 202, < 1961, > 642 (signed); < 1727, > 876 (unsigned)",
      "operand": "constant 39",
-     "a": "-32752..31706"
+     "a": "-8..63"
     },
     {
      "line": 78,
      "text": "if (vs_battle_cameraCurrentSpherical.delta.distance > 40) {",
      "size": 4,
-     "count": 3242,
+     "count": 2163,
      "kind": "against a constant",
-     "outcomes": "== 858, < 2294, > 90 (signed); < 573, > 1811 (unsigned)",
+     "outcomes": "== 213, < 1676, > 274 (signed); < 1676, > 274 (unsigned)",
      "operand": "constant 40",
-     "a": "-32744..47"
+     "a": "0..47"
     },
     {
      "line": 82,
      "text": "if (vs_battle_cameraCurrentSpherical.values.yaw",
      "size": 4,
-     "count": 8208,
+     "count": 9958,
      "kind": "a == b / a < b",
-     "outcomes": "== 3, < 4242, > 3963 (signed); < 2836, > 5369 (unsigned)",
-     "operand": "b -4096..4608",
-     "a": "-61956..63684"
+     "outcomes": "== 1113, < 5320, > 3525 (signed); < 4979, > 3866 (unsigned)",
+     "operand": "b -32527..32712",
+     "a": "-4217..4217"
     },
     {
      "line": 91,
@@ -520,7 +479,7 @@
      "size": 4,
      "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 21982, < 0, > 18018 (signed); < 0, > 18018 (unsigned)",
+     "outcomes": "== 19956, < 0, > 20044 (signed); < 0, > 20044 (unsigned)",
      "operand": "constant 0",
      "a": "0..256"
     },
@@ -528,49 +487,49 @@
      "line": 92,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 18018,
+     "count": 20044,
      "kind": "against a constant",
-     "outcomes": "== 3653, < 10765, > 3600 (signed); < 10765, > 3600 (unsigned)",
+     "outcomes": "== 2020, < 11076, > 6948 (signed); < 6007, > 12017 (unsigned)",
      "operand": "constant 3",
-     "a": "0..4"
+     "a": "-2147467588..2147454242"
     },
     {
      "line": 92,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 14365,
+     "count": 18024,
      "kind": "against a constant",
-     "outcomes": "== 3541, < 7224, > 3600 (signed); < 7224, > 3600 (unsigned)",
+     "outcomes": "== 2091, < 8985, > 6948 (signed); < 3916, > 12017 (unsigned)",
      "operand": "constant 2",
-     "a": "0..4"
+     "a": "-2147467588..2147454242"
     },
     {
      "line": 92,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 3541,
+     "count": 2091,
      "kind": "against a constant",
-     "outcomes": "== 989, < 1032, > 1520 (signed); < 1032, > 1520 (unsigned)",
+     "outcomes": "== 221, < 746, > 1124 (signed); < 231, > 1639 (unsigned)",
      "operand": "constant 4",
-     "a": "0..11"
+     "a": "-2146807276..2137453621"
     },
     {
      "line": 92,
      "text": "if (!((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))) {",
      "size": 4,
-     "count": 2552,
+     "count": 1870,
      "kind": "against a constant",
-     "outcomes": "== 991, < 1561, > 0 (signed); < 1561, > 0 (unsigned)",
+     "outcomes": "== 177, < 986, > 707 (signed); < 471, > 1222 (unsigned)",
      "operand": "constant 11",
-     "a": "0..11"
+     "a": "-2146807276..2137453621"
     },
     {
      "line": 93,
      "text": "switch (vs_battle_cameraCurrentSpherical.delta.mode) {",
      "size": 4,
-     "count": 12385,
+     "count": 17626,
      "kind": "switch",
-     "outcomes": "== 10576, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 13691, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "-1..4"
     },
@@ -578,9 +537,9 @@
      "line": 104,
      "text": "switch (vs_battle_cameraCurrentSpherical.delta.mode) {",
      "size": 4,
-     "count": 18018,
+     "count": 20044,
      "kind": "switch",
-     "outcomes": "== 15414, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 15562, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "-1..4"
     },
@@ -590,7 +549,7 @@
      "size": 4,
      "count": 40000,
      "kind": "switch",
-     "outcomes": "== 32263, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 27955, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
      "a": "-1..4"
     },
@@ -598,143 +557,203 @@
      "line": 118,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance <= 0x600) {",
      "size": 4,
-     "count": 15689,
+     "count": 12428,
      "kind": "against a constant",
-     "outcomes": "== 527, < 2569, > 12593 (signed); < 1860, > 13302 (unsigned)",
+     "outcomes": "== 1493, < 3111, > 7824 (signed); < 2208, > 8727 (unsigned)",
      "operand": "constant 1536",
-     "a": "-512..2560"
+     "a": "-2146957850..2141937246"
     },
     {
      "line": 123,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance",
      "size": 4,
-     "count": 12593,
+     "count": 7824,
      "kind": "a == b / a < b",
-     "outcomes": "== 162, < 1073, > 11358 (signed); < 1201, > 11230 (unsigned)",
-     "operand": "b -96..2464",
-     "a": "1537..2560"
+     "outcomes": "== 453, < 2308, > 5063 (signed); < 2902, > 4469 (unsigned)",
+     "operand": "b -2147234831..2145688513",
+     "a": "1537..2141937246"
     },
     {
      "line": 125,
      "text": "if (vs_battle_cameraCurrentSpherical.unk24 < -16) {",
      "size": 4,
-     "count": 1235,
+     "count": 2761,
      "kind": "against a constant",
-     "outcomes": "== 70, < 442, > 723 (signed); < 1068, > 97 (unsigned)",
+     "outcomes": "== 112, < 924, > 1725 (signed); < 2260, > 389 (unsigned)",
      "operand": "constant -16",
-     "a": "-80..80"
+     "a": "-128..127"
     },
     {
      "line": 130,
      "text": "} else if (vs_battle_cameraCurrentSpherical.unk24 >= -63) {",
      "size": 4,
-     "count": 11358,
+     "count": 5063,
      "kind": "against a constant",
-     "outcomes": "== 121, < 376, > 10861 (signed); < 3846, > 7391 (unsigned)",
+     "outcomes": "== 214, < 650, > 4199 (signed); < 3092, > 1757 (unsigned)",
      "operand": "constant -63",
-     "a": "-80..80"
+     "a": "-128..127"
     },
     {
      "line": 132,
      "text": "if (vs_battle_cameraCurrentSpherical.unk24 < -64) {",
      "size": 4,
-     "count": 10982,
+     "count": 4413,
      "kind": "against a constant",
-     "outcomes": "== 6983, < 121, > 3878 (signed); < 3334, > 665 (unsigned)",
+     "outcomes": "== 228, < 246, > 3939 (signed); < 2173, > 2012 (unsigned)",
      "operand": "constant -64",
-     "a": "-79..64"
+     "a": "-79..111"
     },
     {
      "line": 136,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance",
      "size": 4,
-     "count": 12593,
+     "count": 7824,
      "kind": "a == b / a < b",
-     "outcomes": "== 123, < 436, > 12034 (signed); < 564, > 11906 (unsigned)",
-     "operand": "b -256..2304",
-     "a": "1537..2560"
+     "outcomes": "== 345, < 1008, > 6471 (signed); < 1602, > 5877 (unsigned)",
+     "operand": "b -2147234991..2145688353",
+     "a": "1537..2141937246"
     },
     {
      "line": 147,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance >= 0x900) {",
      "size": 4,
-     "count": 14637,
+     "count": 12428,
      "kind": "against a constant",
-     "outcomes": "== 316, < 13224, > 1097 (signed); < 12470, > 1851 (unsigned)",
+     "outcomes": "== 1248, < 6935, > 4245 (signed); < 5991, > 5189 (unsigned)",
      "operand": "constant 2303",
-     "a": "-512..2560"
+     "a": "-2145898306..2141424132"
     },
     {
      "line": 152,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance",
      "size": 4,
-     "count": 13540,
+     "count": 8183,
      "kind": "a == b / a < b",
-     "outcomes": "== 201, < 11668, > 1671 (signed); < 11308, > 2031 (unsigned)",
-     "operand": "b -416..2144",
-     "a": "-512..2303"
+     "outcomes": "== 500, < 5102, > 2581 (signed); < 5051, > 2632 (unsigned)",
+     "operand": "b -2147175865..2146688424",
+     "a": "-2145898306..2303"
     },
     {
      "line": 154,
      "text": "if (vs_battle_cameraCurrentSpherical.unk24 > 16) {",
      "size": 4,
-     "count": 1872,
+     "count": 3081,
      "kind": "against a constant",
-     "outcomes": "== 103, < 1097, > 672 (signed); < 222, > 1547 (unsigned)",
+     "outcomes": "== 132, < 1901, > 1048 (signed); < 319, > 2630 (unsigned)",
      "operand": "constant 16",
-     "a": "-80..80"
+     "a": "-128..127"
     },
     {
      "line": 159,
      "text": "} else if (vs_battle_cameraCurrentSpherical.unk24 < 64) {",
      "size": 4,
-     "count": 11668,
+     "count": 5102,
      "kind": "against a constant",
-     "outcomes": "== 207, < 10874, > 587 (signed); < 6260, > 5201 (unsigned)",
+     "outcomes": "== 223, < 4205, > 674 (signed); < 1549, > 3330 (unsigned)",
      "operand": "constant 63",
-     "a": "-80..80"
+     "a": "-128..127"
     },
     {
      "line": 161,
      "text": "if (vs_battle_cameraCurrentSpherical.unk24 > 64) {",
      "size": 4,
-     "count": 11081,
+     "count": 4428,
      "kind": "against a constant",
-     "outcomes": "== 5413, < 5461, > 207 (signed); < 1238, > 4430 (unsigned)",
+     "outcomes": "== 223, < 3950, > 255 (signed); < 2216, > 1989 (unsigned)",
      "operand": "constant 64",
-     "a": "-64..79"
+     "a": "-112..79"
     },
     {
      "line": 165,
      "text": "if (vs_battle_cameraCurrentSpherical.values.distance",
      "size": 4,
-     "count": 13540,
+     "count": 8183,
      "kind": "a == b / a < b",
-     "outcomes": "== 164, < 12547, > 829 (signed); < 12187, > 1189 (unsigned)",
-     "operand": "b -256..2304",
-     "a": "-512..2303"
+     "outcomes": "== 339, < 6537, > 1307 (signed); < 6486, > 1358 (unsigned)",
+     "operand": "b -2147175705..2146688584",
+     "a": "-2145898306..2303"
     }
    ],
-   "passed": false
-  }
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+7 b1",
+    "reason": "the weak hook pc_camera_stick_tick is always linked in the harness (its stub is declared in the spec), so its null test never fails; the null side exists only in the non-ROOD host build"
+   },
+   {
+    "id": "+29 b1",
+    "reason": "the weak hook pc_camera_stick_turn is always linked in the harness (its stub is declared in the spec), so the null side of its test never occurs"
+   }
+  ]
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 41460,
+     "completion_tokens": 8328,
+     "reasoning_tokens": 6033,
+     "cost": 0.004155,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 45.89281548500003,
- "wall_seconds": 46.294262661000175,
+ "written": [
+  "pc/tests/zig_diff/func_8006E158.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8006E158.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 449.4000798979987,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 181572.5764734745,
  "totals": {
-  "cost": 0.01889,
-  "prompt_tokens": 39871,
-  "completion_tokens": 29813,
-  "model_seconds": 121.5,
-  "check_seconds": 45.9,
-  "calls": 2,
-  "wall_seconds": 46.3
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.01385,
+  "prompt_tokens": 81612,
+  "completion_tokens": 39074,
+  "model_seconds": 0.0,
+  "check_seconds": 449.4,
+  "calls": 3,
+  "wall_seconds": 181572.6
  }
 }

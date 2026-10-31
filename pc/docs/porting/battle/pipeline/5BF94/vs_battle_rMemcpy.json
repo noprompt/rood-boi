@@ -1,0 +1,214 @@
+{
+ "function": "vs_battle_rMemcpy",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_rMemcpy",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ccc34",
+  "difficulty": "S",
+  "zig_name": "rMemcpy",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "r_memcpy",
+  "spec_file": "rMemcpy.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn rMemcpy(dest: ?*anyopaque, src: ?*const anyopaque, size: c_int) callconv(.c) void",
+  "params": [
+   [
+    "dest",
+    "?*anyopaque"
+   ],
+   [
+    "src",
+    "?*const anyopaque"
+   ],
+   [
+    "size",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11104,
+     "completion_tokens": 9703,
+     "reasoning_tokens": 8268,
+     "cost": 0.00298095,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "size-one": "2148",
+   "same-pointer": "3466",
+   "disjoint": "13054",
+   "overlap-forward": "5634",
+   "overlap-backward": "5698"
+  },
+  "mutations": [
+   {
+    "name": "R1: loop stops one byte early (size > 1)",
+    "caught": true
+   },
+   {
+    "name": "R2: wrong source (copies dest onto itself)",
+    "caught": true
+   },
+   {
+    "name": "R3: 8-bit unsigned index (wraps past 255)",
+    "caught": true
+   },
+   {
+    "name": "R4: forward copy (wrong on overlap with dest > src)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min 1, max 4095, never zero/negative"
+    }
+   ],
+   "compares": [
+    {
+     "line": 5,
+     "text": "} while (size != 0);",
+     "size": 4,
+     "count": 41353904,
+     "kind": "against a constant",
+     "outcomes": "== 30000, < 0, > 41323904 (signed); < 0, > 41323904 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4094"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": [
+   {
+    "id": "+6 v-sign",
+    "reason": "The `size != 0` test sees size-1 after the pre-decrement. A value with the sign bit set needs size <= 0, which makes the C walk the index through 2^32 values and fault, so no terminating input reaches it."
+   }
+  ]
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34569,
+     "completion_tokens": 1485,
+     "reasoning_tokens": 1137,
+     "cost": 0.0020997,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/rMemcpy.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/r_memcpy.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 99.99310546099878,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 176795.3257200718,
+ "totals": {
+  "cost": 0.00508,
+  "prompt_tokens": 45673,
+  "completion_tokens": 11188,
+  "model_seconds": 0.0,
+  "check_seconds": 100.0,
+  "calls": 2,
+  "wall_seconds": 176795.3
+ }
+}

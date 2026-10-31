@@ -29,9 +29,7 @@
   ],
   "ret": "void",
   "types": [],
-  "globals": [
-   "D_800F1910"
-  ],
+  "globals": [],
   "hooks": [],
   "statics": [],
   "skip": ""
@@ -49,11 +47,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12539,
-     "completion_tokens": 13144,
-     "reasoning_tokens": 11151,
-     "cost": 0.00391295,
+     "completion_tokens": 14241,
+     "reasoning_tokens": 12434,
+     "cost": 0.0041872,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
@@ -71,12 +69,12 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14713,
-     "completion_tokens": 4226,
-     "reasoning_tokens": 2197,
-     "cost": 0.00179215,
+     "prompt_tokens": 14527,
+     "completion_tokens": 3858,
+     "reasoning_tokens": 2042,
+     "cost": 0.0016908499999999998,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
@@ -94,12 +92,12 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 16923,
-     "completion_tokens": 3427,
-     "reasoning_tokens": 1278,
-     "cost": 0.0017028999999999998,
+     "prompt_tokens": 16524,
+     "completion_tokens": 3171,
+     "reasoning_tokens": 1281,
+     "cost": 0.0016189499999999999,
      "seconds": null,
-     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
      "sample": 1
     },
     "passed": false,
@@ -116,17 +114,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 1.487672074996226,
+ "check_seconds": 1.7302097549982136,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 97138.74153900146,
+ "wall_seconds": 177547.15957689285,
  "totals": {
-  "cost": 0.00741,
-  "prompt_tokens": 44175,
-  "completion_tokens": 20797,
+  "cost": 0.0075,
+  "prompt_tokens": 43590,
+  "completion_tokens": 21270,
   "model_seconds": 0.0,
-  "check_seconds": 1.5,
+  "check_seconds": 1.7,
   "calls": 3,
-  "wall_seconds": 97138.7
+  "wall_seconds": 177547.2
  }
 }

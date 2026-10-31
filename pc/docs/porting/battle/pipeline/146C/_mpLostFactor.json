@@ -1,0 +1,243 @@
+{
+ "function": "_mpLostFactor",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_mpLostFactor",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x800824d8",
+  "difficulty": "S",
+  "zig_name": "mpLostFactor",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "mp_lost_factor",
+  "spec_file": "mpLostFactor.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn mpLostFactor(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short",
+  "params": [
+   [
+    "arg0",
+    "?*v.vs_action_t"
+   ],
+   [
+    "arg1",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg2",
+    "?*v._hitEntity_t"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "arg4",
+    "c_int"
+   ]
+  ],
+  "ret": "c_short",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16258,
+     "completion_tokens": 14896,
+     "reasoning_tokens": 13150,
+     "cost": 0.0045369,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "mp-over": "9900",
+   "mp-spent": "9871",
+   "mp-equal": "7695",
+   "unk0-zero": "2534"
+  },
+  "mutations": [
+   {
+    "name": "M1: division done unsigned (negative MP difference)",
+    "caught": true
+   },
+   {
+    "name": "M2: unk0 - 1 becomes unk0 + 1",
+    "caught": true
+   },
+   {
+    "name": "M3: wrong field of D_800F19CC read",
+    "caught": true
+   },
+   {
+    "name": "M4: MP difference sign flipped",
+    "caught": true
+   },
+   {
+    "name": "M5: hitParams indexed by arg4 instead of arg3",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 4,
+   "lines_hit": 4,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2, max 5, unsigned 0..4294967295, seen zero/negative/all ones, 8 value(s): 5, 0, 4294967294, 3, 1, 2, 4, 4294967295"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "32-bit: min -2, max 5, unsigned 0..4294967295, seen zero/negative/all ones, 8 value(s): 4294967295, 1, 2, 4, 3, 4294967294, 0, 5"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39632,
+     "completion_tokens": 4550,
+     "reasoning_tokens": 3965,
+     "cost": 0.0031191,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/mp_lost_factor.zig:11:32: error: no field named 'unk3C' in struct 'views_146C.vs_battle_actor'\n    const actor = psx.get(slot.unk3C).?;\n                               ^~~~~\npc/build/port-pipeline/gen/146C/fn-_mpLostFactor/views_146C.zig:2271:36: note: struct declared here\npub const vs_battle_actor = extern struct {\n                            ~~~~~~~^~~~~~\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 40556,
+     "completion_tokens": 1275,
+     "reasoning_tokens": 692,
+     "cost": 0.0023465499999999998,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/mpLostFactor.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/mp_lost_factor.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 384.6169177699985,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 180221.53811764717,
+ "totals": {
+  "cost": 0.01,
+  "prompt_tokens": 96446,
+  "completion_tokens": 20721,
+  "model_seconds": 0.0,
+  "check_seconds": 384.6,
+  "calls": 3,
+  "wall_seconds": 180221.5
+ }
+}

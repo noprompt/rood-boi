@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
+ "status": "port-failed",
  "reviewed": false,
  "plan": {
   "name": "func_8007C31C",
@@ -42,65 +42,43 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12932,
-     "completion_tokens": 7610,
-     "reasoning_tokens": 6339,
-     "cost": 0.0025491,
+     "completion_tokens": 12802,
+     "reasoning_tokens": 11572,
+     "cost": 0.0038471,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation C2: call dropped: mutation C2: call dropped: its `from` text occurs 0 times in the C body of func_8007C31C (copy it exactly from the C)",
-     "FAIL: mutation C3: guest pointer off by 4 (wrong field offset): gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018func_8007C31C__standin\u2019:\nzdiff_standin.c:1:178: error: expected \u2018)\u2019 before \u2018;\u2019 token\nzdiff_standin.c:1:179: error: expected \u2018;\u2019 before \u2018}\u2019 token\n",
-     "FAIL: mutation C4: top bit of the guest address dropped (unsigned slip): gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018func_8007C31C__standin\u2019:\nzdiff_standin.c:1:189: error: expected \u2018)\u2019 before \u2018;\u2019 token\nzdiff_standin.c:1:190: error: expected \u2018;\u2019 before \u2018}\u2019 token\n"
-    ]
-   },
-   {
-    "round": 2,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 14569,
-     "completion_tokens": 3452,
-     "reasoning_tokens": 2205,
-     "cost": 0.00159145,
-     "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
-     "sample": 1
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation C4: top bit of the guest address dropped (unsigned slip): gcc -m64 -fpie ...: zdiff_standin.c: In function \u2018func_8007C31C__standin\u2019:\nzdiff_standin.c:1:172: error: invalid operands to binary & (have \u2018vs_battle_actor2 *\u2019 and \u2018long unsigned int\u2019)\n"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
   "classes": {
-   "null-stats": "6612",
-   "arena-stats": "6626",
-   "wild-stats": "6762"
+   "null-stats": "5022",
+   "arena-stats": "4950",
+   "high-bit-stats": "5085",
+   "low-stats": "4943"
   },
   "mutations": [
    {
-    "name": "C1: wrong constant argument (1 for 0)",
+    "name": "F1: wrong constant (channel 1)",
     "caught": true
    },
    {
-    "name": "C2: call dropped",
+    "name": "F2: call dropped",
     "caught": true
    },
    {
-    "name": "C3: guest pointer off by 4 (wrong field offset)",
+    "name": "F3: signed slip on the guest pointer",
     "caught": true
    },
    {
-    "name": "C4: top bit of the guest address dropped (unsigned slip)",
-    "caught": false
+    "name": "F4: high bit of the guest pointer masked off",
+    "caught": true
    }
   ],
   "coverage": {
@@ -115,23 +93,87 @@
    "args": [],
    "compares": [],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36405,
+     "completion_tokens": 1294,
+     "reasoning_tokens": 1061,
+     "cost": 0.00214375,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 3):\nzdiff: PANIC in the Zig run, iteration 1: incorrect alignment (return address 0x40339a)"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 3,
+      "mismatches": null,
+      "first": "PANIC in the Zig run, iteration 1: incorrect alignment (return address 0x40339a)"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36729,
+     "completion_tokens": 2598,
+     "reasoning_tokens": 2244,
+     "cost": 0.00248595,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: call 0 (func_80086754): argument 1: C 0x4060c0, Zig 0x4060ac\nzdiff: MISMATCH iteration 1: call 0 (func_80086754): argument 1: C 0xa081addf, Zig 0x4060ac\nzdiff: MISMATCH iteration 2: call 0 (func_80086754): argument 1: C 0, Zig 0x4060ac\nzdiff: func_8007C31C: 1000 iterations, seed 1, 1000 mismatches; classes: null-stats=255 arena-stats=245 high-bit-stats=241 low-stats=259"
+    ],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 1,
+      "mismatches": 1000,
+      "first": "MISMATCH iteration 0: call 0 (func_80086754): argument 1: C 0x4060c0, Zig 0x4060ac"
+     }
+    ]
+   }
+  ]
  },
  "written": [],
- "check_seconds": 16.66762633700091,
+ "check_seconds": 11.613250837999658,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56533.41324687004,
+ "wall_seconds": 177570.282446146,
  "totals": {
-  "cost": 0.00414,
-  "prompt_tokens": 27501,
-  "completion_tokens": 11062,
+  "cost": 0.00848,
+  "prompt_tokens": 86066,
+  "completion_tokens": 16694,
   "model_seconds": 0.0,
-  "check_seconds": 16.7,
-  "calls": 2,
-  "wall_seconds": 56533.4
+  "check_seconds": 11.6,
+  "calls": 3,
+  "wall_seconds": 177570.3
  }
 }

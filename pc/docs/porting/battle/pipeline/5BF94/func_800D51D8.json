@@ -7,8 +7,8 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "port-failed",
- "reviewed": "not ported in this wave (unrouted): port-failed: FAIL: seed 1: the port differs from the C (exit 1): zdiff: MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40",
+ "status": "spec-failed",
+ "reviewed": false,
  "plan": {
   "name": "func_800D51D8",
   "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
@@ -28,9 +28,7 @@
    ]
   ],
   "ret": "c_int",
-  "types": [
-   "D_800F53B8_t"
-  ],
+  "types": [],
   "globals": [
    "D_800EC3F4"
   ],
@@ -54,132 +52,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 12092,
-     "completion_tokens": 18104,
-     "reasoning_tokens": 16090,
-     "cost": 0.0102612,
-     "seconds": 80.4,
-     "sample": 1,
-     "conversation": "7f858426d29a80dfe8b2dc5ee2588b1a21edb184fb905cd4b2d141d12a663243"
-    },
-    "passed": true,
-    "errors": []
-   }
-  ],
-  "kept": {
-   "round": 1,
-   "sample": 1
-  },
-  "classes": {
-   "out-of-range": "9917",
-   "all-repeat": "2599",
-   "exit-2": "4186",
-   "exit-other": "13298"
-  },
-  "mutations": [
-   {
-    "name": "D1: opcode 49 counted as in range",
-    "caught": true
-   },
-   {
-    "name": "D2: the unimplemented report dropped",
-    "caught": true
-   },
-   {
-    "name": "D3: a handler result 2 does not end the loop",
-    "caught": true
-   },
-   {
-    "name": "D4: the loop repeats on any result but 2",
-    "caught": true
-   },
-   {
-    "name": "D5: the fall-through return is 0, not 1",
-    "caught": true
-   }
-  ],
-  "coverage": {
-   "branches": 6,
-   "branches_hit": 6,
-   "conditions": null,
-   "conditions_hit": null,
-   "lines": 9,
-   "lines_hit": 9,
-   "uncovered": [],
-   "flags": [],
-   "args": [
-    {
-     "arg": 0,
-     "count": 30000,
-     "text": "pointer: never null"
-    }
-   ],
-   "compares": [
-    {
-     "line": 9,
-     "text": "if (opcode >= 49) {",
-     "size": 4,
-     "count": 103938,
-     "kind": "against a constant",
-     "outcomes": "== 17231, < 52331, > 34376 (signed); < 52331, > 34376 (unsigned)",
-     "operand": "constant 48",
-     "a": "0..50"
-    },
-    {
-     "line": 17,
-     "text": "if (miscIndex == 2) {",
-     "size": 4,
-     "count": 103938,
-     "kind": "against a constant",
-     "outcomes": "== 10216, < 80505, > 13217 (signed); < 80505, > 13217 (unsigned)",
-     "operand": "constant 2",
-     "a": "0..255"
-    },
-    {
-     "line": 20,
-     "text": "} while (miscIndex == 1);",
-     "size": 4,
-     "count": 93722,
-     "kind": "against a constant",
-     "outcomes": "== 73938, < 6567, > 13217 (signed); < 6567, > 13217 (unsigned)",
-     "operand": "constant 1",
-     "a": "0..255"
-    }
-   ],
-   "passed": true
-  },
-  "waivers": []
- },
- "port": {
-  "attempts": [
-   {
-    "round": 1,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 35564,
-     "completion_tokens": 2911,
-     "reasoning_tokens": 2468,
-     "cost": 0.0050119,
-     "seconds": 12.8,
-     "sample": 1,
-     "conversation": "11fe330374ccd4bc1b9e80bd5c27794ee7662be1a73c28872611ec4c3b224dd0"
+     "completion_tokens": 12621,
+     "reasoning_tokens": 11345,
+     "cost": 0.00375985,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 2: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 5: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: func_800D51D8: 1951 iterations, seed 1, 1000 mismatches; classes: out-of-range=653 all-repeat=175 exit-2=268 exit-other=855"
-    ],
-    "runs": [
-     {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d"
-     }
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has u8: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800D51D8/spec1/build/game/common/route.zig:24:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
     ]
    },
    {
@@ -192,67 +74,133 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 36291,
-     "completion_tokens": 2551,
-     "reasoning_tokens": 1854,
-     "cost": 0.0049046,
-     "seconds": 12.7,
-     "sample": 1,
-     "conversation": "2fd8004860da39671c569047eb31f0f6976d337cf3e484653cd1531d9453039a"
+     "prompt_tokens": 13707,
+     "completion_tokens": 2234,
+     "reasoning_tokens": 943,
+     "cost": 0.00124385,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: does not compile:\nlink: /usr/bin/ld: pc/build/port-pipeline/func_800D51D8/port2/build/harness.o: in function `func_800D51D8.func_800D51D8':\ngame/battle/func_800D51D8.zig:11:(.text.func_800D51D8.func_800D51D8+0x11): undefined reference to `pc_msg_effectOpcodeRange'\n/usr/bin/ld: pc/build/port-pipeline/func_800D51D8/port2/build/harness.o:(.debug_info+0x1e34): undefined reference to `pc_msg_effectOpcodeRange'\n/usr/bin/ld: pc/build/port-pipeline/func_800D51D8/port2/build/zdiff: hidden symbol `pc_msg_effectOpcodeRange' isn't defined\n/usr/bin/ld: final link failed: bad value\ncollect2: error: ld returned 1 exit status\n"
-    ],
-    "runs": []
-   },
-   {
-    "round": 3,
-    "sample": 1,
-    "call": {
-     "finish_reason": "stop",
-     "model": "anthropic/claude-haiku-5.5",
-     "endpoint": "remote",
-     "thinking": "default",
-     "temperature": 0.0,
-     "max_tokens": 64000,
-     "prompt_tokens": 37336,
-     "completion_tokens": 1963,
-     "reasoning_tokens": 1267,
-     "cost": 0.0047151,
-     "seconds": 9.9,
-     "sample": 1,
-     "conversation": "1cd31b09053b67f23e86a8f0edca5534c927dba5aba3a7ff6be5407aea81c3ce"
-    },
-    "passed": false,
-    "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 2: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: MISMATCH iteration 5: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d\nzdiff: func_800D51D8: 1951 iterations, seed 1, 1000 mismatches; classes: out-of-range=653 all-repeat=175 exit-2=268 exit-other=855"
-    ],
-    "runs": [
-     {
-      "seed": 1,
-      "exit": 1,
-      "mismatches": 1000,
-      "first": "MISMATCH iteration 1: call 2 (pc_unimplemented): argument 0: C 0x4058d0, Zig 0x40524d"
-     }
+     "FAIL: mutation M1: early return taken on 3, not 2: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800D51D8: 30000 iterations, seed 1, 0 mismatches; classes: null-arg=7494 object-arg=22506",
+     "FAIL: mutation M2: the do-while never repeats: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800D51D8: 30000 iterations, seed 1, 0 mismatches; classes: null-arg=7494 object-arg=22506",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800D51D8: branches 3/6 (66.7% with waivers), lines 7/9\n  waived +9 b0: branch never taken: `if (opcode >= 49) {` (The opcode >= 49 branch: the C indexes D_800EC3F4 past its 49 entries into unrelated globals, so the table call would jump to random bytes and crash. The out-of-range opcode edge cannot be reached safely.)\n  UNCOVERED +17 b0: branch never taken: `if (miscIndex == 2) {`\n  UNCOVERED +20 b0: branch never taken: `} while (miscIndex == 1);`\ncoverage func_800D51D8: FAILED (threshold 100%: 2 uncovered, 0 value flag(s) not waived)\nWhat to add:\n- `if (miscIndex == 2) {` (+17): one way out of this test (+17 b0) was never taken; add inputs that take it.\n- `} while (miscIndex == 1);` (+20): one way out of this test (+20 b0) was never taken; add inputs that take it.\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800D51D8.coverage_waiver]] with its `id` and a `reason`."
     ]
    }
-  ]
+  ],
+  "classes": {
+   "null-arg": "7494",
+   "object-arg": "22506"
+  },
+  "mutations": [
+   {
+    "name": "M1: early return taken on 3, not 2",
+    "caught": false
+   },
+   {
+    "name": "M2: the do-while never repeats",
+    "caught": false
+   },
+   {
+    "name": "M3: final return passes miscIndex through",
+    "caught": true
+   },
+   {
+    "name": "M4: dispatched handler gets NULL instead of arg0",
+    "caught": true
+   },
+   {
+    "name": "M5: opcode fetched with NULL instead of arg0",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 3,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 9,
+   "lines_hit": 7,
+   "uncovered": [
+    {
+     "id": "+9 b0",
+     "line": 9,
+     "text": "if (opcode >= 49) {",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+17 b0",
+     "line": 17,
+     "text": "if (miscIndex == 2) {",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+20 b0",
+     "line": 20,
+     "text": "} while (miscIndex == 1);",
+     "what": "branch never taken"
+    }
+   ],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 9,
+     "text": "if (opcode >= 49) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 30000, > 0 (signed); < 30000, > 0 (unsigned)",
+     "operand": "constant 48",
+     "a": "0..3"
+    },
+    {
+     "line": 17,
+     "text": "if (miscIndex == 2) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 15133, > 14867 (signed); < 0, > 30000 (unsigned)",
+     "operand": "constant 2",
+     "a": "-2147449344..2147456257"
+    },
+    {
+     "line": 20,
+     "text": "} while (miscIndex == 1);",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 15133, > 14867 (signed); < 0, > 30000 (unsigned)",
+     "operand": "constant 1",
+     "a": "-2147449344..2147456257"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
  },
  "written": [],
- "check_seconds": 18.296007967997866,
- "wall_seconds": 134.29908747599984,
+ "check_seconds": 17.619536278999476,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 177874.85648679733,
  "totals": {
-  "cost": 0.02489,
-  "prompt_tokens": 121283,
-  "completion_tokens": 25529,
-  "model_seconds": 115.8,
-  "check_seconds": 18.3,
-  "calls": 4,
-  "wall_seconds": 134.3
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "cost": 0.005,
+  "prompt_tokens": 25799,
+  "completion_tokens": 14855,
+  "model_seconds": 0.0,
+  "check_seconds": 17.6,
+  "calls": 2,
+  "wall_seconds": 177874.9
  }
 }

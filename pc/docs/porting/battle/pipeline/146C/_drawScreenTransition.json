@@ -7,7 +7,7 @@
  "thinking": "default",
  "temperature": 0.0,
  "samples": 1,
- "status": "spec-failed",
+ "status": "ported",
  "reviewed": false,
  "plan": {
   "name": "_drawScreenTransition",
@@ -53,17 +53,17 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 21446,
-     "completion_tokens": 16343,
-     "reasoning_tokens": 13889,
-     "cost": 0.00515805,
+     "completion_tokens": 16006,
+     "reasoning_tokens": 13915,
+     "cost": 0.0050738,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C itself crashed on your inputs (the C runs first, so this is the spec's\nbug). The harness fills every global and the arena with random bytes before\nprepare, so every pointer the C follows must be one prepare set: each\nargument, each pointer field of an object you build, and each ENTRY of a\nglobal pointer table the C indexes (only the entry it reads: e.g.\n`v.g.TABLE()[i] = obj`), pointing at an object from `ctx.alloc`/`ctx.allocBytes`\n(sized for every element the C indexes past a `[0]` array), at a global, or\nnull where the C tests for null. An index into a global table must stay\ninside its length (the views accessor's type gives it). Below: the crash, its\nfault address (named when it is inside an object the harness owns) and the\narguments of that iteration:\nzdiff: CRASH (signal 11) in the C run, iteration 10, fault address 0x4 [NULL+0x4: a field of a null pointer]: argument 0 of the call of AddPrim, which reads through it\nzdiff: crashed on arguments: 0 (class fade-black)",
-     "(the mutations and the coverage gate are checked once the C runs crash-free)"
+     "FAIL: mutation D3: wipe hold angle offset a quarter, not a half: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _drawScreenTransition: 40000 iterations, seed 1, 0 mismatches; classes: idle=5128 fade-black=7508 fade-white-255=133 fade-white-partial=2340 wipe-hold=331 wipe-run=2224 other-effect=22336",
+     "FAIL: mutation D4: wrong step constant in the wipe-hold test: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _drawScreenTransition: 40000 iterations, seed 1, 0 mismatches; classes: idle=5128 fade-black=7508 fade-white-255=133 fade-white-partial=2340 wipe-hold=331 wipe-run=2224 other-effect=22336"
     ]
    },
    {
@@ -76,52 +76,54 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 24324,
-     "completion_tokens": 3579,
-     "reasoning_tokens": 1113,
-     "cost": 0.00211095,
+     "prompt_tokens": 23891,
+     "completion_tokens": 4992,
+     "reasoning_tokens": 2658,
+     "cost": 0.00244255,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
-    "passed": false,
-    "errors": [
-     "FAIL: mutation D4: wrong half-turn constant for the rotated wipe: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: _drawScreenTransition: 30000 iterations, seed 1, 0 mismatches; classes: alpha-zero=2694 fade-black=10272 fade-white-255=328 fade-white=3091 wipe-rotated-step=752 wipe=2686 other-effect=10177"
-    ]
+    "passed": true,
+    "errors": []
    }
   ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
   "classes": {
-   "alpha-zero": "2694",
-   "fade-black": "10272",
-   "fade-white-255": "328",
-   "fade-white": "3091",
-   "wipe-rotated-step": "752",
-   "wipe": "2686",
-   "other-effect": "10177"
+   "idle": "5128",
+   "fade-black": "7508",
+   "fade-white-255": "133",
+   "fade-white-partial": "2340",
+   "wipe-hold": "331",
+   "wipe-run": "2224",
+   "other-effect": "22336"
   },
   "mutations": [
    {
-    "name": "D1: fade-out ends at alpha 255 one step early (> for >=)",
+    "name": "D1: fade-in finish bound is '>' not '>='",
     "caught": true
    },
    {
-    "name": "D2: step 4/7 reset skipped at alpha == speed (< for <=)",
+    "name": "D2: fade-out bound compared unsigned",
     "caught": true
    },
    {
-    "name": "D3: wipe edge x3 takes the projected y",
+    "name": "D3: wipe hold angle offset a quarter, not a half",
     "caught": true
    },
    {
-    "name": "D4: wrong half-turn constant for the rotated wipe",
-    "caught": false
-   },
-   {
-    "name": "D5: wipe edge primitive dropped",
+    "name": "D4: wrong step constant in the wipe-hold test",
     "caught": true
    },
    {
-    "name": "D6: white fade tests alpha == 254 for opaque",
+    "name": "D5: edge polygon x1 takes projected y",
+    "caught": true
+   },
+   {
+    "name": "D6: fade-in finish sets step 5 not 6",
     "caught": true
    }
   ],
@@ -137,7 +139,7 @@
    "args": [
     {
      "arg": 0,
-     "count": 30000,
+     "count": 40000,
      "text": "pointer: never null"
     }
    ],
@@ -146,99 +148,99 @@
      "line": 12,
      "text": "if (vs_battle_screenTransitionAlpha != 0) {",
      "size": 4,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 2694, < 4798, > 22508 (signed); < 0, > 27306 (unsigned)",
+     "outcomes": "== 5128, < 14714, > 20158 (signed); < 0, > 34872 (unsigned)",
      "operand": "constant 0",
-     "a": "-200..1000"
+     "a": "-2999372..2999826"
     },
     {
      "line": 13,
      "text": "switch (vs_battle_screenTransitionEffect) {",
      "size": 4,
-     "count": 27306,
+     "count": 34872,
      "kind": "switch",
-     "outcomes": "== 17129, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "outcomes": "== 12536, < 0, > 0 (signed); < 0, > 0 (unsigned)",
      "operand": "cases",
-     "a": "-1..6"
+     "a": "-2147448054..2147300090"
     },
     {
      "line": 36,
      "text": "if (vs_battle_screenTransitionAlpha == 255) {",
      "size": 4,
-     "count": 3419,
+     "count": 2473,
      "kind": "against a constant",
-     "outcomes": "== 328, < 2468, > 623 (signed); < 1870, > 1221 (unsigned)",
+     "outcomes": "== 133, < 1356, > 984 (signed); < 331, > 2009 (unsigned)",
      "operand": "constant 255",
-     "a": "-200..1000"
+     "a": "-2983797..2995730"
     },
     {
      "line": 50,
      "text": "if ((vs_battle_screenTransitionStep == 4)",
      "size": 4,
-     "count": 3438,
+     "count": 2555,
      "kind": "against a constant",
-     "outcomes": "== 384, < 1508, > 1546 (signed); < 1508, > 1546 (unsigned)",
+     "outcomes": "== 172, < 1283, > 1100 (signed); < 647, > 1736 (unsigned)",
      "operand": "constant 4",
-     "a": "0..8"
+     "a": "-2144952051..2145672765"
     },
     {
      "line": 51,
      "text": "|| (vs_battle_screenTransitionStep == 7)) {",
      "size": 4,
-     "count": 3054,
+     "count": 2383,
      "kind": "against a constant",
-     "outcomes": "== 368, < 2294, > 392 (signed); < 2294, > 392 (unsigned)",
+     "outcomes": "== 159, < 1601, > 623 (signed); < 965, > 1259 (unsigned)",
      "operand": "constant 7",
-     "a": "0..8"
+     "a": "-2144952051..2145672765"
     },
     {
      "line": 145,
      "text": "if (vs_battle_screenTransitionStep == 1 || vs_battle_screenTransitionStep == 2",
      "size": 4,
-     "count": 30000,
+     "count": 40000,
      "kind": "against a constant",
-     "outcomes": "== 3382, < 3258, > 23360 (signed); < 3258, > 23360 (unsigned)",
+     "outcomes": "== 2466, < 12385, > 25149 (signed); < 2468, > 35066 (unsigned)",
      "operand": "constant 1",
-     "a": "0..8"
+     "a": "-2147396963..2147308235"
     },
     {
      "line": 145,
      "text": "if (vs_battle_screenTransitionStep == 1 || vs_battle_screenTransitionStep == 2",
      "size": 4,
-     "count": 26618,
+     "count": 37534,
      "kind": "against a constant",
-     "outcomes": "== 3393, < 3258, > 19967 (signed); < 3258, > 19967 (unsigned)",
+     "outcomes": "== 2512, < 12385, > 22637 (signed); < 2468, > 32554 (unsigned)",
      "operand": "constant 2",
-     "a": "0..8"
+     "a": "-2147396963..2147308235"
     },
     {
      "line": 146,
      "text": "|| vs_battle_screenTransitionStep == 5) {",
      "size": 4,
-     "count": 23225,
+     "count": 35022,
      "kind": "against a constant",
-     "outcomes": "== 3403, < 9889, > 9933 (signed); < 9889, > 9933 (unsigned)",
+     "outcomes": "== 2565, < 17459, > 14998 (signed); < 7542, > 24915 (unsigned)",
      "operand": "constant 5",
-     "a": "0..8"
+     "a": "-2147396963..2147308235"
     },
     {
      "line": 147,
      "text": "if (vs_battle_screenTransitionAlpha >= (255 - vs_battle_screenTransitionSpeed)) {",
      "size": 4,
-     "count": 10178,
+     "count": 7543,
      "kind": "a == b / a < b",
-     "outcomes": "== 2761, < 3569, > 3848 (signed); < 3348, > 4069 (unsigned)",
-     "operand": "b -200..1000",
-     "a": "-145..256"
+     "outcomes": "== 1661, < 2552, > 3330 (signed); < 3092, > 2790 (unsigned)",
+     "operand": "b -2999372..2999216",
+     "a": "-745..1255"
     },
     {
      "line": 148,
      "text": "if (vs_battle_screenTransitionStep == 5) {",
      "size": 4,
-     "count": 6330,
+     "count": 4213,
      "kind": "against a constant",
-     "outcomes": "== 2115, < 4215, > 0 (signed); < 4215, > 0 (unsigned)",
+     "outcomes": "== 1424, < 2789, > 0 (signed); < 2789, > 0 (unsigned)",
      "operand": "constant 5",
      "a": "1..5"
     },
@@ -246,51 +248,104 @@
      "line": 155,
      "text": "} else if (vs_battle_screenTransitionStep == 4",
      "size": 4,
-     "count": 19822,
+     "count": 32457,
      "kind": "against a constant",
-     "outcomes": "== 3341, < 6548, > 9933 (signed); < 6548, > 9933 (unsigned)",
+     "outcomes": "== 2589, < 14870, > 14998 (signed); < 4953, > 24915 (unsigned)",
      "operand": "constant 4",
-     "a": "0..8"
+     "a": "-2147396963..2147308235"
     },
     {
      "line": 156,
      "text": "|| vs_battle_screenTransitionStep == 7) {",
      "size": 4,
-     "count": 16481,
+     "count": 29868,
      "kind": "against a constant",
-     "outcomes": "== 3380, < 9896, > 3205 (signed); < 9896, > 3205 (unsigned)",
+     "outcomes": "== 2451, < 17420, > 9997 (signed); < 7503, > 19914 (unsigned)",
      "operand": "constant 7",
-     "a": "0..8"
+     "a": "-2147396963..2147308235"
     },
     {
      "line": 157,
      "text": "if (vs_battle_screenTransitionAlpha <= vs_battle_screenTransitionSpeed) {",
      "size": 4,
-     "count": 6721,
+     "count": 5040,
      "kind": "a == b / a < b",
-     "outcomes": "== 1913, < 2392, > 2416 (signed); < 1960, > 2848 (unsigned)",
-     "operand": "b -1..400",
-     "a": "-200..1000"
+     "outcomes": "== 891, < 1984, > 2165 (signed); < 2323, > 1826 (unsigned)",
+     "operand": "b -1000..1000",
+     "a": "-2989501..2998363"
     }
    ],
    "passed": true
-  }
+  },
+  "waivers": []
  },
  "port": {
-  "attempts": []
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 44649,
+     "completion_tokens": 26022,
+     "reasoning_tokens": 22055,
+     "cost": 0.00873795,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
  },
- "written": [],
- "check_seconds": 28.229040153000824,
+ "written": [
+  "pc/tests/zig_diff/drawScreenTransition.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/draw_screen_transition.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 444.01456148800025,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56121.54928278923,
+ "wall_seconds": 178785.36555433273,
  "totals": {
-  "cost": 0.00727,
-  "prompt_tokens": 45770,
-  "completion_tokens": 19922,
+  "cost": 0.01625,
+  "prompt_tokens": 89986,
+  "completion_tokens": 47020,
   "model_seconds": 0.0,
-  "check_seconds": 28.2,
-  "calls": 2,
-  "wall_seconds": 56121.5
+  "check_seconds": 444.0,
+  "calls": 3,
+  "wall_seconds": 178785.4
  }
 }

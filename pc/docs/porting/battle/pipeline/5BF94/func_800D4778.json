@@ -1,0 +1,155 @@
+{
+ "function": "func_800D4778",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800D4778",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d4778",
+  "difficulty": "S",
+  "zig_name": "func_800D4778",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D4778",
+  "spec_file": "func_800D4778.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D4778(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [
+   "D_800F53B8_t2",
+   "D_800F53B8_t3"
+  ],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12914,
+     "completion_tokens": 12870,
+     "reasoning_tokens": 11387,
+     "cost": 0.0038632,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: specs.toml entry: Illegal character '\\n' (at line 20, column 47)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 14458,
+     "completion_tokens": 2242,
+     "reasoning_tokens": 757,
+     "cost": 0.0012834,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F2: callee result cast to signed short: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800D4778: 30000 iterations, seed 1, 0 mismatches; classes: copy-zero=7491 copy-arena=7559 copy-random=14950",
+     "FAIL: mutation F3: unkC copied after the callee, not before: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800D4778: 30000 iterations, seed 1, 0 mismatches; classes: copy-zero=7491 copy-arena=7559 copy-random=14950",
+     "FAIL: mutation F4: sp10.unk0 off by four bytes: mutation F4: sp10.unk0 off by four bytes: its `from` text occurs 0 times in the C body of func_800D4778 (copy it exactly from the C)"
+    ]
+   }
+  ],
+  "classes": {
+   "copy-zero": "7491",
+   "copy-arena": "7559",
+   "copy-random": "14950"
+  },
+  "mutations": [
+   {
+    "name": "F1: returns 0 instead of 1",
+    "caught": true
+   },
+   {
+    "name": "F2: callee result cast to signed short",
+    "caught": false
+   },
+   {
+    "name": "F3: unkC copied after the callee, not before",
+    "caught": false
+   },
+   {
+    "name": "F4: sp10.unk0 off by four bytes",
+    "caught": false
+   },
+   {
+    "name": "F5: dropped call to func_800CE83C",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 14.258442215999821,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 177787.8910098076,
+ "totals": {
+  "cost": 0.00515,
+  "prompt_tokens": 27372,
+  "completion_tokens": 15112,
+  "model_seconds": 0.0,
+  "check_seconds": 14.3,
+  "calls": 2,
+  "wall_seconds": 177787.9
+ }
+}

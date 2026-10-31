@@ -1,0 +1,232 @@
+{
+ "function": "vs_battle_decreaseMiscCount",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_decreaseMiscCount",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800ccb9c",
+  "difficulty": "S",
+  "zig_name": "decreaseMiscCount",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "decrease_misc_count",
+  "spec_file": "decreaseMiscCount.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn decreaseMiscCount(miscId: c_int) callconv(.c) c_int",
+  "params": [
+   [
+    "miscId",
+    "c_int"
+   ]
+  ],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "vs_battle_miscItemInvoked",
+   "vs_main_inventory"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11642,
+     "completion_tokens": 11589,
+     "reasoning_tokens": 9960,
+     "cost": 0.00347935,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "not-found": "20624",
+   "found-first-probe": "607",
+   "found-later-probe": "6362",
+   "count-to-zero": "1212",
+   "count-was-zero": "1195"
+  },
+  "mutations": [
+   {
+    "name": "M1: reset bound off by one (<= 0x143)",
+    "caught": true
+   },
+   {
+    "name": "M2: search wraps at 32 instead of 64",
+    "caught": true
+   },
+   {
+    "name": "M3: loop stops one short (misses slot 63)",
+    "caught": true
+   },
+   {
+    "name": "M4: wrapped count (-1) clears the id",
+    "caught": true
+   },
+   {
+    "name": "M5: dropped store of the cleared id",
+    "caught": true
+   },
+   {
+    "name": "M6: id compared as signed short (0xFFFF matches -1)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 8,
+   "branches_hit": 8,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 12,
+   "lines_hit": 12,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [
+    {
+     "line": 4,
+     "text": "if (miscId < 0x143) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 1878, < 14983, > 13139 (signed); < 3869, > 24253 (unsigned)",
+     "operand": "constant 322",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 8,
+     "text": "for (i = 0; i < 64; ++i) {",
+     "size": 4,
+     "count": 1445184,
+     "kind": "against a constant",
+     "outcomes": "== 20626, < 1403934, > 20624 (signed); < 1403934, > 20624 (unsigned)",
+     "operand": "constant 63",
+     "a": "0..64"
+    },
+    {
+     "line": 10,
+     "text": "if (vs_main_inventory.misc[miscIndex].id == miscId) {",
+     "size": 4,
+     "count": 1424560,
+     "kind": "a == b / a < b",
+     "outcomes": "== 9376, < 790797, > 624387 (signed); < 79501, > 1335683 (unsigned)",
+     "operand": "b 0..65535",
+     "a": "-2147483648..2147483647"
+    },
+    {
+     "line": 13,
+     "text": "if (count == 0) {",
+     "size": 4,
+     "count": 9376,
+     "kind": "against a constant",
+     "outcomes": "== 1212, < 1195, > 6969 (signed); < 0, > 8164 (unsigned)",
+     "operand": "constant 0",
+     "a": "-1..254"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35084,
+     "completion_tokens": 2510,
+     "reasoning_tokens": 1948,
+     "cost": 0.0023816999999999996,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/decreaseMiscCount.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/decrease_misc_count.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 107.0117183120019,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 176375.42148423195,
+ "totals": {
+  "cost": 0.00586,
+  "prompt_tokens": 46726,
+  "completion_tokens": 14099,
+  "model_seconds": 0.0,
+  "check_seconds": 107.0,
+  "calls": 2,
+  "wall_seconds": 176375.4
+ }
+}

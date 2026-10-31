@@ -1,0 +1,217 @@
+{
+ "function": "_setArtAndAbilityToUnlock",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "_setArtAndAbilityToUnlock",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cb208",
+  "difficulty": "S",
+  "zig_name": "setArtAndAbilityToUnlock",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "set_art_and_ability_to_unlock",
+  "spec_file": "setArtAndAbilityToUnlock.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn setArtAndAbilityToUnlock(art: c_int, battleAbility: c_int) callconv(.c) void",
+  "params": [
+   [
+    "art",
+    "c_int"
+   ],
+   [
+    "battleAbility",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [
+   "vs_battle_unlockedBattleAbility",
+   "vs_battle_unlockedBreakArt"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11344,
+     "completion_tokens": 3295,
+     "reasoning_tokens": 2063,
+     "cost": 0.00139095,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no input classes declared (`classes` and `classify`)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12627,
+     "completion_tokens": 1949,
+     "reasoning_tokens": 562,
+     "cost": 0.0011186,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "both-in-byte": "906",
+   "art-out-of-byte": "15653",
+   "ability-out-of-byte": "3441"
+  },
+  "mutations": [
+   {
+    "name": "A1: wrong constant in the call (3, 3)",
+    "caught": true
+   },
+   {
+    "name": "A2: the call dropped",
+    "caught": true
+   },
+   {
+    "name": "A3: the two stores swapped (break art gets the ability)",
+    "caught": true
+   },
+   {
+    "name": "A4: ability store moved after the call",
+    "caught": true
+   },
+   {
+    "name": "A5: break art masked to 7 bits",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 5,
+   "lines_hit": 5,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 1,
+     "count": 20000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34763,
+     "completion_tokens": 819,
+     "reasoning_tokens": 491,
+     "cost": 0.0019429,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/setArtAndAbilityToUnlock.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/set_art_and_ability_to_unlock.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 118.64094532800027,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 180786.75837659836,
+ "totals": {
+  "cost": 0.00445,
+  "prompt_tokens": 58734,
+  "completion_tokens": 6063,
+  "model_seconds": 0.0,
+  "check_seconds": 118.6,
+  "calls": 3,
+  "wall_seconds": 180786.8
+ }
+}

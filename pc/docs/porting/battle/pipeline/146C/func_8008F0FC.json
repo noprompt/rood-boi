@@ -1,0 +1,225 @@
+{
+ "function": "func_8008F0FC",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8008F0FC",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8008f0fc",
+  "difficulty": "S",
+  "zig_name": "func_8008F0FC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8008F0FC",
+  "spec_file": "func_8008F0FC.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8008F0FC() callconv(.c) c_int",
+  "params": [],
+  "ret": "c_int",
+  "types": [],
+  "globals": [
+   "D_800F1DAC",
+   "D_800F1DB0",
+   "D_800F1DD0"
+  ],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12797,
+     "completion_tokens": 16663,
+     "reasoning_tokens": 14241,
+     "cost": 0.0048056,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "upload-slot": "11942",
+   "free-heap": "4475",
+   "free-heap-null": "4600",
+   "idle": "8983"
+  },
+  "mutations": [
+   {
+    "name": "F1: the CD slot is not cleared after the upload",
+    "caught": true
+   },
+   {
+    "name": "F2: the palette bit scaled by 8, not 16",
+    "caught": true
+   },
+   {
+    "name": "F3: the CLUT is loaded only when the image is present too",
+    "caught": true
+   },
+   {
+    "name": "F4: the heap block is not freed",
+    "caught": true
+   },
+   {
+    "name": "F5: the free path returns 2",
+    "caught": true
+   },
+   {
+    "name": "F6: the x mask is 0x1F, not 0x3F",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 12,
+   "branches_hit": 12,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 20,
+   "lines_hit": 20,
+   "uncovered": [],
+   "flags": [],
+   "args": [],
+   "compares": [
+    {
+     "line": 2,
+     "text": "if ((D_800F1DAC != 0) && (D_800F1DAC->state == 4)) {",
+     "size": 2,
+     "count": 20991,
+     "kind": "against a constant",
+     "outcomes": "== 11942, < 5413, > 3636 (signed); < 3629, > 5420 (unsigned)",
+     "operand": "constant 4",
+     "a": "-1..260"
+    },
+    {
+     "line": 20,
+     "text": "if ((D_800F1DB0 != 0) && (D_800F1DB0->state == 4)) {",
+     "size": 2,
+     "count": 13516,
+     "kind": "against a constant",
+     "outcomes": "== 9075, < 2609, > 1832 (signed); < 1749, > 2692 (unsigned)",
+     "operand": "constant 4",
+     "a": "-1..260"
+    }
+   ],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36262,
+     "completion_tokens": 8912,
+     "reasoning_tokens": 7977,
+     "cost": 0.0040411,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: does not compile:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: game/battle/func_8008F0FC.zig:23:24: error: value of type 'c_int' ignored\n            c.LoadImage(psx.cptr(c.RECT, prect), paddr);\n            ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\ngame/battle/func_8008F0FC.zig:23:24: note: all non-void values must be used\ngame/battle/func_8008F0FC.zig:23:24: note: to discard the value, assign it to '_'\nreferenced by:\n    main: pc/tests/zig_diff/main.zig:469:31\n    main: pc/tests/zig_diff/main.zig:392:1\n    4 reference(s) hidden; use '-freference-trace=6' to see all references\n"
+    ],
+    "runs": []
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 37548,
+     "completion_tokens": 1822,
+     "reasoning_tokens": 884,
+     "cost": 0.0023328999999999997,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8008F0FC.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8008F0FC.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 437.30162455999925,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 196486.2093820572,
+ "totals": {
+  "cost": 0.01118,
+  "prompt_tokens": 86607,
+  "completion_tokens": 27397,
+  "model_seconds": 0.0,
+  "check_seconds": 437.3,
+  "calls": 3,
+  "wall_seconds": 196486.2
+ }
+}

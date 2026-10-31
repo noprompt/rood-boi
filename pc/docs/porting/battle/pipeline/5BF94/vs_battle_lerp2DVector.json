@@ -1,0 +1,201 @@
+{
+ "function": "vs_battle_lerp2DVector",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "vs_battle_lerp2DVector",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cfdd0",
+  "difficulty": "S",
+  "zig_name": "lerp2DVector",
+  "name_source": "the decompilation's name (prefix dropped)",
+  "module": "lerp2_dvector",
+  "spec_file": "lerp2DVector.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn lerp2DVector(src: [*c]c_short, t: c_int, vec: [*c]c_int) callconv(.c) void",
+  "params": [
+   [
+    "src",
+    "[*c]c_short"
+   ],
+   [
+    "t",
+    "c_int"
+   ],
+   [
+    "vec",
+    "[*c]c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 11176,
+     "completion_tokens": 5573,
+     "reasoning_tokens": 4177,
+     "cost": 0.0019520499999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  },
+  "classes": {
+   "t-zero": "1509",
+   "t-negative": "13494",
+   "t-positive": "6706",
+   "t-product-overflows": "8291"
+  },
+  "mutations": [
+   {
+    "name": "L1: vec[0] shifts by 8, not 7",
+    "caught": true
+   },
+   {
+    "name": "L2: vec[1] based on start0, not start1",
+    "caught": true
+   },
+   {
+    "name": "L3: end0 read unsigned (signed/unsigned slip)",
+    "caught": true
+   },
+   {
+    "name": "L4: vec[1] store dropped",
+    "caught": true
+   },
+   {
+    "name": "L5: start1 read from src[1] (wrong index)",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 0,
+   "branches_hit": 0,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 8,
+   "lines_hit": 8,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 34632,
+     "completion_tokens": 1119,
+     "reasoning_tokens": 798,
+     "cost": 0.00201135,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/lerp2DVector.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/lerp2_dvector.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 97.67378345999987,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 176620.0218269825,
+ "totals": {
+  "cost": 0.00396,
+  "prompt_tokens": 45808,
+  "completion_tokens": 6692,
+  "model_seconds": 0.0,
+  "check_seconds": 97.7,
+  "calls": 2,
+  "wall_seconds": 176620.0
+ }
+}

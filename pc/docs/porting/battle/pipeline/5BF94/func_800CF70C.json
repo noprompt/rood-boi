@@ -1,0 +1,223 @@
+{
+ "function": "func_800CF70C",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800CF70C",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800cf70c",
+  "difficulty": "S",
+  "zig_name": "func_800CF70C",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800CF70C",
+  "spec_file": "func_800CF70C.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800CF70C(arg0: ?*v.D_800F53B8_t, arg1: ?*v.func_800D4910_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ],
+   [
+    "arg1",
+    "?*v.func_800D4910_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12564,
+     "completion_tokens": 19945,
+     "reasoning_tokens": 18191,
+     "cost": 0.005614449999999999,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 3: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)",
+     "FAIL: no input classes declared (`classes` and `classify`)",
+     "FAIL: mutation F1: the unk8 block is not freed: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 146, Zig 56\nzdiff: MISMATCH iteration 1: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 142, Zig 88\nzdiff: MISMATCH iteration 3: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 231, Zig 244\nzdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)",
+     "FAIL: mutation F2: unk8 null test done on the signed value (sign bit skips the free): not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 146, Zig 56\nzdiff: MISMATCH iteration 1: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 142, Zig 88\nzdiff: MISMATCH iteration 4: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 208, Zig 217\nzdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)",
+     "FAIL: mutation F3: the node itself is not freed: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 146, Zig 0\nzdiff: MISMATCH iteration 1: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 142, Zig 0\nzdiff: MISMATCH iteration 2: memory at 0x408dd0 [arena] (zdiff_state+0xd60): C 238, Zig 0\nzdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)",
+     "FAIL: mutation F4: head set to arg1 instead of arg1->next when arg1 is the head: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 6: memory at 0x408dc0 [arena] (zdiff_state+0xd50): C 0, Zig 208\nzdiff: MISMATCH iteration 12: memory at 0x408dc0 [arena] (zdiff_state+0xd50): C 0, Zig 208\nzdiff: MISMATCH iteration 21: memory at 0x408dc0 [arena] (zdiff_state+0xd50): C 240, Zig 208\nzdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)",
+     "FAIL: mutation F5: predecessor linked to arg1 instead of arg1->next: not caught as mismatch (exit 3): zdiff: MISMATCH iteration 0: memory at 0x408e10 [arena] (zdiff_state+0xda0): C 0, Zig 208\nzdiff: MISMATCH iteration 1: memory at 0x408e10 [arena] (zdiff_state+0xda0): C 0, Zig 208\nzdiff: MISMATCH iteration 2: memory at 0x408e10 [arena] (zdiff_state+0xda0): C 0, Zig 208\nzdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)",
+     "FAIL: the coverage run: coverage run: exit 3: zdiff: PANIC in the C run, iteration 33: psx_addr of 0x10cb5efa587ddd1d (above 4 GB)\n"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 15825,
+     "completion_tokens": 6634,
+     "reasoning_tokens": 4788,
+     "cost": 0.0024497499999999997,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "unk8-null": "7435",
+   "unk8-sign-bit": "7482",
+   "head-is-arg1": "5048",
+   "walk-one": "3391",
+   "walk-loop": "6644"
+  },
+  "mutations": [
+   {
+    "name": "F1: the unk8 block is not freed",
+    "caught": true
+   },
+   {
+    "name": "F2: unk8 null test done on the signed value (sign bit skips the free)",
+    "caught": true
+   },
+   {
+    "name": "F3: the node itself is not freed",
+    "caught": true
+   },
+   {
+    "name": "F4: head set to arg1 instead of arg1->next when arg1 is the head",
+    "caught": true
+   },
+   {
+    "name": "F5: predecessor linked to arg1 instead of arg1->next",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 6,
+   "branches_hit": 6,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 11,
+   "lines_hit": 11,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "pointer: never null"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 36037,
+     "completion_tokens": 4291,
+     "reasoning_tokens": 3816,
+     "cost": 0.0028745999999999997,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_800CF70C.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_800CF70C.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 137.090952749003,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 198614.11356163025,
+ "totals": {
+  "cost": 0.01094,
+  "prompt_tokens": 64426,
+  "completion_tokens": 30870,
+  "model_seconds": 0.0,
+  "check_seconds": 137.1,
+  "calls": 3,
+  "wall_seconds": 198614.1
+ }
+}

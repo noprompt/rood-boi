@@ -1,0 +1,881 @@
+{
+ "function": "func_800D2ADC",
+ "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+ "difficulty": "XL",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "spec-failed",
+ "reviewed": false,
+ "plan": {
+  "name": "func_800D2ADC",
+  "unit": "src/BATTLE/BATTLE.PRG/5BF94.c",
+  "stem": "5BF94",
+  "address": "0x800d2adc",
+  "difficulty": "XL",
+  "zig_name": "func_800D2ADC",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_800D2ADC",
+  "spec_file": "func_800D2ADC.zig",
+  "subsystem": "battle_5BF94_port",
+  "signature": "pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3: c_int, parent: ?*v.func_800FB4C0_t) callconv(.c) void",
+  "params": [
+   [
+    "arg0",
+    "?*v.D_800F53B8_t"
+   ],
+   [
+    "event",
+    "c_int"
+   ],
+   [
+    "arg2",
+    "c_int"
+   ],
+   [
+    "arg3",
+    "c_int"
+   ],
+   [
+    "parent",
+    "?*v.func_800FB4C0_t"
+   ]
+  ],
+  "ret": "void",
+  "types": [
+   "D_800F4538_unk0",
+   "MATRIX",
+   "func_800D6CF_t",
+   "func_800FA098_arg0",
+   "func_800FB4C0_t",
+   "pFileBlock1Indices",
+   "pFileBlock5",
+   "vs_battle_actor2"
+  ],
+  "globals": [
+   "D_800EC328",
+   "D_800F5310",
+   "D_800F55F0",
+   "D_800F55F8"
+  ],
+  "hooks": [
+   "ROOD_PC block in the source"
+  ],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "length",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 39821,
+     "completion_tokens": 64000,
+     "reasoning_tokens": 60291,
+     "cost": 0.01799105,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: no ```zig block in the reply",
+     "FAIL: no ```toml block in the reply"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 43591,
+     "completion_tokens": 42290,
+     "reasoning_tokens": 37006,
+     "cost": 0.012752050000000001,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation F6: the ring clamp at 0x1000 is one short: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800D2ADC: 30000 iterations, seed 1, 0 mismatches; classes: mode-0=3660 mode-8=3787 mode-16=3753 mode-24=3838 mode-32=3693 ring-40-48=7510 mode-none=3759",
+     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800D2ADC: branches 146/152 (96.1%), lines 462/466\n  UNCOVERED +245 b0: branch never taken: `((scratch->unkA8.vy * scratch->unkA8.vy) == (0) ? (scratch->unkA8.vy * scratch->unkA8.vy) : (0) < (scratch->unkA8.vy * scratch->unkA8.vy) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vy * scratch->unkA8.vy) - (0) + 1) + (0) : (rand() + (rand() << 16)) % ((0) - (scratch->unkA8.vy * scratch->unkA8.vy) + 1) + (scratch->unkA8.vy * scratch->unkA8.vy)));`\n  UNCOVERED +470 b0: branch never taken: `if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0`\n  UNCOVERED +470 b2: branch never taken: `if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0`\n  UNCOVERED +470 b3: branch never taken: `if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0`\n  UNCOVERED +471 b0: branch never taken (not executed): `|| scratch->unkB8.vz != 0) {`\n  UNCOVERED +471 b1: branch never taken (not executed): `|| scratch->unkB8.vz != 0) {`\n  FLAG +244 eq: boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass): `scratch->unk2C.vy = vs_gte_rsqrt(`\n  FLAG +269 eq: boundary equality never occurred (32-bit compare, b -2139484903..2137463369: both sides seen; a port's `<` for `<=` could pass): `vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))`\n  FLAG +272 eq: boundary equality never occurred (32-bit compare, b -2133481671..2139683217: both sides seen; a port's `<` for `<=` could pass): `vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))`\n  FLAG +300 eq: boundary equality never occurred (32-bit compare, b -2137864412..2147140273: both sides seen; a port's `<` for `<=` could pass): `vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx"
+    ]
+   }
+  ],
+  "classes": {
+   "mode-0": "3660",
+   "mode-8": "3787",
+   "mode-16": "3753",
+   "mode-24": "3838",
+   "mode-32": "3693",
+   "ring-40-48": "7510",
+   "mode-none": "3759"
+  },
+  "mutations": [
+   {
+    "name": "F1: one emit too few when the cap clamps",
+    "caught": true
+   },
+   {
+    "name": "F2: the node takes the matrix slot of the wrong curve byte",
+    "caught": true
+   },
+   {
+    "name": "F3: the transform flag tests the wrong bit",
+    "caught": true
+   },
+   {
+    "name": "F4: the age is copied only for counts above one",
+    "caught": true
+   },
+   {
+    "name": "F5: a wrong shift in the ring's random draw",
+    "caught": true
+   },
+   {
+    "name": "F6: the ring clamp at 0x1000 is one short",
+    "caught": false
+   }
+  ],
+  "coverage": {
+   "branches": 152,
+   "branches_hit": 146,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 466,
+   "lines_hit": 462,
+   "uncovered": [
+    {
+     "id": "+245 b0",
+     "line": 245,
+     "text": "((scratch->unkA8.vy * scratch->unkA8.vy) == (0) ? (scratch->unkA8.vy * scratch->unkA8.vy) : (0) < (scratch->unkA8.vy * scratch->unkA8.vy) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vy * scratch->unkA8.vy) - (0) + 1) + (0) : (rand() + (rand() << 16)) % ((0) - (scratch->unkA8.vy * scratch->unkA8.vy) + 1) + (scratch->unkA8.vy * scratch->unkA8.vy)));",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+470 b0",
+     "line": 470,
+     "text": "if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+470 b2",
+     "line": 470,
+     "text": "if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+470 b3",
+     "line": 470,
+     "text": "if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0",
+     "what": "branch never taken"
+    },
+    {
+     "id": "+471 b0",
+     "line": 471,
+     "text": "|| scratch->unkB8.vz != 0) {",
+     "what": "branch never taken (not executed)"
+    },
+    {
+     "id": "+471 b1",
+     "line": 471,
+     "text": "|| scratch->unkB8.vz != 0) {",
+     "what": "branch never taken (not executed)"
+    }
+   ],
+   "flags": [
+    {
+     "id": "+244 eq",
+     "line": 244,
+     "text": "scratch->unk2C.vy = vs_gte_rsqrt(",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 6394,
+     "what": "boundary equality never occurred (32-bit compare, constant 0: both sides seen; a port's `<` for `<=` could pass)"
+    },
+    {
+     "id": "+269 eq",
+     "line": 269,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 1507,
+     "what": "boundary equality never occurred (32-bit compare, b -2139484903..2137463369: both sides seen; a port's `<` for `<=` could pass)"
+    },
+    {
+     "id": "+272 eq",
+     "line": 272,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 1507,
+     "what": "boundary equality never occurred (32-bit compare, b -2133481671..2139683217: both sides seen; a port's `<` for `<=` could pass)"
+    },
+    {
+     "id": "+300 eq",
+     "line": 300,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 1577,
+     "what": "boundary equality never occurred (32-bit compare, b -2137864412..2147140273: both sides seen; a port's `<` for `<=` could pass)"
+    },
+    {
+     "id": "+303 eq",
+     "line": 303,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))",
+     "kind": "eq",
+     "bits": 32,
+     "equal": 0,
+     "count": 1577,
+     "what": "boundary equality never occurred (32-bit compare, b -2143328192..2136530281: both sides seen; a port's `<` for `<=` could pass)"
+    }
+   ],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "pointer: never null"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min 0, max 7, seen zero, never negative, 8 value(s): 0, 5, 4, 3, 1, 6, 2, 7"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147425695, max 2147271081, unsigned 0..4294922173, seen zero/negative"
+    },
+    {
+     "arg": 3,
+     "count": 30000,
+     "text": "32-bit: min -2146222271, max 2147261214, unsigned 0..4294812128, seen zero/negative"
+    },
+    {
+     "arg": 4,
+     "count": 30000,
+     "text": "pointer: null seen"
+    }
+   ],
+   "compares": [
+    {
+     "line": 31,
+     "text": "if (arg2 != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 10107, < 7436, > 12457 (signed); < 0, > 19893 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2147425695..2147271081"
+    },
+    {
+     "line": 33,
+     "text": "} else if (def->transparencyCurve != 0) {",
+     "size": 1,
+     "count": 10107,
+     "kind": "against a constant",
+     "outcomes": "== 5208, < 2524, > 2375 (signed); < 0, > 4899 (unsigned)",
+     "operand": "constant 0",
+     "a": "-128..124"
+    },
+    {
+     "line": 41,
+     "text": "if (parent != 0 && arg3 == 0) {",
+     "size": 4,
+     "count": 20109,
+     "kind": "against a constant",
+     "outcomes": "== 5104, < 5043, > 9962 (signed); < 0, > 15005 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2146222271..2147143403"
+    },
+    {
+     "line": 47,
+     "text": "if (frame % func_800CFE1C(def->unkC0, D_800F5330[sample]) != 0) {",
+     "size": 4,
+     "count": 30000,
+     "kind": "against a constant",
+     "outcomes": "== 23832, < 0, > 6168 (signed); < 0, > 6168 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4095"
+    },
+    {
+     "line": 56,
+     "text": "if (count + D_800F55F8 >= D_800F55F0) {",
+     "size": 4,
+     "count": 23832,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2418, < 11520, > 9894 (signed); < 12179, > 9235 (unsigned)",
+     "operand": "b -2..12",
+     "a": "-2..13"
+    },
+    {
+     "line": 60,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 90583,
+     "kind": "a == b / a < b",
+     "outcomes": "== 23832, < 66751, > 0 (signed); < 66751, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 71,
+     "text": "switch (scratch->flags & 7) {",
+     "size": 4,
+     "count": 23832,
+     "kind": "switch",
+     "outcomes": "== 11967, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..7"
+    },
+    {
+     "line": 103,
+     "text": "switch (scratch->flags & 0x38) {",
+     "size": 4,
+     "count": 23832,
+     "kind": "switch",
+     "outcomes": "== 20821, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..56"
+    },
+    {
+     "line": 108,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 10930,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2902, < 8028, > 0 (signed); < 8028, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 115,
+     "text": "switch (scratch->flags & 0x1800) {",
+     "size": 4,
+     "count": 8028,
+     "kind": "switch",
+     "outcomes": "== 5997, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6144"
+    },
+    {
+     "line": 146,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11716,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2965, < 8751, > 0 (signed); < 8751, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 147,
+     "text": "switch (scratch->flags & 0x1800) {",
+     "size": 4,
+     "count": 8751,
+     "kind": "switch",
+     "outcomes": "== 6367, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6144"
+    },
+    {
+     "line": 150,
+     "text": "if (angle & 1) {",
+     "size": 4,
+     "count": 2146,
+     "kind": "against a constant",
+     "outcomes": "== 1092, < 0, > 1054 (signed); < 0, > 1054 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 157,
+     "text": "if (angle & 2) {",
+     "size": 4,
+     "count": 2146,
+     "kind": "against a constant",
+     "outcomes": "== 1072, < 0, > 1074 (signed); < 0, > 1074 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 164,
+     "text": "if (angle & 4) {",
+     "size": 4,
+     "count": 2146,
+     "kind": "against a constant",
+     "outcomes": "== 1083, < 0, > 1063 (signed); < 0, > 1063 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    },
+    {
+     "line": 173,
+     "text": "switch (rand() % 6) {",
+     "size": 4,
+     "count": 2196,
+     "kind": "switch",
+     "outcomes": "== 1289, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "-5..5"
+    },
+    {
+     "line": 211,
+     "text": "scratch->unk2C.vx =",
+     "size": 4,
+     "count": 2025,
+     "kind": "against a constant",
+     "outcomes": "== 1003, < 0, > 1022 (signed); < 0, > 1022 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..1"
+    },
+    {
+     "line": 213,
+     "text": "scratch->unk2C.vy =",
+     "size": 4,
+     "count": 2025,
+     "kind": "against a constant",
+     "outcomes": "== 996, < 0, > 1029 (signed); < 0, > 1029 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..2"
+    },
+    {
+     "line": 215,
+     "text": "scratch->unk2C.vz =",
+     "size": 4,
+     "count": 2025,
+     "kind": "against a constant",
+     "outcomes": "== 932, < 0, > 1093 (signed); < 0, > 1093 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..4"
+    },
+    {
+     "line": 228,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11115,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2993, < 8122, > 0 (signed); < 8122, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 232,
+     "text": "switch (scratch->flags & 0x1800) {",
+     "size": 4,
+     "count": 8122,
+     "kind": "switch",
+     "outcomes": "== 6394, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6144"
+    },
+    {
+     "line": 244,
+     "text": "scratch->unk2C.vy = vs_gte_rsqrt(",
+     "size": 4,
+     "count": 6394,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 2515, > 3879 (signed); < 0, > 6394 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2138316656..2144174404"
+    },
+    {
+     "line": 245,
+     "text": "((scratch->unkA8.vy * scratch->unkA8.vy) == (0) ? (scratch->unkA8.vy * scratch->unkA8.vy) : (0) < (scratch->unkA8.vy * scratch->unkA8.vy) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vy * scratch->unkA8.vy) - (0) + 1) + (0) : (rand() + (rand() << 16)) % ((0) - (scratch->unkA8.vy * scratch->unkA8.vy) + 1) + (scratch->unkA8.vy * scratch->unkA8.vy)));",
+     "size": 4,
+     "count": 6394,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 2515, > 3879 (signed); < 0, > 6394 (unsigned)",
+     "operand": "constant 0",
+     "a": "-2138316656..2144174404"
+    },
+    {
+     "line": 262,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11501,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3030, < 8471, > 0 (signed); < 8471, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 266,
+     "text": "switch (scratch->flags & 0x1800) {",
+     "size": 4,
+     "count": 8471,
+     "kind": "switch",
+     "outcomes": "== 6427, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6144"
+    },
+    {
+     "line": 269,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))",
+     "size": 4,
+     "count": 2128,
+     "kind": "a == b / a < b",
+     "outcomes": "== 621, < 806, > 701 (signed); < 717, > 790 (unsigned)",
+     "operand": "b -2139208704..2123062928",
+     "a": "-2139484903..2137463369"
+    },
+    {
+     "line": 269,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))",
+     "size": 4,
+     "count": 1507,
+     "kind": "a == b / a < b",
+     "outcomes": "== 0, < 701, > 806 (signed); < 790, > 717 (unsigned)",
+     "operand": "b -2139484903..2137463369",
+     "a": "-2139208704..2123062928"
+    },
+    {
+     "line": 272,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))",
+     "size": 4,
+     "count": 2128,
+     "kind": "a == b / a < b",
+     "outcomes": "== 621, < 769, > 738 (signed); < 640, > 867 (unsigned)",
+     "operand": "b -2144449212..2144060416",
+     "a": "-2133481671..2139683217"
+    },
+    {
+     "line": 272,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))",
+     "size": 4,
+     "count": 1507,
+     "kind": "a == b / a < b",
+     "outcomes": "== 0, < 738, > 769 (signed); < 867, > 640 (unsigned)",
+     "operand": "b -2133481671..2139683217",
+     "a": "-2144449212..2144060416"
+    },
+    {
+     "line": 293,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11348,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2928, < 8420, > 0 (signed); < 8420, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 297,
+     "text": "switch (scratch->flags & 0x1800) {",
+     "size": 4,
+     "count": 8420,
+     "kind": "switch",
+     "outcomes": "== 6182, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..6144"
+    },
+    {
+     "line": 300,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))",
+     "size": 4,
+     "count": 2109,
+     "kind": "a == b / a < b",
+     "outcomes": "== 532, < 770, > 807 (signed); < 874, > 703 (unsigned)",
+     "operand": "b -2141172015..2144199440",
+     "a": "-2137864412..2147140273"
+    },
+    {
+     "line": 300,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vx * scratch->unkA8.vx) == (scratch->unkD8.vx * scratch->unkD8.vx) ? (scratch->unkA8.vx * scratch->unkA8.vx) : (scratch->unkD8.vx * scratch->unkD8.vx) < (scratch->unkA8.vx * scratch->unkA8.vx) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vx * scratch->unkA8.vx) - (scratch->unkD8.vx * scratch->unkD8.vx) + 1) + (scratch->unkD8.vx * scratch->unkD8.vx) : (rand() + (rand() << 16)) % ((scratch->unkD8.vx * scratch->unkD8.vx) - (scratch->unkA8.vx * scratch->unkA8.vx) + 1) + (scratch->unkA8.vx * scratch->unkA8.vx))",
+     "size": 4,
+     "count": 1577,
+     "kind": "a == b / a < b",
+     "outcomes": "== 0, < 807, > 770 (signed); < 703, > 874 (unsigned)",
+     "operand": "b -2137864412..2147140273",
+     "a": "-2141172015..2144199440"
+    },
+    {
+     "line": 303,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))",
+     "size": 4,
+     "count": 2109,
+     "kind": "a == b / a < b",
+     "outcomes": "== 532, < 776, > 801 (signed); < 762, > 815 (unsigned)",
+     "operand": "b -2124590876..2142176484",
+     "a": "-2143328192..2136530281"
+    },
+    {
+     "line": 303,
+     "text": "vs_gte_rsqrt(((scratch->unkA8.vz * scratch->unkA8.vz) == (scratch->unkD8.vz * scratch->unkD8.vz) ? (scratch->unkA8.vz * scratch->unkA8.vz) : (scratch->unkD8.vz * scratch->unkD8.vz) < (scratch->unkA8.vz * scratch->unkA8.vz) ? (rand() + (rand() << 16)) % ((scratch->unkA8.vz * scratch->unkA8.vz) - (scratch->unkD8.vz * scratch->unkD8.vz) + 1) + (scratch->unkD8.vz * scratch->unkD8.vz) : (rand() + (rand() << 16)) % ((scratch->unkD8.vz * scratch->unkD8.vz) - (scratch->unkA8.vz * scratch->unkA8.vz) + 1) + (scratch->unkA8.vz * scratch->unkA8.vz))",
+     "size": 4,
+     "count": 1577,
+     "kind": "a == b / a < b",
+     "outcomes": "== 0, < 801, > 776 (signed); < 815, > 762 (unsigned)",
+     "operand": "b -2143328192..2136530281",
+     "a": "-2124590876..2142176484"
+    },
+    {
+     "line": 328,
+     "text": "if (scratch->unk184 == 0) {",
+     "size": 4,
+     "count": 3060,
+     "kind": "against a constant",
+     "outcomes": "== 487, < 0, > 2573 (signed); < 0, > 2573 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 332,
+     "text": "if (scratch->unk188 == 0) {",
+     "size": 4,
+     "count": 3060,
+     "kind": "against a constant",
+     "outcomes": "== 516, < 0, > 2544 (signed); < 0, > 2544 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..255"
+    },
+    {
+     "line": 337,
+     "text": "if ((scratch->flags & 0x1800) != 0x1000) {",
+     "size": 4,
+     "count": 6003,
+     "kind": "against a constant",
+     "outcomes": "== 1516, < 2994, > 1493 (signed); < 2994, > 1493 (unsigned)",
+     "operand": "constant 4096",
+     "a": "0..6144"
+    },
+    {
+     "line": 343,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 22673,
+     "kind": "a == b / a < b",
+     "outcomes": "== 6003, < 16670, > 0 (signed); < 16670, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 349,
+     "text": "if ((scratch->flags & 0x1800) == 0x1000) {",
+     "size": 4,
+     "count": 16670,
+     "kind": "against a constant",
+     "outcomes": "== 4160, < 8313, > 4197 (signed); < 8313, > 4197 (unsigned)",
+     "operand": "constant 4096",
+     "a": "0..6144"
+    },
+    {
+     "line": 358,
+     "text": "if ((scratch->flags & 0x1800) != 0x800) {",
+     "size": 4,
+     "count": 12510,
+     "kind": "against a constant",
+     "outcomes": "== 4449, < 3864, > 4197 (signed); < 3864, > 4197 (unsigned)",
+     "operand": "constant 2048",
+     "a": "0..6144"
+    },
+    {
+     "line": 360,
+     "text": "if (value > 0x1000) {",
+     "size": 4,
+     "count": 8061,
+     "kind": "against a constant",
+     "outcomes": "== 1507, < 411, > 6143 (signed); < 411, > 6143 (unsigned)",
+     "operand": "constant 4096",
+     "a": "0..65533"
+    },
+    {
+     "line": 384,
+     "text": "switch (scratch->flags & 0xE000) {",
+     "size": 4,
+     "count": 23832,
+     "kind": "switch",
+     "outcomes": "== 14875, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..57344"
+    },
+    {
+     "line": 386,
+     "text": "if (arg0->unkD1C.unkC.unk0 == 4) {",
+     "size": 2,
+     "count": 2991,
+     "kind": "against a constant",
+     "outcomes": "== 1491, < 751, > 749 (signed); < 0, > 1500 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32669..32742"
+    },
+    {
+     "line": 394,
+     "text": "if (arg0->unkD1C.unk24.unk0 == 4) {",
+     "size": 2,
+     "count": 2901,
+     "kind": "against a constant",
+     "outcomes": "== 1441, < 748, > 712 (signed); < 0, > 1460 (unsigned)",
+     "operand": "constant 4",
+     "a": "-32725..32750"
+    },
+    {
+     "line": 408,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 33381,
+     "kind": "a == b / a < b",
+     "outcomes": "== 8871, < 24510, > 0 (signed); < 24510, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 423,
+     "text": "if (scratch->flags & 0x40000) {",
+     "size": 4,
+     "count": 24510,
+     "kind": "against a constant",
+     "outcomes": "== 12154, < 0, > 12356 (signed); < 0, > 12356 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..262144"
+    },
+    {
+     "line": 437,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11375,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3031, < 8344, > 0 (signed); < 8344, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 464,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11391,
+     "kind": "a == b / a < b",
+     "outcomes": "== 2973, < 8418, > 0 (signed); < 8418, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 470,
+     "text": "if (scratch->unkB8.vx != 0 || scratch->unkB8.vy != 0",
+     "size": 4,
+     "count": 8418,
+     "kind": "against a constant",
+     "outcomes": "== 0, < 4203, > 4215 (signed); < 0, > 8418 (unsigned)",
+     "operand": "constant 0",
+     "a": "-524238..523884"
+    },
+    {
+     "line": 493,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 90583,
+     "kind": "a == b / a < b",
+     "outcomes": "== 23832, < 66751, > 0 (signed); < 66751, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 510,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 90583,
+     "kind": "a == b / a < b",
+     "outcomes": "== 23832, < 66751, > 0 (signed); < 66751, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 523,
+     "text": "switch (scratch->flags & 0x1C0) {",
+     "size": 4,
+     "count": 23832,
+     "kind": "switch",
+     "outcomes": "== 14869, < 0, > 0 (signed); < 0, > 0 (unsigned)",
+     "operand": "cases",
+     "a": "0..448"
+    },
+    {
+     "line": 526,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 22870,
+     "kind": "a == b / a < b",
+     "outcomes": "== 6020, < 16850, > 0 (signed); < 16850, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 534,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 11560,
+     "kind": "a == b / a < b",
+     "outcomes": "== 3036, < 8524, > 0 (signed); < 8524, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 549,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 21746,
+     "kind": "a == b / a < b",
+     "outcomes": "== 5813, < 15933, > 0 (signed); < 15933, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    },
+    {
+     "line": 565,
+     "text": "if (count > 0)",
+     "size": 4,
+     "count": 23832,
+     "kind": "against a constant",
+     "outcomes": "== 7698, < 0, > 16134 (signed); < 0, > 16134 (unsigned)",
+     "operand": "constant 0",
+     "a": "0..8"
+    },
+    {
+     "line": 568,
+     "text": "for (i = 0; i < count; ++i) {",
+     "size": 4,
+     "count": 90583,
+     "kind": "a == b / a < b",
+     "outcomes": "== 23832, < 66751, > 0 (signed); < 66751, > 0 (unsigned)",
+     "operand": "b 0..8",
+     "a": "0..8"
+    }
+   ],
+   "passed": false
+  }
+ },
+ "port": {
+  "attempts": []
+ },
+ "written": [],
+ "check_seconds": 136.3065122979997,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 177900.44585323334,
+ "totals": {
+  "cost": 0.03074,
+  "prompt_tokens": 83412,
+  "completion_tokens": 106290,
+  "model_seconds": 0.0,
+  "check_seconds": 136.3,
+  "calls": 2,
+  "wall_seconds": 177900.4
+ }
+}

@@ -1,0 +1,226 @@
+{
+ "function": "func_8007CA20",
+ "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+ "difficulty": "S",
+ "model": "anthropic/claude-haiku-5.5",
+ "endpoint": "remote",
+ "thinking": "default",
+ "temperature": 0.0,
+ "samples": 1,
+ "status": "ported",
+ "reviewed": false,
+ "plan": {
+  "name": "func_8007CA20",
+  "unit": "src/BATTLE/BATTLE.PRG/146C.c",
+  "stem": "146C",
+  "address": "0x8007ca20",
+  "difficulty": "S",
+  "zig_name": "func_8007CA20",
+  "name_source": "no readable name: the original symbol is kept",
+  "module": "func_8007CA20",
+  "spec_file": "func_8007CA20.zig",
+  "subsystem": "battle_146C_port",
+  "signature": "pub fn func_8007CA20(actorId: c_int, bladeWepId: c_int, shieldWepId: c_int) callconv(.c) void",
+  "params": [
+   [
+    "actorId",
+    "c_int"
+   ],
+   [
+    "bladeWepId",
+    "c_int"
+   ],
+   [
+    "shieldWepId",
+    "c_int"
+   ]
+  ],
+  "ret": "void",
+  "types": [],
+  "globals": [],
+  "hooks": [],
+  "statics": [],
+  "skip": ""
+ },
+ "spec": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 12246,
+     "completion_tokens": 6088,
+     "reasoning_tokens": 4649,
+     "cost": 0.0021343,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: mutation A6: the table is read one entry late: not caught as crash (exit 3): zdiff: PANIC in the Zig run, iteration 0: incorrect alignment (return address 0x401eb8)"
+    ]
+   },
+   {
+    "round": 2,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 13786,
+     "completion_tokens": 3478,
+     "reasoning_tokens": 1932,
+     "cost": 0.0015588,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": []
+   }
+  ],
+  "kept": {
+   "round": 2,
+   "sample": 1
+  },
+  "classes": {
+   "no-actor": "9921",
+   "actor": "20079"
+  },
+  "mutations": [
+   {
+    "name": "A1: the shield weapon id is replaced by the blade's",
+    "caught": true
+   },
+   {
+    "name": "A2: the shield call uses hand 0",
+    "caught": true
+   },
+   {
+    "name": "A3: the shield call is dropped",
+    "caught": true
+   },
+   {
+    "name": "A4: the blade call's flag is 1",
+    "caught": true
+   },
+   {
+    "name": "A5: the null guard is dropped (the callee gets NULL)",
+    "caught": true
+   },
+   {
+    "name": "A6: the table is read one entry late",
+    "caught": true
+   }
+  ],
+  "coverage": {
+   "branches": 2,
+   "branches_hit": 2,
+   "conditions": null,
+   "conditions_hit": null,
+   "lines": 6,
+   "lines_hit": 6,
+   "uncovered": [],
+   "flags": [],
+   "args": [
+    {
+     "arg": 0,
+     "count": 30000,
+     "text": "32-bit: min 0, max 14, seen zero, never negative"
+    },
+    {
+     "arg": 1,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    },
+    {
+     "arg": 2,
+     "count": 30000,
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
+    }
+   ],
+   "compares": [],
+   "passed": true
+  },
+  "waivers": []
+ },
+ "port": {
+  "attempts": [
+   {
+    "round": 1,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 35618,
+     "completion_tokens": 2511,
+     "reasoning_tokens": 2124,
+     "cost": 0.00240865,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": true,
+    "errors": [],
+    "runs": [
+     {
+      "seed": 1,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 2,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     },
+     {
+      "seed": 3,
+      "exit": 0,
+      "mismatches": 0,
+      "first": null
+     }
+    ]
+   }
+  ],
+  "kept": {
+   "round": 1,
+   "sample": 1
+  }
+ },
+ "written": [
+  "pc/tests/zig_diff/func_8007CA20.zig",
+  "pc/tests/zig_diff/specs.toml",
+  "game/battle/func_8007CA20.zig",
+  "game/ownership.toml",
+  "game/battle/root.zig"
+ ],
+ "check_seconds": 494.37658477400055,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 190724.25454473495,
+ "totals": {
+  "cost": 0.0061,
+  "prompt_tokens": 61650,
+  "completion_tokens": 12077,
+  "model_seconds": 0.0,
+  "check_seconds": 494.4,
+  "calls": 3,
+  "wall_seconds": 190724.3
+ }
+}

@@ -8,7 +8,7 @@
  "temperature": 0.0,
  "samples": 1,
  "status": "spec-failed",
- "reviewed": "not ported in this wave (unrouted): spec-failed: FAIL: mutation F3: the shield's object takes the weapon's material: not caught as mismatch (exit 0) (no input made the mutated copy behave d",
+ "reviewed": false,
  "plan": {
   "name": "func_800775C0",
   "unit": "src/BATTLE/BATTLE.PRG/146C.c",
@@ -41,20 +41,13 @@
   ],
   "ret": "?*v.vs_battle_actor",
   "types": [
-   "D_800F4538_unk0",
-   "_zndEnemy",
    "actorSpawnSettings",
    "mpdEnemySpawn",
    "savedEnemyState",
-   "vs_battle_actor4",
-   "vs_battle_objectData",
-   "vs_main_CdFile",
    "zudHeader"
   ],
   "globals": [
-   "D_8004FE88",
-   "D_80060064",
-   "D_80061078"
+   "D_8004FE88"
   ],
   "hooks": [
    "ROOD_PC block in the source"
@@ -74,17 +67,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 35214,
-     "completion_tokens": 57583,
-     "reasoning_tokens": 52801,
-     "cost": 0.0323129,
-     "seconds": 239.5,
-     "sample": 1,
-     "conversation": "6f3671d17d67b370171ce037416b474afcb5a1db31bf4a5a0e180e0543c8647d"
+     "prompt_tokens": 42695,
+     "completion_tokens": 54385,
+     "reasoning_tokens": 49554,
+     "cost": 0.015731,
+     "seconds": null,
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives void where the C prototype has c_int: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800775C0/spec1/build/game/common/route.zig:39:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_800775C0/spec1/build/spec.zig:134:11: error: name shadows primitive 'u2'\n    const u2 = ctx.edge(u8, &.{ 0, 1, 2, 0x7E, 0x7F, 0x80, 0xFF });\n          ^~\npc/build/port-pipeline/func_800775C0/spec1/build/spec.zig:134:11: note: consider using @\"u2\" to disambiguate\npc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives void where the C prototype has c_int: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800775C0/spec1/build/game/common/route.zig:39:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
     ]
    },
    {
@@ -97,17 +90,17 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 40329,
-     "completion_tokens": 6600,
-     "reasoning_tokens": 1794,
-     "cost": 0.0073329,
-     "seconds": 21.9,
-     "sample": 1,
-     "conversation": "4e0cc7004b1ecdad2c7894998187e659e0913ff9b7db68493bc975acf0b401c9"
+     "prompt_tokens": 48023,
+     "completion_tokens": 7372,
+     "reasoning_tokens": 2500,
+     "cost": 0.00424415,
+     "seconds": null,
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the harness does not build:\n<zig-cache>/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has void: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800775C0/spec2/build/game/common/route.zig:34:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has void: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800775C0/spec2/build/game/common/route.zig:34:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
     ]
    },
    {
@@ -120,356 +113,39 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 45472,
-     "completion_tokens": 7826,
-     "reasoning_tokens": 2894,
-     "cost": 0.0084602,
-     "seconds": 27.4,
-     "sample": 1,
-     "conversation": "7820547105f6b28ae7a6ec906c874880a42ddddbbf401bb08d1ccea4ac844890"
+     "prompt_tokens": 53232,
+     "completion_tokens": 7869,
+     "reasoning_tokens": 3019,
+     "cost": 0.00462885,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: mutation F3: the shield's object takes the weapon's material: not caught as mismatch (exit 0) (no input made the mutated copy behave differently: add inputs that do): zdiff: func_800775C0: 30000 iterations, seed 1, 0 mismatches; classes: present=5923 big-actor=11041 saved-zone=6501 new-small=6535",
-     "FAIL: the coverage gate (zig_diff.py --coverage):\ncoverage func_800775C0: branches 54/54 (100.0%), conditions not measured (GCC < 14: branch coverage only), lines 162/162\n  FLAG +95 sign: every value above 127 had the sign bit set (a port testing the sign, `< 0`, for this test would pass): `if ((u_char)init->unk2 != 0x7F) {`\ncoverage func_800775C0: FAILED (threshold 100%: 0 uncovered, 1 value flag(s) not waived)\nWhat to add:\n- `if ((u_char)init->unk2 != 0x7F) {` (+95): this compares a value with 127. Every input where the value was above 127 also had its sign bit set (negative as a signed 8-bit number), so a port that tests the sign instead (`< 0`, or a signed read where the C reads unsigned) would pass your spec. Add inputs where the value is above 127 AND positive (e.g. 128, 256, 127).\nOnly a gap no input can reach (say why) may be waived instead: [[function.func_800775C0.coverage_waiver]] with its `id` and a `reason`."
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives c_int where the C prototype has void: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:29\n    f: pc/build/port-pipeline/func_800775C0/spec3/build/game/common/route.zig:29:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\npc/tests/zig_diff/main.zig:181:9: error: zdiff: a spec stub gives void where the C prototype has c_int: declare the stub's return and parameter types as the c module's prototype does (or `anytype`)\n        @compileError(\"zdiff: a spec stub gives \" ++ @typeName(From) ++ \" where the C prototype has \" ++ @typeName(To) ++\n        ^~~~~~~~~~~~~\n"
     ]
    }
   ],
-  "classes": {
-   "present": "5923",
-   "big-actor": "11041",
-   "saved-zone": "6501",
-   "new-small": "6535"
-  },
-  "mutations": [
-   {
-    "name": "F1: id <= 2 for the weapon effect (id 2 takes the branch)",
-    "caught": true
-   },
-   {
-    "name": "F2: effectSize tested for > 0 (negative sizes skipped)",
-    "caught": true
-   },
-   {
-    "name": "F3: the shield's object takes the weapon's material",
-    "caught": false
-   },
-   {
-    "name": "F4: the AI call (func_800A0204) dropped",
-    "caught": true
-   },
-   {
-    "name": "F5: the post-init call's result tested inverted",
-    "caught": true
-   },
-   {
-    "name": "F6: saved maxMP read from the wrong field (currentMP)",
-    "caught": true
-   }
-  ],
-  "coverage": {
-   "branches": 54,
-   "branches_hit": 54,
-   "conditions": null,
-   "conditions_hit": null,
-   "lines": 162,
-   "lines_hit": 162,
-   "uncovered": [],
-   "flags": [
-    {
-     "id": "+95 sign",
-     "line": 95,
-     "text": "if ((u_char)init->unk2 != 0x7F) {",
-     "kind": "sign",
-     "bits": 8,
-     "constant": 127,
-     "what": "every value above 127 had the sign bit set (a port testing the sign, `< 0`, for this test would pass)"
-    }
-   ],
-   "args": [
-    {
-     "arg": 0,
-     "count": 30000,
-     "text": "32-bit: min 0, max 15, seen zero, never negative, 6 value(s): 0, 15, 3, 7, 1, 2"
-    },
-    {
-     "arg": 1,
-     "count": 30000,
-     "text": "pointer: never null"
-    },
-    {
-     "arg": 2,
-     "count": 30000,
-     "text": "pointer: never null"
-    },
-    {
-     "arg": 3,
-     "count": 30000,
-     "text": "32-bit: min -1, max 2147483645, unsigned 0..4294967295, seen zero/negative/all ones, 7 value(s): 4294967295, 5, 2, 0, 3, 2147483645, 1"
-    }
-   ],
-   "compares": [
-    {
-     "line": 20,
-     "text": "if (D_8004FE88[(u_char)init->unk2]) {",
-     "size": 1,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 12046, < 6012, > 6019 (signed); < 0, > 12031 (unsigned)",
-     "operand": "constant 0",
-     "a": "-1..1"
-    },
-    {
-     "line": 35,
-     "text": "if (bladeId) {",
-     "size": 4,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 4836, < 0, > 19241 (signed); < 0, > 19241 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..255"
-    },
-    {
-     "line": 41,
-     "text": "if (((__typeof__((_zoneContext.unk1C).psx_type_[0]))(long unsigned int)(_zoneContext.unk1C).raw) != 0) {",
-     "size": 4,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 11931, < 0, > 12146 (signed); < 0, > 12146 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..4261888"
-    },
-    {
-     "line": 42,
-     "text": "if (zudIndex + 1 == _zoneContext.unk14) {",
-     "size": 4,
-     "count": 12146,
-     "kind": "a == b / a < b",
-     "outcomes": "== 6420, < 2057, > 3669 (signed); < 2057, > 3669 (unsigned)",
-     "operand": "b 0..7",
-     "a": "1..6"
-    },
-    {
-     "line": 50,
-     "text": "if (!loaded) {",
-     "size": 4,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 17657, < 0, > 6420 (signed); < 0, > 6420 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..1"
-    },
-    {
-     "line": 53,
-     "text": "if (((__typeof__((_zoneContext.unk18).psx_type_[0]))(long unsigned int)(_zoneContext.unk18).raw) != 0) {",
-     "size": 4,
-     "count": 17657,
-     "kind": "against a constant",
-     "outcomes": "== 8840, < 0, > 8817 (signed); < 0, > 8817 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..4261808"
-    },
-    {
-     "line": 60,
-     "text": "while (((__typeof__((_zoneContext.unk18).psx_type_[0]))(long unsigned int)(_zoneContext.unk18).raw)->state != 4) {",
-     "size": 2,
-     "count": 30948,
-     "kind": "against a constant",
-     "outcomes": "== 17657, < 6724, > 6567 (signed); < 0, > 13291 (unsigned)",
-     "operand": "constant 4",
-     "a": "-32759..32749"
-    },
-    {
-     "line": 73,
-     "text": "if ((D_80061078[D_80060064].zndId == _zoneContext.zndId)",
-     "size": 4,
-     "count": 24077,
-     "kind": "a == b / a < b",
-     "outcomes": "== 16145, < 27, > 7905 (signed); < 27, > 7905 (unsigned)",
-     "operand": "b 0..255",
-     "a": "0..255"
-    },
-    {
-     "line": 74,
-     "text": "&& (D_80061078[D_80060064].mapId == _zoneContext.mapId)",
-     "size": 4,
-     "count": 16145,
-     "kind": "a == b / a < b",
-     "outcomes": "== 12069, < 0, > 4076 (signed); < 0, > 4076 (unsigned)",
-     "operand": "b 10..65533",
-     "a": "10..65533"
-    },
-    {
-     "line": 95,
-     "text": "if ((u_char)init->unk2 != 0x7F) {",
-     "size": 1,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 2013, < 22064, > 0 (signed); < 11889, > 10175 (unsigned)",
-     "operand": "constant 127",
-     "a": "-128..127"
-    },
-    {
-     "line": 96,
-     "text": "if (D_8004FE88[(u_char)init->unk2]) {",
-     "size": 1,
-     "count": 22064,
-     "kind": "against a constant",
-     "outcomes": "== 11023, < 5520, > 5521 (signed); < 0, > 11041 (unsigned)",
-     "operand": "constant 0",
-     "a": "-1..1"
-    },
-    {
-     "line": 116,
-     "text": "if (bladeId) {",
-     "size": 4,
-     "count": 11023,
-     "kind": "against a constant",
-     "outcomes": "== 2199, < 0, > 8824 (signed); < 0, > 8824 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..255"
-    },
-    {
-     "line": 127,
-     "text": "if (shieldId) {",
-     "size": 4,
-     "count": 11023,
-     "kind": "against a constant",
-     "outcomes": "== 2205, < 0, > 8818 (signed); < 0, > 8818 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..255"
-    },
-    {
-     "line": 139,
-     "text": "if (((id < 2) || ((flags & 3) == 1)) && zud->weaponEffectSize) {",
-     "size": 4,
-     "count": 22064,
-     "kind": "against a constant",
-     "outcomes": "== 3730, < 3637, > 14697 (signed); < 3637, > 14697 (unsigned)",
-     "operand": "constant 1",
-     "a": "0..15"
-    },
-    {
-     "line": 139,
-     "text": "if (((id < 2) || ((flags & 3) == 1)) && zud->weaponEffectSize) {",
-     "size": 4,
-     "count": 14697,
-     "kind": "against a constant",
-     "outcomes": "== 6298, < 2088, > 6311 (signed); < 2088, > 6311 (unsigned)",
-     "operand": "constant 1",
-     "a": "0..3"
-    },
-    {
-     "line": 139,
-     "text": "if (((id < 2) || ((flags & 3) == 1)) && zud->weaponEffectSize) {",
-     "size": 4,
-     "count": 13665,
-     "kind": "against a constant",
-     "outcomes": "== 2768, < 5498, > 5399 (signed); < 0, > 10897 (unsigned)",
-     "operand": "constant 0",
-     "a": "-2147483648..2147483647"
-    },
-    {
-     "line": 147,
-     "text": "if (zud->effectSize) {",
-     "size": 4,
-     "count": 22064,
-     "kind": "against a constant",
-     "outcomes": "== 3591, < 9182, > 9291 (signed); < 0, > 18473 (unsigned)",
-     "operand": "constant 0",
-     "a": "-2147483648..2147483647"
-    },
-    {
-     "line": 157,
-     "text": "while (vs_battle_getEmptyObjectDataSlot()) {",
-     "size": 4,
-     "count": 32029,
-     "kind": "against a constant",
-     "outcomes": "== 24077, < 0, > 7952 (signed); < 0, > 7952 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..1"
-    },
-    {
-     "line": 164,
-     "text": "if (actor->weaponDrawn & 1) {",
-     "size": 4,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 11889, < 0, > 12188 (signed); < 0, > 12188 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..1"
-    },
-    {
-     "line": 172,
-     "text": "if (actor->unk1C & 7) {",
-     "size": 4,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 12038, < 0, > 12039 (signed); < 0, > 12039 (unsigned)",
-     "operand": "constant 0",
-     "a": "0..7"
-    },
-    {
-     "line": 192,
-     "text": "if ((D_80061078[D_80060064].zndId == _zoneContext.zndId)",
-     "size": 4,
-     "count": 24077,
-     "kind": "a == b / a < b",
-     "outcomes": "== 16145, < 27, > 7905 (signed); < 27, > 7905 (unsigned)",
-     "operand": "b 0..255",
-     "a": "0..255"
-    },
-    {
-     "line": 193,
-     "text": "&& (D_80061078[D_80060064].mapId == _zoneContext.mapId)",
-     "size": 4,
-     "count": 16145,
-     "kind": "a == b / a < b",
-     "outcomes": "== 12069, < 0, > 4076 (signed); < 0, > 4076 (unsigned)",
-     "operand": "b 10..65533",
-     "a": "10..65533"
-    },
-    {
-     "line": 205,
-     "text": "for (i = 0; i < 6; ++i) {",
-     "size": 4,
-     "count": 63133,
-     "kind": "against a constant",
-     "outcomes": "== 9019, < 45095, > 9019 (signed); < 45095, > 9019 (unsigned)",
-     "operand": "constant 5",
-     "a": "0..6"
-    },
-    {
-     "line": 213,
-     "text": "if (i == 0) {",
-     "size": 4,
-     "count": 24077,
-     "kind": "against a constant",
-     "outcomes": "== 5965, < 9041, > 9071 (signed); < 0, > 18112 (unsigned)",
-     "operand": "constant 0",
-     "a": "-2147285739..2147206820"
-    }
-   ],
-   "passed": false
-  }
+  "classes": {},
+  "mutations": [],
+  "coverage": null
  },
  "port": {
   "attempts": []
  },
  "written": [],
- "check_seconds": 30.004274210001313,
- "wall_seconds": 319.37700615799986,
+ "check_seconds": 1.8406134789993303,
+ "mode": "rounds",
+ "transport": "batch",
+ "wall_seconds": 177557.89289712906,
  "totals": {
-  "cost": 0.04811,
-  "prompt_tokens": 121015,
-  "completion_tokens": 72009,
-  "model_seconds": 288.8,
-  "check_seconds": 30.0,
+  "cost": 0.0246,
+  "prompt_tokens": 143950,
+  "completion_tokens": 69626,
+  "model_seconds": 0.0,
+  "check_seconds": 1.8,
   "calls": 3,
-  "wall_seconds": 319.4
- },
- "review": {
-  "by": "Claude Sonnet 5.5 (reviewer)",
-  "date": "2026-10-25"
+  "wall_seconds": 177557.9
  }
 }

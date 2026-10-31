@@ -65,11 +65,11 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 16161,
-     "completion_tokens": 18445,
-     "reasoning_tokens": 15860,
-     "cost": 0.0054193,
+     "completion_tokens": 18996,
+     "reasoning_tokens": 16491,
+     "cost": 0.00555705,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": true,
@@ -81,30 +81,30 @@
    "sample": 1
   },
   "classes": {
-   "busy": "15154",
-   "free-no-adjust": "5111",
-   "free-adjust-unit-0x80": "3323",
-   "free-adjust-other": "6412"
+   "guard-closed": "15102",
+   "unk40-zero-arg4-zero": "2571",
+   "unk957-0x80": "1604",
+   "unk957-other": "10723"
   },
   "mutations": [
    {
-    "name": "H1: hpEffect 2 instead of 3",
+    "name": "M1: the unk40 guard inverted",
     "caught": true
    },
    {
-    "name": "H2: target's unk957 read from the attacker's stats",
+    "name": "M2: _adjustDpPp call dropped",
     "caught": true
    },
    {
-    "name": "H3: status mask 0x4000 instead of 0x8000",
+    "name": "M3: inflict mask 0x4000 instead of 0x8000",
     "caught": true
    },
    {
-    "name": "H4: adjust call dropped",
+    "name": "M4: _calculateStatChange arg3 and arg4 swapped",
     "caught": true
    },
    {
-    "name": "H5: arg4 tested with > 0 (negative arg4 skipped)",
+    "name": "M5: hpEffect 2 instead of 3 on a hit",
     "caught": true
    }
   ],
@@ -121,7 +121,7 @@
     {
      "arg": 0,
      "count": 30000,
-     "text": "pointer: null seen"
+     "text": "pointer: never null"
     },
     {
      "arg": 1,
@@ -136,12 +136,12 @@
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147245176, max 2147322827, unsigned 281459..4294961283, seen negative, never zero"
+     "text": "32-bit: min -2147430490, max 2147433534, unsigned 165531..4294767625, seen negative, never zero"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147483648, max 2146353640, unsigned 0..4294967295, seen zero/negative/all ones"
+     "text": "32-bit: min -2147365380, max 2146321788, unsigned 0..4294967295, seen zero/negative/all ones"
     }
    ],
    "compares": [
@@ -151,9 +151,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 15090, < 7466, > 7444 (signed); < 0, > 14910 (unsigned)",
+     "outcomes": "== 22547, < 3701, > 3752 (signed); < 0, > 7453 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147387633..2147451409"
+     "a": "-2147311288..2147300432"
     },
     {
      "line": 16,
@@ -161,17 +161,17 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 14846, < 8838, > 6316 (signed); < 0, > 15154 (unsigned)",
+     "outcomes": "== 14898, < 6555, > 8547 (signed); < 0, > 15102 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2144649253"
+     "a": "-2146871626..2147483647"
     },
     {
      "line": 20,
      "text": "if (temp_s2->unk957 != 0x80) {",
      "size": 1,
-     "count": 14846,
+     "count": 14898,
      "kind": "against a constant",
-     "outcomes": "== 3878, < 0, > 10968 (signed); < 5545, > 5423 (unsigned)",
+     "outcomes": "== 3275, < 0, > 11623 (signed); < 6546, > 5077 (unsigned)",
      "operand": "constant -128",
      "a": "-128..127"
     },
@@ -179,11 +179,11 @@
      "line": 24,
      "text": "if (arg4 != 0) {",
      "size": 4,
-     "count": 14846,
+     "count": 14898,
      "kind": "against a constant",
-     "outcomes": "== 5111, < 5585, > 4150 (signed); < 0, > 9735 (unsigned)",
+     "outcomes": "== 2598, < 6255, > 6045 (signed); < 0, > 12300 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147483648..2145225704"
+     "a": "-2146708519..2145403892"
     }
    ],
    "passed": true
@@ -203,16 +203,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 39541,
-     "completion_tokens": 9268,
-     "reasoning_tokens": 8385,
-     "cost": 0.00429405,
+     "completion_tokens": 7367,
+     "reasoning_tokens": 6491,
+     "cost": 0.0038188,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084B70: 1000 iterations, seed 1, 1000 mismatches; classes: busy=514 free-no-adjust=165 free-adjust-unit-0x80=115 free-adjust-other=206"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: func_80084B70: 1024 iterations, seed 1, 1000 mismatches; classes: guard-closed=493 unk40-zero-arg4-zero=76 unk957-0x80=63 unk957-other=392"
     ],
     "runs": [
      {
@@ -233,41 +233,41 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 40612,
-     "completion_tokens": 4636,
-     "reasoning_tokens": 3488,
-     "cost": 0.0031896,
+     "prompt_tokens": 40607,
+     "completion_tokens": 3164,
+     "reasoning_tokens": 2068,
+     "cost": 0.00282135,
      "seconds": null,
-     "batch": "batch-1793158386-lck2GpSEjimcoYO1fHi8",
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 2: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80084B70: 2005 iterations, seed 1, 1000 mismatches; classes: busy=1000 free-no-adjust=334 free-adjust-unit-0x80=219 free-adjust-other=452"
+     "FAIL: seed 1: the port differs from the C (exit 1):\nzdiff: MISMATCH iteration 4: return value\nzdiff: MISMATCH iteration 6: return value\nzdiff: MISMATCH iteration 7: return value\nzdiff: func_80084B70: 1861 iterations, seed 1, 1000 mismatches; classes: guard-closed=909 unk40-zero-arg4-zero=137 unk957-0x80=103 unk957-other=712"
     ],
     "runs": [
      {
       "seed": 1,
       "exit": 1,
       "mismatches": 1000,
-      "first": "MISMATCH iteration 0: return value"
+      "first": "MISMATCH iteration 4: return value"
      }
     ]
    }
   ]
  },
  "written": [],
- "check_seconds": 21.063830553997832,
+ "check_seconds": 18.915876056001252,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 97202.55470299721,
+ "wall_seconds": 177589.88715529442,
  "totals": {
-  "cost": 0.0129,
-  "prompt_tokens": 96314,
-  "completion_tokens": 32349,
+  "cost": 0.0122,
+  "prompt_tokens": 96309,
+  "completion_tokens": 29527,
   "model_seconds": 0.0,
-  "check_seconds": 21.1,
+  "check_seconds": 18.9,
   "calls": 3,
-  "wall_seconds": 97202.6
+  "wall_seconds": 177589.9
  }
 }

@@ -63,17 +63,16 @@
      "temperature": 0.0,
      "max_tokens": 64000,
      "prompt_tokens": 13059,
-     "completion_tokens": 8381,
-     "reasoning_tokens": 6991,
-     "cost": 0.0027482,
+     "completion_tokens": 7747,
+     "reasoning_tokens": 6118,
+     "cost": 0.0025897,
      "seconds": null,
-     "batch": "batch-1793062477-BHA9fMWuhJ4ecHWOaBKo",
+     "batch": "batch-1793203265-sQA1DX56rKylfzO4cWKR",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80083D2C: 2303 iterations, seed 1, 1000 mismatches; classes: arg2-null=298 status-zero=1005 status-nonzero=1000",
-     "FAIL: mutation F5: call made on arg1 instead of arg2: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x406084 [arena] (zdiff_state+0x14): C 159, Zig 56\nzdiff: MISMATCH iteration 1: memory at 0x406084 [arena] (zdiff_state+0x14): C 143, Zig 88\nzdiff: MISMATCH iteration 2: memory at 0x406084 [arena] (zdiff_state+0x14): C 82, Zig 238\nzdiff: CRASH (signal 11) in the Zig run, iteration 19, fault address 0x1e [NULL+0x1e: a field of a null pointer]"
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 7: return value\nzdiff: func_80083D2C: 1329 iterations, seed 1, 1000 mismatches; classes: action-null,other-null=346 action-null,other-valid=340 action-valid,other-null=320 action-valid,other-valid=323"
     ]
    },
    {
@@ -86,46 +85,73 @@
      "thinking": "default",
      "temperature": 0.0,
      "max_tokens": 64000,
-     "prompt_tokens": 14966,
-     "completion_tokens": 5440,
-     "reasoning_tokens": 4018,
-     "cost": 0.0021082999999999996,
+     "prompt_tokens": 14910,
+     "completion_tokens": 4758,
+     "reasoning_tokens": 3098,
+     "cost": 0.001935,
      "seconds": null,
-     "batch": "batch-1793117716-mddO5G0BwsTARahIdCSl",
+     "batch": "batch-1793206357-jxyW8CeGtJSNWKNpZo35",
      "sample": 1
     },
     "passed": false,
     "errors": [
-     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 3: return value\nzdiff: func_80083D2C: 2303 iterations, seed 1, 1000 mismatches; classes: arg2-null=298 status-zero=1005 status-nonzero=1000",
-     "FAIL: mutation F5: inverted test of the status result: not caught as mismatch (exit 4) (the mutated copy crashes where the C does not: if that is what this mistake does on your inputs, say `expect = \"crash\"`; otherwise choose a mutation your inputs show as a difference): zdiff: MISMATCH iteration 0: memory at 0x4060de [arena] (zdiff_state+0x6e): C 234, Zig 233\nzdiff: MISMATCH iteration 1: memory at 0x4060de [arena] (zdiff_state+0x6e): C 170, Zig 168\nzdiff: MISMATCH iteration 2: return value\nzdiff: CRASH (signal 11) in the Zig run, iteration 10, fault address 0x1e [NULL+0x1e: a field of a null pointer]"
+     "FAIL: the harness does not build:\n<cache>/zig/0.17.0/zig-x86_64-linux-0.17.0/zig build-obj -fno-compiler-rt ...: pc/build/port-pipeline/func_80083D2C/spec2/build/spec.zig:30:15: error: no field named 'unk1C_pad' in struct 'views_146C._hitEntity_t'\n            e.unk1C_pad = bits;\n              ^~~~~~~~~\npc/build/port-pipeline/gen/146C/fn-func_80083D2C/views_146C.zig:93:33: note: struct declared here\npub const _hitEntity_t = extern struct {\n                         ~~~~~~~^~~~~~\nreferenced by:\n    body: pc/tests/zig_diff/main.zig:235:33\n    f: pc/build/port-pipeline/func_80083D2C/spec2/build/game/common/route.zig:29:28\n    5 reference(s) hidden; use '-freference-trace=7' to see all references\n"
+    ]
+   },
+   {
+    "round": 3,
+    "sample": 1,
+    "call": {
+     "finish_reason": "stop",
+     "model": "anthropic/claude-haiku-5.5",
+     "endpoint": "remote",
+     "thinking": "default",
+     "temperature": 0.0,
+     "max_tokens": 64000,
+     "prompt_tokens": 16942,
+     "completion_tokens": 3604,
+     "reasoning_tokens": 1943,
+     "cost": 0.0017480999999999998,
+     "seconds": null,
+     "batch": "batch-1793379902-OYfFRiS0hzKPAZ8kx15j",
+     "sample": 1
+    },
+    "passed": false,
+    "errors": [
+     "FAIL: the C differs from a copy of itself under this spec (exit 1: the spec is not deterministic: everything prepare does must come from `ctx`):\nzdiff: MISMATCH iteration 0: return value\nzdiff: MISMATCH iteration 1: return value\nzdiff: MISMATCH iteration 7: return value\nzdiff: func_80083D2C: 1329 iterations, seed 1, 1000 mismatches; classes: action-null,other-null=346 action-null,other-valid=340 action-valid,other-null=320 action-valid,other-valid=323"
     ]
    }
   ],
   "classes": {
-   "arg2-null": "298",
-   "status-zero": "1005",
-   "status-nonzero": "1000"
+   "action-null,other-null": "346",
+   "action-null,other-valid": "340",
+   "action-valid,other-null": "320",
+   "action-valid,other-valid": "323"
   },
   "mutations": [
    {
-    "name": "F1: wrong unk1C_16 constant",
+    "name": "F1: signed test of the status result (negative results take the store)",
     "caught": true
    },
    {
-    "name": "F2: store dropped",
+    "name": "F2: wrong status id passed to the callee",
     "caught": true
    },
    {
-    "name": "F3: a negative status result treated as no-op",
+    "name": "F3: wrong value stored into unk1C_16",
     "caught": true
    },
    {
-    "name": "F4: wrong status id passed to the call",
+    "name": "F4: wrong bitfield stored (unk1C_26 instead of unk1C_16)",
     "caught": true
    },
    {
-    "name": "F5: inverted test of the status result",
-    "caught": false
+    "name": "F5: the store moved before the call",
+    "caught": true
+   },
+   {
+    "name": "F6: the store dropped",
+    "caught": true
    }
   ],
   "coverage": {
@@ -151,17 +177,17 @@
     {
      "arg": 2,
      "count": 30000,
-     "text": "pointer: null seen"
+     "text": "pointer: never null"
     },
     {
      "arg": 3,
      "count": 30000,
-     "text": "32-bit: min -2147450225, max 2147447517, unsigned 246541..4294934463, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     },
     {
      "arg": 4,
      "count": 30000,
-     "text": "32-bit: min -2147457514, max 2147366951, unsigned 39693..4294594578, seen negative, never zero"
+     "text": "32-bit: min -2147483648, max 2147483647, unsigned 0..4294967295, seen zero/negative/signed max/all ones"
     }
    ],
    "compares": [
@@ -171,9 +197,9 @@
      "size": 4,
      "count": 30000,
      "kind": "against a constant",
-     "outcomes": "== 16800, < 6586, > 6614 (signed); < 0, > 13200 (unsigned)",
+     "outcomes": "== 7534, < 11275, > 11191 (signed); < 0, > 22466 (unsigned)",
      "operand": "constant 0",
-     "a": "-2147295849..2147165129"
+     "a": "-2146920816..2147195060"
     }
    ],
    "passed": true
@@ -183,17 +209,17 @@
   "attempts": []
  },
  "written": [],
- "check_seconds": 20.82240858199839,
+ "check_seconds": 22.161444199999096,
  "mode": "rounds",
  "transport": "batch",
- "wall_seconds": 56642.458070755005,
+ "wall_seconds": 177593.03999829292,
  "totals": {
-  "cost": 0.00486,
-  "prompt_tokens": 28025,
-  "completion_tokens": 13821,
+  "cost": 0.00627,
+  "prompt_tokens": 44911,
+  "completion_tokens": 16109,
   "model_seconds": 0.0,
-  "check_seconds": 20.8,
-  "calls": 2,
-  "wall_seconds": 56642.5
+  "check_seconds": 22.2,
+  "calls": 3,
+  "wall_seconds": 177593.0
  }
 }
