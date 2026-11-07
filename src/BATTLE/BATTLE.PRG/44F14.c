@@ -821,7 +821,7 @@ void func_800AECA0(MATRIX* source)
      * frame (no reader); a host read through &source is past the
      * parameter, dead host stack. Here the pointer word, the rest zero. */
     D_800F4910 = (MATRIX) { 0 };
-    *(u_int*)&D_800F4910 = psx_addr(source);
+    *(u_int*)&D_800F4910 = psx_to_int(u_int, source);
 #else
     D_800F4910 = *(MATRIX*)&source;
 #endif

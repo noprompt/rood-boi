@@ -47,6 +47,7 @@ static unsigned pc_route_alternate_calls[2];
 static const unsigned pc_subsystem_count = 0;
 static const char* const pc_subsystem_names[] = { NULL };
 static const unsigned char pc_subsystem_defaults[] = { 0 };
+static const unsigned char pc_subsystem_dev_defaults[] = { 0 };
 #else
 extern const unsigned pc_route_count;
 extern const unsigned char pc_route_subsystems[];
@@ -58,6 +59,15 @@ extern unsigned pc_route_alternate_calls[];
 extern const unsigned pc_subsystem_count;
 extern const char* const pc_subsystem_names[];
 extern const unsigned char pc_subsystem_defaults[];
+extern const unsigned char pc_subsystem_dev_defaults[];
+#endif
+/* engine_host.c: the development host, whose owned code is a reloadable library (its own defaults;
+ * Linux only, so Windows has none). */
+#ifdef _WIN32
+#define DEV_HOST 0
+#else
+extern const int pc_dev_host __attribute__((weak));
+#define DEV_HOST (&pc_dev_host != NULL)
 #endif
 #ifndef _WIN32
 extern int pc_shadow_available(void) __attribute__((weak));
@@ -152,13 +162,15 @@ int pc_owner_alternate_report(int subsystem, char* out, int size)
     return n < 0 ? -1 : used + n;
 }
 
-/* ROOD_OWNER=battle_44F14=owned,menus=original, applied over defaults. */
+/* ROOD_OWNER=battle_44F14=owned,menus=original, applied over defaults (the development host's own,
+ * dev_default in ownership.toml, where it has them). */
 __attribute__((constructor)) static void owner_defaults(void)
 {
     if (pc_subsystem_count > sizeof pc_owner)
         abort();
+    const unsigned char* defaults = DEV_HOST ? pc_subsystem_dev_defaults : pc_subsystem_defaults;
     for (unsigned i = 0; i < pc_subsystem_count; i++)
-        pc_owner[i] = pc_subsystem_defaults[i];
+        pc_owner[i] = defaults[i];
     const char* env = getenv("ROOD_OWNER");
     char item[96];
     while (env && *env) {

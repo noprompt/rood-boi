@@ -35,6 +35,8 @@ def kind_of(kind):
     """FUNCTIONS.tsv's kind column -> c / D2 / pc-inc / generated / boundary."""
     if kind.startswith("SLUS boundary"):
         return "boundary"
+    if kind.startswith("none"):
+        return "none"  # not ported by design: never runs on the PC, dead, or a host service
     for name in ("D2", "pc-inc", "generated"):
         if kind.startswith(name):
             return name
@@ -130,13 +132,17 @@ def bar(done, total, width=30):
 
 def report(s, show_units):
     print("Battle port (pc/docs/porting/battle/FUNCTIONS.tsv)\n")
-    labels = {"c": "pass 1: battle C", "D2": "D2: PS1 assembly", "pc-inc": "host C in battle units",
-              "generated": "generated wrappers"}
-    for kind in ("c", "D2", "pc-inc", "generated"):
+    labels = {"c": "pass 1: battle C", "D2": "D2: PS1 assembly"}
+    for kind in ("c", "D2"):
         k = s["kinds"].get(kind, {"ported": 0, "left": 0})
         total = k["ported"] + k["left"]
         pct = 100 * k["ported"] / total if total else 0
         print(f"  {labels[kind]:<24} {bar(k['ported'], total)} {k['ported']:>5} / {total:<5} {pct:5.1f}%")
+    # The PC's own glue in the battle units: routed, and C by design (the modern C plan).
+    glue = {kind: sum(s["kinds"].get(kind, {"ported": 0, "left": 0}).values()) for kind in ("pc-inc", "generated")}
+    none = sum(s["kinds"].get("none", {"ported": 0, "left": 0}).values())
+    print(f"  stays C: {glue['pc-inc']} host C in battle units, {glue['generated']} generated wrappers (PC glue)")
+    print(f"  not ported by design: {none} (never run on the PC, dead, or a host service; FUNCTIONS.tsv kind none)")
     left = [u for u in s["units"].values() if u["left"]]
     by_size = {d: sum(u[d] for u in left) for d in DIFFICULTIES}
     print("\n  pass 1 left by difficulty: " + ", ".join(f"{by_size[d]} {d}" for d in DIFFICULTIES))

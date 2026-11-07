@@ -65,7 +65,7 @@ class VerifyArgsTest(unittest.TestCase):
                 result, calls = self.invoke_verify(options, [[build, "--arch", "64"]])
                 self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
                 self.assertEqual([c for c in calls if c[0] == build],
-                                 [[build], [build, "--battle"], [build, "--arch", "64"]]
+                                 [[build, "--arch", "64"]]
                                  + ([[build, "--target", "windows"]] if windows else []))
                 self.assertFalse([c for c in calls if c[0] == "pc/tests/run.py"
                                   and "--wait-cool" not in c])
@@ -76,14 +76,14 @@ class VerifyArgsTest(unittest.TestCase):
 
     def test_independent_failures_are_counted(self):
         build = "pc/tools/build_boot.py"
-        result, calls = self.invoke_verify(["--full"],
-                                          [[build], [build, "--battle"],
-                                           [build, "--target", "windows"]])
-        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        result, calls = self.invoke_verify(["--full"], [[build, "--target", "windows"]])
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         suites = [c for c in calls if "--renderer" in c]
         self.assertEqual([c[c.index("--renderer") + 1] for c in suites],
                          ["null", "vulkan", "gl"])
-        self.assertIn("3 failed", result.stdout)
+        self.assertIn("1 failed", result.stdout)
+        self.assertFalse([c for c in calls if c[0] == build and "--arch" not in c
+                          and "--target" not in c], "the retired 32-bit build is not built")
 
         result, calls = self.invoke_verify(["--full"], [[build, "--arch", "64"],
                                                 [build, "--target", "windows"]])

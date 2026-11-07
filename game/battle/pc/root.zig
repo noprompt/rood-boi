@@ -147,6 +147,9 @@ pub const squared_component_sum = @import("squared_component_sum.zig");
 // pc/src/effect_particles.c
 pub const draw_particles = @import("draw_particles.zig");
 
+// pc/src/fixed_font.c
+pub const fixed_font_char = @import("fixed_font_char.zig");
+
 // pc/src/map_view.c
 pub const draw_area_map_screen = @import("draw_area_map_screen.zig");
 

@@ -59,6 +59,25 @@ def alternate_check(calls, waived=None):
     return dict(result, ok=True)
 
 
+# `battle`: every battle subsystem (overlay battle, D2 included) switched together, for tick and
+# alternate mode (FLIP.md step 5): the whole port against the whole original in one run.
+GROUP = "battle"
+
+
+def members(subsystem):
+    import ownership
+    if subsystem != GROUP:
+        return [subsystem]
+    names = [s.name for s in ownership.load().subsystems if s.overlay == "battle"]
+    only = os.environ.get("ROOD_DIFF_GROUP")  # a comma list: bisect the group (the rest stay original)
+    return [n for n in names if n in only.split(",")] if only else names
+
+
+def set_owner(game, subsystem, owner):
+    for name in members(subsystem):
+        game.owner(name, owner)
+
+
 def root_call_gate(reports, subsystem, functions, path=WAIVERS):
     """Every routed function of the subsystem needs root calls in call mode
     in at least one of the selected recipes, or a waiver with its reason
@@ -89,7 +108,7 @@ def first_difference(game, work, recording, tick, subsystem, index, mode, mapper
         game.digest("stop")
         game.replay(None)
         game.rewind()
-        game.owner(subsystem, "original" if mode == "control" else owner)
+        set_owner(game, subsystem, "original" if mode == "control" else owner)
         game.replay(recording)
         if owner == "owned" and mode == "alternate":
             game.digest("compare", alternate=index)
@@ -122,15 +141,19 @@ def compare(game, recording, ticks, subsystem, index, modes, mapper, work,
         game.digest("stop")
         game.replay(None)
         game.rewind()
-        game.owner(subsystem, "shadow" if mode == "call" else
-                   "original" if mode == "control" else "owned")
+        if subsystem == GROUP and mode == "call":
+            raise ValueError("the battle group runs tick and alternate mode (call mode: per subsystem)")
+        # The group alternates every subsystem's routes itself (owner alternate); one digest index
+        # alternates one subsystem.
+        set_owner(game, subsystem, "shadow" if mode == "call" else "original" if mode == "control" else
+                  "alternate" if mode == "alternate" and subsystem == GROUP else "owned")
         if scenario:
             scenario.reset_witness(game)
         if mode == "call":
             game.call("owner", action="report", reset=True)
         game.replay(recording)
         if mode != "call":
-            game.digest("compare", alternate=index if mode == "alternate" else -1)
+            game.digest("compare", alternate=index if mode == "alternate" and subsystem != GROUP else -1)
         game.run(ticks)
         witness = scenario.witness(game) if scenario else {"ok": True}
         if mode == "call":
@@ -143,7 +166,10 @@ def compare(game, recording, ticks, subsystem, index, modes, mapper, work,
             report = game.digest("result")
             ok = (report.get("error") == 0 and report.get("ticks") == ticks
                   and report.get("recorded") == ticks and report.get("first_tick") == -1)
-            if mode == "alternate":
+            if mode == "alternate" and subsystem == GROUP:
+                report["alternate_check"] = {"ok": True, "reason": "the group: every subsystem alternates; "
+                                             "the one-sided check is per subsystem"}
+            elif mode == "alternate":
                 report["alternate_check"] = alternate_check(report.get("alternate_calls"),
                                                             waivers("alternate_one_side", subsystem))
                 ok = ok and report["alternate_check"]["ok"]
@@ -157,10 +183,19 @@ def compare(game, recording, ticks, subsystem, index, modes, mapper, work,
         results[mode] = report
         game.digest("stop")
         game.replay(None)
-        game.owner(subsystem, "original")
+        set_owner(game, subsystem, "original")
         if mode == "control" and not ok:
             break  # No owned result is meaningful without deterministic replay.
     return results
+
+
+def group_subsystem(table):
+    """The battle group as one subsystem: every battle subsystem's roots and functions."""
+    import types
+    battle = [s for s in table.subsystems if s.overlay == "battle"]
+    roots = sorted({r for s in battle for r in s.roots})
+    return types.SimpleNamespace(name=GROUP, index=-1, roots=roots,
+                                 functions=[f for s in battle for f in s.functions])
 
 
 def run_one(scenario, args, work):
@@ -169,10 +204,13 @@ def run_one(scenario, args, work):
     from checkpoints import launch_at
     from field_map import FieldMap
     table = ownership.load()
-    sub = next(s for s in table.subsystems if s.name == args.subsystem)
+    sub = group_subsystem(table) if args.subsystem == GROUP else \
+        next(s for s in table.subsystems if s.name == args.subsystem)
     card = work / "card.mcd"
     shutil.copyfile(args.card, card)
     env = corpus.environment(work, sub.name, getattr(args, "profile", "classic"))
+    if sub.name == GROUP:
+        env["ROOD_OWNER"] = ",".join(f"{name}=original" for name in members(GROUP))
     # Shared checkpoints were generated with the normal startup profile, not
     # this features-off profile. Never import that feature history into a corpus.
     previous = os.environ.get("ROOD_TEST_SNAPSHOTS")
@@ -191,7 +229,8 @@ def run_one(scenario, args, work):
             game.owner(unit.name, "original")
         mapper = FieldMap(rood_rpc.BINARY, sub.roots, game.read)
         masks = corpus.clock_mask(rood_rpc.BINARY)
-        recording, ticks = corpus.generate(game, scenario, work, sub.name, masks=masks)
+        # (generate pins its subsystem original: every one already is, the group's members included)
+        recording, ticks = corpus.generate(game, scenario, work, members(sub.name)[0], masks=masks)
         manifest = {"binary_sha256": corpus.sha256(rood_rpc.BINARY),
                     "card_sha256": corpus.sha256(args.card), "subsystem": sub.name,
                     "roots": sub.roots, "functions": [name for _, name in sub.functions]}
@@ -244,6 +283,9 @@ def main(argv=None):
         corpus.write_json(work / "report.json", reports)
         print(scenario.name + ": " + reports[scenario.name]["status"], flush=True)
     import ownership
+    if args.subsystem == GROUP:  # (no call mode: no root-call gate)
+        print(f"Report: {work / 'report.json'}")
+        return 0 if all(r["status"] == "passed" for r in reports.values()) else 1
     sub = next(s for s in ownership.load().subsystems if s.name == args.subsystem)
     gate = root_call_gate({k: v for k, v in reports.items() if v.get("status") != "incomplete"},
                           sub.name, [name for _, name in sub.functions])

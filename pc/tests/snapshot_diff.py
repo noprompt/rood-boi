@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare two save states (pc/src/snapshot.c files) byte for byte.
 
-    python3 pc/tests/snapshot_diff.py a.snap b.snap [--binary pc/build/boot/rood_battle_probe]
+    python3 pc/tests/snapshot_diff.py a.snap b.snap [--binary pc/build/boot64/rood_battle_probe]
 
 Prints each memory range that differs with the symbols (from the game
 binary's nm, guest data imports included) that hold the differing bytes.
@@ -130,7 +130,7 @@ def main():
     parser.add_argument("a")
     parser.add_argument("b")
     parser.add_argument("--binary", default=str(pathlib.Path(__file__).resolve().parents[2]
-                                                 / "pc/build/boot/rood_battle_probe"))
+                                                 / "pc/build/boot64/rood_battle_probe"))
     parser.add_argument("--stack", action="store_true", help="compare the game stack too")
     args = parser.parse_args()
     lines = diff(read(args.a), read(args.b), Symbols(args.binary), stack=args.stack)

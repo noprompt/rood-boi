@@ -34,6 +34,9 @@ class Subsystem:
     # Original name -> the Zig function that ports it, as a path from the
     # overlay root ("score.updateEnemyKills"); absent: the original name.
     zig: dict = dataclasses.field(default_factory=dict)
+    # The development host's own default (its owned code is a reloadable
+    # library: pc/src/game_host.inc); absent: `default`.
+    dev_default: str = ""
 
     def zig_name(self, name):
         return self.zig.get(name, name)
@@ -143,6 +146,9 @@ def load(path=ROOT / "game/ownership.toml"):
         default = entry.get("default", "original")
         if default not in OWNERS:
             raise ValueError(f"{name}: default {default!r} is not one of {', '.join(OWNERS)}")
+        dev_default = entry.get("dev_default", default)
+        if dev_default not in OWNERS:
+            raise ValueError(f"{name}: dev_default {dev_default!r} is not one of {', '.join(OWNERS)}")
         # A host function (pc/src/*.inc, generated wrappers) has no reference-ELF
         # address: `{ name = "pc_cb_80092540", host = true }`; problems() skips it.
         functions = [(int(f["addr"]) if "addr" in f else None, f["name"]) for f in entry.get("functions", [])]
@@ -158,7 +164,8 @@ def load(path=ROOT / "game/ownership.toml"):
                 raise ValueError(f"{fn} is routed by both {seen[fn]} and {name}")
             seen[fn] = name
         subsystems.append(Subsystem(name, index, entry["overlay"], entry["unit"], default,
-                                    list(entry.get("roots", [])), functions, dict(entry.get("views", {})), zig))
+                                    list(entry.get("roots", [])), functions, dict(entry.get("views", {})), zig,
+                                    dev_default))
     if len(subsystems) > MAX_SUBSYSTEMS:
         raise ValueError(f"{len(subsystems)} subsystems: pc_owner[] holds {MAX_SUBSYSTEMS}")
     return Table(subsystems)
@@ -431,11 +438,13 @@ def routing_source(table, abi, *, reloadable=False):
         out.append(f'__asm__("{asm}\\n");')
     names = ", ".join(f'"{s.name}"' for s in table.subsystems) or "0"
     defaults = ", ".join(str(OWNERS.index(s.default)) for s in table.subsystems) or "0"
+    dev_defaults = ", ".join(str(OWNERS.index(s.dev_default or s.default)) for s in table.subsystems) or "0"
     routes = ", ".join(f'"{n}"' for n, _ in table.routes()) or "0"
     route_subsystems = ", ".join(str(i) for _, i in table.routes()) or "0"
     out += [f"const unsigned pc_subsystem_count = {len(table.subsystems)};",
             f"const char* const pc_subsystem_names[] = {{ {names} }};",
             f"const unsigned char pc_subsystem_defaults[] = {{ {defaults} }};",
+            f"const unsigned char pc_subsystem_dev_defaults[] = {{ {dev_defaults} }};",
             f"const unsigned pc_route_count = {len(table.routes())};",
             f"const char* const pc_route_names[] = {{ {routes} }};",
             f"const unsigned char pc_route_subsystems[] = {{ {route_subsystems} }};",

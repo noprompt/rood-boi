@@ -76,6 +76,11 @@ with tempfile.TemporaryDirectory() as d:
     check(raises(lambda: ownership.load(path), "host"), "a function without addr must say host = true")
     path.write_text(TOML.replace('default = "owned"', 'default = "mine"'))
     check(raises(lambda: ownership.load(path), "default"), "an unknown default is refused")
+    path.write_text(TOML.replace('default = "owned"', 'default = "owned"\ndev_default = "original"'))
+    check([(x.default, x.dev_default) for x in ownership.load(path).subsystems]
+          == [("original", "original"), ("owned", "original")], "dev_default read, default when absent")
+    path.write_text(TOML.replace('default = "owned"', 'default = "owned"\ndev_default = "mine"'))
+    check(raises(lambda: ownership.load(path), "dev_default"), "an unknown dev_default is refused")
     path.write_text(TOML + '\n[subsystem.gamma]\noverlay="battle"\nunit="src/A.c"\ndefault="original"\n'
                     'functions=[{addr=0x80010000, name="f_one"}]\n')
     check(raises(lambda: ownership.load(path), "f_one"), "a function routed twice is refused")
@@ -196,7 +201,7 @@ check(b"extern void pc_hook_start(int now);\n" in decls
       and b"pc_hook_start(1)" not in decls, "strip_bodies keeps block-scope extern declarations at file scope")
 
 t = ownership.Table([ownership.Subsystem("s", 0, "battle", "u.c", "original", [], [(0, "F")], {}),
-                     ownership.Subsystem("t", 1, "battle", "u.c", "owned", [], [(0, "G")], {})])
+                     ownership.Subsystem("t", 1, "battle", "u.c", "owned", [], [(0, "G")], {}, {}, "original")])
 for abi in ("i386", "sysv64", "win64"):
     src = ownership.routing_source(t, abi)
     check("jmp F__orig" in src and "je F__owned" in src and "je F__shadow" in src, f"{abi}: F's trampoline")
@@ -204,7 +209,8 @@ for abi in ("i386", "sysv64", "win64"):
           f"{abi}: G reads its own slot")
     check((".type F, @function" in src) == (abi != "win64"), f"{abi}: ELF symbol types only on ELF")
     check("%al" not in src and ("%r11d" in src) == (abi != "i386"), f"{abi}: no argument register clobbered")
-    check('"s", "t"' in src and "pc_subsystem_defaults[] = { 0, 1 }" in src, f"{abi}: subsystem tables")
+    check('"s", "t"' in src and "pc_subsystem_defaults[] = { 0, 1 }" in src
+          and "pc_subsystem_dev_defaults[] = { 0, 0 }" in src, f"{abi}: subsystem tables (the dev host's too)")
 for abi in ("i386", "win64"):
     check(raises(lambda: ownership.routing_source(t, abi, reloadable=True), "sysv64"),
           f"{abi}: reloadable routing is refused")

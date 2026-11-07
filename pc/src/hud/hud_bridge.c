@@ -2154,7 +2154,7 @@ void pc_hud_panels_classic(void* otag)
             classic_packets(cmds, count, anchor, PC_HUD_STATUS, 0);
     panel_first = panel_last = 0;
     if (psx_get(vs_scratch.unk0) != start) {
-        panel_first = (unsigned)psx_addr(start);
-        panel_last = (unsigned)psx_addr(psx_get(vs_scratch.unk0));
+        panel_first = psx_to_int(unsigned, start);
+        panel_last = psx_to_int(unsigned, psx_get(vs_scratch.unk0));
     }
 }

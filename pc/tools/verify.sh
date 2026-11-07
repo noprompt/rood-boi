@@ -28,9 +28,9 @@
 #   pc/tools/verify.sh -- ARGS...        more run.py options for every suite
 #                                        (e.g. -- -j 4 --gpu-jobs 3)
 #
-# Both lanes build 32-bit (the boot and the battle probe) and 64-bit; the
-# suites run on 64-bit, what ships and what the oracle checks. Builds hold
-# $ROOD_BUILD_LOCK and test suites $ROOD_HEAVY_LOCK (flock; without a build
+# Both lanes build 64-bit only, what ships and what the oracle checks (the
+# 32-bit build was retired 2026-11-06: no longer built, tested or kept up).
+# Builds hold $ROOD_BUILD_LOCK and test suites $ROOD_HEAVY_LOCK (flock; without a build
 # lock both take the heavy one), so one session's build runs beside another's
 # tests while the GPU suites never overlap. The Windows build comes last, at
 # nice 19. Logs: pc/build/verify/<step>.log; suite outputs in
@@ -106,8 +106,6 @@ step() {  # step build|test|cpu NAME COMMAND...: run it (under its lock), print 
     return "$status"
 }
 
-step build build-32 python3 pc/tools/build_boot.py
-step build battle-32 python3 pc/tools/build_boot.py --battle
 if step build build-64 python3 pc/tools/build_boot.py --arch 64; then
     # End options before fixed suite names: --changed takes an optional BASE.
     step cpu suite-64null python3 pc/tests/run.py --arch 64 --renderer null --out "$out/t64null" \

@@ -7,6 +7,8 @@
 #   unit      the original unit that defines every listed function
 #   default   who runs it unless ROOD_OWNER, RPC owner or the overlay says otherwise:
 #             original | owned
+#   dev_default  the development host's instead (its owned code is a reloadable
+#             library, pc/src/game_host.inc); absent: default
 #   roots     pointer globals the field mapper follows (pc/tools/field_map.py), or
 #             TYPE@ADDRESS for a block the code addresses by number (the scratchpad)
 
@@ -64,14 +66,15 @@ globals = ["D_800EB9D8", "D_800F4E68", "D_800F4E69", "vs_battle_stringContext", 
 # Battle's main loop and its per-frame function: the two owned frames live at
 # the vsync, where snapshots, rewind and the hot-reload host cut the stack. The
 # development host's owned code is a reloadable library: a saved or rewound
-# stack must not hold return addresses into it (game_host.inc), so these two run
-# the original by default and call the owned code below them, which returns
-# before the vsync. ROOD_OWNER=battle_frame=owned (and the static builds) still
-# run them owned.
+# stack must not hold return addresses into it (game_host.inc), so there these
+# two run the original (dev_default) and call the owned code below them, which
+# returns before the vsync. Every other build runs them owned;
+# ROOD_OWNER=battle_frame=owned runs them owned in the development host too.
 [subsystem.battle_frame]
 overlay = "battle"
 unit = "src/BATTLE/BATTLE.PRG/146C.c"
-default = "original"
+default = "owned"
+dev_default = "original"
 roots = ["vs_battle_actors"]
 functions = [
     { addr = 0x800798A4, name = "vs_battle_exec", zig = "battle_exec.battleExec" },  # battle's main loop
@@ -2459,6 +2462,20 @@ functions = [
 types = ["D_800F569C_t", "D_800F53B8_t", "func_800D6E44_t", "func_800D6CF_t", "pFileBlock1Indices", "pFileBlock1Data",
          "pFileCurveBlock", "vs_scratch_t"]
 globals = ["D_800F53BC", "D_800F569C", "vs_main_nearClip", "vs_main_projectionDistance", "vs_scratch", "D_80040A14"]
+
+[subsystem.d2_fixed_font]
+overlay = "battle"
+unit = "pc/src/fixed_font.c"
+default = "owned"
+roots = []
+functions = [
+    { addr = 0x800C79D8, name = "_printFixedWidthFontChar", zig = "pc.fixed_font_char.printFixedWidthFontChar" },
+    { name = "pc_fixed_font_char", host = true, zig = "pc.fixed_font_char.fixedFontChar" },
+]
+
+[subsystem.d2_fixed_font.views]
+types = []
+globals = ["_fontBrightness", "_fontTable", "D_800F4CB8", "D_800F4E80", "D_800F51B8", "vs_battle_characterWidths"]
 
 [subsystem.d2_map_view]
 overlay = "battle"

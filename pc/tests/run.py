@@ -6,7 +6,7 @@
     python3 pc/tests/run.py --list          the suites, without running them
     python3 pc/tests/run.py --headless xvfb software GL on Xvfb instead of EGL
     python3 pc/tests/run.py --renderer vulkan   the Vulkan renderer (64-bit only)
-    python3 pc/tests/run.py --arch 32       the 32-bit build (pc/build/boot; its suite is no longer kept up)
+    python3 pc/tests/run.py --arch 32       the retired 32-bit build (pc/build/boot; not kept up)
 
 Suites: the CTest probes (pc/build), the RPC and checkpoint smokes, the X11
 window smoke, every input case in start_button_smoke.sh, golden frames and

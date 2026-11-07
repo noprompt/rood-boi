@@ -26,6 +26,9 @@ check(port_progress.unit_file("src/BATTLE/BATTLE.PRG/146C.c", "c") == "src/BATTL
       "a first-pass row keeps its file")
 check(port_progress.unit_file("src/BATTLE/BATTLE.PRG/7B5DC.s", "D2: asm on the PS1; PC runs none: calls trap (pc_unimplemented)")
       == "src/BATTLE/BATTLE.PRG/7B5DC.s", "a D2 row without an oracle keeps its file")
+check(port_progress.kind_of("none (dead): a static function nothing calls") == "none"
+      and port_progress.kind_of("D2: asm on the PS1; PC runs none: calls trap (pc_unimplemented)") == "D2",
+      "a row not ported by design is its own kind (counted apart, never left)")
 
 with tempfile.TemporaryDirectory() as d:
     root = pathlib.Path(d)

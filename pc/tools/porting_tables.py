@@ -49,6 +49,15 @@ PC_IMPL = ["battle_gte", "battle_helpers", "battle_motion", "battle_movement", "
 OTHER_UNITS = ["main", "init_12AC", "init_18", "init_FB0"]
 PC_C_FILES = {u + ".c" for u in PC_IMPL} | {"boot_sdk.c"}
 
+# Battle functions not ported by design (FUNCTIONS.tsv kind "none ..."): the reason.
+NOT_PORTED = {
+    "func_800E45B4": "none (host service): asm on the PS1; the PC runs boot_runtime.c's virtual scanline clock "
+                     "(host time, not game logic)",
+    "func_800D7FB4": "none (dead): a static function nothing calls (__attribute__((unused)) in the C)",
+    "get_D_800E84AC": "none (inlined): a one-line static helper; its callers' ports read D_800E84AC directly",
+}
+# D2 functions whose PC oracle is a wrapper the pc/src scan does not pair: the oracle's file:line.
+D2_ORACLES = {"_printFixedWidthFontChar": "pc/src/fixed_font.c:54"}
 TRIAL = {"_updateEnemyKills": "trial: struct-heavy",
          "func_800B07DC": "trial: GTE + scratchpad + fixed point",
          "vs_battle_displaySceneMessage": "trial: ROOD_PC hook (charging skip)"}
@@ -711,6 +720,15 @@ def main():
         rows.append([name, addr(name), f["file"].lstrip("./"), (f["end"] or 0) - (f["line"] or 0) + 1, kind,
                      "static" if f["static"] else "", counted(callers[name]), counted(others, 4), "-",
                      short(f["calls"]) or "-", counted(f["g"]), "; ".join(features(dict(f, src=f["file"]))) or "-", "-", "-", ""])
+    # Not ported by design (kind "none ..."; port_progress.py counts them apart), and the D2 ports whose
+    # oracle the pc/src scan does not find (a PC wrapper around a portable emitter).
+    for r in rows:
+        if r[0] in NOT_PORTED:
+            r[4] = NOT_PORTED[r[0]]
+        elif r[0] in D2_ORACLES:
+            r[4] = f"D2 (pc/src asm port): asm on the PS1; PC oracle is {D2_ORACLES[r[0]]}"
+        elif r[4] == "D2: asm on the PS1; PC runs none: calls trap (pc_unimplemented)" and r[6] in ("0", 0):
+            r[4] = "none (never runs on the PC): asm on the PS1; the PC traps it (pc_unimplemented) and no battle code calls it"
     head = ["function", "address", "file", "lines", "kind", "static", "callers_in_battle", "callers_outside",
             "callees_in_battle", "callees_outside", "globals", "ps1_features", "rood_pc", "difficulty", "trial"]
     (OUT / "FUNCTIONS.tsv").write_text("\n".join("\t".join(esc(x) for x in r) for r in [head] + rows) + "\n")

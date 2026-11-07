@@ -2397,9 +2397,10 @@ if arch64:
     # game state: left out, the keys equal the static build's.
     linked = [o for o in [*objects, out / "traps.o", out / "overlay_statics_table.o"]
               if o.stem not in ("engine_host", "engine_reload")]
-    # The owned code (game/) is the game's too: its frames sit below the boundary.
+    # The owned code (game/) is the game's too: its frames sit below the boundary
+    # (battle's main loop holds one across the vsync when owned: battle_frame).
     pinned = [o for o in game_objects if o in objects] + [out / "cd_drive.o", out / "traps.o"] \
-        + [o for o in objects if o.name == "game_core.o"]
+        + [o for o in objects if o.name == "game_core.o" or o.name.endswith("_zig.o")]
     pin_script, key_source = generate_snapshot_layout(linked, pinned, 0x18000000, 8, out)
     run(["gcc", *flags, "-c", str(key_source), "-o", str(out / "snapshot_key.o")])
     pin_args = [str(out / "snapshot_key.o"), "-Wl,-T," + str(pin_script)]

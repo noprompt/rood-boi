@@ -1716,6 +1716,7 @@ comptime {
     common.route.exportAll(@backingInt(ownership.Subsystem.d2_battle_motion), ownership.routesOf(.d2_battle_motion), @This());
     common.route.exportAll(@backingInt(ownership.Subsystem.d2_battle_movement), ownership.routesOf(.d2_battle_movement), @This());
     common.route.exportAll(@backingInt(ownership.Subsystem.d2_effect_particles), ownership.routesOf(.d2_effect_particles), @This());
+    common.route.exportAll(@backingInt(ownership.Subsystem.d2_fixed_font), ownership.routesOf(.d2_fixed_font), @This());
     common.route.exportAll(@backingInt(ownership.Subsystem.d2_map_view), ownership.routesOf(.d2_map_view), @This());
     common.route.exportAll(@backingInt(ownership.Subsystem.d2_navigation), ownership.routesOf(.d2_navigation), @This());
     common.route.exportAll(@backingInt(ownership.Subsystem.d2_room_geometry), ownership.routesOf(.d2_room_geometry), @This());

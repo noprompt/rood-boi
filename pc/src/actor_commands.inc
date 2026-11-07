@@ -12,9 +12,12 @@ typedef struct {
 
 int func_80075554(void)
 {
-    SVECTOR vector;
-    func_8006EBF8_t position;
-    func_8006EBF8_t target;
+    /* Zeroed: a command can leave a field unset (vector.vz in cases 4, 6 and 7), and the whole vector
+     * is copied into the actor's state (func_8009FC60): stack garbage otherwise, which differs between
+     * builds and between the callers before this one (the Zig port zeroes them too). */
+    SVECTOR vector = { 0 };
+    func_8006EBF8_t position = { 0 };
+    func_8006EBF8_t target = { 0 };
     vs_battle_actor* actor;
     u_int flags;
     vs_battle_actor2* stats;

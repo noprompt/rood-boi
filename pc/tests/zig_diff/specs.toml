@@ -75358,6 +75358,162 @@ name = "P55: the attached behind flag"
 from = '            if (node.flags & 0x80000 != 0) {'
 to = '            if (node.flags & 0x40000 != 0) {'
 
+# ---- pc/src/fixed_font.c
+
+[function.pc_fixed_font_char]
+spec = "fixedFontChar.zig"
+iterations = 4000
+
+[[function.pc_fixed_font_char.coverage_waiver]]
+id = "+4 b1"
+reason = "`if (pc_text_glyph)`: the weak hook is always linked (ui_text.c in the game, a recording stub here); its null side never runs"
+
+[[function.pc_fixed_font_char.coverage_waiver]]
+id = "+26 b1"
+reason = "`if (pc_ui_precise_quad)`: the weak hook is always linked (ui_upscale.c in the game, a recording stub here); its null side never runs"
+
+[[function.pc_fixed_font_char.coverage_waiver]]
+id = "+33 b1"
+reason = "`if (pc_text_glyph)`: the weak hook is always linked (ui_text.c in the game, a recording stub here); its null side never runs"
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C1: a space advances 5 scales"
+target = "c"
+from = 'return x + scale * 6;'
+to = 'return x + scale * 5;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C2: the second table starts at 188"
+target = "c"
+from = 'character + _fontTable * 189'
+to = 'character + _fontTable * 188'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C3: 20 glyphs to a row"
+target = "c"
+from = 'row = glyph / 21, column = glyph % 21;'
+to = 'row = glyph / 20, column = glyph % 21;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C4: the CLUT flag bits"
+target = "c"
+from = '| 0x3780;'
+to = '| 0x3700;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C5: the link is the third word of the slot"
+target = "c"
+from = 'D_800F4E80 * 4 + 3'
+to = 'D_800F4E80 * 4 + 2'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C6: the second texture word's mask"
+target = "c"
+from = '0x000d0000'
+to = '0x000c0000'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C7: the link's address mask"
+target = "c"
+from = '(*head & 0xffffff)'
+to = '(*head & 0xfffff)'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C8: the glyph's own width is the advance"
+target = "c"
+from = 'return x + vs_battle_characterWidths[glyph] * scale;'
+to = 'return x + vs_battle_characterWidths[glyph] * scale / 2;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "C9: the hook's corners use the width twice"
+target = "c"
+from = 'y1 = (int)(y + height) / 65536.0f'
+to = 'y1 = (int)(y + width) / 65536.0f'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P1: a space advances 5 scales"
+from = 'return @bitCast(x +% scale *% 6);'
+to = 'return @bitCast(x +% scale *% 5);'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P2: the second table starts at 188"
+from = '*% 189);'
+to = '*% 188);'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P3: 20 glyphs to a row"
+from = 'const row = glyph / 21;'
+to = 'const row = glyph / 20;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P4: 22 glyphs to a column step"
+from = 'const column = glyph % 21;'
+to = 'const column = glyph % 22;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P5: the CLUT flag bits"
+from = '| 0x3780;'
+to = '| 0x3700;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P6: the link is the third word of the slot"
+from = '*% 4 +% 3]'
+to = '*% 4 +% 2]'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P7: the link's address mask"
+from = 'psx.addr(packet) & 0xffffff;'
+to = 'psx.addr(packet) & 0xfffff;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P8: the cursor moves 9 words"
+from = 'psx.addr(packet + 10);'
+to = 'psx.addr(packet + 9);'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P9: the glyph is hooked at its x, not its end"
+from = '@bitCast(x +% advance *% scale), @bitCast(advance));'
+to = '@bitCast(x), @bitCast(advance));'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P10: the hook's corners use the width twice"
+from = '@as(c_int, @bitCast(y +% height))'
+to = '@as(c_int, @bitCast(y +% width))'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P11: the CLUT row is 8 colours wide"
+from = '*% 16 +% 0x340'
+to = '*% 8 +% 0x340'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P12: the brightness word is skipped"
+from = 'packet[1] = v.g._fontBrightness().*;'
+to = 'packet[1] = 0;'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P13: the bottom edge uses the width"
+from = 'packet[6] = (x >> 16) | ((y +% height) & 0xffff0000);'
+to = 'packet[6] = (x >> 16) | ((y +% width) & 0xffff0000);'
+
+[[function.pc_fixed_font_char.mutation]]
+name = "P14: a space is hooked with glyph 0"
+from = 'glyph_hook(null, 0, -1,'
+to = 'glyph_hook(null, 0, 0,'
+
+[function._printFixedWidthFontChar]
+spec = "printFixedWidthFontChar.zig"
+iterations = 500
+
+[[function._printFixedWidthFontChar.mutation]]
+name = "F1: the cursor is not the scratchpad's first word (port)"
+from = "@ptrFromInt(0x1f800000)"
+to = "@ptrFromInt(0x1f800008)"
+
+[[function._printFixedWidthFontChar.mutation]]
+name = "F2: width and height swapped (port)"
+from = "@bitCast(width), @bitCast(height)"
+to = "@bitCast(height), @bitCast(width)"
+
 # ---- pc/src/map_view.c
 
 [function.func_800C2E24]
@@ -79247,7 +79403,7 @@ iterations = 60000
 room = { vs_battle_actors = 256 }
 
 [[function.func_80075554.coverage_waiver]]
-id = "+172 b3"
+id = "+175 b3"
 reason = "the inner `switch (actor->unk9)` of cases 11, 12, 14 and 18: its default edge is unreachable (the outer case lists exactly those four)"
 
 [[function.func_80075554.mutation]]

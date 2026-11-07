@@ -398,14 +398,32 @@ the photo camera) bound to null in owned code; and `vs_battle_exec` and `func_80
 frame across the vsync, made every snapshot, rewind and reload refuse while owned in the reloadable
 library. Those two are the subsystem `battle_frame`, which stays `default = "original"`
 (`ROOD_OWNER=battle_frame=owned` runs them as Zig) until the host can cut a stack through the library.
-Still open, none a semantic mismatch:
-- *Reach.* The three recipes call only part of most subsystems (146C_port 54 of 673 at the root), so
-  their root-call gates stay red; ten subsystems are not reached at all. The rest of the 23 recipes of
-  step 4 are the cover still owed.
-- *Call-mode witness.* In call mode every recipe reports 0 mismatches but its witness fails (no
-  ended cast, kill flags unset), as it did before the flip: a shadow-runner interaction to look at.
-- *Steps 5 (32-bit) and 6 (per-feature tick checks)* were not run; step 6 must precede step 9, which
-  deletes the hooks it compares against.
+**Closed 2026-11-06: battle is done.** What remained after the flip, and how it ended:
+- *Porting.* `port_progress.py` reads 1691 of 1691 pass-1 functions and 162 of 162 D2 ports (the fixed
+  font emitter was the last). 24 rows are not ported by design (FUNCTIONS.tsv kind `none`: 21 PS1
+  assembly functions the PC traps and nothing calls, the scanline clock, a dead static, an inlined
+  helper); the 84 rows of PC glue (`.inc` host C, generated wrappers) stay C.
+- *battle_frame* runs owned everywhere but the development host (`dev_default = "original"` in
+  `ownership.toml`): the Zig objects are pinned with the game's code, and `psx.weak` keeps hook
+  addresses off the game stack, so save states of an owned frame survive engine rebuilds.
+- *Step 5.* `differ.py battle` switches every battle subsystem together. Tick and alternate mode pass on
+  all three recipes on 64-bit and 32-bit. 32-bit found three faults, all fixed: `psx_addr` used where
+  only the 64-bit build defines it (the original crashed); `actor_commands.inc`'s uninitialised command
+  vector copied into actor state; and Zig 0.17's LLVM on i686 dropping a bitfield's mask when it
+  narrowed from a u64 (`psx.getBits`/`setBits` assemble the narrowest word now).
+- *Step 6.* As Q5 settled: charge-skip (`--profile features`, every subsystem) passes tick mode on the
+  three recipes; room warp and the HUD claim are covered by `room_browser_smoke`, `classic_parity` and
+  `classic_hud_smoke`.
+- *Call-mode witness.* Passes now (146C_port: 28,739 and 96,554 shadowed calls, 0 mismatches, both
+  witnesses met); the failure did not survive the fixes above.
+- *Step 9 is not done, by decision (the user, 2026-11-06).* The battle C is **frozen** as the oracle with
+  its PC hooks in place: the `inert` profile switches every hook off in comparisons, so they never get
+  in the way. The Zig is expected to diverge (names, structure, new behaviour): renames do not affect
+  the behavioural oracle; an intended behaviour change is a setting off in `inert` or a waiver; and the
+  oracle retires once divergence makes it uninformative (the zig_diff specs then stand as the Zig's
+  own tests).
+- *Reach* (root calls: 146C_port 59 of 672) stays as it is: every function has its zig_diff spec; the
+  extra corpus recipes were judged not worth their cost.
 
 ## Appendix: every block
 

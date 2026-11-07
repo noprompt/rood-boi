@@ -158,7 +158,7 @@ def synthetic(base):
 
 
 def real_builds():
-    for tree in ["boot", "boot64", "win64"]:
+    for tree in ["boot64", "win64"]:  # (the 32-bit boot is retired)
         stamp = ROOT / "pc/build" / tree / "build-stamp.json"
         if not stamp.exists():
             print(f"skip pc/build/{tree}: never built with a build stamp")

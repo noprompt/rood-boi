@@ -89,10 +89,18 @@ pub fn getBits(p: anytype, comptime name: []const u8) BitInt(bitSpec(@TypeOf(p),
     const b = comptime bitSpec(@TypeOf(p), name);
     const n = comptime (b.bit + b.width + 7) / 8;
     const bytes: [*]const u8 = @ptrCast(p);
-    var word: u64 = 0;
-    inline for (0..n) |i| word |= @as(u64, bytes[b.byte + i]) << (8 * i);
+    const W = Word(n);
+    var word: W = 0;
+    inline for (0..n) |i| word |= @as(W, bytes[b.byte + i]) << (8 * i);
     const U = @Int(.unsigned, b.width);
     return @bitCast(@as(U, @truncate(word >> b.bit)));
+}
+
+/// The bytes a bitfield spans, in the narrowest word that holds them: with a u64 for a 4-byte field,
+/// Zig 0.17's LLVM on i686 widened the truncated value back without its mask (a u26 `flags` kept the
+/// next field's bits; battle 32-bit, func_800D2ADC).
+fn Word(comptime n: usize) type {
+    return if (n <= 4) u32 else u64;
 }
 
 /// Store a bitfield (read-modify-write of the bytes it spans).
@@ -100,11 +108,12 @@ pub fn setBits(p: anytype, comptime name: []const u8, value: BitInt(bitSpec(@Typ
     const b = comptime bitSpec(@TypeOf(p), name);
     const n = comptime (b.bit + b.width + 7) / 8;
     const bytes: [*]u8 = @ptrCast(p);
-    var word: u64 = 0;
-    inline for (0..n) |i| word |= @as(u64, bytes[b.byte + i]) << (8 * i);
+    const W = Word(n);
+    var word: W = 0;
+    inline for (0..n) |i| word |= @as(W, bytes[b.byte + i]) << (8 * i);
     const U = @Int(.unsigned, b.width);
-    const mask: u64 = @as(u64, std.math.maxInt(U)) << b.bit;
-    word = (word & ~mask) | (@as(u64, @as(U, @bitCast(value))) << b.bit);
+    const mask: W = @as(W, std.math.maxInt(U)) << b.bit;
+    word = (word & ~mask) | (@as(W, @as(U, @bitCast(value))) << b.bit);
     inline for (0..n) |i| bytes[b.byte + i] = @truncate(word >> (8 * i));
 }
 
@@ -131,20 +140,24 @@ pub inline fn globalMany(comptime T: type, comptime name: []const u8) [*]T {
 }
 
 /// A host hook the C declares `__attribute__((weak))` and tests for null
-/// (PORTING.md §12): the address is laundered through a variable so the
-/// test is not folded to "present".
+/// (PORTING.md §12): the address is laundered through a register so the
+/// test is not folded to "present". Not through memory: a frame that lives
+/// across the vsync (battle_frame) would keep an engine address on the game
+/// stack, which differs between engine builds (snapshot_resume_smoke).
 pub inline fn weak(comptime F: type, comptime name: []const u8) ?F {
     // COFF: LLVM reaches a weak external only through a .refptr stub, which
     // the build rejects (overlay renames cannot follow it), where MinGW's C
     // uses a PC-relative lea. Every Windows build links the whole game, so
     // the hooks are always defined there: a strong PC-relative reference, the
     // same call when present, a link error (not a skipped hook) if one is not.
-    var f: ?F = if (builtin.os.tag == .windows)
+    const f: ?F = if (builtin.os.tag == .windows)
         @extern(F, .{ .name = name, .relocation = .pcrel, .visibility = .hidden })
     else
         @extern(?F, .{ .name = name, .linkage = .weak });
-    std.mem.doNotOptimizeAway(&f);
-    return f;
+    return @ptrFromInt(asm volatile (""
+        : [out] "=r" (-> usize),
+        : [in] "0" (@intFromPtr(f)),
+    ));
 }
 
 /// psx_set on a pointer field: a native pointer field takes the pointer, a

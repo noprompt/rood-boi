@@ -13,8 +13,6 @@ from snapshot_diff import Symbols
 # The owner switch's fixture: a fully ported subsystem (the trial's
 # func_800B07DC, actor_transform.offsetToWorld) whose routes do not change.
 FIXTURE = "battle_44F14"
-# Subsystems still original by default after the flip (game/ownership.toml).
-ORIGINAL = {"battle_frame"}
 
 
 def check(condition, message):
@@ -36,11 +34,11 @@ def main():
             title(g)
             owners = g.owner()["subsystems"]
             fixture = next(o for o in owners if o["name"] == FIXTURE)
-            # the fixture original from ROOD_OWNER, every other subsystem at its default (owned since the flip).
+            # the fixture original from ROOD_OWNER, every other subsystem owned by default (the flip; this
+            # build is not the development host, so battle_frame's dev_default does not apply).
             check(fixture["routes"] == 1 and fixture["owner"] == "original"
-                  and all(o["owner"] == ("original" if o["name"] in ORIGINAL else "owned")
-                          for o in owners if o["name"] != FIXTURE),
-                  f"ROOD_OWNER and the fixture's one route original, the rest at their defaults: {owners}")
+                  and all(o["owner"] == "owned" for o in owners if o["name"] != FIXTURE),
+                  f"ROOD_OWNER and the fixture's one route original, the rest owned: {owners}")
             for owner in ("owned", "original", "owned"):
                 reply = g.owner(FIXTURE, owner)["subsystems"]
                 check(next(o for o in reply if o["name"] == FIXTURE)["owner"] == owner,
