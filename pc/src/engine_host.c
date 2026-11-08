@@ -36,9 +36,6 @@
 #include <unistd.h>
 #include <unwind.h>
 
-/* ownership.c: subsystems start at their dev_default here (ownership.toml), not their default. */
-const int pc_dev_host = 1;
-
 extern void* rood_engine_slots[];
 extern const char* const rood_engine_slot_names[];
 extern const int rood_engine_slot_count;

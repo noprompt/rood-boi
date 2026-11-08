@@ -33,9 +33,9 @@ Read this first, then the plan the task names (`pc/docs/plans/...`) and its late
 ## Gates
 
 - Code changes: the targeted suites the task names, on **both** GL and Vulkan.
-- A Zig port or anything a port calls: `python3 pc/tools/zig_diff.py FUNCTION --self-check --coverage`.
-  A hook added to a C function that has a Zig port must be added to the port too (zig_diff fails
-  otherwise: the C makes a call the Zig does not).
+- A Zig port or anything a port calls: the golden frames (`golden_frames`) and the suites that play the code (battle:
+  `scene_smoke`, `damage_numbers_smoke`, `skip_charging_smoke`). Battle's C is gone: a hook for a feature goes in
+  the Zig.
 - Changes under `src/` (the decompilation): Docker `make commit-check` must say **All files match**.
   - Image `rood-reverse-dev:local`, always `-u $(id -u):$(id -g)`.
   - In a worktree run it in a scratch copy with the main checkout's `data` and `disks` mounted

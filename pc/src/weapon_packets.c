@@ -149,17 +149,8 @@ unsigned* pc_weapon_packets(unsigned* packet, unsigned* ot, const unsigned* proj
  * `kind` 0 for func_800B3CF0, 2 for func_800B516C. */
 extern void pc_object_native_draw(int kind, const void* projected, const void* object, const void* model,
     const void* color, unsigned* start) __attribute__((weak));
-void func_800B3CF0(void* projected, void* object, void* color, void* model)
-{
-    unsigned texture = *(unsigned*)0x1f800390;
-    unsigned* start = psx_load(unsigned*, 0x1f800000);
-    psx_store(0x1f800000, pc_weapon_packets(start,
-        psx_load(unsigned*, 0x1f800004), projected, (unsigned*)((char*)projected + 0xc00),
-        psx_load(unsigned*, (char*)model + 0x3c), (unsigned short*)((char*)object + 2),
-        *(unsigned*)color, texture & 0xffff, texture >> 16));
-    if (pc_object_native_draw)
-        pc_object_native_draw(0, projected, object, model, color, start);
-}
+void func_800B3CF0(void* projected, void* object, void* color, void* model);
+
 
 /* ---------------------------------------------------------------------------
  * 4B16C.s func_800B516C: the weapon renderer used while the actor is in a
@@ -188,30 +179,6 @@ struct group_walk {
     int counter, total, done;
     const unsigned short* counts;
 };
-static int next_group(struct group_walk* g, unsigned section_total, unsigned mask,
-    int clut, int alternate_signed, unsigned* clut_hi)
-{
-    for (;;) {
-        if (--g->counter < 0)
-            return 0;
-        int count;
-        if (g->counter == 0) {
-            count = (int)section_total - g->total;
-            if (!count)
-                return 0;
-            *clut_hi = (unsigned)clut << 16;
-            return count;
-        }
-        count = alternate_signed ? *(const short*)g->counts : *g->counts;
-        ++g->counts;
-        g->total += count;
-        if (!count)
-            continue;
-        int value = clut + (((mask >> (g->counter - 1)) & 1) ? 0x480 : 0);
-        *clut_hi = (unsigned)value << 16;
-        return count;
-    }
-}
 static int nclip3(unsigned a, unsigned b, unsigned c)
 {
     MTC2(a, 12);
@@ -228,161 +195,5 @@ static unsigned avsz3(unsigned a, unsigned b, unsigned c)
     gte_avsz3();
     return MFC2(7);
 }
-static void blend_triangle(struct blend_state* s, unsigned code, const unsigned xy[3],
-    unsigned uv0, unsigned uv1, unsigned uv2, unsigned depth, int bucket_bias,
-    unsigned tpage_bits)
-{
-    unsigned* p = s->packet;
-    p[1] = code | s->color;
-    p[2] = xy[0];
-    p[3] = (uv0 & 0xffff) | s->clut_hi;
-    if (depth >= 0x7c0)
-        return;
-    p[4] = xy[1];
-    p[5] = (uv1 & 0xffff) | s->tpage_hi | tpage_bits;
-    p[6] = xy[2];
-    p[7] = uv2;
-    link_packet(s, p, (int)depth + bucket_bias, 7);
-    s->packet = p + 8;
-}
-static void blend_quad(struct blend_state* s, unsigned code, const unsigned xy[4],
-    unsigned uv01, unsigned uv23, unsigned depth, int bucket_bias, unsigned tpage_bits)
-{
-    if (depth >= 0x7c0)
-        return;
-    unsigned* p = s->packet;
-    p[1] = code | s->color;
-    p[2] = xy[0];
-    p[3] = (uv01 & 0xffff) | s->clut_hi;
-    p[4] = xy[1];
-    p[5] = (uv01 >> 16) | s->tpage_hi | tpage_bits;
-    p[6] = xy[2];
-    p[7] = uv23;
-    p[8] = xy[3];
-    p[9] = uv23 >> 16;
-    link_packet(s, p, (int)depth + bucket_bias, 9);
-    s->packet = p + 10;
-}
-/* Double-sided split quad (mixed records with flags 1 and 2). */
-static void blend_split(struct blend_state* s, const unsigned xy[4], const unsigned z[4],
-    unsigned uv01, unsigned uv23)
-{
-    unsigned code = s->blend ? 0x26000000 : 0x24000000;
-    unsigned tri[3];
-    if (!split_diagonal(xy, z)) {
-        tri[0] = xy[0], tri[1] = xy[1], tri[2] = xy[3];
-        if (nclip3(tri[0], tri[1], tri[2]) > 0)
-            blend_triangle(s, code, tri, uv01, uv01 >> 16, uv23 >> 16,
-                avsz3(z[0], z[1], z[3]), -1, s->blend);
-        tri[0] = xy[0], tri[1] = xy[3], tri[2] = xy[2];
-        unsigned* p = s->packet;
-        p[1] = code | s->color;
-        p[2] = xy[0];
-        if (nclip3(tri[0], tri[1], tri[2]) <= 0) {
-            s->packet = p + 8; /* reserved without a link, as in the original */
-            return;
-        }
-        blend_triangle(s, code, tri, uv01, uv23 >> 16, uv23, avsz3(z[0], z[2], z[3]), -1,
-            s->blend);
-        return;
-    }
-    tri[0] = xy[0], tri[1] = xy[1], tri[2] = xy[2];
-    if (nclip3(tri[0], tri[1], tri[2]) > 0)
-        blend_triangle(s, code, tri, uv01, uv01 >> 16, uv23, avsz3(z[0], z[1], z[2]), -1,
-            s->blend);
-    tri[0] = xy[1], tri[1] = xy[3], tri[2] = xy[2];
-    if (nclip3(tri[0], tri[1], tri[2]) > 0)
-        blend_triangle(s, code, tri, uv01 >> 16, uv23 >> 16, uv23,
-            avsz3(z[3], z[1], z[2]), -1, s->blend);
-}
-void func_800B516C(void* projected, void* object, void* color, void* model)
-{
-    unsigned char* obj = object;
-    const unsigned char* xy_base = projected;
-    const unsigned char* z_base = xy_base + 0xc00;
-    unsigned texture = *(unsigned*)0x1f800390;
-    int clut = *(short*)0x1f800392;
-    struct blend_state s = { psx_load(unsigned*, 0x1f800000), psx_load(unsigned*, 0x1f800004),
-        *(unsigned*)color & 0xffffff, texture << 16, 0, 0 };
-    unsigned* start = s.packet;
-    unsigned mode = obj[9] & 0xf;
-    s.blend = !mode ? 0 : mode < 7 ? 0x400000 : 0x200000;
-    unsigned mask = obj[0x64];
-    const unsigned char* record = psx_load(unsigned char*, (unsigned char*)model + 0x3c);
-    const unsigned short* counts = model;
-    unsigned short* totals = (unsigned short*)(obj + 2);
-#define XY(offset) (*(const unsigned*)(xy_base + (offset)))
-#define Z(offset) (*(const unsigned*)(z_base + (offset)))
-    /* Triangles (16-byte records) and quads (20-byte records). */
-    for (int section = 0; section < 2; ++section) {
-        int quad = section == 1;
-        struct group_walk g = { 9, 0, 0, counts };
-        if (totals[section]) {
-            int count;
-            while ((count = next_group(&g, totals[section], mask, clut, 1, &s.clut_hi))) {
-                for (; count; --count, record += quad ? 0x14 : 0x10) {
-                    const unsigned* r = (const unsigned*)record;
-                    unsigned o0 = r[1] & 0xffff, o1 = r[1] >> 16, o2 = r[2] & 0xffff;
-                    unsigned xy[4] = { XY(o0), XY(o1), XY(o2), 0 };
-                    if (nclip3(xy[0], xy[1], xy[2]) <= 0)
-                        continue;
-                    if (!quad) {
-                        blend_triangle(&s, s.blend ? 0x26000000 : 0x24000000, xy, r[3],
-                            r[3] >> 16, r[2] >> 16, avsz3(Z(o0), Z(o1), Z(o2)), -1, s.blend);
-                        continue;
-                    }
-                    unsigned o3 = r[2] >> 16;
-                    xy[3] = XY(o3);
-                    unsigned depth = (Z(o0) + Z(o1) + Z(o2) + Z(o3)) >> 4;
-                    blend_quad(&s, s.blend ? 0x2e000000 : 0x2c000000, xy, r[3], r[4], depth,
-                        -1, s.blend);
-                }
-            }
-            counts = g.counts;
-        } else {
-            counts += 8;
-        }
-    }
-    /* Mixed records: header (code, size, flags << 16), then as above. */
-    struct group_walk g = { 9, 0, 0, counts };
-    int count;
-    while (totals[2]
-        && (count = next_group(&g, totals[2], obj[0x64], (unsigned short)clut, 0, &s.clut_hi))) {
-        for (; count; --count) {
-            const unsigned* r = (const unsigned*)record;
-            unsigned header = r[0], flags = header >> 16;
-            unsigned o0 = r[1] & 0xffff, o1 = r[1] >> 16, o2 = r[2] & 0xffff, o3 = r[2] >> 16;
-            unsigned xy[4] = { XY(o0), XY(o1), XY(o2), XY(o3) };
-            if (!(flags & 1)) {
-                if (nclip3(xy[0], xy[1], xy[2]) <= 0) {
-                    record += (header >> 8) & 0xff;
-                    continue;
-                }
-            } else if (flags & 2) {
-                unsigned z[4] = { Z(o0), Z(o1), Z(o2), Z(o3) };
-                blend_split(&s, xy, z, r[3], r[4]);
-                record += 0x14;
-                continue;
-            }
-            if (s.blend)
-                header = (header & 0xff0fffff) | 0x100000 | s.blend;
-            unsigned code_bit = ((header >> 20) & 1) << 25;
-            unsigned tpage_bits = ((header >> 16) & 0x60) << 16;
-            int bias = (int)((header >> 18) & 3) * 4 - 5;
-            if ((header & 0xff) == 0x2c) {
-                unsigned depth = (Z(o0) + Z(o1) + Z(o2) + Z(o3)) >> 4;
-                blend_quad(&s, 0x2c000000 | code_bit, xy, r[3], r[4], depth, bias, tpage_bits);
-                record += 0x14;
-            } else {
-                blend_triangle(&s, 0x24000000 | code_bit, xy, r[3], r[3] >> 16, o3,
-                    avsz3(Z(o0), Z(o1), Z(o2)), bias, tpage_bits);
-                record += 0x10;
-            }
-        }
-    }
-#undef XY
-#undef Z
-    psx_store(0x1f800000, s.packet);
-    if (pc_object_native_draw)
-        pc_object_native_draw(2, projected, object, model, color, start);
-}
+void func_800B516C(void* projected, void* object, void* color, void* model);
+

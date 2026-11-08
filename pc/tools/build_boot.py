@@ -376,11 +376,11 @@ STATE_HOST_UNITS = {"runtime", "cd_drive", "mdec", "xa_audio", "audio_libspu", "
 # --engine-library: the host executable's units besides the game's own (src/
 # and the pc/src units built like them) and the generated tables: those whose
 # state is game state, or that read or drive it outside a frame (save states,
-# the oracle, the owner switch, memory cards, input recording, the charging
+# the state digest, memory cards, input recording, the charging
 # skip), the audio output and the software SPU (spu_*: the audio thread never
 # runs library code), and the library's loader. Every other unit is the
 # engine library's (pc/docs/plans/2026-10-19-engine-reload.md).
-HOST_UNITS = STATE_HOST_UNITS | {"snapshot", "state_diff", "state_rewind", "savestate_slots", "shadow", "overlay_statics", "ownership", "routing",
+HOST_UNITS = STATE_HOST_UNITS | {"snapshot", "state_diff", "state_rewind", "savestate_slots", "overlay_statics", "ownership", "routing",
                                  "memory_card", "input_record", "charge_skip", "audio_output", "engine_host", "render_state"}
 engine_units = {}  # --engine-library: object -> its compile command (position-independent)
 host_units = {}  # --engine-library: the host's other compiled units -> command (engine_lib.py reads their headers)
@@ -730,7 +730,7 @@ build_stamp = Stamp(root, out, {
 stamp_trees = [("include", None), ("config", None), ("build", None), ("pc/src", None),
                ("pc/include", None), ("pc/shaders", None), ("pc/third_party", None), ("tools/etc", ".py"),
                ("pc/tests", (".c", ".h")), ("game", None)] \
-    + [(f"pc/tools/{tool}.py", None) for tool in ["build_boot", "build_cache", "event_callbacks", "lp64_report",
+    + [(f"pc/tools/{tool}.py", None) for tool in ["build_boot", "build_cache", "lp64_report",
                                                    "import_types", "nrd", "gl_shaders", "vk_shaders", "zig_toolchain", "ownership",
                                                    "snapshot_layout", "shared_cache", "engine_boundary", "game_lib",
                                                    "zig_views", "zig_c", "battle_statics"]]
@@ -901,30 +901,6 @@ if battle:
             raise RuntimeError(
                 f"Callback table {address:#x} differs from native mapping"
             )
-    # The event table lives in guest data, but its targets must be native C.
-    # Generate only this bounded table; never reinterpret arbitrary data as code.
-    from event_callbacks import generate_event_callbacks, generate_effect_callbacks
-
-    symbol_text = run(
-        [*READELF, "-sW", str(out / "battle-symbols.elf")],
-        capture_output=True,
-        text=True,
-    ).stdout
-    (generated / "event_callbacks.inc").write_text(
-        generate_event_callbacks(
-            overlay,
-            symbol_text,
-            (root / "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c").read_text(),
-            (root / "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.h").read_text(),
-        )
-    )
-    (generated / "effect_callbacks.inc").write_text(
-        generate_effect_callbacks(
-            overlay,
-            symbol_text,
-            (root / "pc/src/game/BATTLE/BATTLE.PRG/5BF94.c").read_text(),
-        )
-    )
     sources += [
         ("pc/src/game/EFFECT/EFFPURGE.BIN/0.c", "effect_dispatch"),
         ("pc/src/game/GIM/SCREFF2.PRG/0.c", "screff2_main"),
@@ -1069,16 +1045,6 @@ active = ownership_tool.Table([]) if not ZIG else ownership_table.for_build(
     {source for source, _ in sources}, {"battle"} if battle else set())
 
 
-def route_definitions(text, source):
-    names = active.routed_names(source)
-    if not names:
-        return text
-    text, counts = ownership_tool.rename_definitions(text, names)
-    if any(count != 1 for count in counts.values()):
-        raise SystemExit(f"{source}: expected one routed definition each: {counts}")
-    return text
-
-
 # The pc/src units that have a subsystem in this build (the D2 asm ports and the
 # SDK layer) get every file-scope static of their object globalised, so a port
 # reaches the C's own storage through the views (battle_statics.py, PORTING.md
@@ -1099,6 +1065,18 @@ def pc_unit_statics(source, name, obj, pre, win_pre):
             twin(obj), name, listed_entries, lambda args, o: run([MINGW + "objcopy", *args, str(o)]),
             nm=(MINGW + "nm",), work=out / (name + ".win"), source=win_pre.read_bytes())
         unlisted_statics.setdefault(name, extra)
+
+
+def views_keep(source):
+    """A function that takes the address of every global the unit's Zig views name. The C no longer calls
+    the functions that used them, but its declarations are what size and type a data import (the object's
+    DWARF; build_boot's LP64 data imports) and the views read: this keeps each in the unit's object."""
+    names = sorted({n for s in active.subsystems if s.unit == source for n in s.views.get("globals", [])})
+    if not names:
+        return b""
+    body = "".join(f'    __asm__ volatile ("" : : "r"(&{n}));\n' for n in names)
+    return ("\nstatic void pc_views_keep(void) __attribute__((used));\n"
+            f"static void pc_views_keep(void)\n{{\n{body}}}\n").encode()
 
 
 game_objects = []  # objects of the game's (-nostdinc) units
@@ -1132,9 +1110,9 @@ for source, name in sources:
             arch64_results.append(("c", "win:" + source, win_cpp.returncode, win_cpp.stderr.decode(errors="replace")))
             continue
         win_pre = out / (name + ".win.i")
-        win_pre.write_bytes(route_definitions(lp64_longs(result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
+        win_pre.write_bytes(lp64_longs(result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
                                                         files=sorted((root / "tools/etc").glob("vsString*.py")),
-                                                        input=win_cpp.stdout)), source))
+                                                        input=win_cpp.stdout)) + views_keep(source))
     if not coff and arch64 and cpp.returncode:  # record it and go on, like a compile error
         arch64_results.append(("c", source, cpp.returncode, cpp.stderr.decode(errors="replace")))
         continue
@@ -1142,17 +1120,11 @@ for source, name in sources:
     if not coff:
         encoded = result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
                                    files=sorted((root / "tools/etc").glob("vsString*.py")), input=cpp.stdout)
-        pre.write_bytes(route_definitions(encoded, source))
+        pre.write_bytes(encoded + views_keep(source))
     obj = out / (name + ".o")
     # main.c and MAINMENU statics that only other code calls (by address on
     # the PS1) must survive compilation to be exposed below.
     keep = ["-fkeep-static-functions"] if name == "main" or name.startswith("mainmenu_") else []
-    if engine_library:
-        # Debug owned frames differ from ReleaseSafe's tail calls. Original
-        # C copies partly initialised aggregates to game memory: initialise
-        # their padding/locals in this development host so shadow compares
-        # defined output, not coincidental stale stack bytes. Release unchanged.
-        keep += ["-ftrivial-auto-var-init=zero"]
     if not compile_object(["gcc", *flags, *keep, "-c", str(pre), "-o", str(obj)], source,
                           win_args=win_pre and ["gcc", *flags, *keep, "-c", str(win_pre), "-o", str(obj)]):
         continue
@@ -1204,38 +1176,32 @@ for source, name in sources:
             pc_unit_statics(source, name, obj, pre, win_pre)
     objects.append(obj)
     game_objects.append(obj)
-# Unit path -> the name of its objects here (battle_146C.o, battle_helpers.o): the
-# build's own names, for the tools that look a unit up (zig_diff.py).
-(out / "units.json").write_text(json.dumps(dict(sources), indent=1, sort_keys=True) + "\n")
 for name in ["runtime", "window", "controller", "gamepad"]:
     obj = out / (name + ".o")
     if compile_object(["gcc", *flags, *sdl_flags, "-c", f"pc/src/boot_{name}.c", "-o", str(obj)], f"pc/src/boot_{name}.c") \
             and name in STATE_HOST_UNITS:
         state_sections(obj)
     objects.append(obj)
-for name in ["ownership", "audio_libspu", "audio_output", "input_record", "cd_drive", "xa_audio", "mdec", "memory_card", "dev_rpc", "charge_skip", "camera_stick", "gl_present", "gpu_hw", "render", "render_state", "room_native", "gameplay_walls", "occlusion", "room_effects", "actor_native", "effect_native", "scene_capture", "floor_grid", "shadows", "ptgi", "glows", "overlay_statics", "ui_upscale", "antialias", "ui_text", "button_prompts", "ui_bubbles", "ui_emotes", "room_catalog", "fast_travel_rules", "ui/item_names", "ui/vs_encode", "ui/manual_parse", "ui/manual_cache", "ui/data_plan", "ui/score_format", "ui/score_nav", "ui/mon_parse", "ui/score_mon", "snapshot", "state_diff", "state_rewind", "savestate_slots", "shadow", "frame_cost", "display_confirm", "quit_options", "ui/option_actions", "ui/options_nav", "ui/option_style", "ui/option_peek", "host_format", "classic/classic_parity"] + (["vk_core", "vk_shader_lookup", "vk_hw", "vk_present", "vk_shadows"] if arch64 else []) \
+for name in ["ownership", "audio_libspu", "audio_output", "input_record", "cd_drive", "xa_audio", "mdec", "memory_card", "dev_rpc", "charge_skip", "camera_stick", "gl_present", "gpu_hw", "render", "render_state", "room_native", "gameplay_walls", "occlusion", "room_effects", "actor_native", "effect_native", "scene_capture", "floor_grid", "shadows", "ptgi", "glows", "overlay_statics", "ui_upscale", "antialias", "ui_text", "button_prompts", "ui_bubbles", "ui_emotes", "room_catalog", "fast_travel_rules", "ui/item_names", "ui/vs_encode", "ui/manual_parse", "ui/manual_cache", "ui/data_plan", "ui/score_format", "ui/score_nav", "ui/mon_parse", "ui/score_mon", "snapshot", "state_diff", "state_rewind", "savestate_slots", "frame_cost", "display_confirm", "quit_options", "ui/option_actions", "ui/options_nav", "ui/option_style", "ui/option_peek", "host_format", "classic/classic_parity"] + (["vk_core", "vk_shader_lookup", "vk_hw", "vk_present", "vk_shadows"] if arch64 else []) \
         + (["engine_host", "engine_reload"] if engine_library else []):
     obj = out / (name.replace("/", "_") + ".o")
     # ui_text rasterizes fonts with the stb_truetype that Dear ImGui vendors.
     extra = ["-Ipc/third_party/imgui"] if name == "ui_text" else []
-    if name == "ownership":
-        extra = [] if ZIG else ["-DROOD_NO_ROUTING"]
-        if not ZIG:
-            extra.append("-DROOD_NO_OWNED")  # no game_core object: no ABI to check
+    if name == "ownership" and not ZIG:
+        extra = ["-DROOD_NO_OWNED"]  # no game_core object: no ABI to check
     if compile_object(["gcc", *flags, *sdl_flags, *extra, "-c", f"pc/src/{name}.c", "-o", str(obj)], f"pc/src/{name}.c") \
             and name in STATE_HOST_UNITS:
         state_sections(obj)
     objects.append(obj)
 if ZIG:
-    routing = out / "routing.c"
-    routing.write_text(ownership_tool.routing_source(active, "sysv64" if arch64 else "i386", reloadable=engine_library))
-    win_routing = out / "routing.win.c"
-    win_routing.write_text(ownership_tool.routing_source(active, "win64"))
-    routing_obj = out / "routing.o"
-    compile_object(["gcc", *flags, "-c", str(routing), "-o", str(routing_obj)], str(routing),
-                   win_args=["gcc", *flags, "-c", str(win_routing), "-o", str(routing_obj)])
-    objects.append(routing_obj)
-    game_objects.append(routing_obj)
+    if engine_library:
+        # The development host's trampolines into the reloadable library (game_host.inc).
+        routing = out / "routing.c"
+        routing.write_text(ownership_tool.routing_source(active))
+        routing_obj = out / "routing.o"
+        compile_object(["gcc", *flags, "-c", str(routing), "-o", str(routing_obj)], str(routing))
+        objects.append(routing_obj)
+        game_objects.append(routing_obj)
     ownership_module = out / "ownership.zig"
     ownership_module.write_text(ownership_tool.ownership_zig(ownership_table))
     zig_dir = out / "zig"
@@ -1256,7 +1222,13 @@ if ZIG:
             # A static of the other configuration only has no accessor here (battle_statics.py).
             names = battle_statics.configured(names, battle_static_list.get(unit_name, []),
                                               (out / f"{unit_name}{'.win' if coff else ''}.i").read_bytes())
-            dump = zig_views.dump_with_gdb(twin(unit_obj) if coff else unit_obj, types, names,
+            # The layouts come from the unit's DWARF; every type of the unit's text is kept in a second object
+            # (the unit's C may no longer use some of them).
+            view_obj = out / f"{unit_name}.views.o"
+            view_cmd = ["-O0", "-fno-eliminate-unused-debug-types", "-c"]
+            compile_object(["gcc", *flags, *view_cmd, str(out / f"{unit_name}.i"), "-o", str(view_obj)], f"views:{unit}",
+                           win_args=win and ["gcc", *flags, *view_cmd, str(out / f"{unit_name}.win.i"), "-o", str(view_obj)])
+            dump = zig_views.dump_with_gdb(twin(view_obj) if coff else view_obj, types, names,
                                            zig_dir / f"views_{stem}.json")
             views_path = zig_dir / f"views_{stem}.zig"
             unlisted = sorted(set(dump.get("statics", [])) - {battle_statics.view_name(*e) for e in
@@ -1274,7 +1246,7 @@ if ZIG:
                 # are respelled long long, -mno-ms-bitfields, the same
                 # -funsigned-char): check it against the twin's own DWARF.
                 win_text = zig_views.emit(zig_views.dump_with_gdb(
-                    twin(unit_obj), types, names, zig_dir / f"views_{stem}.win.json"), zig_views.load_names(),
+                    twin(view_obj), types, names, zig_dir / f"views_{stem}.win.json"), zig_views.load_names(),
                     unit_object=unit_name)
                 if win_text != text:
                     diff = next(f"ELF: {a!r}\n  COFF: {b!r}" for a, b in
@@ -1677,7 +1649,14 @@ def object_overlay(obj):
 # and nothing defines, preserving their C, instead of linking fail-fast traps.
 exposing = [out / "main.o"] + sorted(o for o in objects if o.stem.startswith("mainmenu_"))
 imported, defined_elsewhere = set(), set()
-for obj in objects:
+# --engine-library: the host's Zig object holds only the resident routes; the other functions' imports are the
+# reloadable library's. Its object files stand in for the static Zig objects in the import analysis.
+library_objects = []
+if ZIG and engine_library:
+    import game_lib
+    game_library = game_lib.build(root / "game", out / "librood_game.so")
+    library_objects = list(game_lib.OBJECTS)
+for obj in [*objects, *library_objects]:
     for line in query([*NM, str(aobj(obj))]).splitlines():
         parts = line.split()
         if len(parts) == 2 and parts[0] == "U":
@@ -1821,11 +1800,13 @@ defined = set()
 text_defined = set()
 undefined = set()
 calls = set()
-for obj in objects:
+for obj in [*objects, *library_objects]:
     for line in query([*NM, str(aobj(obj))]).splitlines():
         parts = line.split()
         if len(parts) == 2 and parts[0] == "U":
             undefined.add(parts[1])
+        elif obj in library_objects:
+            continue
         elif len(parts) == 3 and parts[1].isupper() and defined_name(parts[2], parts[1]):
             defined.add(defined_name(parts[2], parts[1]))
             if parts[1] == "T":
@@ -1836,9 +1817,8 @@ problems = active.problems(function_sites, {source for source, _ in sources}) \
 if problems:
     raise SystemExit("game/ownership.toml: " + "; ".join(problems))
 for name, _ in active.routes():
-    for suffix in ("", "__orig", "__owned", "__shadow"):
-        if name + suffix not in text_defined:
-            raise SystemExit(f"routing: missing definition {name}{suffix}")
+    if name not in text_defined:
+        raise SystemExit(f"routing: no definition of {name}: the Zig exports it, and the library's trampoline does")
 libc = {
     "__divdi3",
     "__udivdi3",
@@ -2053,7 +2033,7 @@ def lp64_native_imports():
         return base if base and key in overlay_data else name
     wanted = {}  # object -> names it references
     users = {}  # import -> overlay keys of the objects that reference it
-    for obj in objects:
+    for obj in [*objects, *library_objects]:
         names = [line.split()[-1] for line in
                  query([*NM, "-u", str(aobj(obj))]).splitlines()]
         for n in names:
@@ -2146,8 +2126,10 @@ def lp64_native_imports():
         # an unsized array would shrink it), and must agree with the result.
         complete = [info["ps1_size"] for obj, info in infos
                     if changes(info) and info.get("size") and not obj.stem.endswith("_zig")]
-        # Complete types: their PS1 size; incomplete arrays: up to the next import.
-        size = max(complete) if complete else extent
+        # Complete types: their PS1 size; incomplete arrays: up to the next import. Where no C declares the
+        # import any more (its users are Zig now), the owned code's own complete declaration sizes it.
+        owned = [info["ps1_size"] for obj, info in infos if obj.stem.endswith("_zig") and info.get("size")]
+        size = max(complete) if complete else max(owned) if owned else extent
         problems += [f"{name}: {obj.stem} declares {info['type']} ({info['ps1_size']} PS1 bytes), the C {size}"
                      for obj, info in infos
                      if obj.stem.endswith("_zig") and info.get("size") and info["ps1_size"] != size]
@@ -2460,18 +2442,21 @@ if engine_library:
             }
     try:
         boundary = engine_boundary.generate(host_objects, engine_objects, lambda o: query(["nm", str(o)]), archives,
-                                            {line.split(" = ")[0] for line in assign}, shared, out, own_archives)
+                                            {line.split(" = ")[0] for line in assign}, shared, out, own_archives,
+                                            library_objects)
     except RuntimeError as error:
         raise SystemExit(f"engine library boundary: {error}")
+    library_data = []  # the data imports only the library uses
     if ZIG:
-        import game_lib
-        game_library = game_lib.build(root / "game", out / "librood_game.so")
         # A versioned import (memcpy@GLIBC_2.14: Debug Zig's memset/memcpy of
         # aggregates) comes from libc, not the host. Weak ones (w) are the
         # host hooks psx.weak tests for null: unexported, they bind to null
         # in the library and the owned code silently skips the hook.
         imports = {line.split()[-1] for line in query(["nm", "-D", "--undefined-only", str(game_library)]).splitlines()
                    if line.strip() and line.split()[0] in ("U", "w") and "@" not in line.split()[-1]}
+        # A data import is a linker-script symbol: nothing the host runs may refer to it (the C no longer
+        # does), and --gc-sections would drop it, so the host would not export it to the library.
+        library_data = sorted(imports & {line.split(" = ")[0] for line in assign})
         # Owned edits may access any public game function/global without a
         # host restart. Keep that game ABI exported, not the engine's private
         # internals. New host-service dependencies still require a rebuild.
@@ -2502,6 +2487,7 @@ if engine_library:
                  *[str(o) for o in host_objects], str(out / "engine_boundary.o"), *pin_args, str(out / "imports.ld"),
                  "-Wl,--dynamic-list=" + str(out / "host_exports.list"),
                  *[f"-Wl,--undefined={name}" for name in boundary["from_archives"]],
+                 *[f"-Wl,--undefined={name}" for name in library_data],
                  str(sdl_library), "-l:libstdc++.so.6", "-l:libgcc_s.so.1", "-lm", "-lpthread", "-ldl",
                  "-o", str(out / "rood_host")]
     (out / "link_command.json").write_text(json.dumps(host_link) + "\n")
@@ -2562,174 +2548,6 @@ print(
 if arch64:
     finish(out / "rood_battle_probe", out / "objects.txt", report, out / "report.json", out / "lp64_imports.json")
     raise SystemExit(0)  # the probes below are 32-bit host programs
-# Exercise the same geometry objects linked into the boot executable.
-probe = out / "gte_probe.i"
-probe_objects = [
-    str(out / (n + ".o"))
-    for n in ["sdk", "gte", "libgte", "inline"]
-    + (["room_geometry", "room_render", "actor_vertices", "battle_gte"] if battle else [])
-]
-
-
-def orig_aliases(objects):
-    """A routed function's C body is F__orig (ownership.py): a probe tests the C, so F names it."""
-    names = run(["nm", "--defined-only", *objects], capture_output=True, text=True).stdout.split()
-    return [f"-Wl,--defsym={n[: -len('__orig')]}={n}" for n in sorted({n for n in names if n.endswith("__orig")})]
-
-
-probe.write_bytes(
-    run(
-        [
-            "gcc",
-            "-E",
-            "-nostdinc",
-            "-Ipc/include",
-            "-Iinclude/psx",
-            "-Ipc/src/game/include",
-            "-I.",
-            "-D_LANGUAGE_C",
-            *(["-DPC_ROOM_TEST"] if battle else []),
-            "pc/tests/gte_probe.c",
-        ],
-        capture_output=True,
-    ).stdout
-)
-run(
-    [
-        "gcc",
-        "-std=gnu17",
-        "-m32",
-        "-fno-builtin",
-        "-fno-pie",
-        "-no-pie",
-        "-Wl,--gc-sections",
-        str(probe),
-        *probe_objects,
-        *orig_aliases(probe_objects),
-        "-o",
-        str(out / "gte_probe"),
-    ]
-)
-run([str(out / "gte_probe")])
-
-if battle:
-    run(
-        [
-            "gcc",
-            "-m32",
-            "pc/tests/battle_helpers_probe.c",
-            "pc/src/battle_helpers.c",
-            "-o",
-            str(out / "battle_helpers_probe"),
-        ]
-    )
-    run([str(out / "battle_helpers_probe")])
-
-if battle:
-    run(
-        [
-            "gcc",
-            "-m32",
-            "-ffunction-sections",
-            "-fdata-sections",
-            "-Wl,--gc-sections",
-            "pc/tests/navigation_probe.c",
-            "pc/src/navigation.c",
-            "-o",
-            str(out / "navigation_probe"),
-        ]
-    )
-    run([str(out / "navigation_probe")])
-
-if battle:
-    run(
-        [
-            "gcc",
-            "-m32",
-            "pc/tests/actor_update_probe.c",
-            "pc/src/actor_update.c",
-            "-o",
-            str(out / "actor_update_probe"),
-        ]
-    )
-    run([str(out / "actor_update_probe")])
-
-if battle:
-    run(
-        [
-            "gcc",
-            "-m32",
-            "-ffunction-sections",
-            "-fdata-sections",
-            "-Wl,--gc-sections",
-            "pc/tests/route_continuation_probe.c",
-            "pc/src/battle_movement.c",
-            "-o",
-            str(out / "route_continuation_probe"),
-        ]
-    )
-    run([str(out / "route_continuation_probe")])
-
-if battle:
-    run(
-        [
-            "gcc",
-            *flags,
-            "-no-pie",
-            "-Wl,--gc-sections",
-            "-Ipc/include",
-            "-Iinclude/psx",
-            "-Ipc/src/game/include",
-            "-I.",
-            "-D_LANGUAGE_C",
-            "-DROOD_PC",
-            "pc/tests/effect_particles_probe.c",
-            *[
-                str(out / (n + ".o"))
-                for n in ["effect_particles", "gte", "libgte", "inline"]
-            ],
-            *orig_aliases([str(out / "effect_particles.o")]),
-            "-o",
-            str(out / "effect_particles_probe"),
-        ]
-    )
-    run([str(out / "effect_particles_probe")])
-
-if battle:
-    for name in [
-        "weapon_packets",
-        "actor_packets",
-        "actor_shadow",
-        "actor_blend",
-        "fixed_font",
-        "room_lighting",
-    ]:
-        run(
-            [
-                "gcc",
-                "-m32",
-                "-fno-pie",
-                "-no-pie",
-                "-Wl,--gc-sections",
-                "-Ipc/include",
-                "-Iinclude/psx",
-                "-Ipc/src/game/include",
-                "-I.",
-                "-D_LANGUAGE_C",
-                "-DROOD_PC",
-                f"pc/tests/{name}_probe.c",
-                *[
-                    str(out / (n + ".o"))
-                    for n in [name, "sdk", "gte", "libgte", "inline"]
-                ],
-                # sdk.o too: a routed boot_sdk.c function is its F__orig there (the probe tests the C).
-                *orig_aliases([str(out / (n + ".o")) for n in [name, "sdk"]]),
-                "-o",
-                str(out / (name + "_probe")),
-            ]
-        )
-        run([str(out / (name + "_probe"))])
-
 if battle:
     run(
         [
@@ -2748,20 +2566,4 @@ if battle:
         ]
     )
     run([str(out / "screff2_warp_probe")])
-
-
-if battle:
-    run(
-        [
-            "gcc",
-            "-m32",
-            "-fno-pie",
-            "-no-pie",
-            "pc/tests/actor_cleanup_probe.c",
-            "pc/src/actor_cleanup.c",
-            "-o",
-            str(out / "actor_cleanup_probe"),
-        ]
-    )
-    run([str(out / "actor_cleanup_probe")])
 finish(out / ("rood_battle_probe" if battle else "rood_boot"), out / "objects.txt")

@@ -1435,9 +1435,6 @@ void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, in
             glyph = shown;
         }
     }
-    /* Packet changes above are game state; the capture registry below is not. */
-    if (pc_shadow_speculative && pc_shadow_speculative())
-        return;
     /* One string: on the line the previous character was set on, where it
      * left the pen (a space or two of offset, 0xFA, allowed either way). */
     int d = x - pen.next_x;

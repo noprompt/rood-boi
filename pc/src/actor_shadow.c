@@ -187,4 +187,3 @@ transform:;
             D_800E9A68, D_800E9AD4);
     psx_store(scratch, packet);
 }
-void func_800B4B14(void* actor) { pc_actor_shadow(actor, (void*)0x1f800000); }

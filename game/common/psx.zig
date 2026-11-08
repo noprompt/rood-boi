@@ -126,9 +126,17 @@ const library = blk: {
     break :blk @hasDecl(root, "reload_mode") and root.reload_mode == 2;
 };
 
+/// The development host (reload_mode 1) holds the resident routes' code: like the library, it reaches the
+/// globals through its GOT. A hidden reference would make the linker keep each global local, and the
+/// library could not find it.
+const host = blk: {
+    const root = @import("root");
+    break :blk @hasDecl(root, "reload_mode") and root.reload_mode == 1;
+};
+
 /// Globals reached PC-relative like GCC, never through Windows .refptr stubs.
 pub inline fn global(comptime T: type, comptime name: []const u8) *T {
-    if (library) return @extern(*T, .{ .name = name });
+    if (library or host) return @extern(*T, .{ .name = name });
     return @extern(*T, .{ .name = name, .relocation = .pcrel, .visibility = .hidden });
 }
 /// An unsized array (`extern T name[];`). Declared as `T name[0]`, as the C

@@ -214,13 +214,13 @@ static unsigned* subdivide_polygon(const unsigned* poly, const SVECTOR* vertex,
 }
 /* With the native room only (pc_native_room 2): emit just the
  * semi-transparent polygons; the native list draws the opaque ones. */
-static int translucent_only;
+static int translucent_only __attribute__((used));
 /* room_native.c: a translucent marker in front of each semi-transparent
  * polygon's packet (the native list draws it there). */
 extern unsigned* pc_room_native_translucent(unsigned index, unsigned* packet, unsigned* ot, int bucket, int halve,
     const unsigned* limit) __attribute__((weak));
 extern void pc_room_render_rules(int* near_bucket, int* far_bucket, int* lod_bucket);
-static int native;
+static int native __attribute__((used));
 unsigned* pc_room_group_packets(unsigned* geometry, unsigned* packet, unsigned* ot,
     unsigned gp, unsigned mode, unsigned* limit)
 {
@@ -346,9 +346,9 @@ extern const void* pc_scene_room_data(void) __attribute__((weak));
  * "drawn", facing_cutaway_smoke.py): the same in every pc_native_room mode,
  * since this function decides for both paths. */
 #define DRAWN_MAX 4096
-static const void* drawn_data;
-static unsigned drawn_count, drawn_facing;
-static unsigned char drawn_groups[DRAWN_MAX];
+static const void* drawn_data __attribute__((used));
+static unsigned drawn_count __attribute__((used)), drawn_facing __attribute__((used));
+static unsigned char drawn_groups[DRAWN_MAX] __attribute__((used));
 int pc_room_drawn_groups(unsigned char* out, int max, unsigned* facing)
 {
     const void* room = pc_scene_room_data ? pc_scene_room_data() : 0;
@@ -360,180 +360,29 @@ int pc_room_drawn_groups(unsigned char* out, int max, unsigned* facing)
     *facing = drawn_facing;
     return n;
 }
-void func_8009723C(void* data, unsigned mode)
-{
-    unsigned* scratch = (unsigned*)0x1f800000;
-    unsigned *packet = psx_to_ptr(unsigned*, scratch[0]), *limit = packet + 0x4000;
-    unsigned* first = packet;
-    unsigned* ot = psx_to_ptr(unsigned*, scratch[1]);
-    unsigned count = *(unsigned*)data;
-    unsigned char* group = (unsigned char*)data + 4;
-    if (count > 4096)
-        pc_unimplemented("room group count");
-    native = pc_room_native_begin ? pc_room_native_begin(data, mode, first) : 0;
-    translucent_only = native == 2;
-    int free_camera = pc_live_camera_active && pc_live_camera_active();
-    unsigned free_facing = free_camera && pc_room_editor_facing ? pc_room_editor_facing() : 0x10000;
-    /* Group flags that leave a group out: 0x100 the room's own (event scripts hide and show groups,
-     * func_800919D8 / func_80091998), 0x1000 the hide list for where Ashley stands and the game camera's
-     * direction and zoom (room section 11, func_8008C2C0; cleared by func_8008C40C). A plugin's free
-     * camera is not the game's: it keeps the groups that list hides for the game camera. */
-    unsigned hidden_flags = free_camera && pc_room_photo_whole && pc_room_photo_whole() ? 0x100 : 0x1100;
-    int record = pc_scene_room_data && data == pc_scene_room_data() && count <= DRAWN_MAX;
-    if (record) {
-        drawn_data = data;
-        drawn_count = count;
-        drawn_facing = free_camera ? free_facing : scratch[4];
-        for (unsigned i = 0; i < count; ++i)
-            drawn_groups[i] = 0;
-    }
-    /* gameplay_walls smart: the game camera's view of the current room
-     * decides again for the groups the facing mask leaves out. */
-    int smart = record && pc_gameplay_walls_frame
-        && pc_gameplay_walls_frame(free_camera ? (void*)0 : data, scratch[4], mode);
-    for (unsigned i = 0; i < count; ++i, group += 0x40) {
-        unsigned flags = *(unsigned*)group, facing = scratch[4];
-        /* The facing mask is the game camera's; for the editor's free camera
-         * room_native.c derives it from the free camera's yaw (or keeps
-         * every group) and leaves out the black shells and the groups the
-         * editor hid. */
-        if (free_camera)
-            facing = free_facing;
-        if (packet >= limit)
-            break;
-        if (flags & hidden_flags || ((flags >> 15) & mode & 1))
-            continue;
-        if (free_camera && pc_room_editor_hidden && pc_room_editor_hidden(data, i))
-            continue;
-        int kept = (facing >> 16) || !((flags ^ 255) & facing & 255);
-        float cut = 0, cut_previous = 0;
-        int ghost = 0;
-        if (smart) {
-            if (!pc_gameplay_walls_group(i, kept, &cut, &cut_previous, &ghost))
-                continue;
-        } else if (!kept)
-            continue;
-        unsigned gp = (flags & 0xffff6000) | (flags & 0x800 ? 0 : 3);
-        MATRIX* matrix = (MATRIX*)(group + 0x20);
-        SetRotMatrix(matrix);
-        SetTransMatrix(matrix);
-        unsigned* geometry =
-            (unsigned*)((unsigned char*)data + *(unsigned*)(group + 0x1c));
-        if (record)
-            drawn_groups[i] = 1;
-        if (native) {
-            if (pc_room_native_group_cut && (cut > 0 || cut_previous > 0))
-                pc_room_native_group_cut(cut, cut_previous, ghost);
-            pc_room_native_group(group, gp);
-        }
-        packet = pc_room_group_packets(geometry, packet, ot, gp, mode, limit);
-    }
-    translucent_only = 0;
-    /* Occlusion in play (occlusion.c): who matters and whether the groups
-     * just drawn hide them, once per game frame for the current room. */
-    if (record && pc_occlusion_frame)
-        pc_occlusion_frame(free_camera);
-    if (native)
-        packet = pc_room_native_end(packet, ot);
-    native = 0;
-    scratch[0] = psx_to_int(unsigned, packet);
-    /* Lighting: these packets are static room geometry (already captured in
-     * world space), so the renderer leaves them out of per-frame casters. */
-    if (pc_hw_room_packets)
-        pc_hw_room_packets(first, packet);
-}
+void func_8009723C(void* data, unsigned mode);
+
 
 /* 2EA3C.s func_80098E50: fade one packet colour word toward its own
  * luminance (r*5 + g*9 + b*2, as the far colour) by `fade` with GTE DPCS,
  * then add the signed per-channel offsets and clamp to 0..255. */
-static unsigned tint_color(unsigned color, int fade, int dr, int dg, int db)
-{
-    int r = color & 0xff, g = (color >> 8) & 0xff, b = (color >> 16) & 0xff;
-    if (fade) {
-        unsigned luminance = r * 5 + g * 9 + b * 2;
-        CTC2(luminance, 21);
-        CTC2(luminance, 22);
-        CTC2(luminance, 23);
-        MTC2(color, 6);
-        MTC2(fade, 8);
-        gte_dpcs();
-        color = MFC2(22);
-        r = color & 0xff;
-        g = (color >> 8) & 0xff;
-        b = (color >> 16) & 0xff;
-    }
-    r += dr;
-    g += dg;
-    b += db;
-    r = r < 0 ? 0 : r > 0xff ? 0xff : r;
-    g = g < 0 ? 0 : g > 0xff ? 0xff : g;
-    b = b < 0 ? 0 : b > 0xff ? 0xff : b;
-    return (color & 0xff000000) | r | (g << 8) | (b << 16);
-}
 /* 2EA3C.s: tint the room packets just submitted (from `start` to `end`):
  * 9-word triangles and 12-word quads (plus 8 bytes each when flags bit 1 is
  * set); any other packet ends the pass. Offsets are signed bytes * 4. */
 extern int render_translucent_marker(const unsigned*, unsigned*, int*, int*) __attribute__((weak));
-void func_80098D6C(unsigned* start, unsigned* end, signed char* params, int flags)
-{
-    int dr = params[0] * 4, dg = params[1] * 4, db = params[2] * 4;
-    int fade = *(short*)(params + 4), extra = (flags & 2) * 4;
-    if (pc_room_native_tint)
-        pc_room_native_tint(start, dr, dg, db, fade);
-    unsigned char* packet = (unsigned char*)start;
-    while (packet != (unsigned char*)end) {
-        unsigned* words = (unsigned*)packet;
-        int length = words[0] >> 24, count;
-        unsigned list;
-        int first, entries;
-        /* The native room's translucent markers sit between the packets
-         * (port only): step over them. */
-        if (render_translucent_marker && render_translucent_marker(words, &list, &first, &entries)) {
-            packet += 20;
-            continue;
-        }
-        if (length == 9)
-            count = 3;
-        else if (length == 12)
-            count = 4;
-        else
-            return;
-        for (int i = 0; i < count; ++i)
-            words[1 + i * 3] = tint_color(words[1 + i * 3], fade, dr, dg, db);
-        packet += (count == 3 ? 0x28 : 0x34) + extra;
-    }
-}
+void func_80098D6C(unsigned* start, unsigned* end, signed char* params, int flags);
+
 
 /* 2EA3C.s: the room-name table is `count` 12-byte entries followed by the
  * names; turn each entry's size (word 1) into a pointer to its name and
  * return the end of the names. Like the original do-while, count must be
  * nonzero. */
-void* vs_battle_initSceneAndGetRoomNames(void* table)
-{
-    unsigned* words = table;
-    unsigned count = words[0];
-    if (!count)
-        pc_unimplemented("room-name table with no entries");
-    unsigned char* name = (unsigned char*)(words + 1) + count * 12;
-    for (unsigned i = 0; i < count; ++i) {
-        unsigned* entry = (unsigned*)((unsigned char*)(words + 1) + i * 12);
-        unsigned size = entry[1];
-        entry[1] = psx_to_int(unsigned, name);
-        name += size;
-    }
-    return name;
-}
-/* 2EA3C.s: read/write the GTE screen offset (OFX/OFY, 16.16) as integers. */
-void vs_battle_getGeomOffset(unsigned* offset)
-{
-    offset[0] = (unsigned)CFC2(24) >> 16;
-    offset[1] = (unsigned)CFC2(25) >> 16;
-}
-void vs_battle_setGeomOffset(unsigned* offset)
-{
-    CTC2(offset[0] << 16, 24);
-    CTC2(offset[1] << 16, 25);
-}
+void* vs_battle_initSceneAndGetRoomNames(void* table);
+
+void vs_battle_getGeomOffset(unsigned* offset);
+
+void vs_battle_setGeomOffset(unsigned* offset);
+
 
 extern unsigned short D_800F1CDC;
 extern unsigned char vs_main_stateFlags[];
@@ -552,126 +401,5 @@ static unsigned* chain(unsigned* packet, unsigned* head, unsigned words)
  * points of interest, the 0x10 kind blinking with D_800F1CDC bit 5) or an
  * 8x8 icon when their state flag is clear. Filled shapes and lines link into
  * OT[5], markers into OT[4]; each list ends with a 0xE100020C draw mode. */
-void func_80098F8C(void* rooms)
-{
-    unsigned* table = rooms;
-    unsigned count = table[0];
-    unsigned* ot = psx_load(unsigned*, 0x1f800004);
-    unsigned* packet = psx_load(unsigned*, 0x1f800000);
-    unsigned* xy = (unsigned*)0x1f800100;
-    unsigned shapes = ot[5], markers = ot[4];
-    unsigned blink = D_800F1CDC;
-    CTC2(0, 5);
-    CTC2(0, 6);
-    CTC2(0x100, 7);
-    for (unsigned room = 0; room < count; ++room) {
-        unsigned* entry = table + 1 + room * 3;
-        unsigned* data = psx_to_ptr(unsigned*, entry[1]);
-        if (!entry[0] || !*data)
-            continue;
-        int vertices = (int)*data++;
-        unsigned* out = xy;
-        for (int left = vertices; left > 0; left -= 3, data += 6, out += 3) {
-            MTC2(data[0], 0);
-            MTC2(data[1], 1);
-            MTC2(data[2], 2);
-            MTC2(data[3], 3);
-            MTC2(data[4], 4);
-            MTC2(data[5], 5);
-            gte_rtpt();
-            out[0] = MFC2(12);
-            out[1] = MFC2(13);
-            out[2] = MFC2(14);
-        }
-        data = psx_to_ptr(unsigned*, entry[1]) + 1 + vertices * 2;
-#define V(i) xy[(i) & 0xff]
-        unsigned n = *data++;
-        if (room)
-            data += n;
-        else
-            for (; n; --n, ++data) {
-                unsigned* p = chain(packet, &shapes, 4);
-                p[1] = 0x223f7f00;
-                p[2] = V(*data);
-                p[3] = V(*data >> 8);
-                p[4] = V(*data >> 16);
-                packet += 5;
-            }
-        n = *data++;
-        if (room)
-            data += n;
-        else
-            for (; n; --n, ++data) {
-                unsigned* p = chain(packet, &shapes, 5);
-                p[1] = 0x2a3f7f00;
-                p[2] = V(*data);
-                p[3] = V(*data >> 8);
-                p[4] = V(*data >> 24);
-                p[5] = V(*data >> 16);
-                packet += 6;
-            }
-        for (n = *data++; n; --n, ++data) {
-            unsigned* p = chain(packet, &shapes, 3);
-            p[1] = 0x42ff7f00;
-            p[2] = V(*data);
-            p[3] = V(*data >> 8);
-            packet += 4;
-        }
-        if (room)
-            continue;
-        for (n = *data++; n; --n, ++data) {
-            unsigned* p = chain(packet, &shapes, 3);
-            p[1] = 0x422f5f00;
-            p[2] = V(*data);
-            p[3] = V(*data >> 8);
-            packet += 4;
-        }
-        for (n = *data++; n; --n, ++data) {
-            unsigned word = *data, flags = word >> 16, state = (word >> 24) & 0xff;
-            unsigned at = V(word);
-            int x = at & 0xffff, y = (int)at >> 16;
-            if (state && !(signed char)vs_main_stateFlags[state + 0x33f]) {
-                unsigned* p = chain(packet, &markers, 3);
-                p[1] = 0x74808080;
-                p[2] = (unsigned)((y - 4) << 16) | ((x - 3) & 0xffff);
-                p[3] = 0x37f898d8;
-                packet += 4;
-                continue;
-            }
-            unsigned colour;
-            if (flags & 0x10) {
-                if (!(blink & 0x20))
-                    continue;
-                colour = 0x607f00ff;
-            } else if (flags & 4) {
-                colour = 0x60ff7f00;
-            } else if (!(flags & 0x1f)) {
-                colour = 0x607f7f7f;
-            } else {
-                continue;
-            }
-            unsigned* p = chain(packet, &markers, 3);
-            p[1] = colour;
-            p[2] = (unsigned)((y - 1) << 16) | (unsigned)x;
-            p[3] = 0x00030001;
-            packet += 4;
-            p = chain(packet, &markers, 3);
-            p[1] = colour;
-            p[2] = (unsigned)(y << 16) | ((x - 1) & 0xffff);
-            p[3] = 0x00010003;
-            packet += 4;
-        }
-#undef V
-    }
-    unsigned* p = chain(packet, &shapes, 2);
-    p[1] = 0xe100020c;
-    p[2] = 0;
-    packet += 4;
-    p = chain(packet, &markers, 2);
-    p[1] = 0xe100020c;
-    p[2] = 0;
-    packet += 4;
-    ot[4] = markers;
-    ot[5] = shapes;
-    psx_store(0x1f800000, packet);
-}
+void func_80098F8C(void* rooms);
+

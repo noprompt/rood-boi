@@ -1,7 +1,8 @@
-# State oracle (ownership tasks 14–18)
+# State oracle (checkpoint, replay and digests)
 
-Linux/x86 only, in one running process. No Zig toolchain is required. The
-oracle observes the original game; routed shadow calls are opt-in as described below.
+Linux/x86 only, in one running process. No Zig toolchain is required. (The routed shadow
+transactions, the owner switch and the alternate mode that this page once described compared
+battle's Zig with the original C. The C is gone, 2026-11-08, and so are they.)
 
 ## Protocol
 
@@ -35,16 +36,6 @@ Changing masks invalidates the old baseline. Range names and offsets identify
 pages, not individual differing bytes or C fields. A mismatch at tick 10 is
 the eleventh sampled frame. The digest runs before RPC polling each vsync.
 
-`alternate` optionally selects a checked ownership subsystem index for compare;
-its original owner is restored on stop. Unavailable optional ownership is an
-error rather than an unchecked write. The subsystem runs as owner 3
-(`alternate`) for the whole compare: every routed call flips its route between
-owned and original (odd calls owned), so each function's calls split whatever
-vsync they land on (a per-vsync flip put a once-a-frame battle function on one
-side only, decided by the launch's parity). The result adds
-`"alternate_calls":[{"function","owned","original"}]` for the subsystem;
-`differ.py` fails the mode when a called function ran on one side only.
-Routed shadow mode is described below.
 
 ## Coverage and intentional exclusions
 
@@ -52,7 +43,7 @@ Routed shadow mode is described below.
 overlay statics and VRAM. The software GTE is already in the saved native
 state (`gte`, `libgte`, `inline` are state host units). SPU serialization is
 included separately. Game stack and fog are rewound but are not page-digested;
-caller-stack out-parameters need Task 18's own comparison boundary. Host
+caller-stack out-parameters are not compared. Host
 renderer, RPC, editor, input capture and digest allocations stay outside the
 ranges, as they do for save states. Save/card file writes are not undone.
 
@@ -69,196 +60,4 @@ The Python convenience methods are `Game.mark()`, `rewind()`, `record(path)`,
 `replay(path)` and `digest(action, **params)`. The registered integration suite
 is `ownership_smoke`; CTest probes are `state_diff`, `state_rewind` and
 `input_record`. This title checkpoint is not the full battle corpus required
-for the bulk port. Field mapping, complete feature profiles and whole-overlay
-corpus coverage extend this machinery in tasks 19–20.
-
-## Task 18 routed shadow transactions
-
-`shadow.c` provides `pc_shadow_compare`: capture the input state, execute the
-original once, save its results, restore the input, execute the owned callback,
-compare, and restore the original results. Explicit caller-output ranges are
-captured and restored separately. These must exclude the transaction's own
-frames and its callback context. Overlapping output ranges are rejected.
-
-`pc_shadow_result` retains the function, frame, panic message and first differing
-byte (range, address, offset, expected and actual). SPU addresses are offsets in
-the SPU image, distinguished by the `spu` range. A comparison error is separate
-from a mismatch: allocation failure after the original has executed must not
-cause the caller to execute it again. Restore failure is fatal rather than
-continuing on partly restored state.
-
-The owned callback runs behind a live C `setjmp` guard. `pc_zig_panic` delegates
-to it only during that callback; normal Zig panics still follow the crash path.
-CTest `shadow_zig` compiles a real ReleaseSafe Zig integer-overflow probe and
-verifies recovery, the function/frame/message, and original output restoration.
-`shadow` checks state and caller-output mismatches, recovery and subsequent
-transactions. `shadow_failures` injects failure at each allocation stage.
-
-`route.zig` now connects shadow exports to this backend. Its noinline wrapper
-keeps callback arguments and return values below the comparison boundary. The
-C backend validates that frame against the game stack and compares/restores all
-older stack bytes, including caller locals and stack-passed arguments. Return
-values are compared by Zig value equality, not struct padding. Nested calls run
-on their enclosing original/owned side; the enclosing transaction compares their
-combined effects (individual nested mismatches are not yet localized).
-
-CTest `shadow_route` calls the exported eight-argument wrapper from C with a
-pointer to a local. It checks clean equality, wrong caller output, wrong state,
-a real routed panic, a wrong return, and nested original/owned execution. The
-`owner {action: "report", reset: bool}` RPC serializes up to 32 mismatch/error
-records, with function, frame, address/range, expected/actual bytes and panic
-message. A failed serialization does not reset the report. Coverage lists
-root transactions and nested invocations per function (nested invocations
-include both original runs and the owned run).
-
-Routed calls execute the original twice from the same input, with two dead-stack
-fill patterns, before the owned execution. Only bytes stable between those two
-original executions are compared. This applies to state, SPU and caller outputs;
-unstable return values are likewise excluded. These exclusions are local to the
-transaction, never installed as global masks. The first original's state,
-caller outputs and return value remain authoritative. The second original
-suppresses host effects and keeps nested routes on the original side.
-The lower-level `pc_shadow_compare` test API deliberately retains single-reference
-semantics. `shadow_route` also tests noisy outputs/returns and that adjacent
-stable wrong state still produces a mismatch.
-
-Game shadow is opt-in on Linux x86-64 with `ROOD_ORACLE=1`. This profile bypasses
-modern menu-shell entrypoints on both sides. Speculative text capture and RPC
-sound counters are suppressed; packet changes before text capture still run.
-The `shadow_battle_smoke` runs enemies in zone 48, room 10 and requires nonzero
-routed calls with no mismatches/errors. This is not the full corpus or a claim
-that every PC feature is disabled. The smoke then injects a wrong owned write to
-`vs_main_stateFlags[0]`, requires its function/frame/address in the report and
-checks rollback. Test injection is explicit: `owner {action: "fault", function:
-"name", address: N}` requires oracle mode and an address in a captured range;
-`function: "", address: 0` clears it. This simulates an owned-code write; the
-separate routed Zig fixture contains genuinely incorrect owned implementations.
-Nested-call localization and full battle-corpus coverage remain later work.
-`pc_shadow_speculative()` exposes the isolation boundary.
-In particular, the battle-action direct-call closure reaches text capture,
-menu-shell hooks and the RPC sound counters, whose mutable host state is not
-part of the game images. Memory rollback alone cannot undo those side effects.
-Do not broaden the enabled subsystem set without auditing its host hooks.
-
-See [CPU-Oracle.md](CPU-Oracle.md) for the experimental null backend, measured
-CPU-lane throughput and the still-unproven cross-backend parity gate. The local
-corpus and its explicit coverage gaps are in `pc/tests/diff/CORPUS.md`.
-
-## Known hazards: partly written locals copied whole
-
-The original C often fills only the used fields of a stack local and then
-copies the whole struct into game memory (or passes it to a callee that
-does). On the PS1 the unwritten bytes are PS1 stack residue; here they are
-dead host stack, which differs between owned and original routes (a Zig
-callee leaves different frames) and between builds. Tick and alternate
-modes then report a divergence that no port caused, and shadow mode
-reports one when the residue is left by calls inside the transaction (both
-original runs leave the same residue, so the two-run noise detection
-cannot mask it).
-
-Fixed: `func_8007138C` (146C.c) zeroes its effect request under ROOD_PC.
-`func_800CF0E8` copies the request whole into `D_800F5230` (0xE8 bytes) and
-`func_800CE714` copies `targets[0]` whole into each effect node; only the
-reserved bytes, the last four bytes of an actor target's union, the targets
-past `count`, the others past `otherCount` and `position.pad` were dead
-stack (offsets 0x18..0x60 diverged with `battle_38C1C_port` owned). No
-reader found interprets them. Regression: run.py `shadow_battle_smoke_38C1C`.
-
-Fixed: `func_800E1388` (771A8.c) zeroes its `dest` tile under ROOD_PC. It
-writes only `dest.p.x`/`dest.p.z` and copies the whole word into
-`state->destination`: `p.y` and `p.status` were dead host stack, and with
-`battle_71618_port` owned (`func_800D9E18`, which reaches it through
-`func_800DB370` -> `func_800E24EC`) call mode diverged in `destination.y`
-(0 owned, 64 original) on enemy_cast_wait and action_name_window. Found
-with a `gdb` write watchpoint on the guest byte (the method below).
-
-Fixed: `func_8008631C` and `func_800863A4` (146C.c) zero their hit request
-`sp10` (a `D_800F19CC_t2`, 0x84C bytes) under ROOD_PC. They fill a few
-fields and `func_80085B10` copies the rest (`unk844`, the hit entries'
-SVECTOR padding) into its result, the evaluation block `D_800F5900`; with
-`battle_74088_port` owned (`func_800DCAA0` calls both) call mode diverged
-in that block on enemy_cast_wait and action_name_window. Found with the
-same watchpoint: the byte's last writer was `func_80085B10`'s copy.
-
-Fixed (wave 4, 146C.c, found by the port reviews and zeroed under ROOD_PC
-with a compound literal, the ports zero theirs too): `func_8006F4B0` (`sp10`,
-the effect-33 request copied whole by `func_800CF3F8`), `func_800771E0`
-(`sp10`, a `vs_battle_objectData` copied whole by
-`vs_battle_populateDataSlot`) and `func_80085B10` (`origin`, `position` and
-`impact` are read where no callee wrote them).
-
-Fixed: `func_800D78F0` (6F014.c) zeroes `sp10.pad` under ROOD_PC (and its
-port, `func_800D78F0.zig`, does too). `vs_battle_lerpVector` writes the
-VECTOR's `vx`..`vz` and `func_800D5260` copies it whole into `D_800F5620`:
-`D_800F5620.unkC` was dead host stack. With `battle_2842C_port` owned (the
-2842C ports leave other frames on the stack) tick and alternate modes
-diverged there (action_name_window from tick 871, enemy_kill from tick 100)
-while call mode matched.
-
-Fixed: `func_80099854` and `func_8009BE5C` (30DB0.c) zero their
-`vs_battle_objectData` local under ROOD_PC (`queued = (vs_battle_objectData)
-{ 0 };`; the ports zero theirs too). They set `dataType`, `index`, `actorId`
-and `material` and the whole 20-byte record is copied into an object-data
-slot (`*dst = *src`, or `vs_battleQueueSequenceObject`): `modelId`, `unk4`,
-`dataAddr`, `unkC`, `unk11` and `variant` were dead host stack. Use a
-compound literal, not `memset`: zig_diff stubs `memset` like any external
-call (it records and does not clear), so a memset-zeroed local still differs
-from a port's zeroed one in the harness. No recipe reached these two in the
-three recipes yet (found by reading the locals of every ported 30DB0
-function); `_parseShp` (30DB0.c, `queued`) is the same pattern when it is
-ported.
-
-Fixed (wave 4 bisect): `func_800AECA0` (44F14.c) zeroes `rotation` under
-ROOD_PC. It writes the 3x3 rotation only and copies the whole MATRIX into
-the scratchpad matrix at 0x1F8003C0, which `D_800F49B8` and then every bone
-`func_800B28A8` prepares copy whole: `rotation.pad` (and `t`) were dead host
-stack. With `battle_146C_port` owned, enemy_kill tick and alternate modes
-differed at tick 0 in the `pad` halfword of 24 bone matrices (0x1F80, the
-high half of a scratchpad pointer a Zig frame left on the stack; 0
-original). Its `D_800F4910 = *(MATRIX*)&source` (the PS1 copies the
-parameter's home slot and the caller's frame; nothing reads it) read 32
-bytes of host stack through the address of a parameter: under ROOD_PC it
-is the pointer word and zeros.
-
-Fixed (same run, tick 96 once the above was fixed): the effect requests,
-`func_800CF0E8_t` (or `func_8006C4C4_t`) locals with a few fields written,
-copied whole into `D_800F53C0`/`D_800F5230` by
-`func_800CF3F8`/`func_800CF0E8`, are zeroed under ROOD_PC with a compound
-literal: 146C.c `func_8006C4C4` (the one the recipe hit, called from the
-owned `func_8006C84C`), `func_8006F450`, `func_8006F848`, `func_800733F8`,
-`func_80073D30`, `func_8007BE20`; 5BF94.c `func_800CF7A8`, `func_800CF8BC`.
-None of them is ported; a port of one zeroes its request too.
-
-Fixed (flip baseline, enemy_kill tick and alternate modes with `battle_44F14_port` and
-`d2_room_geometry` owned, from tick 511 and 97): not an uninitialised local but a
-short one. `func_8006C4C4_t` (146C.c) is 0xE4 bytes and `func_800CF3F8` copies a
-whole 0xE8-byte `func_800CF0E8_t` from it, so `D_800F53C0.unkE0.vz` and `pad`
-came from the dead host stack past the local (0x06610cd5 in the original, 2
-owned). Under ROOD_PC the struct gains a trailing `unkE4` (zeroed with the rest
-of the request; the port asserts its view is at least 0xE8 bytes).
-
-Found by watching the bytes: `ROOD_BINARY` can be a wrapper that runs the
-game under `gdb -batch` with a Python script setting access watchpoints on
-the guest addresses (they are host addresses in the 64-bit build) whose
-`stop()` logs a backtrace and returns False; drive the recipe with the
-normal RPC. `differ.py` reads `ROOD_BINARY` as an ELF (the field mapper),
-so for the oracle keep the binary and wrap the launch instead: a small
-driver that replaces `subprocess.Popen` with one prefixing `gdb -nx -batch
--x watch.py --args` when the command is `rood_battle_probe`, then calls
-`differ.main()`. Break at `main`, `run`, then set the watchpoint (the
-scratchpad, 0x1F800000, is mapped by then); a condition on the value
-written (the owned run's byte) skips the original run's writes. One tick
-mode run of enemy_kill under the watch takes about a minute.
-
-Not fixed (no recipe diverges on them yet; zero the local under ROOD_PC
-the same way when one does):
-
-- SVECTOR/VECTOR locals whose `pad` is never written, copied whole into
-  game memory: 146C.c `func_800719FC` (`origin` into
-  `D_800F19CC->unk29B8`), `func_80085B10` (`impact` into a hit entry),
-  `func_80089DC0` (`lookAt` into `vs_scratch.camera.lookAt`); 3A1A0.c
-  `func_800A76BC` (`probe` into `D_800F4B08`).
-
-The SVECTOR/VECTOR list comes from a scan of the BATTLE units for locals
-copied with `= local;` and no `.pad` or whole assignment; locals passed by
-address to a callee that copies them are not covered by it.
+for the bulk port.

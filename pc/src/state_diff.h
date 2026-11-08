@@ -49,11 +49,11 @@ int pc_state_mask_add(uintptr_t start, size_t size);
 int pc_state_masks_set(const uintptr_t* starts, const size_t* sizes, int count);
 /* Start requires idle state, positive capacity for record, and at least one
  * recorded tick for compare. Compare ignores capacity except negative values
- * are invalid. alternate is -1 or a valid optional ownership subsystem.
+ * are invalid.
  * Reaching record capacity/replay length stops automatically; ticks never
  * exceed the stored baseline. Masks cannot change during a run and changing
  * them afterwards invalidates the baseline. Return 0 on success, -1 on error. */
-int pc_digest_start(int compare, int capacity, int alternate);
+int pc_digest_start(int compare, int capacity);
 /* New masks and baseline are committed together, or the old baseline survives. */
 int pc_digest_record_masks(int capacity, const uintptr_t* starts, const size_t* sizes, int count);
 void pc_digest_stop(void);

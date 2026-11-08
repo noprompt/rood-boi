@@ -17,7 +17,7 @@ fn statusScore(stats: *v.actionStatSnapshot, id: c_int) c_int {
     while (i < 32) : (i += 1) {
         const bit = @as(u32, 1) << @as(u5, @intCast(i));
         if ((row.status & bit) != 0) {
-            if (i != 12 or !noCost) sum +%= @as(c_int, c.D_80069BD0[@intCast(i)]);
+            if (i != 12 or !noCost) sum +%= @as(c_int, v.g.D_80069BD0().*[@intCast(i)]);
         }
     }
     if (row.hp == 0) sum -%= 128;

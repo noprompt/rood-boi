@@ -2531,7 +2531,6 @@ what limits a full run.
 | Suite | Covers |
 | --- | --- |
 | `ctest` | the CMake probes in `pc/build` (configure it once, below); `fixture_catalog` keeps the whole-disc scan and generation result for identical inputs in `pc/build/fixture-check/` (the determinism re-run always runs; `ROOD_FIXTURE_CHECK_CACHE=0` recomputes) |
-| `ctest_long` | the long CMake tests (`zig_diff`'s ten shards, `zig_diff_coverage`, `port_pipeline`; ~35 min of CPU): left out of `ctest`, run by the full lane and by the quick lane for a change to the Zig port or its tools |
 | `affected_test`, `verify_args_test` | the `--changed` selector and the quick lane (`affected.py`, `affected.toml`); `verify.sh`'s lanes and steps |
 | `snapshot_equivalence` | save states resume exactly at every test checkpoint (below; first job) |
 | `snapshot_resume_smoke` | 64-bit: the engine relinked elsewhere resumes a snapshot through RPC `restart` at the same moment and state, and 60 vsyncs on matches the original build; a snapshot of other game code is refused |

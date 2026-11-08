@@ -1,5 +1,9 @@
 # Battle flip: hook inventory, inert profile, checklist
 
+*Historical (2026-11-08): battle's C, the differential corpus and the shadow and alternate modes that this
+page plans around are gone. The hooks in section 2 are now in the Zig; "the C block" in the fate column is
+deleted with the C. The inert profile (section 3) and the checklist (section 5) belonged to the corpus.*
+
 Groundwork for the flip (PORTING.md §12 and §20 items 6 and 7, D4;
 `../../plans/2026-10-16-ownership-design.md` §10 steps 6 and 7). Nothing here
 deletes a hook or changes a routing default. It was written from the sources

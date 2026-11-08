@@ -534,16 +534,6 @@ class Game:
             raise ValueError("reload target must be engine or zig")
         return self.call("reload", target=target)
 
-    def shadow(self, subsystem, on=True):
-        """Enable shadow comparison, or return the subsystem to original code."""
-        return self.call("shadow", subsystem=subsystem, on=bool(on))
-
-    def owner(self, subsystem=None, owner=None):
-        """List ownership, or set a subsystem between game frames."""
-        if subsystem is None and owner is None:
-            return self.call("owner")
-        return self.call("owner", subsystem=subsystem, owner=owner)
-
     def digest(self, action, **params):
         """Record/compare per-vsync state pages; see pc/docs/Oracle.md."""
         return self.call("digest", action=action, **params)
@@ -785,12 +775,6 @@ def main():
     sub.add_parser("headless")
     reload = sub.add_parser("reload", help="reload engine (default) or owned Zig code at vsync")
     reload.add_argument("target", nargs="?", default="engine", choices=["engine", "zig"])
-    owner = sub.add_parser("owner", help="list ownership or select a subsystem implementation")
-    owner.add_argument("subsystem", nargs="?")
-    owner.add_argument("owner", nargs="?", choices=["original", "owned", "shadow"])
-    shadow = sub.add_parser("shadow", help="enable comparison, or return to original execution")
-    shadow.add_argument("subsystem")
-    shadow.add_argument("mode", choices=["on", "off"])
     call = sub.add_parser("call")
     call.add_argument("method")
     call.add_argument("params", nargs="?", default="{}")
@@ -838,12 +822,6 @@ def main():
         print(json.dumps({"mode": mode, "renderer": renderer}))
     elif args.command == "reload":
         print(json.dumps(Game(args.socket).reload(args.target)))
-    elif args.command == "owner":
-        if bool(args.subsystem) != bool(args.owner):
-            parser.error("owner needs both subsystem and owner, or neither to list")
-        print(json.dumps(Game(args.socket).owner(args.subsystem, args.owner)))
-    elif args.command == "shadow":
-        print(json.dumps(Game(args.socket).shadow(args.subsystem, args.mode == "on")))
     elif args.command == "call":
         print(json.dumps(Game(args.socket).call(args.method, **json.loads(args.params))))
     elif args.command == "symbol":

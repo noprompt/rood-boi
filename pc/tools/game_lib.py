@@ -19,8 +19,11 @@ import zig_toolchain
 ROOT = Path(__file__).resolve().parents[2]
 
 
+OBJECTS = []  # the library's object files of the last build (build_boot.py reads their imports)
+
+
 def abi(table):
-    return hashlib.sha256(repr(table.routes()).encode()).hexdigest()
+    return hashlib.sha256(repr(table.reloadable_routes()).encode()).hexdigest()
 
 
 def write_changed(path, text):
@@ -76,11 +79,12 @@ def build(source, output):
         metadata = work / 'abi.c'
         metadata.write_text(f'const char rood_game_abi[] = "{abi(table)}";\n')
         exports = work / 'exports.map'
-        exports.write_text('{ global: rood_game_abi; ' + ' '.join(n + '__candidate; ' + n + '__candidate_abi;' for n, _ in table.routes()) + ' local: *; };\n')
+        exports.write_text('{ global: rood_game_abi; ' + ' '.join(n + '__candidate; ' + n + '__candidate_abi;' for n, _ in table.reloadable_routes()) + ' local: *; };\n')
         candidate = Path(directory) / 'librood_game.so'
         subprocess.run(['gcc', '-shared', '-fPIC', '-Wl,--version-script=' + str(exports),
                         *objects, str(metadata), '-o', str(candidate)], check=True)
         os.replace(candidate, output)
+    OBJECTS[:] = [Path(o) for o in objects]
     return output
 
 

@@ -20,12 +20,8 @@ publish rather than before it (a failure is fixed at once, or the merge
 reverted; publishing is cheap to undo). The full lane is for bigger releases
 or when asked, not a daily run.
 
-**Oracle suites: no lane runs them.** The suites that compare battle's Zig
-with the original C it was ported from (`ORACLE_SUITES` in `run.py`:
-`ctest_long` with zig_diff's shards, `ctest_pipeline`, the trial and candidate
-corpora, the shadow runs) were the port's checks. The port is done and the
-Zig is meant to leave the C behind (2026-11-07), so they are tools: they run
-only when named exactly (`run.py ctest_long`) or with `run.py --oracle`.
+**No comparison suites.** Battle's Zig no longer has a C original to compare with: zig_diff, the port
+pipeline, the differential corpus and the shadow runs are gone (2026-11-08), and so is `--oracle`.
 
 **Quick** (the default; at most 15 minutes, enforced: `run.py --budget` cuts
 each renderer's selection to fit the last run's times, shortest first, and
@@ -50,10 +46,8 @@ its own files 19), skipped 112 of 165 (full lane)`.
 
 **Full** (`--full`). The builds including Windows (`--no-windows` skips it),
 then every suite: null (the CPU-safe ones), Vulkan and OpenGL, long suites
-included. The suites that run no game (CTest with `ctest_long`, lints, unit
-tests) run once, on Vulkan; OpenGL gets `run.py --game-only`. `ctest_long`
-(28 zig_diff shards, four at a time, and the port pipeline)
-takes about 2.5 hours: its timeout is 4 h.
+included. The suites that run no game (CTest, lints, unit
+tests) run once, on Vulkan; OpenGL gets `run.py --game-only`.
 
 Each step prints one line (result, seconds, the suite's pass count, the log
 under `pc/build/verify/`). With `ROOD_HEAVY_LOCK` set, every step holds that
@@ -102,43 +96,6 @@ Nothing selects every suite; that is `verify.sh --full`. The runner prints
 why each suite was chosen. `affected_test.py` checks the selector (scratch
 repositories, the rules, the lanes) and that the last 25 merges on main each
 select tens of suites, not all.
-
-## zig_diff in the quick lane
-
-(No longer: zig_diff is an oracle suite, run by hand. What follows is how it
-selects specs when it is.)
-
-The full lane's `ctest_long` runs every zig_diff spec (~700 ported
-functions, fuzzed against the C with their mutations and coverage) in ten
-CTest shards: over 40 minutes. In the quick lane a change runs zig_diff on
-the specs it affects only (`pc/tools/zig_diff_select.py`), through
-`pc/tests/zig_diff_changed.py` (suite `zig_diff_changed`: those specs in
-three parallel shards, beside `zig_diff_coverage`; `port_pipeline`, ~15 minutes, runs as suite
-`ctest_pipeline` only when the pipeline's files or `game/ownership.toml` change). A zig_diff run reads its spec, its
-route and the port file alone (with `game/common`), so:
-
-| Changed | Specs run |
-|---|---|
-| `game/<overlay>/<file>.zig` | the functions routed to that file (`game/battle/root.zig`: none) |
-| `pc/tests/zig_diff/<spec>.zig` | the functions whose entry names it |
-| `pc/tests/zig_diff/specs.toml` | the entries that differ from the base, or are new |
-| `game/ownership.toml` | the functions whose route differs (zig path, overlay, unit, or the views of their unit) |
-| `pc/docs/porting/battle/pipeline/**/F.json` | F |
-| `src/**/UNIT.c` (with a Zig change) | the functions of that unit |
-| the harness and shared code: `zig_diff.py`, `ownership.py`, `bakeoff_context.py`, `zig_toolchain.py`, `zig_views.py`, `zig_c.py`, `MEANINGS.tsv`, `main.zig`, `zdiff.zig`, `zdiff_cov.c`, `game/common` reachable from `common.zig` | every spec: the ten shards, as in the full lane |
-
-The base is the one `--changed` diffs against (`affected.base_revision`:
-the merge base with BASE, or a published snapshot itself). With
-`--changed-files` there is none, so a changed `specs.toml` or
-`ownership.toml` means every spec. The lane says what it chose, e.g.
-`zig_diff: 12 changed specs (of 707): ...`, or
-`zig_diff: every spec (707): pc/tools/zig_diff.py changed (the zig_diff harness)`.
-
-```sh
-python3 pc/tools/zig_diff_select.py public                    # the specs the change since public affects
-python3 pc/tools/zig_diff_select.py --files game/battle/score.zig
-python3 pc/tests/zig_diff_changed.py --no-ctest _updateEnemyKills   # run those specs (no CTest entries)
-```
 
 ## What limits the suites, and the lanes
 
@@ -195,7 +152,7 @@ the runner and everything it starts are confined to the efficiency cores
 idle scheduling class (SCHED_IDLE: they get only CPU time nothing else
 wants), one game suite and one other run at a time, and every timeout is
 doubled. Anything else runs the same way under
-`python3 pc/tools/play_mode.py -- COMMAND...` (builds, `zig_diff.py`,
+`python3 pc/tools/play_mode.py -- COMMAND...` (builds,
 `differ.py`, `verify.sh`); a `run.py` inside keeps the play-mode limits.
 `ROOD_PLAY_CPUS=8-15` picks the CPUs, `ROOD_PLAY_IDLE=0` keeps the normal
 scheduling class. The GPU is shared still: game suites ask for a low GPU

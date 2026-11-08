@@ -48,12 +48,5 @@ unsigned pc_project_bone_vertices(unsigned count, const unsigned* groups,
 /* actor_native.c: the model and bone matrices of the packets built next. */
 extern void pc_object_native_matrices(const void* object, const void* matrices, const void* model)
     __attribute__((weak));
-int func_800B3A68(void* object, MATRIX* matrices, int near_clip, void* model)
-{
-    (void)near_clip; /* The original assembly never reads this argument. */
-    if (pc_object_native_matrices)
-        pc_object_native_matrices(object, matrices, model);
-    return pc_project_bone_vertices(((unsigned char*)object)[1],
-        psx_load(unsigned*, (char*)model + 0x34), psx_load(SVECTOR*, (char*)model + 0x38), matrices,
-        D_800F2458, D_800F2458 + 768);
-}
+int func_800B3A68(void* object, MATRIX* matrices, int near_clip, void* model);
+

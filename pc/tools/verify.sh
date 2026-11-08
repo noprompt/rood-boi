@@ -11,10 +11,8 @@
 #   the quick lane never runs for hours. on Vulkan with ctest; the CPU-safe ones
 #   on the null renderer with null_backend_smoke; on OpenGL a sanity subset
 #   (boot, a room, the opening, the goldens, the title) plus what GL's own
-#   files select. Long suites (soak, the charge skip, zig_diff, the story
-#   viewer) only when the change touches them; zig_diff then only on the specs
-#   the change affects (pc/tools/zig_diff_select.py), unless its shared
-#   infrastructure changed.
+#   files select. Long suites (soak, the charge skip, the story viewer) only
+#   when the change touches them.
 #   FULL (--full; once a day, and before bigger releases): every suite on the
 #   null renderer, Vulkan and OpenGL, long suites included (the suites without a
 #   game, CTest and lints, once: on Vulkan), and the Windows build.

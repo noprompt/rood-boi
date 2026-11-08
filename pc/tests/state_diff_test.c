@@ -1,5 +1,4 @@
 /* Standalone: link with state_diff.c; no game, renderer or audio dependency.
- * Also build with -DSTATE_DIFF_TEST_OWNERSHIP to test optional owner routing.
  * -DSTATE_DIFF_TEST_ALLOC -Wl,--wrap=malloc -Wl,--wrap=calloc tests OOM. */
 #include "state_diff.h"
 #include <assert.h>
@@ -17,18 +16,6 @@ void* __real_calloc(size_t, size_t);
 static int allocation_fails(void) { return fail_alloc || (++allocation == fail_at); }
 void* __wrap_malloc(size_t n) { return allocation_fails() ? NULL : __real_malloc(n); }
 void* __wrap_calloc(size_t n, size_t s) { return allocation_fails() ? NULL : __real_calloc(n, s); }
-#endif
-#ifdef STATE_DIFF_TEST_OWNERSHIP
-static int owner = 1;
-int pc_owner_count(void) { return 1; }
-int pc_owner_get(int i) { return i == 0 ? owner : -1; }
-int pc_owner_set(int i, int v) { if (i || v < 0 || v > 3) return -1; owner = v; return 0; }
-static int alternate_resets;
-int pc_owner_alternate_reset(int i) { if (i) return -1; alternate_resets++; return 0; }
-int pc_owner_alternate_report(int i, char* out, int size)
-{
-    return i ? -1 : snprintf(out, (size_t)size, "[{\"function\":\"f\",\"owned\":2,\"original\":1}]");
-}
 #endif
 int pc_state_ranges(pc_state_range* out, int max)
 {
@@ -65,16 +52,14 @@ static void result_has(const char* text)
 }
 int main(void)
 {
-    assert(pc_digest_start(1, 0, -1) == -1);
-    assert(pc_digest_start(0, 0, -1) == -1);
-    assert(pc_digest_start(0, -1, -1) == -1);
-    assert(pc_digest_start(0, INT_MAX, -1) == -1);
+    assert(pc_digest_start(1, 0) == -1);
+    assert(pc_digest_start(0, 0) == -1);
+    assert(pc_digest_start(0, -1) == -1);
+    assert(pc_digest_start(0, INT_MAX) == -1);
     assert(pc_state_masks_set(NULL, NULL, 0) == 0);
     assert(pc_state_masks_set(NULL, NULL, 1) == -1);
     assert(pc_state_masks_set(NULL, NULL, 65) == -1);
-    assert(pc_digest_start(1, -1, -1) == -1);
-    assert(pc_digest_start(0, 1, -2) == -1);
-    assert(pc_digest_start(1, 1, INT_MAX) == -1);
+    assert(pc_digest_start(1, -1) == -1);
     assert(pc_digest_result(NULL, -1) == -1);
     assert(pc_digest_result(NULL, 1) == -1);
     assert(pc_digest_result(NULL, 0) > 0);
@@ -88,8 +73,8 @@ int main(void)
     spu_size = -1; assert(!pc_state_capture()); spu_size = sizeof spu;
     pc_state_image* initial = pc_state_capture();
     assert(initial);
-    assert(pc_digest_start(0, 600, -1) == 0);
-    assert(pc_digest_start(0, 1, -1) == -1);
+    assert(pc_digest_start(0, 600) == 0);
+    assert(pc_digest_start(0, 1) == -1);
     assert(pc_state_mask_add((uintptr_t)ram, 1) == -1);
     assert(pc_state_masks_set(NULL, NULL, 0) == -1);
     for (int n = 0; n < 600; n++) tick(n);
@@ -99,11 +84,11 @@ int main(void)
     assert(pc_digest_record_masks(INT_MAX, NULL, NULL, 0) == -1);
     result_has("\"recorded\":600");
     assert(pc_state_restore(initial) == 0);
-    assert(pc_digest_start(1, 0, -1) == 0);
+    assert(pc_digest_start(1, 0) == 0);
     for (int n = 0; n < 600; n++) tick(n);
     result_has("\"first_tick\":-1"); result_has("\"error\":0");
     assert(pc_state_restore(initial) == 0);
-    assert(pc_digest_start(1, 0, -1) == 0);
+    assert(pc_digest_start(1, 0) == 0);
     for (int n = 0; n < 600; n++) {
         if (n == 123) memset(ram, 0xff, sizeof ram);
         tick(n);
@@ -139,32 +124,23 @@ int main(void)
     assert(difference.expected == 0 && difference.actual == 7);
     pc_state_image_free(sound_changed);
     spu[3] = 0;
-    assert(pc_digest_start(1, 0, -1) == -1); /* changed mask invalidates baseline */
+    assert(pc_digest_start(1, 0) == -1); /* changed mask invalidates baseline */
     assert(pc_state_mask_add(UINTPTR_MAX, 2) == -1);
     assert(pc_state_mask_add(0, 0) == -1);
-    assert(pc_digest_start(0, 1, -1) == 0); pc_state_diff_vsync();
+    assert(pc_digest_start(0, 1) == 0); pc_state_diff_vsync();
     ram[9]++;
-    assert(pc_digest_start(1, 0, -1) == 0); pc_state_diff_vsync();
+    assert(pc_digest_start(1, 0) == 0); pc_state_diff_vsync();
     result_has("\"first_tick\":-1");
     spu[0]++;
-    assert(pc_digest_start(1, 0, -1) == 0); pc_state_diff_vsync();
+    assert(pc_digest_start(1, 0) == 0); pc_state_diff_vsync();
     result_has("\"first_pages\":[\"spu\"]");
-#ifdef STATE_DIFF_TEST_OWNERSHIP
-    /* Alternate is per call (owner 3, the trampolines flip), not per vsync:
-     * the owner stays 3 for the whole run and is restored when it ends. */
-    assert(pc_digest_start(1, 0, 0) == 0); assert(owner == 3 && alternate_resets == 1);
-    pc_state_diff_vsync(); assert(owner == 1);
-    result_has("\"alternate\":0,\"alternate_calls\":[{\"function\":\"f\",\"owned\":2,\"original\":1}]}");
-#else
-    assert(pc_digest_start(1, 0, 0) == -1);
-#endif
     range_mode = 4; assert(pc_state_restore(initial) == -1);
-    assert(pc_digest_start(1, 0, -1) == -1); range_mode = 0;
+    assert(pc_digest_start(1, 0) == -1); range_mode = 0;
     load_ok = 0; assert(pc_state_restore(initial) == -1); load_ok = 1;
-    assert(pc_digest_start(0, 2, -1) == 0);
+    assert(pc_digest_start(0, 2) == 0);
     range_mode = 4; pc_state_diff_vsync(); range_mode = 0;
     result_has("\"error\":-1"); result_has("\"recorded\":0");
-    assert(pc_digest_start(1, 0, -1) == -1);
+    assert(pc_digest_start(1, 0) == -1);
     pc_state_mask_clear();
     for (int i = 0; i < 64; i++) assert(pc_state_mask_add((uintptr_t)ram + i, 1) == 0);
     assert(pc_state_mask_add((uintptr_t)ram, 1) == -1);
@@ -172,13 +148,13 @@ int main(void)
 #ifdef STATE_DIFF_TEST_ALLOC
     for (fail_at = 1; fail_at <= 4; fail_at++) {
         allocation = 0;
-        assert(pc_digest_start(0, 2, -1) == -1);
+        assert(pc_digest_start(0, 2) == -1);
     }
     fail_at = 0;
     fail_alloc = 1;
-    assert(!pc_state_capture()); assert(pc_digest_start(0, 2, -1) == -1);
+    assert(!pc_state_capture()); assert(pc_digest_start(0, 2) == -1);
     fail_alloc = 0;
-    assert(pc_digest_start(0, 2, -1) == 0);
+    assert(pc_digest_start(0, 2) == 0);
     fail_alloc = 1; pc_state_diff_vsync(); fail_alloc = 0;
     result_has("\"error\":-1");
 #endif

@@ -15,19 +15,9 @@ add_executable(state_diff_test tests/state_diff_test.c src/state_diff.c)
 target_include_directories(state_diff_test PRIVATE src)
 target_compile_options(state_diff_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
 add_test(NAME state_diff COMMAND state_diff_test)
-add_executable(shadow_test tests/shadow_test.c src/shadow.c src/state_diff.c)
-target_include_directories(shadow_test PRIVATE src)
-target_compile_options(shadow_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
-add_test(NAME shadow COMMAND shadow_test)
-add_executable(shadow_failures_test tests/shadow_test.c src/shadow.c src/state_diff.c)
-target_include_directories(shadow_failures_test PRIVATE src)
-target_compile_definitions(shadow_failures_test PRIVATE SHADOW_ALLOC_PROBE DATA_POOL=0)
-target_compile_options(shadow_failures_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
-target_link_options(shadow_failures_test PRIVATE -Wl,--wrap=malloc -Wl,--wrap=calloc)
-add_test(NAME shadow_failures COMMAND shadow_failures_test)
 add_executable(state_diff_failures_test tests/state_diff_test.c src/state_diff.c)
 target_include_directories(state_diff_failures_test PRIVATE src)
-target_compile_definitions(state_diff_failures_test PRIVATE STATE_DIFF_TEST_OWNERSHIP STATE_DIFF_TEST_ALLOC DATA_POOL=0)
+target_compile_definitions(state_diff_failures_test PRIVATE STATE_DIFF_TEST_ALLOC DATA_POOL=0)
 target_compile_options(state_diff_failures_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
 target_link_options(state_diff_failures_test PRIVATE -Wl,--wrap=malloc -Wl,--wrap=calloc)
 add_test(NAME state_diff_failures COMMAND state_diff_failures_test)
@@ -46,19 +36,6 @@ endif()
 # It requires the matching build's extracted assets; it is not part of the
 # dependency-free memory probe's default build.
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(FIELD_MAP_FIXTURE ${CMAKE_CURRENT_BINARY_DIR}/field_map_fixture)
-    add_custom_command(OUTPUT ${FIELD_MAP_FIXTURE}
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/field_map_test.py
-            --build-fixture ${FIELD_MAP_FIXTURE}
-        DEPENDS tests/field_map_test.py VERBATIM)
-    add_custom_target(field_map_fixture_build ALL DEPENDS ${FIELD_MAP_FIXTURE})
-    add_test(NAME field_map COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/field_map_test.py
-        --fixture ${FIELD_MAP_FIXTURE})
-    set_tests_properties(field_map PROPERTIES TIMEOUT 120)
-endif()
-add_test(NAME diff_corpus COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/diff/corpus_test.py)
-add_test(NAME event_callbacks COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/event_callbacks_test.py)
 # The pinned Zig toolchain's verification and cache (pc/tools/zig_toolchain.py), offline.
 add_test(NAME zig_toolchain COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/zig_toolchain_test.py)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -66,17 +43,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 # Ownership table, preprocessed definitions and generated routing.
 add_test(NAME ownership COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/ownership_test.py)
-# What the port-progress report counts (D2 ports under their oracle file).
-add_test(NAME port_progress COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/port_progress_test.py)
-add_test(NAME routing_probe COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/routing_probe/run.py)
-add_executable(owner_switch_probe tests/owner_switch_probe.c src/ownership.c)
-target_compile_options(owner_switch_probe PRIVATE -Wall -Wextra -Werror -UNDEBUG)
-add_test(NAME owner_switch COMMAND owner_switch_probe)
-set_tests_properties(owner_switch PROPERTIES ENVIRONMENT "ROOD_OWNER=")
-add_test(NAME owner_switch_env COMMAND owner_switch_probe 1)
-set_tests_properties(owner_switch_env PROPERTIES ENVIRONMENT "ROOD_OWNER=alpha=owned,missing=owned,beta=invalid")
-add_test(NAME owner_switch_shadow COMMAND owner_switch_probe)
-set_tests_properties(owner_switch_shadow PROPERTIES ENVIRONMENT "ROOD_OWNER=alpha=shadow")
 # Owned game code's pure parts (game/): zig test on the 32- and 64-bit targets the game builds for.
 execute_process(COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/zig_toolchain.py
     OUTPUT_VARIABLE ROOD_ZIG OUTPUT_STRIP_TRAILING_WHITESPACE RESULT_VARIABLE ROOD_ZIG_MISSING)
@@ -85,8 +51,6 @@ if(ROOD_ZIG_MISSING EQUAL 0)
         add_test(NAME zig_unit_${target} COMMAND ${ROOD_ZIG} test -target ${target} -O ReleaseSafe
             ${CMAKE_CURRENT_SOURCE_DIR}/../game/common/psx.zig)
     endforeach()
-    add_test(NAME zig_route COMMAND ${ROOD_ZIG} test -target x86_64-linux-musl -O ReleaseSafe
-        ${CMAKE_CURRENT_SOURCE_DIR}/../game/common/route_test.zig)
     # Views generated from DWARF (pc/tools/zig_views.py) read a C-filled instance on 32 and 64 bits.
     add_test(NAME zig_views COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/zig_views_test.py)
     # The c module (pc/tools/zig_c.py): a unit's statics are compile errors, externs stay usable.
@@ -94,70 +58,6 @@ if(ROOD_ZIG_MISSING EQUAL 0)
     # The battle statics the build globalises (pc/tools/battle_statics.py, PORTING.md §6.5): the C and
     # the global names share one storage; the views link to them.
     add_test(NAME battle_statics COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/battle_statics_test.py)
-    # Each Zig port against its original C body on random and edge inputs, with the mutation
-    # self-checks (pc/tools/zig_diff.py; reads the 64-bit build, skipped without one).
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-        # Twenty-eight shards (the specs grew past one test's timeout with the battle port's waves;
-        # wave 2's 353 specs took up to 1400 s a shard in six; wave 7's 1097 up to 1800 in ten;
-        # 1784 took 18-27 min a shard in twenty, over 30 beside other suites; 1897 put two
-        # half-hour specs in one shard of twenty, past 45 min. In 28 the six heaviest
-        # (vs_battle_exec, func_800C2E24, func_800D6E44, func_8009723C, func_800B516C,
-        # func_80098F8C) each have a shard of their own).
-        foreach(shard RANGE 27)
-            add_test(NAME zig_diff_${shard} COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/zig_diff.py
-                --self-check --coverage --shard ${shard}/28 --build ${CMAKE_CURRENT_BINARY_DIR}/boot64
-                --work ${CMAKE_CURRENT_BINARY_DIR}/zig-diff-${shard})
-            set_tests_properties(zig_diff_${shard} PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 2700)
-        endforeach()
-        # The coverage lane flags what weakened specs miss (uncovered branches, boundary equality, sign-only tests).
-        add_test(NAME zig_diff_coverage COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/zig_diff_coverage_test.py
-            ${CMAKE_CURRENT_BINARY_DIR}/boot64)
-        set_tests_properties(zig_diff_coverage PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 600)
-        # The model bake-off's prompt and scoring tools (pc/docs/porting/battle/BAKEOFF.md).
-        add_test(NAME bakeoff_tools COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/bakeoff_test.py
-            ${CMAKE_CURRENT_BINARY_DIR}/boot64)
-        set_tests_properties(bakeoff_tools PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 600)
-        # What is sent to an external model: no local paths; the C a prompt carries is the function's own.
-        add_test(NAME prompt_tools COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/prompt_tools_test.py
-            ${CMAKE_CURRENT_BINARY_DIR}/boot64)
-        set_tests_properties(prompt_tools PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 300)
-        # The sanitiser and the last-line send guard on realistic compiler/Zig output, with fakes (no network).
-        add_test(NAME prompt_privacy COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/prompt_privacy_test.py)
-        set_tests_properties(prompt_privacy PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 120)
-        # The port pipeline's plan, gates and writers, offline (canned replies, budget 0).
-        add_test(NAME port_pipeline COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tests/port_pipeline_test.py
-            ${CMAKE_CURRENT_BINARY_DIR}/boot64)
-        set_tests_properties(port_pipeline PROPERTIES SKIP_RETURN_CODE 77 TIMEOUT 3000)
-    endif()
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(SHADOW_ZIG_OBJECT ${CMAKE_CURRENT_BINARY_DIR}/shadow_zig_probe.o)
-        add_custom_command(OUTPUT ${SHADOW_ZIG_OBJECT}
-            COMMAND ${ROOD_ZIG} build-obj -target x86_64-linux-none -O ReleaseSafe -fllvm
-                -fno-compiler-rt -fno-stack-check -fPIC -femit-bin=${SHADOW_ZIG_OBJECT}
-                ${CMAKE_CURRENT_SOURCE_DIR}/../game/common/shadow_probe.zig
-            DEPENDS ../game/common/shadow_probe.zig ../game/common/panic.zig VERBATIM)
-        add_executable(shadow_zig_test tests/shadow_test.c src/shadow.c src/state_diff.c
-            src/ownership.c ${SHADOW_ZIG_OBJECT})
-        target_include_directories(shadow_zig_test PRIVATE src)
-        target_compile_definitions(shadow_zig_test PRIVATE SHADOW_ZIG_PROBE ROOD_NO_ROUTING ROOD_NO_OWNED)
-        target_compile_options(shadow_zig_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
-        add_test(NAME shadow_zig COMMAND shadow_zig_test)
-        set(SHADOW_ROUTE_OBJECT ${CMAKE_CURRENT_BINARY_DIR}/shadow_route_probe.o)
-        add_custom_command(OUTPUT ${SHADOW_ROUTE_OBJECT}
-            COMMAND ${ROOD_ZIG} build-obj -target x86_64-linux-none -O ReleaseSafe -fllvm
-                -fno-compiler-rt -fno-stack-check -fno-omit-frame-pointer -fPIC
-                -femit-bin=${SHADOW_ROUTE_OBJECT}
-                ${CMAKE_CURRENT_SOURCE_DIR}/../game/common/shadow_route_probe.zig
-            DEPENDS ../game/common/shadow_route_probe.zig ../game/common/route.zig
-                ../game/common/panic.zig VERBATIM)
-        add_executable(shadow_route_test tests/shadow_route_test.c src/shadow.c src/state_diff.c
-            src/ownership.c ${SHADOW_ROUTE_OBJECT})
-        target_include_directories(shadow_route_test PRIVATE src)
-        target_compile_definitions(shadow_route_test PRIVATE ROOD_NO_ROUTING ROOD_NO_OWNED)
-        target_compile_options(shadow_route_test PRIVATE -Wall -Wextra -Werror -UNDEBUG -fno-omit-frame-pointer)
-        target_link_libraries(shadow_route_test PRIVATE pthread)
-        add_test(NAME shadow_route COMMAND shadow_route_test)
-    endif()
 else()
     message(STATUS "Zig not installed (pc/tools/zig_toolchain.py): zig unit tests skipped")
 endif()

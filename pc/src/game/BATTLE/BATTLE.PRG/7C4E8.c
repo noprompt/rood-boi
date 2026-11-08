@@ -62,4 +62,5 @@ typedef struct {
 PSX_ASSERT_SIZE(func_800DEEA4_t2, 0x474);
 void func_800E4CE8(func_800DEEA4_t2* arg0);
 
-void func_800E4CE8(func_800DEEA4_t2* arg0) { arg0->unk38 = -1; }
+void func_800E4CE8(func_800DEEA4_t2* arg0);
+

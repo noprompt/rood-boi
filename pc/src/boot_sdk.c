@@ -539,16 +539,6 @@ psx_long VectorNormal(VECTOR* input, VECTOR* output)
     output->vz = z;
     return sum;
 }
-/* VECTOR in, SVECTOR out (pad untouched). */
-psx_long VectorNormalS(VECTOR* input, SVECTOR* output)
-{
-    int x = input->vx, y = input->vy, z = input->vz;
-    long sum = (long)normalize3(&x, &y, &z);
-    output->vx = x;
-    output->vy = y;
-    output->vz = z;
-    return sum;
-}
 /* SVECTOR in and out (pad untouched). */
 psx_long VectorNormalSS(SVECTOR* input, SVECTOR* output)
 {
@@ -651,57 +641,12 @@ MATRIX* RotMatrix_gte(SVECTOR* angles, MATRIX* result)
     return result;
 }
 
-/* BATTLE/48C7C.s: actor rotation has a different order from RotMatrixYXZ_gte. */
-MATRIX* func_800B17F0(SVECTOR* angles, MATRIX* result)
-{
-    int sy = rsin(angles->vy), cy = rcos(angles->vy);
-    int sx2 = rsin(angles->vx) * 2, cx2 = rcos(angles->vx) * 2;
-    int sz2 = rsin(angles->vz) * 2, cz2 = rcos(angles->vz) * 2;
-    MTC2(sz2, 8);
-    MTC2(sx2, 9);
-    MTC2(cx2, 10);
-    MTC2(cy, 11);
-    gte_gpf12();
-    int a0 = (int)MFC2(9), a1 = (int)MFC2(10), m10 = (int)MFC2(11) >> 1;
-    MTC2(cz2, 8);
-    MTC2(sx2, 9);
-    MTC2(cx2, 10);
-    MTC2(cy, 11);
-    gte_gpf12();
-    int a2 = (int)MFC2(9), a3 = (int)MFC2(10), m00 = (int)MFC2(11) >> 1;
-    MTC2(sy, 8);
-    MTC2(a2, 9);
-    MTC2(a0, 10);
-    MTC2(a3, 11);
-    gte_gpf12();
-    result->m[0][0] = m00;
-    result->m[0][1] = ((int)MFC2(9) - a1) >> 2;
-    result->m[0][2] = ((int)MFC2(11) + a0) >> 2;
-    result->m[1][0] = m10;
-    result->m[1][1] = ((int)MFC2(10) + a3) >> 2;
-    result->m[1][2] = (((sy * a1) >> 12) - a2) >> 2;
-    result->m[2][0] = -sy;
-    result->m[2][1] = (cy * sx2) >> 13;
-    result->m[2][2] = (cy * cx2) >> 13;
-    return result;
-}
-MATRIX* func_800B196C(MATRIX* a, MATRIX* b) { return compose_rotation(a, b, b); }
-/* BATTLE/4B16C.s: scale matrix columns through GPF, preserving translation. */
-MATRIX* func_800B396C(MATRIX* matrix, VECTOR* scale)
-{
-    int factors[3] = { scale->vx, scale->vy, scale->vz };
-    for (int column = 0; column < 3; ++column) {
-        MTC2(factors[column], 8);
-        MTC2(matrix->m[0][column], 9);
-        MTC2(matrix->m[1][column], 10);
-        MTC2(matrix->m[2][column], 11);
-        gte_gpf12();
-        matrix->m[0][column] = MFC2(9);
-        matrix->m[1][column] = MFC2(10);
-        matrix->m[2][column] = MFC2(11);
-    }
-    return matrix;
-}
+MATRIX* func_800B17F0(SVECTOR* angles, MATRIX* result);
+
+MATRIX* func_800B196C(MATRIX* a, MATRIX* b);
+
+MATRIX* func_800B396C(MATRIX* matrix, VECTOR* scale);
+
 
 extern short D_80040C18[];
 /* 32154.s: table-based square roots, with the original leading-zero scaling. */
@@ -763,10 +708,8 @@ void pc_room_transform(VECTOR* position, VECTOR* angles, MATRIX* camera, MATRIX*
     result->t[1] = MFC2(26);
     result->t[2] = MFC2(27);
 }
-void func_800985AC(VECTOR* position, VECTOR* angles, MATRIX* result)
-{
-    pc_room_transform(position, angles, (MATRIX*)0x1f800014, result);
-}
+void func_800985AC(VECTOR* position, VECTOR* angles, MATRIX* result);
+
 
 /* 2EA3C.s 98648: inverse far-clip scale precedes camera/local rotation.
  * Keep the original signed-halfword scale and GTE translation registers. */
@@ -781,11 +724,8 @@ void pc_scaled_room_transform(
     compose_rotation(&scale, &scaled_camera, &scaled_camera);
     pc_room_transform(position, angles, &scaled_camera, result);
 }
-void func_80098648(VECTOR* position, VECTOR* angles, MATRIX* result)
-{
-    pc_scaled_room_transform(
-        position, angles, (MATRIX*)0x1f800014, *(int*)0x1f800064, result);
-}
+void func_80098648(VECTOR* position, VECTOR* angles, MATRIX* result);
+
 
 /* 2EA3C.s background mesh: 34 packed vertices, then 64 indexed G3 triangles.
  * These coordinates are transformed without perspective, as in the original.
@@ -860,63 +800,12 @@ unsigned* pc_background_packets(
         pc_hw_anchor_packets(first, packet, PC_ANCHOR_SCENE);
     return packet;
 }
-void func_8009820C(void* mesh)
-{
-    psx_store(0x1f800000, pc_background_packets(mesh, psx_load(unsigned*, 0x1f800000),
-        psx_load(unsigned*, 0x1f800004) + 2047, (int (*)[4])0x1f800100));
-}
+void func_8009820C(void* mesh);
 
-/* Per-group view matrices, including camera-facing room planes (flag 0x400). */
-void func_800983F8(void* geometry)
-{
-    unsigned* scratch = (unsigned*)0x1f800000;
-    unsigned count = *(unsigned*)geometry;
-    unsigned char* group = (unsigned char*)geometry + 4;
-    int angle = (int)scratch[0x5c / 4], scale = scratch[0x64 / 4];
-    int sine = (int)((unsigned)rsin(angle) * (unsigned)scale) >> 12;
-    int cosine = (int)((unsigned)rcos(angle) * (unsigned)scale) >> 12;
-    if (count > 4096)
-        pc_unimplemented("room group count");
-    for (unsigned i = 0; i < count; ++i, group += 0x40) {
-        unsigned flags = *(unsigned*)group;
-        if (flags & 0x100)
-            continue;
-        MATRIX* result = (MATRIX*)(group + 0x20);
-        if (!(flags & 0x400)) {
-            func_800985AC((VECTOR*)(group + 4), (VECTOR*)(group + 0x10), result);
-        } else {
-            VECTOR zero = { 0, 0, 0, 0 };
-            MATRIX camera;
-            func_800985AC(&zero, &zero, &camera);
-            SetRotMatrix(&camera);
-            SetTransMatrix(&camera);
-            MTC2(*(unsigned*)(group + 4) & 0xffff | (*(unsigned*)(group + 8) << 16), 0);
-            MTC2(*(unsigned*)(group + 12), 1);
-            gte_mvmva(1, 0, 0, 0, 0);
-            /* Preserve the matrix entries the original does not overwrite. */
-            result->m[0][0] = cosine;
-            result->m[0][1] = -sine;
-            result->m[1][0] = sine;
-            result->m[1][1] = cosine;
-            result->m[2][2] = scale;
-            result->t[0] = MFC2(25);
-            result->t[1] = MFC2(26);
-            result->t[2] = MFC2(27);
-            SetRotMatrix((MATRIX*)0x1f800014);
-            SetTransMatrix((MATRIX*)0x1f800014);
-        }
-    }
-}
+void func_800983F8(void* geometry);
 
-/* 7BDD4.s: SQR consumes signed 16-bit IR components, even for int callers. */
-int func_800E4660(int x, int y, int z)
-{
-    MTC2(x, 9);
-    MTC2(y, 10);
-    MTC2(z, 11);
-    gte_sqr0();
-    return MFC2(25) + MFC2(26) + MFC2(27);
-}
+int func_800E4660(int x, int y, int z);
+
 
 /* Pair with disabled FntLoad/FntOpen above; this is Sony's debug font only. */
 u_long* FntFlush(int id)

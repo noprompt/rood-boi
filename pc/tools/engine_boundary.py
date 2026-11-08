@@ -96,14 +96,15 @@ def _data_layout(obj, name):
     raise RuntimeError(f"{obj}: no definition of {name}")
 
 
-def generate(host_objects, engine_objects, nm, archives, imports, shared, out, own_archives=()):
+def generate(host_objects, engine_objects, nm, archives, imports, shared, out, own_archives=(), library_objects=()):
     """Write the boundary files into `out`; return the boundary as a dict.
     nm(path) -> `nm` output; archives: {path: `nm --defined-only` output} of
     the static libraries linked into the host; imports: the guest data
     imports' names (imports.ld); shared: names the shared libraries both
     sides link against define (libc, libstdc++, libm, libgcc_s);
     own_archives: `nm --defined-only` outputs of the static libraries linked
-    into the library itself."""
+    into the library itself. library_objects: the game library's objects: what
+    they use counts as used by the host (the owned code is the host's)."""
     out = pathlib.Path(out)
     host_def, host_undef, engine_def, engine_undef, engine_owner = {}, {}, {}, {}, {}
     for side_def, side_undef, objects in ((host_def, host_undef, host_objects),
@@ -118,6 +119,9 @@ def generate(host_objects, engine_objects, nm, archives, imports, shared, out, o
                 side_def.setdefault(name, kind)
             for name, weak in undefined.items():
                 side_undef[name] = side_undef.get(name, True) and weak
+    for obj in library_objects:
+        for name, weak in symbols(nm(obj))[1].items():
+            host_undef[name] = host_undef.get(name, True) and weak
     archive_def = {}
     for path, text in archives.items():
         for name in symbols(text)[0]:

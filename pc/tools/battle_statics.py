@@ -23,9 +23,8 @@ several (`reported.1`, `reported.2` in 44F14), the DWARF scope decides
 (gdb: the block-scope statics of F, at their addresses). Anything else fails
 the build: a listed static that is gone, or that cannot be told apart.
 
-build_boot.py runs it on each battle unit's object (and its COFF twin), and
-zig_diff.py on the reference object it compiles from the unit's .i (where
-only the statics the kept bodies use exist: `required=False`).
+build_boot.py runs it on each battle unit's object (and its COFF twin).
+`required=False` skips a listed static the object lacks.
 
     python3 pc/tools/battle_statics.py OBJECT...   print what would be renamed
     python3 pc/tools/battle_statics.py --unit OBJECT...   a pc/src unit's file statics
@@ -94,7 +93,7 @@ def split_view(view):
 def block_statics():
     """Inside gdb: every block-scope static of the loaded object, as
     [(function, name, address, gdb.Symbol)] (function: the innermost enclosing
-    function, an inlined one included, without a routed `__orig` suffix)."""
+    function, an inlined one included)."""
     import re as _re
     sections = []
     for line in gdb.execute("maint info sections", to_string=True).splitlines():
@@ -119,7 +118,7 @@ def block_statics():
                         f = f.superblock
                     if f is None:
                         continue
-                    function = f.function.name.removesuffix("__orig")
+                    function = f.function.name
                     address = int(symbol.value().address)
                     found.setdefault((function, symbol.name, address), symbol)
                 b = b.superblock
@@ -164,7 +163,7 @@ def dwarf_static_type(scope, name):
             function = next((d for d in reversed(stack[:-1]) if d[2] == "DW_TAG_subprogram"), None)
             while function is not None and "DW_AT_name" not in function[3] and "DW_AT_abstract_origin" in function[3]:
                 function = by_offset.get(int(function[3]["DW_AT_abstract_origin"].strip("<>"), 16))
-            if function is not None and function[3].get("DW_AT_name", "").removesuffix("__orig") == scope:
+            if function is not None and function[3].get("DW_AT_name", "") == scope:
                 found.append(die)
     if len(found) != 1:
         return None
@@ -242,6 +241,8 @@ def declared(source, name):
     configuration only, 146C's `sp20` under ROOD_PC_LP64, is absent from the
     other's object). A later declarator of a list with initializers counts:
     `static short near_depth = 8, far_depth = 0x7ff;` declares `far_depth`."""
+    # `__attribute__((used))` keeps a static the C no longer uses; it is not part of the declaration here.
+    source = re.sub(rb"__attribute__\(\([^)]*\)\)", b"", source)
     return re.search(rb"\bstatic\b[^;{}()]*[\s*,]" + re.escape(name.encode()) + rb"\s*[\[;=,]", source) is not None
 
 
@@ -268,8 +269,7 @@ def resolve(obj, object_stem, entries, nm=("nm",), required=True, work=None, sou
             found = [name] if name in local else []
         else:
             found = sorted(n for n in local if re.fullmatch(re.escape(name) + r"\.\d+", n))
-            # Several statics of that name, or several listed (zig_diff's
-            # reference object keeps one function's): the DWARF scope decides.
+            # Several statics of that name, or several listed: the DWARF scope decides.
             if len(found) > 1 or sum(1 for s, n in entries if s is not None and n == name) > 1:
                 if scoped is None:
                     scoped = _scoped(obj, work or obj)
@@ -308,8 +308,7 @@ def globalise(obj, object_stem, entries, objcopy, nm=("nm",), required=True, wor
 def file_statics(obj, object_stem, nm=("nm",)):
     """The names of obj's file-scope static data: its local data symbols
     without a dot (not yet globalised), and the globals this tool already made
-    from them (`<object_stem>__name`, so zig_diff finds them in the built
-    unit)."""
+    from them (`<object_stem>__name`)."""
     local, defined = _local_data(obj, nm)
     names = {n for n, t in local.items() if t in "bdr" and re.fullmatch(r"\w+", n)}
     prefix = object_stem + "__"

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Write pc/assets/cutscenes/opcodes.json: each event script opcode's handler
-name, read from a build's generated _opcodeFunctionTable
-(pc/build/boot*/.../event_callbacks.inc, pc/tools/event_callbacks.py). The
+name, read from _opcodeFunctionTable (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c). The
 cutscene player (pc/src/cutscene.cpp) shows the name beside the running opcode.
 
-    python3 pc/tools/cutscene_opcodes.py [event_callbacks.inc]
+    python3 pc/tools/cutscene_opcodes.py [4A0A8.c]
 """
 import json
 import pathlib
@@ -15,14 +14,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 def main():
-    if len(sys.argv) > 1:
-        source = pathlib.Path(sys.argv[1])
-    else:
-        found = sorted((ROOT / "pc/build").glob("**/event_callbacks.inc"))
-        if not found:
-            print("no event_callbacks.inc under pc/build: build first (pc/tools/build_boot.py)", file=sys.stderr)
-            return 1
-        source = found[0]
+    source = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c"
     text = source.read_text()
     start = text.index("_opcodeFunctionTable[256]")
     body = text[start:text.index("};", start)]

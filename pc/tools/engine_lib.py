@@ -40,7 +40,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT = ROOT / "pc/build/dev64"
 # The build itself: a change to one of these needs build_boot.py.
 BUILD_SCRIPTS = ["pc/tools/build_boot.py", "pc/tools/engine_boundary.py", "pc/tools/snapshot_layout.py",
-                 "pc/tools/build_cache.py", "pc/tools/event_callbacks.py", "pc/tools/import_types.py",
+                 "pc/tools/build_cache.py", "pc/tools/import_types.py",
                  "pc/tools/lp64_report.py", "pc/tools/zig_toolchain.py", "pc/tools/ownership.py"]
 SHARED = ["/usr/lib/x86_64-linux-gnu/libstdc++.so.6", "/lib/x86_64-linux-gnu/libc.so.6",
           "/lib/x86_64-linux-gnu/libm.so.6", "/lib/x86_64-linux-gnu/libgcc_s.so.1"]

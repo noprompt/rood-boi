@@ -99,37 +99,8 @@ struct actorTimerState;
 void func_800DBF00(func_800E78F4_t*);
 void func_800DBFE4(struct actorTimerState*);
 
-void func_800DBF00(func_800E78F4_t* arg0)
-{
-    func_800DEB10_t2* data = psx_get(arg0->unk54);
-    func_800E78F4_t* node;
+void func_800DBF00(func_800E78F4_t* arg0);
 
-    arg0->unk12F = 0;
-    data->unkB_2 = 2;
-
-    if (arg0 == psx_get(D_800F58BC->unk20)) {
-        data->unkB_2 = 2;
-        psx_set(D_800F58BC->unk20, psx_get(psx_get(D_800F58BC->unk20)->unk1A0) != NULL
-                                       ? psx_get(psx_get(D_800F58BC->unk20)->unk1A0)
-                                       : psx_get(D_800F58BC->unk1C));
-    }
-
-    if (psx_get(D_800F58BC->unk1C) == arg0) {
-        psx_set(D_800F58BC->unk1C, psx_get(arg0->unk1A0));
-    } else {
-        for (node = psx_get(D_800F58BC->unk1C); node != NULL;
-            node = psx_get(node->unk1A0)) {
-            if (psx_get(node->unk1A0) == arg0) {
-                psx_copy(node->unk1A0, arg0->unk1A0);
-                return;
-            }
-        }
-    }
-
-    if (psx_get(D_800F58BC->unk1C) == NULL) {
-        psx_set(D_800F58BC->unk20, NULL);
-    }
-}
 
 typedef struct {
     char pad[8];
@@ -152,59 +123,7 @@ typedef struct actorTimerState {
 } actorTimerState;
 PSX_ASSERT_SIZE(struct actorTimerState, 0x1a8);
 void func_800D820C(int, int);
-void func_800DBFE4(actorTimerState* state)
-{
-    int value;
-    if (state->timer8E && ++state->timer8E) {
-        if (state->timer8E < 8)
-            value = 0;
-        else if (state->timer8E < 16)
-            value = 1;
-        else if (state->timer8E < 24)
-            value = 2;
-        else
-            value = 3;
-        if (state->timer8E <= 120) {
-            func_800D820C(state->id, value + 1);
-            return;
-        }
-        func_800E4C8C((void*)state);
-        func_800D82CC((void*)state);
-    }
-    if (state->timer9A) {
-        if (--state->timer9A)
-            func_800D820C(state->id, 4);
-        else
-            func_800D820C(state->id, 0);
-    }
-    if (state->timer98)
-        state->timer98--;
-}
-void func_800DC0D0(void)
-{
-    actorTimerState* head = (actorTimerState*)psx_get(D_800F58BC->unk1C);
-    actorTimerState* state;
-    int changed = 0;
-    actorPhaseFlags* actor;
-    if (head) {
-        state = head;
-        do {
-            actor = psx_get(state->actor);
-            if ((state->targetFlags >> 6) != 2) {
-                if (state->phase == 0) {
-                    state->direction = 1;
-                    actor->mode = 1;
-                    changed = 1;
-                } else if (state->phase == 16) {
-                    state->direction = -1;
-                    actor->mode = 2;
-                    changed = 1;
-                }
-                state->phase += state->direction;
-                if (changed)
-                    break;
-            }
-            state = psx_get(state->next);
-        } while (state);
-    }
-}
+void func_800DBFE4(actorTimerState* state);
+
+void func_800DC0D0(void);
+

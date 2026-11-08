@@ -61,8 +61,5 @@ typedef struct {
 /* The AI record (71618.c's view): PS1 layout on every target. */
 PSX_ASSERT_SIZE(func_800DEEA4_t2, 0x474);
 
-void func_800D8260(func_800DEEA4_t2* arg0, int arg1, int arg2)
-{
-    arg0->unk138 = arg1;
-    arg0->unk12A = arg2;
-}
+void func_800D8260(func_800DEEA4_t2* arg0, int arg1, int arg2);
+

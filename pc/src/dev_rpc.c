@@ -1,4 +1,3 @@
-#include "ownership.h"
 /* Developer control interface: JSON-RPC 2.0 over a Unix socket (or TCP).
  *
  * Enabled only when ROOD_RPC names a socket path; the socket is created with
@@ -903,9 +902,6 @@ static void send_line(int fd, const char* text)
 static unsigned sfx_menu[32], sfx_other;
 void pc_sfx_played(int bank, int id)
 {
-    extern int pc_shadow_speculative(void);
-    if (pc_shadow_speculative())
-        return;
     if (bank == 0x7E && id >= 0 && id < 32)
         ++sfx_menu[id];
     else
@@ -1130,96 +1126,20 @@ static void handle_method(int fd, const char* request)
     if (!strcmp(method, "status")) {
         status_json(result, sizeof result);
         reply(fd, id, result);
-    } else if (!strcmp(method, "owner") || !strcmp(method, "shadow")) {
-        int shadow_command = !strcmp(method, "shadow");
-        if (shadow_command) {
-            char name[64];
-            int on;
-            if (!params || !string_value(member(params, "subsystem"), name, sizeof name) ||
-                !bool_value(member(params, "on"), &on) || member(params, "owner") || member(params, "action")) {
-                fail(fd, id, -32602, "shadow: subsystem string and on boolean required");
-                return;
-            }
-            int status = pc_owner_set(pc_owner_find(name), on ? 2 : 0);
-            if (status) {
-                fail(fd, id, status == -2 ? -32000 : -32602,
-                    status == -2 ? "shadow is unavailable" : "unknown subsystem");
-                return;
-            }
-        }
-        const char* action = params ? member(params, "action") : NULL;
-        if (action) {
-            char label[16];
-            int reset = 0;
-            const char* reset_value = member(params, "reset");
-            if (string_value(action, label, sizeof label) && !strcmp(label, "fault")) {
-                char function[128];
-                long long address;
-                extern int pc_shadow_set_fault(const char*, uintptr_t);
-                if (!string_value(member(params, "function"), function, sizeof function) ||
-                    !number_value(member(params, "address"), &address) || address < 0 ||
-                    (unsigned long long)address > UINTPTR_MAX || reset_value ||
-                    member(params, "owner") || member(params, "subsystem") ||
-                    pc_shadow_set_fault(function, (uintptr_t)address)) {
-                    fail(fd, id, -32602, "shadow fault requires oracle mode and a captured byte address");
-                } else reply(fd, id, "{\"ok\":true}");
-                return;
-            }
-            if (!string_value(action, label, sizeof label) || strcmp(label, "report") ||
-                (reset_value && !bool_value(reset_value, &reset)) ||
-                member(params, "owner") || member(params, "subsystem")) {
-                fail(fd, id, -32602, "owner action: report {reset: bool}");
-                return;
-            }
-            extern int pc_shadow_report(char*, int, int);
-            if (pc_shadow_report(result, sizeof result, reset) < 0)
-                fail(fd, id, -32000, "shadow report unavailable or exceeds buffer");
-            else reply(fd, id, result);
-            return;
-        }
-        const char* subsystem = params ? member(params, "subsystem") : NULL;
-        const char* owner = params ? member(params, "owner") : NULL;
-        if (!shadow_command && (subsystem || owner)) {
-            char name[64], label[16];
-            if (!string_value(subsystem, name, sizeof name) || !string_value(owner, label, sizeof label)) {
-                fail(fd, id, -32602, "owner: supply subsystem and owner strings");
-                return;
-            }
-            int status = pc_owner_set(pc_owner_find(name), pc_owner_parse(label));
-            if (status) {
-                fail(fd, id, status == -2 ? -32000 : -32602,
-                    status == -2 ? "shadow is unavailable" : "unknown subsystem or owner");
-                return;
-            }
-        }
-        int used = snprintf(result, sizeof result, "{\"subsystems\":[");
-        for (int i = 0; i < pc_owner_count(); i++) {
-            if (used > (int)sizeof result - 256) {
-                fail(fd, id, -32000, "owner response exceeds buffer");
-                return;
-            }
-            used += snprintf(result + used, sizeof result - used,
-                "%s{\"index\":%d,\"name\":\"%s\",\"owner\":\"%s\",\"routes\":%d}",
-                i ? "," : "", i, pc_owner_subsystem(i), pc_owner_label(pc_owner_get(i)), pc_owner_routes(i));
-        }
-        snprintf(result + used, sizeof result - used, "]}");
-        reply(fd, id, result);
     } else if (!strcmp(method, "digest")) {
         char action[16] = "result";
-        long long ticks = 4000, alternate = -1;
+        long long ticks = 4000;
         const char* masks = params ? member(params, "masks") : NULL;
         if (params) {
-            const char *a = member(params, "action"), *t = member(params, "ticks"), *o = member(params, "alternate");
-            if ((a && !string_value(a, action, sizeof action)) ||
-                (t && !number_value(t, &ticks)) || (o && !number_value(o, &alternate))) {
+            const char *a = member(params, "action"), *t = member(params, "ticks");
+            if ((a && !string_value(a, action, sizeof action)) || (t && !number_value(t, &ticks))) {
                 fail(fd, id, -32602, "invalid digest parameters");
                 return;
             }
         }
         int record = !strcmp(action, "record"), compare = !strcmp(action, "compare");
         if ((!record && !compare && strcmp(action, "stop") && strcmp(action, "result")) ||
-            ticks < 1 || ticks > INT_MAX || alternate < -1 || alternate > INT_MAX ||
-            (record && alternate != -1) || (masks && !record)) {
+            ticks < 1 || ticks > INT_MAX || (masks && !record)) {
             fail(fd, id, -32602, "digest: record, compare, stop or result; masks only on record");
             return;
         }
@@ -1232,8 +1152,8 @@ static void handle_method(int fd, const char* request)
                 return;
             }
         }
-        if (!masks && (record || compare) && pc_digest_start(compare, (int)ticks, (int)alternate)) {
-            fail(fd, id, -32000, "digest: stop current run first; needs valid baseline/ranges, capacity and owner");
+        if (!masks && (record || compare) && pc_digest_start(compare, (int)ticks)) {
+            fail(fd, id, -32000, "digest: stop current run first; needs valid baseline/ranges and capacity");
             return;
         }
         if (!strcmp(action, "stop")) pc_digest_stop();

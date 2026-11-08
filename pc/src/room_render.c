@@ -1,17 +1,13 @@
 /* Replace 2EA3C.s instruction-immediate patches with explicit renderer state.
  * The still-unported assembly drawing entries remain fail-fast imports. */
-static short near_depth = 8, far_depth = 0x7ff, distance_threshold = 0x200;
-static short clip_left = 0, clip_top = 0, clip_right = 320, clip_bottom = 224;
-void func_80098160(int value) { near_depth = value; }
-void func_8009817C(int value) { far_depth = value; }
-void func_80098194(int value) { distance_threshold = value; }
-void func_800981B8(int left, int top, int right, int bottom)
-{
-    clip_left = left;
-    clip_top = top;
-    clip_right = right;
-    clip_bottom = bottom;
-}
+static short near_depth __attribute__((used)) = 8, far_depth __attribute__((used)) = 0x7ff,
+    distance_threshold __attribute__((used)) = 0x200;
+static short clip_left __attribute__((used)) = 0, clip_top __attribute__((used)) = 0, clip_right __attribute__((used)) = 320,
+    clip_bottom __attribute__((used)) = 224;
+void func_80098160(int value);
+
+void func_80098194(int value);
+
 /* The same rules for the native room (room_native.c, render.h). */
 void pc_room_render_rules(int* near_bucket, int* far_bucket, int* lod_bucket)
 {

@@ -115,109 +115,28 @@ def input_cases(scale):
     return cases
 
 
-# The Zig trial port's corpus runs: (suite label, subsystem, recipe, the Zig modules it covers).
-def port_modules(subsystem):
-    """The Zig modules a subsystem's functions route to (game/ownership.toml)."""
-    import tomllib
-    table = tomllib.loads((ROOT / "game/ownership.toml").read_text())["subsystem"][subsystem]
-    return sorted({ROOT / "game" / table["overlay"] / (f["zig"].split(".")[0] + ".zig")
-                   for f in table["functions"] if "zig" in f})
-
-
-TRIAL_CORPUS = [("kill", "battle_146C", "enemy_kill", ["score.zig"]),
-                ("transform", "battle_44F14", "enemy_cast_wait", ["actor_transform.zig"]),
-                ("name_window", "battle_5BF94", "action_name_window", ["scene_message.zig"])]
-
-
-# The CTest entries in ctest_long rather than ctest (a ctest -R/-E regex).
-CTEST_LONG = "^(zig_diff|port_pipeline)"
-
-
-def zig_diff_changed(functions, scale=1.0):
-    """ctest_long in the quick lane: zig_diff on the specs the change affects
-    (affected.py Lane.zig) and ctest_long's other entries, not the 28 shards."""
-    # ~25 s a spec with its mutations and coverage, three at a time; zig_diff_coverage ~1.5 min beside them
-    timeout = max(900, 300 + 25 * -(-len(functions) // 3))
-    return Suite("zig_diff_changed", [PY, str(TESTS / "zig_diff_changed.py"), *functions], timeout * scale,
-                 binary=None, note=f"quick ctest_long: zig_diff on {len(functions)} changed spec(s), "
-                                   "zig_diff_coverage",
-                 sources=[TESTS / "zig_diff_changed.py"])
-
 # Game suites safe on the null renderer (CPU only, no pictures). verify.sh's
 # null lane runs them, so the quick lane does not repeat them on Vulkan.
-NULL_SAFE = {"null_backend_smoke", "shadow_battle_smoke", "shadow_battle_smoke_38C1C", "ownership_smoke",
-             "battle_corpus_candidate", "zig_hotswap_smoke", "engine_rewind_smoke", "classic_parity", "menu_model_smoke",
-             *(f"trial_corpus_{t[0]}{suffix}" for t in TRIAL_CORPUS for suffix in ("", "_features", "_inert"))}
+NULL_SAFE = {"null_backend_smoke", "ownership_smoke", "zig_hotswap_smoke", "engine_rewind_smoke", "classic_parity",
+             "menu_model_smoke"}
 
 
 def suites(args, mode="egl"):
     # Software GL on Xvfb is several times slower than a GPU.
     scale = args.timeout_scale * (3 if mode == "xvfb" else 1)
     return [suite.scaled(scale) if not suite.name.startswith("input:") else suite for suite in [
-        # zig_diff (every spec's self-check, ten shards) grows with each ported unit
-        # and is most of CTest's time (~35 min): it and the other long CTest
-        # entries are ctest_long, which the quick lane runs only for a change to
-        # the Zig port or its tools (affected.toml [[long]]), and then as
-        # zig_diff_changed: zig_diff on the specs the change affects only, unless
-        # shared infrastructure changed (pc/tools/zig_diff_select.py); ctest is the rest.
-        Suite("ctest", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--no-tests=error", "--output-on-failure", "-j", "4",
-                        "-E", CTEST_LONG], 600, binary=None,
-              note="CMake probes in pc/build (but ctest_long's)", sources=[ROOT / "pc/tools/ownership.py",
-                  ROOT / "game/ownership.toml", TESTS / "ownership_test.py", TESTS / "routing_probe/run.py",
-                  TESTS / "routing_probe/unit.c", TESTS / "routing_probe/owned.c", TESTS / "routing_probe/main.c",
-                  TESTS / "owner_switch_probe.c", ROOT / "pc/src/ownership.c",
+        Suite("ctest", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--no-tests=error", "--output-on-failure", "-j", "4"],
+              600, binary=None,
+              # --no-tests=error: an unconfigured pc/build (a fresh worktree) finds no test and must fail, not pass
+              note="CMake probes in pc/build", sources=[ROOT / "pc/tools/ownership.py",
+                  ROOT / "game/ownership.toml", TESTS / "ownership_test.py", ROOT / "pc/src/ownership.c",
                   TESTS / "state_diff_test.c", ROOT / "pc/src/state_diff.c", ROOT / "pc/src/state_diff.h",
-                  TESTS / "shadow_test.c", TESTS / "shadow_route_test.c",
-                  ROOT / "game/common/route.zig", ROOT / "game/common/shadow_route_probe.zig",
-                  ROOT / "pc/src/shadow.c", ROOT / "pc/src/shadow.h",
-                  ROOT / "pc/tools/field_map.py", TESTS / "field_map_test.py", TESTS / "diff/masks.py",
-                  TESTS / "diff/corpus_test.py", TESTS / "diff/corpus.py", TESTS / "diff/differ.py", TESTS / "diff/scenarios.py",
+                  ROOT / "game/common/route.zig",
                   TESTS / "state_rewind_test.c", ROOT / "pc/src/state_rewind.c",
                   TESTS / "input_record_test.c", ROOT / "pc/src/input_record.c"]),
-        # --no-tests=error: an unconfigured pc/build (a fresh worktree) finds no test and must fail, not pass
-        # 28 zig_diff shards (~13-20 min each since 1897 specs), four at a time, beside the port pipeline's ~37 min:
-        # ~2.5 h on a loaded machine (2 h cut the last shard and the pipeline off twice in Nov 2026)
-        Suite("ctest_long", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--no-tests=error", "--output-on-failure", "-j", "4",
-                             "-R", CTEST_LONG], 4 * 3600, binary=None,
-              note="the long CMake tests: zig_diff's shards and coverage lane, the port pipeline",
-              sources=[ROOT / "pc/tools/zig_diff.py", TESTS / "zig_diff_coverage_test.py",
-                       TESTS / "zig_diff_changed.py"]),
-        Suite("ctest_pipeline", ["ctest", "--test-dir", str(ROOT / "pc/build"), "--no-tests=error", "--output-on-failure",
-                                 "-R", "^port_pipeline"], 3000, binary=None,
-              note="the port pipeline's CMake test alone (~10-25 min; longer under a full check): what a pipeline or model-client change needs, "
-                   "without ctest_long's zig_diff shards",
-              sources=[TESTS / "port_pipeline_test.py", ROOT / "pc/tools/port_pipeline.py"]),
         *([Suite("null_backend_smoke", [PY, str(TESTS / "null_backend_smoke.py")], 300,
                  gpu=False, note="CPU null backend: no display or GPU resources")]
           if args.renderer == "null" else []),
-        Suite("battle_corpus_candidate", [PY, str(TESTS / "diff/differ.py"), "battle_44F14",
-              "--scenario", "enemy_cast_wait", "--card", str(args.save)], 300,
-              note="one witnessed enemy-cast recipe; NOT full task20 coverage",
-              sources=[TESTS / "diff/corpus.py", TESTS / "diff/scenarios.py", ROOT / "pc/tools/field_map.py"]),
-        # The Zig trial port (pc/docs/porting/battle/TRIAL.md): each ported function's
-        # subsystem in control, shadow, owned and alternating runs of a recipe that calls it,
-        # in the classic profile, again with the state-changing PC features on, and in the inert
-        # profile (classic plus the post-flip pins, FLIP.md section 3).
-        *[Suite(f"trial_corpus_{label}{suffix}", [PY, str(TESTS / "diff/differ.py"), subsystem,
-                "--scenario", scenario, "--card", str(args.save), "--profile", profile], 300,
-                note=f"trial port: {subsystem} on the {scenario} recipe, {profile} profile",
-                sources=[TESTS / "diff/corpus.py", TESTS / "diff/scenarios.py", ROOT / "pc/tools/field_map.py",
-                         TESTS / "diff/waivers.toml", *[ROOT / "game/battle" / module for module in modules]])
-          for label, subsystem, scenario, modules in TRIAL_CORPUS
-          for suffix, profile in (("", "classic"), ("_features", "features"), ("_inert", "inert"))],
-        Suite("shadow_battle_smoke", [PY, str(TESTS / "shadow_battle_smoke.py"), "--card", str(args.save)], 300,
-              note="experimental routed battle shadow; classic oracle profile",
-              sources=[ROOT / "pc/src/shadow.c", ROOT / "game/common/route.zig"]),
-        # The 38C1C port shadowed beside the fixture: its routed bone helpers
-        # (func_800A152C, func_800A1AF8) run between func_8007138C's caller and
-        # its partly written effect request, whose dead-stack bytes diverged
-        # until the request was zeroed (pc/docs/Oracle.md, known hazards).
-        Suite("shadow_battle_smoke_38C1C", [PY, str(TESTS / "shadow_battle_smoke.py"), "--card", str(args.save),
-              "--owner", "battle_38C1C_port=shadow"], 300,
-              note="battle_44F14 shadow with battle_38C1C_port shadowed (the effect-request oracle gap)",
-              sources=[ROOT / "pc/src/shadow.c", ROOT / "game/common/route.zig", TESTS / "shadow_battle_smoke.py",
-                       ROOT / "pc/src/game/BATTLE/BATTLE.PRG/146C.c", ROOT / "pc/src/game/BATTLE/BATTLE.PRG/38C1C.c",
-                       *port_modules("battle_38C1C_port")]),
         Suite("ownership_smoke", [PY, str(TESTS / "ownership_smoke.py")], 300,
               note="oracle checkpoint, rewind and replay", sources=[ROOT / "pc/src/state_rewind.c",
                   ROOT / "pc/src/state_diff.c", ROOT / "pc/src/snapshot.c", ROOT / "pc/src/input_record.c"]),
@@ -1085,18 +1004,6 @@ def schedule(selected, timings, config):
     return first + rest
 
 
-# Battle's Zig compared with the original C it was ported from (zig_diff's shards in ctest_long, the
-# port pipeline, the trial and candidate corpora, the shadow runs). The port is done and the Zig is
-# meant to leave the C behind (the user, 2026-11-07), so they are tools for whoever wants that
-# comparison, not checks: no lane runs them unless they are named exactly or --oracle is given.
-ORACLE_SUITES = {"ctest_long", "ctest_pipeline", "battle_corpus_candidate", "shadow_battle_smoke",
-                 "shadow_battle_smoke_38C1C"}
-
-
-def is_oracle(name):
-    return name in ORACLE_SUITES or name.startswith("trial_corpus")
-
-
 # What a budget never defers, whatever the estimates say (a checkout with no recorded times
 # estimates high): the game boots, a room and the opening draw, the frames match.
 QUICK_CORE = {"ps1_address_lint", "ctest", "rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "title_fade_smoke",
@@ -1260,9 +1167,6 @@ def make_parser():
                         help="verify.sh's quick lane (with --changed): long suites only when the change touches "
                              "them; Vulkan/null: the selection plus ctest/null_backend_smoke; GL: a sanity subset "
                              "plus what GL's own files select (affected.toml [quick])")
-    parser.add_argument("--oracle", action="store_true",
-                        help="include the suites that compare battle's Zig with the original C (ORACLE_SUITES); "
-                             "without it they run only when named exactly")
     parser.add_argument("--budget", type=float, metavar="MINUTES",
                         help="cut the selection to fit MINUTES of the last run's times, shortest first; the "
                              "rest are deferred to the full lane (<out>/deferred.txt)")
@@ -1359,9 +1263,6 @@ def main():
     selected = [s for s in every
                 if (not args.patterns or any(p in s.name for p in args.patterns))
                 and not any(x in s.name for x in args.exclude)]
-    if not args.oracle:
-        # battle's Zig against the frozen original: tools now, in no lane (named exactly, or --oracle)
-        selected = [s for s in selected if not is_oracle(s.name) or s.name in args.patterns]
     if args.quick and not (args.changed or args.changed_files):
         print("--quick needs --changed [BASE] or --changed-files")
         return 2
@@ -1371,15 +1272,9 @@ def main():
         affected.report(selection, len(every))
         wanted = set(selection.reasons)
         if args.quick:
-            lane = affected.quick_lane(selection, every, args.renderer, null_safe=NULL_SAFE,
-                                       base=None if args.changed_files else args.changed)
+            lane = affected.quick_lane(selection, every, args.renderer, null_safe=NULL_SAFE)
             print(affected.lane_line(lane, len(every)))
             wanted = set(lane.names)
-            if lane.zig and lane.zig.functions is not None:
-                # the specs the change affects, not every spec's shard
-                quick_long = zig_diff_changed(lane.zig.functions, args.timeout_scale)
-                selected = [quick_long if s.name == "ctest_long" else s for s in selected]
-                wanted.add(quick_long.name)
         if not args.no_snapshots and any(name in CHECKPOINT_SUITES for name in wanted):
             # it makes (or finds) the save states those suites resume
             wanted.add("snapshot_equivalence")
@@ -1412,7 +1307,7 @@ def main():
     print(f"headless: {mode}" + (f" ({renderer})" if renderer else " (software GL on Xvfb)"))
     for warning in stale_binaries(selected):
         print(f"warning: {warning}; rebuild with pc/tools/build_boot.py")
-    if any(s.name.startswith(("ctest", "zig_diff_changed")) for s in selected) and (ROOT / "pc/build/build.ninja").exists():
+    if any(s.name.startswith("ctest") for s in selected) and (ROOT / "pc/build/build.ninja").exists():
         built = subprocess.run(["ninja", "-C", str(ROOT / "pc/build")], capture_output=True, text=True)
         if built.returncode:
             print(built.stdout[-2000:])

@@ -4,7 +4,7 @@
     python3 pc/tools/play_mode.py -- COMMAND...   run COMMAND in play mode
     python3 pc/tests/run.py --play ...            the test runner in play mode (also ROOD_PLAY=1)
 
-The process (and everything it starts: builds, ctest, zig_diff, game
+The process (and everything it starts: builds, ctest, game
 suites) is confined to the efficiency cores and put in the idle
 scheduling class (SCHED_IDLE: it runs only on time nothing else wants), so
 a game played meanwhile keeps the performance cores and wins every

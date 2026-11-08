@@ -1,3 +1,9 @@
+> **2026-11-08:** battle's C originals are deleted, and with them zig_diff, the port pipeline, the model bake-off, the
+> differential corpus and the shadow, alternate and owner-switch routing. Where this document describes comparing a port
+> with its original, or routing between them, it describes how the port was done. What still applies: the rules for
+> writing owned Zig (views, guest pointers, naming, the `/// orig:` lines), and `game/ownership.toml`, which now lists
+> the functions the Zig exports under the original names.
+
 # Porting the decompiled C to Zig
 
 Status: guide for phase D of `pc/docs/plans/2026-10-18-freedom-and-fast-iteration.md`

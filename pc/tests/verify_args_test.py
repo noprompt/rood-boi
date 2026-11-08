@@ -141,18 +141,6 @@ class VerifyArgsTest(unittest.TestCase):
             self.assertIn(checkpoint, [s.name for s in kept])
             self.assertIn("snapshot_equivalence", [s.name for s in kept])
 
-    def test_no_lane_compares_battle_with_the_original(self):
-        def listed(*argv):
-            with patch.object(sys, "argv", ["run.py", "--arch", "64", "--renderer", "vulkan", "--list", *argv]), \
-                 contextlib.redirect_stdout(io.StringIO()) as output:
-                run.main()
-            return [line.split()[0] for line in output.getvalue().splitlines() if line.strip()]
-        every = listed()
-        self.assertTrue(every)
-        self.assertFalse([name for name in every if run.is_oracle(name)])
-        self.assertEqual(listed("ctest_long"), ["ctest_long"])  # named exactly: still a tool
-        self.assertIn("trial_corpus_kill", listed("--oracle"))
-
     def test_fit_budget_keeps_the_core_without_recorded_times(self):
         with tempfile.TemporaryDirectory() as tmp:
             suites = [run.Suite(name, ["true"], timeout=3000, note="")

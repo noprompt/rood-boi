@@ -16,12 +16,12 @@ variables. A null + desktop-window request is rejected.
 
 ```sh
 python3 pc/tests/run.py --arch 64 --renderer null --cpu-jobs 2 \
-  null_backend_smoke shadow_battle_smoke ownership_smoke battle_corpus_candidate
+  null_backend_smoke ownership_smoke zig_hotswap_smoke
 ```
 
 These allowlisted game suites use the CPU lane while retaining binary/staleness
 dependencies. Other game/visual suites cannot accidentally enter the null lane.
-Snapshot caches are disabled there; the corpus owns its private pinned artifacts.
+Snapshot caches are disabled there.
 The thermal gate and nice policy still apply. `verify.sh` (both lanes) runs this
 CPU-only step **outside** `ROOD_HEAVY_LOCK`; Vulkan/OpenGL suites retain that lock.
 Builds retain `ROOD_BUILD_LOCK`.

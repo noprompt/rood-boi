@@ -164,62 +164,12 @@ extern unsigned short* D_800F58C8;
 void func_800E4288(void*, int);
 int func_800DEC88(void* arg0);
 
-int func_800E5568(func_800E5568_t* arg0)
-{
-    int (*fn)(int);
-    int mask;
-    int r;
-    int v;
+int func_800E5568(func_800E5568_t* arg0);
 
-    mask = 1 << arg0->shape;
-    if (mask & 0x16) {
-        r = arg0->rangeZ;
-        fn = rcos;
-    } else if (mask & 0x8) {
-        r = arg0->rangeY;
-        fn = rcos;
-    } else {
-        r = arg0->rangeY;
-        fn = rsin;
-    }
-    v = fn(arg0->angle << 7);
-    return ((r << 5) * ABS(v)) >> 12;
-}
+int func_800E5600(int arg0, int actionId, u_int arg2);
 
-int func_800E5600(int arg0, int actionId, u_int arg2)
-{
-    vs_action_t* action = &vs_main_actions[actionId];
-    int r = 0;
-    int v;
+int func_800E5698(func_800E5698_t* arg0, int actionId);
 
-    if (action->flagsE_13 << 0x1D) {
-        r = action->aoe_8 << 5;
-    } else if (action->flagsE_3 << 0x17) {
-        v = func_800E5568((func_800E5568_t*)&action->aoe_0);
-        if (v < arg2) {
-            r = v;
-        }
-    }
-    return r;
-}
-
-int func_800E5698(func_800E5698_t* arg0, int actionId)
-{
-    vs_action_t* action = &vs_main_actions[actionId];
-    func_800E5568_t* range;
-    u_int v;
-
-    if (action->rangeX == 0xFF) {
-        range = &psx_get(arg0->unk5C)->unk38;
-    } else {
-        range = (func_800E5568_t*)&action->rangeX;
-    }
-    v = func_800E5568(range);
-    if (v > 0x20) {
-        v -= 0x20;
-    }
-    return v * v;
-}
 
 typedef union {
     unsigned int raw;
@@ -254,74 +204,10 @@ typedef struct {
     actionMetadataEntry entries[6][4];
 } actionMetadataState;
 PSX_ASSERT_SIZE(actionMetadataState, 0x2f0);
-void func_800E5710(actionMetadataState* state)
-{
-    int row, column, id, mask;
-    actionMetadataAction* action;
-    actionMetadataEntry* entry;
-    if (!state->id) {
-        state->maxActionCost = 1;
-        return;
-    }
-    for (row = 0; row < 6; row++)
-        for (column = 0; column < 4; column++) {
-            id = psx_get(state->stats)->slots[row][column].id;
-            action = (void*)&vs_main_actions[id];
-            entry = &state->entries[row][column];
-            mask = 1 << ((action->flags.raw >> 20) & 15);
-            entry->rangeSquared = func_800E5698((void*)state, id);
-            entry->radius = func_800E5600(
-                psx_to_int(int, state), id, vs_gte_rsqrt(entry->rangeSquared));
-            entry->longRange =
-                entry->rangeSquared > 0x51000 && !(action->flagsC & 0x20000000);
-            if (mask & 0x4198)
-                entry->f1 = 1;
-            if (mask & 0x154)
-                entry->f2 = 1;
-            if (mask & 0xA)
-                entry->kind = 1;
-            else if (mask & 0x40A0)
-                entry->kind = 2;
-            else if (mask & 0x1954)
-                entry->kind = 3;
-            entry->special = ((unsigned char*)D_800F58BC)[10]
-                          && (action->flags.raw & 0xE0000) != 0x20000
-                          && (action->flags.raw & 0xE0000) != 0x60000
-                          && (mask & 0x4000) != 0;
-            if ((action->flags.raw & 0xE0000) == 0x20000) {
-                unsigned int value = action->flags.bytes[3];
-                if (state->maxActionCost < value)
-                    state->maxActionCost = value;
-            }
-        }
-}
+void func_800E5998(void);
 
-void func_800E5998(void)
-{
-    vs_battle_actor* actor = psx_get(vs_battle_actors[0]->next);
+void func_800E5A74(int* arg0, func_800E5A74_t* arg1);
 
-    while (actor != NULL) {
-        if (D_800F5878[actor->id]->unk16 == 0x10) {
-            vs_battle_actor* other = psx_get(vs_battle_actors[0]->next);
-
-            while (other != NULL) {
-                if (other->unk30_0 == actor->unk30_9) {
-                    break;
-                }
-                other = psx_get(other->next);
-            }
-            if (other != NULL) {
-                D_800F5878[actor->id]->unk16 = other->id;
-            }
-        }
-        actor = psx_get(actor->next);
-    }
-}
-
-void func_800E5A74(int* arg0, func_800E5A74_t* arg1)
-{
-    *arg0 = ((arg1->unk4 & 0xFFE) << 20) | (*arg0 & 0x1FFFFF);
-}
 
 typedef union {
     unsigned int raw;
@@ -415,126 +301,19 @@ int func_800E7F8C(func_800E78F4_t*);
 void func_800E7660(actorSettingsState*);
 void func_800E5998(void);
 
-void func_800E5A9C(actorSettingsState* state, actorSettingsWord* settings)
-{
-    actorSettingsActor* actor = psx_get(state->actor);
-    unsigned int rangeSquared, step;
-    int i, temp;
-    rangeSquared = D_80069C1C[(settings->half[1] & 28) >> 2];
-    state->rangeSquared = rangeSquared;
-    if (rangeSquared > 0x23FFFF)
-        rangeSquared = 0x240000;
-    state->limit = rangeSquared;
-    state->angle = D_800F17B8[settings->half[1] & 3][0];
-    state->cosine = rcos((state->angle / 2) * 4096 / 360);
-    state->f25 = (settings->raw >> 15) & 1;
-    state->f29 = (settings->raw >> 14) & 1;
-    state->f24 = (settings->raw >> 13) & 1;
-    state->f2D = 0;
-    if (D_800F58C0) {
-        for (i = 0; i < 8; i++) {
-            if (D_800F58C8[i] >> 15)
-                break;
-        }
-        if (i != 8)
-            state->f2D = (settings->raw >> 12) & 1;
-    }
-    state->fB2 = ((settings->raw >> 10) & 3) + 1;
-    state->fB0 = D_800F17C8[(settings->raw >> 8) & 3][0];
-    step = 128;
-    if (state->collisionRadius > 128)
-        step = 32;
-    state->fBA = (step * D_800F17D8[(settings->raw >> 2) & 3]) >> 4;
-    state->f23 = 1;
-    state->f21 = settings->byte[3] & 1;
-    state->f22 = (settings->raw >> 23) & 1;
-    state->f2C = (settings->raw >> 21) & 3;
-    state->f2F = (settings->raw >> 28) & 3;
-    state->f31 = settings->raw >> 30;
-    state->f20 = (settings->raw >> 26) & 1;
-    state->fD6 = D_80069C3C[(settings->raw >> 4) & 7].first;
-    state->fD4 = D_80069C3C[(settings->raw >> 4) & 7].second;
-    state->fD8 = D_80069C3C[(settings->raw >> 4) & 7].third;
-    state->f27 = (settings->raw >> 27) & 1;
-    state->f30 = (settings->raw >> 25) & 1;
-    if (!(state->flags & 0xC0))
-        state->f32 = D_80069C18[state->f31];
-    state->f33 = settings->byte[0] >> 7;
-    temp = actor->flags34.bits.mode;
-    state->f26 = temp >> 1;
-    temp &= 1;
-    state->f2B = temp;
-    state->f102 = D_80069C08[(actor->flags34.raw >> 14) & 1];
-    state->f101 = (actor->flags.raw >> 14) & 3;
-    state->fC8 = actor->flags.half[1] & 63;
-    state->fCC = (actor->flags.raw >> 22) & 31;
-    state->fCE = actor->flags.raw >> 27;
-    if ((unsigned int)(actor->kind - 0xAC) < 2) {
-        psx_set(state->callback, func_800E7F8C);
-        state->f19 = 1;
-        func_800E7660(state);
-    } else
-        psx_set(state->callback, D_800F1790[(actor->flags.raw >> 4) & 31]);
-    state->f16 = 16;
-    func_800E5998();
-    func_800E5710((void*)state);
-}
+void func_800E5A9C(actorSettingsState* state, actorSettingsWord* settings);
 
-void func_800E5EC0(int arg0, int arg1, int arg2)
-{
-    D_800F16EC_t* step;
-    int i;
-    int value = arg2 & 0x3FF;
+void func_800E5EC0(int arg0, int arg1, int arg2);
 
-    D_800F58D0[arg1][arg0] = (D_800F58D0[arg1][arg0] & 0xFC00) | value | 0x2000;
+int func_800E5FDC(int arg0, int arg1);
 
-    for (i = 0, step = D_800F16EC; i < 4; ++i, step += 2) {
-        u_int x = arg0 + step->dx;
-        u_int z = arg1 + step->dz;
+void func_800E6098(void);
 
-        if (x < 32 && z < 32 && (D_800F58B8[z][x] & 0x20)
-            && !(D_800F58D0[z][x] & 0x2000)) {
-            func_800E5EC0(x, z, arg2);
-        }
-    }
-}
-
-int func_800E5FDC(int arg0, int arg1)
-{
-    int i;
-    u_int x;
-    u_int z;
-
-    for (i = 0; i < 4; i++) {
-        x = arg0 + D_800F16EC[i * 2].dx;
-        z = arg1 + D_800F16EC[i * 2].dz;
-        if (x < 32 && z < 32 && !(D_800F58B8[z][x] & 0x70)) {
-            return func_8008DC7C(x << 7 | 0x40, z << 7 | 0x40) >> 6;
-        }
-    }
-    return -1;
-}
-
-void func_800E6098(void)
-{
-    int x;
-    int z;
-
-    for (z = 0; z < 32; ++z) {
-        for (x = 0; x < 32; ++x) {
-            if ((D_800F58B8[z][x] & 0x20) && !(D_800F58D0[z][x] & 0x2000)) {
-                int r = func_800E5FDC(x, z);
-                if (r >= 0) {
-                    func_800E5EC0(x, z, r);
-                }
-            }
-        }
-    }
-}
 
 void func_800E6F9C(void);
 
-void func_800E6158(void) { func_800E6F9C(); }
+void func_800E6158(void);
+
 
 extern int D_800F590C;
 void func_800A190C(unsigned char, int, void*, int);
@@ -657,114 +436,5 @@ void func_800E6828(actorInitializationState*);
 void func_800E7370(actorInitializationState*);
 void func_800E72D0(void);
 
-int func_800E6178(actorInitializationActor* actor, int options)
-{
-    actorInitializationState* state;
-    actorInitializationModel* model;
-    actorInitializationStats* stats;
-    int id = actor->id;
-    int i, kind, temp, packed;
-    unsigned int radius, range;
-    unsigned short result[4];
-    if (actor->attributes & 0x15)
-        D_800F590C |= 1 << id;
-    if (!actor->field40) {
-        kind = psx_get(actor->model)->kind & 7;
-        if (kind == 2 || kind == 4) {
-            for (i = 0; i < 4; i++) {
-                if (!((int*)D_800F58BC)[10 + i]) {
-                    ((int*)D_800F58BC)[10 + i] = psx_to_int(int, actor);
-                    break;
-                }
-            }
-        }
-    }
-    if (!(actor->attributes & 5))
-        return 0;
-    state = vs_main_allocHeap(0x484);
-    D_800F5878[id] = (void*)state;
-    func_800E4288(state, 0x484);
-    state->id = id;
-    psx_set(state->actor, actor);
-    model = psx_get(actor->model);
-    psx_set(state->model, model);
-    psx_copy(state->stats, actor->stats);
-    func_800A190C(state->id, 250, result, 0);
-    state->field82 = result[1] - model->position[1];
-    radius = model->radius;
-    if (!id)
-        state->radius = 40;
-    else if (radius < 63)
-        state->radius = radius;
-    else
-        state->radius = 62;
-    if (radius > 128) {
-        state->stepHeight = 32;
-        state->collisionRadius = radius;
-    } else {
-        radius = state->radius;
-        state->stepHeight = 128;
-        state->collisionRadius = radius;
-    }
-    psx_set(state->position, model->position);
-    psx_set(state->tilePointer, &model->tile.raw);
-    state->field89 = 0;
-    state->field8A = 0;
-    state->field103 = 1;
-    state->field2A = func_800A152C(id, 2, 3) >= 0;
-    stats = psx_get(actor->stats);
-    state->field224 = stats->field30;
-    state->field225 = stats->field32;
-    state->field226 = stats->field31;
-    state->field227 = stats->field33;
-    if (state->field224 & 8)
-        state->distance = state->field226 << 7;
-    else if (state->field225 & 8)
-        state->distance = state->field227 << 7;
-    func_800E6828(state);
-    range = state->field226;
-    if (range < state->field227)
-        range = state->field227;
-    state->maxRange = range;
-    packed = actor->field38;
-    if (actor->field34 & 1)
-        func_800E5A74(&packed, (void*)&actor->field30);
-    func_800E5A9C((void*)state, (void*)&packed);
-    func_800E7370(state);
-    temp = state->distance - 64;
-    if (state->rangeSquared < (unsigned int)(temp * temp))
-        state->distance = vs_gte_rsqrt(state->rangeSquared) - 64;
-    state->fieldBC = -256;
-    state->fieldBE = -128;
-    state->fieldB8 = model->field63E;
-    state->tile = *psx_get(state->tilePointer);
-    state->field110 = *psx_get(state->tilePointer);
-    state->field194 = -1;
-    state->field9C = -1;
-    state->targetY = psx_get(state->position)[1] << 12;
-    if (id) {
-        if ((state->flags & 0x30) && (state->flags & 0xC6)
-            && (D_800F58B8[model->tile.p.z][model->tile.p.x] & 0x10)
-            && !(model->flags & 0x200000)) {
-            state->next = model->tile.raw;
-            func_800DEEFC((void*)state, 12);
-        } else if ((short)options < 0 || !(((int)(short)options << 26) < 0)) {
-            if (actor->field1F) {
-                func_800DEEFC((void*)state, 1);
-                state->field12D = 1;
-            }
-        }
-    }
-    actor->flags.bytes.b1 = 0;
-    actor->flags.bits.f26 = 0;
-    actor->flags.bits.f24 = 0;
-    state->field124 = actor->flags.bytes.b1;
-    state->previous = -1;
-    state->options = (short)options;
-    func_800E72D0();
-    if (state->id) {
-        while (func_800DEC88(0))
-            ;
-    }
-    return (short)options >= 0 && (((int)(short)options << 26) < 0);
-}
+int func_800E6178(actorInitializationActor* actor, int options);
+

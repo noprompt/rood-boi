@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""In-process oracle: exact checkpoint rewind, input replay and per-tick digests."""
+"""Exact checkpoint rewind, input replay and per-tick digests."""
 import pathlib
 import sys
 import tempfile
@@ -8,10 +8,6 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "pc/tools"))
 from rood_rpc import Game, OUT, BINARY, RpcError
 from checkpoints import title
-
-# The owner switch's fixture: a fully ported subsystem (the trial's
-# func_800B07DC, actor_transform.offsetToWorld) whose routes do not change.
-FIXTURE = "battle_44F14"
 
 
 def check(condition, message):
@@ -24,38 +20,12 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="oracle-", dir=OUT) as directory:
         out = pathlib.Path(directory)
-        g = Game.launch(fast=True, log=out / "game.log", extra_env={ "ROOD_INTERPOLATE": "0",
-                "ROOD_OWNER": f"{FIXTURE}=original",
+        g = Game.launch(fast=True, log=out / "game.log", extra_env={
+                "ROOD_INTERPOLATE": "0",
                 "ROOD_CARD1": str(out / "absent-card.mcd"),
                 "ROOD_CARD2": str(out / "absent-card2.mcd")})
         try:
             title(g)
-            owners = g.owner()["subsystems"]
-            fixture = next(o for o in owners if o["name"] == FIXTURE)
-            # the fixture original from ROOD_OWNER, every other subsystem owned by default (the flip; this
-            # build is not the development host, so battle_frame's dev_default does not apply).
-            check(fixture["routes"] == 1 and fixture["owner"] == "original"
-                  and all(o["owner"] == "owned" for o in owners if o["name"] != FIXTURE),
-                  f"ROOD_OWNER and the fixture's one route original, the rest owned: {owners}")
-            for owner in ("owned", "original", "owned"):
-                reply = g.owner(FIXTURE, owner)["subsystems"]
-                check(next(o for o in reply if o["name"] == FIXTURE)["owner"] == owner,
-                      f"owner round-trip: {owner}")
-            for params in ({"subsystem": "missing", "owner": "owned"},
-                           {"subsystem": FIXTURE, "owner": "bad"},
-                           {"subsystem": FIXTURE}, {"owner": "owned"},
-                           {"subsystem": 1, "owner": "owned"},
-                           {"action": "unknown"}, {"action": "report", "reset": "yes"},
-                           {"action": "report", "owner": "owned"}):
-                try:
-                    g.call("owner", **params)
-                    raise AssertionError(f"invalid owner request accepted: {params}")
-                except RpcError:
-                    pass
-            report = g.call("owner", action="report", reset=True)
-            check(report == {"calls": 0, "count": 0, "errors": 0, "truncated": False, "coverage_dropped": 0,
-                            "mismatches": [], "coverage": []},
-                  f"shadow report is empty before shadow execution: {report}")
             g.call("graphics", interpolate=False)
             try:
                 g.rewind()

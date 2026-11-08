@@ -115,12 +115,6 @@ gl_paths = ["pc/src/gl_*", "pc/src/render_gl.h", "pc/src/post_gl.inc", "pc/src/g
 # one only when its own script or declared sources change, or a file in its
 # `paths` (what it exists to test) does ----
 [[long]]
-# zig_diff's ten shards, the coverage lane and the port pipeline: ~35 min of CPU
-suites = ["ctest_long"]
-paths = ["game/*", "pc/tools/zig_diff.py", "pc/tools/zig_views.py", "pc/tools/zig_c.py", "pc/tools/ownership.py",
-         "pc/tools/battle_statics.py", "pc/tests/zig_diff/*", "pc/tests/zig_diff_coverage_test.py"]
-
-[[long]]
 # 431 s and 128 s: the charge skip played out
 suites = ["skip_charging_smoke", "charge_skip_soak"]
 paths = ["pc/src/charge_skip.*"]
@@ -146,16 +140,11 @@ paths = ["pc/src/cutscene*", "pc/src/story_boot.c", "pc/assets/cutscenes/*", "pc
 suites = ["input:data-menu-five-times-then-walk"]
 paths = ["pc/src/memory_card.c", "pc/src/game/MENU/*"]
 
-[[long]]
-# the Zig trial port's corpus runs (~100 s each, six of them): run in the null lane
-suites = ["trial_corpus_*"]
-paths = ["game/*", "pc/tests/diff/*", "pc/tools/field_map.py", "pc/src/shadow.*", "pc/docs/porting/battle/MEANINGS.tsv"]
-
 # ---- documentation and repository chores: nothing to run ----
 [[rule]]
 paths = ["*.md", "docs/*", "pc/docs/*", "LICENSE", "THIRD_PARTY.md", ".github/*", ".vscode/*",
          ".gitignore", "Dockerfile", "pc/tools/publish.sh", "pc/tools/where.sh", "pc/tools/dev_loop.sh", "pc/tools/memcap",
-         "pc/tools/new_worktree.sh", "pc/tools/port_progress.py", "pc/tools/remove_worktree.sh", "pc/tools/clean_build.py",
+         "pc/tools/new_worktree.sh", "pc/tools/remove_worktree.sh", "pc/tools/clean_build.py",
          "pc/tests/profile_report.py", "pc/tests/enemy_soak_report.py", "pc/run-game.sh", "pc/run-boot.sh",
          "pc/tools/steam-launch.sh", "assets/*"]
 suites = []
@@ -165,7 +154,7 @@ exclusive = true
 # run.py (suite definitions, the runner) the harness set ----
 [[rule]]
 paths = ["pc/tests/affected.py", "pc/tests/affected.toml", "pc/tests/affected_test.py", "pc/tools/verify.sh",
-         "pc/tests/verify_args_test.py", "pc/tools/zig_diff_select.py"]
+         "pc/tests/verify_args_test.py"]
 suites = ["affected_test", "verify_args_test"]
 exclusive = true
 
@@ -259,35 +248,21 @@ suites = ["engine_reload_smoke", "photo_engine_reload_smoke"]
 # ---- reloadable Zig game code and the host dispatch boundary ----
 [[rule]]
 paths = ["game/*", "pc/tools/game_lib.py", "pc/src/game_host.inc", "pc/src/engine_host.c",
-         "pc/tools/ownership.py", "pc/src/ownership.*", "pc/src/shadow.*", "pc/src/dev_rpc.c",
+         "pc/tools/ownership.py", "pc/src/ownership.*", "pc/src/dev_rpc.c",
          "pc/src/lua/lua_rpc.cpp", "pc/tools/dev_loop.sh"]
 suites = ["zig_hotswap_smoke"]
 
-# ---- the Zig trial port: its corpus runs (pc/docs/porting/battle/TRIAL.md) ----
+# ---- owned-code generators (ctest zig_c, zig_views, battle_statics, ownership) ----
 [[rule]]
 paths = ["game/*", "pc/tools/ownership.py", "pc/tools/zig_views.py", "pc/tools/zig_c.py",
-         "pc/docs/porting/battle/MEANINGS.tsv", "pc/tests/diff/*", "pc/src/shadow.*"]
-suites = ["trial_corpus_*"]
+         "pc/tests/zig_c_test.py", "pc/tests/zig_views_test.py", "pc/tools/battle_statics.py",
+         "pc/tests/battle_statics_test.py", "pc/docs/porting/battle/STATE.tsv", "pc/docs/porting/battle/MEANINGS.tsv"]
+suites = ["ctest"]
 
-# ---- owned-code generators and the differential harness (ctest zig_c, zig_views; ctest_long zig_diff) ----
-[[rule]]
-paths = ["game/*", "pc/tools/ownership.py", "pc/tools/zig_views.py", "pc/tools/zig_c.py", "pc/tools/zig_diff.py",
-         "pc/tests/zig_diff/*", "pc/tests/zig_c_test.py", "pc/tests/zig_views_test.py",
-         "pc/tools/battle_statics.py", "pc/tests/battle_statics_test.py", "pc/docs/porting/battle/STATE.tsv"]
-suites = ["ctest", "ctest_long"]
-
-# ---- the port pipeline and the model bake-off (ctest port_pipeline, bakeoff_tools, prompt_tools) ----
-[[rule]]
-paths = ["pc/tools/port_pipeline.py", "pc/tools/model_client.py", "pc/tools/spec_bakeoff.py", "pc/tools/bakeoff*.py",
-         "pc/tools/porting_tables.py", "pc/tools/port_rounds.py",
-         "pc/tools/ownership.py", "game/ownership.toml",
-         "pc/tools/prompt_*.py", "pc/tests/port_pipeline/*"]
-suites = ["ctest", "ctest_pipeline"]
-
-# ---- the oracle's shared declarations (shadow and owned runs) ----
+# ---- the oracle's shared declarations ----
 [[rule]]
 paths = ["pc/src/oracle.h"]
-suites = ["ownership_smoke", "shadow_battle_smoke*", "battle_corpus_candidate", "ctest"]
+suites = ["ownership_smoke", "ctest"]
 
 # ---- frame cost counters (ROOD_PERF) ----
 [[rule]]
@@ -597,8 +572,7 @@ suites = ["lp64_alias_scan"]
 # ---- tools no test uses (a test that imports one is found by the import scan) ----
 [[rule]]
 paths = ["pc/tools/aa_bench.py", "pc/tools/anim_trace.py", "pc/tools/font_match.py", "pc/tools/inventory.py",
-         "pc/tools/manual_dump.py", "pc/tools/lighting_gallery.py", "pc/tools/windows_dist.py",
-         "pc/tools/event_callbacks.py"]
+         "pc/tools/manual_dump.py", "pc/tools/lighting_gallery.py", "pc/tools/windows_dist.py"]
 suites = ["ctest"]
 
 [[rule]]
