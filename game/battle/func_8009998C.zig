@@ -1,10 +1,10 @@
 //! Battle object setup: fills an object's data block from a matching object or from its definition
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009998C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009998C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Sets up battle object `arg0`'s data block: copies a matching object's block, or builds its own.
 pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const obj = arg0.?;

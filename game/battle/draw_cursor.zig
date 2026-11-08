@@ -1,5 +1,5 @@
 //! Cursor animation step: sets the cursor sprite's texture page and advances the step
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -19,7 +19,7 @@ fn scratchPtr() ?*anyopaque {
     return @ptrFromInt(@as(usize, word.*));
 }
 
-/// orig: vs_battle_drawCursor (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_drawCursor (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws the cursor sprite for `position` with brightness `animStep`, then returns the next step (mod 16).
 pub fn drawCursor(animStep: c_int, position: c_int) callconv(.c) c_int {
     const brightness: c_int = @as(c_int, psx.at(v.g.vs_battle_cursorBrightnessAnimation(), animStep).*);

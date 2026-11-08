@@ -1,11 +1,11 @@
 //! Loads the battle menu sub-program overlay from CD and unpacks the menu background
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_loadMenuPrg (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_loadMenuPrg (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Starts loading menu sub-program `request & 0x1F` and, once it is in, finishes the load and sets up the menu background.
 pub fn loadMenuPrg(request: c_int) callconv(.c) c_int {
     const state = v.g.vs_battle_menuState();

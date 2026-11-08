@@ -1,11 +1,11 @@
 //! Advances the fixed-point interpolation in D_800F4B88 one step and passes its
-//! two outputs on (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! two outputs on (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BBAFC (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BBAFC (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Steps the interpolation in D_800F4B88, sends its two outputs on, and stops it once the last step is reached.
 pub fn func_800BBAFC() callconv(.c) void {
     const s = v.g.D_800F4B88();

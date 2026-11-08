@@ -1,11 +1,11 @@
 //! Advances a falling object one tick: gravity, drag, floor contact and bounce
-//! (src/BATTLE/BATTLE.PRG/2842C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009306C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009306C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Advances the motion one tick; returns 0 once it has come to rest on the floor, else 1.
 pub fn func_8009306C(motion: ?*v.func_80092F74_t) callconv(.c) c_int {
     const m = motion.?;

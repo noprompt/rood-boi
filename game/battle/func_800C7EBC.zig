@@ -1,10 +1,10 @@
-//! Blends a font glyph into a 16-bit image (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Blends a font glyph into a 16-bit image (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C7EBC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C7EBC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Reads glyph `glyph`'s 12x12 4-bit cell from VRAM (StoreImage) and blends its coloured pixels (palette D_800EB98C) into `destination` (rows `stride` apart) by `alpha` / 65536.
 pub fn func_800C7EBC(destination_arg: [*c]u16, glyph: c_uint, stride: c_int, alpha: c_uint) callconv(.c) void {
     var destination = destination_arg;

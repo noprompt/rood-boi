@@ -1,4 +1,4 @@
-//! Draws an ability's timing result word, sliding in and out (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Draws an ability's timing result word, sliding in and out (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
@@ -13,7 +13,7 @@ const success = [_][*:0]const u8{ "$COOL!", "$GOOD!", "$EXCELLENT!", "$RIGHT   O
 const offsets = [_]i16{ 64, 16, 4, 1 };
 const colors = [_]c_int{ 0x808000, 0x608020, 0x408040, 0x208060, 0x8080 };
 
-/// orig: func_800958A4 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800958A4 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Draws the entry's timing word (unkC: too fast .. too slow, each in its colour; 2: on time, the praise word
 /// displayTextLen picks) at x, y, slid left by 64/16/4/1 over its first four frames and its last four (42..45).
 pub fn func_800958A4(x_arg: c_int, y: c_int, p: *v.D_800F1BAC_t) callconv(.c) void {

@@ -1,6 +1,6 @@
 //! Adds two packed 16-bit lanes of a pair of words, each lane wrapping on its own
-//! (src/BATTLE/BATTLE.PRG/2842C.c).
-/// orig: func_80096254 (src/BATTLE/BATTLE.PRG/2842C.c)
+//! (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
+/// orig: func_80096254 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Adds the low halfwords and the high halfwords of its two arguments separately, without a carry between them.
 pub fn func_80096254(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     const a: u32 = @bitCast(arg0);

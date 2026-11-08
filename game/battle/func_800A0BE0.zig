@@ -1,9 +1,9 @@
-//! Builds the actor state word D_800F49E0 for an actor slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Builds the actor state word D_800F49E0 for an actor slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_800A0BE0 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A0BE0 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Packs the state flags of actor `actorId` into D_800F49E0 and returns them; a slot with no actor record uses its slot record.
 pub fn func_800A0BE0(actorId: c_int) callconv(.c) c_uint {
     const out = v.g.D_800F49E0();

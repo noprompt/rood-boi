@@ -1,9 +1,9 @@
-//! The event script's actor-reference set (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's actor-reference set (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BB68C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BB68C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Fills set with the actors a script reference names: with bit 0x2000, every live actor slot
 /// (0x2003: only the hostile ones); otherwise the one actor func_800BFE50 resolves.
 pub fn func_800BB68C(ref: u16, set: *v.func_800BB68C_t) callconv(.c) void {

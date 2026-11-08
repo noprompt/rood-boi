@@ -1,10 +1,10 @@
-//! Refreshes the room's section 13 entries from their state flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Refreshes the room's section 13 entries from their state flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008D710 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008D710 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets each room section 13 entry's flag from its state flag and marks its linked section 3 record.
 pub fn func_8008D710() callconv(.c) void {
     const room = v.g.vs_battle_roomData();

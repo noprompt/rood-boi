@@ -1,9 +1,9 @@
-//! Flips a battle flag, runs two battle steps around a display call and returns their OR (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Flips a battle flag, runs two battle steps around a display call and returns their OR (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CF060 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF060 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Toggles D_800EC2E4, runs two battle steps, and calls func_800D2560 when D_800F531C is 4.
 pub fn func_800CF060() callconv(.c) c_int {
     const flag = v.g.D_800EC2E4();

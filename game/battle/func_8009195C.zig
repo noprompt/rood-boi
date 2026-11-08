@@ -1,9 +1,9 @@
-//! Looks up an entry in the room's geometry section (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Looks up an entry in the room's geometry section (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 
-/// orig: func_8009195C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009195C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Returns the address of geometry entry `index` (16 words each, after its count word), or null when there is none.
 pub fn func_8009195C(arg0: c_int) callconv(.c) ?*anyopaque {
     const section = psx.get(v.g.vs_battle_roomData().geometrySection) orelse return null;

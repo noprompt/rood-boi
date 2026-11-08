@@ -1,9 +1,9 @@
-//! Battle actor status query for a slot: idle, busy or empty (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle actor status query for a slot: idle, busy or empty (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009E4B0 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009E4B0 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Reports whether the battle actor in slot `arg0` is empty (-1), idle (0) or busy (1).
 pub fn func_8009E4B0(arg0: c_int) callconv(.c) c_int {
     const temp_a1: ?*v.D_800F4538_t = psx.at(v.g.D_800F4538(), arg0).*;

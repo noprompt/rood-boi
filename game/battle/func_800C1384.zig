@@ -1,10 +1,10 @@
-//! Shape visibility test: whether a shape's footprint lies inside the four clip edges of the view at `position` (src/BATTLE/BATTLE.PRG/58578.c).
+//! Shape visibility test: whether a shape's footprint lies inside the four clip edges of the view at `position` (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
 const gte = @import("common").gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C1384 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C1384 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Tests a shape's footprint against the view from `position`: nonzero when it is inside every clip edge.
 pub fn func_800C1384(shape: ?*v.func_800C1564_t, position: [*c]c_ushort, angled: c_int) callconv(.c) c_int {
     var polygon: extern struct { corners: [5]c_int, clip: c_int } = undefined;

@@ -1,12 +1,12 @@
 //! Builds the scratchpad sine table and draws the two shapes of the shape table
-//! (src/BATTLE/BATTLE.PRG/58578.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const gte = common.gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C0D78 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C0D78 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Fills the scratchpad sine table, then projects each shape of the shape table and draws it.
 pub fn func_800C0D78() callconv(.c) void {
     var shape: *v.func_800C1564_t = @ptrFromInt(0x1F800378);

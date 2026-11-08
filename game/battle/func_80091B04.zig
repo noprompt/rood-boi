@@ -1,12 +1,12 @@
 //! Per-entry callbacks over the battle table D_800F1DD8: the first 64 entries
 //! call a handler chosen by kind, the next entries run a timed step and free
-//! themselves when it finishes (src/BATTLE/BATTLE.PRG/2842C.c).
+//! themselves when it finishes (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80091B04 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80091B04 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Runs the kind-dispatched handlers of the first entries, then the timed steps of the next ones, freeing those that finish.
 pub fn func_80091B04() callconv(.c) void {
     const Handler = *const fn (?*v.D_800F1DD8_t2) callconv(.c) c_int;

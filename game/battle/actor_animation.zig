@@ -1,10 +1,10 @@
-//! Starting an actor's animation (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Starting an actor's animation (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0"); // its D_800F4538_t is opaque: view pointers go to it through @ptrCast
 
-/// orig: func_800A0204 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A0204 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Starts animation `animation` (mapped by the actor's stance and weapon) on actor `actorId`, blending over `blendFrames`; -1 for an empty slot.
 pub fn startAnimation(actorId: c_int, animation: c_int, _: c_int, blendFrames_: c_int) callconv(.c) c_int {
     var blendFrames = blendFrames_;

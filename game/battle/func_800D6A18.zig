@@ -1,10 +1,10 @@
-//! An effect command: a camera shake at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: a camera shake at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D6A18 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D6A18 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// From the command's frame on: at it, func_800D1EF0 with the first entry's fields (an original bug: e->, not e[unk6]); each call counts unkA down, the next command at 0.
 pub fn func_800D6A18(script: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const cmd = cmd_arg.?;

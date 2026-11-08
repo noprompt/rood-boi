@@ -1,5 +1,5 @@
 /* Modern menus, the native Data screen: MENU7's side of the frame
- * (src/MENU/MENU7.PRG/260.c, ROOD_PC; data_frame.h has the design).
+ * (pc/src/game/MENU/MENU7.PRG/260.c, ROOD_PC; data_frame.h has the design).
  *
  * 260.c keeps only the hooks: its drawing gate (four statics it owns, so a
  * save state restores them with the rest of the overlay's statics), the

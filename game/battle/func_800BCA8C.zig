@@ -1,4 +1,4 @@
-//! The event camera's per-frame move of one point (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's per-frame move of one point (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -18,7 +18,7 @@ fn vv(p: [*c]c.VECTOR) *v.VECTOR {
     return @ptrCast(@alignCast(p));
 }
 
-/// orig: _copyVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _copyVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src (vx, vy, vz).
 fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     dst.vx = src.vx;
@@ -27,7 +27,7 @@ fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: _vectorMagnitude (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vectorMagnitude (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// The length of a 20.12 vector, from its integer parts, back in 20.12.
 fn vectorMagnitude(p: *v.VECTOR) c_int {
     var copy: v.VECTOR = undefined;
@@ -38,7 +38,7 @@ fn vectorMagnitude(p: *v.VECTOR) c_int {
     return c.vs_gte_rsqrt(x +% y +% z) *% 4096;
 }
 
-/// orig: _sVectorToFixedPointVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _sVectorToFixedPointVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src * ONE.
 fn sVectorToFixedPointVector(dst: *v.VECTOR, src: *v.SVECTOR) *v.VECTOR {
     dst.vx = @as(c_int, src.vx) * 4096; // a short times 4096: no overflow
@@ -47,13 +47,13 @@ fn sVectorToFixedPointVector(dst: *v.VECTOR, src: *v.SVECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: _fixedPointMult (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _fixedPointMult (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// a * b in 20.12, through a 64-bit product (the PC branch; the PS1's mult/mflo/mfhi).
 fn fixedPointMult(a: c_int, b: c_int) c_int {
     return @truncate((@as(i64, a) * b) >> 12); // 32 x 32 bits: no 64-bit overflow
 }
 
-/// orig: _toNormalIntegerVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _toNormalIntegerVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = the unit vector (VectorNormal) of src's integer parts.
 fn toNormalIntegerVector(src: *v.VECTOR, dst: *v.VECTOR) void {
     var whole: v.VECTOR = undefined; // pad never written, as the C's
@@ -68,7 +68,7 @@ fn eased(cam: *v.D_800F4BA4_t2, ease: u8) c_int {
     return c.func_800BFEBC(ease, cam.time, cam.duration);
 }
 
-/// orig: func_800BCA8C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BCA8C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Steps a camera point (look-at or eye) by its mode: a linear (2) or eased-distance (3) move, an orbit
 /// (4: around start, 5: around position), an actor-relative point (8), an offset (9) or the dolly
 /// (11); then the follow blend, and at the end of its time mode 15 and the follow's drift.

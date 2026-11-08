@@ -1,4 +1,4 @@
-//! Movement check: runs a state's callback when it has reached its target or is clear of the floor (src/BATTLE/BATTLE.PRG/771A8.c).
+//! Movement check: runs a state's callback when it has reached its target or is clear of the floor (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
@@ -6,7 +6,7 @@ const c = @import("c_771A8");
 
 const Callback = *const fn (?*v.movementCheckState, c_int) callconv(.c) void;
 
-/// orig: func_800E0918 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E0918 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Runs the mode's callback on a movement state that has reached its target or cleared the floor; returns 1 when it did.
 pub fn func_800E0918(state: ?*v.movementCheckState, action: c_int, mode: c_int) callconv(.c) c_int {
     var callback: Callback = undefined;

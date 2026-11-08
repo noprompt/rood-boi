@@ -1,9 +1,9 @@
-//! The room's MPD cleared, script and door sections (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The room's MPD cleared, script and door sections (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: _loadMpdClearedScriptDoorSections (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _loadMpdClearedScriptDoorSections (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Clears flag 0xA9 (and the room flags 32..63 on a fresh start), copies the cleared and door
 /// sections into heap blocks and the script section into D_800F4C30; returns 1 (copying no script)
 /// when D_800F4BE2 was 1, which it moves to 2.

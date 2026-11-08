@@ -1,9 +1,9 @@
-//! Battle room collision lookup at a cell position (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle room collision lookup at a cell position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008DD0C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008DD0C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Looks up the collision value for the cell at (arg0, arg1) in the battle room's collision map.
 pub fn func_8008DD0C(arg0: c_int, arg1: c_int) callconv(.c) c_short {
     const collisionMap = psx.get(v.g.vs_battle_roomData().collisionMapSection);

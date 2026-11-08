@@ -1,9 +1,9 @@
-//! Derives a threshold from the table entry matching an id, and stores it in arg0's bitfield (src/BATTLE/BATTLE.PRG/74088.c).
+//! Derives a threshold from the table entry matching an id, and stores it in arg0's bitfield (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 
-/// orig: func_800DCBD8 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DCBD8 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Takes the threshold of the first entry with id unkC_0 and no kill flag, and stores it scaled by 1.25 in unkC_19.
 pub fn func_800DCBD8(arg0: ?*v.func_800DCAA0_t) callconv(.c) void {
     const a = arg0.?;

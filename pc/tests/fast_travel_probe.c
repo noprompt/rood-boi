@@ -24,7 +24,7 @@ static int read_table(const char* name, int* out, int max)
 {
     char path[1024], key[96];
     static char text[1 << 16];
-    snprintf(path, sizeof path, "%s/src/MENU/MENU0.PRG/84.c", ROOD_ROOT);
+    snprintf(path, sizeof path, "%s/pc/src/game/MENU/MENU0.PRG/84.c", ROOD_ROOT);
     FILE* f = fopen(path, "rb");
     if (!f)
         return -1;

@@ -1,9 +1,9 @@
-//! Nearest-actor search over the battle actor table (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Nearest-actor search over the battle actor table (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A3760 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3760 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Index of the nearest actor to `selfIndex` within the given horizontal range, vertical band and 90 degrees of facing, or -1.
 pub fn func_800A3760(selfIndex: c_int, maxRange: c_int, maxDy: c_int) callconv(.c) c_int {
     const table = v.g.D_800F4538();

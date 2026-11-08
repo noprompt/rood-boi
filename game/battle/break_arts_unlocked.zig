@@ -1,9 +1,9 @@
-//! Break arts unlock check: whether any art of the equipped weapon category is unlocked (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Break arts unlock check: whether any art of the equipped weapon category is unlocked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: _breakArtsUnlocked (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _breakArtsUnlocked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns 1 if one of the four break arts of the character's equipped weapon category is unlocked, else 0.
 pub fn breakArtsUnlocked() callconv(.c) c_int {
     var i: c_int = 0;

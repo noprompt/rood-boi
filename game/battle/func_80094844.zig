@@ -1,5 +1,5 @@
 //! Places a display label near the labels already placed this frame, nudging it to a free spot on overlap
-//! (src/BATTLE/BATTLE.PRG/2842C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
@@ -16,7 +16,7 @@ fn count() c_int {
     return @as(c_int, v.g.D_800F227C().*);
 }
 
-/// orig: func_80094844 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80094844 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Places a label at `pos`, moves it to a free spot if it overlaps a placed label, clamps it and records it.
 pub fn func_80094844(pos: [*c]c_short, label: ?*v.D_800F1BAC_t) callconv(.c) void {
     const lbl = label.?;

@@ -1,8 +1,8 @@
-//! Copies an equipment entry's stats, types, classes and affinities into an inventory armor record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies an equipment entry's stats, types, classes and affinities into an inventory armor record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: vs_battle_copyUiEquipmentStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyUiEquipmentStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies a UI equipment entry's stats and its type, class and affinity arrays into an inventory armor record.
 pub fn copyUiEquipmentStats(target: ?*v.vs_main_inventoryArmor, source: ?*v.vs_battle_uiEquipment) callconv(.c) void {
     const t = target.?;

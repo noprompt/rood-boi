@@ -1,11 +1,11 @@
-//! The five-panel screen wipe of the battle transition (src/BATTLE/BATTLE.PRG/146C.c).
+//! The five-panel screen wipe of the battle transition (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007D734 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007D734 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws the five wipe panels into the ordering table `ot` and steps the wipe state machine.
 pub fn func_8007D734(ot: ?*anyopaque) callconv(.c) void {
     var sp18: v.MATRIX = undefined;

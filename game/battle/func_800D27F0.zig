@@ -1,10 +1,10 @@
-//! Takes a particle node from the free list (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Takes a particle node from the free list (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D27F0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D27F0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Pops D_800F55F4 (func_800CE644 first when it is empty: the C then reads through NULL), clears it and pushes it on the script's list (unk18, count unk8).
 pub fn func_800D27F0(script: ?*v.D_800F53B8_t) callconv(.c) ?*v.func_800D2904_t {
     const s = script.?;

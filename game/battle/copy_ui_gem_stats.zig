@@ -1,9 +1,9 @@
-//! Copies a UI equipment entry's gem fields into an inventory gem record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies a UI equipment entry's gem fields into an inventory gem record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: vs_battle_copyUiGemStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyUiGemStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies a gem's identity, stats, classes and affinities from a UI equipment entry.
 pub fn copyUiGemStats(target: ?*v.vs_main_inventoryGem, source: ?*v.vs_battle_uiEquipment) callconv(.c) void {
     const dst = target.?;

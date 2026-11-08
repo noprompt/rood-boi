@@ -1,10 +1,10 @@
-//! Sets the battle sound and the scale value of the 2842C unit's effect (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Sets the battle sound and the scale value of the 2842C unit's effect (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009121C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009121C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Clamps the effect's level into D_800F1DC0, plays its sound if one is set, and stores its scaled value into D_800F1DA4.
 pub fn func_8009121C() callconv(.c) void {
     v.g.D_800F1DC0().* = psx.conv(i16, c.vs_battle_clamp(

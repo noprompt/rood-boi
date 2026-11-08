@@ -35,7 +35,7 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-BATTLE_DIR = ROOT / "src/BATTLE/BATTLE.PRG"
+BATTLE_DIR = ROOT / "pc/src/game/BATTLE/BATTLE.PRG"
 OUT = ROOT / "pc/docs/porting/battle"
 
 # BATTLE.PRG in guest RAM (config/BATTLE/BATTLE.PRG/splat.yaml): loaded at
@@ -523,7 +523,7 @@ def main():
     for u in battle_units:
         for name, f in units[u]["functions"].items():
             fl = (f["file"] or "").lstrip("./")
-            if not (fl.startswith("src/BATTLE/BATTLE.PRG/") or fl.endswith(".inc")):
+            if not (fl.startswith("pc/src/game/BATTLE/BATTLE.PRG/") or fl.endswith(".inc")):
                 continue
             if "pc/build/" in fl:
                 fl = "generated " + fl.split("/")[-1] + " (build_boot.py)"
@@ -547,13 +547,13 @@ def main():
         for m in re.finditer(r"glabel (\w+);", text):
             if m.group(1) not in funcs:
                 body = text[m.end(): text.find("endlabel", m.end())]
-                asm_funcs[m.group(1)] = {"file": f"src/BATTLE/BATTLE.PRG/{s.name} (global __asm__ under #ifndef ROOD_PC)",
+                asm_funcs[m.group(1)] = {"file": f"pc/src/game/BATTLE/BATTLE.PRG/{s.name} (global __asm__ under #ifndef ROOD_PC)",
                                          "insns": body.count(";")}
     for s in sorted(BATTLE_DIR.glob("*.s")):
         for b in re.split(r"^glabel ", s.read_text(errors="replace"), flags=re.M)[1:]:
             ins = [l for l in b.splitlines()[1:] if l.strip() and not l.strip().startswith(("alabel", "endlabel", ".", "glabel"))
                    and not re.match(r"\s*\w+:$", l)]
-            asm_funcs[b.split()[0]] = {"file": f"src/BATTLE/BATTLE.PRG/{s.name}", "insns": len(ins)}
+            asm_funcs[b.split()[0]] = {"file": f"pc/src/game/BATTLE/BATTLE.PRG/{s.name}", "insns": len(ins)}
     battle_obj = set(battle_units)
     pc_impl = {}
     for name in asm_funcs:
@@ -710,7 +710,7 @@ def main():
     battle_only_slus = set()
     for name in sorted({c for f in funcs.values() for c in f["calls"]} & set(main_funcs)):
         f = main_funcs[name]
-        if not (f["file"] or "").lstrip("./").startswith("src/SLUS_010.40/"):
+        if not (f["file"] or "").lstrip("./").startswith("pc/src/game/SLUS_010.40/"):
             continue
         others = {o for o in outside_refs.get(name, ()) if o != "main"}
         others |= {"main.c:" + c.split(":", 1)[1] for c in other_callers.get(name, ()) if c.startswith("main:")} - {"main.c:" + name}

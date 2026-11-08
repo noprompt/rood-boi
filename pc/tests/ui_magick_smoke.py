@@ -52,7 +52,7 @@ Shell-only checks (process b):
   - Teleport (vs_main_stateFlags.unkB5 1, savePointStates set in RAM, the
     fast travel cost mode Game): costs
     = MENU0 _getTeleportCost re-implemented here from the tables in
-    src/MENU/MENU0.PRG/84.c and the room id (vs_main_locationZoneMapIds), the
+    pc/src/game/MENU/MENU0.PRG/84.c and the room id (vs_main_locationZoneMapIds), the
     circle the player stands on marked current (and focused), a state-2
     (spirit paling) circle disabled; Circle on another circle: unk2 0xA,
     executeAbility = MENU0's packing (_teleportMenu's return from the save
@@ -111,7 +111,7 @@ def s8(v):
 
 def menu0_tables():
     """_savePointData and savePointCosts from the decompiled MENU0 (84.c)."""
-    text = (ROOT / "src/MENU/MENU0.PRG/84.c").read_text()
+    text = (ROOT / "pc/src/game/MENU/MENU0.PRG/84.c").read_text()
     data = re.search(r"_savePointData\[\]\s*=\s*\{([^}]*)\}", text).group(1)
     costs = re.search(r"savePointCosts\[\]\s*=\s*\{([^}]*)\}", text).group(1)
     return [int(x, 0) for x in data.replace("\n", " ").split(",") if x.strip()], \

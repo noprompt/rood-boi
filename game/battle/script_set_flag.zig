@@ -1,4 +1,4 @@
-//! The event script's arithmetic between two state flags (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's arithmetic between two state flags (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
@@ -10,7 +10,7 @@ fn set(flag: c_int, value: c_int) void {
     c.vs_battle_setStateFlag(psx.conv(i16, flag), psx.conv(u8, value));
 }
 
-/// orig: vs_battle_script_setFlag (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_setFlag (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Applies script[1]'s operator (+ - * / % & |, a copy, |a - b| or a swap) to two state flags, storing into the first.
 pub fn script_setFlag(script: [*c]u8, _: c_short) callconv(.c) c_int {
     const flag0: c_int = (@as(c_int, script[2]) >> 2) +% ((@as(c_int, script[1]) & 0xF) << 6);

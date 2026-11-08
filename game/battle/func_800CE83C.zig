@@ -1,11 +1,11 @@
 //! Inserts a new node into the sorted list headed by D_800F53B8, keyed by unk9
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CE83C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CE83C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Allocates a list node, fills it from `arg0` and links it into the list in key order; returns the node.
 pub fn func_800CE83C(arg0: ?*v.D_800F53B8_t2) callconv(.c) ?*v.D_800F53B8_t {
     const newNode: *v.D_800F53B8_t = @ptrCast(@alignCast(c.vs_main_allocHeapR(@sizeOf(v.D_800F53B8_t)).?));

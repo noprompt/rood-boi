@@ -1,9 +1,9 @@
-//! Makes a point's offset from a target's position and facing, wrapped to half a turn, and calls the routine behind func_800AAA88 with it (src/BATTLE/BATTLE.PRG/40564.c).
+//! Makes a point's offset from a target's position and facing, wrapped to half a turn, and calls the routine behind func_800AAA88 with it (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800A9FD0 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A9FD0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Calls func_800AAA88 with the wrapped offset of `pos` from target `index`, with the target's field 0x5C0 set to `mode` for the call unless `mode` is -1.
 pub fn func_800A9FD0(index: c_int, pos: ?*v.SVECTOR, mode: c_int) callconv(.c) void {
     const temp: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), index).*.?;

@@ -1,8 +1,8 @@
-//! An event script opcode that points an actor at another actor or a target (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that points an actor at another actor or a target (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7C90 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7C90 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// The actor of getShort(script + 1) and the target of getShort(script + 3), both resolved by
 /// func_800BFE50 and taken as 16 bits: func_8009FFA8 for a target at or above 0x2000, else
 /// func_8009FF08 with script[5] and script[6].

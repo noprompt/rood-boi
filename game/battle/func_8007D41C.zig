@@ -1,10 +1,10 @@
-//! Builds the battle screen's full-screen primitives: ten textured polygon strips and a sprite (src/BATTLE/BATTLE.PRG/146C.c).
+//! Builds the battle screen's full-screen primitives: ten textured polygon strips and a sprite (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007D41C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007D41C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Initialises the polygon strips and the sprite of the battle screen's full-height overlay.
 pub fn func_8007D41C() callconv(.c) void {
     const base: *v.D_800F1ABC_t = v.g.D_800F1ABC().*.?;

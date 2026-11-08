@@ -1,9 +1,9 @@
-//! Loot a defeated enemy leaves behind (src/BATTLE/BATTLE.PRG/146C.c).
+//! Loot a defeated enemy leaves behind (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _dropLoot (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _dropLoot (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Rolls the enemy's weapon, shield, accessory, armor and misc drops into a new loot node and links it in unless the enemy already has one.
 pub fn dropLoot(enemy: ?*v.vs_battle_actor) callconv(.c) void {
     const e = enemy.?;

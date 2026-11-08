@@ -1,9 +1,9 @@
-//! Camera mode 4 and actor 0 turned toward a room point (src/BATTLE/BATTLE.PRG/146C.c).
+//! Camera mode 4 and actor 0 turned toward a room point (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800742A4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800742A4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets camera mode 4 and tick speed 2, turns actor 0 (func_8009E070 mode 4) toward the centre of the tile
 /// D_800F1910.unk0 names (x and z times 128 plus 64), then calls func_800CB50C.
 pub fn func_800742A4() callconv(.c) void {

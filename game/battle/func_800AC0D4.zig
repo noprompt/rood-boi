@@ -1,9 +1,9 @@
 //! Moves three bytes of one colour triple toward a target triple by a signed step, reporting whether any moved
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 
-/// orig: func_800AC0D4 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC0D4 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Steps the three bytes at arg0 by arg2 toward the bytes at arg1, never past them; returns 1 if any byte moved.
 pub fn func_800AC0D4(arg0: [*c]u8, arg1: [*c]u8, arg2: c_int) callconv(.c) c_int {
     var var_t0: c_int = 0;

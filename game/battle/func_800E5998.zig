@@ -1,10 +1,10 @@
 //! Links each battle actor whose kind is 0x10 to the first actor whose id matches its
-//! linked field (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! linked field (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_7CD68");
 
-/// orig: func_800E5998 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E5998 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Sets the link of each 0x10-kind actor's slot to the id of the first actor whose unk30_0 matches its unk30_9.
 pub fn func_800E5998() callconv(.c) void {
     var actor = psx.get(v.g.vs_battle_actors()[0].?.next);

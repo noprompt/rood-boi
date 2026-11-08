@@ -1,9 +1,9 @@
-//! The room point's lock message, or its chest (src/BATTLE/BATTLE.PRG/146C.c).
+//! The room point's lock message, or its chest (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800743E0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800743E0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Camera mode 3; a point with a key or sigil shows its message (1 -> 2, 2 -> 1, 3 -> 3) and calls func_8006C2FC;
 /// else its unk10 below 0x40 hands the loot after it to func_800CB18C, from 0x40 up the item unk10 - 0x40 to
 /// func_800CB1C0, then func_8006C39C.

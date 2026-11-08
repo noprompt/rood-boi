@@ -1,9 +1,9 @@
-//! Queues a battle ability timing result display (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Queues a battle ability timing result display (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: vs_battle_renderBattleAbilityTimingResult (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: vs_battle_renderBattleAbilityTimingResult (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Clears any queued timing result of the same kind, then queues a new one for `arg0`.
 pub fn renderBattleAbilityTimingResult(arg0: c_int) callconv(.c) c_int {
     const first: ?*anyopaque = v.g.D_800F1BAC().*;

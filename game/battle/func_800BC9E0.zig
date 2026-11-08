@@ -1,4 +1,4 @@
-//! The event camera's frame update (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's frame update (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -8,7 +8,7 @@ fn camera() *v.D_800F4BA4_t {
     return v.g.D_800F4BA4().*.?;
 }
 
-/// orig: func_800BC9E0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BC9E0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Each point targets the other's current position, then the look-at and eye moves step
 /// (func_800BCA8C), the roll and unk174 (func_800BD57C), the projection and clip ramps
 /// (func_800BDF6C) and func_800BE180.

@@ -1,7 +1,7 @@
-//! Clears the flags in the `unk1848` block of a battle actor, keeping `unk0` set only when `unk0.unkF` is nonzero (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Clears the flags in the `unk1848` block of a battle actor, keeping `unk0` set only when `unk0.unkF` is nonzero (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const v = @import("views_3A1A0");
 
-/// orig: func_800A525C (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A525C (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Resets the `unk1848` block's counters and sets its flag from `unk0.unkF`.
 pub fn func_800A525C(arg0: ?*v.D_800F4538_t) callconv(.c) void {
     const p = arg0.?;

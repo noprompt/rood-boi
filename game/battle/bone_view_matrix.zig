@@ -1,10 +1,10 @@
-//! A battle actor's bone matrix in camera space (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! A battle actor's bone matrix in camera space (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A1DE8 (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A1DE8 (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Returns an actor's bone matrix (or its object, weapon or root offset) placed for the camera, in the scratchpad.
 pub fn boneViewMatrix(actorId: c_int, bone: c_int, _: ?*v.MATRIX) callconv(.c) ?*v.MATRIX {
     const scratch: *v.boneMatrixScratch = @ptrFromInt(0x1F80035C);

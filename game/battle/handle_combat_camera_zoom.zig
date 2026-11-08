@@ -1,4 +1,4 @@
-//! The action's phase 4: the camera converges on the cast (src/BATTLE/BATTLE.PRG/146C.c).
+//! The action's phase 4: the camera converges on the cast (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -25,7 +25,7 @@ fn castWhenSettled() void {
     }
 }
 
-/// orig: _handleCombatCameraZoom (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _handleCombatCameraZoom (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// While the camera aims (delta mode 1 or 3), by the zoom kind D_800F19CC->unk2C0E: 0 steps toward the target, 1
 /// widens the projection to 0x300 and pulls the distance in to 0x600, 2 pushes the distance out to 0x900, each then
 /// stepping (func_8007820C first); the cast starts once the camera has settled. Any other kind starts it as soon as

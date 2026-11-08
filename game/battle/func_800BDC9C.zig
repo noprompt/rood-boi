@@ -1,8 +1,8 @@
-//! The event camera's projection, clip and shake opcodes (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's projection, clip and shake opcodes (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 
-/// orig: func_800BDC9C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BDC9C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Opcodes 234..236 set the projection distance, near clip or far clip at once (script[3] 0) or start
 /// a ramp to it over script[2]; 239 stops both unk1A4 slots (script[2] 0) or fills the first free one.
 pub fn func_800BDC9C(script: [*c]u8, _: c_short) callconv(.c) c_int {

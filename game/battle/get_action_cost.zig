@@ -1,10 +1,10 @@
-//! Resource cost of a battle action and whether the actor can pay it (src/BATTLE/BATTLE.PRG/146C.c).
+//! Resource cost of a battle action and whether the actor can pay it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _getActionCost (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getActionCost (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Packs requirements-met (bit 24), action type (bits 16..23) and cost; with updateStat set, deducts the cost from the actor's MP, risk, HP or weapon PP.
 pub fn getActionCost(actionId: c_uint, actor: ?*v.vs_battle_actor2, updateStat: c_int) callconv(.c) c_int {
     var requirementsMet: c_int = undefined;

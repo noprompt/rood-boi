@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Modern menus, the native Container screen (pc/src/ui/container_bridge.c,
 container_ops.c, ui_container.cpp, ui_container_draw.cpp; MENU7 hooks in
-src/MENU/MENU7.PRG/260.c): the save room's container. MENU7's
+pc/src/game/MENU/MENU7.PRG/260.c): the save room's container. MENU7's
 vs_menu7_saveContainerMenu runs framed (its prompts and card wait answered
 by the player through the native screen, its save list the Data screen's
 model in container mode); MENUD's vs_menuD_exec is ported natively.
@@ -568,7 +568,7 @@ def waiver(check):
     the same function of 234.c, and MENU7 never reads it: checked on the source, so its timing-dependent
     refreshes (the right panel's slide) need not match. Functions are split at every definition (a
     multi-line parameter list too); only func_801031A0 may keep a pointer to it."""
-    src = (ROOT / "src/MENU/MENUD.PRG/234.c").read_text()
+    src = (ROOT / "pc/src/game/MENU/MENUD.PRG/234.c").read_text()
     starts = list(re.finditer(r"^[A-Za-z_][\w \t*]*?\b(\w+)\(([^;{}]*?)\)\s*\n\{", src, re.M))
     bodies = [(m.group(1), src[m.end():starts[i + 1].start() if i + 1 < len(starts) else len(src)])
               for i, m in enumerate(starts)]
@@ -584,7 +584,7 @@ def waiver(check):
             # the refill earlier in this function's body, no return between it and the read
             if refill < 0 or "return" in b[refill:m.start()] or alias:
                 bad.append(n)
-    menu7 = "unk4BB0" not in (ROOT / "src/MENU/MENU7.PRG/260.c").read_text()
+    menu7 = "unk4BB0" not in (ROOT / "pc/src/game/MENU/MENU7.PRG/260.c").read_text()
     check(len(bodies) == defs and not bad and menu7 and len(uses) >= 2,
           f"waiver: unk4BB0 read only after func_801031A0 refills it in the same function "
           f"({[n for n, _ in uses]}, {len(bodies)}/{defs} functions, bad {bad}), never by MENU7")

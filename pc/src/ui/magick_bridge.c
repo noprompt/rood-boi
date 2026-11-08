@@ -73,10 +73,10 @@
  * not run. Only BATTLE and main routines and data are used; the text tables
  * are static copies of MENU0's generated string assets. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "build/assets/MENU/MENU0.PRG/magic.h"
 #include "build/assets/MENU/MENU0.PRG/teleportation.h"
 #include "ui_shell.h"

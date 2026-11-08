@@ -1,4 +1,4 @@
-//! The door id of a door of the room (src/BATTLE/BATTLE.PRG/146C.c).
+//! The door id of a door of the room (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
@@ -7,7 +7,7 @@ fn skip(p: [*]i32, k: c_int) [*]i32 {
     return @ptrCast(psx.at(p, k));
 }
 
-/// orig: _getDoorId (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getDoorId (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The id byte of the room's door `door` (its door list follows five counted lists in section F), or -1.
 pub fn getDoorId(door: c_int) callconv(.c) c_int {
     if (psx.get(v.g.vs_battle_roomData().sectionF)) |scene| {

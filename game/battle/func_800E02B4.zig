@@ -1,5 +1,5 @@
 //! Obstruction test for a battle actor moving in one of the four directions
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
@@ -40,7 +40,7 @@ fn markTested(cache: *v.obstructionCache, direction: c_int) void {
     cache.tested = psx.conv(u8, @as(c_int, cache.tested) | (@as(c_int, 1) << sh));
 }
 
-/// orig: func_800E02B4 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E02B4 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Tests whether a move of `state` in `direction` (`ahead` steps) is blocked by a point or an actor, caching the answer per direction.
 pub fn func_800E02B4(state: ?*v.obstructionState, direction: c_int, ahead: c_int) callconv(.c) c_int {
     const cache: *v.obstructionCache = @ptrFromInt(0x1F8003D0);

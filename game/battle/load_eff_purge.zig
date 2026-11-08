@@ -1,12 +1,12 @@
 //! The effect purge file's load: queues or completes the read of EFFPURGE.BIN
-//! into overlay slot 3 (src/BATTLE/BATTLE.PRG/6F014.c).
+//! into overlay slot 3 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6F014");
 const c = @import("c_6F014");
 
-/// orig: _loadfile (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: _loadfile (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Queues a CD read of lba/size into buf, or once it has loaded frees its slot and reports done.
 fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     if (v.g.D_800F568C().* == null) {
@@ -29,7 +29,7 @@ fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     return 1;
 }
 
-/// orig: vs_battle_loadEffPurge (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: vs_battle_loadEffPurge (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Starts the effect purge on first call, then queues or completes EFFPURGE.BIN's load; returns 1 while it is pending.
 pub fn loadEffPurge() callconv(.c) c_int {
     if (v.g.D_800F5684().* == 0) {

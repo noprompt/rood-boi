@@ -1,9 +1,9 @@
-//! Inflicted status effects of a hit: the statuses of parameter set `arg0` that the target does not resist, added to the hit (src/BATTLE/BATTLE.PRG/146C.c).
+//! Inflicted status effects of a hit: the statuses of parameter set `arg0` that the target does not resist, added to the hit (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _setInflictedStatuses (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _setInflictedStatuses (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds the status effects of parameter set `arg0` that the target does not resist to the hit, and returns them.
 pub fn setInflictedStatuses(arg0: c_int, entity: ?*v._hitEntity_t) callconv(.c) c_int {
     var ret: c_int = 0;

@@ -1,10 +1,10 @@
 //! Advances a timed value by half the game tick speed and recomputes its
-//! interpolated output (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! interpolated output (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BD57C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BD57C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// While the timer's target (unkA) is positive, steps its elapsed time and sets the output from the curve.
 pub fn func_800BD57C(arg0: ?*v.func_800BD57C_t) callconv(.c) void {
     const p = arg0.?;

@@ -1,9 +1,9 @@
-//! An event script opcode that places an actor on a map cell (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that places an actor on a map cell (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B75F4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B75F4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Puts the script's actor at the centre of cell (script[3], script[5]): func_800A9D90 with a
 /// 0x8000 heading while D_800F4C2C is 2, else func_8007CFF8; then func_8009DC8C and its D_800F4B70 mark.
 pub fn func_800B75F4(script: [*c]u8, _: c_short) callconv(.c) c_int {

@@ -1,11 +1,11 @@
 //! Clears the statuses in a mask on a battle actor and undoes what they changed
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80086754 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80086754 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears the statuses in `mask` on an actor and restores the stats, limbs, weapon, shield and armor affinities they changed.
 pub fn func_80086754(mask: c_int, actor_ptr: ?*v.vs_battle_actor2) callconv(.c) void {
     const actor = actor_ptr.?;

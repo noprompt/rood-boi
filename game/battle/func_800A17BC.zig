@@ -1,9 +1,9 @@
-//! Matrix and armature lookup for an actor part (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! Matrix and armature lookup for an actor part (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const psx = @import("common").psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A17BC (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A17BC (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Copies an actor part's matrix to `outMatrix` and its armature's first value to `outArmature`.
 pub fn func_800A17BC(actorSlot: c_int, armatureIndex: c_int, outMatrix: ?*anyopaque, outArmature: [*c]c_int) callconv(.c) c_int {
     // ROOD_PC: an empty actor slot gives NULL here; the PS1 copies the matrix from address 0 (0x80000000 on the host).

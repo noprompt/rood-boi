@@ -1,4 +1,4 @@
-//! Battle unit 771A8 (src/BATTLE/BATTLE.PRG/771A8.c): finds the entry of the
+//! Battle unit 771A8 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c): finds the entry of the
 //! D_800F5910 pair table whose two bitfield keys match the arguments and the
 //! sp10 record.
 const common = @import("common");
@@ -6,7 +6,7 @@ const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800DFAF8 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800DFAF8 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Returns the index i (0..7) of the matching D_800F5910 pair, or -1 when none matches.
 pub fn func_800DFAF8(_: c_int, arg1: c_uint, arg2: c_int) callconv(.c) c_int {
     var sp10: [4]v.func_8008D2C0_t = undefined;

@@ -1,10 +1,10 @@
-//! Loads a weapon model's material palette into its CLUT slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Loads a weapon model's material palette into its CLUT slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: _loadMaterialPalette (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _loadMaterialPalette (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Sets a weapon model's material and copies its palette into the model's CLUT slot.
 pub fn loadMaterialPalette(index: c_int, material: c_int) callconv(.c) void {
     const model = psx.at(v.g.vs_battle_wepModels(), index).*.?;

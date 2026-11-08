@@ -1,11 +1,11 @@
 //! Runs the pending target checks of a battle action state, then clears each actor's target mode
-//! (src/BATTLE/BATTLE.PRG/71618.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DAAD8 (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DAAD8 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the action's pending target checks and tests every actor's targeting category; returns 1 when one of them stops the action.
 pub fn func_800DAAD8(state: ?*v.da4bcState) callconv(.c) c_int {
     const s = state.?;

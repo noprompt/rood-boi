@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The HUD's stat labels (HP, MP, RISK) are drawn solid, like their numbers
-(src/BATTLE/BATTLE.PRG/5BF94.c _renderStatBar, ROOD_PC).
+(pc/src/game/BATTLE/BATTLE.PRG/5BF94.c _renderStatBar, ROOD_PC).
 
     python3 pc/tests/hud_label_solid_smoke.py [--card pc/build/test-card1.mcd] [--out DIR]
 

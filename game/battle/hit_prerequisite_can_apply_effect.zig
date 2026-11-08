@@ -1,9 +1,9 @@
 //! Whether a status effect's prerequisites allow it to land on an actor
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: _hitPrerequisiteCanApplyEffect (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _hitPrerequisiteCanApplyEffect (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 0 when neither the effect's first nor its fourth parameter word matches the target's status bits, else 1.
 pub fn hitPrerequisiteCanApplyEffect(debuff: c_int, arg1: [*c]u8) callconv(.c) c_int {
     const params = psx.at(v.g.vs_main_statusEffectParams(), debuff);

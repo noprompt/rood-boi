@@ -1,12 +1,12 @@
 //! The battle overlay's pending file load: queues or completes the read of
-//! vs_battle_pFileLoadContext (src/BATTLE/BATTLE.PRG/6F014.c).
+//! vs_battle_pFileLoadContext (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6F014");
 const c = @import("c_6F014");
 
-/// orig: _loadfile (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: _loadfile (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Queues a CD read of lba/size into buf, or once it has loaded frees its slot and reports done.
 fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     if (v.g.D_800F568C().* == null) {
@@ -29,7 +29,7 @@ fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     return 1;
 }
 
-/// orig: func_800D7BF8 (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: func_800D7BF8 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Allocates the file buffer on first use, then loads the battle file queued in vs_battle_pFileLoadContext.
 pub fn func_800D7BF8() callconv(.c) c_int {
     const ctx = v.g.vs_battle_pFileLoadContext();

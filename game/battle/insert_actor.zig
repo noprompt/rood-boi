@@ -1,4 +1,4 @@
-//! Links a battle actor into the actor list behind slot 0 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Links a battle actor into the actor list behind slot 0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -8,7 +8,7 @@ inline fn rawWord(field: anytype) *align(1) u32 {
     return @ptrCast(field);
 }
 
-/// orig: _insertActor (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _insertActor (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Links `actor` in after slot 0 of the battle actor list unless it is already linked; returns 1 when it links.
 pub fn insertActor(actor: ?*v.vs_battle_actor) callconv(.c) c_int {
     const a = actor.?;

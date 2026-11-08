@@ -1,10 +1,10 @@
-//! Rolls whether a looted armor piece drops and places it in the first free loot slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Rolls whether a looted armor piece drops and places it in the first free loot slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _dropArmorRand (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _dropArmorRand (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Rolls against the armor's drop rate and, on success, copies it into the first free of two loot slots.
 pub fn dropArmorRand(looted: ?*v.vs_battle_lootedArmor, base: ?*v.vs_battle_uiArmor) callconv(.c) c_int {
     const roll = c.vs_main_getRand(0xFF);

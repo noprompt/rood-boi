@@ -1,10 +1,10 @@
-//! The battle-state reset that runs when a battle ends (src/BATTLE/BATTLE.PRG/146C.c).
+//! The battle-state reset that runs when a battle ends (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800738E4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800738E4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears the battle's view, actor and sound state; leaves through func_80073870 when the battle is ending.
 pub fn func_800738E4() callconv(.c) void {
     c.func_8008D594(0);

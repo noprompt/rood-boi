@@ -1,9 +1,9 @@
-//! Calls the routine at the room's section 14 with D_800F2258 when both are set (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Calls the routine at the room's section 14 with D_800F2258 when both are set (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80093A70 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093A70 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Calls func_800462E8 with room section 14 and D_800F2258 when both are set.
 pub fn func_80093A70() callconv(.c) void {
     if (v.g.D_800F2258().* != -1) {

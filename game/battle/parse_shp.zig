@@ -1,4 +1,4 @@
-//! Parses an actor's shape file (SHP) into its actor slot, in two passes (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Parses an actor's shape file (SHP) into its actor slot, in two passes (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
@@ -41,7 +41,7 @@ fn slotRect(slot: u8, rect: *v.RECT) void {
     rect.h = psx.conv(i16, v.g.D_800F22C4().*);
 }
 
-/// orig: _parseShp (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _parseShp (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// First pass (D_800E8F29 0): Ashley's palette reload (index 0, model 6), the empty model 0x7F, a copy of an
 /// actor sharing the model, or the header, the model (relocated), its SEQ, the CLUTs and a texture slot
 /// (returns -1, D_800E8F29 1). Second pass (1): shifts the polygons' v into the slot. Then the palettes and the

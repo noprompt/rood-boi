@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Modern menus, the native Score screen (pc/src/ui/ui_score.cpp, score_bridge.c,
 score_format.c, score_nav.c, mon_parse.c, score_mon.c, ui_score_draw.cpp):
-System > Score is native; MENU9 (src/MENU/MENU9.PRG/238.c) stays the only path
+System > Score is native; MENU9 (pc/src/game/MENU/MENU9.PRG/238.c) stays the only path
 with ui_menus off, and Square's "original screen".
 
     python3 pc/tests/ui_score_smoke.py [--card CARD] [--out DIR] [--only CASES]
@@ -675,7 +675,7 @@ def text_checks(b, check):
     check([x["name"] for x in t["trials"]] == names and [x["desc"] for x in t["trials"]] == tdesc,
           "text: 8 time attacks and descriptions = MENU9's statics")
     # 238.c's own literals (code, not game data: the strings' rodata is not readable over the RPC)
-    src = (ROOT / "src/MENU/MENU9.PRG/238.c").read_text()
+    src = (ROOT / "pc/src/game/MENU/MENU9.PRG/238.c").read_text()
     block = src[src.index("_timeAttackReferenceTimes[] = {"):]
     refs = [x.lstrip("$") for x in re.findall(r'"(\$[0-9:]+)"', block[:block.index("};")])]
     check([x["ref"] for x in t["trials"]] == refs, f"text: the reference times ({refs})")

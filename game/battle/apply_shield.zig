@@ -1,10 +1,10 @@
 //! Builds the shield intermediate from an inventory shield and applies it to the battle shield
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_applyShield (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_applyShield (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies an inventory shield (armor stats, material, gem stats) into a temporary and applies it to `target`.
 pub fn applyShield(target: ?*v.vs_battle_uiShield, source: ?*v.vs_main_inventoryShield) callconv(.c) void {
     const raw = c.vs_main_allocHeapR(@sizeOf(v.vs_battle_shieldIntermediate));

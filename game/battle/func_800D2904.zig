@@ -1,10 +1,10 @@
 //! Returns a chain of effect records to the free list and debits the free count
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800D2904 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D2904 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Splices the owner's record chain onto the head of the free list, then debits the free count by the owner's count and clears it.
 pub fn func_800D2904(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
     const owner = arg0.?;

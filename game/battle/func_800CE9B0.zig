@@ -1,9 +1,9 @@
-//! Battle load and scene state machine step, driven by D_800F531C (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Battle load and scene state machine step, driven by D_800F531C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CE9B0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CE9B0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs one step of the battle load state machine; returns 1 while it is still busy, 0 when done.
 pub fn func_800CE9B0() callconv(.c) c_int {
     var var_s0: ?*v.D_800F53B8_t = v.g.D_800F53B8().*;

@@ -1,10 +1,10 @@
-//! Steps the battle state flag 0xA6 machine for `arg0` and its D_800F5920 timers (src/BATTLE/BATTLE.PRG/7EE98.c).
+//! Steps the battle state flag 0xA6 machine for `arg0` and its D_800F5920 timers (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_7EE98");
 const c = @import("c_7EE98");
 
-/// orig: func_800E7F8C (src/BATTLE/BATTLE.PRG/7EE98.c)
+/// orig: func_800E7F8C (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c)
 /// Runs one step of the state flag 0xA6 machine on `arg0`, then stores the flag back.
 pub fn func_800E7F8C(arg0: ?*v.func_800E78F4_t) callconv(.c) c_int {
     const self = arg0.?;

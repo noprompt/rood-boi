@@ -1,9 +1,9 @@
-//! Picks the slot of the current zone's table that holds an entry for `arg0`, or claims the next round-robin slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Picks the slot of the current zone's table that holds an entry for `arg0`, or claims the next round-robin slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80069EF0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80069EF0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the current zone's slot holding id `arg0`, claiming the next round-robin slot when none does.
 pub fn func_80069EF0(arg0: c_int) callconv(.c) ?*anyopaque {
     const zone = psx.at(v.g.D_80061078(), v.g.D_80060064().*);

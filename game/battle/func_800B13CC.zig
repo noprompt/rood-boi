@@ -1,9 +1,9 @@
-//! Finds the nearest entry above `arg2` in the active table, for entries matching `arg0`/`arg1`, less 128 (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Finds the nearest entry above `arg2` in the active table, for entries matching `arg0`/`arg1`, less 128 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 
-/// orig: func_800B13CC (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800B13CC (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Returns the smallest matching entry value above `arg2` (default 3000), less 128, capped at 0.
 pub fn func_800B13CC(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int {
     const table = v.g.D_800F45E0();

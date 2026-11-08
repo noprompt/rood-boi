@@ -1,10 +1,10 @@
-//! Clamps a height-like value to the nearest matching actor's offset (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Clamps a height-like value to the nearest matching actor's offset (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A3500 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3500 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Returns the base value, sign-extended from 15 bits, lowered to the smallest matching actor's offset.
 pub fn func_800A3500(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     var h: c_int = c.func_8008DA24(arg0, arg1);

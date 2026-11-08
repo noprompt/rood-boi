@@ -1,4 +1,4 @@
-//! The camera transition step: moves the camera one frame toward its target and snaps to it on arrival (src/BATTLE/BATTLE.PRG/146C.c).
+//! The camera transition step: moves the camera one frame toward its target and snaps to it on arrival (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -9,7 +9,7 @@ inline fn transition() *v.vs_battle_cameraTransition_t {
     return v.g.vs_battle_cameraTransition().*.?;
 }
 
-/// orig: _stepCameraTransition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _stepCameraTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Advances the camera one step toward its transition target; on arrival it snaps to the target and returns 1, else 0.
 pub fn stepCameraTransition() callconv(.c) c_int {
     const scratch = v.g.vs_scratch();

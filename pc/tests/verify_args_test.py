@@ -17,8 +17,7 @@ import affected
 import run
 
 
-NULL_SUITES = ["null_backend_smoke", "shadow_battle_smoke", "ownership_smoke",
-               "battle_corpus_candidate", "zig_hotswap_smoke", "trial_corpus", "classic_parity"]
+NULL_SUITES = ["null_backend_smoke", "ownership_smoke", "zig_hotswap_smoke", "classic_parity"]
 
 
 class VerifyArgsTest(unittest.TestCase):
@@ -141,6 +140,26 @@ class VerifyArgsTest(unittest.TestCase):
             kept, _ = run.fit_budget(suites, timings, "c", 13 * 60)
             self.assertIn(checkpoint, [s.name for s in kept])
             self.assertIn("snapshot_equivalence", [s.name for s in kept])
+
+    def test_no_lane_compares_battle_with_the_original(self):
+        def listed(*argv):
+            with patch.object(sys, "argv", ["run.py", "--arch", "64", "--renderer", "vulkan", "--list", *argv]), \
+                 contextlib.redirect_stdout(io.StringIO()) as output:
+                run.main()
+            return [line.split()[0] for line in output.getvalue().splitlines() if line.strip()]
+        every = listed()
+        self.assertTrue(every)
+        self.assertFalse([name for name in every if run.is_oracle(name)])
+        self.assertEqual(listed("ctest_long"), ["ctest_long"])  # named exactly: still a tool
+        self.assertIn("trial_corpus_kill", listed("--oracle"))
+
+    def test_fit_budget_keeps_the_core_without_recorded_times(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            suites = [run.Suite(name, ["true"], timeout=3000, note="")
+                      for name in ["golden_frames", "ctest", "something_else"]]
+            kept, deferred = run.fit_budget(suites, Path(tmp) / "none.json", "c", 60)
+            self.assertEqual([s.name for s in kept], ["golden_frames", "ctest"])
+            self.assertEqual([s.name for s in deferred], ["something_else"])
 
     def test_full_lane_runs_every_suite(self):
         calls = self.verify_calls(["--full"])

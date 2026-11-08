@@ -1,9 +1,9 @@
-//! Text box dismissal: closes box `id` and reports whether it is still busy (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Text box dismissal: closes box `id` and reports whether it is still busy (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_dismissTextBox (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_dismissTextBox (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs box `id`'s close effect unless flag 0x20 is set, then ends its open or closing state; returns -1 while it is busy.
 pub fn dismissTextBox(id: c_int) callconv(.c) c_int {
     const box = psx.at(v.g.textBoxes(), id);

@@ -1,8 +1,8 @@
-//! Battle state reset: action index, camera mode and two follow-up calls (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle state reset: action index, camera mode and two follow-up calls (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const c = @import("c_146C");
 const v = @import("views_146C");
 
-/// orig: func_800704D8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800704D8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the battle's mode and action index, then runs the character-state and follow-up routines.
 pub fn func_800704D8() callconv(.c) void {
     v.g.D_800F196C().* = 5;

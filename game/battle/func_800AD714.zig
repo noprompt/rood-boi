@@ -1,6 +1,6 @@
 //! The actor animation script interpreter: runs the timed commands of an
 //! actor's animation script (sounds, effects, weapon trails, vertex nudges,
-//! movement targets) up to its current frame (src/BATTLE/BATTLE.PRG/44F14.c).
+//! movement targets) up to its current frame (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
@@ -313,7 +313,7 @@ fn execute(actor: *v.D_800F4538_t, state: *v.D_800F4538_unkC54, mode: c_int, id:
     return .next;
 }
 
-/// orig: func_800AD714 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AD714 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Runs `actor`'s animation script commands due by its frame counter; `mode` 1 and 2 run only one class of command, 3 looks for a wait.
 pub fn func_800AD714(actor: ?*v.D_800F4538_t, state: ?*v.D_800F4538_unkC54, mode: c_int) callconv(.c) c_int {
     const a = actor.?;

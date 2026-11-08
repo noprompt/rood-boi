@@ -1,10 +1,10 @@
-//! Steps an interpolation toward its target by the game's tick speed (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Steps an interpolation toward its target by the game's tick speed (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BDF6C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BDF6C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Advances an active interpolation by half the tick speed and writes its eased value to `unk2`.
 pub fn func_800BDF6C(arg0: ?*v.func_800BDF6C_unk180_t) callconv(.c) void {
     const a = arg0.?;

@@ -1,9 +1,9 @@
-//! Queues a stat-change display entry for a weapon or armor stat change (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Queues a stat-change display entry for a weapon or armor stat change (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80096768 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80096768 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Queues a stat-change display entry when the matching setting is on, after counting the queued kind-6 and kind-7 entries.
 pub fn func_80096768(stat: c_int, slot: c_int, value: c_int) callconv(.c) c_int {
     const settings = v.g.vs_main_settings();

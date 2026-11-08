@@ -1,8 +1,8 @@
-//! An action effect: the target actor's weapon PP restored, when it has a blade (src/BATTLE/BATTLE.PRG/146C.c).
+//! An action effect: the target actor's weapon PP restored, when it has a blade (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_80084D44 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80084D44 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// When the target actor has a blade, adds its weapon's current PP to the entity's weapon PP (limbs[6].value1; weaponPpEffect 1).
 pub fn func_80084D44(_: ?*v.vs_action_t, _: ?*v._hitEntity_t, target: ?*v._hitEntity_t, _: c_int, _: c_int) callconv(.c) c_int {
     const entity = target.?;

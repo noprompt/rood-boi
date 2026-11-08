@@ -1,10 +1,10 @@
-//! The battle overlay's PLG load step: starts the load of the PLG file into overlay slot 3 and completes it (src/BATTLE/BATTLE.PRG/6F014.c).
+//! The battle overlay's PLG load step: starts the load of the PLG file into overlay slot 3 and completes it (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6F014");
 const c = @import("c_6F014");
 
-/// orig: _loadfile (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: _loadfile (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Queues a CD read of `size` bytes at `lba` into `buf`; once it has loaded, frees the slot and returns 0, else 1.
 fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     var cdFile: c.vs_main_CdFile = undefined;
@@ -27,7 +27,7 @@ fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     return 1;
 }
 
-/// orig: func_800D7EF4 (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: func_800D7EF4 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Advances the PLG load by one step: state 1 starts it, states 1 and 2 read the file, and a finished read moves the state to 3.
 pub fn func_800D7EF4() callconv(.c) c_int {
     const state: c_uint = v.g._plgLoadState().*;

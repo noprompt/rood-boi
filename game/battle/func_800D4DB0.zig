@@ -1,10 +1,10 @@
-//! Picks the menu slot for the active unit, redirected through the block 9 table when the unit has no predecessor (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Picks the menu slot for the active unit, redirected through the block 9 table when the unit has no predecessor (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D4DB0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D4DB0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Chooses the slot the unit's menu opens on, redirects it through the block 9 table, and opens it.
 pub fn func_800D4DB0(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int {
     const slot: u8 = c.func_800D5170(@ptrCast(arg0));

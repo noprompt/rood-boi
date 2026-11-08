@@ -1,9 +1,9 @@
-//! Effect motion integration over a linked list of effect nodes (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Effect motion integration over a linked list of effect nodes (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D52A4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D52A4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Steps every effect node in the list one tick: drag and gravity, then attraction toward its target.
 pub fn func_800D52A4(node: ?*v.func_800D2904_t) callconv(.c) void {
     const drag: c_int = v.g.D_800F5618().*;

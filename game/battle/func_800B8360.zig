@@ -1,9 +1,9 @@
-//! An event script opcode that hands an actor a 2D vector with mode -4 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that hands an actor a 2D vector with mode -4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B8360 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B8360 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8009FC60 for the actor of getShort(script + 1) with -4, the vector
 /// (getShort(+3), getShort(+5), 0) and script[7] (0 as 0x1000).
 pub fn func_800B8360(script: [*c]u8, _: c_short) callconv(.c) c_int {

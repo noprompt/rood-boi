@@ -1,4 +1,4 @@
-//! A physical attack's damage, with and without the attacker's status modifiers (src/BATTLE/BATTLE.PRG/146C.c).
+//! A physical attack's damage, with and without the attacker's status modifiers (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -16,7 +16,7 @@ fn wear(lost: c_int, max: u16) c_int {
     return @divTrunc(lost *% 100, @as(c_int, max));
 }
 
-/// orig: _getPhysicalAttackDamage (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getPhysicalAttackDamage (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The damage of hit `nHit`: the attacker's strength (plus its drawn weapon's, whose damage counts its type, class
 /// and affinity values, DP wear and PP charge) and accessory against the target limb's strength, armor and shield
 /// (each by type, class, affinity and wear), over risk / 2 + 100, through func_8007FE5C; with the variance 1..5;
@@ -159,13 +159,13 @@ fn physicalAttackDamage(action: *v.vs_action_t, source: *v._hitEntity_t, target:
     return value;
 }
 
-/// orig: _getPhysicalAttackDamageWithoutStatusModifiers (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getPhysicalAttackDamageWithoutStatusModifiers (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The physical damage of hit `nHit`, the attacker's statuses not applied.
 pub fn getPhysicalAttackDamageWithoutStatusModifiers(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, nHit: c_int, withRandMod: c_int) callconv(.c) i16 {
     return physicalAttackDamage(action.?, source.?, target.?, nHit, withRandMod, 0);
 }
 
-/// orig: _getPhysicalAttackDamageWithStatusModifiers (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getPhysicalAttackDamageWithStatusModifiers (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The physical damage of hit `nHit`, halved by the attacker's status 2.
 pub fn getPhysicalAttackDamageWithStatusModifiers(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, nHit: c_int, withRandMod: c_int) callconv(.c) i16 {
     return physicalAttackDamage(action.?, source.?, target.?, nHit, withRandMod, 1);

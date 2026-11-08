@@ -64,12 +64,12 @@
  * Turning: the right stick (the camera stick's settings) and the shell's
  * drag; never on its own. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/2842C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/3A1A0.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/MENU/MAINMENU.PRG/224.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/2842C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/224.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "build/assets/MENU/MENU4.PRG/status.h"
 #include "scratch.h"
 #include "gpu.h"

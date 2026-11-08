@@ -1,10 +1,10 @@
-//! Collects the room's door sections that match a door key (src/BATTLE/BATTLE.PRG/146C.c).
+//! Collects the room's door sections that match a door key (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008BAC8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008BAC8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills D_800F1D08 with the room's door sections matching arg0/arg1/arg2 and returns it, or null when the room has no door section.
 pub fn func_8008BAC8(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v.D_800F1D08_t {
     const room = v.g.vs_battle_roomData();

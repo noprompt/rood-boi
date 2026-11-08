@@ -1,14 +1,14 @@
 /* Modern menus, the native Container screen: MENUD's data operations
- * (container_ops.h). Ported from src/MENU/MENUD.PRG/234.c with its types
+ * (container_ops.h). Ported from pc/src/game/MENU/MENUD.PRG/234.c with its types
  * and expressions, in its order; line numbers are 234.c's. The game's
  * vs_battle_rMemzero / vs_battle_memcpy / vs_battle_copyAligned are byte
  * copies: zero() and copy() here. */
 #ifdef PC_CONTAINER_OPS_PROBE
 #include <sys/types.h>
-#include "../../../src/BATTLE/BATTLE.PRG/func_8006B57C_t.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/func_8006B57C_t.h"
 #else
 #include "common.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #endif
 #include "container_ops.h"
 

@@ -1,10 +1,10 @@
-//! Starts a battle action: resets the action record for the target actor and clears the other actors' pending flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Starts a battle action: resets the action record for the target actor and clears the other actors' pending flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80072EC4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80072EC4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up the action record for target actor `arg0` with action index `arg1` and prepares the battle for it.
 pub fn func_80072EC4(arg0: c_int, arg1: c_ushort) callconv(.c) void {
     v.g.D_800F196C().* = 2;

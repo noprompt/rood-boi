@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def abi(table):
-    return hashlib.sha256(repr(table.library_routes()).encode()).hexdigest()
+    return hashlib.sha256(repr(table.routes()).encode()).hexdigest()
 
 
 def write_changed(path, text):
@@ -31,9 +31,7 @@ def write_changed(path, text):
 def build(source, output):
     source, output = Path(source).resolve(), Path(output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    # C copies are linked into the host (ownership.py lang = "c"): not in the library.
-    full = ownership.load(source / 'ownership.toml')
-    table = full.zig_only()
+    table = ownership.load(source / 'ownership.toml')
     zig = str(zig_toolchain.ensure())
     cache = ROOT / 'pc/build/dev64/zig-library-cache'
     with tempfile.TemporaryDirectory(prefix='game-lib-', dir=output.parent) as directory:
@@ -43,7 +41,7 @@ def build(source, output):
         # non-incremental LLVM until both support safe stack unwinding.
         work = cache / ('modules-' + hashlib.sha256(str(source).encode()).hexdigest()[:16])
         work.mkdir(parents=True, exist_ok=True)
-        write_changed(work / 'ownership.zig', ownership.ownership_zig(full))
+        write_changed(work / 'ownership.zig', ownership.ownership_zig(table))
         objects = []
         for overlay in sorted({s.overlay for s in table.subsystems}):
             wrapper = work / (overlay + '.zig')

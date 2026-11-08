@@ -1,10 +1,10 @@
-//! Script opcode: opens text box script[1] with the string at script[2], or closes it and records its selection (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Script opcode: opens text box script[1] with the string at script[2], or closes it and records its selection (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_showTextBox (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_showTextBox (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Opens text box script[1] on the string at script[2] (a hold flag in script[3]), or closes it and records its selection.
 pub fn script_showTextBox(script: [*c]u8, _: c_short) callconv(.c) c_int {
     const statuses = v.g.vs_battle_textBoxStatuses();

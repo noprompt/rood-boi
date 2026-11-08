@@ -1,10 +1,10 @@
-//! Rotates the scratchpad vector table D_800F1D98 by its angles (src/BATTLE/BATTLE.PRG/146C.c).
+//! Rotates the scratchpad vector table D_800F1D98 by its angles (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80090B28 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80090B28 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Recomputes the three rotated components in D_800F1D98[0..2] from its angles and scale.
 pub fn func_80090B28() callconv(.c) void {
     const d = v.g.D_800F1D98();

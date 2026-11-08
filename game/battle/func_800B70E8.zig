@@ -1,8 +1,8 @@
-//! An event script opcode that starts a D_800F4B30 slot's move (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that starts a D_800F4B30 slot's move (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 
-/// orig: func_800B70E8 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B70E8 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Starts slot script[5] >> 6's move from its D_800EB9BC entry toward the script's targets; returns 1
 /// while the slot is still busy, 0 otherwise (or with no D_800EB9BC).
 pub fn func_800B70E8(script: [*c]u8, _: c_short) callconv(.c) c_int {

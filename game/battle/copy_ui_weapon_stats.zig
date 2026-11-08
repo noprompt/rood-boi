@@ -1,11 +1,11 @@
 //! Copies a UI weapon's blade, grip, gems and name back into the inventory
-//! slots its target weapon points at (src/BATTLE/BATTLE.PRG/146C.c).
+//! slots its target weapon points at (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_copyUiWeaponStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyUiWeaponStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Writes a UI weapon's parts and name into the inventory, when its blade is present.
 pub fn copyUiWeaponStats(target: ?*v.vs_main_inventoryWeapon, source: ?*v.vs_battle_uiWeapon) callconv(.c) void {
     const s = source.?;

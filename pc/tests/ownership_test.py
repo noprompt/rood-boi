@@ -367,7 +367,7 @@ functions = [ ]
 with tempfile.TemporaryDirectory() as d:
     (pathlib.Path(d) / "o.toml").write_text(SDK_TOML)
     sdk_table = ownership.load(pathlib.Path(d) / "o.toml")
-boot_units = {"pc/src/boot_sdk.c", "src/SLUS_010.40/main.c"}
+boot_units = {"pc/src/boot_sdk.c", "pc/src/game/SLUS_010.40/main.c"}
 check(sdk_table.for_build(boot_units, set()).subsystems == [], "the plain boot build has no battle subsystem, boot_sdk.c compiled or not")
 check([s.name for s in sdk_table.for_build(boot_units | {"pc/src/room_render.c"}, {"battle"}).subsystems]
       == ["d2_boot_sdk", "d2_room_render"], "the battle build routes both units")
@@ -392,119 +392,6 @@ check(all(f"// {s.unit}\n" in root_zig and f"# ---- {s.unit}\n" in specs
 build_text = (ROOT / "pc/tools/build_boot.py").read_text()
 check(all(f'("{s.unit}", ' in build_text for s in real.subsystems if s.name.startswith("d2_")),
       "every d2_ subsystem's unit is in build_boot.py's sources")
-
-# ---- lang = "c": a C copy as the owned side
-C_TOML = """
-[subsystem.zed]
-overlay = "battle"
-unit = "src/Z.c"
-functions = [ { addr = 0x80030000, name = "z_one", zig = "z.one" } ]
-
-[subsystem.menu_x]
-overlay = "menu"
-lang = "c"
-unit = "src/MENU/X.PRG/0.c"
-copy = "game/menu/x.c"
-functions = [ { addr = 0x80103270, name = "vs_x_exec" } ]
-"""
-with tempfile.TemporaryDirectory() as d:
-    path = pathlib.Path(d) / "ownership.toml"
-    path.write_text(C_TOML)
-    ctable = ownership.load(path)
-    cx = ctable.subsystems[1]
-    check(ctable.subsystems[0].lang == "zig" and cx.lang == "c" and cx.copy == "game/menu/x.c",
-          "lang defaults to zig; a C subsystem keeps its copy path")
-    check(cx.default == "original" and cx.dev_default == "original", "a C subsystem's dev_default is original")
-    for text, fault in [(C_TOML.replace('lang = "c"', 'lang = "rust"'), "is not one of zig, c"),
-                        (C_TOML.replace('copy = "game/menu/x.c"', ''), "must be a C file game/menu/NAME.c"),
-                        (C_TOML.replace("game/menu/x.c", "game/battle/x.c"), "must be a C file game/menu/NAME.c"),
-                        (C_TOML.replace('copy = "game/menu/x.c"', 'copy = "game/menu/x.zig"'), "must be a C file"),
-                        (C_TOML.replace('default = "original"', '').replace('copy = ', 'dev_default = "owned"\ncopy = '),
-                         "dev_default is original"),
-                        (C_TOML.replace('{ addr = 0x80103270, name = "vs_x_exec" }',
-                                        '{ addr = 0x80103270, name = "vs_x_exec", zig = "x.exec" }'), "no zig paths"),
-                        (C_TOML.replace('unit = "src/Z.c"', 'unit = "src/Z.c"\ncopy = "game/battle/z.c"'), "copy is for")]:
-        path.write_text(text)
-        check(raises(lambda: ownership.load(path), fault), f"a bad C entry is refused: {fault}")
-    check([s.name for s in ctable.zig_only().subsystems] == ["zed"] and
-          ctable.library_routes() == [("z_one", 0)] and ctable.routes() == [("z_one", 0), ("vs_x_exec", 1)],
-          "the library holds the Zig routes; the table keeps every route")
-    check("subsystem_c" not in ownership.ownership_zig(ctable) and '"vs_x_exec"' not in ownership.ownership_zig(ctable)
-          and "menu_x = 1" in ownership.ownership_zig(ctable),
-          "ownership.zig names every subsystem and holds the Zig routes only")
-    check([s.name for s in ctable.for_build({"src/MENU/X.PRG/0.c"}, set()).subsystems] == ["menu_x"],
-          "a C subsystem is active where its unit is compiled, whatever the Zig overlays")
-    check(ctable.for_build({"src/Z.c"}, set()).subsystems == [], "a Zig subsystem still needs its overlay")
-    asm = ownership.routing_source(ctable, "sysv64")
-    check("jmp *" not in asm and "je vs_x_exec__owned" in asm and "jmp vs_x_exec__orig" in asm
-          and "vs_x_exec__shadow:" in asm and "pc_subsystem_native[] = { 0, 1 }" in asm,
-          "routing: the trampoline reaches the copy's F__owned, the shadow is a trap, the table marks it native")
-    check("z_one__shadow:" not in asm, "routing: a Zig route's shadow is the Zig object's")
-    reload = ownership.routing_source(ctable, "sysv64", reloadable=True)
-    check("vs_x_exec__owned_abi" not in reload and "z_one__owned_abi" in reload and "{ z_one__owned_abi, 0 }" in reload
-          and "movq pc_owned_table(%rip), %r11" in reload and ".globl vs_x_exec__owned" not in reload,
-          "reloadable routing: a C route has no slot stub and no signature, the copy's F__owned is the host's")
-    win = ownership.routing_source(ctable, "win64")
-    check(".type vs_x_exec__shadow" not in win and "vs_x_exec__shadow:" in win, "win64 routing: no .type line")
-
-C_UNIT = b"""# 1 "x.c"
-typedef unsigned char u_char;
-static int counter = 3;
-static const char* names[] = { "a", "b" };
-static int (*handlers[2])(int) = { 0, 0 };
-static int helper(int);
-static int helper(int v) { static int calls = 0; return v + ++calls; }
-static char scratch[16] __attribute__((unused));
-int vs_x_exec(u_char* state)
-{
-    static int calls = 0;
-    static u_char table[4] = { 1, 2, 3, 4 };
-    struct { int calls; } s;
-    s.calls = calls++;
-    return helper(counter) + table[s.calls & 3] + (int)names[0][0] + s.calls;
-}
-"""
-original, links = ownership.share_statics(C_UNIT, "x_0", copy=False)
-want = ["x_0__counter", "x_0__names", "x_0__handlers", "x_0__helper__calls", "x_0__scratch",
-        "x_0__vs_x_exec__calls", "x_0__vs_x_exec__table"]
-check(links == want, f"share_statics lists file and block statics by function: {links}")
-check(b'static int counter __asm__("x_0__counter") __attribute__((used)) = 3;' in original
-      and b'static int calls __asm__("x_0__vs_x_exec__calls") __attribute__((used)) = 0;' in original
-      and b'static const char* names[] __asm__("x_0__names") __attribute__((used)) = {' in original
-      and b'static int (*handlers[2])(int) __asm__("x_0__handlers") __attribute__((used)) = {' in original
-      and b'static char scratch[16] __asm__("x_0__scratch") __attribute__((used)) __attribute__((unused));' in original,
-      "the original keeps its definitions, each with its asm label")
-check(b"static int helper(int);" in original and b"static int helper(int v)" in original,
-      "a static function is not a static variable")
-copied, copy_links = ownership.share_statics(C_UNIT, "x_0", copy=True)
-check(copy_links == links, "the copy sees the same names")
-check(b'extern int counter __asm__("x_0__counter") ;' in copied
-      and b'extern const char* names[] __asm__("x_0__names") ;' in copied
-      and b'extern int (*handlers[2])(int) __asm__("x_0__handlers") ;' in copied
-      and b'extern char scratch[16] __asm__("x_0__scratch") __attribute__((unused));' in copied
-      and b"{ 1, 2, 3, 4 }" not in copied and b"= 3" not in copied,
-      "the copy's file statics are extern with the same label and no initializer")
-check(b"extern int x_0__vs_x_exec__calls ;" in copied and b"extern int x_0__helper__calls ;" in copied
-      and b"extern u_char x_0__vs_x_exec__table[4] ;" in copied
-      and b"s.calls = x_0__vs_x_exec__calls++;" in copied
-      and b"x_0__vs_x_exec__table[s.calls & 3]" in copied and b"struct { int calls; } s;" in copied,
-      "the copy's block statics are renamed to their link names in the block, members untouched")
-check(b"return v + ++x_0__helper__calls;" in copied, "a block static in another function is renamed there")
-check(raises(lambda: ownership.share_statics(b"static int a, b;", "u", copy=False), "several declarators"),
-      "a static declaration with several declarators is refused")
-check(raises(lambda: ownership.share_statics(b"void f(void){ if (1) { static int a; } { static int a; } }", "u", copy=False),
-            "same name"), "two statics of one name in one function are refused")
-suffixed, counts = ownership.rename_definitions(C_UNIT, ["vs_x_exec"], suffix=b"__owned")
-check(counts == {"vs_x_exec": 1} and b"int vs_x_exec(u_char* state);" in suffixed
-      and b"vs_x_exec__owned(u_char* state)\n{" in suffixed and b"vs_x_exec__orig" not in suffixed,
-      "rename_definitions with suffix __owned (the copy): a prototype stays, the definition is F__owned")
-default, _ = ownership.rename_definitions(C_UNIT, ["vs_x_exec"])
-check(b"vs_x_exec__orig(u_char* state)\n{" in default, "the default suffix is still __orig")
-real_menu1 = [s for s in real.subsystems if s.name == "menu1"]
-check(len(real_menu1) == 1 and real_menu1[0].lang == "c" and real_menu1[0].default == "original"
-      and (ROOT / real_menu1[0].copy).is_file() and real_menu1[0].unit == "src/MENU/MENU1.PRG/30.c",
-      "the real table's menu1 subsystem is a C copy that exists, default original")
-
 
 print("FAILED" if failures else "all ownership checks passed")
 sys.exit(1 if failures else 0)

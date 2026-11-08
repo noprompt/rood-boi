@@ -1,10 +1,10 @@
 //! Whether an item id is held in the inventory, returning the count for misc items
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: vs_battle_itemIdIsInInventory (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_itemIdIsInInventory (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 1 for id 0, else the item's count for a misc item, 1 for a blade, grip, armor or gem held, else 0.
 pub fn itemIdIsInInventory(id: c_int) callconv(.c) c_int {
     if (id == 0) return 1;

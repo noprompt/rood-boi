@@ -32,10 +32,10 @@
  * vs_battle_getMapCompletion's on a copy of the room flags (its fix-up of
  * roomFlags[1] is not written). */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "ui_shell.h"
 #include "map_frame.h"
 #include "map_pad.h"

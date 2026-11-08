@@ -3,9 +3,9 @@
  * not a matching decompilation claim. Uses an explicit host argument instead
  * of the original wrapper's implicit MIPS argument-register forwarding. */
 #include "common.h"
-#include "src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "src/BATTLE/BATTLE.PRG/6E644.h"
-#include "src/SLUS_010.40/main.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/6E644.h"
+#include "pc/src/game/SLUS_010.40/main.h"
 #include <inline_c.h>
 extern void pc_unimplemented(const char*);
 #define gte_ctc2(reg, value) CTC2((value), (reg))

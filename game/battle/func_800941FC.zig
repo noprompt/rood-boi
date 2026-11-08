@@ -1,5 +1,5 @@
 //! Floating battle labels: ticks them, draws the damage, status, chain and buff
-//! labels, and removes the expired ones (src/BATTLE/BATTLE.PRG/2842C.c).
+//! labels, and removes the expired ones (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
@@ -71,7 +71,7 @@ fn anchorPackets(start: ?*anyopaque) void {
     }
 }
 
-/// orig: func_800941FC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800941FC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Ticks the floating labels, draws each by kind and removes the expired ones.
 pub fn func_800941FC() callconv(.c) void {
     if (v.g.D_800F2272().* > 0) {

@@ -1,10 +1,10 @@
 //! Splits the TIM block list of a battle graphics pack and loads each image to VRAM
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _loadZndTims (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadZndTims (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Parses the TIM blocks of a ZND pack and uploads each one: CLUT rows to the palette sprite, the rest with LoadImage.
 pub fn loadZndTims(data: ?*anyopaque) callconv(.c) void {
     var tim: v.TIM_IMAGE = undefined;

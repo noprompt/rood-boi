@@ -1,7 +1,7 @@
-//! Whether the equipped weapon's next art or the next battle ability is unlocked (src/BATTLE/BATTLE.PRG/146C.c).
+//! Whether the equipped weapon's next art or the next battle ability is unlocked (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 
-/// orig: _isArtOrAbilityUnlocked (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _isArtOrAbilityUnlocked (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the art unlock in bit 16 and the battle ability unlock in bit 0.
 pub fn isArtOrAbilityUnlocked() callconv(.c) c_int {
     var unlockBattleAbility: c_int = 0;

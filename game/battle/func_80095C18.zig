@@ -1,4 +1,4 @@
-//! Draws an actor's emote (the speech-bubble icons over its head) (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Draws an actor's emote (the speech-bubble icons over its head) (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
@@ -20,7 +20,7 @@ inline fn bit(actor: c_int) c_int {
     return @as(c_int, 1) << @truncate(@as(c_uint, @bitCast(actor)));
 }
 
-/// orig: func_80095C18 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80095C18 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Draws emote `kind` for `actor`: without bit 3, an icon beside its screen point (sprites, or the bubble
 /// polygon; kind 4 off screen becomes the edge arrow), facing the side the player stands on; with bit 3, the
 /// animated thought bubble over a distant actor. Each decision is recorded in pc_emote_record (PC_CLASSIC).

@@ -1,11 +1,11 @@
 //! Builds a weapon's object data slot and hands it to the battle data-slot populator
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80077130 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80077130 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills an object data slot for an actor's weapon (or shield, when isShield is set) and populates it.
 pub fn func_80077130(actor: ?*v.vs_battle_actor, actorId: c_int, wepId: c_int, isShield: c_int, material: c_int) callconv(.c) void {
     if (wepId == 0xFF) return;

@@ -1,10 +1,10 @@
-//! Reserves a run of flag bytes in D_800F19A8 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Reserves a run of flag bytes in D_800F19A8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007DFF0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007DFF0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Claims `arg1` free flag bytes from index `arg0` (above 0x18, ending below 0x21), fills them with `arg2` and returns `arg0`; otherwise calls nop9 and returns 0.
 pub fn func_8007DFF0(arg0: c_uint, arg1: c_uint, arg2: c_int) callconv(.c) c_int {
     if (arg0 > 0x18) {

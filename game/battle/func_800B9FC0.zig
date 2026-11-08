@@ -1,10 +1,10 @@
 //! Applies a script's 5-byte scroll command to the D_800F4B88 record
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B9FC0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B9FC0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sets the scroll record at once, or stores its previous values and steps it towards the new target.
 pub fn func_800B9FC0(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     _ = c.func_80090C2C(@as(c_int, arg0[1] >> 4));

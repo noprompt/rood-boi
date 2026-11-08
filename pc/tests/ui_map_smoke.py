@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Modern menus, the Map frame (pc/src/ui/map_bridge.c, ui_map.cpp,
-ui_map_draw.cpp; MENU5 hooks in src/MENU/MENU5.PRG/4D8.c): the game's own
+ui_map_draw.cpp; MENU5 hooks in pc/src/game/MENU/MENU5.PRG/4D8.c): the game's own
 map screen keeps running and owning the pad; the shell draws its chrome
 around the 3D map and turns the pointer into requests MENU5 applies at its
 own input point.

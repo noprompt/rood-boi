@@ -1,10 +1,10 @@
 //! Copies the four flag bytes at +5..+8 of a script operand and passes them,
-//! with two converted operands, to func_8007C928 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! with two converted operands, to func_8007C928 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7574 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7574 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8007C928 with the operand's id (through func_800BFE50), its short, and a copy of its flag bytes.
 pub fn func_800B7574(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     // The C leaves sp10[4..11] unset; only the first four bytes are read by the callee.

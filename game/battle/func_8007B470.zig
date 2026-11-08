@@ -1,10 +1,10 @@
-//! Battle setup step: resets the CLUT state and the helper state, then clears D_800F1968 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle setup step: resets the CLUT state and the helper state, then clears D_800F1968 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007B470 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B470 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the CLUT state and the battle helper state, then clears D_800F1968.
 pub fn func_8007B470() callconv(.c) void {
     c.vs_main_setClutState(1);

@@ -1,9 +1,9 @@
-//! Marks battle actor `arg0` as defeated or revives it (src/BATTLE/BATTLE.PRG/146C.c).
+//! Marks battle actor `arg0` as defeated or revives it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007D08C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007D08C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Revives actor `arg0` when `arg1` is nonzero, else marks it defeated; returns `arg1`.
 pub fn func_8007D08C(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     if (arg1 != 0) {

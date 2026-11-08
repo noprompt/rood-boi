@@ -1,10 +1,10 @@
 //! Battle state byte machine: settles a 2-bit-per-step flag word into a
-//! state byte (src/BATTLE/BATTLE.PRG/146C.c).
+//! state byte (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80085A34 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80085A34 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Advances the state byte at unk3 from the flag word at unk1C, or from unk14/unk18 when that word is zero.
 pub fn func_80085A34(arg0: ?*v.func_80085A34_t) callconv(.c) void {
     const state = arg0.?;

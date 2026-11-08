@@ -1,9 +1,9 @@
-//! Clears bit 12 of every 16th word of the room's geometry section (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears bit 12 of every 16th word of the room's geometry section (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008C40C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C40C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears flag 0x1000 on the first word after each 64-byte block of the room's geometry section, for as many blocks as its first word counts.
 pub fn func_8008C40C() callconv(.c) void {
     const geometry = psx.get(v.g.vs_battle_roomData().geometrySection);

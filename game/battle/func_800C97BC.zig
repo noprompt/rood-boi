@@ -1,9 +1,9 @@
-//! Battle menu frame: opens the misc-items menu, runs the active menu and renders its rows (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Battle menu frame: opens the misc-items menu, runs the active menu and renders its rows (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C97BC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C97BC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs the current battle menu and renders its ten item rows when they are shown.
 pub fn func_800C97BC() callconv(.c) void {
     var s2: [*c]v.vs_battle_menuItem_t = v.g.vs_battle_menuItems().*;

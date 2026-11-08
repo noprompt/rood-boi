@@ -1,10 +1,10 @@
-//! Flood-fills the 32x32 grid at D_800F58D0 from one cell, stamping each reached cell with the low 10 bits of arg2 (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! Flood-fills the 32x32 grid at D_800F58D0 from one cell, stamping each reached cell with the low 10 bits of arg2 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
-/// orig: func_800E5EC0 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E5EC0 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Stamps cell (arg0, arg1) with arg2's low 10 bits, then recurses into each walkable, unstamped 4-neighbour.
 pub fn floodRegion(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     const value: c_int = arg2 & 0x3FF;

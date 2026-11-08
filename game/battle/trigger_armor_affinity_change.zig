@@ -1,11 +1,11 @@
 //! Armor affinity drift when an action hits: raises the affinity the action's
-//! element targets and lowers the opposing affinities (src/BATTLE/BATTLE.PRG/146C.c).
+//! element targets and lowers the opposing affinities (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _triggerArmorAffinityChange (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _triggerArmorAffinityChange (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Raises the equipment's affinity for the action's element with a chance, and lowers the opposing affinities.
 pub fn triggerArmorAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_battle_uiEquipment, affinity: c_int, arg3: c_int, actorId: c_int) callconv(.c) void {
     const act = action.?;

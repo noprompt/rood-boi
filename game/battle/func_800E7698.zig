@@ -1,11 +1,11 @@
 //! Advances a radial motion one frame: aims it at the centre and steps the state along its circle
-//! (src/BATTLE/BATTLE.PRG/7EE98.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_7EE98");
 const c = @import("c_7EE98");
 
-/// orig: func_800E7698 (src/BATTLE/BATTLE.PRG/7EE98.c)
+/// orig: func_800E7698 (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c)
 /// Advances a radial motion one frame; returns 1 when the motion has finished.
 pub fn func_800E7698(state: ?*v.radialMotionState) callconv(.c) c_int {
     const st = state.?;

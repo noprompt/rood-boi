@@ -1,10 +1,10 @@
 //! Draws the shadow quad under a unit: a textured quad around its position,
-//! one of eight corners picked by facing (src/BATTLE/BATTLE.PRG/2842C.c).
+//! one of eight corners picked by facing (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009651C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009651C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Builds the shadow quad at `position` for `direction` and links it into the ordering table.
 pub fn func_8009651C(position: ?*v.SVECTOR, direction: c_int) callconv(.c) void {
     const dx = [8]c_int{ -8, 0, 7, 10, 7, 0, -8, -11 };

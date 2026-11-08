@@ -1,10 +1,10 @@
-//! Draws a text box's fading edge (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws a text box's fading edge (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CD158 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CD158 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The 4..16 lines above a top box (below a bottom one) as two sprites each, fading out line by line; the rest of the screen past them a dark tile; a bottom box at its last state also draws its arrow (func_800CD0FC).
 pub fn func_800CD158(id: c_int) callconv(.c) void {
     const box = psx.at(v.g.textBoxes(), id);

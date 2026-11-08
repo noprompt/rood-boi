@@ -1,10 +1,10 @@
-//! Re-applies a battle actor's weapon and shield to func_80077130 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Re-applies a battle actor's weapon and shield to func_80077130 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007CAA4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007CAA4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sends battle actor `arg0`'s weapon blade and shield base to func_80077130.
 pub fn func_8007CAA4(arg0: c_int) callconv(.c) void {
     const slot = psx.at(v.g.vs_battle_actors(), arg0).*;

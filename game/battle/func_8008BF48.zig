@@ -1,10 +1,10 @@
-//! Activates a room section and its paired section, then runs the common tail (src/BATTLE/BATTLE.PRG/146C.c).
+//! Activates a room section and its paired section, then runs the common tail (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008BF48 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008BF48 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Plays the section's sounds, locks it, locks the paired section when it has one, then runs the common tail.
 pub fn func_8008BF48(arg0: ?*v._mpdRoomSectionA) callconv(.c) c_int {
     const section = arg0.?;

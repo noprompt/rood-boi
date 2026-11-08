@@ -1,10 +1,10 @@
-//! Draws a GIM image at its scale (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws a GIM image at its scale (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CBBCC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CBBCC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The image's tile grid at its position and scale (sprites at 4096, else textured quads), its ground colour around and under empty tiles; ROOD_PC: a full-screen image is anchored as the scene (pc_hw_anchor_packets).
 pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv(.c) void {
     const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;

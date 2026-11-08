@@ -1,9 +1,9 @@
-//! Marks an enemy defeated, counting its kill once, then drops its loot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Marks an enemy defeated, counting its kill once, then drops its loot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _enemyDefeated (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _enemyDefeated (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Marks actor `actorId` defeated; a player kill (arg2 set, arg0 0) counts it and the weapon streak, then it drops its loot.
 pub fn enemyDefeated(arg0: c_int, actorId: c_int, arg2: c_int) callconv(.c) void {
     const enemy = psx.at(v.g.vs_battle_actors(), actorId).*.?;

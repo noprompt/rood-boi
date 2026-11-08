@@ -1,9 +1,9 @@
-//! Sets a scene actor's spin speed and the timer that recentres it (src/BATTLE/BATTLE.PRG/40564.c).
+//! Sets a scene actor's spin speed and the timer that recentres it (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800AAA88 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AAA88 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets slot's spin speed from speed; timer 0 recentres now, -1 derives the time from the speed, any other value is the timer.
 pub fn func_800AAA88(slot: c_int, speed: ?*v.SVECTOR, timer: c_int) callconv(.c) void {
     const a: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), slot).*.?;

@@ -1,9 +1,9 @@
-//! Fires a weapon-drawn actor's attack at its target and clears its idle state (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Fires a weapon-drawn actor's attack at its target and clears its idle state (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009DDF4 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009DDF4 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Runs the weapon-drawn attack of actor `arg0` against `arg1`, then clears its idle flags.
 pub fn func_8009DDF4(arg0: c_int, arg1: ?*v.SVECTOR) callconv(.c) void {
     // ROOD_PC: an empty actor slot reads through NULL, which maps to PS1 address 0 at 0x80000000.

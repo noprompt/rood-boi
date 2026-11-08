@@ -1,8 +1,8 @@
-//! Clears bits of the 0x64 status byte of a battle slot's entity, or the whole byte (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Clears bits of the 0x64 status byte of a battle slot's entity, or the whole byte (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009FE74 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009FE74 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Clears bit `bit` of the 0x64 status byte of slot `slot`'s entity (the whole byte for -1), falling back to the second table.
 pub fn func_8009FE74(slot: c_int, bit: c_int) callconv(.c) c_int {
     const temp_v0: ?*v.D_800F4538_t = psx.at(v.g.D_800F4538(), slot).*;

@@ -1,9 +1,9 @@
-//! Whether the camera's look-at point has reached its destination (src/BATTLE/BATTLE.PRG/146C.c).
+//! Whether the camera's look-at point has reached its destination (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _isLookAtAtDestination (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _isLookAtAtDestination (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 1 when the camera's look-at point, clamped to the zone, matches the stored look-at point at 4096 granularity.
 pub fn isLookAtAtDestination() callconv(.c) c_int {
     var sp10: v.func_80077DF0_t = undefined;

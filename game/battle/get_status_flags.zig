@@ -1,10 +1,10 @@
 //! Packs an actor's status bits and their per-status display values into one word
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_getStatusFlags (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_getStatusFlags (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns the low 16 status bits, with the table value of each set high status bit in the upper half.
 pub fn getStatusFlags(arg0: ?*v.vs_battle_actor2) callconv(.c) c_int {
     const actor = arg0.?;

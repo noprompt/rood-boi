@@ -1,10 +1,10 @@
-//! Room section key and sigil handling (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section key and sigil handling (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80073E30 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80073E30 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Opens a key or sigil room section when its item is held, sends its bounds to func_8009E070 and calls func_8008D5FC on the section when it is done.
 pub fn func_80073E30(arg0: ?*v._mpdRoomSectionA, arg1: c_int) callconv(.c) void {
     _ = arg1;

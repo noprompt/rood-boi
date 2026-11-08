@@ -1,4 +1,4 @@
-//! Starts the room's weather effect and its ambient sound (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Starts the room's weather effect and its ambient sound (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
@@ -12,7 +12,7 @@ fn density(room: *v._mpdRoomSectionB, divisor: c_int) c_int {
     return @as(c_int, psx.conv(i16, c.vs_battle_clamp(psx.conv(c_short, cells), 4, 128)));
 }
 
-/// orig: func_80090C2C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80090C2C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Sets up weather `kind` (0 none, 1..4) from the current room's section B and switches the looping sound
 /// D_800F1DBC to the kind's (21 for kind 1, none otherwise); with no room, stops the sound.
 pub fn func_80090C2C(kind: c_int) callconv(.c) void {

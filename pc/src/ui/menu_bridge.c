@@ -19,11 +19,11 @@
  * game's memzero runs, the rows are never set up), so nothing of the
  * original top level draws. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
-#include "../../../src/MENU/MAINMENU.PRG/58EC.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/58EC.h"
 #include "build/src/include/lbas.h"
 #include "ui_shell.h"
 #include "../fast_travel.h"

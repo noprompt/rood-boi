@@ -1,9 +1,9 @@
-//! Finds another battle object slot that shares this object's actor id (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Finds another battle object slot that shares this object's actor id (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_80099900 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_80099900 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Finds the first other slot whose sub-record 8 has this object's actor id, stores that slot in dataAddr and returns 1; else 0.
 pub fn func_80099900(object: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const data = object.?;

@@ -10,7 +10,7 @@
  * (*state 0), pc_ui_loot_frame every tick after, which speaks vs_menuB_exec's
  * protocol (0 stay, 1 done).
  *
- * Everything that changes the game is MENUB (src/MENU/MENUB.PRG/260.c),
+ * Everything that changes the game is MENUB (pc/src/game/MENU/MENUB.PRG/260.c),
  * ported with its types and expressions and called in the original's order,
  * on the original's data: the loot's own inventory and lists in the game's
  * heap (vs_menuB_exec 1834: _inventory, _inventoryBackup, _lootList,
@@ -84,14 +84,14 @@
  * Each request is refused (the invalid sound) when it does not name the row
  * the screen saw (its record), as the other screens' requests. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/30DB0.h"
-#include "../../../src/BATTLE/BATTLE.PRG/4A0A8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
-#include "../../../src/MENU/MAINMENU.PRG/2D10.h"
-#include "../../../src/MENU/MAINMENU.PRG/C48.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/30DB0.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/4A0A8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/2D10.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/C48.h"
 #include "build/assets/MENU/ITEMHELP.BIN.h"
 #include "build/assets/MENU/MENUB.PRG/menuText.h"
 #include "inventory_ops.h"

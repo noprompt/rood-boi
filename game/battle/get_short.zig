@@ -1,6 +1,6 @@
-//! Reads a little-endian 16-bit value from a byte address (src/BATTLE/BATTLE.PRG/573B8.c).
+//! Reads a little-endian 16-bit value from a byte address (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 
-/// orig: vs_battle_getShort (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: vs_battle_getShort (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Reads the halfword at `arg0`: a direct load when the address is even, two byte loads when odd.
 pub fn getShort(arg0: [*c]u8) callconv(.c) c_short {
     if ((@intFromPtr(arg0) & 1) == 0) {

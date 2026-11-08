@@ -1,9 +1,9 @@
-//! Picks the slot in D_800F45E0 that matches arg0/arg1 with the smallest unk1E, or 0 if none (src/BATTLE/BATTLE.PRG/40564.c).
+//! Picks the slot in D_800F45E0 that matches arg0/arg1 with the smallest unk1E, or 0 if none (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800A91DC (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A91DC (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Returns the index of the matching slot with the smallest unk1E (below ONE), or 0 when none matches.
 pub fn func_800A91DC(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int {
     var var_t2: c_int = 4096;

@@ -1,11 +1,11 @@
 //! Tests whether the actor's current target is nearer than the limit in D_800F58BC
-//! (src/BATTLE/BATTLE.PRG/7EE98.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_7EE98");
 const c = @import("c_7EE98");
 
-/// orig: func_800E78F4 (src/BATTLE/BATTLE.PRG/7EE98.c)
+/// orig: func_800E78F4 (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c)
 /// Returns 1 when the actor passes the check in func_800DBCB4 and the 13-bit-shifted field of its target is below D_800F58BC's limit, else 0.
 pub fn func_800E78F4(arg0: ?*v.func_800E78F4_t) callconv(.c) c_int {
     // arg0->unk470 dereferences arg0 first: a null arg0 traps here, as the C crashes.

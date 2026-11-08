@@ -1,9 +1,9 @@
-//! Battle script step: starts a timed wait on the first call and reports done once it expires (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Battle script step: starts a timed wait on the first call and reports done once it expires (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BADE0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BADE0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Starts the wait described by the script bytes on the first call; afterwards returns 1 while it runs and 4 when it has finished.
 pub fn func_800BADE0(arg0: [*c]u8) callconv(.c) c_int {
     if (v.g.D_800F4BF8().* == 0) {

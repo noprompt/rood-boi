@@ -1,10 +1,10 @@
 //! Score data a battle updates: kill counts, the kill streak and the streak
-//! score (src/BATTLE/BATTLE.PRG/146C.c).
+//! score (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _updateEnemyKills (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _updateEnemyKills (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Counts a defeated enemy: its class's kills, the kill streak, the streak score and its kill flag.
 pub fn updateEnemyKills(enemy: ?*v.vs_battle_actor) callconv(.c) void {
     const score = v.g.scoreData();

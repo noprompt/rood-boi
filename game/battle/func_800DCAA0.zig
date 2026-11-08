@@ -1,11 +1,11 @@
 //! Builds the target-selection call for a battle action and, when it reports a hit, runs the follow-up at `arg1`
-//! (src/BATTLE/BATTLE.PRG/74088.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: func_800DCAA0 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DCAA0 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Runs the target check for `source` against `state` (mode 3 also tests the actor's height) and calls func_800DC888 with `arg1` on success.
 pub fn func_800DCAA0(arg0: ?*v.func_800DCAA0_t1, arg1: c_int, arg2: ?*v.func_800DCAA0_t, arg3: c_int) callconv(.c) void {
     const a0 = arg0.?;

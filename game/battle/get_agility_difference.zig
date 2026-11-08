@@ -1,10 +1,10 @@
 //! Agility difference of a hit from source to target, with gem buffs, clamped to 0..254
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _getAgilityDifference (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getAgilityDifference (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Rolls the agility difference of a hit from source to target, with gem buffs, clamped to 0..254.
 pub fn getAgilityDifference(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, hitNumber: c_int, addVariance: c_int) callconv(.c) c_int {
     const targetLimb: c_int = @as(c_int, target.?.unk0.targetLimb);

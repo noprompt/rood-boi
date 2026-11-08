@@ -1,8 +1,8 @@
-//! Resolves an actor reference into a three-byte position written to state flags (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Resolves an actor reference into a three-byte position written to state flags (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7490 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7490 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Stores the position of the actor named in the script operand at `flag` and the two bytes after it, or 0xFF there when the actor is absent.
 pub fn func_800B7490(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     var position: [12]u8 = undefined;

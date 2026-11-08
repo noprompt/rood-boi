@@ -1,11 +1,11 @@
 //! Removes the battle actor in a slot: its cleanup, its unlink from the actor list and its heap block
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _removeActorAtIndex (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _removeActorAtIndex (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Removes the actor in slot `index` (below 16) and returns 1, or returns 0 for a slot out of range.
 pub fn removeActorAtIndex(index: c_uint, arg1: c_int) callconv(.c) c_int {
     if (index < 16) {

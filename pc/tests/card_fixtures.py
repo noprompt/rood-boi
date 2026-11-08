@@ -24,7 +24,7 @@ card_guard(): a test that can write a card runs inside it.
 Fixtures mirror memory_card.c's raw 128 KiB image (frame 0 "MC", directory
 frames 1..15 with a next link at +8 and the name at +10, each frame's last
 byte the XOR of the others, 8 KiB blocks) and MENU7's save files
-(src/MENU/MENU7.PRG/260.c: 3 blocks, BASLUS-01040VAG1..5, temps VAGA..E; the
+(pc/src/game/MENU/MENU7.PRG/260.c: 3 blocks, BASLUS-01040VAG1..5, temps VAGA..E; the
 header's key at 0x180 and the keystream from 0x184, checksums per 256-byte
 sector with sector 1 XOR-ing to 0). Payloads are copied from saves the game
 made; only a generation is rewritten (decoded, re-sealed, re-encoded with the
@@ -710,7 +710,7 @@ def pack_container(container, layout=None):
 
 
 # ---- the Score screen (MENU9: vs_main_scoredata, vs_main_stateFlags) ----
-# vs_main_scoredata_t (src/SLUS_010.40/main.h) field offsets, 0x114 bytes in all
+# vs_main_scoredata_t (pc/src/game/SLUS_010.40/main.h) field offsets, 0x114 bytes in all
 SCOREDATA = {"titles": 0x00, "kills": 0x04, "attacks": 0x14, "trials": 0x28, "max_chain": 0x88, "clear_count": 0x8C,
              "minutes": 0x90, "map": 0x94, "chests": 0x98, "kill_flags": 0x9C, "streak": 0x104, "misc": 0x108}
 SCOREDATA_SIZE = 0x114

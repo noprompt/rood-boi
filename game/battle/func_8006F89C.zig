@@ -1,10 +1,10 @@
-//! Opens the ability camera when an art or ability is unlocked or the current battle action is still locked; otherwise runs the plain tail (src/BATTLE/BATTLE.PRG/146C.c).
+//! Opens the ability camera when an art or ability is unlocked or the current battle action is still locked; otherwise runs the plain tail (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006F89C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006F89C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Picks the ability camera or the plain tail for the battle state in D_800F18FC.
 pub fn func_8006F89C() callconv(.c) void {
     switch (v.g.D_800F18FC().*) {

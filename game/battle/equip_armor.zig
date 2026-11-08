@@ -1,10 +1,10 @@
-//! Equips an armor piece on one body part of the character (src/BATTLE/BATTLE.PRG/146C.c).
+//! Equips an armor piece on one body part of the character (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_equipArmor (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_equipArmor (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies `armor` to the character's limb `bodyPart`, then refreshes the battle state.
 pub fn equipArmor(bodyPart: c_int, armor: ?*v.vs_main_inventoryArmor) callconv(.c) void {
     const character = v.g.vs_battle_characterState().*.?;

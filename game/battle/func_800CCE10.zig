@@ -1,10 +1,10 @@
 //! Offsets and flags for a battle sprite placement, from its table row
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800CCE10 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CCE10 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Looks up a placement's offsets for `arg0`, mirrors them when bit 2 of `arg1` is set, and subtracts the size terms of `arg2` and `arg3`.
 pub fn func_800CCE10(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) v.func_800CCE10_t {
     const quad = (arg1 >> 2) & 3;

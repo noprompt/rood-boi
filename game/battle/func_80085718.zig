@@ -1,10 +1,10 @@
-//! Hit-entity reset (src/BATTLE/BATTLE.PRG/146C.c).
+//! Hit-entity reset (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80085718 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80085718 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Zeroes a hit entity, sets its unk0.unk3 to 6, and clears the word after inflictStatuses.
 pub fn func_80085718(hit: ?*v._hitEntity_t) callconv(.c) void {
     c.vs_main_bzero(hit, @sizeOf(v._hitEntity_t));

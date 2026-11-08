@@ -1,6 +1,6 @@
 //! Cubic blend of four values by the fraction arg4, stored through arg5
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
-/// orig: func_800D155C (src/BATTLE/BATTLE.PRG/5BF94.c)
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
+/// orig: func_800D155C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Blends arg0..arg3 with four cubic weights of t = arg4 (4096 = 1.0) and stores the result in *arg5.
 pub fn func_800D155C(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int, arg4: c_int, arg5: [*c]c_int) callconv(.c) void {
     const p0: c_int = ((((-%arg4) *% (arg4 -% 4096)) >> 12) *% (arg4 -% 8192));

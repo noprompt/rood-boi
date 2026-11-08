@@ -1,11 +1,11 @@
 //! Copies a shield's stats into its inventory entry and the gems it holds
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_copyUiShieldStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyUiShieldStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies an equipped shield's UI stats into its inventory entry, then each socketed gem's stats.
 pub fn copyUiShieldStats(target: ?*v.vs_main_inventoryShield, source: ?*v.vs_battle_uiShield) callconv(.c) void {
     const src = source.?;

@@ -1,10 +1,10 @@
-//! Dispatches a battle record by its code (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Dispatches a battle record by its code (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D0C60 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D0C60 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Codes below 0x10 fill the record from two helpers; 0x10 and 0x11 run func_800D0984, 0x12 runs func_800D0B08.
 pub fn func_800D0C60(arg0: c_int, arg1: ?*v.func_800D0C60_t) callconv(.c) void {
     const rec = arg1.?;

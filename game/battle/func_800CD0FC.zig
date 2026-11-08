@@ -1,11 +1,11 @@
 //! Sets the default sprite for slot `arg1` and patches word 4 of its result
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CD0FC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CD0FC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Sets the default sprite of slot `arg1` (below 3) and stores a table word at its index 4.
 pub fn func_800CD0FC(arg0: c_int, arg1: c_uint) callconv(.c) void {
     if (arg1 < 3) {

@@ -1,8 +1,8 @@
-//! The camera between its two keyframes, eased by a cosine (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The camera between its two keyframes, eased by a cosine (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D236C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D236C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// D_800F54D8's position, look-at (in whole units, back in 4.12), roll, far and near clip from keyframes 0 and 1 at frame D_800F54D0 of D_800F55A0, eased by a cosine.
 pub fn func_800D236C() callconv(.c) void {
     const keys = v.g.D_800F5520();

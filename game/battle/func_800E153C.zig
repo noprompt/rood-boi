@@ -1,10 +1,10 @@
-//! Steers a movement destination state toward its target cell, retrying nearby cells after repeated failures (src/BATTLE/BATTLE.PRG/771A8.c).
+//! Steers a movement destination state toward its target cell, retrying nearby cells after repeated failures (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E153C (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E153C (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Aims a movement destination state at its target cell, retrying nearby cells after repeated failures.
 pub fn func_800E153C(state: ?*v.movementDestinationState, _: c_int) callconv(.c) void {
     const st = state.?;

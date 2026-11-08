@@ -1,10 +1,10 @@
-//! Battle room load: the MPD sections, scene state and the opening camera (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle room load: the MPD sections, scene state and the opening camera (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80089DC0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80089DC0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Loads the battle room from its MPD and sets up the scene, the camera and the screen transition.
 pub fn func_80089DC0(arg0: c_int) callconv(.c) void {
     var sp20: v.VECTOR = undefined;

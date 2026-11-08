@@ -1,6 +1,6 @@
 #include "options_nav.h"
 
-/* src/MENU/MAINMENU.PRG/58EC.c:1053-1109, with rowInfo = 10 - rows. The
+/* pc/src/game/MENU/MAINMENU.PRG/58EC.c:1053-1109, with rowInfo = 10 - rows. The
  * original stores a window-relative cursor; this API stores cursor+page. */
 static void move_one(options_nav_state* s, int down, int fresh)
 {

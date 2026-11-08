@@ -1,8 +1,8 @@
-//! The battle's post-action step: loot pickup or the battle-end path (src/BATTLE/BATTLE.PRG/146C.c).
+//! The battle's post-action step: loot pickup or the battle-end path (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006FB48 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006FB48 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Once state flag 0xAB exceeds 2, starts the loot pickup if loot is waiting, else runs the other tail.
 pub fn func_8006FB48() callconv(.c) void {
     if (c.vs_battle_getStateFlag(0xAB) > 2) {

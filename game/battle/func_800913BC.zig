@@ -1,10 +1,10 @@
 //! Stores a new value in the battle's pending sound slot and plays its sound
-//! (src/BATTLE/BATTLE.PRG/2842C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_800913BC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800913BC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Stores `value` as the pending sound and plays it, returning the previous pending value.
 pub fn func_800913BC(value: c_int) callconv(.c) c_int {
     const previous: c_int = v.g.D_800F1DBC().*;

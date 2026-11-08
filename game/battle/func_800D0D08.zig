@@ -1,10 +1,10 @@
-//! Per-frame transform update of the battle's effect instances (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Per-frame transform update of the battle's effect instances (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D0D08 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D0D08 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Updates each effect transform: its attachment, world matrix, look-at and view matrix.
 pub fn func_800D0D08(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
     const scratch: *v.func_800D0B30_t2 = @ptrFromInt(0x1F8002C8);

@@ -1,4 +1,4 @@
-//! The actors' queued commands (pc/src/actor_commands.inc, compiled into src/BATTLE/BATTLE.PRG/146C.c).
+//! The actors' queued commands (pc/src/actor_commands.inc, compiled into pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
@@ -25,7 +25,7 @@ fn angleToTarget(target: *v.func_8006EBF8_t, position: *v.func_8006EBF8_t) c_int
     return c.ratan2(@as(c_int, target.unk0.unk4.vx) -% position.unk0.unk4.vx, @as(c_int, target.unk0.unk4.vz) -% position.unk0.unk4.vz) +% 0x800;
 }
 
-/// orig: func_80075554 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80075554 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the queued command of each actor: a command in progress (state 0x40) ends when its movement or animation is done; a new one (state 0x80) starts the camera and effect bits, then moves, turns or animates the actor as its command says. A nonzero result of func_800751B8 ends the pass with it.
 pub fn func_80075554() callconv(.c) c_int {
     // uninitialised in the original where a command leaves a field unset: zeroed

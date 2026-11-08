@@ -1,9 +1,9 @@
-//! Unlinks a node from the D_800F54B0 list and frees it (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Unlinks a node from the D_800F54B0 list and frees it (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CF614 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF614 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Unlinks `entry` from the list at D_800F54B0, frees what it owns and the node.
 pub fn func_800CF614(entry: ?*v.D_800F53B8_t) callconv(.c) void {
     var cur: ?*v.D_800F53B8_t = v.g.D_800F54B0().*;

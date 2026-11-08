@@ -1,4 +1,4 @@
-//! The first-person look around (src/BATTLE/BATTLE.PRG/146C.c).
+//! The first-person look around (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -10,7 +10,7 @@ fn invertY() bool {
     return psx.global(c_int, "pc_qol_fp_invert_y").* != 0;
 }
 
-/// orig: func_8006EC7C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006EC7C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Turns the first-person view: the D-pad by 32 (pitch inverted with FP_INVERT_Y), an analog pad's right stick
 /// past its dead zone by a third of the excess, and the PC's right stick (pc_camera_stick_first_person); pitch kept
 /// within +-896. Then actor 0 faces the yaw and the camera sits at its eyes (0xB4 up), looking along the angles.

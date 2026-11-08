@@ -1,8 +1,8 @@
-//! An action effect: armor DP twice the hp, also into the target limb's value1 (src/BATTLE/BATTLE.PRG/146C.c).
+//! An action effect: armor DP twice the hp, also into the target limb's value1 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_800842AC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800842AC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the entity's armorDp and its target limb's value1 to twice its hp (armorDpEffect 1).
 pub fn func_800842AC(_: ?*v.vs_action_t, _: ?*v._hitEntity_t, target: ?*v._hitEntity_t, _: c_int, _: c_int) callconv(.c) c_int {
     const entity = target.?;

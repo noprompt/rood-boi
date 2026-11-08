@@ -1,10 +1,10 @@
-//! Runs the room door section update and reports its three door fields (src/BATTLE/BATTLE.PRG/146C.c).
+//! Runs the room door section update and reports its three door fields (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007C654 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007C654 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Updates a room door section, then passes three bitfields of its result to func_8008B960.
 pub fn func_8007C654(section: ?*v._mpdRoomDoorSection_t, arg1: c_int, arg2: c_int) callconv(.c) void {
     var sp10: v.func_8006EBF8_t = undefined;

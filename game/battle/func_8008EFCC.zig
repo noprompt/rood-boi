@@ -1,10 +1,10 @@
-//! Queues the room's section-10 CD files into heap blocks (src/BATTLE/BATTLE.PRG/146C.c).
+//! Queues the room's section-10 CD files into heap blocks (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008EFCC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008EFCC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Queues the room's two section-10 CD files into fresh heap blocks; returns 1 when queued, 0 otherwise.
 pub fn func_8008EFCC(arg0: c_int) callconv(.c) c_int {
     const temp_s0 = psx.get(v.g.vs_battle_roomData().section10);

@@ -1,9 +1,9 @@
-//! The stat bar with its value digits and label (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The stat bar with its value digits and label (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: _renderStatBar (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _renderStatBar (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws stat bar `colorIndex` at `current` of `max`, with its value digits and label.
 pub fn renderStatBar(colorIndex: c_int, current: c_int, max: c_int) callconv(.c) void {
     var cur = current;

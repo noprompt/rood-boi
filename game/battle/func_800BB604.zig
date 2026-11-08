@@ -1,8 +1,8 @@
 //! Battle-end check: counts the text boxes still open after dismissing each of the eight
-//! slots (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! slots (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const c = @import("c_4A0A8");
 
-/// orig: func_800BB604 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BB604 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Dismisses text boxes 0..7; returns 2 and calls func_8007C36C(2) when none was open, else 1.
 pub fn func_800BB604(_: [*c]u8, _: c_short) callconv(.c) c_int {
     var open_count: c_int = 0;

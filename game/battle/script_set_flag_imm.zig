@@ -1,8 +1,8 @@
-//! The event script's state-flag arithmetic with an immediate (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's state-flag arithmetic with an immediate (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_setFlagImm (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_setFlagImm (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Applies script[1]'s operator (+ - * / % & |, or a plain store) to a state flag and the byte script[3].
 pub fn script_setFlagImm(script: [*c]u8, _: c_short) callconv(.c) c_int {
     const op: c_int = script[1];

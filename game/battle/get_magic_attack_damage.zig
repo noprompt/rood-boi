@@ -1,12 +1,12 @@
 //! Magic attack damage: the damage a magic action deals from one battle entity to another
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _getMagicAttackDamage (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getMagicAttackDamage (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Damage of magic action `action` at hit `nHit` from `source` to `target`, with the random spread when `addRandMod` is set.
 pub fn getMagicAttackDamage(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, nHit: c_int, addRandMod: c_int) callconv(.c) c_short {
     const act = action.?;

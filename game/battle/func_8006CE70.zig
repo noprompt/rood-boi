@@ -1,11 +1,11 @@
 //! Battle room-section lock and switch handling, dispatched on the trigger's
-//! kind bits in unk6 (src/BATTLE/BATTLE.PRG/146C.c).
+//! kind bits in unk6 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006CE70 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006CE70 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Opens a lock or switch slot when its state is in range and the check passes; otherwise runs the fallback.
 pub fn func_8006CE70(arg0: ?*v.func_8006CE70_t) callconv(.c) void {
     const self = arg0.?;

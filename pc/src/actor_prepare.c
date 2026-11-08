@@ -7,11 +7,11 @@
 #include <abs.h>
 #include <inline_c.h>
 #include "vs_inline_c.h"
-#include "src/BATTLE/BATTLE.PRG/146C.h"
-#include "src/BATTLE/BATTLE.PRG/3A1A0.h"
-#include "src/BATTLE/BATTLE.PRG/44F14.h"
-#include "src/SLUS_010.40/main.h"
-#include "src/BATTLE/BATTLE.PRG/30DB0.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/44F14.h"
+#include "pc/src/game/SLUS_010.40/main.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/30DB0.h"
 #include "pc/src/psx_types.h"
 
 typedef struct {

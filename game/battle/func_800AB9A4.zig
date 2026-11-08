@@ -1,10 +1,10 @@
 //! Battle object colour fade and CLUT animation, with its weapon models'
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AB9A4 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AB9A4 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Runs one frame of an object's colour fade and CLUT animation, and of its weapon models'.
 pub fn func_800AB9A4(arg0: ?*v.D_800F45E0_t) callconv(.c) void {
     const State = enum { block19, block20, block32, block38, block60, tail };

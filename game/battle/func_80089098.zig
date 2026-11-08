@@ -1,9 +1,9 @@
-//! Frees the battle zone's enemy and file buffers and its MPD LBA table (src/BATTLE/BATTLE.PRG/146C.c).
+//! Frees the battle zone's enemy and file buffers and its MPD LBA table (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80089098 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80089098 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Tears down the zone's loaded data: enemy and file buffers when present, then the MPD LBA table.
 pub fn func_80089098() callconv(.c) void {
     c.func_800BEBEC();

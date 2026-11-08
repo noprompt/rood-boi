@@ -1,9 +1,9 @@
 //! Draws one line primitive (G-style line with a fixed colour) into the
-//! ordering table at its depth (src/BATTLE/BATTLE.PRG/573B8.c).
+//! ordering table at its depth (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const psx = @import("common").psx;
 const v = @import("views_573B8");
 
-/// orig: func_800C0990 (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800C0990 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Links a shaded line primitive between two SVECTORs into the scratch ordering table at their depth.
 pub fn func_800C0990(start: ?*v.SVECTOR, end: ?*v.SVECTOR, color: c_uint, intensity_in: c_int) callconv(.c) void {
     const s = start.?;

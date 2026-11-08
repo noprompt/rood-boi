@@ -1,11 +1,11 @@
 //! Two-phase actor movement step: starts a move, then completes it on the next pass
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AC540 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC540 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Advances an actor's movement phase: phase 1 starts the move, phase 2 completes it once the wait counter clears.
 pub fn func_800AC540(arg0: c_int, arg1: ?*v.D_800F4538_t) callconv(.c) void {
     const p = arg1.?;

@@ -1,10 +1,10 @@
-//! Battle: stores the selection byte D_800E8F2C and clears the flagged entries of the battle actors (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle: stores the selection byte D_800E8F2C and clears the flagged entries of the battle actors (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009CE9C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009CE9C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Handles the actors whose slot bytes match index, then stores index - 1 in D_800E8F2C; index must be 1..3.
 pub fn func_8009CE9C(index: c_uint) callconv(.c) c_int {
     if (index -% 1 >= 3) return -1;

@@ -1,7 +1,7 @@
-//! Camera setting defaults: a bit for each camera field still at its default (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Camera setting defaults: a bit for each camera field still at its default (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const v = @import("views_4A0A8");
 
-/// orig: func_800BD610 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BD610 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Returns a bit for each camera setting that is at its default value.
 pub fn func_800BD610() callconv(.c) c_int {
     const d = v.g.D_800F4BA4().*.?;

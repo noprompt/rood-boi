@@ -1,9 +1,9 @@
-//! Queues the room's MPD file for loading (src/BATTLE/BATTLE.PRG/146C.c).
+//! Queues the room's MPD file for loading (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _loadMpd (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadMpd (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Queues MPD file `id` of the zone (its LBA and size from mpdLbas) into a fresh heap block, the slot and block kept
 /// in _zoneContext (vs_main_nop9 notes a slot or block still held).
 pub fn loadMpd(id: c_int) callconv(.c) void {

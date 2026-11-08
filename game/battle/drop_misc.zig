@@ -1,7 +1,7 @@
-//! Copies the two miscellaneous loot slots from the battle UI table into the loot record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies the two miscellaneous loot slots from the battle UI table into the loot record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 
-/// orig: _dropMisc (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _dropMisc (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the first two misc drops into `looted`, marking each present one as dropped; returns 1 if any was.
 pub fn dropMisc(looted: ?*v.vs_battle_loot, base: ?*v.vs_battle_uiMisc) callconv(.c) c_int {
     const loot = looted.?;

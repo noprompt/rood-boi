@@ -1,10 +1,10 @@
-//! Moves the camera's look-at point toward a zone-clamped position, stepping each axis by a bounded amount (src/BATTLE/BATTLE.PRG/146C.c).
+//! Moves the camera's look-at point toward a zone-clamped position, stepping each axis by a bounded amount (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _snapLookAtToPosition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _snapLookAtToPosition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Snaps the camera look-at toward a zone-clamped position, at most 0x12000 per horizontal axis and 0x60000 vertically.
 pub fn snapLookAtToPosition(position: ?*v.VECTOR) callconv(.c) void {
     var sp10: v.func_80077DF0_t = undefined;

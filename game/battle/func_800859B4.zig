@@ -1,8 +1,8 @@
-//! Adds a battle action's flag byte to an actor's unk954 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Adds a battle action's flag byte to an actor's unk954 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_800859B4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800859B4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds an action's flag byte (or the weapon's 0xFF form) to an actor's unk954 when enabled and the action id is outside 0x16..0x35.
 pub fn func_800859B4(arg0: c_uint, arg1: ?*v.vs_battle_actor2, arg2: c_int) callconv(.c) void {
     if (arg2 != 0 and (arg0 -% 0x16) >= 0x20) {

@@ -1,8 +1,8 @@
-//! Opens the information text box (text box 7) with a header (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Opens the information text box (text box 7) with a header (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_initInformationTextBox (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_initInformationTextBox (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Opens text box 7 with the information header `header` in its high byte.
 pub fn initInformationTextBox(header: c_uint) callconv(.c) void {
     // (header << 8) | 4 is unsigned; the callee's int parameter takes its bits.

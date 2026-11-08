@@ -1,8 +1,8 @@
-//! Dispatches script action codes 0 and 1 to the 4A0A8 helpers (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Dispatches script action codes 0 and 1 to the 4A0A8 helpers (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BA194 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BA194 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs the helper for action code arg0[1] on the entry in arg0[2]; the second argument is unused.
 pub fn func_800BA194(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     const temp_s0: c_int = arg0[2];

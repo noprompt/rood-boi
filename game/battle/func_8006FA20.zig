@@ -1,9 +1,9 @@
-//! Unlocks the art or ability pending after a battle, or announces a newly unlocked action (src/BATTLE/BATTLE.PRG/146C.c).
+//! Unlocks the art or ability pending after a battle, or announces a newly unlocked action (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006FA20 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006FA20 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Announces a newly usable action, or else unlocks the pending art or ability.
 pub fn func_8006FA20() callconv(.c) void {
     const d = v.g.D_800F19CC().*.?;

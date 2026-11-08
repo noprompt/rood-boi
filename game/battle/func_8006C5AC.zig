@@ -1,5 +1,5 @@
 //! Plays the attack sound effects for each pending hit entity in the active action
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -10,7 +10,7 @@ fn panSound(code: c_int, vec: *v.SVECTOR) void {
     c.vs_main_panSfx(0x7E, code, psx.cptr(c.SVECTOR, vec));
 }
 
-/// orig: func_8006C5AC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C5AC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For each not-yet-resolved hit of the current action, plays the weapon-category sound at the target's position.
 pub fn func_8006C5AC(slot: c_int) callconv(.c) c_int {
     var sp10: v.func_8006EBF8_t = undefined;

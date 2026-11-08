@@ -1,9 +1,9 @@
-//! Builds the menu circle's vertices and advances its shape state (src/BATTLE/BATTLE.PRG/58578.c).
+//! Builds the menu circle's vertices and advances its shape state (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C253C (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C253C (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Lays out the menu circle's vertices for `type_` from its command list and records the vertex count.
 pub fn func_800C253C(type_: c_int) callconv(.c) void {
     const basis: [*]i16 = @ptrFromInt(0x1F800398);

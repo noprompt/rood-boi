@@ -1,6 +1,6 @@
 /* Modern menus, the Quick manual: the game side (battle builds; ui_manual.h).
  *
- * The original (MENUE, src/MENU/MENUE.PRG/494.c) never runs for the native
+ * The original (MENUE, pc/src/game/MENU/MENUE.PRG/494.c) never runs for the native
  * screen; this file does to the game what it does, from the shell's events
  * (ui_manual.cpp), drained after every shell tick (pc_ui_menu_top):
  *   OPEN        _initMenuState: vs_battle_manualDisplayState zeroed without
@@ -23,10 +23,10 @@
  * (host memory, outside the game's state sections); this file hands it the
  * game's character advances and MENUE's own menuText (compiled in). */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "manual_parse.h"
 #include "ui_manual.h"
 #include <libetc.h>

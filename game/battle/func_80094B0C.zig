@@ -1,9 +1,9 @@
-//! Floating number digits: bouncing textured quads (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Floating number digits: bouncing textured quads (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80094B0C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80094B0C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Draws the digits of a floating number at x, y as bouncing textured quads.
 pub fn func_80094B0C(x_in: c_int, y_in: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) void {
     const q = p.?;

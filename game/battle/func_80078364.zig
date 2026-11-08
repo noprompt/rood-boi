@@ -1,10 +1,10 @@
-//! The battle action wait and finish state machine (src/BATTLE/BATTLE.PRG/146C.c).
+//! The battle action wait and finish state machine (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80078364 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80078364 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Counts down the action wait, then runs the finish of the action (or the battle end) once the wait ends.
 pub fn func_80078364() callconv(.c) void {
     if (v.g.D_800F19CC().*.?.unk2984 != 0) {

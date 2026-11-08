@@ -1,6 +1,6 @@
 //! An actor's airborne states: the jump's wind-up, the rise and fall with its
 //! landing, bounce and slide limits, and the landing's recovery
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
@@ -22,7 +22,7 @@ fn timer(actor: *Actor) i8 {
     return @bitCast(actor.unk0.unk11);
 }
 
-/// orig: func_800AC690_getProfile (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC690_getProfile (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// The actor's sound profile: 3 (flags 0xF00), 4 (0x400000), 5 (0x200000),
 /// 6 (0x5AC bit 3), else unk5B0's low two bits.
 fn getProfile(actor: *Actor) c_int {
@@ -36,7 +36,7 @@ fn getProfile(actor: *Actor) c_int {
 
 const Next = enum { proceed, land, fall };
 
-/// orig: func_800AC690 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC690 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Runs the actor's airborne state (flags bits 16..18): 2, the wind-up (unk11
 /// frames, then the jump sound, or the take-off: vy -30, state 3, its
 /// platform released); 3, the flight (gravity by state, the hover's

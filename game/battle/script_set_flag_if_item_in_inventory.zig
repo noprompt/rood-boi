@@ -1,8 +1,8 @@
-//! The event script's inventory test (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's inventory test (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_setFlagIfItemInInventory (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_setFlagIfItemInInventory (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sets the state flag getShort(script + 3) to whether the item getShort(script + 1) is in the inventory.
 pub fn script_setFlagIfItemInInventory(script: [*c]u8, _: c_short) callconv(.c) c_int {
     // The object reads the item, tests it, then reads the flag.

@@ -1,8 +1,8 @@
-//! Starts the camera transition into battle (src/BATTLE/BATTLE.PRG/146C.c).
+//! Starts the camera transition into battle (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _initBattleCameraTransition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _initBattleCameraTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Allocates the transition once; unless one is already running (D_800F196C 7) its start is the current camera,
 /// spherical camera, near clip, projection distance and far clip. Its end: near clip 4, projection 224, far clip
 /// 0x2000, actor 0's facing as yaw, pitch 0, the current distance, aimed at actor 0's position (0xB4 up). Then

@@ -1,9 +1,9 @@
-//! Battle list helper: decrements the 5-bit count of the previous entry (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Battle list helper: decrements the 5-bit count of the previous entry (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800D5048 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5048 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Steps the previous entry's `unk14_11` count down by one (wrapping 0 to 31) and returns 1.
 pub fn func_800D5048(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int {
     if (psx.get(arg0.?.previous)) |previous| {

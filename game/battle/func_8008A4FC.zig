@@ -1,10 +1,10 @@
-//! Looks up the room section at the current position and returns its value (src/BATTLE/BATTLE.PRG/146C.c).
+//! Looks up the room section at the current position and returns its value (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008A4FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008A4FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the value of the room section at the current position, or 0 when none applies.
 pub fn func_8008A4FC() callconv(.c) c_int {
     var sp10: v.func_8006EBF8_t = undefined;

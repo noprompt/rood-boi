@@ -1,7 +1,7 @@
-//! Battle menu gate: the variant (0x180 or 0x140) of menu entry `arg0`, or 0 when it is locked (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Battle menu gate: the variant (0x180 or 0x140) of menu entry `arg0`, or 0 when it is locked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const c = @import("c_5BF94");
 
-/// orig: func_800C9EB8 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C9EB8 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns the menu variant for entry arg0 (0x180, or 0x140 when a flag is set), or 0 when the entry is locked.
 pub fn func_800C9EB8(arg0: c_int) callconv(.c) c_int {
     const temp_s0: c_int = c.func_800CABE0(0);

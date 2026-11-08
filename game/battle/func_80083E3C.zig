@@ -1,9 +1,9 @@
-//! An action effect: the applicable statuses 14 on the target, marked when any apply (src/BATTLE/BATTLE.PRG/146C.c).
+//! An action effect: the applicable statuses 14 on the target, marked when any apply (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80083E3C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80083E3C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the target's applicable statuses from set 14; when that reports any, its unk1C_16 becomes 1.
 pub fn func_80083E3C(_: ?*v.vs_action_t, _: ?*v._hitEntity_t, target: ?*v._hitEntity_t, _: c_int, _: c_int) callconv(.c) c_int {
     if (c._setApplicableStatuses(14, @ptrCast(target)) != 0) {

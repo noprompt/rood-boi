@@ -1,7 +1,7 @@
-//! Swaps the 32-bit words behind two slot lookups (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Swaps the 32-bit words behind two slot lookups (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const c = @import("c_2842C");
 
-/// orig: func_80091A1C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80091A1C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Swaps the words at two looked-up slots; returns 1 if both lookups found one, else 0.
 pub fn func_80091A1C(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     // The lookup returns an untyped pointer; the C reads it as `int*`. Keep the

@@ -1,9 +1,9 @@
-//! Sound-effect volume and pan of a battle actor (src/BATTLE/BATTLE.PRG/40564.c).
+//! Sound-effect volume and pan of a battle actor (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AD62C (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AD62C (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Writes the sound-effect volume and pan of an actor, refreshing its position first when it is moving or unplaced.
 pub fn func_800AD62C(actor: c_int, volume: [*c]c_int, pan: [*c]c_int) callconv(.c) void {
     const s = psx.at(v.g.D_800F4538(), actor).*.?;

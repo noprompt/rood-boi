@@ -1,10 +1,10 @@
-//! Draws the 16-step fading line strip of the battle timer (src/BATTLE/BATTLE.PRG/58578.c).
+//! Draws the 16-step fading line strip of the battle timer (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C1A40 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C1A40 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Adds the 16 tiles of the fading indicator line between the two packed points, lit up to step `count`.
 pub fn func_800C1A40(x0_arg: c_int, x1_arg: c_int, count: c_int) callconv(.c) void {
     var signX: c_int = 1;

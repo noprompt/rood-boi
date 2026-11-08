@@ -1,9 +1,9 @@
-//! A hit's stat factors (src/BATTLE/BATTLE.PRG/146C.c).
+//! A hit's stat factors (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _factorDamageReceived (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _factorDamageReceived (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The current action's received hp + mp times hit `hitNumber`'s stat factor, over 10, when it took HP damage.
 pub fn factorDamageReceived(action: ?*v.vs_action_t, _: ?*v._hitEntity_t, _: ?*v._hitEntity_t, hitNumber: c_int, _: c_int) callconv(.c) i16 {
     var factor: i16 = 0;

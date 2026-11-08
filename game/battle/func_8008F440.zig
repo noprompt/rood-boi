@@ -1,4 +1,4 @@
-//! The rain: falling drops as lines, landed drops as splashes (src/BATTLE/BATTLE.PRG/146C.c).
+//! The rain: falling drops as lines, landed drops as splashes (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ fn ordering(scratch: *v.vs_scratch_t, depth: c_int) ?*anyopaque {
     return @ptrCast(psx.at(@as([*]u32, @ptrCast(@alignCast(psx.get(scratch.unk4).?))), depth));
 }
 
-/// orig: func_8008F440 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008F440 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For each of the D_800F1DC0 drops: a falling drop moves by the wind D_800F1D98 per tick (its fall scaled by its
 /// unkE) and, when it projects on screen, is drawn as a semi-transparent line back along the wind; off screen (or
 /// too near or far) it is recycled (func_80090A1C). A drop above the floor that was drawn on an odd slot lands

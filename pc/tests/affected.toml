@@ -87,7 +87,7 @@ paths = [
     "pc/src/snapshot.*", "pc/src/memory.*", "pc/src/overlay_statics.c", "pc/src/psx_*", "pc/src/platform.h",
     "pc/src/win_compat.h", "pc/src/pc_paths.h", "pc/src/cd_drive.c",
     # the game's main executable and headers, shared by every scene
-    "src/SLUS_010.40/*", "src/include/*", "src/GIM/*", "src/renderTextures.h",
+    "pc/src/game/SLUS_010.40/*", "pc/src/game/include/*", "pc/src/game/GIM/*", "pc/src/game/renderTextures.h",
 ]
 suites = ["@broad"]
 
@@ -105,7 +105,7 @@ suites = ["@default"]
 # renderer runs its CPU-safe share of it plus `null`; GL runs `gl_sanity`
 # (boot and RPC, a room, the opening, the goldens, the title's 2D) plus what
 # the files in `gl_paths` (the OpenGL renderer's own code) select.
-vulkan = ["ctest"]
+vulkan = ["ctest", "ps1_address_lint"]
 null = ["null_backend_smoke"]
 gl_sanity = ["rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "title_fade_smoke"]
 gl_paths = ["pc/src/gl_*", "pc/src/render_gl.h", "pc/src/post_gl.inc", "pc/src/gpu_hw.c", "pc/src/render.c",
@@ -144,7 +144,7 @@ paths = ["pc/src/cutscene*", "pc/src/story_boot.c", "pc/assets/cutscenes/*", "pc
 [[long]]
 # 126 s: the data menu five times, then a walk
 suites = ["input:data-menu-five-times-then-walk"]
-paths = ["pc/src/memory_card.c", "src/MENU/*"]
+paths = ["pc/src/memory_card.c", "pc/src/game/MENU/*"]
 
 [[long]]
 # the Zig trial port's corpus runs (~100 s each, six of them): run in the null lane
@@ -329,7 +329,7 @@ suites = ["cutscene_player_smoke", "cutscene_viewer_smoke", "cutscene_sequencer_
 
 # ---- the event's screen images (stills, the credits' tear wipe: widened in 16:9); text fading out ----
 [[rule]]
-paths = ["src/BATTLE/BATTLE.PRG/5BF94.c"]
+paths = ["pc/src/game/BATTLE/BATTLE.PRG/5BF94.c"]
 suites = ["cutscene_player_smoke", "widescreen_smoke", "text_fade_smoke"]
 
 # ---- the cutscene player's offline tools (catalog scan, opcode names) ----
@@ -378,14 +378,14 @@ paths = ["pc/src/display_confirm.*", "pc/src/host_format.*"]
 suites = ["options_*", "ui_system_smoke", "system_settings_smoke", "window_mode_smoke", "ctest"]
 
 [[rule]]
-paths = ["src/MENU/*", "config/MENU/*"]
+paths = ["pc/src/game/MENU/*", "config/MENU/*"]
 suites = ["ui_*", "menu0_levelled_smoke", "save_menu_smoke", "fast_travel_*", "weapon_slots_smoke",
           "button_roles_*", "interp_menu_2d_smoke", "input:data-menu*", "widescreen_smoke", "snapshot_equivalence",
           "hud_label_solid_smoke", "skip_charging_smoke", "options_*", "narrowed_2d_smoke", "quit_smoke"]
 
 # ---- the battle overlay (field play too), its split config, the actors and the native helpers it calls ----
 [[rule]]
-paths = ["src/BATTLE/*", "config/BATTLE/*", "pc/src/charge_skip.*", "pc/src/gameplay_walls.*", "pc/src/actor_*",
+paths = ["pc/src/game/BATTLE/*", "config/BATTLE/*", "pc/src/charge_skip.*", "pc/src/gameplay_walls.*", "pc/src/actor_*",
          "pc/src/battle_*", "pc/src/navigation.c"]
 suites = ["tunables_smoke", "skip_charging_smoke", "charge_skip_soak", "soak", "soak:save", "two_model_enemy_smoke",
           "route_continuation_smoke", "damage_numbers_smoke", "narrowed_2d_smoke", "menu0_levelled_smoke", "input:*",
@@ -399,17 +399,17 @@ paths = ["pc/src/occlusion.*", "pc/tests/occlusion_smoke.py"]
 suites = ["occlusion_smoke", "ctest", "tunables_smoke"]
 
 [[rule]]
-paths = ["src/EFFECT/*", "config/EFFECT/*", "pc/src/effect_*"]
+paths = ["pc/src/game/EFFECT/*", "config/EFFECT/*", "pc/src/effect_*"]
 suites = ["glow_stability_smoke", "damage_numbers_smoke", "skip_charging_smoke", "charge_skip_soak",
           "particles_smoke", "save_point_glow_smoke", "ctest", "soak:save"]
 
 [[rule]]
-paths = ["src/TITLE/*", "config/TITLE/*"]
+paths = ["pc/src/game/TITLE/*", "config/TITLE/*"]
 suites = ["title_fade_smoke", "skip_intro_smoke", "opening_smoke", "input:*", "snapshot_equivalence",
           "interp_menu_2d_smoke", "widescreen_smoke", "save_menu_smoke", "movie_smoke"]
 
 [[rule]]
-paths = ["src/ENDING/*", "config/ENDING/*"]
+paths = ["pc/src/game/ENDING/*", "config/ENDING/*"]
 suites = ["ending_smoke"]
 
 # ---- the small overlays' split config (no source of their own here) ----

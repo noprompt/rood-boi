@@ -1,5 +1,5 @@
 //! The shadows of the room's moving platforms: pc/src/room_shadows.inc, compiled into
-//! src/BATTLE/BATTLE.PRG/146C.c.
+//! pc/src/game/BATTLE/BATTLE.PRG/146C.c.
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
@@ -13,7 +13,7 @@ fn scratch() *v.vs_scratch_t {
 const ShadowNative = *const fn (c_int, [*]const c_int, c_int, ?[*]c_uint, ?[*]c_uint) callconv(.c) ?[*]c_uint;
 const ShadowsEnd = *const fn (?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
-/// orig: func_8008CEB0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008CEB0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws a flat subtractive square on the floor under each of the room's moving platforms (section 12) that is above the floor; the native renderer gets each square too.
 pub fn func_8008CEB0() callconv(.c) void {
     // uninitialised in the original (the GTE reads the vector's pad word): zeroed

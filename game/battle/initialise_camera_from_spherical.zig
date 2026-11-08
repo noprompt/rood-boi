@@ -1,10 +1,10 @@
 //! Points the battle camera along its spherical values and places the look-at and position vectors
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_initialiseCameraFromSpherical (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_initialiseCameraFromSpherical (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the camera's facing and distance for `mode`, then writes the look-at point and the spherical offset position.
 pub fn initialiseCameraFromSpherical(outputPos: ?*v.VECTOR, outputLookAt: ?*v.VECTOR, facing: c_int, mode: c_int) callconv(.c) void {
     const camera = v.g.vs_battle_cameraCurrentSpherical();

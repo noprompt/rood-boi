@@ -1,9 +1,9 @@
-//! A point on a battle actor's bone, relative to the camera, through the GTE (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! A point on a battle actor's bone, relative to the camera, through the GTE (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const psx = @import("common").psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A1C10 (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A1C10 (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Writes the bone's origin (endpoint 0), end (1) or middle (other) in camera space to `result`; -1 when the slot or the weapon model is missing.
 pub fn boneViewPoint(actorId: c_int, bone_in: c_int, result: [*c]c_ushort, endpoint: c_int) callconv(.c) c_int {
     var bone = bone_in;

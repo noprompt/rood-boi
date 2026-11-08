@@ -1,10 +1,10 @@
-//! Room locks (map section A: doors with a key or sigil) (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room locks (map section A: doors with a key or sigil) (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008D5FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008D5FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Operates an idle lock: a locked one (state 0) is queued as event 2 with a 20-tick delay, an open one toggles now.
 pub fn operateLock(lock: ?*v._mpdRoomSectionA) callconv(.c) void {
     if (psx.conv(i8, lock.?.unk0.unkB) == 0) {

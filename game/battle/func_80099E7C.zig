@@ -1,5 +1,5 @@
 //! Offsets the colour bytes of packed primitives in a buffer, by (dr, dg) per
-//! primitive, for the two primitive layouts (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! primitive, for the two primitive layouts (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 
 /// Byte at a guest address, as the C reads it through `u_char*`.
@@ -13,7 +13,7 @@ fn bumpByte(addr: usize, delta: c_int) void {
     b.* = psx.conv(u8, @as(c_int, b.*) +% delta);
 }
 
-/// orig: func_80099E7C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_80099E7C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Adds (dr, dg) to the first two colour bytes of each primitive in `buf`, `entries` of them, for the layout `mode` selects.
 pub fn func_80099E7C(buf: ?*anyopaque, entries: c_int, mode: c_int, dr: c_int, dg: c_int) callconv(.c) void {
     var p: usize = @intFromPtr(buf);

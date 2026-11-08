@@ -1,10 +1,10 @@
-//! Lets the player pick one of the shown text boxes (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Lets the player pick one of the shown text boxes (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_selectTextBox (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_selectTextBox (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// First call: orders the boxes in `box_mask` by height and starts on the state flags' choice; later calls move with up / down, confirm with any face or shoulder button (returns the choice + 1). The chosen box is drawn bright and swapped to the front; 0 while choosing.
 pub fn selectTextBox(box_mask: u8) callconv(.c) c_int {
     const selector = v.g.textBoxSelector();

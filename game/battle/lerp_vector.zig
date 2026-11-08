@@ -1,8 +1,8 @@
 //! Linear interpolation of a three-axis vector between two short triples,
-//! in 1/128 steps (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! in 1/128 steps (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_lerpVector (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_lerpVector (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Writes `src` start/end pairs interpolated at `t`/128 into `vec`.
 pub fn lerpVector(src: [*c]c_short, t: c_int, vec: ?*v.VECTOR) callconv(.c) void {
     const start0: c_int = src[0];

@@ -1,9 +1,9 @@
-//! An event script opcode that moves an actor to, or by, a position (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that moves an actor to, or by, a position (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7B58 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7B58 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// The actor of getShort(script + 1) goes to (getShort(script + 3) >> 1, getShort(script + 5),
 /// getShort(script + 7)), added to its func_800A1108 position when script[3] bit 0 is set, with
 /// a 0x8000 heading, through func_800A9D90 (third argument 0 while D_800F4C2C is 2, else script[9],

@@ -1,10 +1,10 @@
-//! Per-frame pose setup for a battle actor: resets its pose and loads the current animation frame's keys (src/BATTLE/BATTLE.PRG/40564.c).
+//! Per-frame pose setup for a battle actor: resets its pose and loads the current animation frame's keys (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AD008 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AD008 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Resets an actor's pose and loads its animation's keyframes for the current frame into the pose.
 pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
     const actor: *v.D_800F4538_t = @ptrCast(@alignCast(arg0.?));

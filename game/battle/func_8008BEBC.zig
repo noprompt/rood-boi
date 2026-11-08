@@ -1,9 +1,9 @@
-//! Room section setup: marks the section set up and runs its key or sigil effect (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section setup: marks the section set up and runs its key or sigil effect (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008BEBC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008BEBC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up a room section once: runs its key or sigil effect, then its follow-up call; returns 1 if it ran, 0 if already set up.
 pub fn func_8008BEBC(arg0: ?*v._mpdRoomSectionA) callconv(.c) c_int {
     const section = arg0.?;

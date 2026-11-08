@@ -1,10 +1,10 @@
 //! Builds a battle weapon's intermediate stats from its inventory entry and applies them
-//! to the target (src/BATTLE/BATTLE.PRG/146C.c).
+//! to the target (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_applyWeapon (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_applyWeapon (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Gathers the blade, grip, gems and name of an inventory weapon and applies them to `target`.
 pub fn applyWeapon(target: ?*v.vs_battle_uiWeapon, source: ?*v.vs_main_inventoryWeapon) callconv(.c) void {
     const inv = v.g.vs_main_inventory();

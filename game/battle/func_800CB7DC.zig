@@ -1,9 +1,9 @@
 //! Clears the battle-side state after a cycle: closes the window (6) and,
-//! for a pending entry of kind 1, its follow-up (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! for a pending entry of kind 1, its follow-up (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CB7DC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CB7DC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs the cleanup for the pending entry in D_800EB9B4, if there is one.
 pub fn func_800CB7DC() callconv(.c) void {
     if (v.g.D_800EB9B4().* != null) {

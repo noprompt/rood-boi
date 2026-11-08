@@ -1,5 +1,5 @@
 //! Weapon model transform: the weapon's bone matrices and its drawing
-//! (src/BATTLE/BATTLE.PRG/49268.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/49268.c).
 const psx = @import("common").psx;
 const v = @import("views_49268");
 const c = @import("c_49268");
@@ -11,7 +11,7 @@ fn matrixAt(base: anytype, off: isize) [*c]c.MATRIX {
     return psx.cptr(c.MATRIX, @as(*align(4) v.MATRIX, @alignCast(p)));
 }
 
-/// orig: func_800B217C (src/BATTLE/BATTLE.PRG/49268.c)
+/// orig: func_800B217C (pc/src/game/BATTLE/BATTLE.PRG/49268.c)
 /// Steps a weapon's scale, rebuilds its bone matrices from its source matrix, and draws it on its actor's pass.
 pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) callconv(.c) void {
     const w = weapon.?;

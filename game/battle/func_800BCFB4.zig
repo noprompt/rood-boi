@@ -1,4 +1,4 @@
-//! The event camera's straight dolly step against the room's height (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's straight dolly step against the room's height (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -18,7 +18,7 @@ fn cm(p: *v.MATRIX) [*c]c.MATRIX {
     return psx.cptr(c.MATRIX, p);
 }
 
-/// orig: _copyVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _copyVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src (vx, vy, vz).
 fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     dst.vx = src.vx;
@@ -27,7 +27,7 @@ fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: _vectorMagnitude (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vectorMagnitude (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// The length of a 20.12 vector, from its integer parts, back in 20.12.
 fn vectorMagnitude(p: *v.VECTOR) c_int {
     var copy: v.VECTOR = undefined;
@@ -38,7 +38,7 @@ fn vectorMagnitude(p: *v.VECTOR) c_int {
     return c.vs_gte_rsqrt(x +% y +% z) *% 4096;
 }
 
-/// orig: _toNormalIntegerVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _toNormalIntegerVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = the unit vector (VectorNormal) of src's integer parts.
 fn toNormalIntegerVector(src: *v.VECTOR, dst: *v.VECTOR) void {
     var whole: v.VECTOR = undefined; // pad never written, as the C's
@@ -48,7 +48,7 @@ fn toNormalIntegerVector(src: *v.VECTOR, dst: *v.VECTOR) void {
     _ = c.VectorNormal(cv(&whole), cv(dst));
 }
 
-/// orig: func_800BCFB4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BCFB4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Moves `cam` toward its position in steps of `value` (2..10 of them, the last when fewer), stopping
 /// below the first point whose ground (func_800BD2B8) is higher than it; done (time = duration) when
 /// the move is short or ends where the last one did (unk27C).

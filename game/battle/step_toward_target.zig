@@ -1,8 +1,8 @@
-//! Camera look-at stepping toward a target position (src/BATTLE/BATTLE.PRG/146C.c).
+//! Camera look-at stepping toward a target position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _stepTowardTarget (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _stepTowardTarget (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves the camera's look-at point one step toward a target position and returns the camera speed.
 pub fn stepTowardTarget(targetPos: ?*v.SVECTOR, transformFlag: c_int, maxSpeed: c_int) callconv(.c) c_int {
     var displacement: v.VECTOR = undefined;

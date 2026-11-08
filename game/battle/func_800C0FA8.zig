@@ -1,10 +1,10 @@
-//! Builds a battle rotation block from a transform's values and its GTE rotation matrix (src/BATTLE/BATTLE.PRG/58578.c).
+//! Builds a battle rotation block from a transform's values and its GTE rotation matrix (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C0FA8 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C0FA8 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Copies the transform's vector and scale terms into the rotation block, then builds its matrix with RotMatrix_gte.
 pub fn func_800C0FA8(arg0: ?*v.func_800C1564_t, arg1: ?*v.func_800C0FA8_t2, arg2: ?*v.MATRIX) callconv(.c) void {
     const src = arg0.?;

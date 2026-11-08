@@ -1,9 +1,9 @@
-//! The text box string setter (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The text box string setter (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_setTextBox (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_setTextBox (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Points text box `boxId` at `str` and restarts it; with a null `str`, reports whether the box is still busy.
 pub fn setTextBox(boxId: c_int, str: [*c]u8) callconv(.c) c_int {
     const box = psx.at(v.g.textBoxes(), boxId);

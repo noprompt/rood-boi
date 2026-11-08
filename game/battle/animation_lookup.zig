@@ -1,4 +1,4 @@
-//! An actor's animation tables (src/BATTLE/BATTLE.PRG/40564.c).
+//! An actor's animation tables (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
@@ -10,7 +10,7 @@ fn table(p: ?*anyopaque) ?*Table {
     return @ptrCast(@alignCast(p));
 }
 
-/// orig: func_800AD494 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AD494 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Finds animation `animation` of `actor`: its table (the return value, a guest address; 0 when absent) and its frames (`frames`, NULL for an empty entry).
 pub fn findAnimation(actor_: ?*anyopaque, animation: c_int, frames: [*c][*c]u16) callconv(.c) c_int {
     const actor: *align(1) v.D_800F4538_t = @ptrCast(actor_.?);

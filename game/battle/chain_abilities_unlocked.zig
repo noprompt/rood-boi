@@ -1,8 +1,8 @@
-//! Chain and defense ability unlock check (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Chain and defense ability unlock check (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_chainAbilitiesUnlocked (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_chainAbilitiesUnlocked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Reports whether any of the 14 chain abilities (defense 0) or defense abilities is unlocked.
 pub fn chainAbilitiesUnlocked(defense: c_int) callconv(.c) c_int {
     const actions = v.g.actions();

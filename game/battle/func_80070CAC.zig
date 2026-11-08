@@ -1,10 +1,10 @@
-//! Rebuilds the environment target list for the current action from room sections or spawn points (src/BATTLE/BATTLE.PRG/146C.c).
+//! Rebuilds the environment target list for the current action from room sections or spawn points (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80070CAC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80070CAC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills the environment target list of D_800F19CC for the current action.
 pub fn func_80070CAC() callconv(.c) void {
     const base = v.g.D_800F19CC().*.?;

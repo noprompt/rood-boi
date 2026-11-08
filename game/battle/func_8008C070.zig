@@ -1,9 +1,9 @@
-//! Records a room section in the first free slot of the battle's section table (src/BATTLE/BATTLE.PRG/146C.c).
+//! Records a room section in the first free slot of the battle's section table (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008C070 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C070 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Counts one more call, then stores `arg0` and the room section in the first free of the 8 slots.
 pub fn func_8008C070(arg0: c_int, arg1: ?*v._mpdRoomSectionA) callconv(.c) void {
     const counter = v.g.D_800F1D6A();

@@ -1,10 +1,10 @@
-//! Copies a saved bone matrix into the bone table and an actor, transformed by a parent matrix (src/BATTLE/BATTLE.PRG/49268.c).
+//! Copies a saved bone matrix into the bone table and an actor, transformed by a parent matrix (pc/src/game/BATTLE/BATTLE.PRG/49268.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_49268");
 const c = @import("c_49268");
 
-/// orig: func_800B26B8 (src/BATTLE/BATTLE.PRG/49268.c)
+/// orig: func_800B26B8 (pc/src/game/BATTLE/BATTLE.PRG/49268.c)
 /// Takes the saved bone matrix, rotates and translates it by the parent matrix, and stores it into the bone table and the actor.
 pub fn func_800B26B8(actor: ?*anyopaque, parent: ?*v.MATRIX, bone: c_int, saved: c_int) callconv(.c) void {
     const scratch: *v.boneTransformScratch = @ptrFromInt(0x1F80035C);

@@ -1,9 +1,9 @@
-//! Plays an actor's reaction animation, picked from where the source of the hit stands (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Plays an actor's reaction animation, picked from where the source of the hit stands (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009EA14 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009EA14 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Picks actor `actorId`'s reaction to a hit from `source` (null: none): 0x40/0x42 front or back, for the
 /// player 0x44/0x45 by elevation, 0x5B when unk5AC_3 is set, 0x3B in state unkA_3 2; resets its motion state
 /// and starts the animation.

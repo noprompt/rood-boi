@@ -1,9 +1,9 @@
 //! Finds the eligible entry of the 16-slot table D_800F45E0 for (arg0, arg1)
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 
-/// orig: func_800A92B8 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A92B8 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Returns the least unk1E among the matching entries less 128, capped at 0, and stores the index of that entry in D_800F49F8.
 pub fn func_800A92B8(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     var var_t0: c_int = 0xBB8;

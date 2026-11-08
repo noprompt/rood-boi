@@ -33,11 +33,11 @@
  * the snapshot says busy until then): the model reload's queue would run
  * beside MAINMENU's own load, before its vs_mainMenu_initInventory. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/2842C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/3A1A0.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/2842C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "item_names.h"
 #include "ui_shell.h"
 

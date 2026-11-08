@@ -1,11 +1,11 @@
-//! Moves an effect point along a line (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Moves an effect point along a line (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D01E4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D01E4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The point between its saved position and its endpoint (the direction by mode bit 7) at its frame: linear, eased or by a curve (mode bits 5..6).
 pub fn func_800D01E4(mode_arg: ?*v.func_800D0548_arg0, point: ?*v.func_800D0548_arg1) callconv(.c) void {
     const a = mode_arg.?;

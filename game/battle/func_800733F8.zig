@@ -1,11 +1,11 @@
-//! Requests a battle effect through func_800CF0E8 and resets the tick speed (src/BATTLE/BATTLE.PRG/146C.c).
+//! Requests a battle effect through func_800CF0E8 and resets the tick speed (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800733F8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800733F8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Starts effect `effectId` with a zeroed request, then sets the tick speed and calls func_800CB654(1) and func_8008B4C8(0).
 pub fn func_800733F8(arg0: c_int) callconv(.c) void {
     // ROOD_PC: the request is zeroed first, since func_800CF3F8 copies all of it.

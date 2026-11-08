@@ -1,9 +1,9 @@
-//! Battle step check: whether the stored target vector has been reached (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle step check: whether the stored target vector has been reached (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074120 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074120 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 0 when the stored target is reached and func_800A0BE0(0) has bit 27 set, else 1.
 pub fn func_80074120() callconv(.c) c_int {
     const src = &v.g.D_800F1910().unk4.unk0.unk4;

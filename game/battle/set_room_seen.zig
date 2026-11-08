@@ -1,10 +1,10 @@
-//! Marks the current scene's area and room as seen (src/BATTLE/BATTLE.PRG/146C.c).
+//! Marks the current scene's area and room as seen (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _setRoomSeen (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _setRoomSeen (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the area and room seen flags for the current scene and room, once per pending request.
 pub fn setRoomSeen() callconv(.c) void {
     if (v.g.D_800F19A0().* == 0) {

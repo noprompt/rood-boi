@@ -1,6 +1,6 @@
 //! Moves one battle actor a step towards a heading: tilts, falls, stops and
 //! animation choices from the actor's flags and the terrain probe
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
@@ -72,7 +72,7 @@ fn fallStep(index: c_int, actor: *v.D_800F4538_t, motion: *v.SVECTOR) void {
     actor.unk6EC = 0;
 }
 
-/// orig: func_800A5280 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A5280 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Moves actor `index` one step towards `direction` by `distance` (-1: by the stick vector in `input`),
 /// handling falls, slopes, blocking terrain and the walk or fall animation; returns the probe status
 /// (3 when the step is refused or handled elsewhere).

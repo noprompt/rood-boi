@@ -1,8 +1,8 @@
 //! Adds a delta to the short fields of each table block's records
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 
-/// orig: func_8008B390 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B390 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds `arg0` to the short at +0x1E of every 0x20-byte record, then every 0x28-byte record, of each table block.
 pub fn func_8008B390(arg0: c_int, arg1: [*c]c_int) callconv(.c) void {
     const base: u32 = psx.addr(arg1);

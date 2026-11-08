@@ -1,10 +1,10 @@
 //! Lowers a point above the floor until it clears the solid check, writing its height back
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A3394 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3394 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Lowers the height of a position above the floor until it clears `func_800A3310`, retrying once from a lower start if it sinks under the floor, then stores the height into `arg1`.
 pub fn func_800A3394(arg0: c_int, arg1: ?*v.SVECTOR) callconv(.c) void {
     var pos: v.SVECTOR = undefined;

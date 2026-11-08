@@ -1,5 +1,5 @@
 /* The native Score screen's list cursors (pc/src/ui/score_nav.c) against a
- * transcription of MENU9's own (src/MENU/MENU9.PRG/238.c _menuInput states 5,
+ * transcription of MENU9's own (pc/src/game/MENU/MENU9.PRG/238.c _menuInput states 5,
  * 8, 11 and 14, the vs_battle_menu9CursorMemory fields as locals): every page x
  * row x {up, down} x {press, repeat only} of the four lists, the moves' sound,
  * and the canonical pairs (score_nav_canon) as Down presses from (0, 0). */

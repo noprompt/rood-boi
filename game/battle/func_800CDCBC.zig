@@ -1,10 +1,10 @@
-//! Draws one segment of an effect trail (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws one segment of an effect trail (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CDCBC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CDCBC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Projects the segment's four points (RotAverage4) and, inside the depth range, adds a quad: Gouraud from table D_800EC308 (config 6, through func_800CF988), else textured from D_800EC2E8, the head and tail brightnesses scaling the colours.
 pub fn func_800CDCBC(trail: ?*v.effectTrailState, head: c_int, tail: c_int) callconv(.c) void {
     const t = trail.?;

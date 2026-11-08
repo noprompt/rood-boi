@@ -1,9 +1,9 @@
-//! Projects a shape's range along its angle: the range times the absolute cosine or sine of the angle (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! Projects a shape's range along its angle: the range times the absolute cosine or sine of the angle (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const psx = @import("common").psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
-/// orig: func_800E5568 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E5568 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Returns a shape's range at its angle: the range scaled by |cos| or |sin| of the angle.
 pub fn func_800E5568(arg0: ?*v.func_800E5568_t) callconv(.c) c_int {
     const p = arg0.?;

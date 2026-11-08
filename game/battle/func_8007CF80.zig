@@ -1,9 +1,9 @@
-//! Counts the battle actors in the actor table whose allegiance matches a value (src/BATTLE/BATTLE.PRG/146C.c).
+//! Counts the battle actors in the actor table whose allegiance matches a value (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8007CF80 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007CF80 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Counts the occupied battle actor slots whose allegiance equals `arg0`.
 pub fn func_8007CF80(arg0: c_int) callconv(.c) c_int {
     const actors = v.g.vs_battle_actors();

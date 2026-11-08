@@ -1,11 +1,11 @@
 //! Battle ability input: applies the ability's effect to the target of the current
-//! ability slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! ability slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006CA20 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006CA20 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies the current battle ability's effect to actor `arg0` when it is that ability's target.
 pub fn func_8006CA20(arg0: c_int, _: ?*v.func_8006CE70_t) callconv(.c) void {
     if (arg0 >= 16) {

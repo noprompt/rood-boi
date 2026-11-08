@@ -1,11 +1,11 @@
 //! Camera 0 setup from the room door section: the view-matrix block and the
-//! first-person facing (src/BATTLE/BATTLE.PRG/146C.c).
+//! first-person facing (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80089888 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80089888 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets camera 0 from the room door section and refreshes its view matrix.
 pub fn func_80089888() callconv(.c) void {
     var sp10: v.SVECTOR = undefined;

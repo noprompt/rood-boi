@@ -1,10 +1,10 @@
-//! An effect point's random spline controls (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect point's random spline controls (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D05F4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D05F4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The two spline control points of an effect point between its saved position and endpoint: along the line by the shape's nibbles, off it at a radius and angle with random spreads, in the line's frame (libgte).
 pub fn func_800D05F4(mode_arg: ?*v.func_800D0548_arg0, point: ?*v.func_800D0548_arg1) callconv(.c) void {
     const a = mode_arg.?;

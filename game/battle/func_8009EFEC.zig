@@ -1,11 +1,11 @@
 //! Turns an actor to face a target, or picks its reaction animation and a
-//! height class for a target (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! height class for a target (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009EFEC (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009EFEC (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Mode 0 turns actor `actorId` to face `target`; mode 1 picks its reaction to `target`.
 pub fn func_8009EFEC(actorId: c_int, target: ?*v.SVECTOR, mode: c_int) callconv(.c) void {
     const actor: ?*v.D_800F4538_t = psx.at(v.g.D_800F4538(), actorId).*;

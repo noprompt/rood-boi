@@ -1,6 +1,6 @@
 //! Applies status bits to a battle actor: status timers, stat drops and boosts,
 //! weapon, shield and armor strength, and the element and status changes
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -15,7 +15,7 @@ fn plusTenth(x: u16) u16 {
     return psx.conv(u16, t +% @divTrunc(t, 10));
 }
 
-/// orig: func_80086FA8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80086FA8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds the status bits `arg0` to an actor and applies what each one sets: timers, stat changes, gear strength and the element changes.
 pub fn func_80086FA8(arg0: c_int, arg1: ?*v.vs_battle_actor2) callconv(.c) void {
     const actor: *v.vs_battle_actor2 = arg1.?;

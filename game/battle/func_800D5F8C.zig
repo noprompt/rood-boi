@@ -1,10 +1,10 @@
-//! An effect command: func_8007B29C on the script's actor at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: func_8007B29C on the script's actor at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D5F8C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5F8C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame, for a kind-4 unkC target whose func_800A0BE0 has bit 1: func_8007B29C; then the next command; else 1.
 pub fn func_800D5F8C(script_arg: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const script = script_arg.?;

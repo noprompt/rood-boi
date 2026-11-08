@@ -1,10 +1,10 @@
-//! Rolls a dropped weapon: when the drop roll succeeds, copies the base weapon's stats into the loot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Rolls a dropped weapon: when the drop roll succeeds, copies the base weapon's stats into the loot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _dropWeaponRand (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _dropWeaponRand (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Rolls the weapon's drop rate and, on a drop, copies its blade, grip, gems and name into the loot.
 pub fn dropWeaponRand(looted: ?*v.vs_battle_lootedWeapon, base: ?*v.vs_battle_uiWeapon) callconv(.c) c_int {
     if (c.vs_main_getRand(0xFF) < @as(c_int, base.?.dropRate)) {

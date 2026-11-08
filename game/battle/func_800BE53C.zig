@@ -1,10 +1,10 @@
-//! Sets a camera move's duration from the distance it still has to cover (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Sets a camera move's duration from the distance it still has to cover (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: _vectorMagnitude (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vectorMagnitude (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Length of the vector in 4.12 fixed point.
 fn vectorMagnitude(arg0: *v.VECTOR) c_int {
     // _copyVector: copyVector's three components into a local copy.
@@ -22,7 +22,7 @@ fn vectorMagnitude(arg0: *v.VECTOR) c_int {
     return c.vs_gte_rsqrt(temp_lo +% temp_lo_2 +% temp_v0) *% 4096;
 }
 
-/// orig: func_800BE53C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BE53C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sets the move's duration in proportion to the distance from its current point to its position.
 pub fn func_800BE53C(arg0: ?*v.D_800F4BA4_t2) callconv(.c) void {
     const a = arg0.?;

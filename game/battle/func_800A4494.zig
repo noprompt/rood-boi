@@ -1,10 +1,10 @@
-//! Hit test of a contact point against the actor slots in D_800F4538 (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Hit test of a contact point against the actor slots in D_800F4538 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A4494 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A4494 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Finds the actor a contact point touches and sends it to the knockback state; returns 1 if one was hit.
 pub fn func_800A4494(contact: c_int, point: ?*v.SVECTOR) callconv(.c) c_int {
     var i: usize = 0;

@@ -1,9 +1,9 @@
-//! Sets a text box's flags and indent from a script command (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Sets a text box's flags and indent from a script command (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B9564 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B9564 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Reads a short at script offset 2 and sets text box (byte 1 & 0xF)'s unk0_24 and unk2E from it and byte 1.
 pub fn func_800B9564(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     const temp_s0: u16 = psx.conv(u16, c.vs_battle_getShort(arg0 + 2));

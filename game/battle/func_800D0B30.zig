@@ -1,10 +1,10 @@
 //! Builds a moving part's matrix each frame: rotate, translate and scale from lerped
-//! parameters, or clear the translation (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! parameters, or clear the translation (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D0B30 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D0B30 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Lerps a part's rotation, translation and scale into its matrix when arg0.unk0 bit 0 is set; otherwise resets the matrix and zeroes its translation.
 pub fn func_800D0B30(arg0: ?*v.func_800D0B30_t, arg1: ?*v.SVECTOR, arg2: ?*v.func_800D0B30_t2) callconv(.c) void {
     const desc = arg0.?;

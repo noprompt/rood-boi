@@ -1,8 +1,8 @@
-//! Copies two packed fields from a table entry into a state record (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Copies two packed fields from a table entry into a state record (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800D5700 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5700 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Loads unkC and unkA from the table entry at index unk6 of the table at unk0.
 pub fn func_800D5700(arg0: ?*v.func_800D5780_t) callconv(.c) void {
     const a = arg0.?;

@@ -1,9 +1,9 @@
-//! Clears bit 2 of each of the 16 slot flags that func_800A0BE0 reports (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears bit 2 of each of the 16 slot flags that func_800A0BE0 reports (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const c = @import("c_146C");
 
-/// orig: func_8006C2A0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C2A0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For each slot 0..15 with flag bit 4 set, writes the slot back with that bit cleared.
 pub fn func_8006C2A0() callconv(.c) void {
     var i: c_int = 0;

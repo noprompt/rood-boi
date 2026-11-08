@@ -1,9 +1,9 @@
-//! Status flags of the controlled character for the battle menu (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Status flags of the controlled character for the battle menu (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CABE0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CABE0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns the character's state bits for the menu (0x2..0x100, plus 0x200 when arg0 is 2).
 pub fn func_800CABE0(arg0: c_int) callconv(.c) c_int {
     // The C reads the stats pointer before the call; it is dereferenced only after it.

@@ -1,10 +1,10 @@
 //! Physical damage factor a target takes from the current action's hit parameters
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _factorPhysicalDamageReceived0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _factorPhysicalDamageReceived0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Scales the target's HP plus MP by the action's stat factor, but only when the target's HP effect is 1 or 3 and the action is not a spell.
 pub fn factorPhysicalDamageReceived0(action: ?*v.vs_action_t, _: ?*v._hitEntity_t, _: ?*v._hitEntity_t, arg3: c_int, _: c_int) callconv(.c) c_short {
     var factor: i16 = 0;

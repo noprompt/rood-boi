@@ -1,10 +1,10 @@
-//! Chooses the marker id for an actor from its room or enemy class, then hands it to func_800AE4FC (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Chooses the marker id for an actor from its room or enemy class, then hands it to func_800AE4FC (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AE828 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AE828 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Picks the id for an actor's marker from its room or enemy class, adjusts it by the variant, and draws it through func_800AE4FC.
 pub fn func_800AE828(arg0: c_int, arg1: ?*v.D_800F4538_t, arg2: c_int) callconv(.c) void {
     const a = arg1.?;

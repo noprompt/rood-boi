@@ -1,9 +1,9 @@
-//! Takes one of a miscellaneous item out of the inventory (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Takes one of a miscellaneous item out of the inventory (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_decreaseMiscCount (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_decreaseMiscCount (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Takes one of item `miscId` from the misc inventory, clearing its slot at zero; the search starts at the last invoked slot.
 pub fn decreaseMiscCount(miscId: c_int) callconv(.c) c_int {
     if (miscId < 0x143) {

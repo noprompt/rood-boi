@@ -1,10 +1,10 @@
 //! Battle script opcode: dispatches a sub-command on the low bits of byte 3
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const c = @import("c_4A0A8");
 
-/// orig: func_800B860C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B860C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs the battle script sub-command selected by bits 2-3 of `arg0[3]`, returning 0.
 pub fn func_800B860C(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     const b3: c_int = @as(c_int, arg0[3]);

@@ -1,4 +1,4 @@
-//! Draws the battle HUD (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws the battle HUD (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -29,7 +29,7 @@ fn flagSet(flags: c_uint, bit: c_uint) bool {
     return ((flags >> @truncate(bit)) & 1) != 0;
 }
 
-/// orig: func_800CA2DC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CA2DC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The ability window's icons (func_800C9FE8), the battle-mode notice sliding in, the limb display, the HP / MP
 /// / RISK bars and the status icons scrolling past; each reported to the classic site (ROOD_PC: the HUD's
 /// anchors).

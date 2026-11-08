@@ -1,12 +1,12 @@
 //! Action candidate scoring for the battle AI: the score of one candidate action
-//! from every target's status, HP, MP and extra stats (src/BATTLE/BATTLE.PRG/74088.c).
+//! from every target's status, HP, MP and extra stats (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: actionStatusScore (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: actionStatusScore (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Sums the status weights of target `id`, minus the penalties for no HP or low HP.
 fn statusScore(stats: *v.actionStatSnapshot, id: c_int) c_int {
     var sum: c_int = 0;
@@ -25,7 +25,7 @@ fn statusScore(stats: *v.actionStatSnapshot, id: c_int) c_int {
     return sum;
 }
 
-/// orig: actionHpRatio (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: actionHpRatio (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// HP of target `id` as a fraction of 128.
 fn hpRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
     const row = psx.at(stats, id);
@@ -34,7 +34,7 @@ fn hpRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
     return @divTrunc(@as(c_int, row.hp) << 7, d);
 }
 
-/// orig: actionMpRatio (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: actionMpRatio (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// MP of target `id` as a fraction of 128.
 fn mpRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
     const row = psx.at(stats, id);
@@ -43,7 +43,7 @@ fn mpRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
     return @divTrunc(@as(c_int, row.mp) << 7, d);
 }
 
-/// orig: actionExtraRatio (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: actionExtraRatio (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// The two extra value/limit pairs of target `id`, each as a fraction of 128, summed.
 fn extraRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
     const row = psx.at(stats, id);
@@ -53,7 +53,7 @@ fn extraRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
     return extra;
 }
 
-/// orig: func_800DCC94 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DCC94 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Scores one candidate action against every battle target and writes the result to the candidate.
 pub fn func_800DCC94(state: ?*v.actionScoreState, candidate: ?*v.actionCandidateEntry, mode: c_int, action: ?*v.actionScoreMetadata) callconv(.c) void {
     var special: c_int = 0;

@@ -1,9 +1,9 @@
-//! The script skip's tail (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The script skip's tail (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B6778 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B6778 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs the three D_800E9BE0 commands, then walks the script by the opcode lengths until the
 /// D_800E9BE8 marker (or the end opcode 0x0F, which also calls func_80093A70); clears flag 0xA8.
 pub fn func_800B6778(script_arg: [*c]u8) callconv(.c) void {

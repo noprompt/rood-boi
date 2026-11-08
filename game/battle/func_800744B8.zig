@@ -1,10 +1,10 @@
-//! Battle state step: the key-or-sigil gate, then the state flag or the room callback (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle state step: the key-or-sigil gate, then the state flag or the room callback (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800744B8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800744B8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Advances the battle state one step; returns 1 while the step is not finished, 0 when it is.
 pub fn func_800744B8() callconv(.c) c_int {
     if (psx.get(v.g.D_800F1910().unk0).?.keyOrSigil != 0) {

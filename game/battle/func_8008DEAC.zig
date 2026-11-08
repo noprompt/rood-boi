@@ -1,8 +1,8 @@
-//! Sets the section 9 armour byte of one room section entry, or of every entry when none is given (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets the section 9 armour byte of one room section entry, or of every entry when none is given (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_8008DEAC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008DEAC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Writes `value` to the unkA byte of `entry`, or of every section 9 entry of the room when `entry` is null.
 pub fn func_8008DEAC(arg0: ?*v._mpdRoomSection9, arg1: c_int) callconv(.c) void {
     if (arg0) |entry| {

@@ -1,6 +1,6 @@
 /* Modern menus, the native Data screen (pc/docs/Modern_Menus.md "Data", plan
  * pc/docs/plans/2026-10-15-modern-menus-data.md): System > Data runs the
- * game's own save / load screen (MENU7, src/MENU/MENU7.PRG/260.c) unchanged
+ * game's own save / load screen (MENU7, pc/src/game/MENU/MENU7.PRG/260.c) unchanged
  * as the only state machine: its pad, decisions, sounds, cursor memories,
  * card I/O and every write to the game's settings. While a run is framed the
  * screen differs in three things only (260.c, ROOD_PC):

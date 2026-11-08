@@ -79,7 +79,7 @@ from weapon_slots_smoke import default_card  # noqa: E402
 from ui_ashley_smoke import GROUND  # noqa: E402  (the theme's ground colour)
 
 CLOSED = 0x3F
-SIMPLE_MAP, MONO_SOUND = 9, 10  # vs_main_settings_t (src/SLUS_010.40/main.h)
+SIMPLE_MAP, MONO_SOUND = 9, 10  # vs_main_settings_t (pc/src/game/SLUS_010.40/main.h)
 DATA_MENU = 7 | 0x40  # System > Data: command 6, the game's own screen
 
 # Shell layout, 4:3 (960 x 720 layout units; ui_system_draw.cpp)

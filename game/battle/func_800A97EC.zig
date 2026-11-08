@@ -1,11 +1,11 @@
 //! Moves an enemy actor to a tile, either keeping its facing or setting the tile's
-//! position and a target angle (src/BATTLE/BATTLE.PRG/40564.c).
+//! position and a target angle (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800A97EC (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A97EC (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Places enemy slot `arg0` on the tile described by `arg1`, turning it to face `arg1`'s angle when `arg2` and `arg3` are 0, else setting its move state.
 pub fn func_800A97EC(arg0: c_int, arg1: ?*v.func_8006EBF8_t_fields, arg2: c_int, arg3: c_int) callconv(.c) void {
     // ROOD_PC: an empty enemy slot is skipped (the PS1 writes low RAM through NULL here).

@@ -1,10 +1,10 @@
-//! An effect command: plays or stops a sound effect at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: plays or stops a sound effect at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D5904 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5904 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame: kind 2 stops the P-file's sound (func_80046578), else plays sound (command >> 9) & 0x1FF of bank 0x7E or 0xF00000, panned at an entry's translation when bits 20..21 say so; then the next command; else 1.
 pub fn func_800D5904(script_arg: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const script = script_arg.?;

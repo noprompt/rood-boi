@@ -1,11 +1,11 @@
 //! Agility contest between a hit's source and target, with the gem buffs
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _getAgilityDifference2 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getAgilityDifference2 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Works out how far the target's agility outweighs the source's for a hit, clamped to 0..254.
 pub fn getAgilityDifference2(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, hitNumber: c_int, addVariance: c_int) callconv(.c) c_int {
     var agiDiff: c_int = undefined;

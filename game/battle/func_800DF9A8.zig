@@ -1,9 +1,9 @@
-//! Looks up a pair in the D_800F5910 table and reports its partner entry, or copies arg0 when no entry matches (src/BATTLE/BATTLE.PRG/771A8.c).
+//! Looks up a pair in the D_800F5910 table and reports its partner entry, or copies arg0 when no entry matches (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 
-/// orig: func_800DF9A8 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800DF9A8 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Finds arg0's entry in the D_800F5910 pairs and writes the partner entry to arg1; with no match, copies arg0 to arg1 as a 32-bit word.
 pub fn func_800DF9A8(arg0: ?*v.func_800DFA54_t, arg1: ?*v.func_800DFA54_t) callconv(.c) void {
     const table = v.g.D_800F5910().*.?;

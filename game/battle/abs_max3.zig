@@ -1,6 +1,6 @@
-//! Largest absolute value of three ints (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Largest absolute value of three ints (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 
-/// orig: _absMax3 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _absMax3 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns the argument with the largest magnitude, as the C picks it (the last one on ties).
 pub fn absMax3(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int {
     // -fwrapv: negating INT_MIN wraps to INT_MIN, so use wrapping negation.

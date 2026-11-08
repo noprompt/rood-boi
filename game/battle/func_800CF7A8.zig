@@ -1,9 +1,9 @@
-//! Requests effect 54 (a damage number) (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Requests effect 54 (a damage number) (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const std = @import("std");
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CF7A8 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF7A8 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// func_800CF3F8 of a zeroed effect-54 request with the four values packed into its second argument.
 pub fn func_800CF7A8(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) void {
     var request = std.mem.zeroes(v.func_800CF0E8_t); // the ROOD_PC branch zeroes the request

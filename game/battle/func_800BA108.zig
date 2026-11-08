@@ -1,9 +1,9 @@
-//! Acquires or releases the flag at D_800F4C08 for a caller's request byte (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Acquires or releases the flag at D_800F4C08 for a caller's request byte (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BA108 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BA108 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// While arg0[1] is set, takes the flag at D_800F4C08 and, if taken, saves the id from func_800913BC(-1) in D_800F4C4C; when clear, releases it.
 pub fn func_800BA108(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     if (arg0[1] != 0) {

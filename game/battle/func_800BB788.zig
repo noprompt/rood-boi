@@ -1,9 +1,9 @@
-//! Takes the next byte from a counted byte queue (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Takes the next byte from a counted byte queue (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 
-/// orig: func_800BB788 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BB788 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Pops the next byte of a counted queue, or returns 1 when the count is zero.
 pub fn func_800BB788(arg0: ?*v.func_800BB68C_t) callconv(.c) c_ushort {
     const q = arg0.?;

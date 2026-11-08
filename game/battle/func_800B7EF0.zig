@@ -1,11 +1,11 @@
-//! Resolves two script shorts into a battle entry, runs the scratch lookup on it and marks the entry done (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Resolves two script shorts into a battle entry, runs the scratch lookup on it and marks the entry done (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7EF0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7EF0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Resolves the entry named by the script's first short, looks up the second short's record into a local, and marks the entry done.
 pub fn func_800B7EF0(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     // sp10 is uninitialised in the original; zeroed here, and the lookup writes what the scratch call reads.

@@ -1,11 +1,11 @@
 //! Advances the three battle timing tracks and writes their interpolated values
-//! into the matching entries of D_800EB9BC (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! into the matching entries of D_800EB9BC (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BB9B0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BB9B0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Steps each active track by half a tick, evaluates its curve and stores the result; a finished track is deactivated.
 pub fn func_800BB9B0() callconv(.c) void {
     const tracks = v.g.D_800F4B30();

@@ -1,10 +1,10 @@
 //! Battle object-sequence and slot bookkeeping: frees a actor's sequence or a
-//! shared slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! shared slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: vs_battleFindSharedSequence (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battleFindSharedSequence (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Finds another actor slot whose sequence can be shared with `data`, and records its index in `data.dataAddr`.
 fn findSharedSequence(data: *v.vs_battle_objectData) bool {
     const actors = v.g.D_800F4538();
@@ -25,7 +25,7 @@ fn findSharedSequence(data: *v.vs_battle_objectData) bool {
     return false;
 }
 
-/// orig: func_8009CC20 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009CC20 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Frees a slot's object sequence (op 0), a per-slot sequence pointer across actors (ops 1, 2), or an actor's fourth sequence (ops 4, 5).
 pub fn func_8009CC20(slot: c_int, op: c_int) callconv(.c) c_int {
     switch (op) {

@@ -1,4 +1,4 @@
-//! A melee action's targeting: its range, the actors (or limbs) and chests inside it, the user's last target (src/BATTLE/BATTLE.PRG/146C.c).
+//! A melee action's targeting: its range, the actors (or limbs) and chests inside it, the user's last target (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -13,7 +13,7 @@ fn userHalf(offset: isize) c_int {
     return psx.byteAt(u16, v.g.vs_battle_actors()[state().unk8.unk4.unk0.targetActor], offset).*;
 }
 
-/// orig: func_80071F68 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80071F68 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Records the action's shape, the user's facing and its range (the user's own for 0xFF), previews it; lists the
 /// actors 0..15 it may target that the range covers (each limb with a part for limb-targeting kinds, else the
 /// body) with their hit previews, then, for kinds that reach objects (0x80), the closed chests (unk10 < 64)

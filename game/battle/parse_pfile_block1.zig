@@ -1,8 +1,8 @@
-//! Parses block 1 of a PFILE: the data pointer and the table pointers (src/BATTLE/BATTLE.PRG/6F014.c).
+//! Parses block 1 of a PFILE: the data pointer and the table pointers (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const psx = @import("common").psx;
 const v = @import("views_6F014");
 
-/// orig: _parsePfileBlock1 (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: _parsePfileBlock1 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Records block 1's table count, its data and its tables as guest addresses inside the block.
 pub fn parsePfileBlock1(block: ?*v.pFileBlock1) callconv(.c) void {
     const b = block.?;

@@ -1,11 +1,11 @@
 //! Faces battle actor `arg0` toward a target and starts its pose animation
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009EC9C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009EC9C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Turns actor `arg0` toward `arg1` (pitch and turn) and starts pose `arg2`'s animation.
 pub fn func_8009EC9C(arg0: c_int, arg1: ?*v.SVECTOR, arg2: c_int, arg3: c_int) callconv(.c) void {
     // The C indexes the actor table without a bounds check.

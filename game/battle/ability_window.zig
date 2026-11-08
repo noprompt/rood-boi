@@ -1,10 +1,10 @@
-//! The chain and defense ability timing window (src/BATTLE/BATTLE.PRG/146C.c).
+//! The chain and defense ability timing window (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80078828 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80078828 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// 1 when the current action allows a battle ability: with `button` 0 whether any is mapped, else that button's (1-3) ability and its cost.
 pub fn canUseBattleAbility(button: c_int) callconv(.c) c_int {
     const block = v.g.D_800F19CC().*.?;

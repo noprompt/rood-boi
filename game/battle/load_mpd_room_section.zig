@@ -1,9 +1,9 @@
-//! Installs a room's MPD section (src/BATTLE/BATTLE.PRG/146C.c).
+//! Installs a room's MPD section (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _loadMpdRoomSection (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadMpdRoomSection (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The section starts with the 24 part lengths (the room header); with any data, copies the header and the parts
 /// into a heap block, points each part with a positive length at its bytes (null otherwise), marks the room loaded
 /// (unk2 = `room`), fixes up the geometry, section E's two lists, the collision map's tile count and the scene's

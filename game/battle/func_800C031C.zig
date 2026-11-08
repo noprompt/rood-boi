@@ -1,9 +1,9 @@
-//! Builds the 9x9 grid record's perimeter edge table (src/BATTLE/BATTLE.PRG/573B8.c).
+//! Builds the 9x9 grid record's perimeter edge table (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const psx = @import("common").psx;
 const v = @import("views_573B8");
 const c = @import("c_573B8");
 
-/// orig: func_800C031C (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800C031C (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Allocates and clears the grid record if needed, then writes its 720 edge entries around the grid.
 pub fn func_800C031C() callconv(.c) void {
     if (v.g.D_800EB9B8().* == null) {

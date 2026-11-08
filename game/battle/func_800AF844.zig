@@ -1,10 +1,10 @@
 //! Wraps battle vertex pairs across the 8192-unit period when they are a tile apart
-//! (src/BATTLE/BATTLE.PRG/44F14.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 
-/// orig: func_800AF844 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AF844 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// For each of `count` pairs, wraps the destination point across the 8192-unit period when the source-to-destination offset in x and z is at least one tile.
 pub fn func_800AF844(dst: ?*v.SVECTOR, src: ?*v.SVECTOR, count: c_int) callconv(.c) void {
     var i: c_int = 0;

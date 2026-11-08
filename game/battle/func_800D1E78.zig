@@ -1,10 +1,10 @@
-//! Random roll below a bound: a curve sample or a stored value (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Random roll below a bound: a curve sample or a stored value (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D1E78 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D1E78 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Rolls a random value below the bound: the curve sampled when the flag is set, else the stored value; 0 when the bound is 0.
 pub fn func_800D1E78(arg0: ?*v.D_800F54B8_t) callconv(.c) u8 {
     const p = arg0.?;

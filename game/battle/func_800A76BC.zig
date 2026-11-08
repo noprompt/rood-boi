@@ -1,6 +1,6 @@
 //! An actor's step collision against the map: probes the tiles ahead and
 //! beside the move, accepts it, keeps one axis, or slides along a wall
-//! corner (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! corner (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
@@ -350,7 +350,7 @@ fn probeAxisZ(l: *Locals) void {
     l.zResults[4] = tileProbe(&l.probe, l.direction +% 2);
 }
 
-/// orig: func_800A76BC (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A76BC (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Collides `actor`'s step `motion` with the map: 0 free, 1 / 2 only x / z kept, 0-2 a wall slide (motion rewritten), 3 blocked; `probeOnly` only reports the tile ahead.
 pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c_int, probeOnly: c_int) callconv(.c) c_int {
     const a = actor.?;

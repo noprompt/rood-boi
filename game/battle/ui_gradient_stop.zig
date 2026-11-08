@@ -1,10 +1,10 @@
-//! A colour stop of a menu gradient (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! A colour stop of a menu gradient (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_uiGradientStop (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_uiGradientStop (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The two end colours for `color_index` (a blend of two fixed pairs below 9, else table D_800EBBB8 / D_800EBBC0), lerped by `gradient`.
 pub fn uiGradientStop(gradient: c_uint, color_index: c_uint, brightness: c_int) callconv(.c) c_int {
     var color0: c_uint = undefined;

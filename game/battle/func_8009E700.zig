@@ -1,9 +1,9 @@
-//! Ends an actor's move state, or clears a stalled object's state (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Ends an actor's move state, or clears a stalled object's state (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009E700 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009E700 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Resets actor `actorId` after its move (a reaction step, or a stalled move's end); with no actor, clears the object's state.
 pub fn func_8009E700(actorId: c_int, animation: c_int) callconv(.c) void {
     const actor = psx.at(v.g.D_800F4538(), actorId).*;

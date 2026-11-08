@@ -1,10 +1,10 @@
-//! Clears a stored entry in the 2842C table and appends a new one for `arg0` (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Clears a stored entry in the 2842C table and appends a new one for `arg0` (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80093F24 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093F24 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Releases the entry of type 5 if one is stored, then, for a nonzero `arg0`, appends a type-5 entry holding it (capped at 999).
 pub fn func_80093F24(arg0: c_int) callconv(.c) c_int {
     const base_raw: ?*align(2) anyopaque = @alignCast(v.g.D_800F1BAC().*);

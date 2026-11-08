@@ -1,9 +1,9 @@
-//! Steps one swinging rotation channel and writes its angle into the room geometry (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Steps one swinging rotation channel and writes its angle into the room geometry (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 
-/// orig: func_800923F8 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800923F8 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Steps a swinging angle channel, writes its angle into the room geometry, and returns 1 while it still swings.
 pub fn func_800923F8(arg0: ?*v.D_800F1DD8_t2) callconv(.c) c_int {
     const base: ?*i32 = psx.get(v.g.vs_battle_roomData().geometrySection);

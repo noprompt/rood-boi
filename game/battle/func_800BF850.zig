@@ -1,9 +1,9 @@
-//! The event script's frame (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's frame (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BF850 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BF850 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs the event script state machine (D_800F4C34): 0 idle; 1 waits for the start (D_800F4BB8);
 /// 2 opens the script (the room's, a door's, or loads an event file: 3 waits for the load); else
 /// runs the threads, the camera and the screen effects, and ends the script when its text is done.

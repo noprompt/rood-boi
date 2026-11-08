@@ -2,7 +2,7 @@
  * (TITLE 22C.c). The PS1 decodes a movie frame in two steps:
  *  - DecDCTvlc2, on the CPU, expands the frame's Huffman bitstream (BS v2/v3)
  *    into MDEC run-length codes. Below is a translation of Sony's MIPS
- *    (src/TITLE/TITLE.PRG/libpress/VLC_C.s); its lookup table comes from the
+ *    (pc/src/game/TITLE/TITLE.PRG/libpress/VLC_C.s); its lookup table comes from the
  *    game's own DecDCTvlcBuild (libpress/BUILD.c, compiled natively).
  *  - The MDEC chip turns the codes into pixels: DecDCTin feeds it a command
  *    and codes by DMA, DecDCTout receives decoded macroblocks by DMA, and the

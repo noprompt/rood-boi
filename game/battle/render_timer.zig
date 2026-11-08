@@ -1,10 +1,10 @@
-//! Draws the puzzle timer (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws the puzzle timer (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: _renderTimer (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _renderTimer (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The timer's minutes, seconds and hundredths (the hundredths from the state flags; 59:59:99 once the top byte is set) as BCD digits into D_800EC258, drawn at (128, 200).
 pub fn renderTimer(value: [*c]c_int) callconv(.c) void {
     var digits: [4]u8 = @bitCast(value.*);

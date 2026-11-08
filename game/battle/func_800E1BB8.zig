@@ -1,10 +1,10 @@
 //! Wander step: picks the next direction for a wandering actor from the open
-//! neighbours of its goal tile (src/BATTLE/BATTLE.PRG/771A8.c).
+//! neighbours of its goal tile (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: wanderDirection (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: wanderDirection (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Direction table entry `index` bytes past WANDER_DIRECTIONS (scratchpad 0x1F8003EC; a file-scope static inline).
 fn wanderDirection(index: c_int) *const v.D_800F16EC_t {
     return @ptrFromInt(0x1F8003EC + @as(usize, @intCast(index)));
@@ -18,7 +18,7 @@ fn wanderTile(row: c_int, col: c_int) c_int {
     return @as(c_int, @as(*align(1) const u16, @ptrFromInt(addr)).*);
 }
 
-/// orig: func_800E1BB8 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1BB8 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Picks the wander step's next direction from the open neighbours of the goal tile and advances the goal; returns 1 once more than maxCount steps are taken.
 pub fn func_800E1BB8(state: ?*v.wanderState, tile: c_uint, maxCount: c_uint, _: c_int) callconv(.c) c_int {
     if (maxCount == 0) return -1;

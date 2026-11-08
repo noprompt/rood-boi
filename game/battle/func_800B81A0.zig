@@ -1,9 +1,9 @@
-//! An event script opcode that sets or clears an actor's three-byte setting (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that sets or clears an actor's three-byte setting (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B81A0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B81A0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_800A07FC for the actor of getShort(script + 1) with script[3..5] as a
 /// D_800F4538_unk58_2, or with no pointer when all three are 0.
 pub fn func_800B81A0(script: [*c]u8, _: c_short) callconv(.c) c_int {

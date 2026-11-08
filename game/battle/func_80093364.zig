@@ -1,9 +1,9 @@
-//! Per-tick update of a moving object: advances its position and rotation, wraps the rotation to 12 bits, damps both velocity sets and refreshes its transform (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Per-tick update of a moving object: advances its position and rotation, wraps the rotation to 12 bits, damps both velocity sets and refreshes its transform (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80093364 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093364 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Advances an object by its velocities, wraps its 12-bit rotation, damps both velocity sets and refreshes its transform.
 pub fn func_80093364(arg0: ?*v.func_80092F74_t) callconv(.c) c_int {
     const self = arg0.?;

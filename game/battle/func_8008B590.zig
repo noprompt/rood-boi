@@ -1,10 +1,10 @@
 //! Builds the 3x3 rotation matrix for an angle, with a fixed tilt on rows 1 and 2
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008B590 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B590 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills matrix arg0 from the angle arg1: its sine and cosine plus a fixed tilt.
 pub fn func_8008B590(arg0: ?*v.MATRIX, arg1: c_int) callconv(.c) void {
     const temp_s0: c_int = c.rsin(arg1);

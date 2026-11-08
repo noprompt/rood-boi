@@ -1,5 +1,5 @@
 /* Modern menus, the native Container screen: MENUD's data operations
- * (src/MENU/MENUD.PRG/234.c) ported with their types and expressions, in
+ * (pc/src/game/MENU/MENUD.PRG/234.c) ported with their types and expressions, in
  * the original's order, on the original's data (MENU7's
  * vs_menu_inventoryStorage, passed in and read fresh on every call; nothing
  * is cached across frames). Each function names its original and line.

@@ -1,9 +1,9 @@
-//! Finds the battle actor slot whose unk18 matches a value (src/BATTLE/BATTLE.PRG/146C.c).
+//! Finds the battle actor slot whose unk18 matches a value (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8007CF18 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007CF18 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the first of the 16 battle actor slots whose unk18 equals `arg0`, or 1 if none does.
 pub fn func_8007CF18(arg0: c_int) callconv(.c) c_int {
     var i: c_uint = 0;

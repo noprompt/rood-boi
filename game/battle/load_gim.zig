@@ -1,10 +1,10 @@
-//! Loads a GIM image set (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Loads a GIM image set (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_loadGim (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_loadGim (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Once (D_800EB9BC null): three image records for GIM `id` (palette arg1), a heap buffer of its size and a CD read of it into the buffer.
 pub fn loadGim(id: c_int, palette: c_int) callconv(.c) void {
     if (v.g.D_800EB9BC().* == null) {

@@ -1,8 +1,8 @@
-//! Marks the room-zone entries for section `arg0` as visited in the state flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Marks the room-zone entries for section `arg0` as visited in the state flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_8008E6DC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E6DC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the state flag of the first entry in section `arg0` whose zone and map match the current room.
 pub fn func_8008E6DC(arg0: c_int) callconv(.c) void {
     const scene = psx.get(v.g.vs_battle_roomData().sectionF).?;

@@ -1,9 +1,9 @@
-//! Damage factor for a spell received, from the attacker's stats and the action's stat factor (src/BATTLE/BATTLE.PRG/146C.c).
+//! Damage factor for a spell received, from the attacker's stats and the action's stat factor (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _factorMagicDamageReceived (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _factorMagicDamageReceived (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Scales a spell's damage by the stat factor of its hit parameters, when the current action is a spell with an HP effect.
 pub fn factorMagicDamageReceived(action: ?*v.vs_action_t, _: ?*v._hitEntity_t, _: ?*v._hitEntity_t, arg3: c_int, _: c_int) callconv(.c) c_short {
     var result: i16 = 0;

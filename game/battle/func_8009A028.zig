@@ -1,12 +1,12 @@
 //! Copies a block into a destination (allocating one if none is given) and
-//! relocates four of its words by the block's address (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! relocates four of its words by the block's address (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009A028 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009A028 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Copies `size` bytes from `src` into `dst` (allocated when null) and adds the block's guest address to words 12..15.
 pub fn func_8009A028(dst: [*c]c_int, src: ?*anyopaque, size: c_int) callconv(.c) ?*anyopaque {
     var out = dst;

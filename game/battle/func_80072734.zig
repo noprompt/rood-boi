@@ -1,4 +1,4 @@
-//! An action's targeting: its area and the actors (or their limbs) in reach (src/BATTLE/BATTLE.PRG/146C.c).
+//! An action's targeting: its area and the actors (or their limbs) in reach (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ fn state() *v.D_800F19CC_t {
     return v.g.D_800F19CC().*.?;
 }
 
-/// orig: func_80072734 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80072734 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Records the current action's shape, range, angle and area of effect and the attacker's facing; lists the
 /// actors 0..9 the action may target (alive and targetable, the attacker only when its kind allows, of an
 /// allegiance it reaches, not untargetable 0x8000): every limb with a part for limb-targeting kinds, else the

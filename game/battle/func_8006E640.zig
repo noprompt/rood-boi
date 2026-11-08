@@ -1,9 +1,9 @@
-//! Camera target update for the battle camera modes (src/BATTLE/BATTLE.PRG/146C.c).
+//! Camera target update for the battle camera modes (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006E640 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006E640 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Picks the camera's target position for the current camera mode and steps the camera toward it.
 pub fn func_8006E640(arg0: c_int) callconv(.c) void {
     var sp10: v.func_8006EBF8_t = undefined;

@@ -1,4 +1,4 @@
-//! The action's phase 7: the chain and defense timing window (src/BATTLE/BATTLE.PRG/146C.c).
+//! The action's phase 7: the chain and defense timing window (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -17,7 +17,7 @@ fn missed() void {
     state().battleAbilityInputAttempted = 1;
 }
 
-/// orig: func_80078AB4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80078AB4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// One tick of the timing window: its margin (8 with state flag 1, else 10; 4 more for an enemy's action from 54;
 /// less by a third of the link, at least 2), the cue when the timer meets the window, the timer advanced. A pressed
 /// ability button that is mapped (the player's chain abilities, or the defense ones for an enemy's action) is

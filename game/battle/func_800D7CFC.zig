@@ -1,4 +1,4 @@
-//! Battle file loader step: loads the next queued file into its VRAM slot and frees the load buffer when the queue is done (src/BATTLE/BATTLE.PRG/6F014.c).
+//! Battle file loader step: loads the next queued file into its VRAM slot and frees the load buffer when the queue is done (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6F014");
@@ -26,7 +26,7 @@ fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     return 1;
 }
 
-/// orig: func_800D7CFC (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: func_800D7CFC (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Advances the battle file loader one step: loads the next queued file into its VRAM slot, and frees the load buffer when the queue is finished.
 pub fn func_800D7CFC() callconv(.c) c_int {
     if (v.g.D_800F5680().* == 0 and v.g.D_800F5638().unk0 != 0) {

@@ -1,10 +1,10 @@
-//! Applies the character's status bits 21-24 through the status routines (src/BATTLE/BATTLE.PRG/146C.c).
+//! Applies the character's status bits 21-24 through the status routines (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006B270 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006B270 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Passes the character's status bits 21-24 to func_80093FEC and func_80086754 when any is set.
 pub fn func_8006B270() callconv(.c) void {
     const temp_s0 = psx.get(v.g.vs_battle_characterState().*.?.stats).?;

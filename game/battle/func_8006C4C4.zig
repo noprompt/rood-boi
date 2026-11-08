@@ -1,12 +1,12 @@
 //! Builds a hit request for a hit entity and passes it to func_800CF3F8
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006C4C4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C4C4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills a request from the current battle actor and hit entity `arg1` against `targetLimb`, then hands it to func_800CF3F8.
 pub fn func_8006C4C4(arg0: c_int, arg1: ?*v._hitEntity_t, targetLimb: c_int) callconv(.c) void {
     const base = v.g.D_800F19CC().*.?;

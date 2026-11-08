@@ -1,11 +1,11 @@
 //! The movement recovery step: gives up after a long wait, else faces the
-//! target or the best open direction (src/BATTLE/BATTLE.PRG/771A8.c).
+//! target or the best open direction (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E2CCC (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E2CCC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Recovery step of a movement: gives up after a long wait, else faces its target or the best open direction.
 pub fn func_800E2CCC(state: ?*v.movementRecoveryState) callconv(.c) void {
     const st = state.?;

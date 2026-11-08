@@ -1,8 +1,8 @@
-//! Loads three consecutive CLUT transition slots from one source (src/BATTLE/BATTLE.PRG/146C.c).
+//! Loads three consecutive CLUT transition slots from one source (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const c = @import("c_146C");
 
-/// orig: func_8007B378 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B378 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Calls the CLUT loader for slots 0, 1 and 2, the source advanced by 0x100 u_shorts per slot. The C
 /// passes arg3 only to the first call: the other two omit the fourth argument (a bug kept; the callee reads
 /// whatever the register or stack slot holds). arg2 is unused.

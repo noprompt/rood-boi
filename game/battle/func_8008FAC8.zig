@@ -1,9 +1,9 @@
-//! Falling particle quads: projects each live particle, builds its quad from two projected points and links it into the ordering table (src/BATTLE/BATTLE.PRG/146C.c).
+//! Falling particle quads: projects each live particle, builds its quad from two projected points and links it into the ordering table (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008FAC8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008FAC8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Projects every live particle, builds its quad from two projected points and links it into the ordering table.
 pub fn func_8008FAC8() callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);

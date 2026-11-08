@@ -1,10 +1,10 @@
 //! Actor timer state update: the 0x8E fade timer, the 0x9A timer and the 0x98 countdown
-//! (src/BATTLE/BATTLE.PRG/73700.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/73700.c).
 const psx = @import("common").psx;
 const v = @import("views_73700");
 const c = @import("c_73700");
 
-/// orig: func_800DBFE4 (src/BATTLE/BATTLE.PRG/73700.c)
+/// orig: func_800DBFE4 (pc/src/game/BATTLE/BATTLE.PRG/73700.c)
 /// Advances an actor timer state's timers and sends the matching phase codes for its id.
 pub fn func_800DBFE4(state: ?*v.actorTimerState) callconv(.c) void {
     const s = state.?;

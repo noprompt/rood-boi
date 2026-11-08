@@ -1,9 +1,9 @@
-//! Updates the drawn-weapon stance of one battle actor slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Updates the drawn-weapon stance of one battle actor slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009EE9C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009EE9C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Aims the drawn weapon of actor slot `arg0` at `arg1`, clears the stance when it is not held, then runs the trailing update.
 pub fn func_8009EE9C(arg0: c_int, arg1: ?*v.SVECTOR, _: c_int) callconv(.c) void {
     const temp_s0 = psx.at(v.g.D_800F4538(), arg0).*.?;

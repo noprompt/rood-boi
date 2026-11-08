@@ -1,5 +1,5 @@
 /* Modern menus, the native Score screen: MENU9's list cursors
- * (src/MENU/MENU9.PRG/238.c _menuInput states 5, 8, 11, 14), ported as they
+ * (pc/src/game/MENU/MENU9.PRG/238.c _menuInput states 5, 8, 11, 14), ported as they
  * step vs_battle_menu9CursorMemory's (page, row) pairs. The focused entry is
  * page + row; the original shows rows page .. page + 7.
  *

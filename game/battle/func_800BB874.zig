@@ -1,11 +1,11 @@
 //! Draws the striped scanline primitives for the battle screen and sets the draw tpage
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BB874 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BB874 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Advances the stripe phase, adds a flat line primitive per shaded row to the ordering table, then sets the draw tpage.
 pub fn func_800BB874() callconv(.c) void {
     // Scratchpad slots hold 4-byte guest addresses: slot 0 is the primitive cursor, slot 2 the ordering table.

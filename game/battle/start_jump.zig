@@ -1,10 +1,10 @@
-//! An actor's jump toward a target: velocity and hang frames from its position (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! An actor's jump toward a target: velocity and hang frames from its position (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A208C (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A208C (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Starts an actor's jump to a scripted anchor or a tile, setting its velocity and hang frames.
 pub fn startJump(actor: ?*v.D_800F4538_t, target: [*c]u8, speed_in: c_int, facing: c_short) callconv(.c) void {
     const a: *v.D_800F4538_t = actor.?;

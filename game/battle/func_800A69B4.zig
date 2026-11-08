@@ -1,11 +1,11 @@
 //! Ground clearance test for a battle actor, along one axis
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A69B4 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A69B4 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Tests the ground either side of arg0, a step out along x or z: returns 1 when both ends are within 64 of its height.
 pub fn func_800A69B4(arg0: ?*v.D_800F4538_t) callconv(.c) c_int {
     var vec: v.SVECTOR = .{ .vx = 0, .vy = 0, .vz = 0, .pad = 0 };

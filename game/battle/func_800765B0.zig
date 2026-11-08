@@ -1,10 +1,10 @@
-//! Creates an actor in a free slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Creates an actor in a free slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800765B0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800765B0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Slot 0xFF takes the first free of 2..15 (none: vs_main_nop10(0x86) and null). An empty slot gets a cleared heap
 /// actor (its stats and model block inside it, unk18 0xFE, allegiance 0x10), a model request (object data type 6,
 /// the flags with unk0_8 cut to its low bit, variant from its high nibble, actorId and its high byte, the

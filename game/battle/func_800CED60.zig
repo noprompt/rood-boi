@@ -1,10 +1,10 @@
-//! Walks the battle's linked list of entries, running each entry's state step and returning the OR of their flags (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Walks the battle's linked list of entries, running each entry's state step and returning the OR of their flags (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CED60 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CED60 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Steps every list entry by its state and returns the OR of their flag bits.
 pub fn func_800CED60() callconv(.c) c_int {
     var s1: ?*v.D_800F53B8_t = v.g.D_800F54B0().*;

@@ -1,10 +1,10 @@
 //! Fills one row of the 9x9 height and collision grid around the character
-//! (src/BATTLE/BATTLE.PRG/58578.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C2B0C (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C2B0C (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Recomputes grid row `row` (0..8) of the height and collision tables from the map around `position`.
 pub fn func_800C2B0C(position: [*c]c_ushort, row: c_uint) callconv(.c) void {
     if (row >= 9) {

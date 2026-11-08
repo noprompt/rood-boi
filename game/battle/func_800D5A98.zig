@@ -1,4 +1,4 @@
-//! An effect command: spawns child scripts on the targets over time (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: spawns child scripts on the targets over time (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -24,7 +24,7 @@ fn setAddress(field: anytype, address: u32) void {
     }
 }
 
-/// orig: func_800D5A98 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5A98 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// From its frame on: spawns one child script per P-file target (a delay between them), each told its actor, then a final one once the children are done; 0 after that.
 pub fn func_800D5A98(script: ?*v.D_800F53B8_t, state_arg: ?*v.timedSpawnState, kind: c_int) callconv(.c) c_int {
     const Event = extern struct { actors: [6]u8, final: u8, frame: u8, delay: u8 };

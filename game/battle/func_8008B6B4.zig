@@ -1,8 +1,8 @@
-//! Clears the two battle counters at D_800F1D6A/D_800F1D6C and the table at D_800F1D28 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears the two battle counters at D_800F1D6A/D_800F1D6C and the table at D_800F1D28 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008B6B4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B6B4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the two counters and zeroes the eight-entry table they sit beside.
 pub fn func_8008B6B4() callconv(.c) void {
     v.g.D_800F1D6A().* = 0;

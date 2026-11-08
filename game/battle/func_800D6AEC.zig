@@ -1,12 +1,12 @@
 //! Runs the timed effect list of an effect block: each active entry's handler,
 //! clearing the entries that finish, then counting the update
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D6AEC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D6AEC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs each active entry of the effect's timeline, retires the ones that report done, then counts the update.
 pub fn func_800D6AEC(arg0: ?*v.D_800F53B8_t, arg1: c_int) callconv(.c) void {
     const self = arg0.?;

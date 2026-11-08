@@ -1,4 +1,4 @@
-//! Gem defense buff for one hit of an action (src/BATTLE/BATTLE.PRG/146C.c).
+//! Gem defense buff for one hit of an action (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
@@ -11,7 +11,7 @@ fn hasGemEffect(actor: *v.vs_battle_actor2, effect: u8) bool {
     return found;
 }
 
-/// orig: _getDefenseGemBuff (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getDefenseGemBuff (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 20 for each gem bonus that applies to the action's hit on the actor, else 0.
 pub fn getDefenseGemBuff(action: ?*v.vs_action_t, actor: ?*v.vs_battle_actor2, hitNumber: c_int) callconv(.c) c_short {
     var gemBuff: c_int = 0;

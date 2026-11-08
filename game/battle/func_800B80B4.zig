@@ -1,9 +1,9 @@
-//! An event script opcode over an actor set (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode over an actor set (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B80B4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B80B4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8007D340(actor) for each actor of the script's reference getShort(script + 1).
 pub fn func_800B80B4(script: [*c]u8, _: c_short) callconv(.c) c_int {
     var set: v.func_800BB68C_t = undefined;

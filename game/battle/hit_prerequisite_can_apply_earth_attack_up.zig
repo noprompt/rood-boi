@@ -1,9 +1,9 @@
-//! Earth attack-up hit prerequisite: the target has no effect 23 and wields a weapon with a blade (src/BATTLE/BATTLE.PRG/146C.c).
+//! Earth attack-up hit prerequisite: the target has no effect 23 and wields a weapon with a blade (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _hitPrerequisiteCanApplyEarthAttackUp (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _hitPrerequisiteCanApplyEarthAttackUp (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 1 when effect 23 does not apply to the actor in slot `*arg1` and its weapon has a blade, else 0.
 pub fn hitPrerequisiteCanApplyEarthAttackUp(_: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int {
     if (c._hitPrerequisiteCanApplyEffect(23, arg1) == 0) {

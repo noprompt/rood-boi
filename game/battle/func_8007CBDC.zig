@@ -1,10 +1,10 @@
-//! Fills a battle object-data record (type 7, the weapon model) and hands it to the populate call (src/BATTLE/BATTLE.PRG/146C.c).
+//! Fills a battle object-data record (type 7, the weapon model) and hands it to the populate call (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007CBDC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007CBDC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Populates a weapon model data slot for `index` with model `wepId`.
 pub fn func_8007CBDC(index: c_int, wepId: c_int, arg2: c_int) callconv(.c) void {
     // Fields other than the four set here are uninitialised in the original.

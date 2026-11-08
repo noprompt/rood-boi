@@ -1,7 +1,7 @@
-//! Battle actor check: runs the actor's assembly callee and clears a flag bit on a zero result (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle actor check: runs the actor's assembly callee and clears a flag bit on a zero result (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const c = @import("c_146C");
 
-/// orig: func_8007D03C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007D03C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the actor's check; on 0 clears bit 2 of the actor's flags and returns 1, else returns whether the check gave 2.
 pub fn func_8007D03C(arg0: c_int) callconv(.c) c_int {
     // ROOD_PC: the assembly callee reads the actor id from $a0, so it is passed as arg0.

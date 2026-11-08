@@ -1,4 +1,4 @@
-//! Queues a move packet that copies a texture block of one part of a battle actor to the screen (src/BATTLE/BATTLE.PRG/40564.c).
+//! Queues a move packet that copies a texture block of one part of a battle actor to the screen (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
@@ -15,7 +15,7 @@ fn packetEnd(p: *v.DR_MOVE) void {
     @as(*u32, @ptrFromInt(0x1F800000)).* = psx.addr(psx.at(p, 1));
 }
 
-/// orig: func_800AB358 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AB358 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Queues a move packet copying part `arg[1]` of actor `index` from texture page `arg[2..3]` to the screen.
 pub fn func_800AB358(index: c_int, arg: [*c]u8) callconv(.c) void {
     // The actor pointer is only dereferenced inside the branch, as in the C.

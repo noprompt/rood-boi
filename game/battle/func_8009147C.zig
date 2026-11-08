@@ -1,11 +1,11 @@
 //! The scrolling sky backdrop: its tiles as GT4 polygons into the packet
-//! buffer, then the black full-screen tile (src/BATTLE/BATTLE.PRG/2842C.c).
+//! buffer, then the black full-screen tile (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009147C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009147C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Rotates the sky tile grid by the camera yaw, emits each visible tile as a GT4 primitive, then the backdrop as a TILE.
 pub fn func_8009147C(arg0: ?*v.vs_battle_backgroundLayout, scrollX: c_int, scrollY: c_int, tpage: c_int) callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);

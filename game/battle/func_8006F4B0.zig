@@ -1,11 +1,11 @@
-//! Spawns the effect-33 request at a source actor's position (src/BATTLE/BATTLE.PRG/146C.c).
+//! Spawns the effect-33 request at a source actor's position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006F4B0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006F4B0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Spawns effect 33 at the source's position unless D_800F1868 bit 1 is set.
 pub fn func_8006F4B0(source: ?*v.func_8006EBF8_t3) callconv(.c) void {
     const src = source.?;

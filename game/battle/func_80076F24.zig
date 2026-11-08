@@ -1,11 +1,11 @@
 //! Initialises a battle actor slot from its character init data and its flags
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80076F24 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80076F24 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up battle actor `id` from its init data, its allegiance flags and its stats, then calls func_80076784.
 pub fn func_80076F24(id: c_int, arg1: ?*v.vs_battle_charInitData, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int) callconv(.c) void {
     const actor = psx.at(v.g.vs_battle_actors(), id).*.?;

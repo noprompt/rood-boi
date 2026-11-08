@@ -1,9 +1,9 @@
-//! The event timer D_80050468: counts up (mode 1) or down a tick (src/BATTLE/BATTLE.PRG/146C.c).
+//! The event timer D_80050468: counts up (mode 1) or down a tick (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800882F4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800882F4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// With the timer on: mode 1 counts up (stopping once hours turn positive, which then take the mode byte), other
 /// modes count down to 0:00:00 (frames from 60); the frames (dithered by rand, times 5/3) and the other fields go
 /// to state flags 0xA0..0xA3. Returns 1 when the frames are 0 and func_800BEC58(16) answers 1.

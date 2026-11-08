@@ -1,7 +1,7 @@
 //! Blends two packed RGB colours by a factor and scales the result by brightness
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 
-/// orig: _lerpColor (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _lerpColor (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Blends the red, green and blue channels of two colours by blendFactor (0..8), scales by brightness and packs the result.
 pub fn lerpColor(color0: c_uint, color1: c_uint, brightness: c_int, blendFactor: c_int) callconv(.c) c_uint {
     // All arithmetic is unsigned 32-bit in C (int operands convert to unsigned), so wrap throughout.

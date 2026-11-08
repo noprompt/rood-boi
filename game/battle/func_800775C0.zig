@@ -1,4 +1,4 @@
-//! Spawns an enemy: its actor block, its ZUD models loaded and requested, its setup (src/BATTLE/BATTLE.PRG/146C.c).
+//! Spawns an enemy: its actor block, its ZUD models loaded and requested, its setup (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
@@ -18,7 +18,7 @@ fn savedState(index: u8) ?*v.savedEnemyState {
     return null;
 }
 
-/// orig: func_800775C0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800775C0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For an empty slot `id`: allocates the actor block (a two-part enemy, D_8004FE88, gets a second model block
 /// instead of a shield's), loads its ZUD file (kept when it is the one already loaded), requests its model (at
 /// its saved place, else the spawn's), its second part or weapon and shield, and its weapon and own effects, waits

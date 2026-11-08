@@ -1,9 +1,9 @@
-//! The camera's step toward a target point (src/BATTLE/BATTLE.PRG/146C.c).
+//! The camera's step toward a target point (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _computeStepAndDisplacement (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _computeStepAndDisplacement (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The target (clamped to the zone when asked) less the camera's look-at is the displacement; its direction
 /// (VectorNormal) times the camera speed is the step. The target counts as centred when it projects inside the
 /// screen box (x 61..259, y 61..179) and was not clamped: then the speed falls by 8 to 0; otherwise it rises by 8

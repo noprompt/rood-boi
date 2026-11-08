@@ -1,4 +1,4 @@
-//! A ranged action's targeting preview (src/BATTLE/BATTLE.PRG/146C.c).
+//! A ranged action's targeting preview (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -13,7 +13,7 @@ fn kind(spec: *v.vs_action_t) u32 {
     return (psx.byteAt(u32, spec, 0).* >> 20) & 15;
 }
 
-/// orig: func_800719FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800719FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Aims the current action's range from its user (func_800A1AF8) at the targeted actor (level when it targets
 /// the user itself), previews it (func_800C0700) when unk2984 is set, then lists every actor 0..15 the action may
 /// target and the range covers (func_800C1564): each limb with a part for limb-targeting kinds, else the body,

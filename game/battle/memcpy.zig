@@ -1,7 +1,7 @@
-//! Byte copy of whole 8-byte blocks for battle (src/BATTLE/BATTLE.PRG/573B8.c).
+//! Byte copy of whole 8-byte blocks for battle (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const c = @import("c_573B8");
 
-/// orig: vs_battle_memcpy (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: vs_battle_memcpy (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Copies numBytes (a positive multiple of 8) from src to dst, four shorts at a time.
 pub fn memcpy(dst: ?*anyopaque, src: ?*const anyopaque, numBytes: c_int) callconv(.c) void {
     // Addresses are kept as integers: the C steps `to` and `from` by 8 bytes and

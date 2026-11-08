@@ -1,8 +1,8 @@
-//! Clears the enemy-table blocks that match a map and zone id (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears the enemy-table blocks that match a map and zone id (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80069DEC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80069DEC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears the 320-byte block of every one of the four entries whose map and zone ids match.
 pub fn func_80069DEC(mapId: c_int, zndId: c_int) callconv(.c) void {
     const table = v.g.D_80061078();

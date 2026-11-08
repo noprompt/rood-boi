@@ -187,7 +187,7 @@ def head_to_head_7CD68(tmp, table):
     if zig_diff.sizes_from_objects(BUILD, ["D_800F1790"]).get("D_800F1790") != 80:
         failures.append("sizes_from_objects: D_800F1790 (battle_movement.o, 80 bytes)")
     # A pointer to rows (`u_short (*D_800F58B8)[32]`): typed, an accessor, shown as one.
-    unit = pp.Unit("7CD68", "src/BATTLE/BATTLE.PRG/7CD68.c", BUILD, tmp / "unit-7CD68", table)
+    unit = pp.Unit("7CD68", "pc/src/game/BATTLE/BATTLE.PRG/7CD68.c", BUILD, tmp / "unit-7CD68", table)
     views, _ = unit.views([], ["D_800F58B8"], tag="rows")
     want = 'pub inline fn D_800F58B8() *?[*][32]u16 { return psx.global(?[*][32]u16, "D_800F58B8"); }'
     if want not in views.read_text() or want not in bc.views_subset(views.read_text(), {"D_800F58B8"}):
@@ -197,7 +197,7 @@ def head_to_head_7CD68(tmp, table):
     if text.count("pub extern fn f(a: c_int) c_int;") != 1 or text.count("pub extern fn g()") != 1:
         failures.append(f"zig_c routed names: {text}")
     # A self-recursive function's port prompt says the self-call goes through the routed symbol.
-    plan = pp.Plan(name="func_800E5EC0", unit="src/BATTLE/BATTLE.PRG/7CD68.c", stem="7CD68", address=0x800E5EC0,
+    plan = pp.Plan(name="func_800E5EC0", unit="pc/src/game/BATTLE/BATTLE.PRG/7CD68.c", stem="7CD68", address=0x800E5EC0,
                    difficulty="S", zig_name="func_800E5EC0", name_source="test", module="func_800E5EC0",
                    subsystem="battle_7CD68_port", signature="pub fn func_800E5EC0(arg0: c_int, arg1: c_int, "
                    "arg2: c_int) callconv(.c) void")
@@ -211,7 +211,7 @@ def review_7CD68(tmp, table):
     import port_pipeline as pp
     failures = []
     # A global pointer to integers the C indexes (`u_short* D_800F58C8`): many-item in the views.
-    unit = pp.Unit("7CD68", "src/BATTLE/BATTLE.PRG/7CD68.c", BUILD, tmp / "unit-7CD68-review", table)
+    unit = pp.Unit("7CD68", "pc/src/game/BATTLE/BATTLE.PRG/7CD68.c", BUILD, tmp / "unit-7CD68-review", table)
     views, _ = unit.views([], ["D_800F58C8"], tag="int-pointer")
     if 'pub inline fn D_800F58C8() *?[*]u16 { return psx.global(?[*]u16, "D_800F58C8"); }' not in views.read_text():
         failures.append("views: D_800F58C8 as a many-item u16 pointer")
@@ -293,7 +293,7 @@ def wave1(tmp, table):
     if "pub extern fn h(p: [*c]c_int) c_int;" not in text:
         failures.append("zig_c: a header's unprototyped declaration before the unit's (void) definition")
     # A global named as its type (573B8's vs_main_buttonsPressed): the accessor names the type through the module.
-    unit = pp.Unit("573B8", "src/BATTLE/BATTLE.PRG/573B8.c", BUILD, tmp / "unit-573B8", table)
+    unit = pp.Unit("573B8", "pc/src/game/BATTLE/BATTLE.PRG/573B8.c", BUILD, tmp / "unit-573B8", table)
     views, _ = unit.views([], ["vs_main_buttonsPressed"], tag="type-named-global")
     want = ('pub inline fn vs_main_buttonsPressed() *views.vs_main_buttonsPressed { return '
             'psx.global(views.vs_main_buttonsPressed, "vs_main_buttonsPressed"); }')
@@ -309,7 +309,7 @@ def wave1(tmp, table):
     if "if (p != 0 && *p) {" not in text:
         failures.append(f"a C mutation spelling NULL: {text}")
     # The unit's static helpers a function calls go into its port prompt (6FC00's func_800D87E8, func_800D8EF4).
-    helpers = pp.static_helpers(types.SimpleNamespace(unit="src/BATTLE/BATTLE.PRG/6FC00.c", name="func_800D8EF4"))
+    helpers = pp.static_helpers(types.SimpleNamespace(unit="pc/src/game/BATTLE/BATTLE.PRG/6FC00.c", name="func_800D8EF4"))
     if [h.split("(")[0].split()[-1] for h in helpers] != ["historyStalled", "historyRepeats"]:
         failures.append(f"static helpers of func_800D8EF4: {helpers}")
     # A block-scope static (44F14's func_800AE47C, a ROOD_PC log-once counter): skipped at the plan.
@@ -320,7 +320,7 @@ def wave1(tmp, table):
         failures.append(f"func_800AE47C not skipped for its block-scope static: {plan.skip!r}")
     # The stand-in copy sits right after the original's body (44F14's func_800AD714 calls
     # func_800AE46C(x) through `void func_800AE46C();`; its later (void) definition rejected a copy at the end).
-    sub = ownership.Subsystem("battle_44F14_test", 0, "battle", "src/BATTLE/BATTLE.PRG/44F14.c", "original", [],
+    sub = ownership.Subsystem("battle_44F14_test", 0, "battle", "pc/src/game/BATTLE/BATTLE.PRG/44F14.c", "original", [],
                               [(0x800AD714, "func_800AD714")], {}, {"func_800AD714": "x.func_800AD714"})
     try:
         b = zig_diff.Build("func_800AD714", {"spec": "none"}, BUILD, tmp / "standin-AD714", None,
@@ -329,7 +329,7 @@ def wave1(tmp, table):
     except Exception as error:
         failures.append(f"stand-in of func_800AD714 (calls through an unprototyped declaration): {str(error)[-600:]}")
     # A unit static the function calls (6F014's _loadfile) is kept in the reference, not a trap.
-    sub = ownership.Subsystem("battle_6F014_test", 0, "battle", "src/BATTLE/BATTLE.PRG/6F014.c", "original", [],
+    sub = ownership.Subsystem("battle_6F014_test", 0, "battle", "pc/src/game/BATTLE/BATTLE.PRG/6F014.c", "original", [],
                               [(0x800D7BF8, "func_800D7BF8")], {}, {"func_800D7BF8": "x.func_800D7BF8"})
     try:
         b = zig_diff.Build("func_800D7BF8", {"spec": "none"}, BUILD, tmp / "static-7BF8", None,

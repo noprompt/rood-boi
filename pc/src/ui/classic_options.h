@@ -1,6 +1,6 @@
 /* The Option pages in the game's own Option screen (pc/src/ui/classic_options.c,
  * battle builds; plan pc/docs/plans/2026-10-18-lua-m1-options.md C1/C2). MENU8
- * (src/MENU/MENU8.PRG/88.c, ROOD_PC) lists the page model's Option-screen
+ * (pc/src/game/MENU/MENU8.PRG/88.c, ROOD_PC) lists the page model's Option-screen
  * entries (option_pages.h pc_option_pages_children(-1): Gameplay, Display,
  * ..., plugins' pages) below its nine rows; picking one runs a page here,
  * drawn with the game's own pieces (its menu windows, cursor hand, font,

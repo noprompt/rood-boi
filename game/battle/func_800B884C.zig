@@ -1,10 +1,10 @@
 //! Walks the record at arg0 + 1 in the battle script, calling func_8007C0AC for each value
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B884C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B884C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Reads a record from arg0 + 1 and calls func_8007C0AC with each entry, indexed by arg0[3].
 pub fn func_800B884C(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     var sp10: v.func_800BB68C_t = undefined;

@@ -1,9 +1,9 @@
-//! Resets the battle menu and UI state and renders the menu images (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Resets the battle menu and UI state and renders the menu images (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const std = @import("std");
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CA9C0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CA9C0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Clears the battle menu and UI state, then renders the menu images from `base`.
 pub fn func_800CA9C0(base: ?*anyopaque) callconv(.c) void {
     v.g.D_800EB9AC().* = 0;

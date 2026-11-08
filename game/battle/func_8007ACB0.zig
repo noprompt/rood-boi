@@ -1,4 +1,4 @@
-//! The view matrix from the camera (src/BATTLE/BATTLE.PRG/146C.c).
+//! The view matrix from the camera (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -13,7 +13,7 @@ fn low(x: i32) c_int {
     return @as(u16, @truncate(@as(u32, @bitCast(x))));
 }
 
-/// orig: func_8007ACB0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007ACB0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Builds the view matrix (and its copy D_8005E218) from the camera's position and look-at (the editor's live
 /// camera, pc_live_camera, may replace both): the side, up and forward axes (x negated as the C stores them), rolled by angles.vz and stretched 4608/4096 across, translated to the camera, all scaled by the far clip.
 pub fn func_8007ACB0() callconv(.c) void {

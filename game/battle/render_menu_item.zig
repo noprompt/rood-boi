@@ -1,10 +1,10 @@
 //! The battle menu item renderer: its label, its gradient background quad and its sub text
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_renderMenuItem (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_renderMenuItem (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws a menu item's label, gradient background and sub text into the packet at the scratchpad cursor.
 pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
     const m = menuItem.?;

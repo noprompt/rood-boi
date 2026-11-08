@@ -1,10 +1,10 @@
-//! An effect-script opcode: a camera move to look at an entry (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect-script opcode: a camera move to look at an entry (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D66FC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D66FC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Both keyframes from the current camera, keyframe 1 looking at unk1C[index]'s translation, over `frames` (0 means 1): func_800D1E20(2).
 pub fn func_800D66FC(script: ?*v.D_800F53B8_t, index: u8, frames_arg: u8) callconv(.c) void {
     const s = script.?;

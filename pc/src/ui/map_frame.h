@@ -1,6 +1,6 @@
 /* Modern menus, the Map frame (pc/docs/Modern_Menus.md, plan
  * pc/docs/plans/2026-10-14-modern-menus-map.md): the game's own map screen
- * (MENU5, src/MENU/MENU5.PRG/4D8.c) keeps running, rendering and owning the
+ * (MENU5, pc/src/game/MENU/MENU5.PRG/4D8.c) keeps running, rendering and owning the
  * pad; the shell draws native chrome around its 3D map (ui_map_draw.cpp).
  *
  *   4D8.c (ROOD_PC)   stamps every vs_menu5_exec call, latches the frame at

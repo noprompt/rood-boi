@@ -1,4 +1,4 @@
-//! Records the door entered and marks it in the room's door list (src/BATTLE/BATTLE.PRG/146C.c).
+//! Records the door entered and marks it in the room's door list (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
@@ -7,7 +7,7 @@ fn skip(p: [*]i32, k: c_int) [*]i32 {
     return @ptrCast(psx.at(p, k));
 }
 
-/// orig: vs_battle_setDoorEntered2 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_setDoorEntered2 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets vs_battle_doorEntered to `door` and sets bit 0x10 of byte 2 of that door's word in section F's door list.
 pub fn setDoorEntered2(door: c_int) callconv(.c) void {
     v.g.vs_battle_doorEntered().* = psx.conv(i16, door);

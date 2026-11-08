@@ -1,6 +1,6 @@
 //! Per-frame animation update for a battle actor: advances the shadow tween and
 //! the animation frame, applies the frame's root motion and bone poses
-//! (src/BATTLE/BATTLE.PRG/44F14.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
@@ -32,7 +32,7 @@ fn poseAt(st: *v.D_800F4538_unkC54, off: c_int) [*c]c.SVECTOR {
     return psx.cptr(c.SVECTOR, p);
 }
 
-/// orig: func_800AFA28 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AFA28 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Advances an actor's animation by its pending frames and applies the frame's root motion and bone poses.
 pub fn func_800AFA28(actor: ?*v.D_800F4538_t, state: ?*v.D_800F4538_unkC54, mode: c_int) callconv(.c) void {
     const a = actor.?;

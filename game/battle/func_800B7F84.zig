@@ -1,12 +1,12 @@
 //! Battle script record: resolves a 16-bit index and stores three record bytes
-//! for it (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! for it (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7F84 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7F84 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Resolves the index at arg0[1..2], passes it with the record bytes at arg0[3..5] and arg0[6] to func_800A9CDC, and marks the index in D_800F4B70.
 pub fn func_800B7F84(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     // vs_battle_getShort returns a short; func_800BFE50 takes a u_short (C converts implicitly).

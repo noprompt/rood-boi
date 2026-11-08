@@ -1,4 +1,4 @@
-//! The room's enemies and objects spawned from its MPD spawn list (src/BATTLE/BATTLE.PRG/146C.c).
+//! The room's enemies and objects spawned from its MPD spawn list (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -17,7 +17,7 @@ fn dropZud() void {
     zone.unk14 = 0;
 }
 
-/// orig: func_80089114 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80089114 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// With spawning on (D_800F18E0), reserves the slots the list names, then spawns each entry: an enemy (type 0)
 /// that passes its scene, flag and stat tests, facing as listed (0/3 -> 6, 1 -> 0, 2 -> 1; 0x80 with unk24), into
 /// its slot or the first free of 2..9 (a two-part enemy, D_8004FE88, also takes slot + 4), as a plain model for id

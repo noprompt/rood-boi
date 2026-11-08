@@ -1,4 +1,4 @@
-//! The room's event triggers (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The room's event triggers (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
@@ -14,7 +14,7 @@ fn actorOf(p: [*]u8) i16 {
     return psx.conv(i16, c.func_800BFE50(psx.conv(u16, c.vs_battle_getShort(p + 1))));
 }
 
-/// orig: func_800BEC58 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BEC58 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Asks whether an event starts: 0xFF whether a script runs (2) or not (0); 1 the room's own script;
 /// 0x40 event file arg1; else, unless a script runs, the first of the room's 16 triggers whose
 /// type mask has bits of arg0 and whose conditions (cells, flags, actors, items, heights; 0xFE

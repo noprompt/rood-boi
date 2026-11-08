@@ -1,4 +1,4 @@
-//! Samples the floor under a battle actor at its eight neighbours and marks the blocked ones (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Samples the floor under a battle actor at its eight neighbours and marks the blocked ones (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
@@ -15,14 +15,14 @@ fn sampleHeight(pos: *v.SVECTOR, x: c_int, z: c_int) i16 {
     return psx.conv(i16, c.func_800A6EE8(psx.cptr(c.SVECTOR, pos), x, z, 0));
 }
 
-/// orig: vs_battleRelativeSampleHeight (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: vs_battleRelativeSampleHeight (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Sample (sector + offset) & 7 minus y (a file-scope static inline).
 fn relativeSampleHeight(samples: *v.ActorCollisionSamples, sector: c_int, offset: c_int, y: c_int) c_int {
     const k: usize = @intCast((sector +% offset) & 7);
     return @as(c_int, samples.heights[k]) -% y;
 }
 
-/// orig: func_800A70DC (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A70DC (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Fills the scratchpad collision samples around an actor and flags the directions it cannot step into.
 pub fn func_800A70DC(actor: ?*v.D_800F4538_t, diagonal: c_int) callconv(.c) void {
     const a = actor.?;

@@ -1,12 +1,12 @@
 //! Finishes a pending CD image load, or frees its staging buffer
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008F0FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008F0FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Uploads a finished TIM load and returns 0, or frees the staging buffer of a finished second load and returns 1; 0 otherwise.
 pub fn func_8008F0FC() callconv(.c) c_int {
     if (v.g.D_800F1DAC().* != null and v.g.D_800F1DAC().*.?.state == 4) {

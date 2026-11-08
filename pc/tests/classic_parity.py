@@ -4254,7 +4254,7 @@ def run_file_screens(out, card, card2, env, check, waivers):
 
 
 def run_ending(out, card, env, check, waivers):
-    """ENDING's copy of MENUF's leaves (src/renderTextures.h: the MISSION COMPLETE screen's words, score, map completion
+    """ENDING's copy of MENUF's leaves (pc/src/game/renderTextures.h: the MISSION COMPLETE screen's words, score, map completion
     and rank; D4.c's range around them, menuf's screen 16), its own game from the save room (a card copy; nothing
     saved): RPC ending, the credits skipped with Start; the screen coming in (every frame compared), at rest (proofs:
     default, fallback, state parity); left with Cross (its fade-out); then the title's clear-data save screen (TITLE

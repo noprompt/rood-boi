@@ -1,11 +1,11 @@
 //! Toggles a room section's state, clears its timer byte and sets the matching
-//! section-3 flag (src/BATTLE/BATTLE.PRG/146C.c).
+//! section-3 flag (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008D658 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008D658 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Plays the toggle sounds for a room section, flips its state and sets the flag of the section it finds.
 pub fn func_8008D658(section: ?*v._mpdRoomSectionA) callconv(.c) void {
     const room = section.?;

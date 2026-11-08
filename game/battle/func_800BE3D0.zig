@@ -1,4 +1,4 @@
-//! The event camera's placement from the room's camera state flags (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's placement from the room's camera state flags (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
@@ -8,7 +8,7 @@ fn cv(p: *v.VECTOR) [*c]c.VECTOR {
     return psx.cptr(c.VECTOR, p);
 }
 
-/// orig: _copyVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _copyVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src (vx, vy, vz).
 fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     dst.vx = src.vx;
@@ -17,7 +17,7 @@ fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: func_800BE3D0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BE3D0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Puts the eye and look-at, raised by D_800E9C24[flag 0xB0], at the spherical position of direction
 /// (flag 0xAF - 1 + arg0 * 2) & 7 (each looking at the other, the look-at settled), aims them at
 /// direction flag 0xAF, and starts the move with the commands D_800E9C28 and D_800E9C2C.

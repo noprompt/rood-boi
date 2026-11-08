@@ -1,10 +1,10 @@
-//! Battle actor flags, weapon-model render bits and the paired actor's flags, set from one flag word (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle actor flags, weapon-model render bits and the paired actor's flags, set from one flag word (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_800A087C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A087C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Sets an actor's flags and weapon-model render bits from the bits of `arg1`, then does the same for its paired actor.
 pub fn func_800A087C(actorId: c_int, arg1: c_int) callconv(.c) void {
     const temp_t0 = psx.at(v.g.D_800F4538(), actorId).*;

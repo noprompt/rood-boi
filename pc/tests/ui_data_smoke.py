@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Modern menus, the native Data screen (pc/src/ui/data_bridge.c, ui_data.cpp,
-ui_data_draw.cpp, data_plan.c; MENU7 hooks in src/MENU/MENU7.PRG/260.c):
+ui_data_draw.cpp, data_plan.c; MENU7 hooks in pc/src/game/MENU/MENU7.PRG/260.c):
 the game's own save / load screen runs unchanged under a native frame; its
 drawing is gated, clicks become pad presses MENU7 reads as the player's, its
 statics are published for the frame.

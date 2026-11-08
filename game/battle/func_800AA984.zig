@@ -1,8 +1,8 @@
-//! Sets an object's facing target and turn rate, or recentres its facing (src/BATTLE/BATTLE.PRG/40564.c).
+//! Sets an object's facing target and turn rate, or recentres its facing (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 
-/// orig: func_800AA984 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA984 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets object `index`'s facing target to `turn`; `mode` 0 recentres, -1 derives the turn rate from `turn`, any other value is the rate.
 pub fn func_800AA984(index: c_int, turn: c_short, mode: c_int) callconv(.c) void {
     const a: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), index).* orelse return;

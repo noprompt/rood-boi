@@ -1,8 +1,8 @@
-//! Object lookup for a D_800F45E0 slot (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Object lookup for a D_800F45E0 slot (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A3C00 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3C00 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Finds the object for a D_800F45E0 slot's key and index; null for an empty slot.
 pub fn func_800A3C00(slot: ?*v.D_800F45E0_t, index: c_uint) callconv(.c) ?*v.D_800F4538_t {
     // ROOD_PC: func_8009F530 passes D_800F45E0[0] when no object stacks on the

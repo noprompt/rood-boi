@@ -1,9 +1,9 @@
-//! An event script opcode that hands an actor four bytes of the script (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that hands an actor four bytes of the script (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B77DC (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B77DC (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8009F990 with the actor of getShort(script + 1) (0x2001 becomes -1) and
 /// script[3..6] as a D_800F4538_unk64.
 pub fn func_800B77DC(script: [*c]u8, _: c_short) callconv(.c) c_int {

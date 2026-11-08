@@ -1,10 +1,10 @@
 //! Applies a battle action's own stat cost, then each recorded stat delta, to the
-//! actors' stat rows (src/BATTLE/BATTLE.PRG/74088.c).
+//! actors' stat rows (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const psx = @import("common").psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: func_800DC888 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DC888 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Applies the action's cost, then each stat delta in the application record, to the stats rows.
 pub fn func_800DC888(stats: ?*v.actionStatSnapshot) callconv(.c) void {
     const app: *v.actionStatApplication = @ptrCast(psx.get(v.g.D_800F5900().*).?);

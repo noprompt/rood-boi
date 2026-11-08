@@ -1,10 +1,10 @@
-//! Room section 12 path entries: restarts one entry at a step (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section 12 path entries: restarts one entry at a step (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008C6B4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C6B4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Restarts room section 12 entry arg0 at step arg1 (-1: its stored step) and sets its position from that step.
 pub fn func_8008C6B4(arg0: c_int, arg1: c_int) callconv(.c) void {
     const sections = psx.get(v.g.vs_battle_roomData().section12);

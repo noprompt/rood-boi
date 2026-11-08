@@ -1,7 +1,7 @@
-//! Clamps a value to the range spanned by two others (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Clamps a value to the range spanned by two others (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 
-/// orig: vs_battle_clamp (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: vs_battle_clamp (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Clamps `arg0` to the range between `arg1` and `arg2` (low and high taken from their 16-bit values).
 pub fn clamp(arg0: c_short, arg1: c_int, arg2: c_int) callconv(.c) c_int {
     var var_t0: c_short = undefined;

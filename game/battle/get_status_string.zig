@@ -1,9 +1,9 @@
-//! Status effect name lookup for the battle status display (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Status effect name lookup for the battle status display (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: _getStatusString (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _getStatusString (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns the name of the lowest status flag set in `flags` (bits 5 and up), or the empty string.
 pub fn getStatusString(flags: c_uint) callconv(.c) [*c]u8 {
     const table = v.g.vs_battle_statusStrings();

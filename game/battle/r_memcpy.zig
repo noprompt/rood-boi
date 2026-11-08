@@ -1,8 +1,8 @@
 //! Byte copy used by the battle overlay, copying from the highest index down
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 
-/// orig: vs_battle_rMemcpy (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_rMemcpy (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Copies `size` bytes from `src` to `dest` one byte at a time, last index first.
 pub fn rMemcpy(dest: ?*anyopaque, src: ?*const anyopaque, size: c_int) callconv(.c) void {
     const d: [*]u8 = @ptrCast(dest.?);

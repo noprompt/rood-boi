@@ -1,9 +1,9 @@
-//! Digit sprite primitive for the battle number display (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Digit sprite primitive for the battle number display (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const c = @import("c_5BF94");
 
-/// orig: _renderDigit (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _renderDigit (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Places one digit sprite of font `font` at `xy`, linked after `before`, with its UV and CLUT words.
 pub fn renderDigit(font: c_int, xy: c_int, digit: c_int, before: [*c]c_uint) callconv(.c) void {
     // The shift count is (font * 4) & 31: x86 masks the count to 5 bits.

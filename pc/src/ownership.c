@@ -48,7 +48,6 @@ static const unsigned pc_subsystem_count = 0;
 static const char* const pc_subsystem_names[] = { NULL };
 static const unsigned char pc_subsystem_defaults[] = { 0 };
 static const unsigned char pc_subsystem_dev_defaults[] = { 0 };
-static const unsigned char pc_subsystem_native[] = { 0 };
 #else
 extern const unsigned pc_route_count;
 extern const unsigned char pc_route_subsystems[];
@@ -61,8 +60,6 @@ extern const unsigned pc_subsystem_count;
 extern const char* const pc_subsystem_names[];
 extern const unsigned char pc_subsystem_defaults[];
 extern const unsigned char pc_subsystem_dev_defaults[];
-/* 1: the owned code is a C copy (ownership.toml lang = "c"); it has no shadow mode yet. */
-extern const unsigned char pc_subsystem_native[];
 #endif
 /* engine_host.c: the development host, whose owned code is a reloadable library (its own defaults;
  * Linux only, so Windows has none). */
@@ -107,14 +104,12 @@ int pc_owner_parse(const char* label)
             return o;
     return -1;
 }
-/* Called between frames: 0 set, -1 invalid, -2 shadow unavailable (also for a C copy). */
+/* Called between frames: 0 set, -1 invalid, -2 shadow unavailable. */
 int pc_owner_set(int i, int owner)
 {
     if (i < 0 || i >= (int)pc_subsystem_count || owner < 0 || owner > OWNER_LAST)
         return -1;
     if (owner == 2) {
-        if (pc_subsystem_native[i])
-            return -2;
 #ifdef _WIN32
         return -2;
 #else

@@ -1,10 +1,10 @@
-//! Resets the 146C scratch table of `arg0` entries and stores `arg1` (src/BATTLE/BATTLE.PRG/146C.c).
+//! Resets the 146C scratch table of `arg0` entries and stores `arg1` (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008F30C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008F30C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears the flag byte, stores the two counts and randomises each of the `arg0` table entries.
 pub fn func_8008F30C(arg0: c_int, arg1: c_int) callconv(.c) void {
     var s1: ?*v.D_800F1DD4_t = v.g.D_800F1DD4().*;

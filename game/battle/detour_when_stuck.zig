@@ -1,10 +1,10 @@
 //! Steers a stuck movement state out of a blocked spot by probing the four
-//! compass directions around it (src/BATTLE/BATTLE.PRG/71618.c).
+//! compass directions around it (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const psx = @import("common").psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DB0BC (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DB0BC (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Detours a stuck movement state one step at a time; returns 1 while the detour continues, else 0.
 pub fn detourWhenStuck(state: ?*v.stuckMovementState) callconv(.c) c_int {
     // Scratchpad table of direction deltas (D_800F16EC_t, one byte per entry).

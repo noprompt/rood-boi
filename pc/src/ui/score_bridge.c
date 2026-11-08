@@ -1,6 +1,6 @@
 /* Modern menus, the native Score screen: the game side (battle builds; ui_score.h).
  *
- * The original (MENU9, src/MENU/MENU9.PRG/238.c) is never loaded for the native
+ * The original (MENU9, pc/src/game/MENU/MENU9.PRG/238.c) is never loaded for the native
  * screen; this file does to the game what its open and its cursors do, from the
  * shell's events (ui_score.cpp), drained after every shell tick (pc_ui_menu_top):
  *   OPEN      the world frozen (func_8008A4DC(0), vs_menu9_exec's initData; the
@@ -28,10 +28,10 @@
  * camera), its text box, information box and menu items, the HUD slide (the
  * shell's). The Bestiary's file is read into host memory once (score_mon.c). */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "score_format.h"
 #include "ui_score.h"
 

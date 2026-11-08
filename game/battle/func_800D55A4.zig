@@ -1,10 +1,10 @@
-//! Rebuilds the per-scene block-3 table held in arg0 (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Rebuilds the per-scene block-3 table held in arg0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D55A4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D55A4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Replaces the entry table at arg0's block-3 slot with the entries of scene arg1.
 pub fn func_800D55A4(arg0: ?*v.D_800F53B8_t, arg1: c_int, _: c_int) callconv(.c) void {
     const owner = arg0.?;

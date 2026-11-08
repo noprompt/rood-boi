@@ -1,7 +1,7 @@
-//! Battle tile primitive: queues one tile packet built from the colour and position word (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Battle tile primitive: queues one tile packet built from the colour and position word (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const c = @import("c_5BF94");
 
-/// orig: func_800CC5C0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CC5C0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Adds a tile to the packet at `arg0`, with colour, position and size derived from `arg1`.
 pub fn func_800CC5C0(arg0: [*c]c_uint, arg1: c_int) callconv(.c) void {
     // C computes these in unsigned int (0xE3000000 etc. do not fit int); the

@@ -1,9 +1,9 @@
-//! Steps a P-file block 2 sequence (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Steps a P-file block 2 sequence (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800D6D24 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D6D24 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Counts the current frame down by 2; at 0 runs commands: 0 shows a block 1 frame for a time, 1 sets an offset, 2 restarts, 3 stops.
 pub fn func_800D6D24(sequence: [*c]v.func_800D6CF_t) callconv(.c) void {
     const s: *v.func_800D6CF_t = sequence;

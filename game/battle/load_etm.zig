@@ -1,10 +1,10 @@
-//! The ETM texture loader for battle objects: streams the file and uploads its image to VRAM (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! The ETM texture loader for battle objects: streams the file and uploads its image to VRAM (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: _loadEtm (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _loadEtm (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Steps the ETM texture load of object `objdata`: -1 while the file streams, -2/-3 on failure, 0 when done.
 pub fn loadEtm(objdata: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const state = v.g._loadEtmState().*;

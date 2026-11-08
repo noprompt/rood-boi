@@ -1,7 +1,7 @@
-//! Finds the first free object data slot in BATTLE (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Finds the first free object data slot in BATTLE (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const v = @import("views_30DB0");
 
-/// orig: vs_battle_getEmptyObjectDataSlot (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battle_getEmptyObjectDataSlot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Returns the index of the first object data slot with no data type, or -1 if all 16 are in use.
 pub fn getEmptyObjectDataSlot() callconv(.c) c_int {
     const slots = v.g.vs_battle_objectDataSlots();

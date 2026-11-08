@@ -1,10 +1,10 @@
-//! Battle PP recovery for the attacker's weapon and the defender's shield, scaled by the amount and gem effects (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle PP recovery for the attacker's weapon and the defender's shield, scaled by the amount and gem effects (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800803A4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800803A4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Restores the attacker's weapon PP (unless the action is a spell) and the defender's shield PP, by amount scaled per 10 and adjusted by gem effect 9.
 pub fn func_800803A4(action: ?*v.vs_action_t, attacker: ?*v.vs_battle_actor2, defender: ?*v.vs_battle_actor2, amount: c_int) callconv(.c) void {
     var var_t0: c_int = 0;

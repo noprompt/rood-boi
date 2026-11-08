@@ -1,5 +1,5 @@
 //! The event script interpreter's step: runs opcodes through the opcode
-//! table until one yields (src/BATTLE/BATTLE.PRG/573B8.c).
+//! table until one yields (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_573B8");
@@ -7,7 +7,7 @@ const c = @import("c_573B8");
 
 const Op = *const fn ([*c]u8, c_short) callconv(.c) c_int;
 
-/// orig: func_800BFBB8 (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800BFBB8 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Runs the event script at `*arg0` (START skips a skippable scene first); 1 when an opcode waits a frame, else 0 with the resume point stored.
 pub fn func_800BFBB8(arg0: [*c][*c]u8, arg1: c_short) callconv(.c) c_short {
     var script: [*c]u8 = arg0[0];

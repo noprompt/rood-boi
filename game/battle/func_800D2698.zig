@@ -1,10 +1,10 @@
-//! Builds the battle node chain: `count` linked nodes in a doubly-linked list (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Builds the battle node chain: `count` linked nodes in a doubly-linked list (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D2698 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D2698 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Allocates `count` linked nodes into the global chain; later calls only count up.
 pub fn func_800D2698(count: c_int) callconv(.c) void {
     if (v.g.D_800F5600().* != 0) {

@@ -1,9 +1,9 @@
-//! Weapon draw and sheathe for a battle entity (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Weapon draw and sheathe for a battle entity (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009D934 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009D934 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Draws (arg1 != 0) or sheathes entity arg0's weapon; mode 2 only sets its weapon models.
 pub fn func_8009D934(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     const entity = psx.at(v.g.D_800F4538(), arg0).* orelse return;

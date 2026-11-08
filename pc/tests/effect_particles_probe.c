@@ -1,6 +1,6 @@
 #include "common.h"
-#include "src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "src/SLUS_010.40/main.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "pc/src/game/SLUS_010.40/main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

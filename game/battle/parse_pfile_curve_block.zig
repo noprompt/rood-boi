@@ -1,8 +1,8 @@
-//! Parses a pFile curve block: records it and the data start of each curve (src/BATTLE/BATTLE.PRG/6F014.c).
+//! Parses a pFile curve block: records it and the data start of each curve (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const psx = @import("common").psx;
 const v = @import("views_6F014");
 
-/// orig: _parsePfileCurveBlock (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: _parsePfileCurveBlock (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Records the curve block, then the data start of each of its curves in the global curve table.
 pub fn parsePfileCurveBlock(block: ?*v.pFileCurveBlock) callconv(.c) void {
     psx.put(&v.g.D_800F569C().*.?.curveBlock, block);

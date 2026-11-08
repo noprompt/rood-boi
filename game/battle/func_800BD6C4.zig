@@ -1,11 +1,11 @@
 //! Script opcodes 185-237 and 191: camera, fade, colour and screen-effect commands
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BD6C4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BD6C4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs the camera, fade, colour or screen-effect opcode at script; returns 1 while a timed effect in progress blocks it.
 pub fn func_800BD6C4(script: [*c]u8, _: c_short) callconv(.c) c_int {
     // uninitialised in the original: the callees copy the whole struct, but only the fields written here are read.

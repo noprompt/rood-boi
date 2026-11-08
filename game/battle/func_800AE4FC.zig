@@ -1,11 +1,11 @@
 //! Plays a sound for an actor record, panned and voiced from the actor's sound
-//! values (src/BATTLE/BATTLE.PRG/44F14.c).
+//! values (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AE4FC (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AE4FC (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Plays sound `kind` at the record's position: panned, with the actor's sound overrides applied.
 pub fn func_800AE4FC(arg0: ?*v.D_800F4538_unk0, arg1: c_int) callconv(.c) void {
     const rec = arg0.?;

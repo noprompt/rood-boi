@@ -1,10 +1,10 @@
-//! Runs the handler of each set flag bit 24..31 of D_800F5874 and clears it, then frees the pfile buffer (src/BATTLE/BATTLE.PRG/6F014.c).
+//! Runs the handler of each set flag bit 24..31 of D_800F5874 and clears it, then frees the pfile buffer (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6F014");
 const c = @import("c_6F014");
 
-/// orig: func_800D7C5C (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: func_800D7C5C (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Runs the handler of each set flag bit 24..31 of D_800F5874 and clears it, then frees the pfile buffer.
 pub fn func_800D7C5C() callconv(.c) void {
     var i: c_int = 24;

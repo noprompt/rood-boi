@@ -3,7 +3,7 @@ const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C8778 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C8778 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs one step of the GIM loader state machine on the loader at D_800EB9BC.
 pub fn func_800C8778() callconv(.c) void {
     const gim: *v.gim_t = v.g.D_800EB9BC().* orelse return;

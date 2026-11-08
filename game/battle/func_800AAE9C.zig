@@ -1,11 +1,11 @@
 //! Steps an actor's two texture animation slots through their frame tables
-//! and redraws the frame each one shows (src/BATTLE/BATTLE.PRG/40564.c).
+//! and redraws the frame each one shows (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AAE9C (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AAE9C (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Advances the texture animation slots of `actor` (frame timers, table wrap) and draws each slot's frame.
 pub fn func_800AAE9C(actor: ?*v.D_800F4538_t) callconv(.c) c_int {
     if (v.g.D_800F2450()[v.g.D_800E8F2C().*] == 0) {

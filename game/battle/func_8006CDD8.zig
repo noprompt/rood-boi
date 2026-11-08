@@ -1,11 +1,11 @@
 //! Marks the room section under a position and runs its callback
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006CDD8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006CDD8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Finds the room section at the position's 128-unit cell; if there is one, marks it and runs its callback with its two coordinates.
 pub fn func_8006CDD8(arg0: ?*v.func_8006CE70_t) callconv(.c) void {
     const pos = arg0.?;

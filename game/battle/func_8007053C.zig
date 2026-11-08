@@ -1,12 +1,12 @@
 //! Resolves the action's target list: keeps the targets that qualify, records their hits
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007053C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007053C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Rebuilds the action's target list, keeping the qualifying targets and recording each one's hit.
 pub fn func_8007053C() callconv(.c) void {
     const d = v.g.D_800F19CC().*.?;

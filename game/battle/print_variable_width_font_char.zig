@@ -1,5 +1,5 @@
 //! Draws one variable-width font glyph as a sprite and reports the x after it
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -13,7 +13,7 @@ fn shl16(x: c_int) c_int {
     return @bitCast(@as(c_uint, @bitCast(x)) << 16);
 }
 
-/// orig: pc_text_char (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: pc_text_char (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Hands a glyph to the text capture hook at 16.16 positions (ROOD_PC, a file-scope static),
 /// unless the classic draw mutes it (its parity shadow's copies are not ui_text's).
 fn pcTextChar(commands: ?*const anyopaque, count: c_int, glyph: c_int, x: c_int, y: c_int, advance: c_int) void {
@@ -25,7 +25,7 @@ fn pcTextChar(commands: ?*const anyopaque, count: c_int, glyph: c_int, x: c_int,
     }
 }
 
-/// orig: vs_battle_printVariableWidthFontChar (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_printVariableWidthFontChar (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws font glyph `glyph_id` at (x, y) into the ordering table `ot` and returns the x after it.
 pub fn printVariableWidthFontChar(glyph_id: c_uint, x: c_int, y: c_int, ot: [*c]c_uint) callconv(.c) c_int {
     // PC_CLASSIC (classic_hook.h): the glyph recorded as it is set.

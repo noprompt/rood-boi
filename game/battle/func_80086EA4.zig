@@ -1,9 +1,9 @@
-//! Adjusts a weapon's class affinity between two classes and records the deltas in unk168 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Adjusts a weapon's class affinity between two classes and records the deltas in unk168 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80086EA4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80086EA4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds `value` to one class's weapon affinity, subtracts it from another, and stores the deltas in unk168; a weapon with no blade does nothing.
 pub fn func_80086EA4(arg0: ?*v.vs_battle_actor2, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) void {
     const actor = arg0.?;

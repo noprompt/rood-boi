@@ -1,9 +1,9 @@
-//! Draws one row of a text-box entry as polygon primitives: two icons, a separator and the digits of its text (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Draws one row of a text-box entry as polygon primitives: two icons, a separator and the digits of its text (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009695C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009695C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Builds the textured quads of one text-box row into the ordering table and advances the primitive cursor.
 pub fn func_8009695C(x_in: c_int, y_in: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);

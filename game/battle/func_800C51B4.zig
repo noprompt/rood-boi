@@ -1,9 +1,9 @@
-//! Applies or clears the groups of the battle entry block (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Applies or clears the groups of the battle entry block (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C51B4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C51B4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Applies or clears the group of each entry of the battle entry block, as `mode` selects.
 pub fn func_800C51B4(mode: c_int) callconv(.c) void {
     const entries = psx.get(v.g.D_800EB9B8().*.?.unk40);

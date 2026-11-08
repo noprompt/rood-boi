@@ -1,10 +1,10 @@
 //! Derives the shield's current class and affinity tables from its base and gems
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _calculateShieldClassAffinity (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _calculateShieldClassAffinity (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sums the classes and affinities of the shield's base and three gems into its current class-affinity table.
 pub fn calculateShieldClassAffinity(arg0: ?*v.vs_battle_actor2) callconv(.c) void {
     const actor = arg0.?;

@@ -1,4 +1,4 @@
-//! The weapon transform: the weapon model's matrix from the object's pose, its holder's anchors and the camera (src/BATTLE/BATTLE.PRG/49268.c).
+//! The weapon transform: the weapon model's matrix from the object's pose, its holder's anchors and the camera (pc/src/game/BATTLE/BATTLE.PRG/49268.c).
 const psx = @import("common").psx;
 const v = @import("views_49268");
 const c = @import("c_49268");
@@ -45,7 +45,7 @@ fn setTransMatrix(m: *v.MATRIX) void {
     c.CTC2(psx.byteAt(c_uint, m, 28).*, 7);
 }
 
-/// orig: func_800B1A68 (src/BATTLE/BATTLE.PRG/49268.c)
+/// orig: func_800B1A68 (pc/src/game/BATTLE/BATTLE.PRG/49268.c)
 /// Builds the weapon model's transform from the object's pose and camera, and stores it in the object's matrix block.
 pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) void {
     const obj = object.?;

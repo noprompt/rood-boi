@@ -1,9 +1,9 @@
 //! Battle frame tail: runs the per-frame battle updates unless the battle state is 1
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007B884 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B884 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the battle frame tail: the wait update, then the flagged updates, unless the battle state is 1.
 pub fn func_8007B884() callconv(.c) void {
     c.func_800C97BC();

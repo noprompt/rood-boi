@@ -1,10 +1,10 @@
-//! Battle helper: passes a three-byte record and its slot to func_800A9C54, then marks the slot in D_800F4B70 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Battle helper: passes a three-byte record and its slot to func_800A9C54, then marks the slot in D_800F4B70 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7A98 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7A98 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Passes a three-byte record and its slot to func_800A9C54, then marks the slot in D_800F4B70.
 pub fn func_800B7A98(arg0: [*c]u8, arg1: c_short) callconv(.c) c_int {
     _ = arg1;

@@ -1,9 +1,9 @@
-//! Packs the battle event file index with D_800F4BE0 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Packs the battle event file index with D_800F4BE0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 
-/// orig: func_800BEB10 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BEB10 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Returns D_800F4BE0 shifted up 12 bits, OR'd with the event file index, as a short.
 pub fn func_800BEB10() callconv(.c) c_short {
     // u16 promotes to int before the shift; the result fits in 32 bits, so the plain shift is exact.

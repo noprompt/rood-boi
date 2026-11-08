@@ -1,4 +1,4 @@
-//! Draws the ability window's icon rows (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws the ability window's icon rows (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -21,7 +21,7 @@ fn menuOt() [*c]c_uint {
     return @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk8)));
 }
 
-/// orig: func_800C9FE8 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C9FE8 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Steps the window's slide (back while D_800EBC78 is set, else along vs_battle_animationIndices) and, unless
 /// hidden (10), draws the right-hand slots' labels and icons, the centre icon, then the left-hand slots with
 /// their numbers; each group reported to the classic site (ROOD_PC: the weapon slots' labels).

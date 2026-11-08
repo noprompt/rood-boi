@@ -1,4 +1,4 @@
-//! Tracking camera motion: orbits the camera around the battle centre and eases its facing toward the player (src/BATTLE/BATTLE.PRG/7EE98.c).
+//! Tracking camera motion: orbits the camera around the battle centre and eases its facing toward the player (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c).
 const psx = @import("common").psx;
 const v = @import("views_7EE98");
 const c = @import("c_7EE98");
@@ -7,7 +7,7 @@ fn abs32(x: c_int) c_int {
     return if (x >= 0) x else 0 -% x;
 }
 
-/// orig: func_800E7960 (src/BATTLE/BATTLE.PRG/7EE98.c)
+/// orig: func_800E7960 (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c)
 /// Moves the tracking camera for one frame: its orbit radius, height, facing and target point.
 pub fn func_800E7960(state: ?*v.trackingMotionState) callconv(.c) void {
     const st = state.?;

@@ -1,9 +1,9 @@
 //! Copies a record's position (scaled down by 16) and vector into the block its
-//! pointer field names (src/BATTLE/BATTLE.PRG/2842C.c).
+//! pointer field names (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 
-/// orig: func_80092EDC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092EDC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// When the record's flag is non-negative, writes its position (divided by 16) and its vector into the block it points at.
 pub fn func_80092EDC(arg0: ?*v.func_80092F74_t) callconv(.c) void {
     const rec = arg0.?;

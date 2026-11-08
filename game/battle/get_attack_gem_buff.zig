@@ -1,10 +1,10 @@
-//! Attack bonus from the attacker's gems: 20 when its drawn weapon has a gem matching the action (src/BATTLE/BATTLE.PRG/146C.c).
+//! Attack bonus from the attacker's gems: 20 when its drawn weapon has a gem matching the action (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _getAttackGemBuff (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getAttackGemBuff (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns 20 when the actor's drawn weapon has a gem effect matching the action (effect 2 for a spell, else 1), else 0.
 pub fn getAttackGemBuff(action: ?*v.vs_action_t, actor: ?*v.vs_battle_actor2) callconv(.c) c_short {
     var hasGemBuff: c_int = 0;

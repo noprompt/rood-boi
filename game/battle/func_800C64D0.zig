@@ -1,9 +1,9 @@
 //! Walks a chain of guest words to the word linking back to arg0 - 1, then
-//! relinks it to arg1 (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! relinks it to arg1 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 
-/// orig: func_800C64D0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C64D0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Follows the 24-bit link chain from arg0 to the word whose link is arg0 - 1, then writes arg1's address into that word's link and the chain's link into arg1's word.
 pub fn func_800C64D0(arg0: [*c]c_uint, arg1: [*c]c_int) callconv(.c) void {
     const mask: u32 = 0xFFFFFF;

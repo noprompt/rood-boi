@@ -1,9 +1,9 @@
-//! The event script's text-box setup (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's text-box setup (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_initTextBox (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_initTextBox (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Opens text box script[1] & 0xF at (script[4] * 2 - 32, script[5] - 32), script[6] characters by
 /// script[7] lines, growing from its own centre or from parent box script[1] >> 4's; sets its unk2E
 /// and, for a reference below 0x2000, its actor.

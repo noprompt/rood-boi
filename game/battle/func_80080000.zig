@@ -1,9 +1,9 @@
-//! Spreads a hit's base value over the target's limbs by the action's class (src/BATTLE/BATTLE.PRG/146C.c).
+//! Spreads a hit's base value over the target's limbs by the action's class (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80080000 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80080000 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets each limb's armor DP adjustment for an action and adds it to the entity's limb effects.
 pub fn func_80080000(action: ?*v.vs_action_t, entity: ?*v._hitEntity_t, baseValue: c_short) callconv(.c) void {
     const adjustments = v.g._armorDpAdjustmentAmounts();

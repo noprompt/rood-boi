@@ -1,4 +1,4 @@
-//! The event camera's reset to a spherical position (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's reset to a spherical position (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
@@ -15,7 +15,7 @@ fn vv(p: [*c]c.VECTOR) *v.VECTOR {
     return @ptrCast(@alignCast(p));
 }
 
-/// orig: _copyVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _copyVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src (vx, vy, vz).
 fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     dst.vx = src.vx;
@@ -24,7 +24,7 @@ fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: _vectorMagnitude (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vectorMagnitude (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// The length of a 20.12 vector, from its integer parts, back in 20.12.
 fn vectorMagnitude(p: *v.VECTOR) c_int {
     var copy: v.VECTOR = undefined;
@@ -35,7 +35,7 @@ fn vectorMagnitude(p: *v.VECTOR) c_int {
     return c.vs_gte_rsqrt(x +% y +% z) *% 4096;
 }
 
-/// orig: func_800BC1CC (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BC1CC (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Unless D_800F4BA0 asks to skip once (cleared), aims the eye and look-at at the spherical position
 /// (arg0, arg1) and, when the move is long enough, starts both with D_800E9C1C's camera commands,
 /// their duration the two distances' sum / 0x28000.

@@ -1,9 +1,9 @@
-//! An action effect: damage to the target's hp, recorded, with its status and DP/PP side effects (src/BATTLE/BATTLE.PRG/146C.c).
+//! An action effect: damage to the target's hp, recorded, with its status and DP/PP side effects (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80084B70 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80084B70 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds _calculateStatChange's amount to the target's hp (hpEffect 3 when the change set D_800F1A0C, else 1). For a
 /// target entity with no unk40: records it (func_80080000), passes on the target actor's status 0x8000 unless its
 /// unk957 is 0x80, and with arg4 set wears DP and PP (_adjustDpPp, func_800803A4).

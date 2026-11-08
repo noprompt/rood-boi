@@ -1,10 +1,10 @@
 //! Battle actor update from a room-section probe: writes the actor's record and
-//! reports the outcome (src/BATTLE/BATTLE.PRG/146C.c).
+//! reports the outcome (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800751B8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800751B8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Updates actor arg0's record from the room-section probe arg1 and returns the outcome (0 nothing, 1 or 2 the death paths, 3 a section handled).
 pub fn func_800751B8(arg0: c_int, arg1: ?*v.func_8006EBF8_t3) callconv(.c) c_int {
     const temp_v0: c_uint = psx.conv(c_uint, c.func_800A0BE0(arg0));

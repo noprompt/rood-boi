@@ -1,10 +1,10 @@
-//! Aims the battle camera at the position reported by func_800A1108 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Aims the battle camera at the position reported by func_800A1108 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006EBF8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006EBF8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves the battle camera's look-at point to the position func_800A1108 returns, then updates its angles.
 pub fn func_8006EBF8() callconv(.c) c_int {
     if (v.g.D_800F1968().* == 0) {

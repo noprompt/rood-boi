@@ -1,10 +1,10 @@
 //! Resolves the hits of one battle action into its result record
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80085B10 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80085B10 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resolves action `action`'s hits against its targets into `result`; with `arg3` set, it also commits the result to `source` and charges the action.
 pub fn func_80085B10(action: c_int, result: ?*v.D_800F19CC_t2, source: ?*v.D_800F19CC_t2, arg3: c_int) callconv(.c) void {
     const spec = psx.at(v.g.actions(), action);

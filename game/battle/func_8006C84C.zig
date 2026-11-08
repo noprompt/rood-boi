@@ -1,10 +1,10 @@
 //! Dispatches each queued entry of the current battle slot to its action's
-//! callback and runs the per-entry tick (src/BATTLE/BATTLE.PRG/146C.c).
+//! callback and runs the per-entry tick (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006C84C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C84C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the queued entries of slot `unk0 & 3` through their action callbacks, ticking after each.
 pub fn func_8006C84C(arg0: c_int) callconv(.c) c_int {
     const gs = v.g.D_800F19CC().*.?;

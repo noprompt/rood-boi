@@ -1,8 +1,8 @@
-//! Battle: the per-entry geometry fixup over the table D_800F1DD8 (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Battle: the per-entry geometry fixup over the table D_800F1DD8 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 
-/// orig: func_80093788 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093788 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Flips entry arg0 of D_800F1DD8 once: its geometry vertex flag and its record's sign and fields.
 pub fn func_80093788(arg0: c_int) callconv(.c) void {
     if (arg0 < 0x40) {

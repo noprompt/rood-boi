@@ -1,8 +1,8 @@
-//! Room section-3 cell lookup and section-12 entry lookup (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section-3 cell lookup and section-12 entry lookup (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_8008B764 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B764 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the room's section-3 cell at (width, height), or section 12's entry for arg2 >= 2; null when absent or out of range.
 pub fn func_8008B764(width: c_uint, height: c_uint, arg2: c_int) callconv(.c) ?*v._mpdRoomSection3 {
     const room = v.g.vs_battle_roomData();

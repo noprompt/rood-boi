@@ -1,5 +1,5 @@
 //! Approach steering for a movement state: takes the path, the next tile, or
-//! the recovery route (src/BATTLE/BATTLE.PRG/771A8.c).
+//! the recovery route (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -8,7 +8,7 @@ const Test = *const fn (?*anyopaque, c_int) callconv(.c) c_int;
 const Table4 = *const fn (?*anyopaque, c_int, c_int, Test) callconv(.c) c_int;
 const Table3 = *const fn (?*anyopaque, c_int, Test) callconv(.c) c_int;
 
-/// orig: func_800E3600 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E3600 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Steers an approaching movement state toward the tile on its angle, or onto its path, recovery or next tile.
 pub fn func_800E3600(approach: ?*v.func_800E0850_t, angleArg: c_int, mode: c_int) callconv(.c) void {
     const state: *v.movementApproachState = @ptrCast(@alignCast(approach.?));

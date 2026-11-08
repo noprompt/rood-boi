@@ -1,9 +1,9 @@
-//! Clears a battle slot's stats block and sets its flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears a battle slot's stats block and sets its flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007647C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007647C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the stats of battle slot `slot` and copies the name from D_8004FDD0; `mode` picks its flag bit.
 pub fn func_8007647C(arg0: c_int, arg1: c_int) callconv(.c) void {
     const temp_s1 = psx.at(v.g.vs_battle_actors(), arg0).*.?;

@@ -1,10 +1,10 @@
-//! Chooses a random start position for a battle actor from the room's section B data (src/BATTLE/BATTLE.PRG/146C.c).
+//! Chooses a random start position for a battle actor from the room's section B data (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80090A1C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80090A1C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets a random position and facing for `arg0` within the room's section B bounds, or the full 4096 range without them.
 pub fn func_80090A1C(arg0: ?*v.D_800F1DD4_t) callconv(.c) void {
     const out = arg0.?;

@@ -1,10 +1,10 @@
-//! Stores the clamped value, the first slot and the flags of the battle record D_800EB9B8 (src/BATTLE/BATTLE.PRG/58578.c).
+//! Stores the clamped value, the first slot and the flags of the battle record D_800EB9B8 (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C1664 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C1664 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Sets the record's count (clamped to 24), its first slot and its flag byte, then calls func_800C58F8(0).
 pub fn func_800C1664(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     var a0: c_int = arg0;

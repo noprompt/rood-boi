@@ -1,9 +1,9 @@
-//! Armor stats: copies an equipment intermediate into the battle armor record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Armor stats: copies an equipment intermediate into the battle armor record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _applyArmorStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _applyArmorStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills a battle armor record from an equipment intermediate: equipment copy, stats, types, class and affinity tables, drop rate.
 pub fn applyArmorStats(target: ?*v.vs_battle_uiArmor, source: ?*v._armorIntermediate) callconv(.c) void {
     const t = target.?;

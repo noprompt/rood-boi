@@ -1,10 +1,10 @@
 //! The moving platform an actor stands on, found by its id
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A4A24 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A4A24 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Lists the room's platforms (func_8008D2C0) into the C's static table and
 /// returns the entry whose unk6 is `arg0 - 2`. None: PS1 address 0 (the PC C
 /// returns psx.lowRam where the PS1 returned NULL, which callers read).

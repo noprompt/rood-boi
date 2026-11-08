@@ -1,11 +1,11 @@
 //! Movement check: whether a step from the cached tile in one direction is open,
-//! memoised per direction in the scratchpad (src/BATTLE/BATTLE.PRG/771A8.c).
+//! memoised per direction in the scratchpad (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E0678 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E0678 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Whether the tile one step from `state` in `direction` can be moved to, cached per direction.
 pub fn func_800E0678(state: ?*v.directionalCacheState, direction: c_int) callconv(.c) c_int {
     const bits: *v.directionalCacheBits = @ptrFromInt(0x1F8003D0);

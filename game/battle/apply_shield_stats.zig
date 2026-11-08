@@ -1,9 +1,9 @@
-//! Fills a shield's display block from its base and gem stats (src/BATTLE/BATTLE.PRG/146C.c).
+//! Fills a shield's display block from its base and gem stats (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const c = @import("c_146C");
 const v = @import("views_146C");
 
-/// orig: vs_battle_applyShieldStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_applyShieldStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies a shield's equipment and gems, then sums base and gem stats, class and affinity values into its current and baseline fields.
 pub fn applyShieldStats(target: ?*v.vs_battle_uiShield, source: ?*v.vs_battle_shieldIntermediate) callconv(.c) void {
     const t = target.?;

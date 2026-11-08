@@ -1,9 +1,9 @@
 //! Resets a scene record and copies its links and fields from the source block
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800CE714 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CE714 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Clears a scene record's sixteen entries and copies the source block's links and fields into it.
 pub fn func_800CE714(src_block: ?*v.D_800F53B8_t2, dst_block: ?*v.D_800F53B8_t) callconv(.c) void {
     const src = src_block.?;

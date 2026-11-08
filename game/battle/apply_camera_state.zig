@@ -1,4 +1,4 @@
-//! The event camera's state handed to the renderer (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event camera's state handed to the renderer (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
@@ -18,7 +18,7 @@ fn camera() *v.D_800F4BA4_t {
     return v.g.D_800F4BA4().*.?;
 }
 
-/// orig: _copyVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _copyVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src (vx, vy, vz).
 fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     dst.vx = src.vx;
@@ -27,7 +27,7 @@ fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: _sVectorToFixedPointVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _sVectorToFixedPointVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src * ONE.
 fn sVectorToFixedPointVector(dst: *v.VECTOR, src: *v.SVECTOR) *v.VECTOR {
     dst.vx = @as(c_int, src.vx) * 4096; // a short times 4096: no overflow
@@ -36,7 +36,7 @@ fn sVectorToFixedPointVector(dst: *v.VECTOR, src: *v.SVECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: vs_battle_applyCameraState (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_applyCameraState (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sets the camera's look-at and position (on the first frame, D_800F4BA0, from the default
 /// spherical view, which the points take; else the points plus the unk1EC offset unless unk1E8 is
 /// 0x2000), with the shake offsets turned to the view's heading, then any pending roll, unk174,

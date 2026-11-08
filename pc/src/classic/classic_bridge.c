@@ -9,7 +9,7 @@
  *                 chain abilities' icons, the top-right sprite; its slots:
  *                 vs_scratch.unk8 (the ability icons) and unk4 - 4 .. - 16. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "classic_parity.h"
 #include "classic_hook.h"
 /* (the hook's site numbers are the classic layer's kinds) */

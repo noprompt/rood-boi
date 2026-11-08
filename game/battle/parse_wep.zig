@@ -1,4 +1,4 @@
-//! Parses a weapon model file (WEP) into its model slot, in two passes (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Parses a weapon model file (WEP) into its model slot, in two passes (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
@@ -24,7 +24,7 @@ inline fn intBits(size: c_int) usize {
     return @as(u32, @bitCast(size));
 }
 
-/// orig: _parseWep (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _parseWep (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// First pass (D_800E8F29 0): shares an identical model already loaded, or reads the header, the offsets block,
 /// a free texture slot, the palettes and the texture (returns -1, D_800E8F29 1). Second pass (1): shifts the
 /// polygons' UVs into the texture slot and copies the bone info. Returns 0 when done, -2/-3 on failure.

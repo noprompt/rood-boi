@@ -1,10 +1,10 @@
-//! Per-frame update of the battle effect list: ages each node, fires its tick and end events, and expires it (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Per-frame update of the battle effect list: ages each node, fires its tick and end events, and expires it (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D4C18 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D4C18 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Advances every effect node on the list: ages it, fires its tick event, counts its lifetime down and ends it.
 pub fn func_800D4C18(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int {
     const a = arg0.?;

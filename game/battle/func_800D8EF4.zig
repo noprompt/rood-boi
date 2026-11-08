@@ -1,5 +1,5 @@
 //! Per-frame battle actor update: timers, movement history, relations, the
-//! action candidate and the alert level of each actor (src/BATTLE/BATTLE.PRG/6FC00.c).
+//! action candidate and the alert level of each actor (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6FC00");
@@ -8,20 +8,20 @@ const c = @import("c_6FC00");
 /// How one actor's update ends: falling through, `goto skip` or `goto idle`.
 const Outcome = enum { done, idle, skip };
 
-/// orig: historyRepeats (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: historyRepeats (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// True when the last two stored history samples are equal in X and Z.
 inline fn historyRepeats(state: *v.actorUpdateState) bool {
     return state.historyX.w[0] == state.historyX.w[1] and
         state.historyZ.w[0] == state.historyZ.w[1];
 }
 
-/// orig: historyStalled (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: historyStalled (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// True when the history buffer is full and its samples have stopped changing.
 inline fn historyStalled(state: *v.actorUpdateState) bool {
     return state.historyMask == 0xFF and historyRepeats(state);
 }
 
-/// orig: func_800D8EF4 (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: func_800D8EF4 (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Runs one frame of the update for every battle actor: its state, movement history, relations and alert.
 pub fn func_800D8EF4() callconv(.c) void {
     v.g.D_800F58E0().* = 0;

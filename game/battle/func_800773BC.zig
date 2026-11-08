@@ -1,10 +1,10 @@
-//! Installs an actor into a battle slot and sets up its state (src/BATTLE/BATTLE.PRG/146C.c).
+//! Installs an actor into a battle slot and sets up its state (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800773BC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800773BC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Puts `actor` into battle slot `slot`, runs its setup calls and links it into the actor chain.
 pub fn func_800773BC(actor: ?*v.vs_battle_actor, slot: c_int, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int) callconv(.c) void {
     _ = c.func_800A0204(slot, 0, 0, 0);

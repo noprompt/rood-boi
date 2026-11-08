@@ -1,10 +1,10 @@
-//! Spawns an actor into an empty battle slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Spawns an actor into an empty battle slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007C928 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007C928 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills empty battle slot `arg0` with a new actor record and runs its setup, returning 1 plus that setup's result, or 0 if the slot is taken or out of range.
 pub fn func_8007C928(arg0: c_uint, arg1: c_int, arg2: ?*v.vs_battle_objectData_flags) callconv(.c) c_int {
     if (arg0 < 16) {

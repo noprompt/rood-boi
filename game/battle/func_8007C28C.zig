@@ -1,10 +1,10 @@
-//! Resets a battle actor's risk, HP and MP and refills its limb HP (src/BATTLE/BATTLE.PRG/146C.c).
+//! Resets a battle actor's risk, HP and MP and refills its limb HP (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007C28C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007C28C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Restores actor slot `arg0`'s risk, HP and MP to their maxima and its limbs to full, then clears D_800F5160.
 pub fn func_8007C28C(arg0: c_int) callconv(.c) void {
     const slot = psx.at(v.g.vs_battle_actors(), arg0).*;

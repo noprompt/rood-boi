@@ -1,9 +1,9 @@
 //! Sweeps the 32x32 tile grid and runs the per-tile check on each flagged tile
-//! (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
-/// orig: func_800E6098 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E6098 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Calls the per-tile check on every tile flagged 0x20 and not 0x2000 in the grid.
 pub fn labelRegions() callconv(.c) void {
     var z: c_int = 0;

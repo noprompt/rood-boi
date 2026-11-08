@@ -1,7 +1,7 @@
 /* Host sound chip for the native build: the vendored PsyCross software SPU
  * (pc/third_party/psycross-audio), driven two ways, as on the PS1:
  *  - the game's sound driver writes voice/key/mode registers directly
- *    (src/include/hw.h); those land in a plain memory page at 0x1F801000 and
+ *    (pc/src/game/include/hw.h); those land in a plain memory page at 0x1F801000 and
  *    are synchronised into the core by pc_spu_sync_registers();
  *  - the SDK library calls (SpuWrite, reverb, ...) are replaced on PC by
  *    pc/src/audio_libspu.c, which calls the pc_spu_* helpers below.

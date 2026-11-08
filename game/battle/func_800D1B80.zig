@@ -1,8 +1,8 @@
-//! Applies the effect camera (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Applies the effect camera (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D1B80 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D1B80 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Sets the game camera from an effect camera: its position and look-at moved by the unk20/24/28 offsets along its yaw and pitch, roll, clips and projection.
 pub fn func_800D1B80(camera_arg: ?*v.D_800F54D8_t) callconv(.c) void {
     const camera = camera_arg.?;

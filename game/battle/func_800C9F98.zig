@@ -1,9 +1,9 @@
-//! Sprite primitive setup in the scratch packet (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Sprite primitive setup in the scratch packet (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C9F98 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C9F98 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Sets up a sprite primitive at the default texture page and writes its two command words.
 pub fn func_800C9F98(arg0: c_int, arg1: c_int) callconv(.c) void {
     // The packet pointer is a word-aligned guest address: assert the alignment the C type needs.

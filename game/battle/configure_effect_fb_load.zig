@@ -1,8 +1,8 @@
-//! Stores one effect file load's LBA, size, frame buffer slot and CLUT flag in the load table (src/BATTLE/BATTLE.PRG/6F014.c).
+//! Stores one effect file load's LBA, size, frame buffer slot and CLUT flag in the load table (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const psx = @import("common").psx;
 const v = @import("views_6F014");
 
-/// orig: vs_battle_configureEffectFbLoad (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: vs_battle_configureEffectFbLoad (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Records load context `index`: its sector, size, frame buffer slot and whether it is a CLUT.
 pub fn configureEffectFbLoad(lba: c_int, size: c_int, slot: c_int, isClut: c_int, index: c_int) callconv(.c) void {
     const table = v.g.D_800F5638();

@@ -37,11 +37,11 @@
  * debounced and when the page closes; the game's own options (the memory
  * card's vs_main_settings) are MENU8's rows above, never written here. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
-#include "../../../src/MENU/MAINMENU.PRG/C48.h"
-#include "../../../src/MENU/MAINMENU.PRG/58EC.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/C48.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/58EC.h"
 #include "classic_options.h"
 #include "option_actions.h"
 #include "option_pages.h"

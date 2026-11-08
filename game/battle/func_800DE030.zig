@@ -1,5 +1,5 @@
 //! The per-tick recovery and status upkeep of every battle actor
-//! (src/BATTLE/BATTLE.PRG/74088.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
@@ -11,7 +11,7 @@ fn statusInterval(index: c_int) c_int {
     return psx.at(&table.entries, index).interval;
 }
 
-/// orig: func_800DE030 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DE030 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Advances the battle clock by `elapsed`: limb, HP and MP regeneration, poison and regen ticks, status expiry, then each actor's action candidates.
 pub fn func_800DE030(elapsed: c_int) callconv(.c) void {
     const ticks: c_int = (elapsed >> 5) +% (elapsed >> 9);

@@ -1,25 +1,25 @@
 //! Scrolls an actor's animated texture parts: moves each part's source window
 //! inside its bounds (wrapping or bouncing) and queues a move packet
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: vs_battlePacketBegin (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: vs_battlePacketBegin (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Reads the packet cursor from scratchpad slot 0 (a file-scope static inline).
 fn packetBegin() *v.DR_MOVE {
     const p: u32 = @as(*const u32, @ptrFromInt(0x1F800000)).*;
     return @ptrFromInt(@as(usize, p));
 }
 
-/// orig: vs_battlePacketEnd (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: vs_battlePacketEnd (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Stores the packet cursor past `p` into scratchpad slot 0 (a file-scope static inline).
 fn packetEnd(p: *v.DR_MOVE) void {
     @as(*u32, @ptrFromInt(0x1F800000)).* = psx.addr(psx.at(p, 1));
 }
 
-/// orig: func_800AB4F0 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AB4F0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Steps the four scrolling texture parts of `actor` and copies each moved window with a move packet.
 pub fn func_800AB4F0(actor: ?*anyopaque) callconv(.c) void {
     const base: [*]u8 = @ptrCast(actor.?);

@@ -1,5 +1,5 @@
 //! Fills an actor's settings state from its settings word and its actor's flags
-//! (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const psx = @import("common").psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
@@ -9,7 +9,7 @@ const c = @import("c_7CD68");
 // same ABI without pulling that declaration into this object.
 extern fn func_800E5710(state: ?*anyopaque) callconv(.c) void;
 
-/// orig: func_800E5A9C (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E5A9C (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Fills an actor's settings state from its settings word and its actor's flags.
 pub fn applyActorSettings(state: ?*v.actorSettingsState, settings: ?*v.actorSettingsWord) callconv(.c) void {
     const s = state.?;

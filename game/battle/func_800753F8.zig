@@ -1,9 +1,9 @@
 //! Splits an actor's pending X, Z and Y offsets into whole units for an SVECTOR
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_800753F8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800753F8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves whole units (4096 each) of the actor's pending X, Z and Y offsets into the vector, capping each step at 8 and carrying the rest.
 pub fn func_800753F8(arg0: ?*v.vs_battle_actor, arg1: ?*v.SVECTOR) callconv(.c) void {
     const actor = arg0.?;

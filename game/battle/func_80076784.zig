@@ -1,4 +1,4 @@
-//! An actor's stats from its init data (src/BATTLE/BATTLE.PRG/146C.c).
+//! An actor's stats from its init data (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -17,7 +17,7 @@ fn vary(base: i16, varied: c_int) i16 {
     return value;
 }
 
-/// orig: func_80076784 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80076784 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills actor `slot`'s stats from its init data: name, HP, MP (unless 0), strength, intelligence and agility
 /// (each varied by -10..10 when `varied`, kept in 0..999), speeds (nine tenths of the walk and run speeds), class,
 /// reach, the weapon, shield and accessory (their ranges plus the reach), each limb's HP, defense, part and name

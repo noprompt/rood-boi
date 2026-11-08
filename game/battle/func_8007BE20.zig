@@ -1,11 +1,11 @@
-//! Requests an effect on the battle actors other than one slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Requests an effect on the battle actors other than one slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007BE20 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007BE20 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sends effect `effectId` to the live actors except `actorSlot`, listing their slots in the request.
 pub fn func_8007BE20(arg0: c_int, arg1: c_int) callconv(.c) void {
     const effectId = arg0;

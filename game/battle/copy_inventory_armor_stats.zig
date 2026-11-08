@@ -1,9 +1,9 @@
 //! Copies an inventory armor entry into a battle equipment record
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: vs_battle_copyInventoryArmorStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyInventoryArmorStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies an armor's stats, types, classes, affinities and material into an equipment record.
 pub fn copyInventoryArmorStats(target: ?*v.vs_battle_uiEquipment, source: ?*v.vs_main_inventoryArmor) callconv(.c) void {
     const dst = target.?;

@@ -1,10 +1,10 @@
-//! The scene message window's poll: waits for its text, holds it for the timer, then closes it (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The scene message window's poll: waits for its text, holds it for the timer, then closes it (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CB45C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CB45C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Polls the scene message window: 1 while its text types out, else counts its hold down and closes it.
 pub fn func_800CB45C() callconv(.c) c_int {
     if (v.g.nameWindowText().* != null) {

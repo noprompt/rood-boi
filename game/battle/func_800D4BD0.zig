@@ -1,10 +1,10 @@
-//! An effect-script opcode: func_800D2ADC on a register byte (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect-script opcode: func_800D2ADC on a register byte (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D4BD0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D4BD0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// func_800D2ADC(script, unk10[next byte], 0, 0, NULL); returns 1.
 pub fn func_800D4BD0(script: ?*v.D_800F53B8_t) callconv(.c) c_int {
     const s = script.?;

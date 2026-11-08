@@ -1,10 +1,10 @@
 //! Reads the relative jump target at a script position, or closes a pending
-//! state 2 step (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! state 2 step (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B6868 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B6868 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Clears the pending flag D_800F4C2C; if it was 2, runs func_800B6778 and returns 4, else returns the address of the script's 16-bit relative target.
 pub fn func_800B6868(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     const temp_v1: u8 = v.g.D_800F4C2C().*;

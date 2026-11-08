@@ -1,11 +1,11 @@
 //! Calls the room section-14 routine with the current room index, using a
-//! 0x20 or 0x7F limit depending on the argument (src/BATTLE/BATTLE.PRG/2842C.c).
+//! 0x20 or 0x7F limit depending on the argument (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_800938AC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800938AC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Runs the room's section-14 routine for the current room, when one is loaded and the room index is set.
 pub fn func_800938AC(arg0: c_int) callconv(.c) void {
     const roomIndex: c_int = @as(c_int, v.g.D_800F2258().*);

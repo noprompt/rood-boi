@@ -1,11 +1,11 @@
 //! Room section B setup: resets the room's origin and scale, then fixes up the
-//! room's bounds from its collision map (src/BATTLE/BATTLE.PRG/146C.c).
+//! room's bounds from its collision map (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008E938 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E938 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the room origin and scale, and sizes the bounds of the room's section B.
 pub fn func_8008E938() callconv(.c) void {
     v.g.D_800F1DB4().* = 0;

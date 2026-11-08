@@ -1,5 +1,5 @@
 //! Shape-file loading for a battle object: shares a loaded copy, or reads the file from CD and parses it
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
@@ -59,7 +59,7 @@ fn awaitCd() c_int {
     return -1;
 }
 
-/// orig: _loadShp (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _loadShp (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Loads a battle object's shape file: shares a loaded copy, or reads it from CD, then parses it.
 pub fn loadShp(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     switch (v.g._loadShpState().*) {

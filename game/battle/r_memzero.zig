@@ -1,6 +1,6 @@
-//! Zeroes memory from the end (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Zeroes memory from the end (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 
-/// orig: vs_battle_rMemzero (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_rMemzero (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Zeroes the words below base + size, from the top down, until base (size a positive multiple of 4: the C loops past base otherwise).
 pub fn rMemzero(base: ?*anyopaque, size: c_int) callconv(.c) void {
     const start = @intFromPtr(base);

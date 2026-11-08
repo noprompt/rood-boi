@@ -1,11 +1,11 @@
 //! Queues a battle object-data load into a stack slot for one actor
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800771E0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800771E0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills an object-data request for `index` from `src[37]` and populates its slot, when the index and flags allow it.
 pub fn func_800771E0(src: [*c]u8, index: c_int, mode: c_int, flags: c_int) callconv(.c) void {
     if ((mode != 0 or index >= 2) and (index < 2 or (flags & 3) == 1)) {

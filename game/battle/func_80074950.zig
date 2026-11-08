@@ -1,10 +1,10 @@
-//! Finds the room section at the player's cell and returns it if it is active and matches the actor's Y (src/BATTLE/BATTLE.PRG/146C.c).
+//! Finds the room section at the player's cell and returns it if it is active and matches the actor's Y (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074950 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074950 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the room section at the cell of `arg0`'s position if it is not flagged off and its height matches, else null.
 pub fn func_80074950(arg0: c_int) callconv(.c) ?*v._mpdRoomSection13 {
     var sp10: v.func_8006EBF8_t = undefined;

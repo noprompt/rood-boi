@@ -1,10 +1,10 @@
-//! Runs func_800AE6C0 on the actor in an enemy slot, with the per-animation table entry plus an offset (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Runs func_800AE6C0 on the actor in an enemy slot, with the per-animation table entry plus an offset (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009DBDC (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009DBDC (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Calls func_800AE6C0 for the actor in `slot`, passing its table entry plus `offset`, when the slot is occupied.
 pub fn func_8009DBDC(slot: c_int, offset: c_int) callconv(.c) void {
     // slot is not bounded by the C: psx.at indexes the pointer array as C does.

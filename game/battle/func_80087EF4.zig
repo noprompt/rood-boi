@@ -1,10 +1,10 @@
-//! Status effects per actor: ticks the status timers, applies the timed HP effects and reports the statuses still in effect (src/BATTLE/BATTLE.PRG/146C.c).
+//! Status effects per actor: ticks the status timers, applies the timed HP effects and reports the statuses still in effect (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80087EF4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80087EF4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Ticks an actor's status timers, applies the timed poison and regen effects, and sets the statuses still in effect.
 pub fn func_80087EF4(actor: ?*v.vs_battle_actor2) callconv(.c) void {
     const a = actor.?;

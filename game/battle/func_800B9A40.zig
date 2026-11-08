@@ -1,7 +1,7 @@
-//! Battle helper that forwards three bytes of a script record to func_8007C46C (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Battle helper that forwards three bytes of a script record to func_8007C46C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const c = @import("c_4A0A8");
 
-/// orig: func_800B9A40 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B9A40 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8007C398; on 0 forwards arg0[1], arg0[2] and arg0[3] * 16 to func_8007C46C. Returns 0 only when func_8007C398 returns 5.
 pub fn func_800B9A40(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     const temp_v0 = c.func_8007C398();

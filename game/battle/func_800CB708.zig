@@ -1,9 +1,9 @@
-//! Screen-effect follow-up: runs the pending screff2 steps (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Screen-effect follow-up: runs the pending screff2 steps (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CB708 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CB708 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs the pending screen-effect steps of the screff2 state: the load, the warp, the tiles and the border.
 pub fn func_800CB708() callconv(.c) void {
     if (v.g.D_800EB9B4().*) |state| {

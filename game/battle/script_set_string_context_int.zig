@@ -1,9 +1,9 @@
-//! The event script's text-integer setter (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's text-integer setter (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_setStringContextInt (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_setStringContextInt (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Loads string-context integer script[1] from one state flag (unsigned or signed byte) or two
 /// (a little-endian unsigned or signed half), as script[3]'s top two bits say.
 pub fn script_setStringContextInt(script: [*c]u8, _: c_short) callconv(.c) c_int {

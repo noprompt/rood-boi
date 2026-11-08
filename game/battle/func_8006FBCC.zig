@@ -1,8 +1,8 @@
-//! Battle cleanup on a new turn: clears the enemy actors that are not the target and resets the camera and tick speed (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle cleanup on a new turn: clears the enemy actors that are not the target and resets the camera and tick speed (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006FBCC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006FBCC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the per-actor cleanup for slots 0..15 (except the target), then resets the camera, the CLUT state and the tick speed.
 pub fn func_8006FBCC(arg0: c_int) callconv(.c) void {
     var i: c_int = 0;

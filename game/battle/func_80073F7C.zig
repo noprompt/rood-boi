@@ -1,11 +1,11 @@
 //! Sets up the battle room section, the camera mode, the per-slot state and the
-//! opening scene message (src/BATTLE/BATTLE.PRG/146C.c).
+//! opening scene message (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80073F7C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80073F7C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Starts a battle on room section `section` with source pose `source` and `arg2`, and shows the opening message when the information setting is on.
 pub fn func_80073F7C(section: ?*v._mpdRoomSectionA, source: ?*v.func_8006EBF8_t3, arg2: c_int) callconv(.c) void {
     v.g.D_800F196C().* = 8;

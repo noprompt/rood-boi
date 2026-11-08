@@ -4,7 +4,7 @@
  * Two layers, one screen:
  *
  * 1. The MENUD session (direct entry 14; menu_bridge.c pc_ui_direct_tick).
- *    vs_menuD_exec (src/MENU/MENUD.PRG/234.c) ported: its data operations
+ *    vs_menuD_exec (pc/src/game/MENU/MENUD.PRG/234.c) ported: its data operations
  *    are container_ops.c's, its modes the original's 1:1, read from the pad
  *    as the original reads it (vs_main_buttonsPressed / _buttonRepeat /
  *    _buttonsState) and from the pointer's requests (a click is the pad
@@ -40,14 +40,14 @@
  *    latched (MENU7's own CONTAINER / YES / NO rows), as it was before after.
  */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
-#include "../../../src/MENU/MAINMENU.PRG/C48.h"
-#include "../../../src/MENU/MAINMENU.PRG/2D10.h"
-#include "../../../src/MENU/MAINMENU.PRG/58EC.h"
-#include "../../../src/MENU/MENUD.PRG/234.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/C48.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/2D10.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/58EC.h"
+#include "../../../pc/src/game/MENU/MENUD.PRG/234.h"
 #include "build/assets/MENU/ITEMHELP.BIN.h"
 #include "build/assets/MENU/MENUD.PRG/menuText.h"
 #include "build/assets/MENU/MENU7.PRG/container.h"

@@ -1,10 +1,10 @@
 //! Room section 12 lookup: the value of entry `arg0` when its flag is set
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008E320 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E320 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns field unk4_16 of room section 12 entry `arg0` when its unk4_0 flag is 1, else -1.
 pub fn func_8008E320(arg0: c_int) callconv(.c) c_uint {
     if (psx.get(v.g.vs_battle_roomData().section12)) |sections| {

@@ -74,8 +74,7 @@ fi
 out=pc/build/verify
 mkdir -p "$out"
 failed=0 start_all=$SECONDS
-null_suites=(null_backend_smoke shadow_battle_smoke ownership_smoke battle_corpus_candidate zig_hotswap_smoke
-             trial_corpus classic_parity)
+null_suites=(null_backend_smoke ownership_smoke zig_hotswap_smoke classic_parity)
 select=() budget_null=() budget_vk=() budget_gl=()
 cap() {  # the words that stop a quick-lane step at the hard limit (what is left of it); nothing in full
     [ $lane = quick ] && echo timeout --kill-after=30 $(( ${ROOD_QUICK_LIMIT:-20} * 60 - (SECONDS - start_all) > 1 ?
@@ -125,7 +124,7 @@ if step build build-64 python3 pc/tools/build_boot.py --arch 64; then
         "${select[@]}" "${budget_null[@]}" "${extra[@]}" -- "${null_suites[@]}"
     step test suite-64vk $(cap) python3 pc/tests/run.py --arch 64 --renderer vulkan --out "$out/t64vk" \
         "${select[@]}" "${budget_vk[@]}" "${extra[@]}"
-    # Full: the suites without a game (CTest, ctest_long, lints) ran on Vulkan; OpenGL runs the game's only.
+    # Full: the suites without a game (CTest, lints) ran on Vulkan; OpenGL runs the game's only.
     gl_only=(); [ $lane = full ] && gl_only=(--game-only)
     step test suite-64gl $(cap) python3 pc/tests/run.py --arch 64 --renderer gl --out "$out/t64gl" "${gl_only[@]}" \
         "${select[@]}" "${budget_gl[@]}" "${extra[@]}"

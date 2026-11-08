@@ -1,10 +1,10 @@
-//! Biased position and fill bytes of D_800E8594, then the call to func_8009723C on D_800E85A0 - 0x58 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Biased position and fill bytes of D_800E8594, then the call to func_8009723C on D_800E85A0 - 0x58 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008E19C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E19C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Stores a 0x80-biased position and a fill byte into D_800E8594, then calls func_8009723C on the block at D_800E85A0 - 0x58.
 pub fn func_8008E19C(arg0: c_int, arg1: c_int, arg2: c_short, arg3: c_uint) callconv(.c) void {
     const block = v.g.D_800E8594();

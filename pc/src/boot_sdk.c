@@ -502,7 +502,7 @@ u_long* ClearOTagR(u_long* ot, int n)
     return ot;
 }
 
-/* src/SLUS_010.40/32154.s: func_80041AF4, shared by VectorNormal,
+/* pc/src/game/SLUS_010.40/32154.s: func_80041AF4, shared by VectorNormal,
  * VectorNormalS and VectorNormalSS. Normalizes (x, y, z) in place to 4096
  * and returns the squared length. Keeps the original reciprocal-square-root
  * table and GTE register effects. */

@@ -1,10 +1,10 @@
-//! Fills one battle item's limb-name entry from its source row (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Fills one battle item's limb-name entry from its source row (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C5798 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C5798 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Clears battle item `arg0` and sets its kind, timing and limb name from source row `arg0`.
 pub fn func_800C5798(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v.func_800C56C0_t2 {
     const base = v.g.D_800EB9B8().*.?;

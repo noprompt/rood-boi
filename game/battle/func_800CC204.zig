@@ -1,10 +1,10 @@
-//! Draws a GIM image through a wipe (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws a GIM image through a wipe (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CC204 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CC204 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws the image's 15-line tile rows clipped per line to a span that grows (unkC below 4096) or shrinks
 /// (above) with each line's width, from the side unk3 names; the full image at 4096 (func_800CBBCC).
 /// ROOD_PC: in widescreen the spans are spread over the 16:9 view and the sides filled with the ground colour.

@@ -34,7 +34,7 @@ def leaks(text):
 def main():
     failures = []
     # c_body: the two one-line bake-off functions, from the .c and the .i.
-    source = (ROOT / "src/BATTLE/BATTLE.PRG/146C.c").read_text(errors="replace")
+    source = (ROOT / "pc/src/game/BATTLE/BATTLE.PRG/146C.c").read_text(errors="replace")
     expected = {"func_8006CE50": "void func_8006CE50(void) { func_8008D5A0(0xB4); }",
                 "func_8007C088": "int func_8007C088(int arg0) { return vs_battle_actors[arg0]->weaponDrawn & 1; }"}
     texts = [("146C.c", source)]

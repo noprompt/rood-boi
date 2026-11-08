@@ -1,9 +1,9 @@
-//! Queues a damage-number entry over an actor's limb (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Queues a damage-number entry over an actor's limb (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80093B68 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093B68 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Queues the number `value` (low 15 bits, capped at 999; bit 31 kept as bit 15) at `actor`'s limb `limbIndex`
 /// (-1: the actor itself), stacked over its earlier entries; bit 7 of `flags` skips actors off screen.
 /// Returns 0, or -2 when the limb or a position cannot be read.

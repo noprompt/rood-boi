@@ -1,7 +1,7 @@
-//! Clears the battle state flags 64 to 127 when called with 0 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Clears the battle state flags 64 to 127 when called with 0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const c = @import("c_4A0A8");
 
-/// orig: func_800BEB9C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BEB9C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Clears state flags 64 to 127 when called with 0.
 pub fn func_800BEB9C(arg0: c_int) callconv(.c) void {
     if (arg0 == 0) {

@@ -1,9 +1,9 @@
-//! An event script opcode that sets or clears actor 0's 0x1800 flags, with an animation (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that sets or clears actor 0's 0x1800 flags, with an animation (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B9DB4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B9DB4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Actor 0's stance by script[1] (set or clear): when idle (D_800F4C4E 0) and state flag 0xAC is
 /// set, func_8007C0AC with D_800E9B4C[script[1]], and outside D_800F4C2C 2 with script[2] set the
 /// animation (func_800A0204) and func_8009DBDC, waiting (D_800F4C4E 1, returns 1); while waiting,

@@ -1,10 +1,10 @@
 //! Checks the battle's party and enemy actors for the wind-up and pays out the charge
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800790BC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800790BC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Scans the action queue's targets and, when none is still busy, sets the result passed to func_8006FBCC.
 pub fn func_800790BC() callconv(.c) void {
     const base = v.g.D_800F19CC().*.?;

@@ -2,8 +2,8 @@
  * from the game's records and 58EC.c's statics (pc_classic_mainmenu_read).
  * Battle builds, compiled with the game headers. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/MENU/MAINMENU.PRG/58EC.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/58EC.h"
 #include "classic_hook.h"
 #include "menu_model.h"
 #include <string.h>

@@ -1,5 +1,5 @@
 /* The native Score screen's numbers (pc/src/ui/score_format.c) against MENU9's
- * printers (src/MENU/MENU9.PRG/238.c): the fastest clear at 0, 59, 5999 and
+ * printers (pc/src/game/MENU/MENU9.PRG/238.c): the fastest clear at 0, 59, 5999 and
  * 6000+ minutes (the 99:59 cap), the percentages at 51 / 52 and 360 / 361,
  * the time attack's packing and its 0x800000 sentinel, the title rows, the
  * Records rows' sources (unarmed last) and the score's grouping. */

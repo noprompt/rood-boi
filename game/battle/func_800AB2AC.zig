@@ -1,11 +1,11 @@
 //! Calls the per-slot update for every actor whose byte at `arg0` is not 0xFF
-//! when `arg0` is the current value of D_800E8F2C (src/BATTLE/BATTLE.PRG/40564.c).
+//! when `arg0` is the current value of D_800E8F2C (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AB2AC (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AB2AC (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// For each of the 17 actor slots, runs both `func_800AB098` passes when the slot is set and its byte at `arg0` is not 0xFF.
 pub fn func_800AB2AC(arg0: c_int) callconv(.c) void {
     if (arg0 == @as(c_int, v.g.D_800E8F2C().*)) {

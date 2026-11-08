@@ -1,9 +1,9 @@
-//! Room section 12 entry lookup (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section 12 entry lookup (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008E2D4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E2D4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the address of section 12 entry `arg0` plus its 8-byte header and its 16-byte-scaled extent, or null when the room has no section 12.
 pub fn func_8008E2D4(arg0: c_int) callconv(.c) ?*anyopaque {
     if (psx.get(v.g.vs_battle_roomData().section12)) |section12| {

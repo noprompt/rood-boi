@@ -1,10 +1,10 @@
-//! Expands the game text's print codes (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Expands the game text's print codes (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_printf (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_printf (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Copies game text to `dest` up to the terminator (231, stored), expanding the hex / decimal codes (the context's integers, all digits or a fixed count) and the string code (a context string, recursively); other control codes keep their argument byte. Returns the terminator's place.
 pub fn printf(dest_arg: [*c]u8, src_arg: [*c]u8) callconv(.c) [*c]u8 {
     var dest = dest_arg;

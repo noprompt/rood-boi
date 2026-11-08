@@ -1,8 +1,8 @@
-//! Finds the section 9 room entry that matches a (arg0, arg1, arg2) key (src/BATTLE/BATTLE.PRG/146C.c).
+//! Finds the section 9 room entry that matches a (arg0, arg1, arg2) key (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_8008D438 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008D438 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the room's section 9 entry whose three keys match, or null; a match with a low flag value is hidden while a state flag is set.
 pub fn func_8008D438(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v._mpdRoomSection9 {
     const room = v.g.vs_battle_roomData();

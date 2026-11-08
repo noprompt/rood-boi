@@ -1,9 +1,9 @@
-//! Battle slot bookkeeping: marks a slot's partner and walks the slot's object list (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle slot bookkeeping: marks a slot's partner and walks the slot's object list (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009F530 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009F530 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Flags slot `slot`, finds its partner slot and updates the candidates, then clears the objects listed under the slot.
 pub fn func_8009F530(slot: c_int) callconv(.c) void {
     const owner: *v.D_800F45E0_t = psx.at(v.g.D_800F45E0(), slot).*.?;

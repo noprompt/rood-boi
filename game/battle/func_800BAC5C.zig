@@ -1,10 +1,10 @@
-//! An event script opcode (src/BATTLE/BATTLE.PRG/4A0A8.c): the distance and heading between two actors into state flags.
+//! An event script opcode (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c): the distance and heading between two actors into state flags.
 const psx = @import("common").psx;
 const std = @import("std");
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BAC5C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BAC5C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Flag getShort(script + 6): the x/z distance between the actors of references getShort(script + 1) and
 /// getShort(script + 3), divided by script[5] (-1 from 256 up); the next flag: their heading, ratan2 >> 4.
 pub fn func_800BAC5C(script: [*c]u8, _: c_short) callconv(.c) c_int {

@@ -1,10 +1,10 @@
-//! Leaves the ability menu after an action (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Leaves the ability menu after an action (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CAB40 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CAB40 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Back to the menu it came from (the item shortcut's own menu for shortcut 5; ROOD_PC: the top level when a modern-menu cast was cancelled), and the menu sound unless muted.
 pub fn func_800CAB40() callconv(.c) void {
     const CastCancelled = *const fn () callconv(.c) c_int;

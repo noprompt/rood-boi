@@ -1,9 +1,9 @@
-//! Clears the four score counters, places the battle groups by how many enemies each holds, and sets the layout spacing (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Clears the four score counters, places the battle groups by how many enemies each holds, and sets the layout spacing (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C553C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C553C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Places each group by its enemy count, largest sizes first, then sets the spacing from the highest placed index.
 pub fn func_800C553C() callconv(.c) void {
     v.g.D_800F4CB0().* = 0;

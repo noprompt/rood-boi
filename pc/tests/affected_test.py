@@ -131,7 +131,7 @@ class SelectTest(unittest.TestCase):
                     self.assertTrue(expand([pattern]), f"{pattern} names no suite")
 
     def test_no_file_selects_every_suite(self):
-        for path in ["pc/src/brand_new_file.c", "pc/tools/rood_rpc.py", "src/SLUS_010.40/main.c",
+        for path in ["pc/src/brand_new_file.c", "pc/tools/rood_rpc.py", "pc/src/game/SLUS_010.40/main.c",
                      "pc/src/vk_hw.c", "pc/tests/run.py", "Makefile", "weird/place.txt"]:
             with self.subTest(path=path):
                 sel = self.select(path)
@@ -148,7 +148,7 @@ class SelectTest(unittest.TestCase):
         self.assertNotIn("the full suite", out.getvalue())
 
     def test_core_files_select_the_broad_set(self):
-        for path in ["pc/tools/rood_rpc.py", "pc/src/boot_runtime.c", "src/SLUS_010.40/main.c"]:
+        for path in ["pc/tools/rood_rpc.py", "pc/src/boot_runtime.c", "pc/src/game/SLUS_010.40/main.c"]:
             with self.subTest(path=path):
                 sel = self.select(path)
                 self.assertTrue(self.broad <= set(sel.reasons))
@@ -252,7 +252,7 @@ class ZigDiffSelectTest(unittest.TestCase):
     def test_pipeline_records_and_units(self):
         sel = self.select("pc/docs/porting/battle/pipeline/146C/_addMinDelta.json")
         self.assertEqual(sel.functions, ["_addMinDelta"])
-        sel = self.select("src/BATTLE/BATTLE.PRG/44F14.c")
+        sel = self.select("pc/src/game/BATTLE/BATTLE.PRG/44F14.c")
         self.assertIn("func_800B07DC", sel.functions)
         self.assertNotIn("_updateEnemyKills", sel.functions)
 
@@ -294,7 +294,7 @@ class QuickLaneTest(unittest.TestCase):
         self.assertNotIn("ctest", gl.names)  # renderer-independent: the Vulkan lane ran it
 
     def test_long_suites_only_when_touched(self):
-        vk = self.lane("vulkan", "src/BATTLE/BATTLE.PRG/146C.c")
+        vk = self.lane("vulkan", "pc/src/game/BATTLE/BATTLE.PRG/146C.c")
         for name in ("soak", "skip_charging_smoke", "charge_skip_soak"):
             self.assertNotIn(name, vk.names)
             self.assertIn(name, vk.skipped_long)
@@ -307,7 +307,7 @@ class QuickLaneTest(unittest.TestCase):
         vk = self.lane("vulkan", "game/battle/score.zig")
         self.assertEqual(vk.zig.functions, ["_updateEnemyKills"])
         self.assertRegex(affected.lane_line(vk, 100), r"zig_diff: 1 changed spec \(of \d+\)")
-        self.assertIsNone(self.lane("vulkan", "src/MENU/MENU0.PRG/A.c").zig)  # no ctest_long, no zig_diff
+        self.assertIsNone(self.lane("vulkan", "pc/src/game/MENU/MENU0.PRG/A.c").zig)  # no ctest_long, no zig_diff
         suite = run.zig_diff_changed(vk.zig.functions)
         self.assertEqual(suite.name, "zig_diff_changed")
         self.assertIn("_updateEnemyKills", suite.command)

@@ -1,9 +1,9 @@
-//! An event script opcode that runs a screen transition or a menu to its end (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that runs a screen transition or a menu to its end (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B92F4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B92F4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// By script[1]: 10..14 start a transition (state flag 0xB6 from D_800E9BF0, or 1 to 2 for 14,
 /// which also sets D_800F4C69 to 2) and wait for it, clearing flag 0xB6; 13 and 15 start one
 /// (flag 0xB6 to 1, or func_8007B9CC) and wait; any other opens menu script[1] and waits for it

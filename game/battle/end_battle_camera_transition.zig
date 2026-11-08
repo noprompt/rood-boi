@@ -1,8 +1,8 @@
-//! Ends a battle camera transition: restores the camera it started from, frees the transition and resets the camera subsystems (src/BATTLE/BATTLE.PRG/146C.c).
+//! Ends a battle camera transition: restores the camera it started from, frees the transition and resets the camera subsystems (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _endBattleCameraTransition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _endBattleCameraTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Restores the camera a transition started from, frees the transition and resets the camera subsystems.
 pub fn endBattleCameraTransition() callconv(.c) void {
     v.g.vs_scratch().camera = v.g.vs_battle_cameraTransition().*.?.fromCameraState;

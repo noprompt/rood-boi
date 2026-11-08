@@ -1,10 +1,10 @@
-//! Battle script helper: walks the list read from a script's word at offset 1 and calls func_8007D08C for each entry (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Battle script helper: walks the list read from a script's word at offset 1 and calls func_8007D08C for each entry (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BAD78 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BAD78 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Walks the list at a script's word 1, calling func_8007D08C for each entry with the script's byte 3.
 pub fn func_800BAD78(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     var sp10: v.func_800BB68C_t = undefined;

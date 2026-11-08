@@ -1,10 +1,10 @@
-//! Draws the fading trail of 16 line segments between two packed points, up to `count` steps (src/BATTLE/BATTLE.PRG/58578.c).
+//! Draws the fading trail of 16 line segments between two packed points, up to `count` steps (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C16FC (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C16FC (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Adds the fading line segments of one trail from packed point x0 to packed point x1, with `count` steps shown.
 pub fn func_800C16FC(x0_in: c_int, x1_in: c_int, count: c_int) callconv(.c) void {
     const scratch = v.g.vs_scratch();

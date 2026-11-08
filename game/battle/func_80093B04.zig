@@ -1,9 +1,9 @@
 //! Builds a 3-halfword record from a function-local allocation and bumps the
-//! global record counter (src/BATTLE/BATTLE.PRG/2842C.c).
+//! global record counter (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80093B04 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093B04 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Fills a record from the three halfwords at `words`, tags it as kind 3, and counts it.
 pub fn func_80093B04(words: [*c]c_ushort) callconv(.c) c_int {
     const rec: *align(1) v.func_800962E4_t = @ptrCast(c.func_800962E4().?);

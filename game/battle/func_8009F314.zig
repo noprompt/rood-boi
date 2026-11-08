@@ -1,10 +1,10 @@
-//! Drops or animates a battle actor from its slot, or resets its object slot when the actor is gone (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Drops or animates a battle actor from its slot, or resets its object slot when the actor is gone (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009F314 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009F314 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Stops an actor's motion and starts its fall, then plays its animation (or holds it), and does the same for the actor linked to it; an empty slot resets its object instead.
 pub fn func_8009F314(actorId: c_int, context: ?*anyopaque, animate: c_int) callconv(.c) void {
     if (psx.at(v.g.D_800F4538(), actorId).*) |actor| {

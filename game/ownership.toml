@@ -9,14 +9,6 @@
 #             original | owned
 #   dev_default  the development host's instead (its owned code is a reloadable
 #             library, pc/src/game_host.inc); absent: default
-#   lang      zig (default) | c. A C subsystem's owned code is a C copy of its unit
-#             under game/ (modern C, pc/docs/plans/2026-11-06-modern-c-design.md):
-#             overlay is the game/ subdirectory, copy the file; the build renames its
-#             routed functions F__owned and shares the unit's statics with it
-#             (pc/tools/ownership.py share_statics). It is linked into the host: the
-#             development host's reloadable library holds no C copies, so its
-#             dev_default is original (ROOD_OWNER=name=owned runs the copy there too),
-#             and shadow mode is not available for it (alternate mode is).
 #   roots     pointer globals the field mapper follows (pc/tools/field_map.py), or
 #             TYPE@ADDRESS for a block the code addresses by number (the scratchpad)
 
@@ -25,7 +17,7 @@
 # (PORTING.md §16) and its views per unit.
 [subsystem.battle_146C]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/146C.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/146C.c"
 default = "owned"
 roots = ["vs_battle_actors", "vs_main_scoredata"]
 functions = [
@@ -46,7 +38,7 @@ globals = ["vs_main_scoredata", "D_800F1858", "D_80055C80", "D_8005E0C0", "D_800
 
 [subsystem.battle_44F14]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/44F14.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/44F14.c"
 default = "owned"
 roots = ["D_800F4538", "actorTransformScratch@0x1F80035C"]  # the scratchpad block func_800B07DC works in
 functions = [
@@ -59,7 +51,7 @@ globals = []
 
 [subsystem.battle_5BF94]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/5BF94.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/5BF94.c"
 default = "owned"
 roots = ["D_800EB9D8", "vs_battle_textBoxes", "vs_battle_stringContext"]
 functions = [
@@ -80,7 +72,7 @@ globals = ["D_800EB9D8", "D_800F4E68", "D_800F4E69", "vs_battle_stringContext", 
 # ROOD_OWNER=battle_frame=owned runs them owned in the development host too.
 [subsystem.battle_frame]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/146C.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/146C.c"
 default = "owned"
 dev_default = "original"
 roots = ["vs_battle_actors"]
@@ -95,7 +87,7 @@ functions = [
 # root-call gate keep checking exactly the trial's functions.
 [subsystem.battle_146C_bakeoff]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/146C.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/146C.c"
 default = "owned"
 roots = ["D_800F19CC", "vs_battle_actors", "vs_battle_characterState"]
 functions = [
@@ -116,7 +108,7 @@ globals = ["vs_battle_actors", "D_800F19CC", "D_800F196C", "_cameraMode", "vs_ba
 
 [subsystem.battle_5BF94_bakeoff]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/5BF94.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/5BF94.c"
 default = "owned"
 roots = []
 functions = [
@@ -129,7 +121,7 @@ globals = []
 
 [subsystem.battle_30DB0]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/30DB0.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/30DB0.c"
 default = "owned"
 roots = ["D_800F4538"]
 functions = [
@@ -142,7 +134,7 @@ globals = ["D_800F4538", "D_800F49DC"]
 
 [subsystem.battle_40564]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/40564.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/40564.c"
 default = "owned"
 roots = ["D_800F4538", "D_800F4768"]
 functions = [
@@ -156,7 +148,7 @@ globals = ["D_800E8F2C", "D_800F4768", "D_800F49DC", "D_800F49E4"]
 # Hand ports of 4A0A8.c (the pipeline's battle_4A0A8_port has the rest of the unit).
 [subsystem.battle_4A0A8_hand]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/4A0A8.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c"
 default = "owned"
 roots = []
 functions = [
@@ -190,7 +182,7 @@ globals = ["D_800E9BE0", "D_800E9BE8", "D_800E9C00", "D_800E9C30", "D_800EB9BC",
 
 [subsystem.battle_146C_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/146C.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/146C.c"
 default = "owned"
 roots = []
 functions = [
@@ -876,7 +868,7 @@ declarations = ["int snprintf(char* out, unsigned long size, const char* fmt, ..
 
 [subsystem.battle_38C1C_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/38C1C.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/38C1C.c"
 default = "owned"
 roots = []
 functions = [
@@ -905,7 +897,7 @@ globals = ["D_800E90AC", "D_800E90B4", "D_800F4538", "D_800F45E0", "D_800F49B8",
 
 [subsystem.battle_7CD68_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/7CD68.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/7CD68.c"
 default = "owned"
 roots = []
 functions = [
@@ -929,7 +921,7 @@ globals = ["D_80069C08", "D_80069C18", "D_80069C1C", "D_80069C3C", "D_800F16EC",
 
 [subsystem.battle_71618_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/71618.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/71618.c"
 default = "owned"
 roots = []
 functions = [
@@ -953,7 +945,7 @@ globals = ["D_800F16F4", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58BC",
 
 [subsystem.battle_573B8_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/573B8.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/573B8.c"
 default = "owned"
 roots = []
 functions = [
@@ -990,7 +982,7 @@ globals = ["D_80040A14", "D_800E9C30", "D_800EB9AC", "D_800EB9B8", "D_800F4B28",
 
 [subsystem.battle_6FC00_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/6FC00.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/6FC00.c"
 default = "owned"
 roots = []
 functions = [
@@ -1007,7 +999,7 @@ globals = ["D_800F16F4", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58BC",
 
 [subsystem.battle_58578_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/58578.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/58578.c"
 default = "owned"
 roots = []
 functions = [
@@ -1039,7 +1031,7 @@ globals = ["D_800EA234", "D_800EA2C4", "D_800EA438", "D_800EA46C", "D_800EA670",
 
 [subsystem.battle_44F14_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/44F14.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/44F14.c"
 default = "owned"
 roots = []
 functions = [
@@ -1074,7 +1066,7 @@ globals = ["D_8005E218", "D_800E91A4", "D_800E91AC", "D_800E91BC", "D_800E91CC",
 
 [subsystem.battle_74088_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/74088.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/74088.c"
 default = "owned"
 roots = []
 functions = [
@@ -1100,7 +1092,7 @@ globals = ["D_80069BBC", "D_80069BD0", "D_800F4538", "D_800F45E0", "D_800F5878",
 
 [subsystem.battle_6F014_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/6F014.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/6F014.c"
 default = "owned"
 roots = []
 functions = [
@@ -1143,7 +1135,7 @@ globals = ["D_800EC4BC", "D_800F5230", "D_800F5330", "D_800F53C0", "D_800F5630",
 
 [subsystem.battle_771A8_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/771A8.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/771A8.c"
 default = "owned"
 roots = []
 functions = [
@@ -1179,7 +1171,7 @@ globals = ["D_800F175C", "D_800F1760", "D_800F4538", "D_800F58BC", "D_800F58D8",
 
 [subsystem.battle_6FA60_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/6FA60.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/6FA60.c"
 default = "owned"
 roots = []
 functions = [
@@ -1192,7 +1184,7 @@ globals = []
 
 [subsystem.battle_7C4E8_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/7C4E8.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/7C4E8.c"
 default = "owned"
 roots = []
 functions = [
@@ -1205,7 +1197,7 @@ globals = []
 
 [subsystem.battle_49268_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/49268.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/49268.c"
 default = "owned"
 roots = []
 functions = [
@@ -1220,7 +1212,7 @@ globals = ["D_800F2458", "D_800F3C58", "D_800F3C78", "D_800F4538", "vs_battle_we
 
 [subsystem.battle_5BE50_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/5BE50.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/5BE50.c"
 default = "owned"
 roots = []
 functions = [
@@ -1235,7 +1227,7 @@ globals = ["D_800EB9B8", "vs_main_buttonsState"]
 
 [subsystem.battle_73700_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/73700.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/73700.c"
 default = "owned"
 roots = []
 functions = [
@@ -1250,7 +1242,7 @@ globals = ["D_800F58BC"]
 
 [subsystem.battle_7EE98_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/7EE98.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/7EE98.c"
 default = "owned"
 roots = []
 functions = [
@@ -1266,7 +1258,7 @@ globals = ["D_800F17DC", "D_800F4538", "D_800F58BC", "D_800F5918", "D_800F591C",
 
 [subsystem.battle_3A1A0_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/3A1A0.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c"
 default = "owned"
 roots = []
 functions = [
@@ -1318,7 +1310,7 @@ globals = ["D_800E8FD0", "D_800E90A8", "D_800E90BC", "D_800E90C3", "D_800E90C4",
 
 [subsystem.battle_40564_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/40564.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/40564.c"
 default = "owned"
 roots = []
 functions = [
@@ -1383,7 +1375,7 @@ globals = ["D_800E8F2C", "D_800E8F30", "D_800E8F90", "D_800E909C", "D_800E916C",
 
 [subsystem.battle_2842C_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/2842C.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/2842C.c"
 default = "owned"
 roots = []
 functions = [
@@ -1501,7 +1493,7 @@ declarations = ["void vs_battle_renderTextRawColor(char const* text, int xy, int
 
 [subsystem.battle_30DB0_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/30DB0.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/30DB0.c"
 default = "owned"
 roots = []
 functions = [
@@ -1613,7 +1605,7 @@ globals = ["D_800E8960", "D_800E8A60", "D_800E8B40", "D_800E8D00", "D_800E8E80",
 
 [subsystem.battle_5BF94_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/5BF94.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/5BF94.c"
 default = "owned"
 roots = []
 functions = [
@@ -1939,7 +1931,7 @@ globals = ["D_800EA984", "D_800EA9B6", "D_800EAA54", "D_800EABAA", "D_800EB708",
 
 [subsystem.battle_4A0A8_port]
 overlay = "battle"
-unit = "src/BATTLE/BATTLE.PRG/4A0A8.c"
+unit = "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c"
 default = "owned"
 roots = []
 functions = [
@@ -2576,15 +2568,3 @@ functions = [
 [subsystem.d2_weapon_packets.views]
 types = []
 globals = []
-
-# The first C copy (modern C pilot): MENU1.PRG, the Break Arts menu. Its one global
-# function is routed; the file's other functions are static, called within the copy.
-[subsystem.menu1]
-overlay = "menu"
-lang = "c"
-unit = "src/MENU/MENU1.PRG/30.c"
-copy = "game/menu/menu1.c"
-default = "original"
-functions = [
-    { addr = 0x80103270, name = "vs_menu1_exec" },  # the Break Arts menu (state machine)
-]

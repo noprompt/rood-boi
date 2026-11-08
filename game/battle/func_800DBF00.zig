@@ -1,9 +1,9 @@
-//! Unlinks an entry from the battle list headed at D_800F58BC (src/BATTLE/BATTLE.PRG/73700.c).
+//! Unlinks an entry from the battle list headed at D_800F58BC (pc/src/game/BATTLE/BATTLE.PRG/73700.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_73700");
 
-/// orig: func_800DBF00 (src/BATTLE/BATTLE.PRG/73700.c)
+/// orig: func_800DBF00 (pc/src/game/BATTLE/BATTLE.PRG/73700.c)
 /// Clears the entry's flag and removes it from the list at D_800F58BC, fixing up the head and tail pointers.
 pub fn func_800DBF00(entry: ?*v.func_800E78F4_t) callconv(.c) void {
     const self = entry.?;

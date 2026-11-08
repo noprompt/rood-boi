@@ -1,9 +1,9 @@
-//! Battle actor lookup by position (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Battle actor lookup by position (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 
-/// orig: func_800A3310 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3310 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Finds the slot from index 2 up to `arg0` whose actor is flagged and sits at the given position, or 0 if none does.
 pub fn func_800A3310(arg0: c_int, arg1: ?*v.SVECTOR) callconv(.c) c_int {
     const table = v.g.D_800F4538();

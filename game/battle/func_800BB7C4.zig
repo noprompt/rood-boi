@@ -1,10 +1,10 @@
-//! An actor's screen-space heading (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An actor's screen-space heading (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BB7C4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BB7C4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Projects the point 1000 above actor arg0 through its matrix (func_800A1178), lets func_800A1280 move
 /// it, and stores in out.vz (and returns) the ratan2 angle of the projected screen point against it.
 pub fn func_800BB7C4(arg0: c_int, out: *v.SVECTOR) callconv(.c) c_int {

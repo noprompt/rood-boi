@@ -1,11 +1,11 @@
 //! The object an actor faces on its next tile, and whether the actor can
-//! act on it (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! act on it (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A38E0 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A38E0 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Returns the id of the object the actor faces on its next tile, or -1 when it cannot act on one.
 pub fn func_800A38E0(actorId: c_int) callconv(.c) c_int {
     const actor = psx.at(v.g.D_800F4538(), actorId).* orelse return -1;

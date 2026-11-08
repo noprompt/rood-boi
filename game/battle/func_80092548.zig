@@ -1,4 +1,4 @@
-//! Room data's texture-effect and section D records: fills the entry table at D_800F1DD8 (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Room data's texture-effect and section D records: fills the entry table at D_800F1DD8 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
@@ -9,7 +9,7 @@ fn sectionDRecordSize(addr: usize) c_int {
     return if (hw[1] == 11) 4 else @as(c_int, hw[0]);
 }
 
-/// orig: func_80092548 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092548 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Walks the room's texture-effect and section D records, filling the entry table and calling each active entry's setup.
 pub fn func_80092548() callconv(.c) void {
     const sizes = [7]c_int{ 24, 20, 32, 0, 0, 0, 36 };

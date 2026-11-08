@@ -1,10 +1,10 @@
-//! Clears the battle flags and the scratch block of every live actor slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Clears the battle flags and the scratch block of every live actor slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009D6F4 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009D6F4 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Resets the flags and the scratch block of every non-empty actor slot.
 pub fn func_8009D6F4() callconv(.c) void {
     const actors = v.g.D_800F4538();

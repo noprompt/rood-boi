@@ -1,8 +1,8 @@
-//! The battle's per-frame wait on a target (src/BATTLE/BATTLE.PRG/146C.c).
+//! The battle's per-frame wait on a target (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80078248 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80078248 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Counts the frames a target is held and closes the wait after 31 of them, or once the chosen target is found.
 pub fn func_80078248() callconv(.c) void {
     const state = v.g.D_800F19CC().*.?;

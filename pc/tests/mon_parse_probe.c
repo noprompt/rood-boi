@@ -3,7 +3,7 @@
  * files, offsets outside the kill flags, unterminated names and descriptions,
  * descriptions outside the file, classes out of range; the unlocked flags and
  * the prev / next ring against a transcription of MENU9's _initEnemyList
- * (src/MENU/MENU9.PRG/238.c) for no entry, one (itself), the first and the
+ * (pc/src/game/MENU/MENU9.PRG/238.c) for no entry, one (itself), the first and the
  * last (the wrap), all 78, a flag at a word's last bit, every single-bit mask
  * and random masks. */
 #include "mon_parse.h"

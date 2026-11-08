@@ -1,9 +1,9 @@
-//! An event script opcode that places an actor at a position (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that places an actor at a position (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7D10 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7D10 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Puts the actor of getShort(script + 1) at (getShort(script + 3), 0, getShort(script + 5)):
 /// func_800A9D90 with a 0x8000 heading while D_800F4C2C is 2, else func_8007CFF8; then
 /// func_8009DC8C and its D_800F4B70 mark.

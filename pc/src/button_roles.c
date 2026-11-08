@@ -68,9 +68,9 @@
  *            the game built it. Only when both cells hold a picture (the
  *            page can hold something else). */
 #include "common.h"
-#include "../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../src/SLUS_010.40/main.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../pc/src/game/SLUS_010.40/main.h"
 #include <libetc.h>
 
 extern int sprintf(char*, const char*, ...);

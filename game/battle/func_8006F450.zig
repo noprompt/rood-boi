@@ -1,11 +1,11 @@
 //! Requests effect 36 from the effect system, built from the request `arg0`
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006F450 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006F450 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Builds an effect request for effect 36 from `arg0` and hands it to func_800CF3F8.
 pub fn func_8006F450(arg0: ?*v.func_800CF0E8_t) callconv(.c) void {
     // ROOD_PC: the whole request is zeroed first, as the compiled object does.

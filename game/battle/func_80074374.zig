@@ -1,11 +1,11 @@
 //! Steers a battle actor's stack point toward the target func_800A1108 reports
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074374 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074374 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Reads the target point from func_800A1108 and steps toward it; returns 0 when func_8009E480 reports a block.
 pub fn func_80074374() callconv(.c) c_int {
     var sp10: v.SVECTOR = undefined;

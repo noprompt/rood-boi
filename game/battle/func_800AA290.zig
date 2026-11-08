@@ -1,4 +1,4 @@
-//! Points an actor's move offset at a target tile and steps it, or sets its step count (src/BATTLE/BATTLE.PRG/40564.c).
+//! Points an actor's move offset at a target tile and steps it, or sets its step count (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
@@ -10,7 +10,7 @@ fn addVector(position: *v.SVECTOR, offset: *const v.SVECTOR) void {
     position.vz = psx.conv(i16, @as(c_int, position.vz) +% @as(c_int, offset.vz));
 }
 
-/// orig: func_800AA290 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA290 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets actor arg0's move offset toward tile (arg1) and steps it: all at once (arg2 0), by arg3 per unit of distance (arg2 -1), or by arg2 steps.
 pub fn func_800AA290(arg0: c_int, arg1: ?*v.func_8006EBF8_t_fields, arg2: c_int, arg3: c_int) callconv(.c) void {
     const actor = psx.at(v.g.D_800F4538(), arg0).* orelse return;

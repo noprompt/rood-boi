@@ -1,8 +1,8 @@
-//! An effect-script opcode: func_8006CE70 on a kind-5 target (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect-script opcode: func_8006CE70 on a kind-5 target (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D66CC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D66CC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// If the script's unk18 target is of kind 5, func_8006CE70 on its data.
 pub fn func_800D66CC(script: ?*v.D_800F53B8_t) callconv(.c) void {
     const s = script.?;

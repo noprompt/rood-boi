@@ -1,10 +1,10 @@
 //! Eases each vector of one 42-entry table toward its source, wrapping the
-//! difference at one turn, and averages the second table (src/BATTLE/BATTLE.PRG/44F14.c).
+//! difference at one turn, and averages the second table (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 
-/// orig: func_800AE980 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AE980 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Halves each of count vector differences from dst toward src, wrapping past one turn, and averages the unk150 table.
 pub fn func_800AE980(dst: ?*v.D_800F4538_unkC54, src: ?*v.D_800F4538_unkC54, count: c_int) callconv(.c) void {
     const d = dst.?;

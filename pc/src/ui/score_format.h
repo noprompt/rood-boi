@@ -1,5 +1,5 @@
 /* Modern menus, the native Score screen: its numbers as MENU9 prints them
- * (src/MENU/MENU9.PRG/238.c: _renderBossRushDetails, _printFastestClearTime,
+ * (pc/src/game/MENU/MENU9.PRG/238.c: _renderBossRushDetails, _printFastestClearTime,
  * _renderBossRushRecords, _setTitleRows), as plain text. Pure C: no game
  * headers (score_format_probe tests it; score_bridge.c fills the screen with it). */
 #ifndef PC_UI_SCORE_FORMAT_H

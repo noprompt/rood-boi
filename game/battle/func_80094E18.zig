@@ -1,9 +1,9 @@
-//! Builds a text box's frame quads (a body and a tail) into the ordering table and returns the box width (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Builds a text box's frame quads (a body and a tail) into the ordering table and returns the box width (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80094E18 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80094E18 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Lays out the two frame primitives of a text box ending at x, y and returns its width.
 pub fn func_80094E18(x0: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) c_int {
     const q = p.?;

@@ -1,9 +1,9 @@
 //! Weapon class and affinity totals, summed over the blade and the three gems
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const psx = @import("common").psx;
 
-/// orig: _calculateWeaponClassAffinity (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _calculateWeaponClassAffinity (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sums each weapon class and affinity over the blade and gems into the weapon's current totals.
 pub fn calculateWeaponClassAffinity(arg0: ?*v.vs_battle_actor2) callconv(.c) void {
     const weapon = &arg0.?.weapon;

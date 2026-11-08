@@ -1,10 +1,10 @@
-//! Draws one of the loaded GIM images (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws one of the loaded GIM images (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CCA90 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CCA90 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Image `index` of D_800EB9BC, unless hidden (brightness 0, mode other than 2): its CLUT from its palette and flags, drawn by its mode's drawer (D_800EC25C) into the front or the menu OT. ROOD_PC: the classic-site record around the draw, and the opening's ready hook.
 pub fn func_800CCA90(index: c_int) callconv(.c) void {
     const Drawer = *const fn (?*v.gim_t, c_int, [*c]c_uint) callconv(.c) void;

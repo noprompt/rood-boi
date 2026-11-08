@@ -1,4 +1,4 @@
-//! After an action's timing input: the chain or defense ability it triggers (src/BATTLE/BATTLE.PRG/146C.c).
+//! After an action's timing input: the chain or defense ability it triggers (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -22,7 +22,7 @@ fn countKill() void {
     }
 }
 
-/// orig: func_8006FD1C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006FD1C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Tick speed 2; a Break Art or battle-ability action (0x8D..0xB7, 0xB8..0xDF) plays its user's pose 5 or 4. From
 /// the 999th chain link, or with no ability input, the action ends (func_8006FD0C). A chain input (1) on a live
 /// target queues the mapped chain ability as the next link (raising the max chain, and counting toward the next

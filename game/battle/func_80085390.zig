@@ -1,5 +1,5 @@
 //! Applies one action hit to its target: the effect mediator, the spell status
-//! rules, and the weapon-arts kill count (src/BATTLE/BATTLE.PRG/146C.c).
+//! rules, and the weapon-arts kill count (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -24,7 +24,7 @@ fn callMediator(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitE
     mediators[effect].?(action, arg1, arg2, hit, arg3);
 }
 
-/// orig: func_80085390 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80085390 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies hit `hit` of `action` from `arg1` to `arg2`, then counts a weapon-arts kill when that hit defeats the target.
 pub fn func_80085390(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, hit: c_int) callconv(.c) void {
     const e2 = arg2.?;

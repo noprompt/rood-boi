@@ -1,4 +1,4 @@
-//! Spawns the child scripts of an effect request (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Spawns the child scripts of an effect request (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -14,7 +14,7 @@ fn setAddress(field: anytype, address: u32) void {
     }
 }
 
-/// orig: func_800CF218 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF218 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Saves the request in D_800F53C0 and spawns one child script per target (unk2 of them) with the request's token; returns the token.
 pub fn func_800CF218(request_arg: ?*v.func_800CF0E8_t, arg1: c_int, arg2: c_int) callconv(.c) u8 {
     _ = arg1;

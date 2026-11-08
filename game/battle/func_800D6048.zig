@@ -1,10 +1,10 @@
-//! An effect command: func_8007B29C on the request's or the script's targets (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: func_8007B29C on the request's or the script's targets (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D6048 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D6048 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame: func_8007B29C for each of the request's kind-4 targets (or, with `all` 0, the script's unk24 target) whose func_800A0BE0 has bit 1; then the next command; else 1.
 pub fn func_800D6048(script_arg: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t, all: c_int) callconv(.c) c_int {
     const script = script_arg.?;

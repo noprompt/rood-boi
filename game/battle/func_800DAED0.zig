@@ -1,11 +1,11 @@
 //! Refreshes the action-dispatch state of each battle actor on the actor list
-//! (src/BATTLE/BATTLE.PRG/71618.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DAED0 (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DAED0 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Updates every listed actor's dispatch state: its distance to the target, or a reset of the state with its terrain.
 pub fn func_800DAED0() callconv(.c) void {
     const head: *v.actionDispatchActor = @ptrCast(v.g.vs_battle_actors()[0].?);

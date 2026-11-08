@@ -1,7 +1,7 @@
-//! Sets bit 2 of each of the 16 slot flags that lack it (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets bit 2 of each of the 16 slot flags that lack it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const c = @import("c_146C");
 
-/// orig: func_8006C250 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C250 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets flag bit 4 on each of the 16 slots whose flags lack it.
 pub fn func_8006C250() callconv(.c) void {
     var i: c_int = 0;

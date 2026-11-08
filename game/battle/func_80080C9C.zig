@@ -1,10 +1,10 @@
-//! Picks one equipped shield or limb of a battle actor at random and applies the class and weapon affinity changes to it (src/BATTLE/BATTLE.PRG/146C.c).
+//! Picks one equipped shield or limb of a battle actor at random and applies the class and weapon affinity changes to it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80080C9C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80080C9C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Chooses a random equipped shield or limb of `arg1` for the action `arg0` and triggers its class and weapon affinity changes.
 pub fn func_80080C9C(arg0: ?*v.vs_action_t, arg1: ?*v.vs_battle_actor2, arg2: c_int, arg3: c_int, arg4: c_int) callconv(.c) void {
     const action = arg0.?;

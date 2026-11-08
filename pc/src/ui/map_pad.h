@@ -1,4 +1,4 @@
-/* The map screen's analog controls (MENU5, src/MENU/MENU5.PRG/4D8.c; System >
+/* The map screen's analog controls (MENU5, pc/src/game/MENU/MENU5.PRG/4D8.c; System >
  * Controls "Map controls", settings qol_map_controls). On PC the game's
  * stick buffer stays centred (the pad is digital: boot_sdk.c PadInfoMode),
  * so MENU5's stick code never runs; the PC left stick reaches it as the

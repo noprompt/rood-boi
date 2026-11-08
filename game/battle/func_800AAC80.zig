@@ -1,10 +1,10 @@
-//! Draw-move packet setup: fills the packet at the scratchpad cursor and advances the cursor past it (src/BATTLE/BATTLE.PRG/40564.c).
+//! Draw-move packet setup: fills the packet at the scratchpad cursor and advances the cursor past it (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AAC80 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AAC80 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets up a draw-move packet for `rect` at (x, y) and advances the packet cursor past it.
 pub fn func_800AAC80(arg0: ?*v.RECT, arg1: c_int, arg2: c_int) callconv(.c) void {
     // Scratchpad slot 0 holds the packet cursor as a 4-byte guest address.

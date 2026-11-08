@@ -1,10 +1,10 @@
-//! Equips a battle actor's blade and shield weapons (src/BATTLE/BATTLE.PRG/146C.c).
+//! Equips a battle actor's blade and shield weapons (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007CA20 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007CA20 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Equips the blade and shield weapons on battle actor `actorId`, if that slot holds an actor.
 pub fn func_8007CA20(actorId: c_int, bladeWepId: c_int, shieldWepId: c_int) callconv(.c) void {
     // vs_battle_actors[actorId]: the C does not bounds-check the index.

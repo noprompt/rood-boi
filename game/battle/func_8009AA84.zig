@@ -1,9 +1,9 @@
-//! Releases weapon model slot `index`: its offsets block (unless another model shares it), its texture references, and the slot itself (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Releases weapon model slot `index`: its offsets block (unless another model shares it), its texture references, and the slot itself (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009AA84 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009AA84 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Releases weapon model slot `index`; returns -1 if the slot is empty.
 pub fn func_8009AA84(index: c_int) callconv(.c) c_int {
     const slot = psx.at(v.g.vs_battle_wepModels(), index);

@@ -1,11 +1,11 @@
 //! Object slot release: frees a battle object's model data and clears its slot
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009CFB0 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009CFB0 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Releases object slot `slot`: frees its model data unless another slot shares it, then clears the slot. Returns -1 for an empty slot.
 pub fn func_8009CFB0(slot: c_int) callconv(.c) c_int {
     if (slot >= 0x11) return -1;

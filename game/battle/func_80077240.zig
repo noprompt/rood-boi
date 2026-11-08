@@ -1,11 +1,11 @@
 //! The battle actor a slot is filled with: its stats, its weapon and shield
-//! slots, and its equipped category (src/BATTLE/BATTLE.PRG/146C.c).
+//! slots, and its equipped category (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80077240 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80077240 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Allocates and sets up the battle actor for slot `arg0`, equipping its blade and shield unless `arg1` is 0x7F.
 pub fn func_80077240(arg0: c_int, arg1: c_int, bladeWepId: c_int, bladeMaterial: c_int, shieldWepId: c_int, shieldMaterial: c_int, arg6: ?*v.vs_battle_objectData_flags, arg7: c_int) callconv(.c) ?*v.vs_battle_actor_dat {
     if (psx.at(v.g.vs_battle_actors(), arg0).* != null) return null;

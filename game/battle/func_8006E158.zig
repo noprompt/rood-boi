@@ -1,4 +1,4 @@
-//! Battle camera: the right-stick and L1/R1 turn and zoom state (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle camera: the right-stick and L1/R1 turn and zoom state (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -10,7 +10,7 @@ fn cameraInputLocked() bool {
     return phase == 3 or (phase == 2 and (mode == 4 or mode == 11));
 }
 
-/// orig: func_8006E158 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006E158 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Advances the battle camera one frame: turns it, zooms it and eases its distance.
 pub fn func_8006E158() callconv(.c) void {
     const cam = v.g.vs_battle_cameraCurrentSpherical();

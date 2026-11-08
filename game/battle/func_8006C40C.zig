@@ -1,9 +1,9 @@
-//! Clears the battle CLUT state and the overlay's flag at D_800F1968 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears the battle CLUT state and the overlay's flag at D_800F1968 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006C40C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C40C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the battle CLUT state and the battle overlay's flag at D_800F1968.
 pub fn func_8006C40C() callconv(.c) void {
     c.vs_main_setClutState(1);

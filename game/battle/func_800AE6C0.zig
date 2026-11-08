@@ -1,9 +1,9 @@
-//! Plays the sound effect for a source actor, with its pan, and an optional second copy (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Plays the sound effect for a source actor, with its pan, and an optional second copy (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const psx = @import("common").psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AE6C0 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AE6C0 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Plays sound `sfx` for `owner`'s slot, panned by its position, and `altSfx` too when nonzero.
 pub fn func_800AE6C0(arg0: ?*v.D_800F4538_t, arg1: c_int, arg2: c_int) callconv(.c) void {
     // Array index is unchecked: the C indexes D_800F4538 by a u8.

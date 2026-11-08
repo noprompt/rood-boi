@@ -180,7 +180,7 @@ def snake(name):
 
 
 def eligible(row):
-    if not row["file"].startswith("src/BATTLE/") or not row["file"].endswith(".c"):
+    if not row["file"].startswith("pc/src/game/BATTLE/") or not row["file"].endswith(".c"):
         return f"not a battle C unit ({row['file']})"
     if not row["kind"].startswith("c"):
         return f"not portable C ({row['kind']})"
@@ -1427,7 +1427,7 @@ def select(args, rows):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("functions", nargs="*")
-    parser.add_argument("--unit", help="every portable function of a unit (146C or src/BATTLE/BATTLE.PRG/146C.c)")
+    parser.add_argument("--unit", help="every portable function of a unit (146C or pc/src/game/BATTLE/BATTLE.PRG/146C.c)")
     parser.add_argument("--difficulty", help="with --unit: only these difficulties (S,M,L,XL)")
     parser.add_argument("--limit", type=int, help="with --unit: at most this many functions")
     parser.add_argument("--model", default=DEFAULT_MODEL)

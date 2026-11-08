@@ -1,9 +1,9 @@
-//! Unpacks two fields of arg0[1] into the table at D_800F4B28 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Unpacks two fields of arg0[1] into the table at D_800F4B28 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 
-/// orig: func_800B9724 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B9724 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Writes two bytes of the table at D_800F4B28, selected by the top bits of arg0[1].
 pub fn func_800B9724(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     const table: [*]u16 = v.g.D_800F4B28();

@@ -1,10 +1,10 @@
-//! The target cursor's step (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The target cursor's step (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C4794 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C4794 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Moves the targeting cursor (D_800EB9B8) by the right stick or the d-pad: its height while picking a height
 /// (or holding R2), else along the ground relative to the camera, kept on the collision map; cross toggles the
 /// height pick, triangle cancels (1). Writes the cursor's point into `point`; returns 1 to confirm or cancel.

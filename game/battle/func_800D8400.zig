@@ -1,10 +1,10 @@
-//! Steps a movement position one tile toward a direction, or toward the nearer of two (src/BATTLE/BATTLE.PRG/6FC00.c).
+//! Steps a movement position one tile toward a direction, or toward the nearer of two (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6FC00");
 const c = @import("c_6FC00");
 
-/// orig: func_800D8400 (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: func_800D8400 (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Tries a step from the state's position toward a direction (or the nearer of two), returning the reached position's raw bits.
 pub fn func_800D8400(state: ?*v.func_800D8400_t, first: c_int, second: c_int, dir_in: c_uint) callconv(.c) c_uint {
     if (state.?.disabled != 0) return 0;

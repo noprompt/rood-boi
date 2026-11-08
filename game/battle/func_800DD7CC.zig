@@ -1,22 +1,22 @@
-//! Finds the nearest enabled waypoint to a state's position and writes its cell to a destination (src/BATTLE/BATTLE.PRG/74088.c).
+//! Finds the nearest enabled waypoint to a state's position and writes its cell to a destination (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: nearestWaypointAddress (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: nearestWaypointAddress (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// `row + index`, unchecked (a file-scope static inline).
 fn nearestWaypointAddress(row: [*]u16, index: c_int) *u16 {
     return psx.at(row, index);
 }
 
-/// orig: nearestWaypointValue (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: nearestWaypointValue (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// `row[index]`, unchecked (a file-scope static inline).
 fn nearestWaypointValue(row: [*]u16, index: c_int) c_uint {
     return psx.at(row, index).*;
 }
 
-/// orig: func_800DD7CC (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DD7CC (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Scans the eight waypoint slots and writes the cell of the nearest enabled one to destination.
 pub fn func_800DD7CC(state: ?*v.nearestWaypointState, destination: ?*v.nearestWaypointDestination) callconv(.c) void {
     var closest: c_uint = 0xFFFF_FFFF;

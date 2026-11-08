@@ -1,10 +1,10 @@
 //! Builds the effect transform states of an effect from its definitions
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CFEF0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CFEF0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Fills each effect transform state from its definition: rotation, the actor and bone it is attached to, and its target.
 pub fn func_800CFEF0(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
     var i: c_int = 0;

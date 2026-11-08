@@ -1,8 +1,8 @@
-//! Clamps a camera position into the zone bounds (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clamps a camera position into the zone bounds (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: _clampPositionToZoneBounds (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _clampPositionToZoneBounds (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clamps the XZ position into the zone bounds, inset by the camera's entity radius, and sets Y from the look-at height.
 pub fn clampPositionToZoneBounds(inPos: ?*v.VECTOR, outPos: ?*v.VECTOR) callconv(.c) void {
     const in = inPos.?;

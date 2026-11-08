@@ -1,7 +1,7 @@
-//! Map completion percentage from the room flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Map completion percentage from the room flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 
-/// orig: vs_battle_getMapCompletion (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_getMapCompletion (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the map-complete flag on room word 1 and returns the percentage of map flags set.
 pub fn getMapCompletion() callconv(.c) c_int {
     const status = v.g.vs_main_mapStatus();

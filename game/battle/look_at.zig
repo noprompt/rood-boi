@@ -1,4 +1,4 @@
-//! A look-at rotation from one point to another (src/BATTLE/BATTLE.PRG/146C.c).
+//! A look-at rotation from one point to another (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -6,7 +6,7 @@ const c = @import("c_146C");
 /// orig: D_800689F8 (vs_battle_lookAt's `static const VECTOR`; GCC folded it, PORTING.md §6.3): up is -y.
 const up = v.VECTOR{ .vx = 0, .vy = -4096, .vz = 0, .pad = 0 };
 
-/// orig: vs_battle_lookAt (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_lookAt (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The rotation whose columns are the side (forward x up), the up (side x forward) and the forward direction
 /// (to - from), each normalised with VectorNormal.
 pub fn lookAt(from: ?*v.VECTOR, to: ?*v.VECTOR, mat: ?*v.MATRIX) callconv(.c) void {

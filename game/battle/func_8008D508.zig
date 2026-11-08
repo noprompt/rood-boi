@@ -1,8 +1,8 @@
-//! Room section 13 lookup (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section 13 lookup (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_8008D508 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008D508 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Finds the room section 13 record whose unk0, unk2 and unk4 equal arg0, arg1 and arg2; null if none.
 pub fn func_8008D508(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v._mpdRoomSection13 {
     const section = psx.get(v.g.vs_battle_roomData().section13);

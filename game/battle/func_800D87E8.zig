@@ -1,4 +1,4 @@
-//! Actor relation update: distance, range and height gates, view, line-of-sight blocking and the kind timer toward actor `id` (src/BATTLE/BATTLE.PRG/6FC00.c).
+//! Actor relation update: distance, range and height gates, view, line-of-sight blocking and the kind timer toward actor `id` (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6FC00");
@@ -25,7 +25,7 @@ fn relationStates(id: c_int) ?*v.actorRelationState {
     return @ptrFromInt(@as(usize, word));
 }
 
-/// orig: checkExtent (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: checkExtent (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Range test of the pair against the other state's extent (a file-scope static inline).
 fn checkExtent(from: *v.SVECTOR, to: *v.SVECTOR, state: *v.actorRelationState, id: c_int) c_int {
     const other = relationStates(id);
@@ -34,7 +34,7 @@ fn checkExtent(from: *v.SVECTOR, to: *v.SVECTOR, state: *v.actorRelationState, i
     return c.func_800E44E8(@ptrCast(from), @ptrCast(to), extent, @as(c_int, state.extent));
 }
 
-/// orig: checkHeight (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: checkHeight (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Height test of the pair against the other state's height (a file-scope static inline).
 fn checkHeight(from: *v.SVECTOR, to: *v.SVECTOR, state: *v.actorRelationState, id: c_int) c_int {
     const other = relationStates(id);
@@ -48,7 +48,7 @@ fn checkHeight(from: *v.SVECTOR, to: *v.SVECTOR, state: *v.actorRelationState, i
     return c.func_800E44E8(@ptrCast(from), @ptrCast(to), height, own);
 }
 
-/// orig: func_800D87E8 (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: func_800D87E8 (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Updates actor `state`'s relation toward actor `id`: range, view, blocking and kind timer.
 pub fn func_800D87E8(state: ?*v.actorRelationState, id: c_int) callconv(.c) void {
     const s = state.?;

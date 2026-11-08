@@ -1,12 +1,12 @@
 //! Advances a battle actor's state by its mode field (bits 28..30 of the flags
 //! word at offset 8), with the shared tails of the C's gotos
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A2CD4 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A2CD4 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Runs one step of the actor's mode machine: its state change, sound and tile bookkeeping.
 pub fn func_800A2CD4(arg0: ?*v.D_800F4538_t) callconv(.c) void {
     const a = arg0.?;
@@ -83,7 +83,7 @@ pub fn func_800A2CD4(arg0: ?*v.D_800F4538_t) callconv(.c) void {
     }
 }
 
-/// orig: block_10 (src/BATTLE/BATTLE.PRG/3A1A0.c, label inside func_800A2CD4)
+/// orig: block_10 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c, label inside func_800A2CD4)
 /// Common tail of modes 1 and 3: clears the flag, runs the tile calls and sets mode 0.
 fn block10(a: *v.D_800F4538_t) void {
     psx.setBits(&a.unk0, "unkA_5", 0);
@@ -93,14 +93,14 @@ fn block10(a: *v.D_800F4538_t) void {
     psx.setBits(&a.unk0, "unkB_4", 0);
 }
 
-/// orig: block_16/block_17 (src/BATTLE/BATTLE.PRG/3A1A0.c, labels inside func_800A2CD4)
+/// orig: block_16/block_17 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c, labels inside func_800A2CD4)
 /// Common tail of modes 2, 4 and 5: a sound call and mode 0.
 fn block17(a: *v.D_800F4538_t) void {
     _ = c.func_800A0204(a.unk0.unkF, 1, 0, 8);
     psx.setBits(&a.unk0, "unkB_4", 0);
 }
 
-/// orig: block_21 (src/BATTLE/BATTLE.PRG/3A1A0.c, label inside func_800A2CD4)
+/// orig: block_21 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c, label inside func_800A2CD4)
 /// Clears the mode field of the flags word.
 fn block21(a: *v.D_800F4538_t) void {
     psx.setBits(&a.unk0, "unkB_4", 0);

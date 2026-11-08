@@ -1,9 +1,9 @@
-//! Frees the gim_t block at D_800EB9BC and its three sub-images (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Frees the gim_t block at D_800EB9BC and its three sub-images (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C86AC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C86AC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Releases the gim_t block at D_800EB9BC once its image header is marked done, and clears the pointer.
 pub fn func_800C86AC() callconv(.c) void {
     const base: ?*v.gim_t = v.g.D_800EB9BC().*;

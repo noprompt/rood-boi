@@ -1,10 +1,10 @@
-//! Steps an idle or walking actor one tile along its facing (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Steps an idle or walking actor one tile along its facing (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009E634 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009E634 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Requests a one-tile step along the actor's facing for its current animation, unless the actor is skipping or the animation excludes it.
 pub fn func_8009E634(arg0: ?*v.D_800F4538_t) callconv(.c) void {
     const actor = arg0.?;

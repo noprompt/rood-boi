@@ -1,11 +1,11 @@
 //! Per-frame update of the battle unit's bone pose and its copy of the
-//! previous pose (src/BATTLE/BATTLE.PRG/44F14.c).
+//! previous pose (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AF6E8 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AF6E8 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Advances the unit's pose animation one step, or copies the current pose into the working copy when no step is due.
 pub fn func_800AF6E8(unit_opt: ?*v.D_800F4538_t) callconv(.c) void {
     const unit = unit_opt.?;

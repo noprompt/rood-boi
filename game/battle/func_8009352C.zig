@@ -1,11 +1,11 @@
 //! Passes the room's section 14 buffer to the battle section loader, then records the count
-//! (src/BATTLE/BATTLE.PRG/2842C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009352C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009352C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Runs the section 14 loader with the count from arg1 and stores that count in D_800F2258 when section 14 is present.
 pub fn func_8009352C(_: ?*v.func_80092F74_t, arg1: ?*v.func_80092F74_t2) callconv(.c) c_int {
     if (psx.get(v.g.vs_battle_roomData().section14)) |section| {

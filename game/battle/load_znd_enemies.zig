@@ -1,10 +1,10 @@
-//! Loads the zone's ZND enemy tables into heap blocks (src/BATTLE/BATTLE.PRG/146C.c).
+//! Loads the zone's ZND enemy tables into heap blocks (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _loadZndEnemies (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadZndEnemies (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the zone's enemy count, zud file table and enemy records into heap blocks; clears both pointers when there are none.
 pub fn loadZndEnemies(data: [*c]c_int, _: c_int) callconv(.c) void {
     const zc = v.g._zoneContext();

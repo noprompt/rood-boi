@@ -1,10 +1,10 @@
-//! Builds a scaled rotation matrix in the scratchpad from three scale bytes and an angle (src/BATTLE/BATTLE.PRG/573B8.c).
+//! Builds a scaled rotation matrix in the scratchpad from three scale bytes and an angle (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_573B8");
 const c = @import("c_573B8");
 
-/// orig: func_800C085C (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800C085C (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Builds the rotation for `angle`, applies the per-axis scale bytes to it, and returns the transposed matrix in the scratchpad.
 pub fn func_800C085C(scale: [*c]u8, angle: c_int) callconv(.c) ?*v.MATRIX {
     const scratch: [*]i16 = @ptrFromInt(0x1F800350);

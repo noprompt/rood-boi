@@ -1,8 +1,8 @@
-//! Chooses the battle slot (D_800F45E0) that best matches a given entry (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Chooses the battle slot (D_800F45E0) that best matches a given entry (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009F794 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009F794 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Returns the index of the live slot with the same tag whose field 0x1E is the largest value not above arg0's, or -1.
 pub fn func_8009F794(arg0: ?*v.D_800F45E0_t) callconv(.c) c_int {
     var best: c_int = -0x7530;

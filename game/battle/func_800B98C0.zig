@@ -1,12 +1,12 @@
 //! Sets up a room door section from the script bytes at `arg0`
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B98C0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B98C0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Builds a room door section from its script bytes and runs the door setup; returns 0 once the state completes, else 1.
 pub fn func_800B98C0(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     // uninitialised in the original (stack); zeroed here.

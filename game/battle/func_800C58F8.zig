@@ -1,4 +1,4 @@
-//! The battle target-selection menu: moves the cursor, fills the description box and reports the chosen target (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The battle target-selection menu: moves the cursor, fills the description box and reports the chosen target (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -258,7 +258,7 @@ fn caseNineteen(target: [*c]u8) void {
     _ = c.vs_battle_setTextBox(7, @ptrCast(psx.byteAt(u8, battleState(), 0x4A54)));
 }
 
-/// orig: func_800C58F8 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C58F8 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Runs one frame of the target-selection menu, writing the highlighted target to `target`; returns 1 when the menu closes.
 pub fn func_800C58F8(target: [*c]u8) callconv(.c) c_int {
     if (target == null) {

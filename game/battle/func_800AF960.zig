@@ -1,8 +1,8 @@
-//! Steps two per-slot counters of the 44F14 unit's state block toward their targets (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Steps two per-slot counters of the 44F14 unit's state block toward their targets (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const psx = @import("common").psx;
 const v = @import("views_44F14");
 
-/// orig: func_800AF960 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AF960 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Moves a fraction of the remaining value of two pairs of counters at `arg0.unk1864` each frame, and masks the angle at unk8 to 12 bits.
 pub fn func_800AF960(arg0: ?*v.D_800F45E0_t) callconv(.c) void {
     const a2 = &arg0.?.unk1864;

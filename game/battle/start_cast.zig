@@ -1,4 +1,4 @@
-//! The action's cast started: its animation, sound and effect request (src/BATTLE/BATTLE.PRG/146C.c).
+//! The action's cast started: its animation, sound and effect request (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
@@ -21,7 +21,7 @@ fn target(k: c_int) isize {
     return if (k < 0) source_offset else targets_offset + @as(isize, k) * target_size;
 }
 
-/// orig: func_8007138C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007138C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Starts the current link's cast: the ability input reset (attempted when the player is under status 0x8000); a
 /// plain action is released at once (func_80070278). Otherwise the caster turns and sounds by the action's kind,
 /// and the effect request is built (the caster's part, each target's part or position, every other enemy as a

@@ -1,9 +1,9 @@
-//! An event script opcode that sets or clears a pair of an actor's four-byte settings (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that sets or clears a pair of an actor's four-byte settings (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B8788 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B8788 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8009F940 for the actor of getShort(script + 1) with flag 1, script[3..6] and
 /// script[7..9], or with flag 0 and no pointers when script[7..9] are all 0.
 pub fn func_800B8788(script: [*c]u8, _: c_short) callconv(.c) c_int {

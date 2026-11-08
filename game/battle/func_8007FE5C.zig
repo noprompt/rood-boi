@@ -1,11 +1,11 @@
 //! Hit scaling from the gems on the attacker's weapon and the target's shield
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007FE5C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007FE5C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Scales `arg1` by 100 plus 5 for a weapon gem and minus 5 for a shield gem, depending on the action's kind.
 pub fn func_8007FE5C(action: ?*v.vs_action_t, arg1: c_short, arg2: ?*v.vs_battle_actor2, arg3: ?*v.vs_battle_actor2) callconv(.c) c_short {
     var var_t0: c_int = 100;

@@ -1,9 +1,9 @@
-//! Finds another battle object in the same group and model that already has data to share (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Finds another battle object in the same group and model that already has data to share (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009BD90 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009BD90 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Points the object's dataAddr at a matching other object's slot and returns 1, or returns 0 if none matches.
 pub fn func_8009BD90(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const obj = arg0.?;

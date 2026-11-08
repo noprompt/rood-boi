@@ -1,9 +1,9 @@
-//! Shifts class affinity between two classes on the shield and on each equipped armor (src/BATTLE/BATTLE.PRG/146C.c).
+//! Shifts class affinity between two classes on the shield and on each equipped armor (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80086EF4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80086EF4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves `amount` of class affinity from class `second` to class `first` on the shield and on each armor that has an item.
 pub fn func_80086EF4(actor: ?*v.vs_battle_actor2, first: c_int, second: c_int, amount: c_int) callconv(.c) void {
     const self = actor.?;

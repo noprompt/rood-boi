@@ -1,7 +1,7 @@
-//! Clears the battle's per-frame render and colour state (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears the battle's per-frame render and colour state (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 
-/// orig: func_8007D360 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007D360 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the battle's scalar, colour and vector state to their defaults.
 pub fn func_8007D360() callconv(.c) void {
     v.g.D_800F1B98().* = 0;

@@ -1,11 +1,11 @@
 //! Palette fade for a battle actor's or object's colour table: steps the fade
-//! value, blends the colours and loads the CLUT (src/BATTLE/BATTLE.PRG/40564.c).
+//! value, blends the colours and loads the CLUT (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AB788 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AB788 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Steps an actor's (or object's) palette fade, blends its colours and loads the CLUT.
 pub fn func_800AB788(actor: [*c]u8, object: [*c]u8, _: c_int) callconv(.c) void {
     // With no actor the fade and colours belong to the object; otherwise to the actor.

@@ -1,5 +1,5 @@
 //! Candidate movement choice for one target: whether the actor moves toward it
-//! (src/BATTLE/BATTLE.PRG/71618.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
@@ -10,7 +10,7 @@ extern fn vs_gte_rsqrt(x: c_uint) c_int;
 
 const Label = enum { normal, move, case2, case4, case7 };
 
-/// orig: func_800D9E18 (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800D9E18 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Decides whether the candidate movement state moves toward the entry's target; returns 1 when it does.
 pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandidateEntry) callconv(.c) c_int {
     const st = state.?;

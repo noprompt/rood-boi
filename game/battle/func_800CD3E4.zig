@@ -1,4 +1,4 @@
-//! Draws a text box's speech-bubble frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws a text box's speech-bubble frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -21,7 +21,7 @@ fn link(prim: [*c]c_uint) c_uint {
     return (psx.addr(prim) << 8) >> 8;
 }
 
-/// orig: func_800CD3E4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CD3E4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Box `index`'s bubble shape (D_800EB588, by its shape number): its outline points scaled into the box (the
 /// tail part's points relative to its anchor), the outline as tiles (through the tail when shown), and its
 /// textured faces with their shadows. ROOD_PC: the talk bubble's frame hook.

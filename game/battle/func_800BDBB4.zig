@@ -1,11 +1,11 @@
 //! Steps a timed interpolation and writes its current position
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BDBB4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BDBB4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Advances a timed interpolation by half a tick, writes its position, and returns 1 while it runs (0 when idle).
 pub fn func_800BDBB4(arg0: ?*v.func_800BDBB4_t) callconv(.c) c_int {
     const p = arg0.?;

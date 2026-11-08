@@ -1,9 +1,9 @@
-//! Clears one bit in the i32 flag array at D_800F5320 (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Clears one bit in the i32 flag array at D_800F5320 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800CF514 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF514 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Clears flag bit `arg0` in the word array D_800F5320 (the word index rounds toward zero for negative bits).
 pub fn func_800CF514(arg0: c_int) callconv(.c) void {
     const ptr = v.g.D_800F5320();

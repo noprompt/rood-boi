@@ -15,7 +15,7 @@
  *               records are not here: they live in MENUD's storage, filled
  *               only while the Container screen runs.
  *   workshop    vs_battle_inWorkshop and MENUC's _workshopMaterials
- *               (pc_menuC_workshop_materials, src/MENU/MENUC.PRG/168.c).
+ *               (pc_menuC_workshop_materials, pc/src/game/MENU/MENUC.PRG/168.c).
  *   combine     MENUC's own _combineBlades / _combineShields / _combineArmor
  *               (pc_menuC_combine, 168.c) on copies of the two records, into
  *               a buffer prepared as _setCombineBladeUi / _initCombineShields
@@ -35,10 +35,10 @@
  * byte for byte as it was. This unit's own statics are host state
  * (.data.rood_host): a query changes no save state either. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
-#include "../../../src/MENU/MAINMENU.PRG/C48.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
+#include "../../../pc/src/game/MENU/MAINMENU.PRG/C48.h"
 #include "build/assets/MENU/ITEMHELP.BIN.h"
 #include "build/assets/MENU/ITEMNAME.BIN.h"
 #include "build/assets/MENU/MENU12.BIN.h"
@@ -55,7 +55,7 @@ int pc_ui_text_decode(const unsigned char* text, int max_bytes, char* out, int o
 void pc_ui_items_describe(int c, int index, pc_ui_item_details* d);                       /* items_bridge.c */
 int pc_ui_item_record_id(int category, int i);                                            /* equip_bridge.c */
 int pc_weapon_slots_get(int weapon_index);                                                /* weapon_slots.c */
-/* src/MENU/MENUC.PRG/168.c (ROOD_PC) */
+/* pc/src/game/MENU/MENUC.PRG/168.c (ROOD_PC) */
 void* pc_menuC_combine(int kind, void* first, void* second, void* result, void* sydData);
 int pc_menuC_workshop_materials(int w);
 

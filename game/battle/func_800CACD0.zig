@@ -1,9 +1,9 @@
-//! Opens the battle menu on a shortcut or menu change, setting up its item buffers and menu flags once (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Opens the battle menu on a shortcut or menu change, setting up its item buffers and menu flags once (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CACD0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CACD0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Opens the battle menu into `menuState` when the menu is idle; otherwise plays the invalid sound.
 pub fn func_800CACD0(menuState: c_int, arg1: c_int) callconv(.c) c_int {
     if (v.g.vs_battle_menuState().currentMenu == 0x3F) {

@@ -1,9 +1,9 @@
 //! Calls the 146C battle setup steps and runs the rest only while the
-//! D_800F18EC state's first byte is not 1 (src/BATTLE/BATTLE.PRG/146C.c).
+//! D_800F18EC state's first byte is not 1 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007B834 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B834 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the setup step, then the follow-up steps unless the state's unk0 is 1.
 pub fn func_8007B834() callconv(.c) void {
     c.func_800C97BC();

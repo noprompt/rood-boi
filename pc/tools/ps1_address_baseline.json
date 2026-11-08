@@ -1,0 +1,9 @@
+{
+ "ps1_address": 100,
+ "scratchpad": 1020,
+ "unnamed_symbol": 28365,
+ "guest_pointer_field": 282,
+ "guest_pointer_access": 2921,
+ "address_as_integer": 606,
+ "zig_raw_memory": 1433
+}

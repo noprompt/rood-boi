@@ -1,9 +1,9 @@
-//! Resets a battle entity slot (D_800F4538) to its spawn state (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Resets a battle entity slot (D_800F4538) to its spawn state (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009D468 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009D468 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Resets the entity in slot `index` of D_800F4538 to its spawn state, if the slot is in use.
 pub fn func_8009D468(index: c_int, _: c_int) callconv(.c) void {
     if (psx.get(psx.at(v.g.D_800F4538(), index).*)) |slot| {

@@ -1,7 +1,7 @@
 /* The Room Browser's warp, game side (host side and design: room_catalog.c).
  * Compiled with the game headers; the src hooks (ROOD_PC) call these. */
 #include "common.h"
-#include "../../src/BATTLE/BATTLE.PRG/146C.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 
 extern char D_800F4C34; /* an event script is running */
 extern short D_800F4BE2;

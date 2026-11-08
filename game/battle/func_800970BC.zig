@@ -1,11 +1,11 @@
 //! Queues a textured quad at the D_800F2280 position into the ordering table
-//! named by the scratchpad (src/BATTLE/BATTLE.PRG/2842C.c).
+//! named by the scratchpad (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_800970BC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800970BC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Builds the quad's FT4 primitive at the scratchpad's next-primitive slot and links it into the ordering table.
 pub fn func_800970BC() callconv(.c) void {
     const head: *u32 = @ptrFromInt(0x1F800000);

@@ -1,9 +1,9 @@
 //! Frees the background layout block and closes its companion state
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008F234 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008F234 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears the flag, and if a background layout is held, closes it, frees it and returns 1; otherwise returns 0.
 pub fn func_8008F234() callconv(.c) c_int {
     v.g.D_800F1DC9().* = 0;

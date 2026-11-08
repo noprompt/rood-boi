@@ -1,4 +1,4 @@
-//! Applies an action's stat changes to the actor they hit: reaction timers, counters and classifications (src/BATTLE/BATTLE.PRG/74088.c).
+//! Applies an action's stat changes to the actor they hit: reaction timers, counters and classifications (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
@@ -7,7 +7,7 @@ const c = @import("c_74088");
 const StateFn = *const fn (?*v.actionReactionState, c_int) callconv(.c) void;
 const StateFn1 = *const fn (?*v.actionReactionState) callconv(.c) void;
 
-/// orig: func_800DD000 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DD000 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Updates an actor's reaction state for each stat-change entry of an action that hit it.
 pub fn func_800DD000(state: ?*v.actionReactionState, app: ?*v.actionStatApplication) callconv(.c) void {
     const a = app orelse return;

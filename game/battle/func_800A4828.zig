@@ -1,10 +1,10 @@
 //! Hides a battle model while its matrix is set up, then restores its visibility
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A4828 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A4828 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Sets model slot `index` up with `matrix` while it is hidden, then restores its visibility.
 pub fn func_800A4828(index: c_int, matrix: ?*v.MATRIX) callconv(.c) void {
     const temp = psx.at(v.g.D_800F4538(), index).*.?;

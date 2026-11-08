@@ -1,10 +1,10 @@
-//! Decodes the packed animation stream into an SVECTOR's deltas (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Decodes the packed animation stream into an SVECTOR's deltas (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AFDE8 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AFDE8 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Advances an SVECTOR's animation stream over the scratchpad's frame range, applying each frame's deltas.
 pub fn func_800AFDE8(offset: c_int, value: ?*v.SVECTOR, rotation: c_int) callconv(.c) void {
     const mem = struct {

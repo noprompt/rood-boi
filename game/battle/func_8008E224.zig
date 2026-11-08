@@ -1,10 +1,10 @@
-//! Sets a room section 12 entry's state and mirrors it into the word its id selects (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets a room section 12 entry's state and mirrors it into the word its id selects (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008E224 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E224 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Stores `arg1 - 1` as entry `arg0`'s state and sets or clears bit 0x100 of the word its id finds.
 pub fn func_8008E224(arg0: c_int, arg1: c_int) callconv(.c) void {
     if (psx.get(v.g.vs_battle_roomData().section12)) |section12| {

@@ -1,9 +1,9 @@
 //! Effect slot dispatch for a script packet: arg0[1] selects a template or a slot
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BAB14 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BAB14 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Dispatches the packet's slot byte: 0xFF clears through func_800434A4, bit 3 copies a template into the scratch block first, otherwise the slot's block is used directly.
 pub fn func_800BAB14(arg0: [*c]u8) callconv(.c) c_int {
     const a0: c_int = arg0[1];

@@ -1,10 +1,10 @@
-//! Requests an actor's weapon model (src/BATTLE/BATTLE.PRG/146C.c).
+//! Requests an actor's weapon model (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80077078 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80077078 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Requests object data type 1 for slot `index`, model `wepId`, the given flags, the actor's unk44 as its target,
 /// material 2 and variant 0; with arg4 bit 0x80 its actor id and unk11 come from arg4's bits 8..11 and 12..15,
 /// else the actor id is 0xFF. Returns the data slot.

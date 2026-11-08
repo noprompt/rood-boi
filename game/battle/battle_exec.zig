@@ -1,4 +1,4 @@
-//! Battle's main loop (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle's main loop (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -37,7 +37,7 @@ fn setCameraPosition() void {
     c._setCameraPositionFromAngles(psx.cptr(c._sphericalValues, &v.g.vs_battle_cameraCurrentSpherical().values));
 }
 
-/// orig: vs_battle_exec (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_exec (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Battle's main loop: one frame per pass of the innermost loop, never returns.
 pub fn battleExec() callconv(.c) void {
     var position: v.func_8006EBF8_t = undefined;

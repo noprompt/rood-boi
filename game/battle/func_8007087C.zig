@@ -1,9 +1,9 @@
-//! Battle block 146C: sets entity 29's armor vector from the lookup at func_800A1108 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle block 146C: sets entity 29's armor vector from the lookup at func_800A1108 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007087C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007087C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Looks up the vector for `state.unk4` and stores it in entity 29's armor vector, its x and z rotated by the vector's angle.
 pub fn func_8007087C(state: ?*v.D_800F19CC_t) callconv(.c) void {
     const s = state.?;

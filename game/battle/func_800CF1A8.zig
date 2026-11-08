@@ -1,9 +1,9 @@
-//! Frees each entry of the battle's linked list and its attached block (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Frees each entry of the battle's linked list and its attached block (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CF1A8 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF1A8 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Walks the battle's entry list, freeing each entry's attached block and then the entry.
 pub fn func_800CF1A8() callconv(.c) void {
     var cur: ?*v.D_800F53B8_t = v.g.D_800F53B8().*;

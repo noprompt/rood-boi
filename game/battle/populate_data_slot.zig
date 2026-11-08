@@ -1,7 +1,7 @@
-//! Stores a battle object data record in the first free slot of the 16-slot table (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Stores a battle object data record in the first free slot of the 16-slot table (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const v = @import("views_30DB0");
 
-/// orig: vs_battle_populateDataSlot (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battle_populateDataSlot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Copies `objectData` into the first slot whose dataType is 0 and returns its index, or -1 if none is free.
 pub fn populateDataSlot(objectData: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const slots = v.g.vs_battle_objectDataSlots();

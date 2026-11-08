@@ -1,11 +1,11 @@
 //! Target lookup for the da4bc state: tries the entry's target, then the state's own target
-//! (src/BATTLE/BATTLE.PRG/71618.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DA5CC (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DA5CC (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Resolves the state's target, returning 1 when a target was handled and 0 otherwise.
 pub fn func_800DA5CC(state: ?*v.da4bcState) callconv(.c) c_int {
     const s = state.?;

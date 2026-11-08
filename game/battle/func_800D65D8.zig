@@ -1,10 +1,10 @@
-//! An effect-script opcode: func_8009F898 on a kind-4 target (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect-script opcode: func_8009F898 on a kind-4 target (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D65D8 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D65D8 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// For a kind-4 unkC target: func_8009F898(its id's low byte, 1, value), or (.., 0, 0) when value is 0.
 pub fn func_800D65D8(script: ?*v.D_800F53B8_t, value: u8) callconv(.c) void {
     const s = script.?;

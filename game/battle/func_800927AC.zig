@@ -1,10 +1,10 @@
-//! Builds the per-entry table for a script block's ids (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Builds the per-entry table for a script block's ids (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_800927AC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800927AC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Allocates one entry per script id in `arg0`'s block, fills each from its id's record and points the block at the table.
 pub fn func_800927AC(arg0: ?*v.D_800F1DD8_t) callconv(.c) void {
     const a = arg0.?;

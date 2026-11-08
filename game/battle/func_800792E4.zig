@@ -1,11 +1,11 @@
 //! Battle actor slot step after a turn: removes a defeated actor or updates a live one
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800792E4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800792E4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Handles battle actor slot arg1: a defeated actor is removed (slot 0 ends the battle, returning 1), a live one is updated.
 pub fn func_800792E4(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int {
     var ret: c_int = 0;

@@ -1,8 +1,8 @@
-//! Bone matrix and armature lookup for a battle model (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Bone matrix and armature lookup for a battle model (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_800A11D8 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A11D8 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Copies bone `bone` of model `index` to `out_matrix` and its armature's first word to `out_armature`.
 pub fn func_800A11D8(index: c_int, bone: c_int, out_matrix: ?*v.MATRIX, out_armature: [*c]c_uint) callconv(.c) void {
     var model: ?*v.D_800F4538_t = psx.at(v.g.D_800F4538(), index).*;

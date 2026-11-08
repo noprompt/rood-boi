@@ -1,10 +1,10 @@
-//! Weapon affinity update after an action's class and armor changes (src/BATTLE/BATTLE.PRG/146C.c).
+//! Weapon affinity update after an action's class and armor changes (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80080F78 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80080F78 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies an action's class and armor affinity changes to the actor's blade, then recalculates its weapon class affinity.
 pub fn func_80080F78(action: ?*v.vs_action_t, arg1: ?*v.vs_battle_actor2, arg2: c_int, arg3: c_int) callconv(.c) void {
     const act = action.?;

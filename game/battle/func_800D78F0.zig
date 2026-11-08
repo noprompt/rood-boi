@@ -1,11 +1,11 @@
 //! Interpolates a block-9 vector and a curve value from the file's block 9, then passes both on
-//! (src/BATTLE/BATTLE.PRG/6F014.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6F014");
 const c = @import("c_6F014");
 
-/// orig: func_800D78F0 (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: func_800D78F0 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Lerps a block-9 vector and computes a curve value from block 9, then hands both to the next steps.
 pub fn func_800D78F0() callconv(.c) void {
     var sp10: v.VECTOR = undefined;

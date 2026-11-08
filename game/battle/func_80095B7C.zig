@@ -1,9 +1,9 @@
-//! Sets, clears or replaces flag bits in the per-index table D_800F2260 (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Sets, clears or replaces flag bits in the per-index table D_800F2260 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 
-/// orig: func_80095B7C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80095B7C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Sets, clears or replaces the low seven bits of D_800F2260[index]; index 0 fills the table with value.
 pub fn func_80095B7C(index: c_int, value: c_int) callconv(.c) void {
     if (index != 0) {

@@ -1,9 +1,9 @@
-//! Records the active-list indices of one actor group (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Records the active-list indices of one actor group (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800C5360 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C5360 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Appends the index of every actor in `group` to one of the two index lists, and records the group's first index and id.
 pub fn func_800C5360(group: c_int) callconv(.c) void {
     var first: c_int = 0;

@@ -1,11 +1,11 @@
 //! Turns an actor toward a target point and starts its pose animation
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009E2E0 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009E2E0 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Faces actor `slot` toward `target` (phase 0 only) and starts its pose animation for `phase`.
 pub fn func_8009E2E0(slot: c_int, target: ?*v.SVECTOR, phase: c_int) callconv(.c) void {
     const sp10 = [2]u8{ 0x55, 0x58 };

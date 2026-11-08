@@ -1,11 +1,11 @@
 //! Marks one battle entry's flag byte and reloads its palette on first use
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009FD5C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009FD5C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Sets flag bit (7 - arg2) of entry arg0's flag byte (all bits for -1), reloading its CLUT on first use.
 pub fn func_8009FD5C(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) c_int {
     const a3 = psx.at(v.g.D_800F4538(), arg0).*;

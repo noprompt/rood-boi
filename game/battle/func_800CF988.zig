@@ -1,10 +1,10 @@
 //! Sets the frame page on record 1 and draws the four records of a quad at their
-//! left edge (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! left edge (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CF988 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF988 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Finds the leftmost of four records, sets record 1's page from the frame buffer and passes each record to func_800CF92C.
 pub fn func_800CF988(arg0: ?*v.func_800CF988_t, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) void {
     const a = arg0.?;

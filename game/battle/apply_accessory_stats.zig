@@ -1,10 +1,10 @@
-//! Fills a UI accessory record from an accessory intermediate: the equipment copy, current stats, drop rate, index and widened per-slot tables (src/BATTLE/BATTLE.PRG/146C.c).
+//! Fills a UI accessory record from an accessory intermediate: the equipment copy, current stats, drop rate, index and widened per-slot tables (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _applyAccessoryStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _applyAccessoryStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies an accessory's equipment into a UI accessory and widens its types, classes and affinities to 16 bits.
 pub fn applyAccessoryStats(target: ?*v.vs_battle_uiAccessory, source: ?*v._accessoryIntermediate) callconv(.c) void {
     const t = target.?;

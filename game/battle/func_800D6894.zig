@@ -1,10 +1,10 @@
 //! The battle queue step: runs the handler for a queued entry's kind when its
-//! tag matches the current state, then retires the entry (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! tag matches the current state, then retires the entry (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D6894 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D6894 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Dispatches queue entry `arg1` by its kind when its tag matches `arg0`'s, then retires it through func_800D5780.
 pub fn func_800D6894(arg0: ?*v.D_800F53B8_t, arg1: ?*v.func_800D5780_t) callconv(.c) c_int {
     // The entry pointer is a u32* in the PS1 layout: the offset is scaled by 4 (pointer minus int).

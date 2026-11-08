@@ -18,7 +18,7 @@
  * it). The flags, the room and the sounds come from
  * pc/assets/cutscenes/story.json (pc/tools/story_scan.py). */
 #include "common.h"
-#include "../../src/BATTLE/BATTLE.PRG/146C.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "host_format.h"
 #include <string.h>
 

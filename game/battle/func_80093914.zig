@@ -1,9 +1,9 @@
-//! Swaps paired bytes in the two entry tables of a room section block (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Swaps paired bytes in the two entry tables of a room section block (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80093914 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093914 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Swaps the byte pairs of the two tables in the room section block that `func_8009195C(arg0)` locates.
 pub fn func_80093914(arg0: c_int) callconv(.c) void {
     // C reads the base before calling func_8009195C; the base is a guest address, used as integer arithmetic.

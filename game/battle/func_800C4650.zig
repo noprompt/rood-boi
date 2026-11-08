@@ -1,11 +1,11 @@
 //! Walks an array of 24-byte entries and dispatches each entry with a zero high
-//! nibble in its type byte (src/BATTLE/BATTLE.PRG/5BE50.c).
+//! nibble in its type byte (pc/src/game/BATTLE/BATTLE.PRG/5BE50.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BE50");
 const c = @import("c_5BE50");
 
-/// orig: func_800C4650 (src/BATTLE/BATTLE.PRG/5BE50.c)
+/// orig: func_800C4650 (pc/src/game/BATTLE/BATTLE.PRG/5BE50.c)
 /// Runs the entries of an array whose type byte has a zero high nibble, through one of two handlers chosen by a lookup.
 pub fn func_800C4650(arg0: ?*v.func_800C4650_t, arg1: c_int) callconv(.c) void {
     var i: c_int = 0;

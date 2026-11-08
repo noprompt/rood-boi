@@ -1,11 +1,11 @@
 //! Sets a battle slot's tile and facing from a position record, and its state
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AA108 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA108 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Stores arg2 as the slot's state and moves the slot to the tile and facing in `fields`.
 pub fn func_800AA108(arg0: c_int, arg1: ?*v.func_8006EBF8_t_fields, arg2: c_int, arg3: c_int) callconv(.c) void {
     const temp_s0 = psx.at(v.g.D_800F4538(), arg0).*;

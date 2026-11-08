@@ -1,11 +1,11 @@
 //! Resets the room's section-12 counters and writes the per-entry data of the
-//! room's section 12 into the function table (src/BATTLE/BATTLE.PRG/146C.c).
+//! room's section 12 into the function table (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008C538 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C538 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears the section-12 state, then applies each section-12 entry to its table slot and the room's counter-driven call.
 pub fn func_8008C538() callconv(.c) void {
     v.g.D_800F1D6E().* = 0;

@@ -1,4 +1,4 @@
-//! The battle menu's top level (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The battle menu's top level (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -16,7 +16,7 @@ fn menuText(index: c_int) [*c]u8 {
     return @ptrCast(psx.at(strings, psx.at(strings, index).*));
 }
 
-/// orig: func_800C930C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C930C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// `mode` nonzero opens the top-level menu (the remembered or first enabled row; ROOD_PC: the modern menu
 /// when it takes over); 0 steps it: the rows slide in, then up / down move over enabled rows, confirm returns
 /// the row + 1, cancel -1, and a disabled row explains itself in text box 7. ROOD_PC: fast travel's rows and

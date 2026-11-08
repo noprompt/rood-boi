@@ -1,11 +1,11 @@
 //! Battle slot check: matches a request against its slot's candidate list and
-//! cancels or keeps the entry (src/BATTLE/BATTLE.PRG/74088.c).
+//! cancels or keeps the entry (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: func_800DEB10 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DEB10 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Checks a request against its slot's candidate list and cancels or keeps the slot's entry.
 pub fn func_800DEB10(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
     const req = arg0 orelse return;

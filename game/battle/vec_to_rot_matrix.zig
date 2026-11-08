@@ -1,10 +1,10 @@
-//! Builds a rotation matrix from a direction vector (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Builds a rotation matrix from a direction vector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: _vecToRotMatrix (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vecToRotMatrix (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Rotation matrix `arg1` for the vector `arg0` (scaled down by 4096), from its yaw and pitch.
 pub fn vecToRotMatrix(arg0: ?*v.VECTOR, arg1: ?*v.MATRIX) callconv(.c) void {
     // pad fields are never written by the C: uninitialised stack bytes there.

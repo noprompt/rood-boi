@@ -1,8 +1,8 @@
-//! Battle actor lookup: copies a slot's tile, position and facing out (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle actor lookup: copies a slot's tile, position and facing out (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_800A1108 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A1108 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Copies the tile, position and facing of actor slot `arg0` into `arg1`; -1 if the slot is empty.
 pub fn func_800A1108(arg0: c_int, arg1: ?*anyopaque) callconv(.c) c_int {
     var found: ?*v.D_800F4538_t = psx.at(v.g.D_800F4538(), arg0).*;

@@ -1,4 +1,4 @@
-//! The floor height at a map point, blended with the neighbour tiles toward it (src/BATTLE/BATTLE.PRG/146C.c).
+//! The floor height at a map point, blended with the neighbour tiles toward it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ fn abs(x: c_int) c_int {
     return if (x >= 0) x else -%x;
 }
 
-/// orig: func_8008DA24 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008DA24 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The floor height (the map's base unk4 less twice the tile's 7-bit height, times 8) of the tile under (x, z),
 /// blended by NormalClip weights with the x and z neighbours on the point's side of the tile (a neighbour
 /// outside the map or 0x40 or more away counts as the tile itself); bit 7 of the tile goes to bit 15.

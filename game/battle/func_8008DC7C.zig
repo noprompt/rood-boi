@@ -1,10 +1,10 @@
-//! Reads the collision map value at a world position for the battle room (src/BATTLE/BATTLE.PRG/146C.c).
+//! Reads the collision map value at a world position for the battle room (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008DC7C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008DC7C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the collision map entry at world position (arg0, arg1), or 0x8000 outside the map.
 pub fn func_8008DC7C(arg0: c_int, arg1: c_int) callconv(.c) c_short {
     var var_a2: c_int = 0x8000;

@@ -1,8 +1,8 @@
-//! Copies a battle inventory blade's stats from a UI equipment record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies a battle inventory blade's stats from a UI equipment record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: vs_battle_copyUiBladeStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyUiBladeStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies an equipment's stats into a blade, masking the damage and cost types to their bitfield widths.
 pub fn copyUiBladeStats(target: ?*v.vs_main_inventoryBlade, source: ?*v.vs_battle_uiEquipment) callconv(.c) void {
     const t = target.?;

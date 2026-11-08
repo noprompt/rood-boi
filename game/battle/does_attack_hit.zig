@@ -1,11 +1,11 @@
-//! Whether an attack's hit lands (src/BATTLE/BATTLE.PRG/146C.c).
+//! Whether an attack's hit lands (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
 const HitFunction = *const fn (?*v.vs_action_t, ?*v._hitEntity_t, ?*v._hitEntity_t, c_int, c_int) callconv(.c) c_int;
 
-/// orig: _doesAttackHit (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _doesAttackHit (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The hit chance is 100 against an actor whose unk957 is 0x80, else the hit's _hitFunctions entry (0 for a spell
 /// on an actor with the top status bit); D_800F1A00 0 makes it 255 (sure). Below 255 it doubles on status 4 and
 /// caps at 100. The first hit, or one with no threshold yet (255), records it; then 1 when vs_main_getRand(100)

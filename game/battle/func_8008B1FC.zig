@@ -1,10 +1,10 @@
-//! Battle frame camera setup: room and camera capture, view matrix, and the camera's scratchpad pointers (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle frame camera setup: room and camera capture, view matrix, and the camera's scratchpad pointers (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008B1FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B1FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Captures the room and camera for lighting, loads the view matrix from the scratchpad camera, and runs the camera passes that follow it.
 pub fn func_8008B1FC(arg0: ?*anyopaque) callconv(.c) void {
     // ROOD_PC: lighting capture of world-space room geometry and this frame's camera.

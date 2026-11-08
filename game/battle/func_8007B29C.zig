@@ -1,7 +1,7 @@
-//! Battle CLUT transform for slots below 9, then the follow-up helper (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle CLUT transform for slots below 9, then the follow-up helper (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const c = @import("c_146C");
 
-/// orig: func_8007B29C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B29C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Transforms CLUT slot arg2 + 4, then runs func_80047FC0 for arg2 + 1, when arg2 is below 9.
 pub fn func_8007B29C(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_short, arg4: c_short, arg5: c_short) callconv(.c) void {
     if (arg2 < 9) {

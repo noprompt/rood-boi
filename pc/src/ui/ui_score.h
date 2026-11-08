@@ -3,7 +3,7 @@
  * ui_score_draw.cpp (the whole view, no tab strip); the numbers: score_format.c;
  * the list cursors: score_nav.c; the Bestiary's file: mon_parse.c, score_mon.c;
  * the game side: score_bridge.c (MENU9's table: score_menu9.h). The original
- * is MENU9 (src/MENU/MENU9.PRG/238.c), still reachable with Square on the row
+ * is MENU9 (pc/src/game/MENU/MENU9.PRG/238.c), still reachable with Square on the row
  * (and anywhere in the screen), and the only one when ui_menus is off.
  *
  * Modes:

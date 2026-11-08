@@ -1,9 +1,9 @@
-//! Midpoint between the current action's position and its target point, written to an SVECTOR (src/BATTLE/BATTLE.PRG/146C.c).
+//! Midpoint between the current action's position and its target point, written to an SVECTOR (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800780A8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800780A8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Writes the midpoint between the current action's source and target points to `arg0`.
 pub fn func_800780A8(arg0: ?*v.SVECTOR) callconv(.c) void {
     const d = v.g.D_800F19CC().*.?;

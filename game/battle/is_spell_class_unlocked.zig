@@ -1,9 +1,9 @@
-//! Whether any spell of a spell class is unlocked (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Whether any spell of a spell class is unlocked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_isSpellClassUnlocked (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_isSpellClassUnlocked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns 1 when any action in spell class `spellClass` is unlocked, else 0.
 pub fn isSpellClassUnlocked(spellClass: c_int) callconv(.c) c_int {
     var i: c_int = 0;

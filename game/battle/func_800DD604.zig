@@ -1,11 +1,11 @@
 //! Action choice: picks the best usable armor slot for the actor and records it
-//! in the action choice (src/BATTLE/BATTLE.PRG/74088.c).
+//! in the action choice (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: func_800DD604 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DD604 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Chooses the usable armor slot with the highest config value and records it in the action choice.
 pub fn func_800DD604(state: ?*v.actionChoiceState) callconv(.c) void {
     var best: c_uint = 0;

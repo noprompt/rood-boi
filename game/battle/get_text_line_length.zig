@@ -1,8 +1,8 @@
 //! Measures a text line's pixel width from the character widths, for text layout
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_getTextLineLength (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_getTextLineLength (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Returns the width of the line at `str` in characters of six pixels, stopping at its terminator.
 pub fn getTextLineLength(str: [*c]u8) callconv(.c) c_int {
     const widths = v.g.vs_battle_characterWidths();

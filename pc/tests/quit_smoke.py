@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Quit to title and Quit to desktop (pc/src/quit_options.c; src hook in
-src/SLUS_010.40/main.c processPadState, ROOD_PC): the soft reset's path and the
+pc/src/game/SLUS_010.40/main.c processPadState, ROOD_PC): the soft reset's path and the
 window's close, asked in the modern System list, the classic Option screen,
 the RPC (quit {to}) and the F1 overlay's File menu (a Dear ImGui window: not
 driven here).
@@ -47,7 +47,7 @@ from menu_nav import top_command  # noqa: E402
 CLOSED = 0x3F
 OPTION_COMMAND = 7
 VANILLA_ROWS = 9
-MONO_SOUND = 10  # vs_main_settings_t (src/SLUS_010.40/main.h)
+MONO_SOUND = 10  # vs_main_settings_t (pc/src/game/SLUS_010.40/main.h)
 VIBRATION_ON = 11
 
 

@@ -1,10 +1,10 @@
 //! Camera-mode tick: counts the target's risk every 30 game ticks while the battle camera is in mode 1 to 3
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80088B8C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80088B8C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Every 30 ticks, raises the character's risk while the targeted actor is marked (status 8).
 pub fn func_80088B8C() callconv(.c) void {
     if (v.g.D_800F196C().* == 2 and v.g._cameraMode().* < 4 and v.g._cameraMode().* != 0) {

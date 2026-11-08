@@ -1,10 +1,10 @@
-//! Steps the camera shakes (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Steps the camera shakes (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D206C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D206C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// For each of the four active shakes (D_800F5518's bits): its amplitude from func_800D11F4 times a sine into the camera's unk20..unk2C, its phase advanced; a finished one (negative) is stopped (func_800D1FEC).
 pub fn func_800D206C() callconv(.c) void {
     const shakes = v.g.D_800F54B8();

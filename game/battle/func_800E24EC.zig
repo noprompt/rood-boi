@@ -1,9 +1,9 @@
-//! Target movement: advances a targeting actor's movement toward its target and returns 0 when the target cannot be reached (src/BATTLE/BATTLE.PRG/771A8.c).
+//! Target movement: advances a targeting actor's movement toward its target and returns 0 when the target cannot be reached (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E24EC (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E24EC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Runs one frame of targeting movement for state `s` toward its target and returns 1 while the target is reachable.
 pub fn func_800E24EC(s: ?*v.targetMovementState, option: c_int) callconv(.c) c_int {
     const st = s.?;

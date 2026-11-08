@@ -1,9 +1,9 @@
-//! The gradient gauge of a stat bar (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The gradient gauge of a stat bar (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_renderStatBar (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_renderStatBar (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// A tile and a Gouraud quad `w` (0..64) wide at `xy`, blended from colour D_800EBC04[index] toward the bar's full colour, linked before `before`.
 pub fn renderStatBar(color_index: c_int, w: c_int, before: [*c]c_uint, xy_arg: c_int) callconv(.c) void {
     var xy = xy_arg;

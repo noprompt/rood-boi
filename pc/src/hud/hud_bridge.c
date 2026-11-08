@@ -32,13 +32,13 @@
  *     field nothing: the hold keeps it, a show without hold is closed after its
  *     life, both only if it is still the one shown). */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "../widescreen.h"
 #include "../ui/vs_encode.h"
 #include "../classic/classic_parity.h"
 #include "../classic/classic_hook.h"
-#include "../../../src/include/gpu.h" /* (vs_mainmenu_renderButtonBackground's packets) */
+#include "../../../pc/src/game/include/gpu.h" /* (vs_mainmenu_renderButtonBackground's packets) */
 #include "hud.h"
 
 

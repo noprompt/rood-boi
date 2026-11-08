@@ -1,9 +1,9 @@
-//! Copies a four-word vector message into the function's state, then runs func_80092EDC (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Copies a four-word vector message into the function's state, then runs func_80092EDC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80092E7C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092E7C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Copies three words and a short vector from `src` into `dst`, then calls func_80092EDC on `dst`.
 pub fn func_80092E7C(arg0: ?*v.func_80092F74_t, arg1: ?*v.func_80092F74_t2) callconv(.c) c_int {
     const dst = arg0.?;

@@ -1,12 +1,12 @@
 //! Places a point relative to a placed object's position and passes it on
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AA620 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA620 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Passes `point` minus object `index`'s position on to func_800AA698, if the object exists.
 pub fn func_800AA620(index: c_int, point: ?*v.SVECTOR, arg2: c_int) callconv(.c) void {
     const temp = psx.at(v.g.D_800F4538(), index).*;

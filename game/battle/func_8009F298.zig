@@ -1,9 +1,9 @@
-//! Battle helper for the 30DB0 unit (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle helper for the 30DB0 unit (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009F298 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009F298 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Runs the unit's setup for `slot` and, when `flag` is 1, calls func_800A01C8 for slot 0xFE if its entry reports a result.
 pub fn func_8009F298(slot: c_int, vec: ?*v.SVECTOR, flag: c_int) callconv(.c) void {
     const vec_c: [*c]c.SVECTOR = if (vec) |p| psx.cptr(c.SVECTOR, p) else null;

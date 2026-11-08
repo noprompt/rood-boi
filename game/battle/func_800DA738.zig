@@ -1,10 +1,10 @@
-//! The da4bc decision step: steers toward the target or falls back to the candidate search (src/BATTLE/BATTLE.PRG/71618.c).
+//! The da4bc decision step: steers toward the target or falls back to the candidate search (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DA738 (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DA738 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Steers the da4bc state toward its target, falling back to the candidate search when that fails.
 pub fn func_800DA738(state: ?*v.da4bcState) callconv(.c) c_int {
     var point: v.da4bcPoint = undefined;

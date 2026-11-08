@@ -1,8 +1,8 @@
-//! Scales the last value by an action's hit-parameter stat factor (src/BATTLE/BATTLE.PRG/146C.c).
+//! Scales the last value by an action's hit-parameter stat factor (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: _factorLastValue (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _factorLastValue (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the last value times hit parameter `index`'s stat factor, divided by 10.
 pub fn factorLastValue(action: ?*v.vs_action_t, _: ?*v._hitEntity_t, _: ?*v._hitEntity_t, index: c_int, _: c_int) callconv(.c) c_short {
     const hitParam = psx.at(&action.?.hitParams, index);

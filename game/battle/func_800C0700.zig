@@ -1,9 +1,9 @@
 //! Copies a record into the target shape and clears its unk2A
-//! (src/BATTLE/BATTLE.PRG/573B8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const psx = @import("common").psx;
 const v = @import("views_573B8");
 
-/// orig: func_800C0700 (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800C0700 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Copies the record at `src` into the target shape's unk10 and clears its unk2A.
 pub fn func_800C0700(arg0: ?*v.D_800EB9B8_t2) callconv(.c) void {
     // ROOD_PC: with the shape freed, the original writes PS1 address 0 (psx.lowRam).

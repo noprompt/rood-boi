@@ -1,9 +1,9 @@
-//! The HP a trap panel takes: a tenth of max HP times the stat factor, plus the room's trap level, against the target's defense (src/BATTLE/BATTLE.PRG/146C.c).
+//! The HP a trap panel takes: a tenth of max HP times the stat factor, plus the room's trap level, against the target's defense (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _damageFromTrapPanel (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _damageFromTrapPanel (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// A tenth of the target's max HP times the hit's stat factor, plus 10 per trap level (+1), less its defense
 /// (strength, limb armor and, with the weapon drawn, shield, each by type, affinity and wear, over risk / 2 + 100);
 /// with the variance -5..5; at least 0, below the target's HP.
@@ -92,7 +92,7 @@ pub fn damageFromTrapPanel(action: ?*v.vs_action_t, _: ?*v._hitEntity_t, hit: ?*
     return amount;
 }
 
-/// orig: _getRoomTrapLevel (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getRoomTrapLevel (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The room's trap level (section B). Static in the C: ported with each caller (PORTING.md §13).
 fn getRoomTrapLevel() c_int {
     return psx.get(v.g.vs_battle_roomData().sectionB).?.trapLevel;

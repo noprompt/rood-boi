@@ -1,10 +1,10 @@
-//! Releases the battle's pending heap entries and the room's section 14 transfer (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Releases the battle's pending heap entries and the room's section 14 transfer (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80092A18 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092A18 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Frees the heap blocks of the pending entries, starts the section 14 transfer if one is waiting, and clears the count.
 pub fn func_80092A18() callconv(.c) c_int {
     if (v.g.D_800F225B().* == 0) return 0;

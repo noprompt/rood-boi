@@ -1,8 +1,8 @@
-//! The event script's conditional jump on a state flag and an immediate (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's conditional jump on a state flag and an immediate (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_jumpFwdIfFlag (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_jumpFwdIfFlag (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Compares a state flag with script[3] by script[1]'s test; on a pass returns the script address
 /// script + getShort(script + 4), else 0 (no jump). Tests 0x70..0xF0 always jump.
 pub fn script_jumpFwdIfFlag(script: [*c]u8, _: c_short) callconv(.c) c_int {

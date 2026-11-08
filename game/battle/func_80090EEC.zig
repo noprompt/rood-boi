@@ -1,4 +1,4 @@
-//! Room-driven scene effects: drifts the room's effect values and runs the scene effect selected by D_800F1DCA (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Room-driven scene effects: drifts the room's effect values and runs the scene effect selected by D_800F1DCA (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
@@ -10,7 +10,7 @@ fn scratchPointer() ?*const anyopaque {
     return @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F800000)).*));
 }
 
-/// orig: func_80090EEC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80090EEC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Drifts the room's effect values on their timers, then runs the scene effect selected by D_800F1DCA.
 pub fn func_80090EEC() callconv(.c) void {
     var masks = [4]c_int{ 0xF, 0x1F, 0x3F, 0x7F };

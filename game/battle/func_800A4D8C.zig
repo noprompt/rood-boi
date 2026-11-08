@@ -1,9 +1,9 @@
-//! Per-tick battle pass over the first actor table and the enemy table (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Per-tick battle pass over the first actor table and the enemy table (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A4D8C (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A4D8C (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Runs the per-tick update of each live entry of the first table, then of each unskipped enemy, and sets D_800F4B18.
 pub fn func_800A4D8C() callconv(.c) void {
     var i: usize = 0;

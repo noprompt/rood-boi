@@ -1,11 +1,11 @@
 //! Physical damage a hit deals from the target's HP and MP, scaled by the action's stat factor
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _factorPhysicalDamageReceived1 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _factorPhysicalDamageReceived1 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Scales the summed HP and MP of the hit target by hit `arg3`'s stat factor; zero for spell actions.
 pub fn factorPhysicalDamageReceived1(action: ?*v.vs_action_t, _: ?*v._hitEntity_t, _: ?*v._hitEntity_t, arg3: c_int, _: c_int) callconv(.c) c_short {
     var var_a2: c_short = 0;

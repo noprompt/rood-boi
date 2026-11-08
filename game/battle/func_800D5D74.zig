@@ -1,10 +1,10 @@
-//! An effect command: starts an effect renderer at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: starts an effect renderer at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D5D74 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5D74 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame: func_800CF694(script, the renderer it names, its parameters), then the next command; else 1.
 pub fn func_800D5D74(script: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const cmd = cmd_arg.?;

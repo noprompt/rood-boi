@@ -1,10 +1,10 @@
-//! Battle-field camera check for the unit at arg0, then the camera's follow or release call (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle-field camera check for the unit at arg0, then the camera's follow or release call (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074B14 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074B14 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Calls func_8008C2C0 with the camera's slot and distance when the room section's flag is set, else func_8008C40C.
 pub fn func_80074B14(arg0: c_int, arg1: ?*v.func_8006EBF8_t_fields) callconv(.c) void {
     const temp_v0: c_uint = psx.conv(c_uint, c.func_800A0BE0(arg0)) & 0x70000;

@@ -1,10 +1,10 @@
-//! Flips the flag bits of the room-section cell under a section and of its neighbour in the direction the section selects (src/BATTLE/BATTLE.PRG/146C.c).
+//! Flips the flag bits of the room-section cell under a section and of its neighbour in the direction the section selects (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008BD74 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008BD74 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Toggles the flag bits of the cell under a room section and, when unk6 >= 4, of the neighbour that unk6 - 4 selects.
 pub fn func_8008BD74(arg0: ?*v._mpdRoomSectionA) callconv(.c) void {
     const sec = arg0.?;

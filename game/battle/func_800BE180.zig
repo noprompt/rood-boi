@@ -1,11 +1,11 @@
 //! Builds the camera shake vectors from the two shake entries and publishes
-//! the result in the camera block (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! the result in the camera block (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BE180 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BE180 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sums the active camera shake entries into the scratchpad vectors and publishes the result in the camera block.
 pub fn func_800BE180() callconv(.c) void {
     const shake: *v.cameraShakeScratch = @ptrFromInt(0x1F800088);

@@ -1,9 +1,9 @@
-//! Places the battle camera from its spherical angles (src/BATTLE/BATTLE.PRG/146C.c).
+//! Places the battle camera from its spherical angles (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _setCameraPositionFromAngles (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _setCameraPositionFromAngles (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Computes the camera position from its spherical angles about its look-at point; the right-stick zoom applies to a copy of the battle camera's values.
 pub fn setCameraPositionFromAngles(spherical: ?*v._sphericalValues) callconv(.c) void {
     // ROOD_PC: right-stick camera (pc/src/camera_stick.c) places a copy of the follow camera's values.

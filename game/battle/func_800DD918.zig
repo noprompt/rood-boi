@@ -1,10 +1,10 @@
 //! Chooses each enabled action slot's best target and writes the candidate list
-//! (src/BATTLE/BATTLE.PRG/74088.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const psx = @import("common").psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: actorLimb (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: actorLimb (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// The limb entry `limb` of `stats`, addressed as the C addresses it (limbs[] field of the stats block).
 fn actorLimb(stats: *v.vs_battle_actor2, limb: c_int) *align(1) v.vs_battle_uiEquipment_limb {
     const base: u32 = psx.addr(stats);
@@ -12,7 +12,7 @@ fn actorLimb(stats: *v.vs_battle_actor2, limb: c_int) *align(1) v.vs_battle_uiEq
     return @ptrFromInt(addr);
 }
 
-/// orig: func_800DD918 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DD918 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Scores every enabled action slot against every living actor and keeps the best candidate in the state.
 pub fn func_800DD918(state: ?*v.actionChoiceState, threshold: c_int) callconv(.c) void {
     const st = state.?;

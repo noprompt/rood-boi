@@ -1,10 +1,10 @@
-//! Distance from one actor's point to a target point, using the GTE reciprocal square root (src/BATTLE/BATTLE.PRG/146C.c).
+//! Distance from one actor's point to a target point, using the GTE reciprocal square root (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80077F70 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80077F70 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the distance between the current action's source point and its target point.
 pub fn func_80077F70() callconv(.c) c_int {
     const d = v.g.D_800F19CC().*.?;

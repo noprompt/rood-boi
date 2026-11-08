@@ -216,11 +216,15 @@ def suites(args, mode="egl"):
               "--owner", "battle_38C1C_port=shadow"], 300,
               note="battle_44F14 shadow with battle_38C1C_port shadowed (the effect-request oracle gap)",
               sources=[ROOT / "pc/src/shadow.c", ROOT / "game/common/route.zig", TESTS / "shadow_battle_smoke.py",
-                       ROOT / "src/BATTLE/BATTLE.PRG/146C.c", ROOT / "src/BATTLE/BATTLE.PRG/38C1C.c",
+                       ROOT / "pc/src/game/BATTLE/BATTLE.PRG/146C.c", ROOT / "pc/src/game/BATTLE/BATTLE.PRG/38C1C.c",
                        *port_modules("battle_38C1C_port")]),
         Suite("ownership_smoke", [PY, str(TESTS / "ownership_smoke.py")], 300,
               note="oracle checkpoint, rewind and replay", sources=[ROOT / "pc/src/state_rewind.c",
                   ROOT / "pc/src/state_diff.c", ROOT / "pc/src/snapshot.c", ROOT / "pc/src/input_record.c"]),
+        Suite("ps1_address_lint", [PY, str(ROOT / "pc/tools/ps1_address_lint.py")], 60, binary=None,
+              note="the PS1 addresses and guest-pointer helpers in the game's code may only go down"),
+        Suite("ps1_address_lint_test", [PY, str(TESTS / "ps1_address_lint_test.py")], 60, binary=None,
+              note="the lint's rules, comment stripping and ratchet"),
         Suite("lighting_lint", [PY, str(ROOT / "pc/tools/lighting_lint.py")], 60, binary=None,
               note="lighting packs in lighting/: syntax, keys, ids, dangling overrides, rooms"),
         Suite("window_lights", [PY, str(TESTS / "window_lights_test.py")], 60, binary=None,
@@ -884,7 +888,7 @@ def default_save():
 
 def stale_binaries(selected):
     """Game binaries older than the newest port or game source."""
-    newest = max(p.stat().st_mtime for d in ("pc/src", "src") for p in (ROOT / d).rglob("*")
+    newest = max(p.stat().st_mtime for d in ("pc/src",) for p in (ROOT / d).rglob("*")
                  if p.suffix in (".c", ".cpp", ".h", ".comp", ".glsl"))
     names = {s.binary for s in selected if s.binary}
     out = []
@@ -1081,11 +1085,30 @@ def schedule(selected, timings, config):
     return first + rest
 
 
+# Battle's Zig compared with the original C it was ported from (zig_diff's shards in ctest_long, the
+# port pipeline, the trial and candidate corpora, the shadow runs). The port is done and the Zig is
+# meant to leave the C behind (the user, 2026-11-07), so they are tools for whoever wants that
+# comparison, not checks: no lane runs them unless they are named exactly or --oracle is given.
+ORACLE_SUITES = {"ctest_long", "ctest_pipeline", "battle_corpus_candidate", "shadow_battle_smoke",
+                 "shadow_battle_smoke_38C1C"}
+
+
+def is_oracle(name):
+    return name in ORACLE_SUITES or name.startswith("trial_corpus")
+
+
+# What a budget never defers, whatever the estimates say (a checkout with no recorded times
+# estimates high): the game boots, a room and the opening draw, the frames match.
+QUICK_CORE = {"ps1_address_lint", "ctest", "rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "title_fade_smoke",
+              "ownership_smoke", "null_backend_smoke"}
+
+
 def fit_budget(selected, timings, config, seconds):
     """(kept, deferred): the selection cut to `seconds` of estimated time
-    (the last run's, else a quarter of the timeout), shortest first, in the
-    selection's order; snapshot_equivalence stays with the checkpoint suites
-    it makes save states for, and counts against the budget."""
+    (the last run's, else a quarter of the timeout): QUICK_CORE first, then
+    shortest first, in the selection's order; snapshot_equivalence stays with
+    the checkpoint suites it makes save states for, and counts against the
+    budget."""
     try:
         known = json.loads(timings.read_text()).get(config, {})
     except (OSError, ValueError):
@@ -1095,11 +1118,11 @@ def fit_budget(selected, timings, config, seconds):
     names = {s.name for s in selected}
     used, keep = 0.0, set()
     snapshot = next((s for s in selected if s.name == "snapshot_equivalence"), None)
-    for suite in sorted((s for s in selected if s is not snapshot), key=cost):
+    for suite in sorted((s for s in selected if s is not snapshot), key=lambda s: (s.name not in QUICK_CORE, cost(s))):
         extra = cost(suite)
         if snapshot and suite.name in CHECKPOINT_SUITES and snapshot.name not in keep:
             extra += cost(snapshot)
-        if used + extra > seconds:
+        if used + extra > seconds and suite.name not in QUICK_CORE:
             continue
         used += extra
         keep.add(suite.name)
@@ -1237,6 +1260,9 @@ def make_parser():
                         help="verify.sh's quick lane (with --changed): long suites only when the change touches "
                              "them; Vulkan/null: the selection plus ctest/null_backend_smoke; GL: a sanity subset "
                              "plus what GL's own files select (affected.toml [quick])")
+    parser.add_argument("--oracle", action="store_true",
+                        help="include the suites that compare battle's Zig with the original C (ORACLE_SUITES); "
+                             "without it they run only when named exactly")
     parser.add_argument("--budget", type=float, metavar="MINUTES",
                         help="cut the selection to fit MINUTES of the last run's times, shortest first; the "
                              "rest are deferred to the full lane (<out>/deferred.txt)")
@@ -1333,6 +1359,9 @@ def main():
     selected = [s for s in every
                 if (not args.patterns or any(p in s.name for p in args.patterns))
                 and not any(x in s.name for x in args.exclude)]
+    if not args.oracle:
+        # battle's Zig against the frozen original: tools now, in no lane (named exactly, or --oracle)
+        selected = [s for s in selected if not is_oracle(s.name) or s.name in args.patterns]
     if args.quick and not (args.changed or args.changed_files):
         print("--quick needs --changed [BASE] or --changed-files")
         return 2

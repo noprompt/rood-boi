@@ -1,12 +1,12 @@
 //! Screen transition drawing: the fade and wipe primitives and the transition's alpha and step
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _drawScreenTransition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _drawScreenTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws the current screen transition effect into the ordering table, then advances its alpha and step.
 pub fn drawScreenTransition(ot: ?*anyopaque) callconv(.c) void {
     var rect: v.RECT = undefined;

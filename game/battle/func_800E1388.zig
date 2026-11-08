@@ -1,12 +1,12 @@
 //! Aims the destination of a movement from a source position at an angle and distance,
 //! walking inwards until the step is clear and clamping to the battle bounds
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E1388 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1388 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Sets the state's destination to the nearest clear cell along a heading from the source, clamped to the bounds.
 pub fn func_800E1388(state: ?*v.func_800D8400_t, source: v.vs_battle_movementPosition, angle: c_int, distance: c_uint) callconv(.c) void {
     var dest = v.vs_battle_movementPosition{ .raw = 0 };

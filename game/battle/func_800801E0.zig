@@ -1,9 +1,9 @@
 //! Spreads an incoming hit's damage over a target's limbs by their lost HP
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_800801E0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800801E0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Splits `amount` over the target's damaged limbs in proportion to each limb's lost HP.
 pub fn func_800801E0(_: ?*v.vs_action_t, entity: ?*v._hitEntity_t, amount: c_short) callconv(.c) void {
     const hit = entity.?;

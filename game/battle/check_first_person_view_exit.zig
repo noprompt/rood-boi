@@ -1,10 +1,10 @@
 //! First-person view exit: returns the battle camera to its orbit
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _checkFirstPersonViewExit (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _checkFirstPersonViewExit (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Leaves first-person view on a confirm button and snaps the camera transition's yaw to a 512 step.
 pub fn checkFirstPersonViewExit() callconv(.c) void {
     // PADRdown | PADj | PADstart

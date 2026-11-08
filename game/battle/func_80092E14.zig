@@ -1,8 +1,8 @@
-//! Copies the eight halfwords of arg1's four-word table into arg0's fields at 0x24..0x32 (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Copies the eight halfwords of arg1's four-word table into arg0's fields at 0x24..0x32 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 
-/// orig: func_80092E14 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092E14 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Copies the eight halfwords of arg1's four-word table into arg0's fields at 0x24..0x32.
 pub fn func_80092E14(arg0: ?*v.func_80092F74_t, arg1: ?*v.func_80092F74_t2) callconv(.c) c_int {
     const dst = arg0.?;

@@ -1,7 +1,7 @@
-//! Allocates the first free bit in the four-word mask at D_800F5320 (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Allocates the first free bit in the four-word mask at D_800F5320 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 
-/// orig: func_800CF49C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF49C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Sets the lowest clear bit 1..31 across the four words at D_800F5320 and returns its index (word * 32 + bit), or 0 if none is free.
 pub fn func_800CF49C() callconv(.c) c_int {
     const words = v.g.D_800F5320();

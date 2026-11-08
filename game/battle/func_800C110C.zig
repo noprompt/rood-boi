@@ -1,11 +1,11 @@
 //! Projects a point offset from an actor's transform and tests its depth against the actor's range
-//! (src/BATTLE/BATTLE.PRG/58578.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C110C (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C110C (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Transforms the point's offset from the actor by its matrix and returns 1 when its depth is within the actor's range, else 0.
 pub fn func_800C110C(actor: ?*v.func_800C1564_t, point: [*c]c_ushort, adjust: c_int) callconv(.c) c_int {
     var work: v.func_800C0FA8_t2 = undefined;

@@ -1,9 +1,9 @@
-//! Finds another weapon model slot that shares the object's model id (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Finds another weapon model slot that shares the object's model id (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_80099FA8 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_80099FA8 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Points the object's data address at the first other weapon model slot with its model id and returns 1, else 0.
 pub fn func_80099FA8(objData: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const data = objData.?;

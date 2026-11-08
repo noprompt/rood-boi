@@ -1,9 +1,9 @@
-//! An actor's turn toward a facing, with its turn animation (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! An actor's turn toward a facing, with its turn animation (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const psx = @import("common").psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A249C (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A249C (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Starts the turn of actor `actorId` toward `facing` (0x1000 a full turn) unless it is already there or busy.
 pub fn turnToward(actorId: c_int, facing: c_int) callconv(.c) void {
     const actor: *v.D_800F4538_t = psx.at(psx.globalMany(?*v.D_800F4538_t, "D_800F4538"), actorId).*.?;

@@ -1,9 +1,9 @@
-//! Tests whether a point offset from arg0's transform lies within a radius, by its transformed squared length (src/BATTLE/BATTLE.PRG/58578.c).
+//! Tests whether a point offset from arg0's transform lies within a radius, by its transformed squared length (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C1034 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C1034 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Returns 1 when the transformed offset's squared length, scaled by 2^16, is under 1.
 pub fn func_800C1034(arg0: ?*v.func_800C1564_t, arg1: [*c]c_ushort) callconv(.c) c_int {
     var work: v.func_800C0FA8_t2 = undefined;

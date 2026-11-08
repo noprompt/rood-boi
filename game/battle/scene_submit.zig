@@ -1,4 +1,4 @@
-//! The room submission of pc/src/scene_submit.inc (compiled into src/BATTLE/BATTLE.PRG/146C.c): the
+//! The room submission of pc/src/scene_submit.inc (compiled into pc/src/game/BATTLE/BATTLE.PRG/146C.c): the
 //! scene's packets, the area map's frame and its host queries.
 const psx = @import("common").psx;
 const v = @import("views_146C");
@@ -11,7 +11,7 @@ fn scratch() *v.vs_scratch_t {
 
 const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
 
-/// orig: anchor_map (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: anchor_map (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Anchors the area map's packets (from `start` to the packet cursor) to the right edge of the screen.
 pub fn anchorMap(start: ?*anyopaque) callconv(.c) void {
     if (psx.weak(Anchor, "pc_hw_anchor_packets")) |hook| hook(start, psx.get(scratch().unk0), 2);
@@ -36,7 +36,7 @@ fn setSemiTrans(prim: anytype) void {
     tag.code = tag.code | 0x02;
 }
 
-/// orig: func_8008AC78 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008AC78 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Submits the room: the effects and actors, the room's geometry with the facing bits of the compass, and the area map with its frame.
 pub fn func_8008AC78() callconv(.c) void {
     var savedOffset: v.vs_battle_geomOffset = undefined;
@@ -213,7 +213,7 @@ fn setRgb(prim: *v.LINE_G4, comptime corner: u2, r: c_int, g: c_int, b: c_int) v
     }
 }
 
-/// orig: pc_battle_action (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_action (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Host query for the interactive fog: the battle action running now (performer, action, phase, chain step, kind, aim point and first target actor); 0 when none runs.
 pub fn battleAction(actor: *c_int, action: *c_int, phase: *c_int, chain: *c_int, kind: *c_int, plain: *c_int, aim: *[3]c_int, target: *c_int) callconv(.c) c_int {
     if (v.g.D_800F196C().* != 2 or v.g.D_800F19CC().* == null) return 0;
@@ -233,13 +233,13 @@ pub fn battleAction(actor: *c_int, action: *c_int, phase: *c_int, chain: *c_int,
     return 1;
 }
 
-/// orig: pc_battle_event_running (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_event_running (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Whether an event loads or runs.
 pub fn battleEventRunning() callconv(.c) c_int {
     return @intFromBool(v.g.D_800F4C34().* != 0);
 }
 
-/// orig: pc_battle_event_id (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_event_id (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The running event's id ((source << 12) | event file), or -1 when none runs.
 pub fn battleEventId() callconv(.c) c_int {
     if (v.g.D_800F4C34().* == 0) return -1;
@@ -247,7 +247,7 @@ pub fn battleEventId() callconv(.c) c_int {
     return @as(c_int, psx.conv(u16, id));
 }
 
-/// orig: pc_battle_camera_target (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_camera_target (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The point the battle camera follows in its modes 1 and 3 (weapon drawn, a target chosen); 0 when there is none.
 pub fn battleCameraTarget(position: *[3]c_int) callconv(.c) c_int {
     const character = psx.get(v.g.vs_battle_characterState().*);
@@ -265,7 +265,7 @@ fn eventThread(i: usize) ?[*]u8 {
     return @ptrCast(v.g.D_800F4C38()[i]);
 }
 
-/// orig: pc_battle_camera_focus (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_camera_focus (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Host query for the depth of field's camera subject. out: [0] the battle state D_800F196C (-1 without the action block), [1] the camera mode,
 /// [2] a target candidate is chosen, [3..5] its point, [6] an area point, [7..9] it, [10..12] the camera's look-at in world units, [13] the candidate's actor slot.
 pub fn battleCameraFocus(out: *[14]c_int) callconv(.c) void {
@@ -294,7 +294,7 @@ pub fn battleCameraFocus(out: *[14]c_int) callconv(.c) void {
     out[12] = v.g.vs_scratch().camera.lookAt.vz >> 12;
 }
 
-/// orig: pc_battle_event_threads (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_event_threads (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Host query for the cutscene player: the event runner's state and skip state, and per script thread its offset in the script buffer (-1 when not running), the opcode there and that opcode's handler; returns whether an event loads or runs.
 pub fn battleEventThreads(state: *[2]c_int, offset: *[4]c_int, opcode: *[4]c_int, handler: *[4]?*anyopaque) callconv(.c) c_int {
     const running = v.g.D_800F4C34().*;
@@ -310,7 +310,7 @@ pub fn battleEventThreads(state: *[2]c_int, offset: *[4]c_int, opcode: *[4]c_int
     return @intFromBool(running != 0);
 }
 
-/// orig: pc_battle_event_arguments (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_event_arguments (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Host query for the cutscene sequencer: the raw operand bytes of the opcode thread `thread` is at (the count is the interpreter's operand size less the opcode), the text box line of opcode 0x11 and, for the object handlers, the actor its first operand names; 0 when the thread is not running.
 pub fn battleEventArguments(thread: c_int, args: [*]c_int, line: *c_int, actor: *c_int) callconv(.c) c_int {
     line.* = -1;
@@ -338,7 +338,7 @@ pub fn battleEventArguments(thread: c_int, args: [*]c_int, line: *c_int, actor: 
     return n;
 }
 
-/// orig: pc_battle_event_waiting (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_battle_event_waiting (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Host query for the cutscene viewer's auto-advance: the pad bits the running event's threads wait on (opcode 0x15's mask; Circle for a shown text box or a screen of its own), 0 when nothing.
 pub fn battleEventWaiting() callconv(.c) c_int {
     if (v.g.D_800F4C34().* != 4) return 0;

@@ -1,9 +1,9 @@
-//! Checks and sets the flag bytes for slots 25..32 in D_800F19A8 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Checks and sets the flag bytes for slots 25..32 in D_800F19A8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007E0A8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007E0A8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets slots arg0..arg0+arg1-1 to -3 when all hold arg2 and returns 1; otherwise reports and returns 0.
 pub fn func_8007E0A8(arg0: c_uint, arg1: c_uint, arg2: c_int) callconv(.c) c_int {
     var var_s0: c_int = 0;

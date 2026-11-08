@@ -1,10 +1,10 @@
 //! Advances an animated texture's tick and frame, and rewrites the texture
-//! coordinates of its polygon in the room geometry (src/BATTLE/BATTLE.PRG/2842C.c).
+//! coordinates of its polygon in the room geometry (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 
-/// orig: func_80091C6C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80091C6C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Steps an animated quad's tick and frame and writes its frame's UVs into the room geometry.
 pub fn func_80091C6C(arg0: ?*v.func_80091C6C_t) callconv(.c) c_int {
     const anim = arg0.?;

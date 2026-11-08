@@ -1,12 +1,12 @@
 //! Reaction targeting: classifies every actor against a reacting state and,
 //! for a state with flag21 set, queues the enemies that may still be struck
-//! (src/BATTLE/BATTLE.PRG/74088.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
-/// orig: func_800DD344 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DD344 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Classifies the battle actors for one reacting state and queues the targets that need it.
 pub fn func_800DD344(state: ?*v.actionReactionState) callconv(.c) void {
     const st = state.?;

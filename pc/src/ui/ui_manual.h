@@ -2,7 +2,7 @@
  * Game > Quick manual). State and navigation: ui_manual.cpp; drawing:
  * ui_manual_draw.cpp; the page files and the original's rules:
  * manual_parse.c; the game side: manual_bridge.c. The original is MENUE
- * (src/MENU/MENUE.PRG/494.c), still reachable with Square on the row (and
+ * (pc/src/game/MENU/MENUE.PRG/494.c), still reachable with Square on the row (and
  * in the manual), and the only one when ui_menus is off.
  *
  * Modes:

@@ -1,5 +1,5 @@
 //! The battle charging skip, game side: the host code of pc/src/charge_skip.inc compiled into
-//! src/BATTLE/BATTLE.PRG/146C.c. Its state stays in the unit's file statics (globalised, PORTING.md §6.5).
+//! pc/src/game/BATTLE/BATTLE.PRG/146C.c. Its state stays in the unit's file statics (globalised, PORTING.md §6.5).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -15,7 +15,7 @@ fn floatToInt(x: f32) c_int {
     return @intFromFloat(x);
 }
 
-/// orig: charge_skip_hold_vsyncs (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: charge_skip_hold_vsyncs (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The hold shown before Skip applies, in vsyncs: the setting's seconds for Ashley's (caster 0) or another's actions, at most 10.
 pub fn holdVsyncs(caster: c_int) callconv(.c) c_int {
     var seconds: f32 = if (caster == 0) v.g.pc_qol_skip_charging_hold_mine().* else v.g.pc_qol_skip_charging_hold_enemy().*;
@@ -24,13 +24,13 @@ pub fn holdVsyncs(caster: c_int) callconv(.c) c_int {
     return @intFromFloat(seconds * 60.0 + 0.5); // at most 600
 }
 
-/// orig: charge_skip_kind (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: charge_skip_kind (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The kind of action `index`: 1 a spell, 2 an enemy's art, 4 a Break Art, 8 an item.
 pub fn kind(index: c_int) callconv(.c) c_int {
     return if (index < 0x8D) 1 else if (index < 0xB8) 2 else if (index < 0xE0) 4 else 8;
 }
 
-/// orig: pc_charge_skip_state (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_state (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Whether this vsync is in an action's wind-up (camera mode 4..6) and whether Skip takes it out.
 pub fn state(phase: *c_int, skipping: *c_int, actor: *c_int, action: *c_int) callconv(.c) c_int {
     if (v.g.D_800F196C().* != 2 or v.g.D_800F19CC().* == null or v.g._cameraMode().* < 4 or v.g._cameraMode().* > 6) {
@@ -61,7 +61,7 @@ pub fn state(phase: *c_int, skipping: *c_int, actor: *c_int, action: *c_int) cal
     return 1;
 }
 
-/// orig: charge_skip_now (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: charge_skip_now (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Whether this vsync is in a wind-up Skip takes out.
 pub fn now() callconv(.c) c_int {
     var phase: c_int = undefined;
@@ -71,7 +71,7 @@ pub fn now() callconv(.c) c_int {
     return @intFromBool(c.pc_charge_skip_state(&phase, &skipping, &actor, &action) != 0 and skipping != 0);
 }
 
-/// orig: charge_skip_load (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: charge_skip_load (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The effect's files loaded back to back: the loader's steps run, each file read when asked for, until it is ready.
 pub fn load() callconv(.c) void {
     const context = v.g.D_800F569C().*;
@@ -87,7 +87,7 @@ pub fn load() callconv(.c) void {
     v.g.pc_charge_skip_pumped().* = i;
 }
 
-/// orig: pc_charge_skip (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Where the game runs action phase 5: with Skip on, stops the cast sound, applies the turn, ends the magic circle, loads the effect and releases; 1 if it did.
 pub fn skip(phase: c_int) callconv(.c) c_int {
     if (phase != 5 or c.charge_skip_now() == 0) return 0;
@@ -112,7 +112,7 @@ pub fn skip(phase: c_int) callconv(.c) c_int {
     return 1;
 }
 
-/// orig: pc_charge_skip_hold (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_hold (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// At the action's release: 1 if the name window stays up (shown for the setting's seconds, less the hold shown, at most the game's own countdown).
 pub fn hold() callconv(.c) c_int {
     v.g.charge_skip_held().* = 0;
@@ -127,7 +127,7 @@ pub fn hold() callconv(.c) c_int {
     return 1;
 }
 
-/// orig: pc_charge_skip_name (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_name (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The held name window closed, the game's way, once it has been up long enough and its text is out, when the action is over, or now.
 pub fn keepName(now_: c_int) callconv(.c) void {
     if (v.g.charge_skip_held().* == 0) return;
@@ -145,7 +145,7 @@ pub fn keepName(now_: c_int) callconv(.c) void {
     c.func_800CB50C();
 }
 
-/// orig: pc_charge_skip_name_window (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_name_window (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Test aid: the name window's text (up to `size` bytes, at most 112), or -1 when it is not up; `held` is whether it is held.
 pub fn nameWindow(out: [*]u8, size: c_int, held: *c_int) callconv(.c) c_int {
     var n: c_int = 0;
@@ -158,7 +158,7 @@ pub fn nameWindow(out: [*]u8, size: c_int, held: *c_int) callconv(.c) c_int {
     return n;
 }
 
-/// orig: pc_charge_skip_view (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_view (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Test aid: the view and the caster's facing: lookAt xyz, position xyz, the camera's distance and yaw, the facing.
 pub fn view(out: *[9]c_int, actor_: c_int) callconv(.c) void {
     const a: ?*v.D_800F4538_t = if (actor_ >= 0 and actor_ < 17) v.g.D_800F4538()[@intCast(actor_)] else null;
@@ -174,7 +174,7 @@ pub fn view(out: *[9]c_int, actor_: c_int) callconv(.c) void {
     out[8] = if (a != null) @as(c_int, a.?.unk0.facing) & 0xFFF else -1;
 }
 
-/// orig: pc_charge_skip_battle_state (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_battle_state (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// BATTLE's mode, its camera mode and in the action mode the actor and action (-1 otherwise); -1 with no action block.
 pub fn battleState(camera: *c_int, actor: *c_int, action: *c_int) callconv(.c) c_int {
     camera.* = psx.conv(c_int, v.g._cameraMode().*);
@@ -189,7 +189,7 @@ pub fn battleState(camera: *c_int, actor: *c_int, action: *c_int) callconv(.c) c
     return psx.conv(c_int, v.g.D_800F196C().*);
 }
 
-/// orig: pc_charge_skip_reseed (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_reseed (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The random numbers from `seed`, as _initRand seeds them at boot.
 pub fn reseed(seed: c_uint) callconv(.c) void {
     c.srand(seed);
@@ -200,7 +200,7 @@ pub fn reseed(seed: c_uint) callconv(.c) void {
     v.g.randIndex().* = 96;
 }
 
-/// orig: pc_charge_skip_trace (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_trace (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Diagnostics: this vsync's camera mode, the effect loader's state, object slot 0 in use, the cast flash flags and the background effects' ids and kinds.
 pub fn trace(out: [*]u8, size: c_int) callconv(.c) c_int {
     var n: c_int = c.snprintf(out, psx.conv(c_ulong, size), "%d:%u:%d:%d", psx.conv(c_int, v.g._cameraMode().*), v.g.D_800F531C().*, @as(c_int, @intFromBool(v.g.vs_battle_objectDataSlots()[0].dataType != 0)), v.g.D_800F1868().*);
@@ -211,13 +211,13 @@ pub fn trace(out: [*]u8, size: c_int) callconv(.c) c_int {
     return if (n < size) n else size -% 1;
 }
 
-/// orig: pc_charge_skip_window (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_window (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The chain / defence ability window of the action under way (0: none open), for the tests.
 pub fn window() callconv(.c) c_int {
     return if (v.g.D_800F19CC().* != null and v.g.D_800F196C().* == 2) @as(c_int, block().battleAbilityTargetWindow) else 0;
 }
 
-/// orig: pc_charge_skip_ability (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: pc_charge_skip_ability (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The chain / defence input of the action under way for the tests: timer, window, attempt spent, success; 0 with no action.
 pub fn ability(out: *[4]c_int) callconv(.c) c_int {
     if (v.g.D_800F19CC().* == null or v.g.D_800F196C().* != 2) return 0;

@@ -1,4 +1,4 @@
-//! Terrain movement: steers a movement state toward its destination tile (src/BATTLE/BATTLE.PRG/771A8.c).
+//! Terrain movement: steers a movement state toward its destination tile (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -11,7 +11,7 @@ fn terrainTile(z: u8, x: u8) c_int {
     return @as(c_int, p.*) & 15;
 }
 
-/// orig: func_800E19FC (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E19FC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Steps a terrain movement toward its destination, rerouting when the terrain class changes ahead.
 pub fn func_800E19FC(state: ?*v.terrainMovementState) callconv(.c) void {
     const st = state.?;

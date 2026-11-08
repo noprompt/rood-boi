@@ -1,11 +1,11 @@
 //! Action range query: the area of effect of an action, or its range from
-//! func_800E5568 when that lies below a limit (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! func_800E5568 when that lies below a limit (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
-/// orig: func_800E5600 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E5600 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Returns the action's area of effect when its E13 flag is set, else its range from func_800E5568 when that is below `arg2`, else 0.
 pub fn actionRadius(_: c_int, actionId: c_int, arg2: c_uint) callconv(.c) c_int {
     const action = psx.at(v.g.actions(), actionId);

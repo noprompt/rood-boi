@@ -1,10 +1,10 @@
-//! Queues a weapon's effect data (src/BATTLE/BATTLE.PRG/146C.c).
+//! Queues a weapon's effect data (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_loadEtm (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_loadEtm (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Requests object data type 9 (ETM) for slot `index`, weapon `wepId`, with unk11 = `arg2`.
 pub fn loadEtm(index: c_int, wepId: c_int, arg2: c_int) callconv(.c) void {
     // The C's local leaves the other fields uninitialised, and vs_battle_populateDataSlot copies all of it into

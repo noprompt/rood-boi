@@ -1,9 +1,9 @@
-//! Wall contact response on an actor's motion: the scratchpad's collision contacts nudge its velocity (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Wall contact response on an actor's motion: the scratchpad's collision contacts nudge its velocity (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 
-/// orig: func_800A7524 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A7524 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Turns the scratchpad's collision contacts into a push on an actor's motion, stopping blocked velocity, when the actor's flag 0x1000 is set.
 pub fn func_800A7524(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) void {
     const a = actor.?;

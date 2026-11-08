@@ -1,10 +1,10 @@
-//! An action request aimed at a target, resolved by func_80085B10 (src/BATTLE/BATTLE.PRG/146C.c).
+//! An action request aimed at a target, resolved by func_80085B10 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800863A4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800863A4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Builds a request for action `action` by actor `user` on `target`: for area kinds (2, 4, 6, 8: the action's
 /// area at `to`; 11, 12: its range aimed from `from` to `to`) every limb of the target inside the area, for kinds
 /// 5 and 7 limb `limb`, for 1..4 the target's own limb (unk36); resolves it into `result` (func_80085B10). Returns

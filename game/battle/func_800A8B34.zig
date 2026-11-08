@@ -1,10 +1,10 @@
 //! Settles a battle actor's point on the ground: writes its height and flags, or returns a blocked code
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A8B34 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A8B34 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Places a point on the ground for the actor in scratchpad slot 0x1F8003BC, writing its height and flags, or returns the blocked code.
 pub fn func_800A8B34(point: ?*v.SVECTOR, slot: c_int) callconv(.c) c_int {
     const sb: *v.D_1F8003BC_t = @ptrFromInt(0x1F8003BC);

@@ -1,9 +1,9 @@
 //! Copies a limb armor's class and affinity baselines into its current values
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: _calculateArmorClassAffinity (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _calculateArmorClassAffinity (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets a limb's current armor class and affinity values from its armor and its unk88 modifiers.
 pub fn calculateArmorClassAffinity(actor: ?*v.vs_battle_actor2, limbIndex: c_int) callconv(.c) void {
     const limb = psx.at(&actor.?.limbs, limbIndex);

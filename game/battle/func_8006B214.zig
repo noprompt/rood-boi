@@ -1,10 +1,10 @@
-//! Runs the status-0x100000 follow-up for the character state's actor (src/BATTLE/BATTLE.PRG/146C.c).
+//! Runs the status-0x100000 follow-up for the character state's actor (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006B214 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006B214 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the status-0x100000 follow-up for the character state's actor.
 pub fn func_8006B214() callconv(.c) void {
     const actor = psx.get(v.g.vs_battle_characterState().*.?.stats).?;

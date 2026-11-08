@@ -1,8 +1,8 @@
-//! Advances or checks a timed or conditional step: runs one of two checks by mode and counts a frame down (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Advances or checks a timed or conditional step: runs one of two checks by mode and counts a frame down (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const c = @import("c_2842C");
 const v = @import("views_2842C");
 
-/// orig: func_80092FBC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092FBC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Runs the mode's check on `arg0`, then returns 0 when its end condition is met, else 1.
 pub fn func_80092FBC(arg0: ?*v.func_80092F74_t, arg1: ?*v.func_80092F74_t2) callconv(.c) c_int {
     var var_a0: c_int = 0;

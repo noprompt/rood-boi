@@ -1,11 +1,11 @@
 //! Weapon affinity change: a hit raises the target affinity and may lower the opposing ones
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _triggerWeaponAffinityChange (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _triggerWeaponAffinityChange (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Raises an equipment's affinity to the hit's element with a chance, and may lower its related affinities.
 pub fn triggerWeaponAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_battle_uiEquipment, affinity: c_int, arg3: c_int, suppressNotification: c_int) callconv(.c) void {
     const act = action.?;

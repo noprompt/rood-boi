@@ -1,11 +1,11 @@
-//! Builds a single-target action request and prices it (src/BATTLE/BATTLE.PRG/146C.c).
+//! Builds a single-target action request and prices it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008631C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008631C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills an action request aimed at one target and returns the action's cost byte.
 pub fn func_8008631C(action: c_int, actorIndex: c_int, targetActor: c_int, targetLimb: c_int, arg4: ?*anyopaque) callconv(.c) c_int {
     // ROOD_PC: the whole request is zeroed first, padding included.

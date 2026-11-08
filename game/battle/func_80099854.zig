@@ -1,9 +1,9 @@
-//! Puts a material's object data into the first free object-data slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Puts a material's object data into the first free object-data slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_80099854 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_80099854 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Fills the first free object-data slot with a type-7 object of `material`; does nothing for material 0.
 pub fn func_80099854(arg0: c_int) callconv(.c) void {
     if (arg0 == 0) return;

@@ -1,9 +1,9 @@
 //! Works out which status changes a hit applies to its target
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: _setApplicableStatuses (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _setApplicableStatuses (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds the status changes of effect arg0 that the target can take to the hit's remove and inflict masks, and returns both.
 pub fn setApplicableStatuses(arg0: c_int, entity: ?*v._hitEntity_t) callconv(.c) c_int {
     var inflict: c_int = 0;

@@ -1,9 +1,9 @@
-//! Room section A lookup: finds the entry at a grid cell with a matching key (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section A lookup: finds the entry at a grid cell with a matching key (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008BC04 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008BC04 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the room section A entry at (arg0, arg1) with key arg2, or one of the cells beside it by its type, or null.
 pub fn func_8008BC04(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) ?*v._mpdRoomSectionA {
     const room = v.g.vs_battle_roomData();

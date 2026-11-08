@@ -1,8 +1,8 @@
-//! An event script opcode that points an actor at another actor with mode -2 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that points an actor at another actor with mode -2 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: func_800B8510 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B8510 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_8009FC60 for the actor of getShort(script + 1) with the actor of
 /// getShort(script + 3) (0x2000 as -2), no vector and script[5] (0 as 0x1000).
 pub fn func_800B8510(script: [*c]u8, _: c_short) callconv(.c) c_int {

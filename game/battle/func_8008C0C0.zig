@@ -1,10 +1,10 @@
-//! Walks the eight room-object slots and retires the ones whose timers have run out (src/BATTLE/BATTLE.PRG/146C.c).
+//! Walks the eight room-object slots and retires the ones whose timers have run out (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008C0C0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C0C0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Ticks each active room-object slot: finishes state 1 when its callback reports done, and retires states 2 and 3 when their counters reach zero.
 pub fn func_8008C0C0() callconv(.c) void {
     if (v.g.D_800F1D6A().* <= 0) {

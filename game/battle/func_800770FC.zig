@@ -1,11 +1,11 @@
 //! Fills a battle object-data record for data type 7 and populates a data slot with it
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800770FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800770FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Populates a data slot for object type 7 at `index`; the record's other fields are left as the C leaves them.
 pub fn func_800770FC(_: ?*v.vs_battle_actor, index: c_int) callconv(.c) void {
     // The C leaves sp10's other fields uninitialised; they are passed on as they are.

@@ -1,11 +1,11 @@
-//! Battle camera-object setup for the acting actor's tile: the mode 2 hold, the mode 1 step, and the normal move (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Battle camera-object setup for the acting actor's tile: the mode 2 hold, the mode 1 step, and the normal move (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A41D0 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A41D0 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Sets up the object of the acting actor's tile: mode 2 holds it, mode 1 places it one tile over, otherwise it turns it one step.
 pub fn func_800A41D0(actor: ?*v.D_800F4538_t, mode: c_int) callconv(.c) void {
     // The C reads the object pointer before the mode tests; the element index is not bounded.

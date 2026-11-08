@@ -1,9 +1,9 @@
-//! The event script's special operations (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's special operations (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_specialOp (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_specialOp (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs special operation script[1] with argument script[2]: the ending (1, over two steps),
 /// action unlocks (3), the SCREFF2 border (15), a sub-script (16: returns D_800E9B5C's address
 /// and keeps script + 6 in D_800F4C64), and others; returns 1 while waiting, else 0.

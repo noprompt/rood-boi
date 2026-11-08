@@ -1,7 +1,7 @@
 //! An effect event's particle emission: the event's count of nodes taken
 //! from the effect's pool, their start positions by the emitter shape, their
 //! velocities, sizes, colours and lifetimes from the event's curves
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const gte = common.gte;
@@ -57,7 +57,7 @@ fn next(node: *Node) ?*Node {
     return psx.get(node.next);
 }
 
-/// orig: func_800D2ADC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D2ADC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Emits effect event `event` of the effect `arg0` (every unkC0-curve frames):
 /// takes the count (unkBC curve, capped by the pool) of nodes, places them by
 /// the emitter shape (flags & 0x38: box, octants, cylinder, disc, ring of

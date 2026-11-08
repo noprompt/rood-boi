@@ -20,12 +20,12 @@ def check(ok, message):
 
 
 D2 = "D2 (pc/src asm port): asm on the PS1; PC oracle is pc/src/battle_helpers.c:473"
-check(port_progress.unit_file("src/BATTLE/BATTLE.PRG/6FA6C.s", D2) == "pc/src/battle_helpers.c",
+check(port_progress.unit_file("pc/src/game/BATTLE/BATTLE.PRG/6FA6C.s", D2) == "pc/src/battle_helpers.c",
       "a D2 row's unit is its oracle")
-check(port_progress.unit_file("src/BATTLE/BATTLE.PRG/146C.c", "c") == "src/BATTLE/BATTLE.PRG/146C.c",
+check(port_progress.unit_file("pc/src/game/BATTLE/BATTLE.PRG/146C.c", "c") == "pc/src/game/BATTLE/BATTLE.PRG/146C.c",
       "a first-pass row keeps its file")
-check(port_progress.unit_file("src/BATTLE/BATTLE.PRG/7B5DC.s", "D2: asm on the PS1; PC runs none: calls trap (pc_unimplemented)")
-      == "src/BATTLE/BATTLE.PRG/7B5DC.s", "a D2 row without an oracle keeps its file")
+check(port_progress.unit_file("pc/src/game/BATTLE/BATTLE.PRG/7B5DC.s", "D2: asm on the PS1; PC runs none: calls trap (pc_unimplemented)")
+      == "pc/src/game/BATTLE/BATTLE.PRG/7B5DC.s", "a D2 row without an oracle keeps its file")
 check(port_progress.kind_of("none (dead): a static function nothing calls") == "none"
       and port_progress.kind_of("D2: asm on the PS1; PC runs none: calls trap (pc_unimplemented)") == "D2",
       "a row not ported by design is its own kind (counted apart, never left)")
@@ -37,12 +37,12 @@ with tempfile.TemporaryDirectory() as d:
     (root / "game").joinpath("ownership.toml").write_text("")
     (root / port_progress.TABLE).write_text(
         "function\taddress\tfile\tlines\tkind\tdifficulty\n"
-        f"func_800D826C\t0x800D826C\tsrc/BATTLE/BATTLE.PRG/6FA6C.s\t1\t{D2}\tS\n"
-        f"func_800D8280\t0x800D8280\tsrc/BATTLE/BATTLE.PRG/6FA6C.s\t10\t{D2}\tS\n"
-        "func_80070CAC\t0x80070CAC\tsrc/BATTLE/BATTLE.PRG/146C.c\t40\tc\tS\n")
+        f"func_800D826C\t0x800D826C\tpc/src/game/BATTLE/BATTLE.PRG/6FA6C.s\t1\t{D2}\tS\n"
+        f"func_800D8280\t0x800D8280\tpc/src/game/BATTLE/BATTLE.PRG/6FA6C.s\t10\t{D2}\tS\n"
+        "func_80070CAC\t0x80070CAC\tpc/src/game/BATTLE/BATTLE.PRG/146C.c\t40\tc\tS\n")
     (root / "game/battle/pc/x.zig").write_text(
         "/// orig: func_800D826C (pc/src/battle_helpers.c)\npub fn f() void {}\n"
-        "/// orig: func_80070CAC (src/BATTLE/BATTLE.PRG/146C.c)\npub fn g() void {}\n")
+        "/// orig: func_80070CAC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)\npub fn g() void {}\n")
     kinds = port_progress.summary(root)["kinds"]
     check(kinds["D2"] == {"ported": 1, "left": 1}, f"one of two D2 functions counted: {kinds['D2']}")
     check(kinds["c"] == {"ported": 1, "left": 0}, f"first-pass counting unchanged: {kinds['c']}")

@@ -1,9 +1,9 @@
-//! Finds another battle object slot holding the same model and links to it (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Finds another battle object slot holding the same model and links to it (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009AC24 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009AC24 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Looks for another battle object slot with this object's model; on a match stores that slot in dataAddr and returns 1, else 0.
 pub fn func_8009AC24(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const obj = arg0.?;

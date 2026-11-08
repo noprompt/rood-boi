@@ -1,10 +1,10 @@
-//! An actor's defeat (src/BATTLE/BATTLE.PRG/146C.c).
+//! An actor's defeat (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074A20 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074A20 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Settles actor `actorId` after a hit: at 0 HP it falls; 1 when it is defeated (not a 0x80 actor, or Ashley).
 pub fn checkDefeated(actorId: c_int) callconv(.c) c_int {
     c.func_800E6700(actorId);

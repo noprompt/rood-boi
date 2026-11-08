@@ -1,11 +1,11 @@
 //! Whether the room's event script holds a type-4 event for the cell an
-//! actor stands on (src/BATTLE/BATTLE.PRG/146C.c).
+//! actor stands on (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074860 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074860 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Finds actor `arg0`'s cell (func_800A1108, func_80074798) and asks the event script (func_800BEC58, type 4, mode 1) for an event there: 1 when it answers 1.
 pub fn func_80074860(arg0: c_int) callconv(.c) c_int {
     // uninitialised in the original until func_800A1108 and func_80074798 fill them

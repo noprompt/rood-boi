@@ -1,10 +1,10 @@
 //! Weapon kill streak: the blade category of the acting character's weapon
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _updateWeaponKillStreak (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _updateWeaponKillStreak (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Counts a weapon kill streak for the character's blade category, restarting it when the category changes.
 pub fn updateWeaponKillStreak(_: c_int) callconv(.c) void {
     const actor = psx.get(v.g.vs_battle_characterState().*.?.stats);

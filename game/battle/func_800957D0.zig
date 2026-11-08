@@ -1,11 +1,11 @@
 //! Draws one shaded textured quad (an FT4 primitive) at the scratchpad's
-//! packet cursor and links it into the ordering table (src/BATTLE/BATTLE.PRG/2842C.c).
+//! packet cursor and links it into the ordering table (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_800957D0 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800957D0 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Builds a 16x10 textured quad centred on (arg0 + 8, arg1), takes its texture column from arg2, and adds it to the ordering table.
 pub fn func_800957D0(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     // The packet cursor lives in the scratchpad at 0x1F800000; the ordering table slot at 0x1F800004.

@@ -1,8 +1,8 @@
-//! One step of a da4b state: runs one of two helpers by its flagE, then returns 1 (src/BATTLE/BATTLE.PRG/71618.c).
+//! One step of a da4b state: runs one of two helpers by its flagE, then returns 1 (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DAA6C (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DAA6C (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs one step of a da4b state (flagE selects the helper) and always returns 1.
 pub fn func_800DAA6C(state: ?*v.da4bcState) callconv(.c) c_int {
     const s = state.?;

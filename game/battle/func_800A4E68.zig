@@ -1,5 +1,5 @@
 //! Per-tick update of one battle actor: its movement or action, its position
-//! and its current tile (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! and its current tile (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
@@ -15,7 +15,7 @@ fn statusWord(actor: *v.D_800F4538_t) c_uint {
     return psx.byteAt(c_uint, actor, 8).*;
 }
 
-/// orig: func_800A4E68 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A4E68 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Runs one actor's movement or action for the tick, then its position and current tile.
 pub fn func_800A4E68(arg0: c_int) callconv(.c) void {
     const s: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), arg0).*.?;

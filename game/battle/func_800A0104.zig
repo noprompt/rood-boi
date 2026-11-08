@@ -1,10 +1,10 @@
-//! Sets a battle object's material and rotation matrix (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Sets a battle object's material and rotation matrix (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_800A0104 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A0104 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Stores a material index in object `index`, builds its rotation matrix from the material's angles, and clears its state; -1 if the object is absent or its actor is 2 or more.
 pub fn func_800A0104(index: c_int, material: c_int) callconv(.c) c_int {
     const obj: *v.D_800F45E0_t = psx.at(v.g.D_800F45E0(), index).* orelse return -1;

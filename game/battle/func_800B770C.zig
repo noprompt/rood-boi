@@ -1,9 +1,9 @@
-//! An event script opcode that sets the flags of each actor of a script reference (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that sets the flags of each actor of a script reference (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B770C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B770C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// For each actor of the reference getShort(script + 1): func_8007D1A8 with script[4] bit 5, then
 /// its func_800A0BE0 flags rewritten: bits 0x800 and 0x1000 kept where script[4] bits 1 and 3 say
 /// so, else taken from bits 0 and 2, ORed with script[3]; then func_8009D88C.

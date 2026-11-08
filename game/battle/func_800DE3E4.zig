@@ -1,6 +1,6 @@
 //! Plans an AI actor's next actions: scores candidates at three look-ahead
 //! delays on a snapshot of every actor's stats, keeps a quota from each, and
-//! spreads their thresholds (src/BATTLE/BATTLE.PRG/74088.c).
+//! spreads their thresholds (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_74088");
@@ -10,7 +10,7 @@ fn statsCopies() *?[*]v.vs_battle_actor2 {
     return psx.global(?[*]v.vs_battle_actor2, "D_800F58E8");
 }
 
-/// orig: snapshotActorStats (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: snapshotActorStats (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Copies every actor's stats into a heap block (0 when the heap is full).
 fn snapshotActorStats() c_int {
     statsCopies().* = @ptrCast(@alignCast(c.vs_main_allocHeapR(@as(c_uint, @sizeOf(v.vs_battle_actor2) * 16))));
@@ -24,7 +24,7 @@ fn snapshotActorStats() c_int {
     return 1;
 }
 
-/// orig: restoreActorStats (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: restoreActorStats (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Copies the snapshot back into every actor's stats and frees it.
 fn restoreActorStats() void {
     var actor = v.g.vs_battle_actors()[0];
@@ -44,7 +44,7 @@ fn entryAt(state: *v.actionPlanState, i: c_int) *v.actionCandidateEntry {
     return psx.get(psx.at(&state.entries, i).*).?;
 }
 
-/// orig: func_800DE3E4 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DE3E4 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Chooses up to 16 action candidates for `state`'s actor (10, then the rest, then 3, from three delays), with a fallback list.
 pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
     const delays = [3]c_int{ 0, 455, 2900 };

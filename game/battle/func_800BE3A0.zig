@@ -1,8 +1,8 @@
 //! Camera setup: resets the eye and look-at modes and clears their follow flags
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const v = @import("views_4A0A8");
 
-/// orig: func_800BE3A0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BE3A0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sets the eye and look-at camera modes to 0xF and clears their follow flags.
 pub fn func_800BE3A0() callconv(.c) void {
     const c1: *v.D_800F4BA4_t = v.g.D_800F4BA4().*.?;

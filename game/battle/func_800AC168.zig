@@ -1,8 +1,8 @@
 //! Palette effects on a run of 15-bit colour words: fades, tints and the
-//! reference-relative blend (src/BATTLE/BATTLE.PRG/40564.c).
+//! reference-relative blend (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 
-/// orig: func_800AC168 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC168 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Applies palette effect `mode` to `count` colour words at `colors`, using `reference` as the base colours for mode 4; returns 1 if a word changed.
 pub fn func_800AC168(colors: [*c]c_ushort, count: c_int, amount: c_int, mode: c_int, reference: [*c]c_ushort) callconv(.c) c_int {
     var i: c_int = 0;

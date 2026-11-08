@@ -1,11 +1,11 @@
 //! Applies the battle ability effects queued for one actor and runs the matching
-//! reaction, or the arg1 hook for slots 0x80 (src/BATTLE/BATTLE.PRG/146C.c).
+//! reaction, or the arg1 hook for slots 0x80 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006CB04 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006CB04 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies the ability effects aimed at actor `arg0` and runs its reaction; slots of 16 and above run the arg1 hook.
 pub fn func_8006CB04(arg0: c_int, arg1: ?*v.func_8006CE70_t) callconv(.c) void {
     if (arg0 < 16) {

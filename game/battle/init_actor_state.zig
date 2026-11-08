@@ -1,9 +1,9 @@
-//! Battle actor setup: records an actor's kind and, for an active actor, builds its initialization state (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! Battle actor setup: records an actor's kind and, for an active actor, builds its initialization state (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const psx = @import("common").psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
-/// orig: func_800E6178 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E6178 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Registers an actor for battle and, when it is active, builds its initialization state; returns 1 when the state is a placed one.
 pub fn initActorState(actor: ?*v.actorInitializationActor, options: c_int) callconv(.c) c_int {
     const a = actor.?;

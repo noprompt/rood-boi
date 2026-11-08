@@ -1,4 +1,4 @@
-//! The room's moving objects (section 12) stepped along their paths (src/BATTLE/BATTLE.PRG/146C.c).
+//! The room's moving objects (section 12) stepped along their paths (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ const c = @import("c_146C");
 /// into the padding before the next table (0 in BATTLE.PRG and in the PC builds' rodata).
 const heights = [8]i16{ 8, 14, 16, 11, 7, 3, 1, 0 };
 
-/// orig: func_8008C8A8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C8A8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// While the lights timer D_800F1D68 runs, counts it down (flickering the lights under 30 on odd frames, off at 0)
 /// and nothing else. Otherwise each section-12 object not hidden (unk0_9) and not parked moves per tick: rising to
 /// height 7, then either sliding by its leg's velocity (backed out when func_800A4494 reports a collision; at the

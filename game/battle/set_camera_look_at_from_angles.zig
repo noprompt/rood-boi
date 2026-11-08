@@ -1,9 +1,9 @@
-//! Points the battle camera's look-at at a spherical offset from its position (src/BATTLE/BATTLE.PRG/146C.c).
+//! Points the battle camera's look-at at a spherical offset from its position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _setCameraLookAtFromAngles (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _setCameraLookAtFromAngles (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the camera's look-at point from yaw, pitch and distance around its position.
 pub fn setCameraLookAtFromAngles(spherical: ?*v._sphericalValues) callconv(.c) void {
     const sph = spherical.?;

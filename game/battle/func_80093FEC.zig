@@ -1,8 +1,8 @@
-//! Calls the per-bit handler for each set bit of a 29-bit mask (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Calls the per-bit handler for each set bit of a 29-bit mask (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const c = @import("c_2842C");
 
-/// orig: func_80093FEC (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093FEC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// For each bit i below 29 set in `mask`, calls func_8009406C with message 0xFB, index i and `arg3`.
 pub fn func_80093FEC(arg0: c_int, _: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int {
     var i: c_int = 0;

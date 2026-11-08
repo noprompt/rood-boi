@@ -1,11 +1,11 @@
-//! Queues a display entry for an actor in the list at D_800F1BAC, rejecting off-screen positions when arg3 bit 7 is set (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Queues a display entry for an actor in the list at D_800F1BAC, rejecting off-screen positions when arg3 bit 7 is set (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009406C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009406C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Adds an entry for `arg0` to the display list, counting earlier entries for it and keeping the last display length and kind.
 pub fn func_8009406C(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int {
     var sp10: v.SVECTOR = std.mem.zeroes(v.SVECTOR);

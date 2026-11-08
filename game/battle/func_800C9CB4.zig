@@ -1,9 +1,9 @@
-//! Draws a status icon's sprite pair into the battle scratch packet (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws a status icon's sprite pair into the battle scratch packet (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C9CB4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C9CB4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Writes the sprite for status icon `icon` at offset `dx` on row `row`, splitting it across a second sprite when it wraps.
 pub fn func_800C9CB4(icon: c_int, dx: c_int, row: c_int) callconv(.c) void {
     if (icon != 0xFF and v.g.D_800EB9B0().* == 0) {

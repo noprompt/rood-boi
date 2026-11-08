@@ -1,9 +1,9 @@
 //! Battle display setup: calls the battle draw-state routines in order and sets D_800F1968
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006C39C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C39C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Resets the battle display state and marks D_800F1968 as set.
 pub fn func_8006C39C() callconv(.c) void {
     c.func_8007B10C(13, 4, -4, -4, 0);

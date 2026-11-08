@@ -1,10 +1,10 @@
-//! Applies a worn armor piece's stats to the battle armor UI record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Applies a worn armor piece's stats to the battle armor UI record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_applyArmor (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_applyArmor (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies a worn armor piece (nothing, when source is null) into an intermediate record and applies it to target.
 pub fn applyArmor(target: ?*v.vs_battle_uiArmor, source: ?*v.vs_main_inventoryArmor) callconv(.c) void {
     const raw = c.vs_main_allocHeapR(@as(c_uint, @sizeOf(v._armorIntermediate)));

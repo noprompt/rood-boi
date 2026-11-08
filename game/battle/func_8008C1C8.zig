@@ -1,10 +1,10 @@
-//! Toggles a room section and its linked section (src/BATTLE/BATTLE.PRG/146C.c).
+//! Toggles a room section and its linked section (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008C1C8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008C1C8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Toggles a room section and its linked section, returning 0 if the section's lock is held.
 pub fn func_8008C1C8(arg0: ?*v._mpdRoomSectionA) callconv(.c) c_int {
     const section = arg0.?;

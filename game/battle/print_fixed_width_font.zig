@@ -1,10 +1,10 @@
-//! Prints a text box's string in the fixed-width font (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Prints a text box's string in the fixed-width font (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: _printFixedWidthFont (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _printFixedWidthFont (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws the box's text at `scale` (12 per character, 13 per line) through _printFixedWidthFontChar, handling
 /// the terminator, newlines (justified when on), x moves, y moves and the font, justify and colour codes.
 pub fn printFixedWidthFont(box_arg: ?*v.vs_battle_textBox, scale: c_int) callconv(.c) void {

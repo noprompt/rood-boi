@@ -1,8 +1,8 @@
 //! Dismisses every battle text box and reports whether all of them closed
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const c = @import("c_5BF94");
 
-/// orig: _dismissAllTextBoxes (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _dismissAllTextBoxes (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Dismisses text boxes 0 to 7 in order; returns 0 if any dismissal reported failure, else 1.
 pub fn dismissAllTextBoxes() callconv(.c) c_int {
     var var_s1: c_int = 1;

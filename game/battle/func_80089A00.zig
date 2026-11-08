@@ -1,10 +1,10 @@
-//! Refreshes the per-zone record table (D_80061078) when the zone changes and ages the other records (src/BATTLE/BATTLE.PRG/146C.c).
+//! Refreshes the per-zone record table (D_80061078) when the zone changes and ages the other records (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80089A00 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80089A00 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Finds or replaces this zone's record, copies enemy data into it, and ages the other records.
 pub fn func_80089A00() callconv(.c) void {
     const zone = v.g._zoneContext();

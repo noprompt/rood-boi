@@ -1,10 +1,10 @@
-//! Turns a battle actor toward a target angle by the shorter way round (src/BATTLE/BATTLE.PRG/40564.c).
+//! Turns a battle actor toward a target angle by the shorter way round (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AA850 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA850 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Takes the signed difference from the actor's facing to `angle` (the shorter way round) and passes it to func_800AA984.
 pub fn func_800AA850(slot: c_int, angle: c_ushort, arg2: c_int) callconv(.c) void {
     // D_800F4538[slot]: the C does not check the slot against 17, so neither do we.

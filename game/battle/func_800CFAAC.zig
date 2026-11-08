@@ -1,8 +1,8 @@
-//! Steps a sprite position one unit toward its target along the longer axis (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Steps a sprite position one unit toward its target along the longer axis (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800CFAAC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CFAAC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Moves the point at unkC/unkE one step toward the point at unk10/unk12 (Bresenham-style, the longer axis always moves).
 pub fn func_800CFAAC(arg0: ?*v.func_800CFAAC_t) callconv(.c) void {
     const p = arg0.?;

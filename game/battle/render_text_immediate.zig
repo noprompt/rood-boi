@@ -1,6 +1,6 @@
 //! A text box's whole string drawn at once into a copy of its screen area, or,
 //! with the PC's opacity hook, as glyph sprites faded together
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -15,7 +15,7 @@ fn nullPlus(slot: c_int) ?[*]u32 {
     return if (addr == 0) null else @ptrFromInt(addr);
 }
 
-/// orig: _pcFadeBegin (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _pcFadeBegin (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// 1 when the box's text is drawn as glyph sprites (then nothing is read
 /// back): saves the ordering table, the packet heap's position, the colour
 /// and the brightness in the C's file statics (globalised by the build:
@@ -38,13 +38,13 @@ fn fadeBegin(box: *v.vs_battle_textBox) bool {
     return true;
 }
 
-/// orig: _pcFadeGlyph (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _pcFadeGlyph (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// One character (its code in the current font table) with its top-left at x, y.
 fn fadeGlyph(character: c_uint, x: c_int, y: c_int) void {
     _ = c.vs_battle_printVariableWidthFontChar(character, x, y, @ptrCast(v.g._pcFadeOt().*));
 }
 
-/// orig: _pcFadeEnd (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _pcFadeEnd (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The glyphs drawn since fadeBegin at `alpha` (16.16); the colour and brightness restored.
 fn fadeEnd(alpha: c_int) void {
     if (psx.weak(OpacityPackets, "pc_hw_opacity_packets")) |packets| {
@@ -54,7 +54,7 @@ fn fadeEnd(alpha: c_int) void {
     v.g._fontBrightness().* = v.g._pcFadeBrightness().*;
 }
 
-/// orig: _renderTextImmediate (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _renderTextImmediate (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws the box's whole string (newlines, the end with its Circle skip,
 /// moves, font switches, justification) at `arg1` (16.16 opacity, capped at
 /// 1.0): on the PC's glyph path as faded sprites, else into a copy of the

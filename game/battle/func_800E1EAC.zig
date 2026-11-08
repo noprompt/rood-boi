@@ -1,6 +1,6 @@
 //! An idle actor's wander step: rests and walks in timed periods, picks a
 //! free heading or a destination tile, and turns back at the map's edges
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
@@ -8,7 +8,7 @@ const c = @import("c_771A8");
 
 const Check = *const fn (?*anyopaque, c_int) callconv(.c) c_int;
 
-/// orig: wanderRandomHeading (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: wanderRandomHeading (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// A heading within half an octant of `direction`'s.
 fn wanderRandomHeading(direction: c_int) c_int {
     var offset: c_int = c.func_800E45D4(512);
@@ -17,7 +17,7 @@ fn wanderRandomHeading(direction: c_int) c_int {
     return angle +% offset;
 }
 
-/// orig: wanderStartWalk (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: wanderStartWalk (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Starts a new walk: no heading yet, and the recovery step.
 fn wanderStartWalk(s: *v.wanderState) void {
     s.angle = -1;
@@ -32,7 +32,7 @@ fn chanceOf(rate: c_int) c_int {
     return @as(c_int, 1) << @truncate(@as(c_uint, @bitCast(rate)));
 }
 
-/// orig: func_800E1EAC (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1EAC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// One wander step of `state` around `tile` within `range` (63 and up: free roaming by heading).
 pub fn func_800E1EAC(state: ?*v.wanderState, tile: c_uint, range: c_uint) callconv(.c) void {
     const s = state.?;

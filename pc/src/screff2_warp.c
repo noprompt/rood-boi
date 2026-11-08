@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <libgte.h>
 #include <inline_c.h>
-#include "src/GIM/SCREFF2.PRG/0.h"
+#include "pc/src/game/GIM/SCREFF2.PRG/0.h"
 extern unsigned short D_80040C18[];
 extern void pc_unimplemented(const char*);
 static unsigned* warp_link(unsigned address)

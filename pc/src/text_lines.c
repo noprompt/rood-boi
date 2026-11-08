@@ -9,7 +9,7 @@
  *
  * Compiled with the game headers (battle builds); ui_text.c links it weakly. */
 #include "common.h"
-#include "../../src/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 
 #define BOXES 8 /* vs_battle_textBoxes: 0x180 bytes */
 #define LINE_MAX 128

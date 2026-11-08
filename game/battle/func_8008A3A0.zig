@@ -1,11 +1,11 @@
 //! Battle teardown: clears the two frame buffers' order tables and transitions,
-//! then frees the zone's enemy list and the battle's heap blocks (src/BATTLE/BATTLE.PRG/146C.c).
+//! then frees the zone's enemy list and the battle's heap blocks (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008A3A0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008A3A0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears and transitions both frame buffers, then tears down the battle's heap and scene state.
 pub fn func_8008A3A0() callconv(.c) void {
     var i: c_int = 0;

@@ -95,7 +95,7 @@ SAVE_FLAGS, SAVE_SETTINGS, SAVE_ROOM = 0x200, 0x6A8, 0x1778  # savedata_t (MENU7
 
 def save_point_data():
     """MENU0 84.c _savePointData (fast_travel_probe checks the port's copy against it)."""
-    text = (ROOT / "src/MENU/MENU0.PRG/84.c").read_text()
+    text = (ROOT / "pc/src/game/MENU/MENU0.PRG/84.c").read_text()
     body = re.search(r"_savePointData\[\]\s*=\s*\{([^}]*)\}", text).group(1)
     return [int(x, 0) for x in body.replace("\n", " ").split(",") if x.strip()]
 

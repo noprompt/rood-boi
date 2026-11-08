@@ -1,9 +1,9 @@
-//! CLUT transform over the three colour slots (src/BATTLE/BATTLE.PRG/146C.c).
+//! CLUT transform over the three colour slots (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const c = @import("c_146C");
 
-/// orig: func_8007B10C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B10C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the CLUT transform on colour slots 0, 1 and 2 in turn, with the same arguments.
 pub fn func_8007B10C(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_short, arg4: c_short) callconv(.c) void {
     // The prototype's 4th parameter is a short: arg2 is converted to it at the call.

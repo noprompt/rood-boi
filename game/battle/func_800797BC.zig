@@ -1,9 +1,9 @@
 //! Battle per-frame step: runs three update calls unless the state at func_800CB66C's unk0 is 1
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800797BC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800797BC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the frame's first update, then the three follow-up steps unless the current state's first field is 1.
 pub fn func_800797BC() callconv(.c) void {
     c.func_800C97BC();

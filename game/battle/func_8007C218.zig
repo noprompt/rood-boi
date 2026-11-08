@@ -1,9 +1,9 @@
-//! Battle actor HP percentage: current HP as a percent of max, at least 1 when alive (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle actor HP percentage: current HP as a percent of max, at least 1 when alive (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8007C218 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007C218 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the HP percentage (at least 1) of battle actor `arg0` with live stats, else 0.
 pub fn func_8007C218(arg0: c_int) callconv(.c) c_int {
     // vs_battle_actors[arg0]->unk3C: the index is not checked, as in the C.

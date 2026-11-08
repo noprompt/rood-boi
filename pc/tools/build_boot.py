@@ -727,7 +727,7 @@ build_stamp = Stamp(root, out, {
     "nrd": [nrd and nrd["libraries"], win_nrd and win_nrd["libraries"]], "toolchain": toolchain,
     "glslang": [glslang_libraries, win_glslang_libraries],
 })
-stamp_trees = [("src", None), ("include", None), ("config", None), ("build", None), ("pc/src", None),
+stamp_trees = [("include", None), ("config", None), ("build", None), ("pc/src", None),
                ("pc/include", None), ("pc/shaders", None), ("pc/third_party", None), ("tools/etc", ".py"),
                ("pc/tests", (".c", ".h")), ("game", None)] \
     + [(f"pc/tools/{tool}.py", None) for tool in ["build_boot", "build_cache", "event_callbacks", "lp64_report",
@@ -828,13 +828,13 @@ if battle:
         link_symbols(args)
 objects = []
 sources = [
-    ("src/SLUS_010.40/main.c", "main"),
-    ("src/TITLE/TITLE.PRG/22C.c", "title"),
-    ("src/TITLE/TITLE.PRG/titleData.c", "title_data"),
+    ("pc/src/game/SLUS_010.40/main.c", "main"),
+    ("pc/src/game/TITLE/TITLE.PRG/22C.c", "title"),
+    ("pc/src/game/TITLE/TITLE.PRG/titleData.c", "title_data"),
     ("pc/src/boot_sdk.c", "sdk"),
-    ("src/SLUS_010.40/25AC.c", "sound_driver"),
+    ("pc/src/game/SLUS_010.40/25AC.c", "sound_driver"),
     # The game's VLC table builder for the intro movie (DecDCTvlcBuild).
-    ("src/TITLE/TITLE.PRG/libpress/BUILD.c", "title_vlc_build"),
+    ("pc/src/game/TITLE/TITLE.PRG/libpress/BUILD.c", "title_vlc_build"),
 ]
 if battle:
     # Only explicitly identified callback tables are rehomed. Verify their exact targets
@@ -914,21 +914,21 @@ if battle:
         generate_event_callbacks(
             overlay,
             symbol_text,
-            (root / "src/BATTLE/BATTLE.PRG/4A0A8.c").read_text(),
-            (root / "src/BATTLE/BATTLE.PRG/4A0A8.h").read_text(),
+            (root / "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c").read_text(),
+            (root / "pc/src/game/BATTLE/BATTLE.PRG/4A0A8.h").read_text(),
         )
     )
     (generated / "effect_callbacks.inc").write_text(
         generate_effect_callbacks(
             overlay,
             symbol_text,
-            (root / "src/BATTLE/BATTLE.PRG/5BF94.c").read_text(),
+            (root / "pc/src/game/BATTLE/BATTLE.PRG/5BF94.c").read_text(),
         )
     )
     sources += [
-        ("src/EFFECT/EFFPURGE.BIN/0.c", "effect_dispatch"),
-        ("src/GIM/SCREFF2.PRG/0.c", "screff2_main"),
-        ("src/GIM/SCREFF2.PRG/5E8.c", "screff2_border"),
+        ("pc/src/game/EFFECT/EFFPURGE.BIN/0.c", "effect_dispatch"),
+        ("pc/src/game/GIM/SCREFF2.PRG/0.c", "screff2_main"),
+        ("pc/src/game/GIM/SCREFF2.PRG/5E8.c", "screff2_border"),
         ("pc/src/battle_helpers.c", "battle_helpers"),
         ("pc/src/battle_gte.c", "battle_gte"),
         ("pc/src/battle_movement.c", "battle_movement"),
@@ -982,23 +982,23 @@ if battle:
     ]
     sources += [
         (p.relative_to(root).as_posix(), "battle_" + p.stem)
-        for p in sorted((root / "src/BATTLE/BATTLE.PRG").glob("*.c"))
+        for p in sorted((root / "pc/src/game/BATTLE/BATTLE.PRG").glob("*.c"))
     ]
     sources += [
         (p.relative_to(root).as_posix(), "init_" + p.stem)
-        for p in sorted((root / "src/BATTLE/INITBTL.PRG").glob("*.c"))
+        for p in sorted((root / "pc/src/game/BATTLE/INITBTL.PRG").glob("*.c"))
     ]
     # The main menu overlay (loaded at 0x800F9800 like the effect plugins);
     # its data stays in guest RAM where the original loader places it.
     sources += [
         (p.relative_to(root).as_posix(), "mainmenu_" + p.stem)
-        for p in sorted((root / "src/MENU/MAINMENU.PRG").glob("*.c"))
+        for p in sorted((root / "pc/src/game/MENU/MAINMENU.PRG").glob("*.c"))
     ]
     # Submenu overlays MENU0-F share the 0x80102800 slot; their global names
     # are distinct, so they link side by side. Their data is defined in C.
     sources += [
         (p.relative_to(root).as_posix(), p.parent.name.split(".")[0].lower() + "_" + p.stem)
-        for p in sorted((root / "src/MENU").glob("MENU?.PRG/*.c"))
+        for p in sorted((root / "pc/src/game/MENU").glob("MENU?.PRG/*.c"))
     ]
     # The ending (credits, score and rank screens; main.c's
     # vs_main_showEndingAndReturnToTitle) loads at 0x80068800 over BATTLE.
@@ -1006,18 +1006,18 @@ if battle:
     # ending_ after compiling; its data stays in guest RAM like MAINMENU's.
     sources += [
         (p.relative_to(root).as_posix(), "ending_" + p.stem)
-        for p in sorted((root / "src/ENDING/ENDING.PRG").glob("*.c"))
+        for p in sorted((root / "pc/src/game/ENDING/ENDING.PRG").glob("*.c"))
     ]
     sources += [
         (p.relative_to(root).as_posix(), "gpu_" + p.stem)
-        for p in sorted((root / "src/SLUS_010.40/libgpu").glob("P*.c"))
+        for p in sorted((root / "pc/src/game/SLUS_010.40/libgpu").glob("P*.c"))
     ]
 if battle:
     # Effect plug-ins (PLGnnn.BIN) all load at 0x800F9800 and reuse function
     # names, so each object's own symbols are prefixed plgnnn_ after compiling;
     # their data resolves against that PLG's ELF (the loader puts the image in
     # guest RAM). pc/src/effects/plgNNN.c holds native-only translations.
-    plg_sources = sorted((root / "src/EFFECT").glob("PLG*.BIN/*.c"))
+    plg_sources = sorted((root / "pc/src/game/EFFECT").glob("PLG*.BIN/*.c"))
     sources += [
         (p.relative_to(root).as_posix(), p.parent.name.split(".")[0].lower() + "_" + p.stem)
         for p in plg_sources
@@ -1034,7 +1034,7 @@ game_cpp_flags = [
     "-nostdinc",
     "-Ipc/include",
     "-Iinclude/psx",
-    "-Isrc/include",
+    "-Ipc/src/game/include",
     *(["-iquote", str(out.relative_to(root) / "include"), "-DROOD_PC_LP64"] if arch64 else []),
     "-I.",
     "-D_LANGUAGE_C",
@@ -1069,17 +1069,7 @@ active = ownership_tool.Table([]) if not ZIG else ownership_table.for_build(
     {source for source, _ in sources}, {"battle"} if battle else set())
 
 
-source_names = dict(sources)
-# Units with a C copy (ownership.toml lang = "c"): their statics are shared
-# with the copy (ownership.share_statics). Unit -> the statics' link names.
-c_units = {s.unit for s in active.subsystems if s.lang == "c"}
-shared_statics = {}
-zig_active = active.zig_only()
-
-
 def route_definitions(text, source):
-    if source in c_units:
-        text, shared_statics[source] = ownership_tool.share_statics(text, source_names[source], copy=False)
     names = active.routed_names(source)
     if not names:
         return text
@@ -1112,12 +1102,7 @@ def pc_unit_statics(source, name, obj, pre, win_pre):
 
 
 game_objects = []  # objects of the game's (-nostdinc) units
-
-
-def preprocess_unit(source, name, rewrite):
-    """Preprocess a game unit (and its COFF twin's text), the routing's text
-    edits `rewrite(text)` applied: (pre, win_pre), or None when a pass failed
-    (recorded in arch64_results)."""
+for source, name in sources:
     cpp_args = [
         "-E",
         *game_cpp_flags,
@@ -1145,27 +1130,19 @@ def preprocess_unit(source, name, rewrite):
                                  capture_output=True, cwd=root)
         if win_cpp.returncode:
             arch64_results.append(("c", "win:" + source, win_cpp.returncode, win_cpp.stderr.decode(errors="replace")))
-            return None
+            continue
         win_pre = out / (name + ".win.i")
-        win_pre.write_bytes(rewrite(lp64_longs(result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
+        win_pre.write_bytes(route_definitions(lp64_longs(result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
                                                         files=sorted((root / "tools/etc").glob("vsString*.py")),
-                                                        input=win_cpp.stdout))))
+                                                        input=win_cpp.stdout)), source))
     if not coff and arch64 and cpp.returncode:  # record it and go on, like a compile error
         arch64_results.append(("c", source, cpp.returncode, cpp.stderr.decode(errors="replace")))
-        return None
+        continue
     pre = out / (name + ".i")
     if not coff:
         encoded = result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
                                    files=sorted((root / "tools/etc").glob("vsString*.py")), input=cpp.stdout)
-        pre.write_bytes(rewrite(encoded))
-    return pre, win_pre
-
-
-for source, name in sources:
-    preprocessed = preprocess_unit(source, name, lambda text: route_definitions(text, source))
-    if preprocessed is None:
-        continue
-    pre, win_pre = preprocessed
+        pre.write_bytes(route_definitions(encoded, source))
     obj = out / (name + ".o")
     # main.c and MAINMENU statics that only other code calls (by address on
     # the PS1) must survive compilation to be exposed below.
@@ -1182,8 +1159,8 @@ for source, name in sources:
     # Overlay (not executable) C: its .data/.bss go to sections named after the
     # overlay file so the runtime can restart them when the file is reloaded.
     parts = pathlib.PurePosixPath(source).parts
-    if parts[0] == "src" and parts[1] != "SLUS_010.40":
-        overlay_file = "/".join(parts[1:3])
+    if parts[:3] == ("pc", "src", "game") and parts[3] != "SLUS_010.40":
+        overlay_file = "/".join(parts[3:5])
         key = re.sub(r"\W", "_", overlay_file).lower()
         renames = []
         for line in [] if coff else query(["readelf", "-SW", str(obj)]).splitlines():
@@ -1225,43 +1202,6 @@ for source, name in sources:
         state_sections(obj)
         if source in pc_static_units:
             pc_unit_statics(source, name, obj, pre, win_pre)
-    if source in c_units:  # the copy links to these (they were renamed by share_statics)
-        objcopy([f"--globalize-symbol={n}" for n in shared_statics[source]], obj)
-    objects.append(obj)
-    game_objects.append(obj)
-# The C copies (ownership.toml lang = "c") are the owned side of their unit:
-# the unit's text rules with `__owned` for the routed functions, the unit's
-# statics extern (one storage with the original), the dialect the modern C
-# design asks for (pc/docs/plans/2026-11-06-modern-c-design.md).
-copy_flags = ["-std=gnu23" if f == "-std=gnu17" else f for f in flags]
-copies = {}
-for s in active.subsystems:
-    if s.lang == "c":
-        copies.setdefault((s.unit, s.copy), set()).update(n for _, n in s.functions)
-for (copy_unit, copy_source), copy_names in sorted(copies.items()):
-    def copy_text(text, unit=copy_unit, names=copy_names):
-        text, _ = ownership_tool.share_statics(text, source_names[unit], copy=True)
-        text, counts = ownership_tool.rename_definitions(text, names, suffix=b"__owned")
-        if any(count != 1 for count in counts.values()):
-            raise SystemExit(f"{copy_source}: expected one routed definition each: {counts}")
-        return text
-    copy_name = source_names[copy_unit] + "_copy"
-    preprocessed = preprocess_unit(copy_source, copy_name, copy_text)
-    if preprocessed is None:
-        continue
-    pre, win_pre = preprocessed
-    obj = out / (copy_name + ".o")
-    keep = ["-ftrivial-auto-var-init=zero"] if engine_library else []  # as the original (above)
-    if not compile_object(["gcc", *copy_flags, *keep, "-c", str(pre), "-o", str(obj)], copy_source,
-                          win_args=win_pre and ["gcc", *copy_flags, *keep, "-c", str(win_pre), "-o", str(obj)]):
-        continue
-    if not coff:
-        for line in query(["readelf", "-SW", str(obj)]).splitlines():
-            section = re.match(r"\s*\[\s*\d+\]\s+(\.(data|bss)(\.\S+)?)\s+\w+\s+\w+\s+\w+\s+(\w+)", line)
-            # .data.rel.ro: constant after relocation (switch tables under -fpie).
-            if section and int(section.group(4), 16) and not section.group(1).startswith(".data.rel.ro"):
-                raise SystemExit(f"{copy_source}: the copy holds state of its own ({section.group(1)}); "
-                                 "its unit's statics are shared, a new one has no owner yet")
     objects.append(obj)
     game_objects.append(obj)
 # Unit path -> the name of its objects here (battle_146C.o, battle_helpers.o): the
@@ -1303,11 +1243,11 @@ if ZIG:
     unit_names = dict(sources)
     generated = {}  # overlay -> {module: (path, deps)}, and the COFF twin's
     win_generated = {}
-    for owned_overlay in sorted({s.overlay for s in zig_active.subsystems}):
+    for owned_overlay in sorted({s.overlay for s in active.subsystems}):
         # Per-unit `views` (DWARF layouts, readable names from MEANINGS.tsv)
         # and `c` (translate-c of the routed .i): PORTING.md §2.
-        for unit in sorted({s.unit for s in zig_active.subsystems if s.overlay == owned_overlay and s.views}):
-            subs = [s for s in zig_active.subsystems if s.unit == unit and s.views]
+        for unit in sorted({s.unit for s in active.subsystems if s.overlay == owned_overlay and s.views}):
+            subs = [s for s in active.subsystems if s.unit == unit and s.views]
             types = sorted({t for s in subs for t in s.views.get("types", [])})
             names = sorted({n for s in subs for n in s.views.get("globals", [])})
             declarations = sorted({d for s in subs for d in s.views.get("declarations", [])})
@@ -1357,7 +1297,7 @@ if ZIG:
         # game_lib.py (hot swap) builds the same modules for the development library.
         (zig_dir / f"{owned_overlay}_modules.json").write_text(json.dumps(
             {name: [path, deps] for name, (path, deps) in generated.get(owned_overlay, {}).items()}, indent=1))
-    for owned_overlay in sorted({s.overlay for s in zig_active.subsystems}):
+    for owned_overlay in sorted({s.overlay for s in active.subsystems}):
         extra = generated.get(owned_overlay, {})
         modules = {
             "root": (f"game/{owned_overlay}/root.zig", ["common", "ownership", *sorted(extra)]),
@@ -1767,7 +1707,7 @@ if battle:
     # Native effect entry points, parallel to EFFPURGE's _effectEntryPoints:
     # entry i of effect e is plg<nnn>_<name> when that PLG is compiled, else 0
     # (the effect then stops with a named diagnostic).
-    effpurge = (root / "src/EFFECT/EFFPURGE.BIN/0.c").read_text()
+    effpurge = (root / "pc/src/game/EFFECT/EFFPURGE.BIN/0.c").read_text()
     def c_array(name):
         start = effpurge.index(name + "[] = {")
         return effpurge[start: effpurge.index("};", start)].split("{", 1)[1]
@@ -2626,7 +2566,7 @@ probe.write_bytes(
             "-nostdinc",
             "-Ipc/include",
             "-Iinclude/psx",
-            "-Isrc/include",
+            "-Ipc/src/game/include",
             "-I.",
             "-D_LANGUAGE_C",
             *(["-DPC_ROOM_TEST"] if battle else []),
@@ -2720,7 +2660,7 @@ if battle:
             "-Wl,--gc-sections",
             "-Ipc/include",
             "-Iinclude/psx",
-            "-Isrc/include",
+            "-Ipc/src/game/include",
             "-I.",
             "-D_LANGUAGE_C",
             "-DROOD_PC",
@@ -2754,7 +2694,7 @@ if battle:
                 "-Wl,--gc-sections",
                 "-Ipc/include",
                 "-Iinclude/psx",
-                "-Isrc/include",
+                "-Ipc/src/game/include",
                 "-I.",
                 "-D_LANGUAGE_C",
                 "-DROOD_PC",

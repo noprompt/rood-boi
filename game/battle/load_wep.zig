@@ -1,10 +1,10 @@
 //! Loads a weapon model file, or reuses one already loaded
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: _loadWep (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _loadWep (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Finds the weapon model among the loaded ones or starts its CD read; returns -1 while the read is pending, else the parse result.
 pub fn loadWep(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const obj = arg0.?;

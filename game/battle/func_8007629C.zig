@@ -1,10 +1,10 @@
-//! Frame end for the battle overlay: flips the frame buffer, reads the pads, presents the frame and flushes text (src/BATTLE/BATTLE.PRG/146C.c).
+//! Frame end for the battle overlay: flips the frame buffer, reads the pads, presents the frame and flushes text (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007629C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007629C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Ends a battle frame: swaps the buffers, holds on pause while polling pads, then draws the ordering table.
 pub fn func_8007629C(otag: [*c]c_uint) callconv(.c) c_int {
     v.g.vs_main_frameBuf().* = @intFromBool(v.g.vs_main_frameBuf().* == 0);

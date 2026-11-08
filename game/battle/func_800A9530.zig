@@ -1,11 +1,11 @@
 //! A standing actor's step to the edge in front of it: the offset to the
 //! platform's edge or to the next 128-unit cell, a probe move there, and
-//! whether the move was blocked (src/BATTLE/BATTLE.PRG/40564.c).
+//! whether the move was blocked (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800A4A24@40564.c (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A4A24@40564.c (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// 40564's inlined copy of 3A1A0's func_800A4A24: lists the room's platforms
 /// (func_8008D2C0) into its own static table (`platforms`, globalised by the
 /// build: views func_800A4A24__platforms) and returns the entry whose id is
@@ -28,7 +28,7 @@ fn flagsOf(actor: *v.D_800F4538_t) *align(1) c_uint {
     return psx.byteAt(c_uint, actor, 0x5AC);
 }
 
-/// orig: func_800A9530 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A9530 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets `offset` (x or z by the facing quadrant D_800F49F9 >> 1) to the step
 /// from the actor's front (unk63C ahead) to the edge: its platform's edge
 /// (unk0.unkC_0 nonzero) at 65 units, else the next 128-unit cell boundary

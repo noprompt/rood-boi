@@ -1,5 +1,5 @@
 //! The battle camera's scene draw: the background tile layout, the full-screen
-//! flash quad, and the view matrices (src/BATTLE/BATTLE.PRG/146C.c).
+//! flash quad, and the view matrices (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -7,7 +7,7 @@ const c = @import("c_146C");
 
 const AnchorPackets = *const fn (?*anyopaque, ?*anyopaque, c_int) callconv(.c) void;
 
-/// orig: func_8008EC48 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008EC48 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws the scene: the background layout when one is loaded, else the flash quad when set, else the camera's view matrices.
 pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);

@@ -1,11 +1,11 @@
 //! Battle candidate check for a scene entry: runs the candidate test and, when it
-//! passes, the two follow-up steps (src/BATTLE/BATTLE.PRG/71618.c).
+//! passes, the two follow-up steps (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DA4BC (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DA4BC (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the candidate test for an entry and, if it passes, the follow-up steps; returns 1 when one of them succeeds.
 pub fn func_800DA4BC(state: ?*v.da4bcState, entry: ?*v.da4bcEntry) callconv(.c) c_int {
     const result: c_int = 0;

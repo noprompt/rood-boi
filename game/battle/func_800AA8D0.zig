@@ -1,11 +1,11 @@
 //! Works out the number of ticks an actor needs to turn to a target facing
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AA8D0 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA8D0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Takes the shortest signed turn from actor `index`'s facing to `angle`, then passes it with the ticks at `rate` to func_800AA984.
 pub fn func_800AA8D0(index: c_int, angle: c_short, rate: c_int) callconv(.c) void {
     // The C does not bound the index: psx.at keeps the unchecked element address.

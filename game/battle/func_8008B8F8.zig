@@ -1,9 +1,9 @@
-//! Records the door section being entered, or forgets it (src/BATTLE/BATTLE.PRG/146C.c).
+//! Records the door section being entered, or forgets it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008B8F8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B8F8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the 12-byte door entry to D_800F1CC8 and records its door id (from its byte 8) in vs_battle_doorEntered;
 /// with no entry, clears D_800F1CC8 and records -1.
 pub fn func_8008B8F8(door: ?*[12]u8) callconv(.c) void {

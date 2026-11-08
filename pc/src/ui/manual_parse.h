@@ -1,6 +1,6 @@
 /* Modern menus, the Quick manual: the page files and the original's rules
  * as pure functions (no game headers; linked into the game and
- * ui_shell_probe). The original is MENUE (src/MENU/MENUE.PRG/494.c); the
+ * ui_shell_probe). The original is MENUE (pc/src/game/MENU/MENUE.PRG/494.c); the
  * files are the disc's SMALL/HELPnn.HF0 (text, illustrations' placement,
  * rules) and .HF1 (the illustrations' 8 x 16 pixel blocks and 16-colour CLUT
  * lines), read at run time and never written anywhere.

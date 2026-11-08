@@ -1,9 +1,9 @@
-//! A P-file curve sample (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! A P-file curve sample (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_sampleCurve (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_sampleCurve (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Curve `curve_id` (1-based) at `distance` modulo its length, or 0 for curve 0 or past the block's count.
 pub fn sampleCurve(curve_id: c_int, distance: c_int) callconv(.c) c_int {
     const pfile = v.g.D_800F569C().*.?;

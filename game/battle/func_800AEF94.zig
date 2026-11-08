@@ -1,6 +1,6 @@
 //! The frame's actor, weapon and object transforms: animation, colour fades,
 //! texture loads, bones and attachments for every battle slot, then the
-//! weapons on their bones and the room objects (src/BATTLE/BATTLE.PRG/44F14.c).
+//! weapons on their bones and the room objects (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
@@ -71,7 +71,7 @@ fn shift(a: *Actor, sign: c_int) void {
     a.unk0.position.vz = psx.conv(i16, @as(c_int, @as(u16, @bitCast(a.unk0.position.vz))) +% sign *% @as(c_int, o.unk2));
 }
 
-/// orig: func_800AEF94 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AEF94 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Per frame, after func_800AECA0(camera): each live, visible actor slot's
 /// skeleton, colour and texture work (func_800AAE9C, AB788, AB9A4, the fade,
 /// AB4F0 once per texture, AC540, AF6E8 or AEAE8) and its bones on the camera

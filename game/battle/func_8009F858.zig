@@ -1,9 +1,9 @@
-//! Reads entry 8 of a battle slot's table, checking its id (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Reads entry 8 of a battle slot's table, checking its id (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009F858 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009F858 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Returns entry 8's value for slot `arg0`, or -1 when the slot is empty or the entry's id is not 1.
 pub fn func_8009F858(arg0: c_int) callconv(.c) c_int {
     // The C indexes D_800F45E0 without a bound check: psx.at does the same.

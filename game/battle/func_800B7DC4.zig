@@ -1,9 +1,9 @@
-//! An event script opcode that turns an actor to a heading (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that turns an actor to a heading (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7DC4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7DC4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Turns the actor of getShort(script + 1) to heading script[3] << 4 (script[5] the third
 /// argument, 0xFF as -1): with script[4] 0 at once (func_800A9EB4), else by the turn from its
 /// func_800A1108 heading, wrapped to a half circle and, for script[4] -1 or 1, forced

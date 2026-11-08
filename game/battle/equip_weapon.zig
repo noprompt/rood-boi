@@ -1,11 +1,11 @@
 //! Equips a weapon on the character: its category, range and attack shape
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_equipWeapon (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_equipWeapon (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Equips `weapon` (null: unarmed) on the character and derives its range and attack shape.
 pub fn equipWeapon(weapon: ?*v.vs_main_inventoryWeapon) callconv(.c) void {
     c.vs_battle_applyWeapon(

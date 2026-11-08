@@ -1,10 +1,10 @@
 //! Appends the four textured quads of a bar, sized by a step from `data.unkB`, to the
-//! ordering table (src/BATTLE/BATTLE.PRG/2842C.c).
+//! ordering table (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009506C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009506C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Builds the four quads of a bar at (left, centerY) into the packet cursor and links them into the ordering table.
 pub fn func_8009506C(left: c_int, centerY: c_int, arg2: ?*v.D_800F1BAC_t) callconv(.c) void {
     const data = arg2.?;

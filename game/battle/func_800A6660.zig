@@ -1,9 +1,9 @@
-//! Turns a battle object towards a target facing, accumulating the turn or starting one (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Turns a battle object towards a target facing, accumulating the turn or starting one (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A6660 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A6660 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Turns object arg0 towards facing arg1 by the shortest way: adds to its pending turn, or starts one when idle.
 pub fn func_800A6660(arg0: ?*v.D_800F4538_t, arg1: c_int, arg2: ?*v.func_800A6660_t) callconv(.c) void {
     const obj = arg0.?;

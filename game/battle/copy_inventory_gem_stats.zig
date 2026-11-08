@@ -1,7 +1,7 @@
-//! Copies a gem's stats into a battle equipment entry (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies a gem's stats into a battle equipment entry (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 
-/// orig: vs_battle_copyInventoryGemStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyInventoryGemStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies a gem's id, effects, stat bonuses, index, classes and affinities into an equipment entry.
 pub fn copyInventoryGemStats(target: ?*v.vs_battle_uiEquipment, source: ?*v.vs_main_inventoryGem) callconv(.c) void {
     const t = target.?;

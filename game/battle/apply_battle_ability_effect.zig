@@ -1,10 +1,10 @@
-//! Applies a hit entity's ability effects to its target actor (src/BATTLE/BATTLE.PRG/146C.c).
+//! Applies a hit entity's ability effects to its target actor (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _applyBattleAbilityEffect (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _applyBattleAbilityEffect (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies a hit entity's HP, MP, stat, equipment and status effects to its target actor.
 pub fn applyBattleAbilityEffect(arg0: ?*v._hitEntity_t) callconv(.c) void {
     c.func_800971D4();

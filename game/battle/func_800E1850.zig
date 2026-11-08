@@ -1,9 +1,9 @@
-//! Unit src/BATTLE/BATTLE.PRG/771A8.c: clears direction bits whose scratchpad offset lies beyond a limit.
+//! Unit pc/src/game/BATTLE/BATTLE.PRG/771A8.c: clears direction bits whose scratchpad offset lies beyond a limit.
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E1850 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1850 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Clears each bit of `arg0` whose scratchpad offset, applied to (x, z) from `arg1`, measures above `arg2` by func_800E42EC.
 pub fn func_800E1850(arg0: u8, arg1: c_uint, arg2: c_int) callconv(.c) u8 {
     var mask: u8 = arg0;

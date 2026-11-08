@@ -1,8 +1,8 @@
-//! An event script test of an actor's flags (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script test of an actor's flags (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const c = @import("c_4A0A8");
 
-/// orig: func_800B810C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B810C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Whether the actor of getShort(script + 1) has any flag of the mask getShort(script + 3):
 /// its func_800A0BE0 flags with bits 0 and 7 inverted, bit 0 also set (when the mask asks
 /// for it) where func_8007D03C says 0.

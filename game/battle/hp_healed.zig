@@ -1,10 +1,10 @@
-//! HP healed: the amount a healing action restores (src/BATTLE/BATTLE.PRG/146C.c).
+//! HP healed: the amount a healing action restores (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _hpHealed (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _hpHealed (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The HP that hit `nHit` of `action` restores from `source` to `target` (a stat calculator): the source's
 /// intelligence with its weapon (if drawn) and accessory against the target's intelligence, armour and shield
 /// (if drawn) by the hit's type and affinity, through func_8007FE5C, never below 0; with `withRandMod` a smoothed

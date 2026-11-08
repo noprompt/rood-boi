@@ -1,11 +1,11 @@
-//! Points the battle's pending effect request at a target actor and queues the effect (src/BATTLE/BATTLE.PRG/146C.c).
+//! Points the battle's pending effect request at a target actor and queues the effect (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80073D30 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80073D30 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills the battle request for the target actor's limb and queues effect `arg0.unk6 + 6` from `arg1`'s position.
 pub fn func_80073D30(arg0: ?*v._mpdRoomSectionA, arg1: ?*v.func_8006EBF8_t, targetActor: c_int) callconv(.c) void {
     var sp10: v.func_800CF0E8_t = std.mem.zeroes(v.func_800CF0E8_t);

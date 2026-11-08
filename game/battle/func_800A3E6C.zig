@@ -1,11 +1,11 @@
 //! Starts an actor's move one tile along the direction its object selects
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A3E6C (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3E6C (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Sets up the actor's object step and moves the actor one tile; returns -1 when it cannot.
 pub fn func_800A3E6C(actorId: c_int) callconv(.c) c_int {
     const actor: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), actorId).*.?;

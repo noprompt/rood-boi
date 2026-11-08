@@ -1,4 +1,4 @@
-//! Frees an effect script (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Frees an effect script (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -14,7 +14,7 @@ fn setAddress(field: anytype, address: u32) void {
     }
 }
 
-/// orig: func_800CE8F4 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CE8F4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Unlinks the script from D_800F53B8's list, frees its particles (func_800D2904) and effects (each renderer called with 4, then func_800CF70C), and frees it.
 pub fn func_800CE8F4(script_arg: ?*v.D_800F53B8_t) callconv(.c) void {
     const Renderer = *const fn (*align(4) v.func_800D4910_t, c_uint, c_int) callconv(.c) c_int; // effectExec

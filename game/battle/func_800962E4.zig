@@ -1,10 +1,10 @@
-//! Returns the slot for the next display text, shifting the table down when it is full (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Returns the slot for the next display text, shifting the table down when it is full (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_800962E4 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800962E4 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Returns the slot for the next display text; when all 32 slots are used, drops the oldest and returns the last.
 pub fn func_800962E4() callconv(.c) ?*anyopaque {
     const base: ?*anyopaque = psx.get(v.g.D_800F1BAC().*);

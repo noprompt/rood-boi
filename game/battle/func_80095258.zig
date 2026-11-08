@@ -1,10 +1,10 @@
 //! Draws a combat label strip as textured quads, sliding and fading with its
-//! animation phase (src/BATTLE/BATTLE.PRG/2842C.c).
+//! animation phase (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80095258 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80095258 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Draws the combat label strip for `p` at (x, y), sliding in or out and fading by its phase.
 pub fn func_80095258(x_arg: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) void {
     const slide = [4]i16{ 32, 14, 6, 2 };

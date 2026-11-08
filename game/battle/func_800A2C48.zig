@@ -1,10 +1,10 @@
-//! Battle entity helper: runs the entity's 0x5DC[4] step, clears its state and recurses into the entity at unk17FD (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Battle entity helper: runs the entity's 0x5DC[4] step, clears its state and recurses into the entity at unk17FD (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A2C48 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A2C48 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Runs the entity's 0x5DC[4] step, clears its state, then recurses into the entity at index unk17FD when that is 2 or more.
 pub fn func_800A2C48(entity: ?*v.D_800F4538_t) callconv(.c) void {
     const e = entity.?;

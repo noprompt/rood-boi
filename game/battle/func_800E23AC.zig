@@ -1,16 +1,16 @@
 //! Patrol waypoint walk: advances a patrolling actor's waypoint index and
-//! sets its destination tile (src/BATTLE/BATTLE.PRG/771A8.c).
+//! sets its destination tile (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: patrolWaypoint (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: patrolWaypoint (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// The entry at `index` in `row`, unchecked (a file-scope static inline).
 fn patrolWaypoint(row: [*]u16, index: c_int) c_uint {
     return @as(c_uint, psx.at(row, index).*);
 }
 
-/// orig: func_800E23AC (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E23AC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Steps a patrol state to its next waypoint and sets the destination tile from it.
 pub fn func_800E23AC(state: ?*v.patrolWaypointState) callconv(.c) void {
     const s = state.?;

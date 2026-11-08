@@ -1,4 +1,4 @@
-//! The action committed: its costs and hits, the scores, phase 4 (src/BATTLE/BATTLE.PRG/146C.c).
+//! The action committed: its costs and hits, the scores, phase 4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ fn state() *v.D_800F19CC_t {
     return v.g.D_800F19CC().*.?;
 }
 
-/// orig: func_80070F28 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80070F28 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Commits the chosen action (`kind`: 0, 2 or another selects its setup). A menu choice left pending (unk298C
 /// 0xFF) with `kind` nonzero is dropped instead: back to the actor's turn (func_8006FBCC) for a targeted or plain
 /// action, or func_800704D8. Otherwise: link 0, the ability menu's item use counted down (the player's action), the

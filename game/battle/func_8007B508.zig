@@ -1,5 +1,5 @@
 //! Camera and name-window entry at the start of battle, when a locked action is
-//! selected or art/ability unlock state requires it (src/BATTLE/BATTLE.PRG/146C.c).
+//! selected or art/ability unlock state requires it (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -14,7 +14,7 @@ fn setCameraMode5() void {
     c.func_8008D594(1);
 }
 
-/// orig: func_8007B508 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B508 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Switches to the locked-camera mode when the art/ability or action-unlock check requires it, else runs the common tail.
 pub fn func_8007B508() callconv(.c) void {
     // First state-flag call; the C short-circuits the later two calls on the same expression.

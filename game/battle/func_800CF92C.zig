@@ -1,8 +1,8 @@
-//! Packs two clamped screen-space bytes into one 16-bit value (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Packs two clamped screen-space bytes into one 16-bit value (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 
-/// orig: func_800CF92C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CF92C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Stores into `arg3` the x byte (low 8 bits, from the low half of arg2 plus arg0) and the y byte (from arg2's high half plus arg1), each clamped to 1..254.
 pub fn func_800CF92C(arg0: c_int, arg1: c_int, arg2: c_int, arg3: [*c]c_short) callconv(.c) void {
     var var_v1: c_int = @as(c_int, psx.conv(i16, arg2)) +% arg0;

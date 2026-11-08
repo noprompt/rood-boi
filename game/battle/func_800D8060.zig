@@ -1,4 +1,4 @@
-//! Walks a p_file block chain, dispatching each block by its type tag to its parser (src/BATTLE/BATTLE.PRG/6F014.c).
+//! Walks a p_file block chain, dispatching each block by its type tag to its parser (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const psx = @import("common").psx;
 const v = @import("views_6F014");
 const c = @import("c_6F014");
@@ -11,7 +11,7 @@ inline fn dataOf(cur: *align(1) v.p_file_t) *align(1) anyopaque {
     return @ptrCast(psx.byteAt(u8, cur, 4));
 }
 
-/// orig: func_800D8060 (src/BATTLE/BATTLE.PRG/6F014.c)
+/// orig: func_800D8060 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c)
 /// Parses each block of a p_file in order until the end marker (type 0), advancing by each block's size.
 pub fn func_800D8060(arg0: ?*v.p_file_t) callconv(.c) void {
     var cur: *align(1) v.p_file_t = arg0.?;

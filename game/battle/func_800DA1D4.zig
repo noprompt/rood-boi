@@ -1,11 +1,11 @@
 //! The action candidate's target search for its current status
-//! (src/BATTLE/BATTLE.PRG/71618.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DA1D4 (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DA1D4 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the target search for the candidate's status and returns 1 when an action was chosen.
 pub fn func_800DA1D4(state: ?*v.actionCandidateState) callconv(.c) c_int {
     const st = state.?;

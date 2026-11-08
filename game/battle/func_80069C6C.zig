@@ -1,10 +1,10 @@
-//! Clears the battle ability target window when the targeted entity is set (src/BATTLE/BATTLE.PRG/146C.c).
+//! Clears the battle ability target window when the targeted entity is set (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80069C6C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80069C6C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Opens the battle ability target window for the current hit entity, unless arg0 is set or no target is recorded.
 pub fn func_80069C6C(arg0: c_int) callconv(.c) void {
     if (arg0 != 0) {

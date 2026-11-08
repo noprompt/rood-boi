@@ -1,9 +1,9 @@
-//! Ends a battle command: runs the command's case (an ability execution or a cast), then the common tail (src/BATTLE/BATTLE.PRG/146C.c).
+//! Ends a battle command: runs the command's case (an ability execution or a cast), then the common tail (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800735F8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800735F8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the command's case (5 nothing, 6-8 a cast, 10 an ability execution with its MP cost), then the common tail.
 pub fn func_800735F8(command: ?*v.D_800F18EC_t) callconv(.c) void {
     const cmd = command.?;

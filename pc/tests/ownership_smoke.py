@@ -13,9 +13,6 @@ from snapshot_diff import Symbols
 # The owner switch's fixture: a fully ported subsystem (the trial's
 # func_800B07DC, actor_transform.offsetToWorld) whose routes do not change.
 FIXTURE = "battle_44F14"
-# A C copy (ownership.toml lang = "c", the modern C pilot: MENU1.PRG, Break Arts). It defaults to
-# original; the run asks for it owned at boot (ROOD_OWNER) to prove the copy links and boots.
-C_COPY = "menu1"
 
 
 def check(condition, message):
@@ -30,7 +27,7 @@ def main():
         out = pathlib.Path(directory)
         g = Game.launch(fast=True, log=out / "game.log", extra_env={
                 "ROOD_DETERMINISTIC": "1", "ROOD_INTERPOLATE": "0",
-                "ROOD_OWNER": f"{FIXTURE}=original,{C_COPY}=owned",
+                "ROOD_OWNER": f"{FIXTURE}=original",
                 "ROOD_CARD1": str(out / "absent-card.mcd"),
                 "ROOD_CARD2": str(out / "absent-card2.mcd")})
         try:
@@ -40,22 +37,8 @@ def main():
             # the fixture original from ROOD_OWNER, every other subsystem owned by default (the flip; this
             # build is not the development host, so battle_frame's dev_default does not apply).
             check(fixture["routes"] == 1 and fixture["owner"] == "original"
-                  and all(o["owner"] == "owned" for o in owners if o["name"] not in (FIXTURE, C_COPY)),
+                  and all(o["owner"] == "owned" for o in owners if o["name"] != FIXTURE),
                   f"ROOD_OWNER and the fixture's one route original, the rest owned: {owners}")
-            copy = next((o for o in owners if o["name"] == C_COPY), None)
-            check(copy is not None and copy["routes"] == 1 and copy["owner"] == "owned",
-                  f"the C copy is listed with its one route, owned from ROOD_OWNER: {copy}")
-            for owner in ("original", "alternate", "owned"):
-                reply = g.owner(C_COPY, owner)["subsystems"]
-                check(next(o for o in reply if o["name"] == C_COPY)["owner"] == owner,
-                      f"the C copy's owner round-trip: {owner}")
-            try:
-                g.owner(C_COPY, "shadow")
-                raise AssertionError("shadow accepted for a C copy")
-            except RpcError:
-                pass
-            check(next(o for o in g.owner()["subsystems"] if o["name"] == C_COPY)["owner"] == "owned",
-                  "shadow mode is refused for a C copy (it has no wrapper yet) and the owner stays")
             for owner in ("owned", "original", "owned"):
                 reply = g.owner(FIXTURE, owner)["subsystems"]
                 check(next(o for o in reply if o["name"] == FIXTURE)["owner"] == owner,

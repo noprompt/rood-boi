@@ -1,9 +1,9 @@
-//! Ticks the room's section-9 timers and draws the ones still running (src/BATTLE/BATTLE.PRG/146C.c).
+//! Ticks the room's section-9 timers and draws the ones still running (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008DF14 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008DF14 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Advances each room section-9 timer and shows its effect while the timer runs.
 pub fn func_8008DF14() callconv(.c) void {
     if (psx.get(v.g.vs_battle_roomData().section9)) |first| {

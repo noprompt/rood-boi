@@ -1,9 +1,9 @@
-//! Draws the two frame sprites of a gim image (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws the two frame sprites of a gim image (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CC128 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CC128 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws the image's two frame sprites, offset by the frame buffer's x position.
 pub fn func_800CC128(gim: ?*v.gim_t, arg1: c_int, prims: [*c]c_uint) callconv(.c) void {
     const temp_s0: c_int = @as(c_int, gim.?.unk3);

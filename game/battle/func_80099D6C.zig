@@ -1,9 +1,9 @@
-//! Frees a battle object slot: releases its heap block unless another live slot shares its actor, then clears the slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Frees a battle object slot: releases its heap block unless another live slot shares its actor, then clears the slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_80099D6C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_80099D6C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Removes battle object slot `arg0`, freeing its heap block when no other slot holds the same actor.
 pub fn func_80099D6C(arg0: c_int) callconv(.c) c_int {
     if (arg0 >= 16) {

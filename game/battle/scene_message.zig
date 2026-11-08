@@ -1,11 +1,11 @@
 //! The scene message window (text box 7): action names and battle messages
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_displaySceneMessage (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_displaySceneMessage (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Opens the name window (text box 7) on scene message `message` about `action`; `held` keeps it up 120 ticks.
 pub fn displaySceneMessage(message: c_int, action: c_int, held: c_int) callconv(.c) void {
     // ROOD_PC: a name window held past a skipped wind-up is closed first (pc/src/charge_skip.inc).

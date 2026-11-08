@@ -1,6 +1,6 @@
 //! A flying or climbing actor's step toward its destination tile: hovers
 //! onto ledges, settles on the destination, and arcs over obstacles
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
@@ -33,7 +33,7 @@ fn recover(s: *v.movementStepState) void {
     c.func_800E2CCC(@ptrCast(s));
 }
 
-/// orig: func_800E0A68 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E0A68 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// One movement step of a flying `state` taking `action`: onto a ledge, onto the destination, along a wall (5) or over an obstacle (7).
 pub fn func_800E0A68(state: ?*v.movementStepState, action: c_int) callconv(.c) void {
     const s = state.?;

@@ -1,11 +1,11 @@
 //! Projects four corners of a box at depth 150 through the current matrices and
-//! returns the lowest depth, scaled by ONE (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! returns the lowest depth, scaled by ONE (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BD2B8 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BD2B8 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sets the rotation and translation matrices from `arg0`, projects four corners and returns the lowest depth times ONE.
 pub fn func_800BD2B8(arg0: ?*v.MATRIX) callconv(.c) c_int {
     var pos: v.VECTOR = undefined;

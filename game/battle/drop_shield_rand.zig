@@ -1,10 +1,10 @@
-//! Rolls a looted shield's drop; on a drop copies the shield and its gems into the loot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Rolls a looted shield's drop; on a drop copies the shield and its gems into the loot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _dropShieldRand (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _dropShieldRand (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Rolls the shield's drop rate; on a drop copies its stats and gems into the loot and returns 1, else 0.
 pub fn dropShieldRand(looted: ?*v.vs_battle_lootedShield, base: ?*v.vs_battle_uiShield) callconv(.c) c_int {
     if (c.vs_main_getRand(0xFF) < @as(c_int, base.?.dropRate)) {

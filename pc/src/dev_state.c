@@ -1,8 +1,8 @@
 /* Vagrant Story snapshot for the developer RPC `state` method (dev_rpc.c).
  * Compiled with the game headers so field offsets follow the decompilation. */
 #include "common.h"
-#include "../../src/BATTLE/BATTLE.PRG/3A1A0.h"
-#include "../../src/SLUS_010.40/main.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "../../pc/src/game/SLUS_010.40/main.h"
 
 extern int vs_main_startState;
 /* 146C.h: the room the player is in (the last door's destination). INITBTL

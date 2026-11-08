@@ -1,9 +1,9 @@
-//! Room section A lookup for the battle room data (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section A lookup for the battle room data (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008E3B8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E3B8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the battle room's section A table and writes its entry count to `arg0`, or null and 0 when absent.
 pub fn func_8008E3B8(arg0: [*c]c_int) callconv(.c) ?*v._mpdRoomSectionA {
     const room = v.g.vs_battle_roomData();

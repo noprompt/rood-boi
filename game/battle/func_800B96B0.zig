@@ -1,9 +1,9 @@
-//! Held-button timer for one slot of D_800F4C58 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Held-button timer for one slot of D_800F4C58 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 
-/// orig: func_800B96B0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B96B0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Arms slot `arg1` from arg0[2] on first use, then counts it down until a button in arg0[1] is pressed or it runs out.
 pub fn func_800B96B0(arg0: [*c]u8, arg1: c_short) callconv(.c) c_int {
     const slot = psx.at(v.g.D_800F4C58(), arg1);

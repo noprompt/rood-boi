@@ -1,10 +1,10 @@
-//! Sets up a menu row (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Sets up a menu row (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_setMenuItem (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_setMenuItem (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Row `row` of vs_battle_menuItems: shown, at x, y with widths w and backgroundWidth, its gradient state cleared, its text copied (31 bytes at most, the spacing code with its argument, non-printing codes dropped, 0xFF at the end).
 pub fn setMenuItem(row: c_int, x: c_int, y: c_int, w: c_int, background_width: c_int, text_arg: [*c]u8) callconv(.c) ?*v.vs_battle_menuItem_t {
     var text = text_arg;

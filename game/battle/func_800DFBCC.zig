@@ -1,6 +1,6 @@
 //! Follows a route edge of the area graph from the actor's tile: a gate,
 //! a jump, a step along the edge, or a new destination
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
@@ -18,23 +18,23 @@ fn step(direction: c_int) *v.D_800F16EC_t {
     return psx.at(@as([*]v.D_800F16EC_t, @ptrFromInt(0x1F8003EC)), direction);
 }
 
-/// orig: routeWord (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: routeWord (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 fn routeWord(pair: *const [2]u16) c_uint {
     return @as(*align(2) const c_uint, @ptrCast(pair)).*;
 }
 
-/// orig: routeHalf (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: routeHalf (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 fn routeHalf(pair: *const [2]u16, index: usize) u16 {
     return pair[index];
 }
 
-/// orig: routeTile (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: routeTile (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// The area grid's tile (scratchpad 0x1F8003C0, rows of 32).
 fn routeTile(z: c_int, x: c_int) c_uint {
     return psx.at(psx.at(slotPtr([*][32]u16, 0x1F8003C0), z), x).*;
 }
 
-/// orig: routeSetArea (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: routeSetArea (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 fn routeSetArea(s: *v.routeEdgeState, position: Position) c_int {
     s.area = psx.conv(u8, routeTile(psx.getBits(&position.p, "z"), psx.getBits(&position.p, "x")) & 15);
     return 6;
@@ -85,7 +85,7 @@ fn addStep(candidate: *Position, amount: c_int, direction: c_int) void {
     psx.setBits(&candidate.p, "z", psx.conv(u8, @as(c_int, psx.getBits(&candidate.p, "z")) +% amount *% psx.getBits(step(direction), "dz")));
 }
 
-/// orig: func_800DFBCC (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800DFBCC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Takes route edge `index` of `area` from the actor's tile: 14 a next tile, 5 a heading, 4 heading for a point, 6 a new destination or area.
 pub fn func_800DFBCC(state: ?*v.routeEdgeState, index: c_int, area: c_int) callconv(.c) c_int {
     const s = state.?;

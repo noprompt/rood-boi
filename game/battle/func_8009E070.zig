@@ -1,10 +1,10 @@
-//! Battle actor slot setup for a chosen action kind (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Battle actor slot setup for a chosen action kind (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009E070 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009E070 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Sets up actor slot `slot` for action kind `kind` at `position`, then starts its animation.
 pub fn func_8009E070(slot: c_int, position: ?*v.SVECTOR, kind: c_int) callconv(.c) void {
     // The slot pointer is loaded before the switch; it is only dereferenced in the cases that use it.

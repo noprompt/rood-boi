@@ -1,9 +1,9 @@
-//! Resets the battle camera, state flags and actor states (src/BATTLE/BATTLE.PRG/146C.c).
+//! Resets the battle camera, state flags and actor states (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80073718 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80073718 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the battle camera and state flags, then clears or downgrades each actor's state.
 pub fn func_80073718() callconv(.c) void {
     const actors = v.g.vs_battle_actors();

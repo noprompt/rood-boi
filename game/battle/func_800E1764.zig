@@ -1,11 +1,11 @@
 //! Steers a movement destination toward the angle, or back to the opposite side if that is closer
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E1764 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1764 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Aims a movement destination along `angle`, keeping the opposite-side candidate when it is nearer the reference point.
 pub fn func_800E1764(state: ?*v.movementDestinationState, angle: c_int) callconv(.c) void {
     const s = state.?;

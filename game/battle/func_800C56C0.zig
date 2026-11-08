@@ -1,9 +1,9 @@
-//! Marks two lists of battle slots (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Marks two lists of battle slots (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C56C0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C56C0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Calls func_800C51B4(1), then sets unk0 of the slots in each index list: 3 for list 0, 2 for list 1.
 pub fn func_800C56C0() callconv(.c) void {
     c.func_800C51B4(1);

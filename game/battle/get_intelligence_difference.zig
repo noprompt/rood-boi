@@ -1,11 +1,11 @@
 //! Intelligence difference of a hit: the source's and target's intelligence, armour and weapons,
-//! with gem buffs (src/BATTLE/BATTLE.PRG/146C.c).
+//! with gem buffs (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _getIntelligenceDifference (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getIntelligenceDifference (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Works out a hit's intelligence difference (source over target), clamped to 0..254.
 pub fn getIntelligenceDifference(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: ?*v._hitEntity_t, hitNumber: c_int, addVariance: c_int) callconv(.c) c_int {
     const targetLimb: c_int = @as(c_int, target.?.unk0.targetLimb);

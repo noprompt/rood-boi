@@ -1,9 +1,9 @@
-//! Assigns or releases one of the two armature slots of a battle actor (src/BATTLE/BATTLE.PRG/40564.c).
+//! Assigns or releases one of the two armature slots of a battle actor (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AC440 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC440 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Claims a free one of the two armature slots for armature `arg1` (`arg2 != 0`), or releases it (`arg2 == 0`).
 pub fn func_800AC440(arg0: ?*v.D_800F4538_t, arg1: c_int, arg2: c_int) callconv(.c) void {
     const self = arg0.?;

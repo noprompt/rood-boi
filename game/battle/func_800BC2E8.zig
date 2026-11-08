@@ -1,4 +1,4 @@
-//! The event camera's command (src/BATTLE/BATTLE.PRG/4A0A8.c): one move of the look-at point or the eye.
+//! The event camera's command (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c): one move of the look-at point or the eye.
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -23,7 +23,7 @@ fn camera() *v.D_800F4BA4_t {
     return v.g.D_800F4BA4().*.?;
 }
 
-/// orig: _copyVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _copyVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src (vx, vy, vz).
 fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     dst.vx = src.vx;
@@ -32,7 +32,7 @@ fn copyVector(dst: *v.VECTOR, src: *v.VECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: _vectorMagnitude (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vectorMagnitude (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// The length of a 20.12 vector, from its integer parts, back in 20.12.
 fn vectorMagnitude(p: *v.VECTOR) c_int {
     var copy: v.VECTOR = undefined;
@@ -43,7 +43,7 @@ fn vectorMagnitude(p: *v.VECTOR) c_int {
     return c.vs_gte_rsqrt(x +% y +% z) *% 4096;
 }
 
-/// orig: _sVectorToFixedPointVector (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _sVectorToFixedPointVector (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// dst = src * ONE.
 fn sVectorToFixedPointVector(dst: *v.VECTOR, src: *v.SVECTOR) *v.VECTOR {
     dst.vx = @as(c_int, src.vx) * 4096; // a short times 4096: no overflow
@@ -52,7 +52,7 @@ fn sVectorToFixedPointVector(dst: *v.VECTOR, src: *v.SVECTOR) *v.VECTOR {
     return dst;
 }
 
-/// orig: func_800BC2E8 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BC2E8 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Runs camera command script[0] & 15 on the look-at point (script[0] & 16 clear) or the eye: set a
 /// position, snap, linear and eased moves, an orbit around the target (4, 5), an actor-relative
 /// position (7, 10), follow (8), a return (9) and a straight dolly (11).

@@ -1,9 +1,9 @@
-//! Weapon-drawn state of battle actors, and the actor's stance flag (src/BATTLE/BATTLE.PRG/146C.c).
+//! Weapon-drawn state of battle actors, and the actor's stance flag (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007C0AC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007C0AC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Toggles (arg1 == 2) or sets the weapon-drawn state of actor arg0; actor 0 also updates the character's HUD.
 pub fn func_8007C0AC(arg0: c_int, arg1: c_int) callconv(.c) void {
     if (arg1 == 2) {

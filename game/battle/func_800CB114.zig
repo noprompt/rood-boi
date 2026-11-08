@@ -1,8 +1,8 @@
-//! Frees the battle menu item list and clears its pointer (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Frees the battle menu item list and clears its pointer (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CB114 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CB114 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Releases the battle menu items, if any, after the menu call for 6, and clears the pointer.
 pub fn func_800CB114() callconv(.c) void {
     if (v.g.vs_battle_menuItems().* != null) {

@@ -1,10 +1,10 @@
-//! A cubic spline point through four SVECTORs (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! A cubic spline point through four SVECTORs (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_splineInterpolate (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_splineInterpolate (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The point at t (4.12, 0..4096 between p1 and p2) of the cubic through p0..p3, in the C's fixed-point steps.
 pub fn splineInterpolate(p0: ?*v.SVECTOR, p1: ?*v.SVECTOR, p2: ?*v.SVECTOR, p3: ?*v.SVECTOR, t: c_int, out: ?*v.SVECTOR) callconv(.c) void {
     const neg_t = -%t;

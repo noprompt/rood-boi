@@ -1,4 +1,4 @@
-//! The action's release: its effect aimed, the ability window opened (src/BATTLE/BATTLE.PRG/146C.c).
+//! The action's release: its effect aimed, the ability window opened (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ fn state() *v.D_800F19CC_t {
     return v.g.D_800F19CC().*.?;
 }
 
-/// orig: func_80070278 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80070278 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Releases the current action slot: state flag 0xB8 for an action 0x16..0x35 on actor 0 with no unk40; the first
 /// link aims its effect (func_8009DD00 for a plain action, which sets the ability window from func_8009F8DC; a
 /// Break Art, battle ability or other at tick speed 4 and no window), a chain link its chain ability (an action

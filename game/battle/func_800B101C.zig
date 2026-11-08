@@ -1,10 +1,10 @@
 //! Object motion keyframes: advances one object's scripted motion by a frame
-//! (src/BATTLE/BATTLE.PRG/44F14.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const psx = @import("common").psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800B101C (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800B101C (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Steps one object's motion by a frame: returns 1 while it runs, 0 once it completes.
 pub fn func_800B101C(object: ?*v.objectMotionContext) callconv(.c) c_int {
     const Step = enum { next, complete, done };

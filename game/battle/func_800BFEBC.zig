@@ -1,11 +1,11 @@
 //! Eases a frame/duration ratio through a curve (linear, sine, cosine, or a powered curve)
-//! (src/BATTLE/BATTLE.PRG/573B8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_573B8");
 const c = @import("c_573B8");
 
-/// orig: func_800BFEBC (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800BFEBC (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Eases `frame` over `duration` (clamped to it) through curve `mode`, returning a 4.12 fraction.
 pub fn func_800BFEBC(mode: c_short, frame: c_short, duration: c_short) callconv(.c) c_int {
     const position: c_int = if (frame > duration) duration else frame;

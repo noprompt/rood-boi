@@ -1,9 +1,9 @@
-//! Starts a command's animation on battle actor slot `slot` (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Starts a command's animation on battle actor slot `slot` (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009DF3C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009DF3C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Starts the animation for command `command` (0..3) on actor `slot`, and copies its pose when the command is not 3.
 pub fn func_8009DF3C(slot: c_int, command: c_int) callconv(.c) void {
     // The C does not check slot against the 17 entries: psx.at keeps its unchecked index.

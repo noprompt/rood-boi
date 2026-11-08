@@ -1,10 +1,10 @@
-//! Battle action setup: the action's display routine, or the party layout for action 0 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle action setup: the action's display routine, or the party layout for action 0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80072BA8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80072BA8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up battle action `action`: action 0 lays out the party rows and limb list, other actions pick their display routine.
 pub fn func_80072BA8(action: c_int) callconv(.c) void {
     v.g.D_800F19CC().*.?.unk8.actionIndex = psx.conv(u16, action);

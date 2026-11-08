@@ -1,6 +1,6 @@
-//! Battle unit 5BF94: inverts the low and/or high byte of a 16-bit value (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Battle unit 5BF94: inverts the low and/or high byte of a 16-bit value (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 
-/// orig: func_800CD3A0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CD3A0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Bit 0 of `flags` inverts the high byte of `value`; bit 1 inverts its low byte.
 pub fn func_800CD3A0(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     var var_v1: c_int = arg0;

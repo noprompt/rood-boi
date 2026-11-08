@@ -1,10 +1,10 @@
 //! Finds the entry of func_8008D2C0's list that a point meets under mode arg3 and returns its height
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const psx = @import("common").psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800A9378 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A9378 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Looks up the entries of func_8008D2C0 around (arg0, arg2) under mode arg3, records the matched entry's id, and returns its height or 0.
 pub fn func_800A9378(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int {
     v.g.D_800F49F4().* = 0;

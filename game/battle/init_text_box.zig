@@ -1,10 +1,10 @@
 //! Sets up a text box's geometry, flags and layout for one of the battle text boxes
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_initTextBox (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_initTextBox (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Resets text box `id` at (x, y) with its flags, size and centre, and applies the layout of box kinds 1, 4 and 5.
 pub fn initTextBox(id: c_int, flags: c_int, x: c_int, y: c_int, charsPerLine: c_int, h: c_int, centerX: c_int, centerY: c_int) callconv(.c) void {
     const box = psx.at(v.g.textBoxes(), id);

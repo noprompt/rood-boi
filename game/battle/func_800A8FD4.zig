@@ -1,10 +1,10 @@
 //! Whether an actor's move is blocked by another actor near its path, with the
-//! per-slot exclusion flags kept in the scratchpad (src/BATTLE/BATTLE.PRG/40564.c).
+//! per-slot exclusion flags kept in the scratchpad (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800A8FD4 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A8FD4 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Returns 1 when moving the actor by `motion` brings it no closer to any overlapping actor, else 0; marks the actors that overlap in the scratchpad.
 pub fn func_800A8FD4(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) c_int {
     const a = actor.?;

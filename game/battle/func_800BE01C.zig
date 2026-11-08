@@ -1,11 +1,11 @@
 //! Steps a timed interpolation and writes its scale into scratchpad 0x1F800088
-//! and its offset into the record (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! and its offset into the record (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BE01C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BE01C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Advances the record's timer by half a tick and sets its scale and offset from its curve.
 pub fn func_800BE01C(arg0: ?*v.func_800BDF6C_t) callconv(.c) c_int {
     const e = arg0.?;

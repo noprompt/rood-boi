@@ -1,9 +1,9 @@
-//! A text box's screen placement beside its origin, clamped to the screen (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! A text box's screen placement beside its origin, clamped to the screen (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B6B98 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B6B98 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Places a script[6] by script[7] character box at the origin plus func_800CCE10's offset (by
 /// script[5]'s low nibble and the origin's vz ^ direction), clamped inside (4, 4)..(320, 216);
 /// returns 1 when it fits, else 0 with the clamp's distance (vs_gte_rsqrt of the shift).

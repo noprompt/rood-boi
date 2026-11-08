@@ -1,10 +1,10 @@
-//! Sets each scene room's visited flag from the map's room flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets each scene room's visited flag from the map's room flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_setRoomsUnk0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_setRoomsUnk0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets every scene room's visited flag from the map's room flags, by its location id.
 pub fn setRoomsUnk0(scene: ?*v.vs_battle_scene) callconv(.c) void {
     const sc = scene.?;

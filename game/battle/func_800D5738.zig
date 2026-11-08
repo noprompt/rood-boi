@@ -1,10 +1,10 @@
-//! Samples an effect command's curve (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Samples an effect command's curve (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D5738 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5738 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// unkA = func_800D12D8(the unk0_4 field of the command word after the current pair), as an i16.
 pub fn func_800D5738(command: ?*v.func_800D5780_t) callconv(.c) void {
     const cmd = command.?;

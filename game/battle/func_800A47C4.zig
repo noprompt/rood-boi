@@ -1,9 +1,9 @@
-//! Checks the sixteen entries of D_800F45E0 for a live one (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Checks the sixteen entries of D_800F45E0 for a live one (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 
-/// orig: func_800A47C4 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A47C4 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Returns 1 if any present entry of D_800F45E0 has bit 8.0 clear, field 9.0 zero and a nonzero 0x1A, else 0.
 pub fn func_800A47C4() callconv(.c) c_int {
     for (v.g.D_800F45E0().*) |slot| {

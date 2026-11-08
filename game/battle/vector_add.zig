@@ -1,7 +1,7 @@
-//! Vector addition: out = a + b, componentwise (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! Vector addition: out = a + b, componentwise (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const v = @import("views_4A0A8");
 
-/// orig: _vectorAdd (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: _vectorAdd (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Stores a + b componentwise into out and returns out.
 pub fn vectorAdd(out: ?*v.VECTOR, a: ?*v.VECTOR, b: ?*v.VECTOR) callconv(.c) ?*v.VECTOR {
     const o = out.?;

@@ -12,9 +12,9 @@
  * Pointers are followed only into guest RAM: during room changes and the
  * attract demo the slots can hold stale values. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/3A1A0.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "../room_warp.h"
 #include "game_query.h"
 

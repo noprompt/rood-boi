@@ -1,4 +1,4 @@
-//! Finishes loading a zone file (src/BATTLE/BATTLE.PRG/146C.c).
+//! Finishes loading a zone file (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -8,7 +8,7 @@ fn part(comptime T: type, header: *v._zndHeader, offset: c_int) T {
     return @ptrFromInt(@intFromPtr(header) +% @as(usize, @bitCast(@as(isize, offset))));
 }
 
-/// orig: _finishLoadZnd (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _finishLoadZnd (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Queues zone file `id` unless one is queued, waits for it, frees its queue slot, hands its enemies, textures and
 /// map list to their loaders, frees it, and switches the music to the zone's (when the music is on, D_800F18B0).
 pub fn finishLoadZnd(id: c_int) callconv(.c) void {
@@ -56,7 +56,7 @@ pub fn finishLoadZnd(id: c_int) callconv(.c) void {
     zone.unk38 = 0;
 }
 
-/// orig: _loadZnd (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadZnd (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Queues zone file `id` (vs_main_zndFiles) into a fresh heap block, the slot and block kept in _zoneContext
 /// (vs_main_nop9 notes a slot or block still held); with music on (unk30), stops the current music when the
 /// zone's (D_8004FCCC) differs. Static in the C: ported with each caller (PORTING.md §13).

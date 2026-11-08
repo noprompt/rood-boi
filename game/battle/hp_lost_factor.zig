@@ -1,9 +1,9 @@
-//! The hit-point loss factor of an action's hit on its target (src/BATTLE/BATTLE.PRG/146C.c).
+//! The hit-point loss factor of an action's hit on its target (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _hpLostFactor (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _hpLostFactor (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The target's lost HP scaled by the hit's stat factor, plus the battle's base step.
 pub fn hpLostFactor(arg0: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short {
     _ = arg2;

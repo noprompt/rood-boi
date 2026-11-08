@@ -1,9 +1,9 @@
-//! Places a point at a yaw, pitch and distance from a base position (src/BATTLE/BATTLE.PRG/146C.c).
+//! Places a point at a yaw, pitch and distance from a base position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _computeSphericalOffset (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _computeSphericalOffset (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets outPosition to basePosition plus the unit vector at angles' yaw and pitch, scaled by its distance.
 pub fn computeSphericalOffset(outPosition: ?*v.VECTOR, basePosition: ?*v.VECTOR, angles: ?*v._sphericalValues) callconv(.c) void {
     outPosition.?.vx = c.rsin(angles.?.yaw);

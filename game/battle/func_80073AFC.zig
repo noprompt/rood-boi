@@ -1,9 +1,9 @@
-//! Locked-door check for a room section: plays the unlock or lock message and sound (src/BATTLE/BATTLE.PRG/146C.c).
+//! Locked-door check for a room section: plays the unlock or lock message and sound (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80073AFC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80073AFC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the lock state of a room section: unlocks it when its key or sigil is held, else shows the lock message.
 pub fn func_80073AFC(arg0: ?*v._mpdRoomSectionA) callconv(.c) c_int {
     const sec = arg0.?;

@@ -1,4 +1,4 @@
-//! TIM image header parsing for battle textures (src/BATTLE/BATTLE.PRG/146C.c).
+//! TIM image header parsing for battle textures (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
@@ -7,7 +7,7 @@ fn word(addr: usize) *align(1) u32 {
     return @ptrFromInt(addr);
 }
 
-/// orig: vs_battle_parseTim (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_parseTim (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills a TIM_IMAGE's mode, optional CLUT rect and address, and pixel rect and address from a TIM blob.
 pub fn parseTim(data: [*c]c_uint, tim: ?*v.TIM_IMAGE) callconv(.c) void {
     const t = tim.?;

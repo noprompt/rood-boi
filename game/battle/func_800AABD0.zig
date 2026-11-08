@@ -1,9 +1,9 @@
-//! Anchor and movement offset of a battle model (src/BATTLE/BATTLE.PRG/40564.c).
+//! Anchor and movement offset of a battle model (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800AABD0 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AABD0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets model `index`'s anchor to `pos` when `mode` is 0; otherwise stores its offset from the anchor, clearing the state when the offset is zero.
 pub fn func_800AABD0(index: c_int, pos: ?*v.SVECTOR, mode: c_int) callconv(.c) void {
     const model = psx.at(v.g.D_800F4538(), index).*;

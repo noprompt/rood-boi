@@ -1,4 +1,4 @@
-//! The per-tick upkeep of every actor (src/BATTLE/BATTLE.PRG/146C.c).
+//! The per-tick upkeep of every actor (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -56,7 +56,7 @@ fn regenerateHp(stats: *v.vs_battle_actor2) void {
     }
 }
 
-/// orig: func_80088554 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80088554 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For each actor (the player, and the others not unk27 0x80): a dying one (0x1000000) not yet down reacts; an
 /// idle one cools its unk954 by 35 and, every 30 ticks while alive, lowers its risk and regenerates MP (wearing
 /// PP with its weapon drawn) and HP and one limb's HP, at a slower pace with its weapon drawn; every 60 ticks it

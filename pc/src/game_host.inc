@@ -94,7 +94,6 @@ static int game_load(void)
     int valid = slots && key && !strcmp(key, pc_owned_abi);
     snprintf(game_status, sizeof game_status, "Zig library ABI differs: rebuild host and restart");
     for (unsigned i = 0; valid && i < pc_route_count; i++) {
-        if (!pc_route_signatures[i]) continue; /* a C route: linked into the host, no slot */
         char name[256];
         snprintf(name, sizeof name, "%s__candidate", pc_route_names[i]);
         slots[i] = dlsym(h, name);

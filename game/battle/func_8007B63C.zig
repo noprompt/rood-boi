@@ -1,9 +1,9 @@
-//! After an action: the message for a newly learned one, else the art or ability to unlock (src/BATTLE/BATTLE.PRG/146C.c).
+//! After an action: the message for a newly learned one, else the art or ability to unlock (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007B63C (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B63C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Camera mode 6 and func_8007B410 either way. A still-locked action (not 0) used with no unk40, no unk2C07 and
 /// target actor 0 shows message 0xC for it and is marked unlocked; otherwise _isArtOrAbilityUnlocked's art (high
 /// half) and ability (low half) go to _setArtAndAbilityToUnlock.

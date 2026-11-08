@@ -1,11 +1,11 @@
 //! Validates a battle shortcut selection and reports the menu state to open
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_validateShortcutSelection (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_validateShortcutSelection (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Checks that shortcut's ability is unlocked: plays the invalid sound and returns menu state 0 if not, else invokes it.
 pub fn validateShortcutSelection(shortcut: c_int) callconv(.c) c_int {
     var noneUnlocked: c_int = 0;

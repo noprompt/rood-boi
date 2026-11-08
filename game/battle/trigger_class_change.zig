@@ -1,9 +1,9 @@
-//! Battle class changes: a class rises by a random chance and its two opposing classes may fall (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle class changes: a class rises by a random chance and its two opposing classes may fall (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _triggerClassChange (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _triggerClassChange (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Raises an equipment's class by a random chance and lowers its two opposing classes by chance.
 pub fn triggerClassChange(_: ?*v.vs_action_t, equipment: ?*v.vs_battle_uiEquipment, class: c_int, arg3: c_int, actorId: c_int) callconv(.c) void {
     const eq = equipment.?;

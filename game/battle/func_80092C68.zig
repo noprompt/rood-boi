@@ -1,8 +1,8 @@
-//! Derives the clip extents and display offsets of an actor record from its position and the box in arg1 (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Derives the clip extents and display offsets of an actor record from its position and the box in arg1 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 
-/// orig: func_80092C68 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80092C68 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Computes the per-axis extents at unk24..unk28, clamps them against the box, then writes the display offsets at unk2A..unk32.
 pub fn func_80092C68(arg0: ?*v.func_80092F74_t, arg1: ?*v.func_80092F74_t2) callconv(.c) c_int {
     const a = arg0.?;

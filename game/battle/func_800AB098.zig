@@ -1,11 +1,11 @@
 //! Queues one frame of an actor's texture-map sprite as a DR_MOVE packet
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AB098 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AB098 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Draws animation frame `frame` of `index` from the actor's texture-map overlay as a move packet.
 pub fn func_800AB098(actor: ?*v.D_800F4538_t, index: c_int, frame: c_int) callconv(.c) void {
     const a = actor.?;

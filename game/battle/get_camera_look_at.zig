@@ -1,7 +1,7 @@
-//! Reads the battle camera's look-at point into an output vector (src/BATTLE/BATTLE.PRG/146C.c).
+//! Reads the battle camera's look-at point into an output vector (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 
-/// orig: vs_battle_getCameraLookAt (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_getCameraLookAt (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the scratchpad camera's look-at point (x, y, z) into `outLookAt`.
 pub fn getCameraLookAt(outLookAt: ?*v.VECTOR) callconv(.c) void {
     const out = outLookAt.?;

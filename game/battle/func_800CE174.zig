@@ -1,4 +1,4 @@
-//! The effect trail's renderer (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! The effect trail's renderer (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
@@ -7,7 +7,7 @@ fn spline(t: *v.effectTrailState, comptime side: []const u8, base: c_int, phase:
     c.vs_battle_splineInterpolate(@ptrCast(&points[@intCast(base & 7)]), @ptrCast(&points[@intCast((base -% 1) & 7)]), @ptrCast(&points[@intCast((base -% 2) & 7)]), @ptrCast(&points[@intCast((base -% 3) & 7)]), phase, @ptrCast(out));
 }
 
-/// orig: func_800CE174 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CE174 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// 1: a new trail (its state allocated, the config kept); 2: samples the next pair of points and, from the fourth frame, draws the trail through them in spline segments (func_800CDCBC), returning 0 when its life runs out; 3: life 8; 4: frees it (0).
 pub fn func_800CE174(node_arg: [*c]v.func_800D4910_t, mode: c_uint, config: c_int) callconv(.c) c_int {
     const node: *v.func_800D4910_t = node_arg;

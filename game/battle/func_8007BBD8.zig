@@ -1,10 +1,10 @@
-//! Stores a time value (a frame count packed into bytes) in D_80050468 and pushes its four bytes to the state flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Stores a time value (a frame count packed into bytes) in D_80050468 and pushes its four bytes to the state flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007BBD8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007BBD8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Records arg0 and arg1, splits arg2 into frames, seconds, minutes and hours unless arg0 is 1, and sets state flags 0xA0..0xA3.
 pub fn func_8007BBD8(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     const st = v.g.D_80050468();

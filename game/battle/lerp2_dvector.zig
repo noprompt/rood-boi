@@ -1,5 +1,5 @@
-//! Lerps a pair of 16-bit endpoint pairs by t into two ints (src/BATTLE/BATTLE.PRG/5BF94.c).
-/// orig: vs_battle_lerp2DVector (src/BATTLE/BATTLE.PRG/5BF94.c)
+//! Lerps a pair of 16-bit endpoint pairs by t into two ints (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
+/// orig: vs_battle_lerp2DVector (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Writes vec[0] and vec[1]: each is start + ((end - start) * t >> 7), from the pairs in src.
 pub fn lerp2DVector(src: [*c]c_short, t: c_int, vec: [*c]c_int) callconv(.c) void {
     const start0: c_int = src[0];

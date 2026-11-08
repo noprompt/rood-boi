@@ -1,11 +1,11 @@
 //! Renders a value as BCD digits, one `_renderDigit` per nibble, moving left
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: vs_battle_renderValue (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_renderValue (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws `value` as BCD digits right to left from `xy`, returning the x position after the last digit.
 pub fn renderValue(font: c_int, xy: c_int, value: c_int, before: [*c]c_uint) callconv(.c) c_int {
     var x: c_int = xy;

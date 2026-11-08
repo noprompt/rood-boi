@@ -1,10 +1,10 @@
-//! An effect view facing the camera (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect view facing the camera (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D0984 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D0984 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The effect's matrix looking from the camera's look-at to its position, placed at the look-at, or (`push`) 0x600 short of the camera along that view.
 pub fn func_800D0984(arg0: c_int, effect: ?*v.func_800D0C60_t, push: c_int) callconv(.c) void {
     _ = arg0;

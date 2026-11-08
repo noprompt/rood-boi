@@ -1,9 +1,9 @@
-//! Camera mode reset and the first action slot's target (src/BATTLE/BATTLE.PRG/146C.c).
+//! Camera mode reset and the first action slot's target (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006FCBC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006FCBC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the camera mode to 10, then runs func_8006C4A4 on the first action slot's target with the result of func_800A152C.
 pub fn func_8006FCBC() callconv(.c) void {
     v.g._cameraMode().* = 10;

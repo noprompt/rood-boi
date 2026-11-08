@@ -1,4 +1,4 @@
-//! Clears each battle actor's evaluation state, runs the choice passes and acts on the results (src/BATTLE/BATTLE.PRG/74088.c).
+//! Clears each battle actor's evaluation state, runs the choice passes and acts on the results (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const psx = @import("common").psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
@@ -17,7 +17,7 @@ inline fn choiceStateFn() VoidPtrFn {
     return @extern(VoidPtrFn, .{ .name = "func_800DD604" });
 }
 
-/// orig: func_800DEC88 (src/BATTLE/BATTLE.PRG/74088.c)
+/// orig: func_800DEC88 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Runs one action evaluation pass over the battle actors, with the context's actor as the chooser.
 pub fn func_800DEC88(arg0: ?*anyopaque) callconv(.c) c_int {
     const context: ?*align(1) v.actorEvaluationContext = @ptrCast(arg0);

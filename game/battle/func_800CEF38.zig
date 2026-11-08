@@ -1,8 +1,8 @@
 //! Decrements the counter at D_800F5228 and sets bit `bit` of the flag word at D_800F521C
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const v = @import("views_5BF94");
 
-/// orig: func_800CEF38 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CEF38 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Decrements the counter at D_800F5228 and sets bit `bit` in the flag word at D_800F521C.
 pub fn func_800CEF38(bit: c_int) callconv(.c) void {
     v.g.D_800F5228().* -%= 1;

@@ -1,10 +1,10 @@
-//! Moves battle actor `slot` by a step vector, or sets its move counter (src/BATTLE/BATTLE.PRG/40564.c).
+//! Moves battle actor `slot` by a step vector, or sets its move counter (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800AA698 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AA698 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Adds `step` to actor `slot`'s position (mode 0), or sets its move count (mode -1 derives it from the velocity's length).
 pub fn func_800AA698(slot: c_int, step: ?*v.SVECTOR, mode: c_int) callconv(.c) void {
     const actor: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), slot).* orelse return;

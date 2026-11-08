@@ -1,10 +1,10 @@
-//! Moves an effect point along a spline (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Moves an effect point along a spline (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D037C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D037C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The point on the spline through its saved position, two control points and its endpoint at its frame: linear, eased or by a curve (mode bits 5..6).
 pub fn func_800D037C(mode_arg: ?*v.func_800D0548_arg0, point: ?*v.func_800D0548_arg1) callconv(.c) void {
     const a = mode_arg.?;

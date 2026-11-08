@@ -176,7 +176,7 @@ def make_run(pr, pp, work, url, names, transport="batch"):
                 "seeds": [1], "no_write": True, "compile_fixes": 1, "units": [], "functions": names, "table": "",
                 "build": str(work), "batches": {}}
     for name in names:
-        plan = pp.Plan(name=name, unit="src/BATTLE/T.c", stem="T", address=0x80000000, difficulty="S",
+        plan = pp.Plan(name=name, unit="pc/src/game/BATTLE/T.c", stem="T", address=0x80000000, difficulty="S",
                        zig_name=name, name_source="test", module=name, signature=f"pub fn {name}() void")
         fdir = work / name
         fdir.mkdir(parents=True, exist_ok=True)

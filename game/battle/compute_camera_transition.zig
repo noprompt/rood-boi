@@ -1,10 +1,10 @@
 //! Camera transition setup: direction, frame count, look-at point and per-frame steps
-//! toward a target position (src/BATTLE/BATTLE.PRG/146C.c).
+//! toward a target position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _computeCameraTransition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _computeCameraTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up the camera transition toward targetPosition: direction, frame count, look-at point and per-frame steps.
 pub fn computeCameraTransition(targetPosition: ?*v.VECTOR) callconv(.c) void {
     const target = targetPosition.?;

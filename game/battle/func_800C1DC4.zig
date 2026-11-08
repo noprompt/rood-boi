@@ -1,11 +1,11 @@
 //! The battle target row and its leader line: the row's plate, text and
-//! sweep (src/BATTLE/BATTLE.PRG/58578.c).
+//! sweep (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C1DC4 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C1DC4 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Draws target row `arg0`: its gradient plate and text, then its leader line to the projected point when selected.
 pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
     const row = arg0.?;

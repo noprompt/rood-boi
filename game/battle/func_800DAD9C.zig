@@ -1,10 +1,10 @@
-//! Dispatches action setup over the state's entries, then over the registered actors (src/BATTLE/BATTLE.PRG/71618.c).
+//! Dispatches action setup over the state's entries, then over the registered actors (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DAD9C (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DAD9C (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the action setup over each entry, then over the fallback entry once per registered actor; returns 1 when one setup reports a match.
 pub fn func_800DAD9C(state: ?*v.actionDispatchState) callconv(.c) c_int {
     const st = state.?;

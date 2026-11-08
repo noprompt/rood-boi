@@ -1,11 +1,11 @@
 //! Runs a pending block-8 text for slot `arg0` through func_800CE83C, then clears its pending bit
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800CEF74 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CEF74 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Hands slot `arg0`'s pending text to func_800CE83C once and clears its pending bit; returns the status of func_800CEEBC.
 pub fn func_800CEF74(arg0: c_int) callconv(.c) c_int {
     // unk24 is never written here: it is uninitialised in the original too.

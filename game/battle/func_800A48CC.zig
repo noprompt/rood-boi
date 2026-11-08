@@ -1,9 +1,9 @@
-//! Starts an actor's move over a distance in a direction, or stops it when the distance is zero (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Starts an actor's move over a distance in a direction, or stops it when the distance is zero (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A48CC (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A48CC (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Sets actor `index` moving over `distance` in `direction` (zero stops it), unless it is busy or already in a sequence.
 pub fn func_800A48CC(index: c_int, direction: c_int, distance: c_int) callconv(.c) void {
     // The C indexes D_800F4538 without a bounds check and dereferences the entry unguarded.

@@ -1,10 +1,10 @@
 //! Unlinks an entry from its doubly linked list and pushes it onto the free list
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: func_800D2888 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D2888 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Unlinks `arg0` from its list, pushes it onto the free list and updates both counts.
 pub fn func_800D2888(arg0: ?*v.func_800D2904_t, arg1: ?*v.D_800F53B8_t) callconv(.c) void {
     const self = arg0.?;

@@ -11,7 +11,7 @@
  * menu_bridge.c then asks pc_ui_items_cast_taken whether a Use was accepted
  * and hands it to the game with pc_ui_items_cast.
  *
- * Everything here is MENU3's Items menu (src/MENU/items1.h, items2.h,
+ * Everything here is MENU3's Items menu (pc/src/game/MENU/items1.h, items2.h,
  * MENU3.PRG/16C.c) and the MAINMENU routines it calls (2D10.c), ported line
  * for line on the resident BATTLE and main data: MAINMENU may not be loaded
  * during the menu's first ticks, and MENU3 never is. The ports keep the
@@ -110,10 +110,10 @@
  * After each change the seven lists are rebuilt (MENU3 goes back to its init
  * state, which rebuilds them) and the snapshot refilled. */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "build/assets/MENU/ITEMHELP.BIN.h"
 #include "build/assets/MENU/MENU3.PRG/menuText.h"
 #include "inventory_ops.h"

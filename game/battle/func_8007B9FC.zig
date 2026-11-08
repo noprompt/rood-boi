@@ -1,8 +1,8 @@
-//! Camera-mode dispatch for battle (src/BATTLE/BATTLE.PRG/146C.c).
+//! Camera-mode dispatch for battle (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007B9FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B9FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the camera routine for `_cameraMode` 3..6 and reports whether one ran.
 pub fn func_8007B9FC() callconv(.c) c_int {
     switch (v.g._cameraMode().*) {

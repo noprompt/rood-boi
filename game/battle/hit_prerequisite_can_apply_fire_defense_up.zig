@@ -1,10 +1,10 @@
 //! Fire defense up's prerequisite: the target has some armor or a shield equipped
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _hitPrerequisiteCanApplyFireDefenseUp (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _hitPrerequisiteCanApplyFireDefenseUp (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fire defense up applies only when the effect itself can apply and the target wears armor or a shield.
 pub fn hitPrerequisiteCanApplyFireDefenseUp(_: ?*v.vs_action_t, arg1: [*c]u8) callconv(.c) c_int {
     if (c._hitPrerequisiteCanApplyEffect(26, arg1) == 0) {

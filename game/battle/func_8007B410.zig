@@ -1,8 +1,8 @@
-//! Battle setup step: resets the CLUT state and the battle display flags (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle setup step: resets the CLUT state and the battle display flags (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007B410 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007B410 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the battle setup calls and sets the battle-ready flag.
 pub fn func_8007B410() callconv(.c) void {
     c.func_8007B10C(0xD, 4, -4, -4, 0);

@@ -1,11 +1,11 @@
 //! Queues a loot node for up to two items and opens the loot screen, or
-//! closes it when nothing was won (src/BATTLE/BATTLE.PRG/146C.c).
+//! closes it when nothing was won (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007BA98 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007BA98 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Adds a loot node for the two items to the loot list and opens the loot screen, or runs the closing path when the list is empty.
 pub fn func_8007BA98(id0: c_int, count0: c_int, id1: c_int, count1: c_int) callconv(.c) void {
     const raw = c.vs_main_allocHeapR(@sizeOf(v.vs_battle_lootListNode));

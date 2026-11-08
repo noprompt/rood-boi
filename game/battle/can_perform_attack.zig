@@ -1,9 +1,9 @@
-//! Whether an action's hit may land: runs the hit's prerequisite check (src/BATTLE/BATTLE.PRG/146C.c).
+//! Whether an action's hit may land: runs the hit's prerequisite check (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _canPerformAttack (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _canPerformAttack (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Checks hit `hitNumber` of `action` against its prerequisite function, which decides whether the attack can be performed.
 pub fn canPerformAttack(action: ?*v.vs_action_t, arg1: [*c]u8, hitNumber: c_int) callconv(.c) c_int {
     const act = action.?;

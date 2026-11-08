@@ -1,9 +1,9 @@
 //! Finds the battle actor standing on a tile at or above a height, or the actor
-//! whose scene position matches it (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! whose scene position matches it (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 
-/// orig: func_800A3C34 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3C34 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Returns the first actor from slot `mode` (slot 0 when mode < 2) that occupies the given tile and sits at or above `y_floor - 192`.
 pub fn func_800A3C34(tile_x: c_int, tile_z: c_int, y_floor: c_int, mode: c_int) callconv(.c) ?*v.D_800F4538_t {
     const y_min = y_floor -% 192;

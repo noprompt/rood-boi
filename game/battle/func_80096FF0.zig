@@ -1,9 +1,9 @@
-//! Places the ability-timing marker above the player (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Places the ability-timing marker above the player (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80096FF0 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80096FF0 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// With the ability-timing display on, reads the player's screen point into D_800F2280 (kept 40 below the top,
 /// shifted sideways by as much) and adds `ticks` to the timer D_800F2272.
 pub fn func_80096FF0(ticks: c_int) callconv(.c) void {

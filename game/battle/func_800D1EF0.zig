@@ -1,9 +1,9 @@
-//! Fills the slots of D_800F54B8 selected by the bits of arg0 (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Fills the slots of D_800F54B8 selected by the bits of arg0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D1EF0 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D1EF0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Sets up each slot whose bit is in `mask`, takes its status from func_800D1E78 and marks it in the flags.
 pub fn func_800D1EF0(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int, arg6: c_int) callconv(.c) void {
     for (0..4) |i| {

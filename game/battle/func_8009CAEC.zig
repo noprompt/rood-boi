@@ -1,9 +1,9 @@
-//! Picks the sub-object pointer and the index for slot `arg1` from the id tables (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Picks the sub-object pointer and the index for slot `arg1` from the id tables (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009CAEC (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009CAEC (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Stores the table pointer for the actor's id in slot `arg1`, then the table index for that id.
 pub fn func_8009CAEC(arg0: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
     const s = arg0.?;

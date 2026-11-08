@@ -1,10 +1,10 @@
-//! Battle mode check: sets the mode and camera when the probe reports one, else runs the fallback (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle mode check: sets the mode and camera when the probe reports one, else runs the fallback (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80073898 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80073898 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets mode 3 and camera 1 when func_800BEB10's low 16 bits are nonzero, else runs func_80073870.
 pub fn func_80073898() callconv(.c) void {
     // The C shifts the promoted int left by 16; the shift discards high bits without a check.

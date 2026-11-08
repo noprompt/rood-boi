@@ -1,4 +1,4 @@
-//! The sequence loader: stages an object's sequence data from disc, one step per call (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! The sequence loader: stages an object's sequence data from disc, one step per call (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
@@ -20,7 +20,7 @@ fn loadU32(addr: usize) u32 {
     return p.*;
 }
 
-/// orig: vs_battleFindSharedSequence (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battleFindSharedSequence (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Looks for another loaded actor on the same sequence set and, if found, shares its data address.
 fn findSharedSequence(object: *v.vs_battle_objectData) bool {
     const table = v.g.D_800F4538();
@@ -44,7 +44,7 @@ fn findSharedSequence(object: *v.vs_battle_objectData) bool {
     return false;
 }
 
-/// orig: vs_battleQueueSequenceObject (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battleQueueSequenceObject (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Copies an object into the first free object slot; returns the slot or -1 when none is free.
 fn queueSequenceObject(objectData: *const v.vs_battle_objectData) c_int {
     const slots = psx.globalMany(v.vs_battle_objectData, "vs_battle_objectDataSlots");
@@ -161,7 +161,7 @@ fn parseSequence(object: *v.vs_battle_objectData) c_int {
     return result;
 }
 
-/// orig: func_8009BE5C (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009BE5C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Runs one step of loading an object's sequence data; returns -1 while the disc read is pending.
 pub fn func_8009BE5C(object_: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const object = object_.?;

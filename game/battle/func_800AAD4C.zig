@@ -1,10 +1,10 @@
 //! Battle actor state slots: sets, clears or toggles one of an actor's two
-//! slot states (src/BATTLE/BATTLE.PRG/40564.c).
+//! slot states (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800AAD4C (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AAD4C (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Clears (mode 0), sets to `value` (mode 1) or toggles (mode 2) one of an actor's two state slots; -1 for a missing actor or a bad index.
 pub fn func_800AAD4C(actorId: c_int, index: c_int, value: c_int, mode: c_int) callconv(.c) c_int {
     // actorId is not range-checked by the C: psx.at indexes as C does.

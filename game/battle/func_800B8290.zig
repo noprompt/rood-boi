@@ -1,9 +1,9 @@
-//! An event script opcode that turns an actor to, or by, a rotation (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that turns an actor to, or by, a rotation (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B8290 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B8290 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Hands the actor of getShort(script + 1) the vector (getShort(+4), getShort(+6), getShort(+8))
 /// and script[10] (0xFF as -1): func_800A9F64 when script[3] is set, else func_800A9FD0; then its
 /// D_800F4B70 mark.

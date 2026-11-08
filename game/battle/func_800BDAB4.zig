@@ -1,12 +1,12 @@
 //! Passes the four flagged battle camera records to their screen-effect setters
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BDAB4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BDAB4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sends each flagged record of the battle camera block to its screen-effect setter.
 pub fn func_800BDAB4() callconv(.c) void {
     // sp10 and sp20 are uninitialised in the original: the callees copy the whole struct, but only the fields written here are read.

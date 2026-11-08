@@ -1,11 +1,11 @@
 //! Updates slot `slot`'s status record from a 4-byte update: its kind and the two
-//! bytes it replaces (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! bytes it replaces (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009F9F4 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009F9F4 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Stores an update into the status record of slot `arg0`, from its kind and the record it replaces.
 pub fn func_8009F9F4(arg0: c_int, arg1: ?*v.D_800F4538_unk64) callconv(.c) void {
     const t: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), arg0).* orelse return;

@@ -1,7 +1,7 @@
-//! Battle helper from src/BATTLE/BATTLE.PRG/573B8.c: decodes a 16-bit code by its top nibble.
+//! Battle helper from pc/src/game/BATTLE/BATTLE.PRG/573B8.c: decodes a 16-bit code by its top nibble.
 const c = @import("c_573B8");
 
-/// orig: func_800BFE50 (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800BFE50 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Top nibble 0 calls func_8007CF18 on the low 12 bits, 1 keeps the low 5 bits, 2 returns the code.
 pub fn func_800BFE50(arg0: c_ushort) callconv(.c) c_int {
     // Nibbles 3..15 have no case and no return in the C (undefined behaviour). The PS1

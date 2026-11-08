@@ -1,9 +1,9 @@
-//! Retires a slot of the D_800F1DD8 table, freeing the block it holds (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Retires a slot of the D_800F1DD8 table, freeing the block it holds (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009291C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009291C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Marks table slot `arg0` in use; for slots from 64 up to the limit, frees the held block and takes over the spare one.
 pub fn func_8009291C(arg0: c_int) callconv(.c) c_int {
     if (arg0 < @as(c_int, v.g.D_800F225A().*)) {

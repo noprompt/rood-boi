@@ -1,9 +1,9 @@
-//! Scales the scratchpad actor transform offset by the actor's size and rotation (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Scales the scratchpad actor transform offset by the actor's size and rotation (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const psx = @import("common").psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AEAE8 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AEAE8 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Sets the scale defaults, derives the scratchpad offset from the actor's extents and scale, and copies its rotation.
 pub fn func_800AEAE8(actor: ?*v.D_800F4538_t) callconv(.c) void {
     const a = actor.?;

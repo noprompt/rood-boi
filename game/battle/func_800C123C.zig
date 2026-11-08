@@ -1,9 +1,9 @@
-//! Tests a point against an actor's circle in the actor's frame (src/BATTLE/BATTLE.PRG/58578.c).
+//! Tests a point against an actor's circle in the actor's frame (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C123C (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C123C (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Returns 1 when the point arg1 (less the actor's offset, raised by arg2 when nonzero) lies inside the actor's circle, else 0.
 pub fn func_800C123C(arg0: ?*v.func_800C1564_t, arg1: [*c]c_ushort, arg2: c_int) callconv(.c) c_int {
     var work: v.func_800C0FA8_t2 = undefined;

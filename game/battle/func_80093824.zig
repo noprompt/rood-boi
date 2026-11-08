@@ -1,8 +1,8 @@
-//! Flips a room geometry entry's sign and swaps its 0x18/0x1C words (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Flips a room geometry entry's sign and swaps its 0x18/0x1C words (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 
-/// orig: func_80093824 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80093824 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Mirrors room geometry entry `arg0`: writes its 0x18 word into the room geometry and negates and swaps its own fields.
 pub fn func_80093824(arg0: c_int) callconv(.c) void {
     const entry = psx.at(v.g.D_800F1DD8(), arg0);

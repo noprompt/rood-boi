@@ -1,9 +1,9 @@
 //! Sets a battle actor's flag and counter from a slot of the actor table
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009D7E8 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009D7E8 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Clears flag 21 of the actor in slot `arg0`; a nonzero `arg1` instead resets counter 1802 and sets it from `arg1`.
 pub fn func_8009D7E8(arg0: c_int, arg1: c_int) callconv(.c) void {
     // The C indexes the slot table without a bound check: psx.at keeps that.

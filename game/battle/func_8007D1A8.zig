@@ -1,10 +1,10 @@
 //! Actor slot insert and remove, with the matching score and display updates
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007D1A8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007D1A8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Takes battle actor slot `arg0` out of the battle when `arg1` is nonzero, otherwise puts it back in.
 pub fn func_8007D1A8(arg0: c_int, arg1: c_int) callconv(.c) void {
     if (psx.at(v.g.vs_battle_actors(), arg0).*) |temp_a0| {

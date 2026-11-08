@@ -1,10 +1,10 @@
-//! Projects a battle actor's world position for the given action code (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! Projects a battle actor's world position for the given action code (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A190C (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A190C (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Writes the position (vy adjusted) of the actor in slot `arg0` for code `arg1` into `arg2`; returns 0, or a negative value when there is none.
 pub fn func_800A190C(arg0: c_int, arg1: c_int, arg2: ?*v.SVECTOR, arg3: c_int) callconv(.c) c_int {
     if (arg1 == 0xFB) {

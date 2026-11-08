@@ -1,11 +1,11 @@
 //! Places script text box `script[1]` at the free placement nearest the script's origin
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B6D48 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B6D48 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Opens the text box named by the script at the first placement that fits its origin, else the nearest.
 pub fn func_800B6D48(script: [*c]u8, _: c_short) callconv(.c) c_int {
     var placements: [4]v.textPlacement = undefined;

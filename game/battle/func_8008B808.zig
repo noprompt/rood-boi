@@ -1,9 +1,9 @@
-//! Sets the collision flag of a room cell or section-12 entry (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets the collision flag of a room cell or section-12 entry (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_8008B808 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B808 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Stores the 3-bit flag `arg3` (nonzero becomes 5) at a room cell (arg2 < 2) or a section-12 entry (arg2 >= 2); returns 1 if stored, else 0.
 pub fn func_8008B808(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int {
     var value = arg3;

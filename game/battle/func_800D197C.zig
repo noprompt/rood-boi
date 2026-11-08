@@ -1,10 +1,10 @@
-//! A look-at view matrix (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! A look-at view matrix (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D197C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D197C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The view matrix looking from `position` at `target` (rows: -right, up, forward, normalised by libgte), its translation the rotated position negated.
 pub fn func_800D197C(position: ?*v.VECTOR, target: ?*v.VECTOR, view_arg: ?*v.MATRIX) callconv(.c) void {
     const view = view_arg.?;

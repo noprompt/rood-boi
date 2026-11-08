@@ -1,11 +1,11 @@
-//! The target marker drawn at a 3D position (src/BATTLE/BATTLE.PRG/58578.c).
+//! The target marker drawn at a 3D position (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const gte = common.gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C28AC (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C28AC (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Projects `position` to the screen and links the target marker's sprites into the ordering table; `arg1` selects the marker half (0 links the frame primitives too).
 pub fn func_800C28AC(position: ?*v.SVECTOR, arg1: c_int) callconv(.c) void {
     // psx_get yields a void*: the C steps back 4 bytes, not 4 words.

@@ -1,9 +1,9 @@
 //! Lays out a line of text as raw GPU primitives in the packet list
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_renderTextRawColor (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_renderTextRawColor (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Writes the glyph and underline primitives for `text` at (x, y) in `color`, linked in front of `nextPrim`, and moves the packet cursor past them.
 pub fn renderTextRawColor(text: [*c]const u8, x: c_int, color: c_int, nextPrim: ?*anyopaque) callconv(.c) void {
     const scratch = v.g.vs_scratch();

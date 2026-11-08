@@ -1,4 +1,4 @@
-//! The event script's start (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! The event script's start (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -8,7 +8,7 @@ fn half(p: [*c]u8, off: usize) u16 {
     return psx.byteAt(u16, p, @intCast(off)).*;
 }
 
-/// orig: func_800BF5F0 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BF5F0 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Opens an event script block: D_800F4BB0 and the string tables D_800EB588[9..15] and
 /// D_800F4BC0[0..7] from its header's offsets (a zero entry: none), the main thread at data + 16
 /// (the three others stopped), and the script state, text boxes and flags 16..31 and 168 reset.

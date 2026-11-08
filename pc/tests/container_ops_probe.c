@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include "../../src/BATTLE/BATTLE.PRG/func_8006B57C_t.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/func_8006B57C_t.h"
 #include "container_ops.h"
 
 static int failures;

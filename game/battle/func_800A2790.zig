@@ -1,10 +1,10 @@
-//! Moves a battle actor by its velocity, updates its tile, and selects its movement animation (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! Moves a battle actor by its velocity, updates its tile, and selects its movement animation (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A2790 (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A2790 (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Advances an actor by its velocity, sets its flag bit 21, and picks its movement animation.
 pub fn func_800A2790(actor: ?*v.D_800F4538_t) callconv(.c) void {
     const a = actor.?;

@@ -1,8 +1,8 @@
-//! Battle setup: resets the enemy-class entries and the battle flag (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle setup: resets the enemy-class entries and the battle flag (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006C2FC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006C2FC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the per-class setup for classes 1..15, then the two battle-state calls, and sets D_800F1968.
 pub fn func_8006C2FC() callconv(.c) void {
     var i: c_int = 1;

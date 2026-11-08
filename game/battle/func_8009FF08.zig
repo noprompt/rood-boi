@@ -1,8 +1,8 @@
-//! Resets a battle actor slot's placement and re-links it to its parent slot (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Resets a battle actor slot's placement and re-links it to its parent slot (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 
-/// orig: func_8009FF08 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009FF08 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Re-links actor slot `arg0` under parent slot `arg1` (kind `arg2`) and zeroes its position, pitch, roll and flag bit.
 pub fn func_8009FF08(arg0: c_int, arg1: c_int, arg2: c_int, _: c_int) callconv(.c) void {
     const temp_a0: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), arg0).*.?;

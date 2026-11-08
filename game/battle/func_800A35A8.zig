@@ -1,10 +1,10 @@
 //! Snaps the height of each grounded actor in slots 2..16 to the ground under it,
-//! lowered by any raised object on its tile (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! lowered by any raised object on its tile (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const psx = @import("common").psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A35A8 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A35A8 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Sets each grounded actor's height from the ground under it and the objects on its tile.
 pub fn func_800A35A8() callconv(.c) void {
     const actors = v.g.D_800F4538();

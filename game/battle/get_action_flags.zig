@@ -1,9 +1,9 @@
-//! Action availability flags for an actor: unaffordable, locked, status and weapon checks (src/BATTLE/BATTLE.PRG/146C.c).
+//! Action availability flags for an actor: unaffordable, locked, status and weapon checks (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_getActionFlags (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_getActionFlags (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Flags (2: cost check fails, 4: action unusable) for action `actionId` of actor `actorId`.
 pub fn getActionFlags(actorId: c_int, actionId: c_int) callconv(.c) c_int {
     const action = psx.at(v.g.actions(), actionId);

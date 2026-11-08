@@ -1,10 +1,10 @@
-//! Prints a text box's string in the variable-width font (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Prints a text box's string in the variable-width font (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: _printVariableWidthFont (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: _printVariableWidthFont (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws up to `speed` characters of the box's text (the typewriter), handling page breaks, the continue arrow,
 /// the end, newlines, speed, sound, moves, font switches, the shake, and inline numbers and strings; then advances
 /// the box's speed, plays the typing sound and steps its shake.

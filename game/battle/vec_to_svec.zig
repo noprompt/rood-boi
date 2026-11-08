@@ -1,9 +1,9 @@
-//! VECTOR to SVECTOR (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! VECTOR to SVECTOR (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_vecToSvec (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_vecToSvec (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Copies x, y, z, truncated to 16 bits.
 pub fn vecToSvec(from: ?*v.VECTOR, to: ?*v.SVECTOR) callconv(.c) void {
     to.?.vx = psx.conv(i16, from.?.vx);

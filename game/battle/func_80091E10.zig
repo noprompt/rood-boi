@@ -1,8 +1,8 @@
-//! Scrolls a textured quad's UV window across the room geometry section (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Scrolls a textured quad's UV window across the room geometry section (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 
-/// orig: func_80091E10 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80091E10 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Advances a scrolling UV window every `delay` ticks and rewrites the quad's texture coordinates in the room geometry.
 pub fn func_80091E10(arg0: ?*v.func_80091E10_t) callconv(.c) c_int {
     const quad = arg0.?;

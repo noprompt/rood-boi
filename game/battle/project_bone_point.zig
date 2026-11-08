@@ -1,11 +1,11 @@
-//! A point on a battle model's bone projected to the screen (src/BATTLE/BATTLE.PRG/38C1C.c).
+//! A point on a battle model's bone projected to the screen (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
-/// orig: func_800A141C (src/BATTLE/BATTLE.PRG/38C1C.c)
+/// orig: func_800A141C (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Projects the bone's origin (mode 0), its end (1) or its middle (other) and stores the GTE's screen xy and depth words at `out`; -1 when the slot is empty.
 pub fn projectBonePoint(slot: c_int, bone: c_int, out: c_int, mode: c_int) callconv(.c) c_int {
     var var_v1: ?*v.D_800F4538_t = psx.at(v.g.D_800F4538(), slot).*;

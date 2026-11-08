@@ -1,4 +1,4 @@
-//! Draws the text boxes (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws the text boxes (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -31,7 +31,7 @@ fn text(box: *v.vs_battle_textBox, id: c_int, state: c_int, duration: c_int, sca
     }
 }
 
-/// orig: func_800CB83C (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CB83C (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Opens, draws and closes the eight text boxes (back to front: their scale from their state and kind, their
 /// frame and text by their kind), then links the text OT in, flips to the next of three, draws the puzzle
 /// timer when shown and the rest of the overlay.

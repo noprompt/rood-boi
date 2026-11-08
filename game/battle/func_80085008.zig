@@ -1,10 +1,10 @@
-//! Applies a hit's status effects to the target, decided by the limb HP after the hit (src/BATTLE/BATTLE.PRG/146C.c).
+//! Applies a hit's status effects to the target, decided by the limb HP after the hit (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80085008 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80085008 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Applies the hit's status effects to the target's statuses, from the target's limb HP after the hit.
 pub fn func_80085008(arg0: ?*v._hitEntity_t) callconv(.c) void {
     const hit = arg0.?;

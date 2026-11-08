@@ -1,10 +1,10 @@
-//! Battle action targeting: copies the queued action's target into the first target slot (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle action targeting: copies the queued action's target into the first target slot (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800708EC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800708EC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the first target of the current action from its queued entry and refreshes the action's position.
 pub fn func_800708EC() callconv(.c) void {
     const d = v.g.D_800F19CC().*.?;

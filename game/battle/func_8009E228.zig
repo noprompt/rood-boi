@@ -1,10 +1,10 @@
-//! Elevation angle from an actor's ground point to a target point (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Elevation angle from an actor's ground point to a target point (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009E228 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009E228 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Elevation angle from the ground point under `actor` to `point`, or 0 when there is no point.
 pub fn func_8009E228(actor: ?*v.D_800F4538_t, point: ?*v.SVECTOR) callconv(.c) c_int {
     var sp10: v.SVECTOR = undefined;

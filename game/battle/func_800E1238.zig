@@ -1,10 +1,10 @@
-//! Steers a battle actor by the scratchpad mode: sets its facing vector and starts its move (src/BATTLE/BATTLE.PRG/771A8.c).
+//! Steers a battle actor by the scratchpad mode: sets its facing vector and starts its move (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E1238 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1238 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Sets an actor's facing vector from its angle, then starts the move that the scratchpad mode selects.
 pub fn func_800E1238(arg0: ?*v.func_800E0850_t, arg1: c_int) callconv(.c) void {
     var sp10: c_int = undefined;

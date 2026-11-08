@@ -1,11 +1,11 @@
 //! Finds the door section entry at a tile and copies it into the door
-//! buffer, or clears the buffer (src/BATTLE/BATTLE.PRG/146C.c).
+//! buffer, or clears the buffer (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008B960 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008B960 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Looks up the room's door entry for tile (x, y) and kind, then records it as the entered door or clears it.
 pub fn func_8008B960(x: c_int, y: c_int, kind: c_int) callconv(.c) void {
     var var_s0: ?*v._mpdRoomDoorSection_t = null;

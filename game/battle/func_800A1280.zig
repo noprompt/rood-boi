@@ -1,11 +1,11 @@
 //! Projects a battle slot's position to screen space, or looks up an entry
-//! for any other code (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! for any other code (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_800A1280 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A1280 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Code 0xFB: writes the slot's screen position into `out`; other codes: looks up `arg1` for slot `arg0` and passes it on.
 pub fn func_800A1280(arg0: c_int, arg1: c_int, arg2: ?*v.SVECTOR, arg3: c_int) callconv(.c) c_int {
     if (arg1 == 0xFB) {

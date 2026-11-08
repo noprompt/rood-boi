@@ -1,11 +1,11 @@
 //! Tests whether a point lies within 0x40 of the func_8008D2C0 entry tagged with `arg0 - 2`
-//! (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A51A0 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A51A0 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Returns 1 if `arg1` lies inside the square of half-width 0x40 around the entry tagged `arg0 - 2`, else 0.
 pub fn func_800A51A0(arg0: c_int, arg1: ?*v.SVECTOR) callconv(.c) c_int {
     var sp10: [4]v.func_8008D2C0_t = undefined;

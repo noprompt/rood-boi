@@ -1,10 +1,10 @@
-//! An effect command: func_8007B344 at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: func_8007B344 at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D6310 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D6310 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame (entry unk0 == the script's unk2): func_8007B344(unk7, unk2, unk4..6 - 128), then the next command; else 1.
 pub fn func_800D6310(script: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const cmd = cmd_arg.?;

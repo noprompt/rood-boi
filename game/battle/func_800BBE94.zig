@@ -1,9 +1,9 @@
 //! Sets the view vector at unk1EC from the vector func_800A1108 looks up for the
-//! index in unk1E8 (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! index in unk1E8 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800BBE94 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800BBE94 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Zeroes the view vector for index 0x2000, else sets it from the looked-up vector in 4.12 fixed point.
 pub fn func_800BBE94() callconv(.c) void {
     var sp10: v.func_8006EBF8_t = undefined;

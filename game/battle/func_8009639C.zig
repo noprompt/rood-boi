@@ -1,9 +1,9 @@
-//! Drops empty entries from the battle status-text queue (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Drops empty entries from the battle status-text queue (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_8009639C (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_8009639C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// `count` times: removes the first queue entry whose kind (unk8.u8[0]) is 0.
 pub fn func_8009639C(count: c_int) callconv(.c) void {
     var i: c_int = 0;

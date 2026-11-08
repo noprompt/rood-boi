@@ -1,7 +1,7 @@
-//! Sign-extends the low 15 bits of func_8008DD0C's result (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Sign-extends the low 15 bits of func_8008DD0C's result (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const c = @import("c_3A1A0");
 
-/// orig: func_800A3BC4 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A3BC4 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Calls func_8008DD0C and returns its short result, sign-extended from bit 14 (zero stays zero).
 pub fn func_800A3BC4(arg0: c_int, arg1: c_int) callconv(.c) c_int {
     const temp_v0: c_short = c.func_8008DD0C(arg0, arg1);

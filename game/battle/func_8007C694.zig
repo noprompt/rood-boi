@@ -1,9 +1,9 @@
-//! A warp to a location (src/BATTLE/BATTLE.PRG/146C.c).
+//! A warp to a location (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8007C694 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8007C694 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up D_800F1AB0 as the door into location `location` (arg1, arg2 into its unk4_8, unk6_10; actor 0's facing
 /// rounded to a quarter turn into unk4_13), starts the screen transition with the given effect and speed, and
 /// queues the zone file when the zone changes (step 2) or else the map file when the map changes (step 1).
@@ -42,7 +42,7 @@ pub fn func_8007C694(location: c_int, arg1: c_int, arg2: c_int, effect: c_int, s
     return 1;
 }
 
-/// orig: _loadZnd (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadZnd (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Queues zone file `id` (vs_main_zndFiles) into a fresh heap block, the slot and block kept in _zoneContext
 /// (vs_main_nop9 notes a slot or block still held); with music on (unk30), stops the current music when the
 /// zone's (D_8004FCCC) differs. Static in the C: ported with each caller (PORTING.md §13).

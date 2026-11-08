@@ -1,11 +1,11 @@
 //! Places a 16-bit vector (position or offset) for an actor, optionally
-//! adding to a base vector, then runs the follow-up call (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! adding to a base vector, then runs the follow-up call (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B792C (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B792C (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Builds the vector from a script record, applies it through func_800A9988 and marks the slot used.
 pub fn func_800B792C(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     var sp10: v.func_8006EBF8_t = undefined;

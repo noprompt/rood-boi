@@ -1,6 +1,6 @@
 /* Modern menus: the game's options for the System tab's pages (battle
  * builds; game_options.h). Each setter writes what MENU8's _optionsMenu
- * (src/MENU/MENU8.PRG/88.c) writes when that row's choice is confirmed, with
+ * (pc/src/game/MENU/MENU8.PRG/88.c) writes when that row's choice is confirmed, with
  * the same side effects:
  *   map              simpleMap = _simpleMapValues[choice] ({3, 1, 0})
  *   ability timing   bit 5 of the first settings byte (abilityTimingDisplay)
@@ -19,7 +19,7 @@
  *                    reported unavailable, refused)
  * All of it is part of the game's save (vs_main_settings), not settings.cfg. */
 #include "common.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "game_options.h"
 
 static const char _mapValues[3] = { 3, 1, 0 };

@@ -1,10 +1,10 @@
-//! An effect command: plays a sound at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: plays a sound at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D5E00 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D5E00 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame: plays block 11's sound (func_800433B4) when its target condition holds (0: always; 1, 2: the unk0 / unk18 target is actor 0; 3: any of the P-file's sound targets is), then the next command; else 1.
 pub fn func_800D5E00(actor_arg: ?*v.D_800F53B8_t, event_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const actor = actor_arg.?;

@@ -1,10 +1,10 @@
-//! Probes whether the actor can stand at a sideways offset from its position (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! Probes whether the actor can stand at a sideways offset from its position (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A6798 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A6798 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Lifts the actor 0xEC units, tests the ground at a sideways offset in both directions, and restores its position.
 pub fn func_800A6798(actor: ?*v.D_800F4538_t, offset: ?*v.SVECTOR, motion: ?*v.SVECTOR) callconv(.c) c_int {
     const a = actor.?;

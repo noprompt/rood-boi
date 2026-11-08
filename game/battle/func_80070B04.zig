@@ -1,9 +1,9 @@
-//! Builds the battle target list from the action's target entries and sets the list's position (src/BATTLE/BATTLE.PRG/146C.c).
+//! Builds the battle target list from the action's target entries and sets the list's position (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: func_80070B04 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80070B04 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the action's target entries into the target list and sets the list's position from its first target.
 pub fn func_80070B04() callconv(.c) void {
     const d = v.g.D_800F19CC().*.?;

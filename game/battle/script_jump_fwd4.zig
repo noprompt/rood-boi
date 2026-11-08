@@ -1,10 +1,10 @@
 //! Script jump target: a 16-bit forward offset read after the opcode
-//! (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const c = @import("c_4A0A8");
 
-/// orig: vs_battle_script_jumpFwd4 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: vs_battle_script_jumpFwd4 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Returns the script address a jump opcode at `arg0` lands on: `arg0` plus the signed short at `arg0 + 1`.
 pub fn script_jumpFwd4(arg0: [*c]u8, _: c_short) callconv(.c) c_int {
     // The C is `(long)&arg0[getShort(arg0 + 1)]`, truncated to int: the low

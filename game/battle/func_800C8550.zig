@@ -1,9 +1,9 @@
-//! Fills gim's sine table and steps its keystream-driven angle (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Fills gim's sine table and steps its keystream-driven angle (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800C8550 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800C8550 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Marks gim `arg0` as set up; in mode 2 fills its sine table, in mode 3 calls func_8007DFF0 on the base gim.
 pub fn func_800C8550(arg0: c_uint, _: ?*anyopaque, _: [*c]u8) callconv(.c) void {
     const base: *v.gim_t = v.g.D_800EB9BC().*.?;

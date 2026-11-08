@@ -1,10 +1,10 @@
-//! An effect command: func_8007B29C on every effect target at its frame (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: func_8007B29C on every effect target at its frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D61AC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D61AC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// At the command's frame: func_8007B29C for each of D_800F5230's unk3 targets whose func_800A0BE0 has bit 1, then the next command; else 1.
 pub fn func_800D61AC(script: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const cmd = cmd_arg.?;

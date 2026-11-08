@@ -1,4 +1,4 @@
-//! Removes one entry from the table at D_800F1BAC: later entries shift down and the last one is cleared (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Removes one entry from the table at D_800F1BAC: later entries shift down and the last one is cleared (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
@@ -14,7 +14,7 @@ inline fn entries() [*]u8 {
     return @ptrCast(v.g.D_800F1BAC().*.?);
 }
 
-/// orig: func_80096444 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80096444 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Removes table entry `arg0`: shifts the entries after it down one and clears the last.
 pub fn func_80096444(arg0: c_int) callconv(.c) void {
     const count = v.g.D_800F227E();

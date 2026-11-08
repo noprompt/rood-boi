@@ -1,10 +1,10 @@
 //! Walks the actor timer list and advances the first timer whose phase changed, setting its actor's mode
-//! (src/BATTLE/BATTLE.PRG/73700.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/73700.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_73700");
 
-/// orig: func_800DC0D0 (src/BATTLE/BATTLE.PRG/73700.c)
+/// orig: func_800DC0D0 (pc/src/game/BATTLE/BATTLE.PRG/73700.c)
 /// Steps the actor timer states from the list head, stopping after the first one whose phase reached an end.
 pub fn func_800DC0D0() callconv(.c) void {
     const head: ?*v.actorTimerState = @ptrCast(psx.get(v.g.D_800F58BC().*.?.unk1C));

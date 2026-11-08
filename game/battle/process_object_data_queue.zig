@@ -1,11 +1,11 @@
 //! Runs the next queued object-data load, times it, and shifts the queue down
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: vs_battle_processObjectDataQueue (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battle_processObjectDataQueue (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Runs the first queued object-data load, times it, and removes it from the queue.
 pub fn processObjectDataQueue() callconv(.c) c_int {
     const slots = v.g.vs_battle_objectDataSlots();

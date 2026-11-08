@@ -1,10 +1,10 @@
-//! Battle camera update: pulls the projection-distance flags and, when the camera transition finishes, switches to the battle camera mode (src/BATTLE/BATTLE.PRG/146C.c).
+//! Battle camera update: pulls the projection-distance flags and, when the camera transition finishes, switches to the battle camera mode (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074580 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074580 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Clears flag 2 in the result of func_800A0BE0(0) when the projection distance is under 272, and finishes the camera transition.
 pub fn func_80074580() callconv(.c) void {
     if (v.g.vs_main_projectionDistance().* < 272) {

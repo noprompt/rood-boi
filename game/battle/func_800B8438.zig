@@ -1,9 +1,9 @@
-//! An event script opcode that hands func_800A01C8 an actor and a table-based value (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! An event script opcode that hands func_800A01C8 an actor and a table-based value (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B8438 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B8438 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Calls func_800A01C8 with the actor of getShort(script + 1), D_800E9B58[script[6] >> 6] +
 /// script[3], script[6] & 0x3F and script[4].
 pub fn func_800B8438(script: [*c]u8) callconv(.c) c_int {

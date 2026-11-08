@@ -1,12 +1,12 @@
 //! Re-checks an action candidate list: drops candidates that no longer apply,
 //! promotes a live one into slot 0 when slot 0 is dead, and sets the list status
-//! (src/BATTLE/BATTLE.PRG/6FC00.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_6FC00");
 const c = @import("c_6FC00");
 
-/// orig: func_800D85D8 (src/BATTLE/BATTLE.PRG/6FC00.c)
+/// orig: func_800D85D8 (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Prunes the candidate list, promotes a live candidate into slot 0 when slot 0 is dead, and sets the list status; returns whether slot 0 was replaced.
 pub fn func_800D85D8(state: ?*v.actionCandidateState) callconv(.c) c_int {
     const st = state.?;

@@ -1,6 +1,6 @@
 //! The GTE macros as the PC build runs them (PORTING.md §8): one function per
 //! `gte_*` macro, doing PsyCross's calls (pc/third_party/psycross/include/psx/
-//! inline_c.h, plus src/include/vs_inline_c.h for the `*2` variants) in the
+//! inline_c.h, plus pc/src/game/include/vs_inline_c.h for the `*2` variants) in the
 //! same order, with the same register numbers and the same 32-bit loads and
 //! stores. The registers are host state (`gteRegs`), compared by shadow mode.
 //! Add a macro here when a port first needs it, copied from the header.

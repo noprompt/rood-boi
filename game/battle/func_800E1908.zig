@@ -1,10 +1,10 @@
 //! Marks a terrain tile while the movement state's facing is computed, then
-//! restores it (src/BATTLE/BATTLE.PRG/771A8.c).
+//! restores it (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E1908 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E1908 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Faces the actor of a terrain movement toward its target and sets its mode and angle.
 pub fn func_800E1908(state: ?*v.terrainMovementState) callconv(.c) void {
     const s = state.?;

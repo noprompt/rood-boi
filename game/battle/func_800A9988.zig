@@ -1,11 +1,11 @@
 //! Points actor `slot` at a target and starts its move, or turns it in place
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: scanFloor (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: scanFloor (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Finds the lowest live actor standing on tile (arg0, arg1) and returns its height offset, at most 0.
 fn scanFloor(arg0: c_int, arg1: c_int) c_int {
     var var_t0: c_int = 0xBB8;
@@ -37,7 +37,7 @@ fn scanFloor(arg0: c_int, arg1: c_int) c_int {
     return var_t0;
 }
 
-/// orig: func_800A9988 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A9988 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Turns actor `slot` toward a target point, or starts its move to it with the given frames.
 pub fn func_800A9988(arg0: c_int, arg1: ?*v.SVECTOR, arg2: c_int, arg3: c_int) callconv(.c) void {
     // ROOD_PC: empty actor slot (func_800A97EC).

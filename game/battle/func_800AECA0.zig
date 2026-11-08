@@ -1,12 +1,12 @@
 //! Builds the camera rotation and zoom matrix in the scratchpad and stores it
-//! in D_800F49B8 with the source's translation (src/BATTLE/BATTLE.PRG/44F14.c).
+//! in D_800F49B8 with the source's translation (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
-/// orig: func_800AECA0 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AECA0 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Builds the camera transform from the view matrix, rotation and zoom, and stores it in D_800F49B8 with the source's translation.
 pub fn func_800AECA0(source: ?*v.MATRIX) callconv(.c) void {
     var rotation: v.MATRIX = std.mem.zeroes(v.MATRIX);

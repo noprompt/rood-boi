@@ -1,10 +1,10 @@
 //! Advances the 7 flag in each entry of the table at *D_800F1BAC to 6, for D_800F227E entries
-//! (src/BATTLE/BATTLE.PRG/2842C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 
-/// orig: func_800971D4 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_800971D4 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Changes every table entry whose byte 8 is 7 to 6, over the count in D_800F227E.
 pub fn func_800971D4() callconv(.c) void {
     // The table pointer is read once, before the loop, as the C's `p` is.

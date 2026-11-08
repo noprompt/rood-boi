@@ -1,10 +1,10 @@
-//! Character status effects: calls the two status routines for the character's statuses (src/BATTLE/BATTLE.PRG/146C.c).
+//! Character status effects: calls the two status routines for the character's statuses (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006B2D4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006B2D4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Runs the status routines for the character's active status bits (0x1E000000).
 pub fn func_8006B2D4() callconv(.c) void {
     const actor = v.g.vs_battle_characterState().*.?;

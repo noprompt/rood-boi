@@ -1,9 +1,9 @@
-//! Sets a unit's shadow radius expand/shrink state (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Sets a unit's shadow radius expand/shrink state (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 
-/// orig: func_800A06B8 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_800A06B8 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Zeroes the shadow radius state when `arg1` is 0, else stores the rate deltas from the base rates.
 pub fn func_800A06B8(arg0: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
     const self = arg0.?;

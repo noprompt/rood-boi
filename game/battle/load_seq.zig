@@ -1,11 +1,11 @@
-//! Loads an object's animation sequence into battle actor slots (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! Loads an object's animation sequence into battle actor slots (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: _loadSeq (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: _loadSeq (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Loads the sequence data an object names into its actor slot, or into the shared slots, and resumes the effect loader when needed.
 pub fn loadSeq(object: ?*v.vs_battle_objectData) callconv(.c) c_int {
     const state = v.g.D_800E8F2B().*;
@@ -226,7 +226,7 @@ fn advance(n: usize) void {
     p.* = p.*.? + n;
 }
 
-/// orig: vs_battleFindSharedSequence (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: vs_battleFindSharedSequence (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Finds another actor slot holding the same sequence for this object and points the object at it.
 fn findSharedSequence(object: *v.vs_battle_objectData) bool {
     const slots = v.g.D_800F4538();

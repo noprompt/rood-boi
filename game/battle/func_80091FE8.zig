@@ -1,10 +1,10 @@
-//! Scrolls a tiled image one step: advances its tick, moves its rect and copies the visible frame and its half-resolution twin (src/BATTLE/BATTLE.PRG/2842C.c).
+//! Scrolls a tiled image one step: advances its tick, moves its rect and copies the visible frame and its half-resolution twin (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-/// orig: func_80091FE8 (src/BATTLE/BATTLE.PRG/2842C.c)
+/// orig: func_80091FE8 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Advances a scrolling image's tick and, when it is due, moves its rect and copies its frame and half-size twin.
 pub fn func_80091FE8(arg0: ?*v.func_80091FE8_t) callconv(.c) c_int {
     const self = arg0.?;

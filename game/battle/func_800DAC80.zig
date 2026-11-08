@@ -1,10 +1,10 @@
-//! Starts an action: validates it, sets up the context and its cooldown (src/BATTLE/BATTLE.PRG/71618.c).
+//! Starts an action: validates it, sets up the context and its cooldown (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
 
-/// orig: func_800DAC80 (src/BATTLE/BATTLE.PRG/71618.c)
+/// orig: func_800DAC80 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Sets up `action` in `context` and starts its cooldown; returns 1 when the action was started.
 pub fn func_800DAC80(context: ?*v.actionSetupContext, action: ?*v.func_800DCAA0_t) callconv(.c) c_int {
     if (c.func_800DBD80(@ptrCast(context), @ptrCast(action)) == 0) return 0;

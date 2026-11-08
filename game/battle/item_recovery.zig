@@ -1,10 +1,10 @@
 //! Item recovery amount: the hit's stat factor scaled by 5, with a smoothed random
-//! spread when the action asks for one (src/BATTLE/BATTLE.PRG/146C.c).
+//! spread when the action asks for one (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _itemRecovery (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _itemRecovery (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the recovery for hit parameter `arg3`: five times its stat factor, plus a random spread of -5..6 when `arg4` is nonzero, clamped at 0.
 pub fn itemRecovery(arg0: ?*v.vs_action_t, _: ?*v._hitEntity_t, _: ?*v._hitEntity_t, arg3: c_int, arg4: c_int) callconv(.c) c_short {
     const action = arg0.?;

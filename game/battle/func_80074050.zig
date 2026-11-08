@@ -1,10 +1,10 @@
 //! Battle room setup: camera, room section, enemy table and action index
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80074050 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074050 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets up the battle room from a room section and resets the action index.
 pub fn func_80074050(arg0: ?*v._mpdRoomSectionA, arg1: c_int) callconv(.c) void {
     // sp10[1] and sp10[3] are uninitialised in the original; zeroed here.

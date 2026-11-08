@@ -1,9 +1,9 @@
-//! Stores a 6-entry SVECTOR from six big-endian bytes and sets its pad flags (src/BATTLE/BATTLE.PRG/40564.c).
+//! Stores a 6-entry SVECTOR from six big-endian bytes and sets its pad flags (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800ACFA0 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800ACFA0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Reads three big-endian 16-bit values from `arg1`, doubles them into `arg0`'s vector, and sets pad flags on it and on the entry 84 vectors on.
 pub fn func_800ACFA0(arg0: ?*v.SVECTOR, arg1: [*c]u8, arg2: c_int) callconv(.c) void {
     const sv = arg0.?;

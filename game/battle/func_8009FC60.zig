@@ -1,11 +1,11 @@
 //! Sets the position and pad word of battle object `arg0`'s slot record
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009FC60 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009FC60 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Stores `arg1` and a position (the given vector, else the record's own offsets) in object `arg0`'s record, then either settles it (`arg3 == -1`) or sets its pad word to `arg3`.
 pub fn func_8009FC60(arg0: c_int, arg1: c_int, arg2: ?*v.SVECTOR, arg3: c_int) callconv(.c) c_int {
     // arg0 is not checked against the array's bound: the C indexes without one.

@@ -1,7 +1,7 @@
-//! Battle slot pass: calls `func_800A0204` for each of slots 0..16 that `func_8007CF64` reports (src/BATTLE/BATTLE.PRG/573B8.c).
+//! Battle slot pass: calls `func_800A0204` for each of slots 0..16 that `func_8007CF64` reports (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const c = @import("c_573B8");
 
-/// orig: func_800C0150 (src/BATTLE/BATTLE.PRG/573B8.c)
+/// orig: func_800C0150 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// For each slot 0..16 that `func_8007CF64` returns an actor for, calls `func_800A0204(slot, 1, 0, 0)`.
 pub fn func_800C0150() callconv(.c) void {
     var i: i16 = 0;

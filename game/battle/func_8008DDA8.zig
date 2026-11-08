@@ -1,9 +1,9 @@
-//! The floor and ceiling heights at a map point (src/BATTLE/BATTLE.PRG/146C.c).
+//! The floor and ceiling heights at a map point (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008DDA8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008DDA8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For a point inside the room's collision map: the low half is the floor height of its tile (layer 0, the
 /// map's base unk4 less twice the tile's 7-bit height, times 8, with its bit 7 as bit 15), the high half the
 /// ceiling's (layer 1; 0xF810 when above the base). Outside the map, or with none: 0x80008000.

@@ -1,4 +1,4 @@
-//! Draws a GIM image fading through the frame buffer (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Draws a GIM image fading through the frame buffer (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
@@ -9,7 +9,7 @@ fn tpage(tp: c_int, abr: c_int, x: c_int, y: c_int) c_uint {
     return 0xE1000000 | @as(c_uint, @bitCast((((tp & 3) << 7) | ((abr & 3) << 5) | ((y & 0x100) >> 4) | ((x & 0x3FF) >> 6) | ((y & 0x200) << 2)) & 0x9FF));
 }
 
-/// orig: func_800CC600 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800CC600 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Below full brightness: per 64-pixel column, the image blended with the frame (sprites through a texture page of the buffer, its tiles in between, the frame copied back) at the image's brightness; at 128 the plain image (func_800CBBCC).
 pub fn func_800CC600(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv(.c) void {
     const image = image_arg.?;

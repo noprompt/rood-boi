@@ -1,11 +1,11 @@
 //! Scans the directional cache around an actor for the lowest height among its
-//! directions (src/BATTLE/BATTLE.PRG/771A8.c).
+//! directions (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E0850 (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E0850 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Returns the lowest height sampled at the offsets of the directions selected by `arg1`, or 0.
 pub fn func_800E0850(arg0: ?*v.func_800E0850_t, arg1: c_uint) callconv(.c) c_int {
     var min: c_int = 0;

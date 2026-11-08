@@ -1,10 +1,10 @@
-//! An effect command: a timed func_800D2ADC call (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! An effect command: a timed func_800D2ADC call (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D57FC (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D57FC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// From the command's frame on: func_800D1104(unk8), func_800D2ADC with the entry's fields, unk8 + 1; unkA counts down unless the script is paused (unk1 bit 0); the next command at 0.
 pub fn func_800D57FC(script: ?*v.D_800F53B8_t, cmd_arg: ?*v.func_800D5780_t) callconv(.c) c_int {
     const s = script.?;

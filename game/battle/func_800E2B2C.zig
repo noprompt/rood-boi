@@ -1,11 +1,11 @@
 //! Movement decision step: turns an actor to its target's heading
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
-/// orig: func_800E2B2C (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E2B2C (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Steps a movement decision toward targetId: 1 while it acts, 0 when idle or failed.
 pub fn func_800E2B2C(context: ?*v.movementDecisionContext, targetId: c_int) callconv(.c) c_int {
     const ctx = context.?;

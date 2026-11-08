@@ -1,9 +1,9 @@
-//! Sets an actor slot's defaults (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets an actor slot's defaults (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80076D50 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80076D50 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Actor `id` gets its id, unk18 (arg1), unk2A/unk2B (arg2, arg3) and allegiance: 1 for the player, 2 for slot 1,
 /// else from arg4's low bits (1: 4 with the weapon drawn, 0: 2, 2 or 3: 8); unk24 from arg4's bits 2..4; its stats
 /// 100 HP and MP, no risk, the unk30..unk33 pairs (16/32 for unk18 41, 2/8 for 48, else 2/4; 9/18) and range 5/4/5.

@@ -1,10 +1,10 @@
-//! The battle's per-frame wait check before its action step runs (src/BATTLE/BATTLE.PRG/146C.c).
+//! The battle's per-frame wait check before its action step runs (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800782E4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800782E4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Advances the wait counter while a target is set, else asks func_800C4794; runs func_8007053C once the wait is over.
 pub fn func_800782E4() callconv(.c) void {
     const state = v.g.D_800F19CC().*.?;

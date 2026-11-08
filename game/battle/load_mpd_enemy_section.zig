@@ -1,9 +1,9 @@
-//! Loads the zone's MPD enemy section into the zone context (src/BATTLE/BATTLE.PRG/146C.c).
+//! Loads the zone's MPD enemy section into the zone context (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: _loadMpdEnemySection (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _loadMpdEnemySection (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies `dataLen` bytes of MPD enemy records into a new heap block and records the count, or clears the section when empty.
 pub fn loadMpdEnemySection(data: ?*anyopaque, dataLen: c_uint) callconv(.c) void {
     const ctx = v.g._zoneContext();

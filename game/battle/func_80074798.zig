@@ -1,9 +1,9 @@
 //! Derives a 90-degree facing sector from a packed direction word and
-//! nudges three axis bytes of the output (src/BATTLE/BATTLE.PRG/146C.c).
+//! nudges three axis bytes of the output (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_80074798 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80074798 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Writes three direction bytes from the packed word, then steps one of them by the sector of the rotation.
 pub fn func_80074798(info: ?*v.func_8006EBF8_t, offsets: [*c]u8) callconv(.c) c_int {
     const a = info.?;

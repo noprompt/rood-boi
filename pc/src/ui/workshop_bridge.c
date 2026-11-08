@@ -5,10 +5,10 @@
  * after the shell's tick; equip_bridge.c's request loop hands the Workshop
  * requests to pc_ui_workshop_request.
  *
- * Everything here is the original's Setup screen, MENUC (src/MENU/MENUC.PRG/
+ * Everything here is the original's Setup screen, MENUC (pc/src/game/MENU/MENUC.PRG/
  * 168.c), which MENU3's Items menu opens (16C.c state 7: returnState =
  * currentMenu, currentMenu 13, D_800F4EA0 |= 0x200), and MENU8's rename
- * (src/MENU/MENU8.PRG/21A0.c), ported line for line on the resident BATTLE
+ * (pc/src/game/MENU/MENU8.PRG/21A0.c), ported line for line on the resident BATTLE
  * and main data with the originals' types and expressions, so the bag ends
  * byte for byte as the original screens leave it (ui_workshop_smoke checks
  * it). The flows' own state (what is picked, the name typed) is the shell's
@@ -116,10 +116,10 @@
  * weapon / shield, no model load possible now
  * (pc_weapon_slots_menu_can_load). */
 #include "common.h"
-#include "../../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../../src/SLUS_010.40/main.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../../pc/src/game/SLUS_010.40/main.h"
 #include "build/assets/MENU/ITEMHELP.BIN.h"
 #include "build/assets/MENU/MENU12.BIN.h"
 #include "build/assets/MENU/MENU8.PRG/rename.h"

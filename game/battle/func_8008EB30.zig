@@ -1,8 +1,8 @@
-//! Copies the 20-byte scene data block and writes its 33 packed command words into the GPU packet list at D_80068C1C (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies the 20-byte scene data block and writes its 33 packed command words into the GPU packet list at D_80068C1C (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008EB30 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008EB30 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the scene block into D_800F1D78 and writes its words into the packet list.
 pub fn func_8008EB30(arg0: [*c]c_int) callconv(.c) void {
     _ = c.vs_main_memcpy(@ptrCast(v.g.D_800F1D78()), @ptrCast(arg0), @as(c_uint, @sizeOf([5]c_int)));

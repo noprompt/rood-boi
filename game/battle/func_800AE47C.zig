@@ -1,5 +1,5 @@
 //! An actor's animation reset: catches up the root motion of its current
-//! animation's opening frame (src/BATTLE/BATTLE.PRG/44F14.c).
+//! animation's opening frame (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
@@ -21,7 +21,7 @@ inline fn decode() DecodeFn {
     return @extern(DecodeFn, .{ .name = "func_800AD714" });
 }
 
-/// orig: func_800AE47C (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AE47C (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Points the actor's decoder (unk704) at the first op of its animation's
 /// sequence (an 0xFF escape takes a second count byte) and runs it once in
 /// mode 2. With no sequence loaded (PC guard) it logs that once and returns.

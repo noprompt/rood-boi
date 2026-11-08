@@ -1,6 +1,6 @@
 /* Modern menus, the native Score screen's Bestiary: SMALL/MON.BIN (the
  * encyclopaedia's file, read from the disc into host memory, never the game's
- * heap) as MENU9 reads it (src/MENU/MENU9.PRG/238.c _monBinData_t, state 13,
+ * heap) as MENU9 reads it (pc/src/game/MENU/MENU9.PRG/238.c _monBinData_t, state 13,
  * _initEnemyList):
  *   150 records of 44 bytes (78 used): s16 zudId, classId, killFlagsOffset,
  *   killFlagsCount, 8 bytes MENU9 uses as scratch, then name[28] (the game's

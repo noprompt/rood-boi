@@ -1,6 +1,6 @@
 //! Wall-following step of a blocked path: turns along the obstacle,
 //! stops at the map's edges or the path's bounds, and finds a detour tile
-//! (src/BATTLE/BATTLE.PRG/771A8.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_771A8");
@@ -28,7 +28,7 @@ fn neighbour(tile: v.vs_battle_movementPosition, direction: c_int) v.vs_battle_m
     return p;
 }
 
-/// orig: func_800E2F5C (src/BATTLE/BATTLE.PRG/771A8.c)
+/// orig: func_800E2F5C (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// One wall-following step of `state`'s path with the passability `test`: 5 keep going, 14 detour to `next`, -1 stop or done.
 pub fn func_800E2F5C(state: ?*v.movementPathState, test_: c.movementPathTest, mask: c_int) callconv(.c) c_int {
     const s = state.?;

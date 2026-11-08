@@ -1,9 +1,9 @@
-//! Per-tick easing of a value pair toward its targets (src/BATTLE/BATTLE.PRG/44F14.c).
+//! Per-tick easing of a value pair toward its targets (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_44F14");
 
-/// orig: func_800AEEC4 (src/BATTLE/BATTLE.PRG/44F14.c)
+/// orig: func_800AEEC4 (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Moves the eased pair toward its targets by a share of the tick speed and counts its timer down.
 pub fn func_800AEEC4(arg0: ?*v.D_800F4538_t) callconv(.c) void {
     const s = arg0.?;

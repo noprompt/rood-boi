@@ -1,11 +1,11 @@
 //! Syncs the spherical camera's yaw, pitch and distance to the scratchpad camera position
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: vs_battle_syncCameraAnglesFromPosition (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_syncCameraAnglesFromPosition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Derives the view direction from the camera position and look-at point, stores the angles in the scratchpad, and fills the spherical camera when given.
 pub fn syncCameraAnglesFromPosition(camera: ?*v._sphericalCamera) callconv(.c) c_int {
     const scratch = v.g.vs_scratch();

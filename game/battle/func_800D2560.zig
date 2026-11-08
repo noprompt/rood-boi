@@ -1,11 +1,11 @@
 //! Per-frame battle timer and camera block update: advances the timed
 //! state machine, clears the block when idle, and refreshes it
-//! (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
-/// orig: func_800D2560 (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: func_800D2560 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Advances the battle's timed state, then clears or updates the camera block and refreshes it.
 pub fn func_800D2560() callconv(.c) void {
     // Captured before any call: the refresh at the end uses this value, not a re-read.

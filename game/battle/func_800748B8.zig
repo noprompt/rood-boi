@@ -1,11 +1,11 @@
 //! Looks up the room section for the position that func_800A1108 reports
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800748B8 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800748B8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the room section at the position from func_800A1108, or null when its height is outside the section's band.
 pub fn func_800748B8(arg0: c_int) callconv(.c) ?*v._mpdRoomSectionA {
     // uninitialised in the original until func_800A1108 and func_80074798 fill them

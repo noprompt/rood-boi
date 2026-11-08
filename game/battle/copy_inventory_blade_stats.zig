@@ -1,8 +1,8 @@
-//! Copies an inventory blade's stats into a battle equipment record (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies an inventory blade's stats into a battle equipment record (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: vs_battle_copyInventoryBladeStats (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: vs_battle_copyInventoryBladeStats (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Copies the stats, class and affinity bytes and material of an inventory blade into a battle equipment record.
 pub fn copyInventoryBladeStats(target: ?*v.vs_battle_uiEquipment, source: ?*v.vs_main_inventoryBlade) callconv(.c) void {
     const t = target.?;

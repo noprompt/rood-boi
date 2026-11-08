@@ -1,10 +1,10 @@
 //! Clears a pending flag in D_800F244F, after releasing it through func_800AB2AC
-//! (src/BATTLE/BATTLE.PRG/30DB0.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
-/// orig: func_8009D208 (src/BATTLE/BATTLE.PRG/30DB0.c)
+/// orig: func_8009D208 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Releases entry arg0 of D_800F244F and clears it; returns -3 if the release call fails.
 pub fn func_8009D208(arg0: c_int) callconv(.c) c_int {
     if (psx.at(v.g.D_800F244F(), arg0).* != 0) {

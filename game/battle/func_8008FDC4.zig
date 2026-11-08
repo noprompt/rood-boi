@@ -1,4 +1,4 @@
-//! The snow: drifting flakes drawn as one or two tiles, landed flakes fading (src/BATTLE/BATTLE.PRG/146C.c).
+//! The snow: drifting flakes drawn as one or two tiles, landed flakes fading (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
@@ -29,7 +29,7 @@ fn project(drop: *v.D_800F1DD4_t, prim: *v.TILE, projection: *c_int, flags: *c_i
     return depth;
 }
 
-/// orig: func_8008FDC4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008FDC4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// For each of the D_800F1DC0 flakes: a falling flake (scaled by unkE) drops with the wind, an unscaled one
 /// drifts in a random walk (unkF) and sometimes flutters up (unkD, 32 ticks); on screen it is drawn as a white
 /// tile and a second one offset by its slot's angle (sizes 2 and 1 alternating), off screen recycled

@@ -1,10 +1,10 @@
-//! Sets the entry count and flag bytes, then calls func_8008FA14 on each of the first arg0 entries from D_800F1DD4 (src/BATTLE/BATTLE.PRG/146C.c).
+//! Sets the entry count and flag bytes, then calls func_8008FA14 on each of the first arg0 entries from D_800F1DD4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8008F9A4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008F9A4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Stores arg1 and arg0 into the battle globals, then calls func_8008FA14 on each of arg0 entries from D_800F1DD4.
 pub fn func_8008F9A4(arg0: c_int, arg1: c_int) callconv(.c) void {
     // The entry pointer is walked in 16-byte steps from the value of D_800F1DD4, NULL included, as the C adds to it.

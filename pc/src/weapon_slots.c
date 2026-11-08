@@ -55,15 +55,15 @@
  * end: the model reload after a menu equip (no field mode change, sheathe or
  * name box) and the quick slots' bytes; they work with the option off. */
 #include "common.h"
-#include "../../src/BATTLE/BATTLE.PRG/146C.h"
-#include "../../src/BATTLE/BATTLE.PRG/2842C.h"
-#include "../../src/BATTLE/BATTLE.PRG/30DB0.h"
-#include "../../src/BATTLE/BATTLE.PRG/3A1A0.h"
-#include "../../src/BATTLE/BATTLE.PRG/44F14.h"
-#include "../../src/BATTLE/BATTLE.PRG/4A0A8.h"
-#include "../../src/BATTLE/BATTLE.PRG/573B8.h"
-#include "../../src/BATTLE/BATTLE.PRG/5BF94.h"
-#include "../../src/SLUS_010.40/main.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/2842C.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/30DB0.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/44F14.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/4A0A8.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../pc/src/game/SLUS_010.40/main.h"
 #include <libetc.h>
 
 extern int sprintf(char*, const char*, ...);

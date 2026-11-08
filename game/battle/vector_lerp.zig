@@ -1,9 +1,9 @@
-//! Linear interpolation of vectors (src/BATTLE/BATTLE.PRG/5BF94.c).
+//! Linear interpolation of vectors (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 
-/// orig: vs_battle_lerpSvector (src/BATTLE/BATTLE.PRG/5BF94.c)
+/// orig: vs_battle_lerpSvector (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// `vec` = start + (end - start) * t / 128 per axis, from (start, end) pairs at `src`.
 pub fn lerpSvector(src: [*c]i16, t: c_int, vec: ?*v.SVECTOR) callconv(.c) void {
     const start0: c_int = src[0];

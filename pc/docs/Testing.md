@@ -13,28 +13,35 @@ pc/tools/verify.sh --full             # FULL: every suite on null, Vulkan and Op
 pc/tools/verify.sh -- -j 8            # more run.py options for every suite
 ```
 
-**Policy.** Run the quick lane before each publish. Run the full lane once a
-day (at the start of a session) and before bigger releases. When the daily
-full run finds a break, fix it or revert the merge that made it (the merge
-log names the branch); publishing is cheap to undo.
+**Policy.** Run the quick lane before each publish. Testing never holds the
+work up: the quick lane is cut to a time budget and stopped at a hard limit,
+and a long suite runs only when a change touches its own files, after the
+publish rather than before it (a failure is fixed at once, or the merge
+reverted; publishing is cheap to undo). The full lane is for bigger releases
+or when asked, not a daily run.
 
-**Quick** (the default; target under 10 minutes). The builds (`build_boot.py`,
+**Oracle suites: no lane runs them.** The suites that compare battle's Zig
+with the original C it was ported from (`ORACLE_SUITES` in `run.py`:
+`ctest_long` with zig_diff's shards, `ctest_pipeline`, the trial and candidate
+corpora, the shadow runs) were the port's checks. The port is done and the
+Zig is meant to leave the C behind (2026-11-07), so they are tools: they run
+only when named exactly (`run.py ctest_long`) or with `run.py --oracle`.
+
+**Quick** (the default; at most 15 minutes, enforced: `run.py --budget` cuts
+each renderer's selection to fit the last run's times, shortest first, and
+names the rest as deferred; a step past 20 minutes is stopped and fails). The builds (`build_boot.py`,
 `--battle`, `--arch 64`; Windows only with `--windows`), then on 64-bit:
 
 - Vulkan: the suites the change can affect (`run.py --changed BASE --quick`,
   below) plus `ctest` (its fast part);
-- null renderer: the CPU-safe share of them (`NULL_SAFE` in `run.py`: the
-  oracle, shadow and trial-corpus runs) plus `null_backend_smoke`; they do not
-  run again on Vulkan;
+- null renderer: the CPU-safe share of them (`NULL_SAFE` in `run.py`) plus
+  `null_backend_smoke`; they do not run again on Vulkan;
 - OpenGL: a sanity subset (`rpc_smoke`, `room_smoke`, `opening_smoke`,
   `golden_frames`, `title_fade_smoke`), plus what the OpenGL renderer's own
   files select when one of them changed (`[quick] gl_paths`);
-- long suites (`[[long]]`: `ctest_long` with zig_diff's ten shards, the
-  charge skip, the soaks, `emissive_catalog`, the story viewer, the five-time
-  data menu, the trial corpus) only when the change touches them: their own
-  script or sources, or the paths their entry lists. `ctest_long` then runs
-  as `zig_diff_changed`: zig_diff on the specs the change affects only, not
-  the ten shards of every spec (below, "zig_diff in the quick lane").
+- long suites (`[[long]]`: the charge skip, the soaks, `emissive_catalog`,
+  the story viewer, the five-time data menu) only when the change touches
+  them: their own script or sources, or the paths their entry lists.
 
 A documentation-only change runs no suite. The base on main is the `public`
 branch (the last published snapshot); elsewhere it is main. verify.sh prints
@@ -97,6 +104,9 @@ repositories, the rules, the lanes) and that the last 25 merges on main each
 select tens of suites, not all.
 
 ## zig_diff in the quick lane
+
+(No longer: zig_diff is an oracle suite, run by hand. What follows is how it
+selects specs when it is.)
 
 The full lane's `ctest_long` runs every zig_diff spec (~700 ported
 functions, fuzzed against the C with their mutations and coverage) in ten

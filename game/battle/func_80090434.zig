@@ -1,9 +1,9 @@
-//! The sparkle particles: they drift on the view and are drawn as one or two tiles each (src/BATTLE/BATTLE.PRG/146C.c).
+//! The sparkle particles: they drift on the view and are drawn as one or two tiles each (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80090434 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80090434 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves each particle on the view and draws it as one or two tiles into the ordering table.
 pub fn func_80090434() callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);

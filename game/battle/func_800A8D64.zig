@@ -1,11 +1,11 @@
 //! Room section lookup for a point: the section of its 128-unit cell, if the point lies on its live side
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// orig: func_800A8D64 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800A8D64 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Returns the room section of the 128-unit cell at a point when the point is on that section's live side, else null.
 pub fn func_800A8D64(arg0: ?*v.SVECTOR, arg1: c_int) callconv(.c) ?*v._mpdRoomSection3 {
     const pos = arg0.?;

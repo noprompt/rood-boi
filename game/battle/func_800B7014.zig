@@ -1,11 +1,11 @@
 //! Writes a six-byte packet record into the slot its byte 1 selects, then calls the
-//! follow-up routine for that slot (src/BATTLE/BATTLE.PRG/4A0A8.c).
+//! follow-up routine for that slot (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
-/// orig: func_800B7014 (src/BATTLE/BATTLE.PRG/4A0A8.c)
+/// orig: func_800B7014 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Stores a six-byte packet record in the slot chosen by its byte 1 and runs the slot's follow-up.
 pub fn func_800B7014(packet: [*c]u8, _: c_short) callconv(.c) c_int {
     const head = v.g.D_800EB9BC().*;

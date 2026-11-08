@@ -1,4 +1,4 @@
-//! Room section 9 lookup for the battle room (src/BATTLE/BATTLE.PRG/146C.c).
+//! Room section 9 lookup for the battle room (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -9,7 +9,7 @@ inline fn guestPtr(raw: u32) ?*v._mpdRoomSection9 {
     return @ptrFromInt(@as(usize, raw));
 }
 
-/// orig: func_8008E400 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8008E400 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Returns the battle room's section 9 and stores its entry count (section9Len / 12) in `arg0`, or 0 and null.
 pub fn func_8008E400(arg0: [*c]c_int) callconv(.c) ?*v._mpdRoomSection9 {
     const flags = v.g.vs_main_stateFlags();

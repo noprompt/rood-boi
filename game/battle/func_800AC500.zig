@@ -1,10 +1,10 @@
 //! Clears the two bytes at unk18D0 and the armature byte unkC of every bone
-//! (src/BATTLE/BATTLE.PRG/40564.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_40564");
 
-/// orig: func_800AC500 (src/BATTLE/BATTLE.PRG/40564.c)
+/// orig: func_800AC500 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Clears the two bytes at unk18D0 and the armature unkC of each of the unit's bones.
 pub fn func_800AC500(unit: ?*v.D_800F4538_t) callconv(.c) void {
     const s = unit.?;

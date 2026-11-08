@@ -1,10 +1,10 @@
-//! Battle sub-action dispatcher: runs the mode in unk0 and restores the flags byte it saved on entry (src/BATTLE/BATTLE.PRG/58578.c).
+//! Battle sub-action dispatcher: runs the mode in unk0 and restores the flags byte it saved on entry (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
-/// orig: func_800C1564 (src/BATTLE/BATTLE.PRG/58578.c)
+/// orig: func_800C1564 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Runs the sub-action selected by the mode byte, then puts back the flags byte saved on entry.
 pub fn func_800C1564(arg0: ?*v.func_800C1564_t, arg1: [*c]c_ushort) callconv(.c) c_int {
     const state = arg0.?;

@@ -1,10 +1,10 @@
-//! Copies a battle actor's stats, status and position into its status entry (src/BATTLE/BATTLE.PRG/146C.c).
+//! Copies a battle actor's stats, status and position into its status entry (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_80069FC4 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_80069FC4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills the status entry of actor `arg0` from its live stats, with `arg1` as its flag byte.
 pub fn func_80069FC4(arg0: c_int, arg1: c_int) callconv(.c) void {
     var sp10: v.func_8006EBF8_t = undefined;

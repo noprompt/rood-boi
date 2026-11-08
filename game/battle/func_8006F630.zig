@@ -1,9 +1,9 @@
 //! Fills an attack-hit record from an action, the attacking input and the hit
-//! (src/BATTLE/BATTLE.PRG/146C.c).
+//! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 
-/// orig: func_8006F630 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006F630 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Fills the hit record `out` from the action `input` and the hit `hit`.
 pub fn func_8006F630(out: ?*v.func_8006F630_t1, input: ?*v.func_8006F630_t2, hit: ?*v.func_8006F630_t3) callconv(.c) void {
     const dst = out.?;

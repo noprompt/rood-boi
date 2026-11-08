@@ -1,4 +1,4 @@
-/* Modern menus, the native Score screen: MENU9's side (src/MENU/MENU9.PRG/238.c,
+/* Modern menus, the native Score screen: MENU9's side (pc/src/game/MENU/MENU9.PRG/238.c,
  * ROOD_PC; ui_score.h has the design).
  *
  * MENU9.PRG is never loaded for the native screen. Its code and statics are

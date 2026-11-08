@@ -1,9 +1,9 @@
-//! The battle camera's stick, d-pad and angle input (src/BATTLE/BATTLE.PRG/146C.c).
+//! The battle camera's stick, d-pad and angle input (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_8006E7F0 (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_8006E7F0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Reads the camera input and steers the camera by the stick, the d-pad or the buttons.
 pub fn func_8006E7F0() callconv(.c) c_int {
     var unksp10: v.func_800A1108_t = undefined;

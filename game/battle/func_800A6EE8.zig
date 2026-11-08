@@ -1,12 +1,12 @@
 //! Probes the floor height under a point offset from an actor's position, using the
-//! 3A1A0 unit's collision tables (src/BATTLE/BATTLE.PRG/3A1A0.c).
+//! 3A1A0 unit's collision tables (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
-/// orig: func_800A6EE8 (src/BATTLE/BATTLE.PRG/3A1A0.c)
+/// orig: func_800A6EE8 (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c)
 /// Height at the point arg1/arg2 from `pos` for probe kind arg3; -3000 when there is no floor.
 pub fn func_800A6EE8(arg0: ?*v.SVECTOR, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int {
     const p = arg0.?;

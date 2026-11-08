@@ -1,9 +1,9 @@
-//! Chain evasion of the targeted limb, as a chain hit rate modifier (src/BATTLE/BATTLE.PRG/146C.c).
+//! Chain evasion of the targeted limb, as a chain hit rate modifier (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 
-/// orig: _getChainEvasionModifier (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: _getChainEvasionModifier (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// The chain hit rate modifier: 255 minus the target limb's chain evasion, scaled to percent, never 255.
 pub fn getChainEvasionModifier(_: ?*v.vs_action_t, _: ?*v._hitEntity_t, target: ?*v._hitEntity_t, _: c_int, _: c_int) callconv(.c) c_int {
     const t = target.?;

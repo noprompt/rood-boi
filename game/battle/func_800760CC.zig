@@ -1,10 +1,10 @@
-//! Screen geometry and the display and draw environments for a frame buffer (src/BATTLE/BATTLE.PRG/146C.c).
+//! Screen geometry and the display and draw environments for a frame buffer (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// orig: func_800760CC (src/BATTLE/BATTLE.PRG/146C.c)
+/// orig: func_800760CC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Sets the geometry and both frame buffers' display and draw environments for a width and height, with their background colour, then puts the current frame's environments.
 pub fn func_800760CC(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int, arg4: c_int, arg5: c_int) callconv(.c) void {
     const temp_s3: c_uint = psx.conv(c_uint, arg1 -% 16);

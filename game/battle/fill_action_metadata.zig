@@ -1,10 +1,10 @@
 //! Per-slot action metadata for a state: range, radius, kind and flags for each
-//! action in its stats (src/BATTLE/BATTLE.PRG/7CD68.c).
+//! action in its stats (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
 const psx = @import("common").psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
-/// orig: func_800E5710 (src/BATTLE/BATTLE.PRG/7CD68.c)
+/// orig: func_800E5710 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Fills the action metadata of every slot of a state from the actions in its stats.
 pub fn fillActionMetadata(state: ?*v.actionMetadataState) callconv(.c) void {
     const st = state.?;
