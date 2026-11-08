@@ -30,7 +30,7 @@ pub fn func_800AFDE8(offset: c_int, value: ?*v.SVECTOR, rotation: c_int) callcon
     var count: c_int = 0;
     var packedBits: c_int = 0;
 
-    data +%= psx.conv(u32, offset) +% mem.word(psx.rawOf(scratch.data));
+    data +%= psx.conv(u32, offset) +% (psx.rawOf(scratch.data) +% mem.word(psx.rawOf(scratch.data)));
 
     while (frame <= psx.conv(c_int, scratch.last)) {
         while (nextFrame < frame) {
@@ -111,7 +111,7 @@ pub fn func_800AFDE8(offset: c_int, value: ?*v.SVECTOR, rotation: c_int) callcon
         frame +%= 1;
     }
 
-    data -%= psx.conv(u32, offset) +% mem.word(psx.rawOf(scratch.data));
+    data -%= psx.conv(u32, offset) +% (psx.rawOf(scratch.data) +% mem.word(psx.rawOf(scratch.data)));
     val.pad = psx.conv(i16, data);
     delta.pad = psx.conv(i16, nextFrame);
 }

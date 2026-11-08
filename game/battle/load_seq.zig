@@ -130,10 +130,6 @@ pub fn loadSeq(object: ?*v.vs_battle_objectData) callconv(.c) c_int {
         while (i < count) : (i += 1) {
             const entry = psx.at(psx.at(v.g.D_800F4810(), slot), i);
             entry.* = toPtr(guest(entry.*) +% cursorAddr());
-            const sq: u32 = guest(entry.*) +% 8;
-            const seq: *align(1) v.func_8009C378_t = @ptrFromInt(@as(usize, sq));
-            rebase(&seq.unk0, sq);
-            rebase(&seq.unk4, sq);
         }
         psx.at(psx.at(v.g.D_800F4810(), slot), i).* = @ptrFromInt(std.math.maxInt(usize));
         i = 0;
@@ -155,15 +151,7 @@ fn finishEtm(object: ?*v.vs_battle_objectData) c_int {
 fn copySequence(seq: ?*align(1) v.func_8009C378_t, size: c_int) c_int {
     const s = seq.?;
     c.vs_main_memcpy(@ptrCast(s), @ptrCast(cursor().?), psx.conv(c_uint, size));
-    rebase(&s.unk0, psx.addr(s));
-    rebase(&s.unk4, psx.addr(s));
     return 0;
-}
-
-/// psx_set(field, (char*)psx_get(field) + base): the field's guest address moved by `base`.
-fn rebase(field: anytype, base: u32) void {
-    const moved: usize = psx.rawOf(field.*) +% base;
-    psx.put(field, @as(?*anyopaque, @ptrFromInt(moved)));
 }
 
 fn roundUp4(size: c_int) c_int {

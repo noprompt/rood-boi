@@ -61,7 +61,7 @@ pub fn func_800CE9B0() callconv(.c) c_int {
                 sp38.lba = c.vs_battle_getMainMenuLba();
                 sp38.size = 0;
                 v.g.D_800F5218().* = @ptrCast(c.vs_main_allocateCdQueueSlot(psx.cptr(c.vs_main_CdFile, &sp38)));
-                c.vs_main_cdEnqueue(@ptrCast(@alignCast(v.g.D_800F5218().*)), null);
+                c.vs_main_cdEnqueue(@ptrCast(v.g.D_800F5218().*), null);
             }
         },
         4 => {
@@ -125,7 +125,7 @@ pub fn func_800CE9B0() callconv(.c) c_int {
                     var_s2 = 1;
                     break :sw;
                 }
-                c.vs_main_freeCdQueueSlot(@ptrCast(@alignCast(slot)));
+                c.vs_main_freeCdQueueSlot(@ptrCast(slot));
                 v.g.D_800F5218().* = null;
             }
             c.func_800CF478(0);

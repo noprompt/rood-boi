@@ -10,127 +10,8 @@
 #include <abs.h>
 #include <stdlib.h>
 #include "pc/src/psx_types.h"
+#include "ai_views.h"
 
-typedef struct {
-    char unk0[8];
-    u_char unk8;
-    u_char unk9;
-    char unkA;
-    u_int unkB_0 : 2;
-    u_int unkB_2 : 2;
-    u_int unkB_4 : 4;
-    u_short unkC;
-    u_short unkE;
-    SVECTOR unk10;
-    char unk18[0x24];
-    psx_ptr(vs_battle_actor2) unk3C;
-} func_800DEB10_t2;
-
-typedef struct {
-    int unk0;
-    u_int unk4;
-} func_800E78F4_t2;
-
-typedef struct func_800E78F4_t {
-    char unk0[0x4E];
-    u_short unk4E;
-    char unk50[4];
-    psx_ptr(func_800DEB10_t2) unk54;
-    char unk58[4];
-    psx_ptr(vs_battle_actor2) unk5C;
-    char unk60[0xCF];
-    u_char unk12F;
-    char unk130[0x70];
-    psx_ptr(struct func_800E78F4_t) unk1A0;
-    char unk1A4[0x28C];
-    psx_ptr(func_800E78F4_t2) unk430;
-    char unk434[0x3C];
-    int unk470;
-} func_800E78F4_t;
-
-typedef struct {
-    u_char maxX, maxZ, minX, minZ;
-    char unk4[0x10];
-    int unk14;
-    u_short unk18;
-    char unk1A[2];
-    psx_ptr(func_800E78F4_t) unk1C;
-    psx_ptr(func_800E78F4_t) unk20;
-    int unk24;
-} D_800F58BC_t;
-
-typedef struct {
-    char unk0[0xA];
-    u_char unkA;
-    char unkB;
-    short unkC;
-    short unkE;
-    char unk10[2];
-    u_short unk12;
-    char unk14[2];
-    u_char unk16;
-    u_char unk17;
-    char unk18[4];
-    u_char unk1C;
-} D_800F5920_t;
-
-typedef struct {
-    char unk0[0x88];
-    u_char unk88;
-} func_800DCAA0_t1;
-
-typedef struct {
-    int unk0;
-    u_int unk4_0 : 3;
-    u_int unk4_3 : 2;
-    u_int unk4_5 : 8;
-    u_int unk4_13 : 19;
-    int unk8;
-    u_int unkC_0 : 4;
-    u_int unkC_4 : 3;
-    u_int unkC_7 : 12;
-    u_int unkC_19 : 8;
-    u_int unkC_27 : 5;
-} func_800DCAA0_t;
-
-typedef struct {
-    u_char unk0;
-    char unk1;
-    u_char unk2;
-    char unk3[0x3D];
-    int unk40;
-} func_800DEB10_t;
-
-typedef struct {
-    u_short unk0;
-    char unk2[2];
-    u_char unk4;
-    char unk5[0x3F];
-    int unk44;
-    char unk48[2];
-    u_short unk4A;
-    func_800DEB10_t unk4C[0];
-} func_800DEEA4_t;
-
-typedef struct {
-    char unk0[0x16];
-    signed char unk16;
-    char unk17[0x21];
-    int unk38;
-    char unk3C[0x18];
-    psx_ptr(func_800DEB10_t2) unk54;
-    char unk58[0x42];
-    short unk9A;
-    char unk9C[0x5F];
-    u_char unkFB;
-    char unkFC[0x2E];
-    u_char unk12A;
-    char unk12B[0xD];
-    u_short unk138;
-    char unk13A[0x2F6];
-    psx_ptr(func_800DCAA0_t) unk430[16];
-    int unk470;
-} func_800DEEA4_t2;
 int func_8008631C(int, int, int, int, void*);
 int func_800863A4(int, int, int, int, SVECTOR*, SVECTOR*, void*);
 void func_800DC810(func_800DEEA4_t*);
@@ -144,27 +25,6 @@ extern u_short (*D_800F58D0)[32];
 extern func_800DEEA4_t* D_800F5900;
 extern D_800F5920_t* D_800F5920;
 
-typedef struct {
-    int score;
-    unsigned int row : 3, column : 2, action : 8, threshold : 16, pad29 : 3;
-    unsigned int distanceSquared;
-    unsigned int targetId : 4, part : 3, heading : 12, weight : 8, padC27 : 5;
-    unsigned int low : 1, flag1 : 1, flag2 : 1, flag3 : 1, flag4 : 1, flag5 : 1,
-        range : 16, high : 10;
-} actionCandidateEntry;
-typedef struct {
-    unsigned char flags, pad[3];
-} actionCandidateTarget;
-typedef struct {
-    char pad0[0x131];
-    unsigned char status;
-    char pad132[0x72];
-    actionCandidateTarget targets[16];
-    unsigned int targetDistancesSquared[16];
-    char pad224[0x20C];
-    psx_ptr(actionCandidateEntry) entries[16];
-    int count;
-} actionCandidateState;
 int func_800E4CF4(actionCandidateState*, actionCandidateEntry*, int);
 int func_800E4DF8(actionCandidateState*, int, int);
 void func_800D9DD8(actionCandidateState*);
@@ -217,7 +77,6 @@ void func_800DCAA0(func_800DCAA0_t1* arg0, int arg1, func_800DCAA0_t* arg2, int 
 
 void func_800DCBD8(func_800DCAA0_t* arg0);
 
-
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/74088", D_80069B68);
 
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/74088", D_80069BBC);
@@ -247,7 +106,6 @@ int func_800DC284(int, int, int, int);
 const signed char D_80069BD0[] = { -51, -39, -39, -39, -26, -51, 50, -13, 12, -13, 12, 25,
     -51, -26, -45, -26, -39, 76, 19, -13, 12, 12, 12, 12, 12, 12, 12, 12, 12, 0, 0, 0 };
 void func_800DCC94(actionScoreState* state, actionCandidateEntry* candidate, int mode, actionScoreMetadata* action);
-
 
 typedef union {
     unsigned int raw;
@@ -294,7 +152,6 @@ void func_800DC784(actionReactionState*, int);
 void func_800DD000(actionReactionState* state, actionStatApplication* app);
 
 void func_800DD344(actionReactionState* state);
-
 
 typedef struct {
     u_int unk0_0 : 2;
@@ -376,7 +233,6 @@ static inline unsigned short* nearestWaypointAddress(unsigned short* row, int in
 }
 void func_800DD7CC(nearestWaypointState* state, nearestWaypointDestination* destination);
 
-
 extern u_char (*D_800F5904)[256];
 void func_800E4288(void*, int);
 void func_800DC2E0(actionCandidateEntry*, actionCandidateEntry*);
@@ -405,7 +261,6 @@ extern u_int D_80069BBC[];
 void func_800E4F14(void*);
 
 void func_800DE030(int elapsed);
-
 
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
@@ -467,7 +322,6 @@ static inline void restoreActorStats(void)
 #undef MAX
 
 void func_800DEB10(func_800DEEA4_t* arg0);
-
 
 typedef struct actorEvaluationStats {
     char pad0[24];

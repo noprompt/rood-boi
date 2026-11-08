@@ -373,6 +373,11 @@ suites = ["tunables_smoke", "skip_charging_smoke", "charge_skip_soak", "soak", "
 paths = ["pc/tools/ps1_address_baseline.json"]
 suites = ["ps1_address_lint"]
 
+# ---- the pointer sweep's tools (they read the tree, nothing runs them in a suite) ----
+[[rule]]
+paths = ["pc/tools/pointer_sites.py", "pc/tools/build_compare.py"]
+suites = ["ps1_address_lint"]
+
 # ---- occlusion in play ----
 [[rule]]
 paths = ["pc/src/occlusion.*", "pc/tests/occlusion_smoke.py"]

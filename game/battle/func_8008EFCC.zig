@@ -34,8 +34,8 @@ pub fn func_8008EFCC(arg0: c_int) callconv(.c) c_int {
             }
             v.g.D_800F1DAC().* = @ptrCast(c.vs_main_allocateCdQueueSlot(psx.cptr(c.vs_main_CdFile, temp_s2)));
             v.g.D_800F1DB0().* = @ptrCast(c.vs_main_allocateCdQueueSlot(psx.cptr(c.vs_main_CdFile, temp_s3)));
-            c.vs_main_cdEnqueue(@ptrCast(@alignCast(v.g.D_800F1DAC().*)), @ptrCast(v.g.D_800F1DD0().*));
-            c.vs_main_cdEnqueue(@ptrCast(@alignCast(v.g.D_800F1DB0().*)), @ptrCast(v.g.D_800F1DCC().*));
+            c.vs_main_cdEnqueue(@ptrCast(v.g.D_800F1DAC().*), @ptrCast(v.g.D_800F1DD0().*));
+            c.vs_main_cdEnqueue(@ptrCast(v.g.D_800F1DB0().*), @ptrCast(v.g.D_800F1DCC().*));
             return 1;
         }
     }

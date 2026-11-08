@@ -21,7 +21,7 @@ fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
 
     const slot = v.g.D_800F568C().*.?;
     if (@as(c_int, slot.state) == @as(c_int, c.vs_main_CdQueueStateLoaded)) {
-        c.vs_main_freeCdQueueSlot(@ptrCast(@alignCast(slot)));
+        c.vs_main_freeCdQueueSlot(@ptrCast(slot));
         v.g.D_800F568C().* = null;
         return 0;
     }

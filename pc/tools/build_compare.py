@@ -3,6 +3,9 @@
 
     python3 pc/tools/build_compare.py OLD_BINARY [NEW_BINARY] [--card CARD] [--seconds 30]
 
+Afterwards every enemy is defeated (its HP written to 0) and the loot the game builds
+is compared too: how many drop nodes, each one's actor id and item bytes.
+
 Runs are deterministic (no wall clock in game logic, no input), so two builds of
 the same behaviour draw the same frames. A room with enemies is entered from the
 save room checkpoint and left to play: the enemies walk, attack and cast. Every
@@ -34,23 +37,58 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 ROOM = (48, 10)
 
 
-def play(binary, seconds, card, out):
-    """In a process of its own (ROOD_BINARY is read at import): the hashes and the casts, as JSON on stdout."""
-    os.environ.update(ROOD_BINARY=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
-    sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+ROOM_ENEMIES = range(2, 10)  # vs_battle_actors slots of the room's enemies
+ACTOR_STATS, STATS_HP = 0x3C, 0x18  # vs_battle_actor.unk3C (a 4-byte guest pointer), vs_battle_actor2.currentHP
+LOOT_BYTES = 0x220  # vs_battle_loot; a drop node is: next (the pointer's width), int actorId, the loot
+
+
+def loot(g, width):
+    """Defeat the room's enemies and read the drop list: [(actor id, item bytes hash)]."""
+    from rood_rpc import symbols
+    sym = symbols()
+    pointers = g.read(sym["vs_battle_actors"], 16 * 8)
+    for slot in ROOM_ENEMIES:
+        actor = int.from_bytes(pointers[slot * 8:slot * 8 + 8], "little")
+        stats = int.from_bytes(g.read(actor + ACTOR_STATS, 4), "little") if actor else 0
+        if stats:
+            g.write(stats + STATS_HP, (0).to_bytes(2, "little"))
+    head = lambda: int.from_bytes(g.read(sym["_lootListHead"], 8), "little") & ((1 << 8 * width) - 1)
+    for _ in range(40):
+        g.run(15)
+        if head():
+            break
+    g.run(60)
+    drops, node = [], head()
+    while node and len(drops) < 64:
+        raw = g.read(node, width + 4 + LOOT_BYTES)
+        drops.append([int.from_bytes(raw[width:width + 4], "little"), hashlib.sha256(raw[width + 4:]).hexdigest()[:16]])
+        node = int.from_bytes(raw[:width], "little")
+    return drops
+
+
+def start(card, out, name):
+    """A game in the fight's room, scripts off, the settings the comparison needs."""
     from checkpoints import launch_at
-    out = pathlib.Path(out)
-    (out / "settings.cfg").write_text("qol_skip_charging 0\nui_menus 0\n")
-    g = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env={
+    g = launch_at("save_room", card=card, fast=True, log=out / f"{name}.log", extra_env={
         "ROOD_GI": "0", "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
         "ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs")})
+    g.call("graphics", interpolate=False)
+    g.call("room_goto", zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
+    for _ in range(80):
+        g.run(20)
+        if g.call("room_goto", action="status")["phase"] in (0, 4):
+            break
+    return g
+
+
+def play(binary, seconds, card, out, width):
+    """In a process of its own (ROOD_BINARY is read at import): the hashes, the casts and the drops, as JSON on stdout."""
+    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
+    sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    out = pathlib.Path(out)
+    (out / "settings.cfg").write_text("qol_skip_charging 0\nui_menus 0\n")
+    g = start(card, out, "fight")
     try:
-        g.call("graphics", interpolate=False)
-        g.call("room_goto", zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
-        for _ in range(80):
-            g.run(20)
-            if g.call("room_goto", action="status")["phase"] in (0, 4):
-                break
         g.call("skip_charging", reset=True)
         frames = []
         for _ in range(seconds * 4):
@@ -61,8 +99,14 @@ def play(binary, seconds, card, out):
         ended = g.call("skip_charging").get("ended", "")
     finally:
         g.close()
+    # A second game: the enemies defeated while idle (one mid-cast does not die at once).
+    g = start(card, out, "loot")
+    try:
+        drops = loot(g, width)
+    finally:
+        g.close()
     casts = [e for e in (entry.split(":") for entry in ended.split()) if len(e) >= 4 and int(e[0]) != 0 and e[2] == "1"]
-    print("RESULT" + json.dumps({"frames": frames, "casts": casts}))
+    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops}))
 
 
 SCHOOLS = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))
@@ -260,10 +304,10 @@ def compare_casts(args):
     return 0 if not changed else 1
 
 
-def run(binary, args):
+def run(binary, args, width):
     with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
         done = subprocess.run([sys.executable, __file__, "--play", binary, "--seconds", str(args.seconds), "--card", args.card,
-                               "--out", out], capture_output=True, text=True)
+                               "--out", out, "--width", str(width)], capture_output=True, text=True)
     lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
     if not lines:
         sys.exit(f"build_compare: {binary} did not finish:\n{done.stderr[-1500:]}")
@@ -282,28 +326,35 @@ def main():
     parser.add_argument("--seconds", type=int, default=30)
     parser.add_argument("--casts", nargs="?", const="spells", help="the wider lane: cast every spell (spells[,arts])")
     parser.add_argument("--cast-limit", type=int, default=0, help="--casts: stop after this many actions")
+    parser.add_argument("--old-width", type=int, default=4, help="bytes of a pointer in OLD's drop nodes")
+    parser.add_argument("--new-width", type=int, default=8, help="the same in NEW")
+    parser.add_argument("--width", type=int, default=8, help=argparse.SUPPRESS)
     parser.add_argument("--play", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--play-casts", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.play:
-        return play(args.old, args.seconds, args.card, args.out)
+        return play(args.old, args.seconds, args.card, args.out, args.width)
     if args.play_casts:
         return play_casts(args.old, args.card, args.out, args.casts, args.cast_limit)
     if args.casts:
         return compare_casts(args)
-    first, control, new = run(args.old, args), run(args.old, args), run(args.new, args)
+    first, control, new = run(args.old, args, args.old_width), run(args.old, args, args.old_width), run(args.new, args, args.new_width)
     noise, changed = differing(first, control), differing(first, new)
     print(f"control (old against old): {len(noise)} of {len(first['frames'])} frames differ")
     print(f"old against new: {len(changed)} of {len(first['frames'])} frames differ{f' (first at {changed[0] / 4:.2f} s)' if changed else ''}")
     print(f"casts: old {len(first['casts'])}, new {len(new['casts'])}; the same: {first['casts'] == new['casts']}")
+    print(f"drops: old {len(first['drops'])}, new {len(new['drops'])}; the same: {first['drops'] == new['drops']}")
     if noise:
         print("build_compare: the control differs, so this proves nothing")
         return 2
     if not first["casts"]:
         print("build_compare: no enemy cast in this run: extend --seconds")
         return 2
-    return 0 if not changed and first["casts"] == new["casts"] else 1
+    if not first["drops"]:
+        print("build_compare: no enemy dropped anything")
+        return 2
+    return 0 if not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] else 1
 
 
 if __name__ == "__main__":

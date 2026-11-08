@@ -10,144 +10,8 @@
 #include <abs.h>
 #include <stdlib.h>
 #include "pc/src/psx_types.h"
+#include "ai_views.h"
 
-typedef struct {
-    u_short unk0_0 : 5;
-    u_short unk0_5 : 5;
-    u_short unk0_10 : 6;
-} D_800F5910_t;
-
-typedef struct {
-    u_char unk0;
-    u_char unk1;
-    u_char unk2;
-} func_800DFA54_t;
-
-typedef struct {
-    short unk0;
-    short unk1;
-    short unk2;
-    short unk3;
-} func_8008D2C0_t;
-
-typedef struct {
-    signed char dx : 2;
-    signed char unk0_2 : 2;
-    signed char dz : 2;
-    signed char unk0_6 : 2;
-} D_800F16EC_t;
-
-typedef struct {
-    char unk0[8];
-    u_char unk8;
-    u_char unk9;
-    char unkA;
-    u_int unkB_0 : 2;
-    u_int unkB_2 : 2;
-    u_int unkB_4 : 4;
-    u_short unkC;
-    u_short unkE;
-    SVECTOR unk10;
-    char unk18[0x24];
-    psx_ptr(vs_battle_actor2) unk3C;
-} func_800DEB10_t2;
-
-typedef struct {
-    int unk0;
-    u_int unk4;
-} func_800E78F4_t2;
-
-typedef struct func_800E78F4_t {
-    char unk0[0x4E];
-    u_short unk4E;
-    char unk50[4];
-    psx_ptr(func_800DEB10_t2) unk54;
-    char unk58[4];
-    psx_ptr(vs_battle_actor2) unk5C;
-    char unk60[0xCF];
-    u_char unk12F;
-    char unk130[0x70];
-    psx_ptr(struct func_800E78F4_t) unk1A0;
-    char unk1A4[0x28C];
-    psx_ptr(func_800E78F4_t2) unk430;
-    char unk434[0x3C];
-    int unk470;
-} func_800E78F4_t;
-
-typedef struct {
-    u_char maxX, maxZ, minX, minZ;
-    char unk4[0x10];
-    int unk14;
-    u_short unk18;
-    char unk1A[2];
-    psx_ptr(func_800E78F4_t) unk1C;
-    psx_ptr(func_800E78F4_t) unk20;
-    int unk24;
-} D_800F58BC_t;
-
-typedef struct {
-    int unk0;
-    int unk4;
-    u_int unk8_0 : 21;
-    u_int unk8_21 : 1;
-    u_int unk8_22 : 10;
-} func_800E1238_t;
-
-typedef struct {
-    char unk0[7];
-    u_char unk7;
-    char unk8[0x2C];
-    u_char unk34;
-    char unk35;
-    u_char unk36;
-    char unk37[0x17];
-    short unk4E;
-    char unk50[8];
-    psx_ptr(func_800E1238_t) unk58;
-    char unk5C[0x62];
-    short unkBE;
-    char unkC0[0xBC];
-    int unk17C;
-    int unk180;
-    int unk184;
-    short unk188;
-    char unk18A[0x9E];
-    int unk228;
-} func_800E0850_t;
-
-typedef struct {
-    int unk0;
-    u_int unk4_0 : 3;
-    u_int unk4_3 : 2;
-    u_int unk4_5 : 8;
-    u_int unk4_13 : 19;
-    int unk8;
-    u_int unkC_0 : 4;
-    u_int unkC_4 : 3;
-    u_int unkC_7 : 12;
-    u_int unkC_19 : 8;
-    u_int unkC_27 : 5;
-} func_800DCAA0_t;
-
-typedef struct {
-    char unk0[0x16];
-    signed char unk16;
-    char unk17[0x21];
-    int unk38;
-    char unk3C[0x18];
-    psx_ptr(func_800DEB10_t2) unk54;
-    char unk58[0x42];
-    short unk9A;
-    char unk9C[0x5F];
-    u_char unkFB;
-    char unkFC[0x2E];
-    u_char unk12A;
-    char unk12B[0xD];
-    u_short unk138;
-    char unk13A[0x2F6];
-    psx_ptr(func_800DCAA0_t) unk430[16];
-    int unk470;
-} func_800DEEA4_t2;
 int func_8008D2C0(func_8008D2C0_t*);
 void func_800DEEFC(func_800E0850_t*, int);
 struct directionalCacheState;
@@ -165,20 +29,6 @@ extern D_800F58BC_t* D_800F58BC;
 extern D_800F5910_t* D_800F5910;
 void func_800D8260(func_800DEEA4_t2* arg0, int arg1, int arg2);
 
-typedef union {
-    unsigned int raw;
-    struct {
-        unsigned int x : 8, y : 8, z : 8, status : 8;
-    } p;
-} vs_battle_movementPosition;
-typedef struct {
-    unsigned char pad[7];
-    unsigned char disabled;
-    unsigned char rest[0x2C];
-    vs_battle_movementPosition position;
-    char unk38[0x130];
-    vs_battle_movementPosition destination;
-} func_800D8400_t;
 int func_800D96C8(func_800D8400_t*, unsigned int, unsigned int, int);
 int func_800D954C(func_800D8400_t*, unsigned int);
 unsigned int func_800E4660(int, int, int);
@@ -192,7 +42,6 @@ void func_800DF9A8(func_800DFA54_t* arg0, func_800DFA54_t* arg1);
 void func_800DFA54(int arg0, int arg1, int arg2, func_800DFA54_t* arg3);
 
 int func_800DFAF8(int arg0, u_int arg1, int arg2);
-
 
 typedef struct routeEdgeState {
     char unk0[5];
@@ -261,7 +110,6 @@ static inline int routeSetArea(routeEdgeState* state, vs_battle_movementPosition
 
 int func_800DFBCC(routeEdgeState* state, int index, int area);
 
-
 typedef struct {
     short x, y, z, pad;
 } obstructionVector;
@@ -293,7 +141,6 @@ typedef struct {
 
 int func_800E02B4(obstructionState* state, int direction, int ahead);
 
-
 #undef OBSTRUCTION_CACHE
 #undef OBSTRUCTION_DIRECTIONS
 #undef OBSTRUCTION_STATES
@@ -320,13 +167,11 @@ typedef struct {
 #define MOVEMENT_CHECK_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), 0x1F8003C0, 0))
 int func_800E0678(directionalCacheState* state, int direction);
 
-
 #undef MOVEMENT_CHECK_CACHE
 #undef MOVEMENT_CHECK_DIRECTIONS
 #undef MOVEMENT_CHECK_TILES
 
 int func_800E0850(func_800E0850_t* arg0, u_int arg1);
-
 
 typedef struct {
     char pad0[8];
@@ -351,7 +196,6 @@ unsigned int func_800E45F4(unsigned int, unsigned int);
 int func_800E42E0(unsigned int);
 void func_800E4B10(void*);
 int func_800E0918(movementCheckState* state, int action, int mode);
-
 
 typedef union {
     unsigned int raw;
@@ -409,7 +253,6 @@ void func_800E1238(func_800E0850_t* arg0, int arg1);
 
 void func_800E1388(func_800D8400_t* state, vs_battle_movementPosition source, int angle, unsigned int distance);
 
-
 typedef struct {
     char pad0[0xD];
     unsigned char flagD;
@@ -441,7 +284,6 @@ void func_800E153C(movementDestinationState* state, int unused);
 void func_800E1764(movementDestinationState* state, int angle);
 
 u_char func_800E1850(u_char arg0, u_int arg1, int arg2);
-
 
 typedef union {
     unsigned int raw;
@@ -491,7 +333,6 @@ void func_800E4B70(terrainMovementState*, int);
 void func_800E1908(terrainMovementState* state);
 
 void func_800E19FC(terrainMovementState* state);
-
 
 #undef TERRAIN_TILE_MASK
 #undef TERRAIN_MAP_WIDTH
@@ -552,7 +393,6 @@ static inline D_800F16EC_t* wanderDirection(int index)
 
 int func_800E1BB8(wanderState* state, unsigned int tile, unsigned int maxCount, int arg3);
 
-
 static inline int wanderRandomHeading(int direction)
 {
     int offset = func_800E45D4(512);
@@ -571,7 +411,6 @@ static inline void wanderStartWalk(wanderState* s)
 }
 
 void func_800E1EAC(wanderState* state, unsigned int tile, unsigned int range);
-
 
 #undef WANDER_DIRECTIONS
 #undef WANDER_TILES
@@ -593,7 +432,6 @@ static inline unsigned int patrolWaypoint(unsigned short* row, int index)
     return *ptr;
 }
 void func_800E23AC(patrolWaypointState* state);
-
 
 typedef union {
     unsigned int raw;
@@ -681,7 +519,6 @@ void func_800E4904(void*);
 
 int func_800E24EC(targetMovementState* s, int option);
 
-
 typedef struct {
     char prefix[0x4C];
     short x;
@@ -716,15 +553,6 @@ int func_800E4180(void*, int, int, int);
 
 int func_800E2B2C(movementDecisionContext* context, int targetId);
 
-
-typedef struct {
-    char pad0[8];
-    unsigned int flags;
-    char padC[8];
-    short angle14;
-    char pad16[0x10];
-    short angle26;
-} movementRecoveryContext;
 struct movementRecoveryState {
     char pad0[9];
     unsigned char flag9;
@@ -756,7 +584,6 @@ typedef struct {
 void func_800E4B10(void*);
 int func_800E4320(int, int);
 void func_800E2CCC(movementRecoveryState* state);
-
 
 typedef union {
     u_int raw;
@@ -811,7 +638,6 @@ int func_800E3D5C(movementPathState*, movementPathTest);
 
 int func_800E2F5C(movementPathState* state, movementPathTest test, int mask);
 
-
 /* PC only: the decomp's closest non-matching C for func_800E3600
  * (rood-reverse .work/ultracode/r8-6E644-tail/e3600/vt10.c, score 20: one
  * register-allocation difference, same behaviour). */
@@ -842,5 +668,4 @@ int func_800E47E4(movementApproachState*, u_int);
 u_int func_800D8400(func_800D8400_t*, int, int, u_int);
 
 void func_800E3600(func_800E0850_t* approach, int angleArg, int mode);
-
 

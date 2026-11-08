@@ -15,8 +15,8 @@ Readable names (PORTING.md §16) come from battle/MEANINGS.tsv's zig_name
 column: a global's accessor, a field (`Type.field` rows) or a bitfield is
 emitted under its readable name with an `/// orig:` comment; the symbol and
 the offsets stay the original's. Pointer targets outside the requested set
-are ?*anyopaque; a pointer to a struct aligned above 4 is ?*align(4) T (a
-guest address is only 4-aligned).
+are ?*anyopaque; a native pointer is ?*T at T's own alignment (psx.Ptr keeps the
+guest address's 4).
 
     python3 pc/tools/zig_views.py OBJ OUT.zig --types T... --globals G... [--names MEANINGS.tsv]
 """
@@ -236,9 +236,7 @@ class Emitter:
                 return "?*anyopaque"
             if t["kind"] == "array":  # rows: the C indexes the pointer (`grid[z][x]`)
                 return "?[*]" + self.ztype(t)
-            # A guest address is only 4-aligned (PORTING.md §20 item 1).
-            over = t["kind"] == "named" and self.align(t) > 4
-            return ("?*align(4) " if over else "?*") + self.ztype(t)
+            return "?*" + self.ztype(t)
         if k == "psx_ptr":
             t = r["target"]
             return f"psx.Ptr({'anyopaque' if t['kind'] in ('opaque', 'fn') else self.ztype(t)})"

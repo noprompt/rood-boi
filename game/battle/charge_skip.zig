@@ -81,7 +81,7 @@ pub fn load() callconv(.c) void {
         if (loader != 6 and loader != 2 and loader != 8 and loader != 3) break;
         c.func_800D7890(1);
         _ = c.func_800CE9B0();
-        _ = c.pc_cd_queue_load(@ptrCast(@alignCast(v.g.D_800F568C().*)));
+        _ = c.pc_cd_queue_load(@ptrCast(v.g.D_800F568C().*));
     }
     v.g.D_800F569C().* = context;
     v.g.pc_charge_skip_pumped().* = i;

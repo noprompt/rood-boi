@@ -26,12 +26,13 @@ pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
     const ret = c.func_800AD494(actor, @as(c_int, actor.animationId), &headerC);
     if (ret == 0) return;
     const anim: *align(1) v.func_800AD494_t = @ptrFromInt(@as(usize, psx.conv(u32, ret)));
+    const dataBase: u32 = psx.conv(u32, ret) +% anim.dataOffset;
     var header: [*]align(1) c_ushort = @ptrCast(headerC);
 
     if (header[2] == 0) {
         pose.unk542 = 0xFFFF;
     } else {
-        var data: *align(1) u8 = @ptrFromInt(@as(usize, psx.conv(u32, anim.unk0)));
+        var data: *align(1) u8 = @ptrFromInt(@as(usize, dataBase));
         data = psx.byteAt(u8, data, @as(isize, header[2]));
         var value: c_int = data.*;
         if (value == 0xFF) {
@@ -47,7 +48,7 @@ pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
     psx.byteAt(u8, &pose.unk544, 4).* = actor.animationId;
 
     if (header[4] != 0) {
-        const data: *align(1) u8 = @ptrFromInt(@as(usize, psx.conv(u32, anim.unk0) +% psx.conv(u32, header[4])));
+        const data: *align(1) u8 = @ptrFromInt(@as(usize, dataBase +% psx.conv(u32, header[4])));
         c.func_800ACFA0(psx.cptr(c.SVECTOR, &pose.unk150[41]), @ptrCast(data), 0xFF);
     }
 
@@ -58,13 +59,13 @@ pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
     }
 
     {
-        const data: *align(1) u8 = @ptrFromInt(@as(usize, psx.conv(u32, anim.unk0) +% psx.conv(u32, header[3])));
+        const data: *align(1) u8 = @ptrFromInt(@as(usize, dataBase +% psx.conv(u32, header[3])));
         c.func_800ACFA0(psx.cptr(c.SVECTOR, &pose.unk0[41]), @ptrCast(data), frame);
     }
 
     var i: c_int = 0;
     while (i < actor.unk0.nBones) : (i +%= 1) {
-        const data: *align(1) u8 = @ptrFromInt(@as(usize, psx.conv(u32, anim.unk0) +% psx.conv(u32, header[@as(usize, @intCast(5 +% i))])));
+        const data: *align(1) u8 = @ptrFromInt(@as(usize, dataBase +% psx.conv(u32, header[@as(usize, @intCast(5 +% i))])));
         c.func_800ACFA0(psx.cptr(c.SVECTOR, psx.at(&pose.unk0, i)), @ptrCast(data), frame);
     }
 
@@ -72,7 +73,7 @@ pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
         i = 0;
         while (i < actor.unk0.nBones) : (i +%= 1) {
             const hi: usize = @intCast(@as(c_int, actor.unk0.nBones) +% i +% 5);
-            var data: *align(1) u8 = @ptrFromInt(@as(usize, psx.conv(u32, anim.unk0) +% psx.conv(u32, header[hi])));
+            var data: *align(1) u8 = @ptrFromInt(@as(usize, dataBase +% psx.conv(u32, header[hi])));
             const sv = psx.at(&pose.unk150, i);
             if (data.* == 0xFE and psx.byteAt(u8, data, 1).* == 1) {
                 data = psx.byteAt(u8, data, 2);

@@ -42,7 +42,7 @@ pub fn func_800AE47C(arg0: ?*v.D_800F4538_t) callconv(.c) void {
         }
         return;
     }
-    const sequence: [*]u8 = @ptrFromInt(@as(usize, psx.byteAt(u32, @as(*u8, @ptrFromInt(@as(usize, word))), 0).*));
+    const sequence: [*]u8 = @ptrFromInt(@as(usize, word +% psx.byteAt(u32, @as(*u8, @ptrFromInt(@as(usize, word))), 0).*));
     const op = sequence + header.?[2];
 
     var count: c_int = op[0];

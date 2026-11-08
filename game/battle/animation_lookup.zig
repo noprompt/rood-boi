@@ -72,7 +72,8 @@ pub fn findAnimation(actor_: ?*anyopaque, animation: c_int, frames: [*c][*c]u16)
     }
 
     // unk4[idx]: a negative animation below 100 reads before the table, as the C does.
-    idx = psx.at(psx.get(p.?.unk4).?, idx).*;
+    const index: [*]u8 = @as([*]u8, @ptrCast(p.?)) + p.?.indexOffset;
+    idx = psx.at(index, idx).*;
     v.g.D_800F49DC().* = psx.conv(u8, idx);
 
     if (idx == 0xFF) {

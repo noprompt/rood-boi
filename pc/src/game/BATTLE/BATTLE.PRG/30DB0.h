@@ -4,8 +4,8 @@
 #include "pc/src/psx_types.h"
 
 typedef struct {
-    psx_ptr(void) unk0;
-    psx_ptr(void) unk4;
+    u_int dataOffset;  /* from the block's start, as on disc (func_800AD494_t) */
+    u_int indexOffset;
     char unk8[0x78F8];
 } func_8009C378_t;
 PSX_ASSERT_SIZE(func_8009C378_t, 0x7900);

@@ -12,9 +12,10 @@ typedef struct {
     u_char unk1;
 } func_800AAE9C_t;
 
+/* An animation block as it is on disc: offsets from the block's own start. */
 typedef struct {
-    int unk0;
-    psx_ptr(u_char) unk4;
+    u_int dataOffset;  /* the packed streams */
+    u_int indexOffset; /* the table of frame entries, one byte per animation */
     u_short unk8[0];
 } func_800AD494_t;
 PSX_ASSERT_SIZE(func_800AD494_t, 0x8);

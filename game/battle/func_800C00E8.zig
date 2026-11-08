@@ -10,5 +10,5 @@ pub fn func_800C00E8(_: c_int, arg1: ?*anyopaque) callconv(.c) void {
     // _evtFile is an i16: widen to int before the multiply and add, then wrap as C does.
     v.g.D_800F4BF0().lba = (@as(c_int, v.g._evtFile().*) *% 3) +% 110000;
     v.g.D_800F4BBC().* = @ptrCast(c.vs_main_allocateCdQueueSlot(@ptrCast(v.g.D_800F4BF0())));
-    c.vs_main_cdEnqueue(@ptrCast(@alignCast(v.g.D_800F4BBC().*)), arg1);
+    c.vs_main_cdEnqueue(@ptrCast(v.g.D_800F4BBC().*), arg1);
 }

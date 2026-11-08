@@ -2,10 +2,10 @@
  "ps1_address": 60,
  "scratchpad": 541,
  "unnamed_symbol": 20653,
- "guest_pointer_field": 278,
+ "guest_pointer_field": 202,
  "guest_pointer_access": 998,
- "address_as_integer": 321,
- "zig_raw_memory": 1433,
+ "address_as_integer": 318,
+ "zig_raw_memory": 1431,
  "gte_state_machine": 16,
  "gte_sdk_calls": 15,
  "gpu_packet_writes": 464
