@@ -119,7 +119,7 @@ class Session:
         real = {p.resolve() for p in cf.player_cards()}
         assert self.card1.resolve() not in real and self.card2.resolve() not in real
         lights = pathlib.Path(tempfile.mkdtemp(prefix="lights-", dir=out))
-        env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1",
+        env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0",
                "ROOD_CARD2": str(self.card2)}
         self.g = launch_at("save_room", card=self.card1, fast=True, log=out / f"{name}.log", extra_env=env)
         self.g.call("graphics", interpolate=False)

@@ -39,7 +39,7 @@ def main():
         settings = work / "settings.txt"
         settings.write_text("ui_menus 0\nwidescreen 0\ninterpolate 0\nqol_skip_charging 0\ncamera_stick 0\n")
         env = {"ROOD_ORACLE": "1", "ROOD_OWNER": f"{FIXTURE}=original",
-               "ROOD_SETTINGS": str(settings), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1"}
+               "ROOD_SETTINGS": str(settings), "ROOD_GI": "0",}
         game = launch_at("save_room", card=str(private_card), fast=True, log=work / "game.log", extra_env=env)
         try:
             game.call("room_goto", zone=48, room=10, enemies=True, scripts=False)

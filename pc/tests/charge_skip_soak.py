@@ -103,7 +103,7 @@ def main():
     shutil.copyfile(args.card, card)
     lights = pathlib.Path(tempfile.mkdtemp(prefix="lights-", dir=out))
     env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_PREFABS": str(out / "prefabs"),
-           "ROOD_LIGHTING": str(out / "lighting"), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1"}
+           "ROOD_LIGHTING": str(out / "lighting"), "ROOD_GI": "0",}
     (out / "prefabs").mkdir()
     (out / "lighting").mkdir()
     if not os.environ.get("ROOD_OUT"):

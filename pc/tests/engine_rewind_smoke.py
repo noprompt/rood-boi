@@ -43,7 +43,7 @@ def main():
         shutil.copyfile(card, private_card)
         settings = work / "settings.txt"
         settings.write_text("ui_menus 0\nwidescreen 0\ninterpolate 0\nqol_skip_charging 0\ncamera_stick 0\n")
-        env = dict(_base_env(work), ROOD_ORACLE="1", ROOD_DETERMINISTIC="1",
+        env = dict(_base_env(work), ROOD_ORACLE="1",
                    ROOD_SETTINGS=str(settings), ROOD_GI="0")
         game = launch_at("save_room", card=str(private_card), fast=True,
                          socket_path=f"/tmp/rood-rewind-{os.getpid()}.sock",

@@ -151,7 +151,7 @@ def run(out, card):
     settings.write_text("aspect 4:3\nui_menus 0\n")
     env = {"ROOD_WINDOW": f"{WINDOW[0]}x{WINDOW[1]}", "ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(plugins),
            "ROOD_PLUGIN_DATA": str(out / "plugin_data"), "ROOD_PHOTOS": str(out / "photos"), "ROOD_GI": "0",
-           "ROOD_PAUSED_REDRAW_HZ": "60", "ROOD_DETERMINISTIC": "1"}
+           "ROOD_PAUSED_REDRAW_HZ": "60",}
     g = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env=env)
     try:
         def value(code):

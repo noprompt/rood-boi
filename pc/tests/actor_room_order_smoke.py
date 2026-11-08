@@ -85,7 +85,7 @@ def settings_file(out):
 
 def env_for(out):
     return {"ROOD_WINDOW": WINDOW, "ROOD_GI": "0", "ROOD_LIGHTS": str(out / "lights"),
-            "ROOD_SETTINGS": str(settings_file(out)), "ROOD_DETERMINISTIC": "1"}
+            "ROOD_SETTINGS": str(settings_file(out)),}
 
 
 def grab(game, path):

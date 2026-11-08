@@ -886,7 +886,7 @@ def main():
     lights.mkdir(exist_ok=True)
     theme = out / "theme.json"
     shutil.copyfile(ROOT / "pc/assets/ui/theme.json", theme)
-    env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1",
+    env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0",
            "ROOD_UI_THEME": str(theme)}
     os.environ.pop("ROOD_SETTINGS", None)
     failures = []

@@ -20,9 +20,8 @@ HEADER = struct.Struct("<8sIIQII")  # version 1
 HEADER2 = struct.Struct("<8sIIQQII")  # version 2: code and layout keys
 CHUNK = struct.Struct("<IIQQ")
 CHUNK_END, CHUNK_MEMORY, CHUNK_SPU, CHUNK_LOG = range(4)
-# Native statics that hold wall-clock time, not game state (boot_runtime.c:
-# the last vsync's time, the elapsed-scanline estimate reads it).
-VOLATILE = {"last_vsync"}
+# Native statics that hold wall-clock time, not game state: none now.
+VOLATILE = set()
 
 
 def read(path):

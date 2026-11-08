@@ -154,7 +154,7 @@ def run(out, card, engine_reload):
     settings.write_text("aspect 4:3\nui_menus 0\n")
     env = {"ROOD_WINDOW": "960x720", "ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(plugins),
            "ROOD_PLUGIN_DATA": str(out / "plugin_data"), "ROOD_PHOTOS": str(photos), "ROOD_GI": "0",
-           "ROOD_PAUSED_REDRAW_HZ": "60", "ROOD_DETERMINISTIC": "1"}
+           "ROOD_PAUSED_REDRAW_HZ": "60",}
     g = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env=env)
     try:
         def ev(code, plugin="test.photo"):

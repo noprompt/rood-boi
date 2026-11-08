@@ -357,11 +357,6 @@ int pc_input_stick(float out[2], int live_valid)
     }
 }
 
-/* While recording or replaying (and after a replay), the game's scanline timer
- * reads virtual scanlines (boot_runtime.c func_800E45B4): the AI uses it as a
- * per-frame time budget, so measured host time would make a replay diverge. */
-int pc_input_deterministic(void) { return start() > 0; }
-/* (A take does not switch to virtual scanlines: it logs the measured ones, boot_runtime.c.) */
 
 /* For the RPC: 0 off, 1 recording, 2 replaying, 3 replay over; the file; the replay's end. */
 int pc_input_record_state(const char** file, unsigned* end)

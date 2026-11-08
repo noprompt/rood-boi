@@ -18,7 +18,7 @@ def main():
         settings = work / "settings.cfg"
         settings.write_text("ui_menus 0\nwidescreen 0\ninterpolate 0\nqol_skip_charging 0\ncamera_stick 0\n")
         env = {"ROOD_RENDERER": "null", "ROOD_ORACLE": "1", "ROOD_SETTINGS": str(settings),
-               "ROOD_CARD2": str(work / "absent2.mcd"), "ROOD_DETERMINISTIC": "1",
+               "ROOD_CARD2": str(work / "absent2.mcd"),
                "SDL_VIDEO_DRIVER": "invalid-null-smoke-driver"}
         # Neither probe nor display helper may be reached, even with an inherited
         # EGL/Xvfb default. Invalid SDL video driver also catches frontend init.

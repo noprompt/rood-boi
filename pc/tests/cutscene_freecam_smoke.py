@@ -76,7 +76,7 @@ def main():
         "ROOD_LIGHTS": str(out / "lights"), "ROOD_CUTSCENES": str(out / "takes"),
         "ROOD_PHOTOS": str(out / "photos"), "ROOD_SETTINGS": str(out / "settings.cfg"),
         "ROOD_PREFABS": str(out / "prefabs"), "ROOD_PLUGIN_DATA": str(out / "plugin-data"),
-        "ROOD_VK_PIPELINE_CACHE": str(out / "vk-pipelines.bin"), "ROOD_DETERMINISTIC": "0",
+        "ROOD_VK_PIPELINE_CACHE": str(out / "vk-pipelines.bin"),
         "ROOD_WINDOW": "960x720", "ROOD_GI": "0"})
 
     def cs(**params):

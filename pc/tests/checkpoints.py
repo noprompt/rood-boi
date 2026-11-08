@@ -26,7 +26,7 @@ first job) boots it, saves the snapshot, plays on, then resumes the snapshot
 in another process and requires identical guest RAM, scratchpad, I/O page,
 VRAM and overlay statics at the checkpoint and over the next FRAMES vsyncs,
 the same presented frames (interpolation off, deterministic scanlines:
-ROOD_DETERMINISTIC=1 in both), and identical end states (native game
+the fixed scanline step in both), and identical end states (native game
 statics and SPU too) after a field menu open and close. A snapshot that
 fails stays unused (<name>.bad holds why): its tests boot, as do tests with
 another card (a snapshot is made for run.py's --save card only).
@@ -164,8 +164,7 @@ def _drive(game, name, end):
 def _base_env(work):
     """The environment snapshots are made and checked in: run.py's suite
     environment with private paths, deterministic scanlines."""
-    return {"ROOD_LIGHTS": str(work / "lights"), "ROOD_PREFABS": str(work / "prefabs"),
-            "ROOD_DETERMINISTIC": "1", "ROOD_OUT": str(work)}
+    return {"ROOD_LIGHTS": str(work / "lights"), "ROOD_PREFABS": str(work / "prefabs"), "ROOD_OUT": str(work)}
 
 
 def _record(game, work, label, frames):

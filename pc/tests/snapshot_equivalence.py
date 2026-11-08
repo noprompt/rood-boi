@@ -5,7 +5,7 @@ give the same game.
     python3 pc/tests/snapshot_equivalence.py [--card pc/save/card1.mcd] [checkpoint...]
 
 For each test checkpoint (pc/tests/checkpoints.py: title, opening, save_room
-with a card), with deterministic scanlines (ROOD_DETERMINISTIC=1) and frame
+with a card), with the fixed scanline step and frame
 interpolation off in both processes: boot and play the checkpoint's input,
 save a snapshot WARMUP vsyncs before the checkpoint, play on WARMUP + FRAMES
 vsyncs recording each vsync's guest RAM, scratchpad, I/O page, VRAM and

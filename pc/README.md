@@ -2575,7 +2575,7 @@ boots and plays the checkpoint's input when there is no valid save state.
 The first job, `snapshot_equivalence`, makes them for this build in
 `pc/build/test-snapshots/<arch>-<renderer>-<mode>-<hash of the binary and
 disc>/` and proves each exact: it boots to the checkpoint (deterministic
-scanlines, `ROOD_DETERMINISTIC=1`; interpolation off), saves, plays on, then
+scanlines; interpolation off), saves, plays on, then
 resumes the save state in a new process and requires identical guest RAM,
 scratchpad, I/O page, VRAM and overlay statics at the checkpoint and every
 vsync of the next 40, the same presented frames, and byte-identical end

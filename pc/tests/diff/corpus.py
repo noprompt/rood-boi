@@ -83,7 +83,7 @@ def environment(work, subsystem, profile="classic"):
     settings.write_text(PROFILES[profile])
     for name in ("lights", "prefabs"):
         (work / name).mkdir(exist_ok=True)
-    return {"ROOD_ORACLE": "1", "ROOD_DETERMINISTIC": "1", "ROOD_GI": "0",
+    return {"ROOD_ORACLE": "1", "ROOD_GI": "0",
             "ROOD_OWNER": f"{subsystem}=original", "ROOD_SETTINGS": str(settings),
             "ROOD_LIGHTS": str(work / "lights"), "ROOD_PREFABS": str(work / "prefabs"),
             **PROFILE_ENVIRONMENT.get(profile, {})}

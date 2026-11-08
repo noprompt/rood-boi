@@ -8,7 +8,6 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "pc/tools"))
 from rood_rpc import Game, OUT, BINARY, RpcError
 from checkpoints import title
-from snapshot_diff import Symbols
 
 # The owner switch's fixture: a fully ported subsystem (the trial's
 # func_800B07DC, actor_transform.offsetToWorld) whose routes do not change.
@@ -25,8 +24,7 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="oracle-", dir=OUT) as directory:
         out = pathlib.Path(directory)
-        g = Game.launch(fast=True, log=out / "game.log", extra_env={
-                "ROOD_DETERMINISTIC": "1", "ROOD_INTERPOLATE": "0",
+        g = Game.launch(fast=True, log=out / "game.log", extra_env={ "ROOD_INTERPOLATE": "0",
                 "ROOD_OWNER": f"{FIXTURE}=original",
                 "ROOD_CARD1": str(out / "absent-card.mcd"),
                 "ROOD_CARD2": str(out / "absent-card2.mcd")})
@@ -82,12 +80,7 @@ def main():
             check(g.status()["vsync"] == marked, "mark survives repeated rewinds")
             rec = out / "pad.rec"
             # Only host monotonic time is excluded, just as snapshot_diff does.
-            # Another unit has a 4-byte counter with this local name; only
-            # boot_runtime's two-long timespec is host-clock noise.
-            pointer_bytes = 8 if pathlib.Path(BINARY).read_bytes()[4] == 2 else 4
-            masks = [[address, size] for address, size, name in Symbols(BINARY).rows
-                     if name == "last_vsync" and size == 2 * pointer_bytes]
-            check(len(masks) == 1 and masks[0][1] > 0, f"explicit host-clock mask: {masks}")
+            masks = []
             for params in ({"action": "unknown"}, {"action": "record", "ticks": -1},
                            {"action": "compare"}, {"action": "record", "masks": [[1, -1]]},
                            {"action": "record", "masks": [[1, 1], "bad"]}):

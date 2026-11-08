@@ -1061,7 +1061,6 @@ def run_new_game(out, env, check, waivers, kinds):
             for i in range(2):
                 address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
                 masks.append([address, size])
-        masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
         masks += packet_masks(symbols, pointer)
         g.rewind()
         drawn = g.call("hud", action="stats")["kinds"]["image"]["drawn"]
@@ -4387,7 +4386,6 @@ def run_opening(out, env, check, waivers, kinds):
             for i in range(2):
                 address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
                 masks.append([address, size])
-        masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
         masks += packet_masks(symbols, pointer)
         runs = ([("emote", k) for k in (1, 4, 5) if "emote" in kinds] + [("text_frame", 0)] * ("text_frame" in kinds)
                 + [("box_text", 0)] * ("box_text" in kinds))
@@ -4441,7 +4439,7 @@ def card2_fixture(out, card):
     with card_guard(fixtures / "cards", source=card) as cards:
         g = launch_at("save_room", card=cards.card1, fast=True, log=out / "game-card2.log",
                       extra_env={"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(plugins),
-                                 "ROOD_PLUGIN_DATA": str(fixtures / "plugin_data"), "ROOD_DETERMINISTIC": "1"})
+                                 "ROOD_PLUGIN_DATA": str(fixtures / "plugin_data"),})
         try:
             bag = g.read(rood_rpc.symbols()["vs_main_inventory"], INVENTORY_BYTES)
         finally:
@@ -4468,7 +4466,7 @@ def run(out, card, renderer, kinds, candidate=False):
     settings = out / "settings.cfg"
     settings.write_text("ui_menus 0\nui_text font\naspect 16:9\ninterpolate 0\n")
     env = {"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(plugins), "ROOD_PLUGIN_DATA": str(out / "plugin_data"),
-           "ROOD_PLUGINS_SHIPPED": str(ROOT / "pc/plugins"), "ROOD_CLASSIC_PARITY": "1", "ROOD_DETERMINISTIC": "1"}
+           "ROOD_PLUGINS_SHIPPED": str(ROOT / "pc/plugins"), "ROOD_CLASSIC_PARITY": "1",}
     if renderer == "null":
         env.update({"ROOD_RENDERER": "null", "SDL_VIDEO_DRIVER": "invalid-null-classic-parity"})
         # (the run's save states are made for its own renderer: boot to the checkpoint instead)
@@ -4737,7 +4735,6 @@ def state_masks(g):
         for i in range(2):
             address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
             masks.append([address, size])
-    masks += [[a, n] for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "last_vsync" and n == 2 * pointer]
     return masks + packet_masks(symbols, pointer)
 
 
@@ -4787,8 +4784,7 @@ def state_parity(g, check, ticks=120, ability_hold=True):
     """§3.4: SLOW! held (and the gauges up), from one mark: rood.classic drawing them, then the game; every
     vsync's state
     (guest memory, the native game state, VRAM) the same but for the packets (the primitive buffers,
-    the ordering tables, the packet pointer) and the host clock (last_vsync, as snapshot_diff and the
-    oracle's own proof mask it). Both runs start from a rewind (the mark's)."""
+    the ordering tables, the packet pointer). Both runs start from a rewind (the mark's)."""
     masks = state_masks(g)
     g.call("hud", action="show", kind="status", hold=True, timing="slow", age=10)
     for kind in ("buff", "damage"):  # (held beside it: both drawn by rood.classic, then by the game)

@@ -85,7 +85,7 @@ int main(void)
         check_tick(t);
     tick = 600;
     assert(pc_input_buttons(1, 2) == 3);
-    assert(state() == 3 && pc_input_deterministic());
+    assert(state() == 3);
     tick = 0;
     pc_input_rewound();
     for (unsigned t = 0; t < 600; t++)
@@ -122,7 +122,6 @@ int main(void)
     fail_allocation = 0;
     check_tick(457);
     assert(pc_input_replay_rpc(NULL) == 0);
-    assert(!pc_input_deterministic());
     assert(pc_input_record_rpc(long_path) == -1);
     assert(state() == 0);
     assert(pc_input_replay_rpc("/nonexistent/rood-input-test/route.rec") == -1);

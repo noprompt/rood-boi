@@ -142,7 +142,7 @@ class Session:
         lights = pathlib.Path(tempfile.mkdtemp(prefix="lights-", dir=out))
         self.settings = out / f"{name}-settings.cfg"
         self.settings.write_text("")
-        env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1",
+        env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0",
                "ROOD_SETTINGS": str(self.settings), **(extra or {})}
         self.g = launch_at("save_room", card=self.card1, fast=True, log=out / f"{name}.log", extra_env=env)
         self.g.call("graphics", interpolate=False)
@@ -598,7 +598,7 @@ def run(cards, out, sets, modes, check, shots):
     LAYOUT.update(layout)
     waiver(check)
     # the bag as the save's load leaves it (RAM): the container's records come from it
-    env = {"ROOD_LIGHTS": str(out / "lights-prep"), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1"}
+    env = {"ROOD_LIGHTS": str(out / "lights-prep"), "ROOD_GI": "0",}
     g = launch_at("save_room", card=base, fast=True, log=out / "prep.log", extra_env=env)
     try:
         bag = g.read(symbols()["vs_main_inventory"], 0xF00)

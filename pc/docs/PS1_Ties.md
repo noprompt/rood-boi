@@ -38,7 +38,7 @@ path exists next to the PS1 one), **native**.
 |---|---|---|---|---|---|
 | T1 | The game's loop blocks in `VSync`; host work runs inside it, on one thread | Frame hitches stall sound and input; no unlocked frame rate | PS1 | very large | T4, T7, T13 |
 | T2 | Logic runs at 30 or 20 per second; the host interpolates some things | Characters smooth, HUD, menus and many effects step at 30 | partly | large | T1, T4 |
-| T3 | Wall-clock time read as PS1 "scanlines" (enemy AI time budget) | Possibly machine-dependent AI (**unconfirmed** in play) | partly | small | none |
+| T3 | Wall-clock time read as PS1 "scanlines" | Done 2026-11-08 | native | done | none |
 | T4 | GPU packets and ordering tables built in RAM, then walked | Draw order and effects follow PS1 rules; widescreen and 2D compromises | partly | very large | T13, T14 |
 | T5 | Textures and palettes live in a 1024 x 512 16-bit VRAM; a CPU rasterizer still runs | Texture size, 256-colour limits, palette animation | partly | large | T4 |
 | T6 | 320 x 224 display area, never-cleared frame buffer, 4:3 assumptions | Widescreen is a set of fixes on a 4:3 game | partly | large | T4, T7 |
@@ -128,25 +128,9 @@ object versus a packet that cannot be interpolated).
 
 ## T3. Wall-clock time read as PS1 scanlines
 
-**What it is.** The game asks the SDK how far into the field it is (`VSync(1)` returns elapsed
-scanlines) and the enemy AI in battle uses that as a time budget (`if (D_800F16F4 < arg) goto idle`).
-On the PC that value comes from the monotonic clock times the PS1's line rate. The PC has a fixed-step
-deterministic mode for tests and replays (`ROOD_DETERMINISTIC`, or when a recording or replay runs).
-
-**Player feels.** Unconfirmed in play. By the code, how many actors get AI decisions in a given frame can
-depend on how fast the host is that frame, unless the deterministic mode is on.
-
-**Evidence.**
-- `pc/src/boot_runtime.c`: `scanlines_now`, `deterministic_scanlines`, `func_800E45B4`.
-- `pc/src/game/BATTLE/BATTLE.PRG/6FC00.c` and `71618.c`: the callers that compare it with a budget.
-- `pc/src/boot_sdk.c`: `VSync(1)` returns the same value.
-
-**Status.** Partly: a fixed-step substitute exists but is opt-in.
-
-**To replace.** Small to decide, medium to verify: make the budget a count of AI steps per frame rather
-than a time, then compare behaviour against the original loop.
-
-**Depends on.** Nothing.
+**Done 2026-11-08.** The game's elapsed-scanline read (`VSync(1)`, `func_800E45B4`) is a fixed step per read from
+each vblank (`scanlines_now` in `pc/src/boot_runtime.c`), never the host's clock, so how much the AI does in a frame
+no longer depends on how fast the machine is that frame.
 
 ## T4. GPU packets and ordering tables
 

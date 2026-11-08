@@ -4,7 +4,7 @@ pc/docs/Post_Processing.md, post_profile.cpp camera_subject).
 
     python3 pc/tests/dof_subject_smoke.py [--card pc/build/test-card1.mcd] [--shots DIR]
 
-Deterministic (ROOD_DETERMINISTIC, RPC-exact stepping, the charging skip
+Deterministic (RPC-exact stepping, the charging skip
 off), 960 x 720, no lights or path tracing, on the renderer selected
 (ROOD_RENDERER):
 
@@ -146,7 +146,7 @@ def main():
     settings.write_text("ui_menus 0\nwidescreen 0\ninterpolate 0\nqol_skip_charging 0\ncamera_stick 0\n")
     vulkan = os.environ.get("ROOD_RENDERER") == "vulkan"
     env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(work / "lights"), "ROOD_GI": "0", "ROOD_SCALE": "2",
-           "ROOD_SETTINGS": str(settings), "ROOD_DETERMINISTIC": "1"}
+           "ROOD_SETTINGS": str(settings),}
     if vulkan and os.environ.get("VK_LAYER_PATH"):
         env["ROOD_VK_VALIDATE"] = "1"
     game = launch_at("save_room", card=str(work / "card1.mcd"), fast=True, log=out / "game.log", extra_env=env)

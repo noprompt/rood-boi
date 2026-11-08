@@ -5,7 +5,7 @@ a soft eased ellipse around her; silhouettes show what still hides a subject.
 
     python3 pc/tests/occlusion_smoke.py [--card pc/build/test-card1.mcd] [--shots DIR]
 
-Deterministic (ROOD_DETERMINISTIC, RPC-exact stepping), 960 x 720, no lights
+Deterministic (RPC-exact stepping), 960 x 720, no lights
 or path tracing, on the renderer selected (ROOD_RENDERER: run it once for
 OpenGL and once for Vulkan):
 
@@ -117,7 +117,7 @@ def launch(work, out, name):
     settings.write_text("ui_menus 0\nwidescreen 0\ninterpolate 0\nqol_skip_charging 0\ncamera_stick 0\n"
                         "gameplay_walls original\naa off\n")
     env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(work / "lights"), "ROOD_GI": "0", "ROOD_SCALE": "3",
-           "ROOD_SETTINGS": str(settings), "ROOD_DETERMINISTIC": "1"}
+           "ROOD_SETTINGS": str(settings),}
     if os.environ.get("ROOD_RENDERER") == "vulkan" and os.environ.get("VK_LAYER_PATH"):
         env["ROOD_VK_VALIDATE"] = "1"
     shutil.copyfile(work / "card.mcd", work / f"card-{name}.mcd")

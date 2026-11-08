@@ -201,7 +201,7 @@ def main():
                 game.call("snapshot", action="save", path=str(restored_path))
                 restored_state = snapshot_diff.read(restored_path)
                 # The established equivalence comparator excludes only the
-                # native last_vsync wall clock and the saved stack's host frames.
+                # saved stack's host frames.
                 differences = snapshot_diff.diff(baseline_end, restored_state, state_symbols)
                 check(not differences and restored_state["vsync"] == baseline_end["vsync"],
                       f"restored deterministic frames equal the unmodified run: {differences}")

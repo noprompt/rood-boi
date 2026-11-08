@@ -887,7 +887,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     card = out / "card1.mcd"
     lights = pathlib.Path(tempfile.mkdtemp(prefix="lights-", dir=out))
-    env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0", "ROOD_DETERMINISTIC": "1"}
+    env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(lights), "ROOD_GI": "0",}
     os.environ.pop("ROOD_SETTINGS", None)
     shots = bool(args.out)
     failures = []

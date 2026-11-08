@@ -1222,7 +1222,6 @@ void pc_title_menu_ready(void)
         exit(0);
 }
 
-static struct timespec last_vsync;
 
 extern void pc_rpc_poll(void);
 extern void pc_cd_tick(void) __attribute__((weak));
@@ -1309,7 +1308,6 @@ static void tick_frame_work(void)
     if (pc_cd_tick)
         pc_cd_tick(); /* before the audio: this field's XA sectors */
     pc_audio_frame();
-    clock_gettime(CLOCK_MONOTONIC, &last_vsync);
     if (photo || (pc_charge_skip_hidden && pc_charge_skip_hidden())) {
         /* Not presented: the window keeps the last picture; the frame ends as at a present. */
         if (pc_hw_skip_present)
@@ -1375,47 +1373,21 @@ void pc_finish_room_checkpoint(void)
     exit(0);
 }
 
-/* Native equivalent of the elapsed scanline profiler. This is an estimate from
- * monotonic time since VSync, not emulated PS1 hardware-counter precision.
- * The AI reads it as a per-frame time budget, and VSync(1) waits poll it: input
- * recording and replay (input_record.c) read virtual scanlines instead, a fixed
- * step per read from each vblank, so a replay does what the recording did.
- * ROOD_DETERMINISTIC=1 reads them too without a recording: two runs given
- * the same vsync-exact input then reach the same game state (the save-state
- * equivalence test, pc/tests/snapshot_equivalence.py, compares them). */
-extern int pc_input_deterministic(void) __attribute__((weak));
-static int deterministic_scanlines(void)
-{
-    /* Host configuration, not game state: outside the saved sections. */
-    static int env __attribute__((section(".data.rood_host"))) = -1;
-    if (env < 0) {
-        const char* value = getenv("ROOD_DETERMINISTIC");
-        env = value && *value && strcmp(value, "0");
-    }
-    return env || (pc_input_deterministic && pc_input_deterministic())
-        || (&pc_photo_rendering && pc_photo_rendering); /* every render of the frozen moment the same */
-}
+/* How far into the field the game thinks it is. The game reads this as a per-frame budget (the AI's actor
+ * loop, the credits' script): a fixed step per read from each vblank, never the host's clock, so how much
+ * the game does in a frame does not depend on how fast the machine is that frame. */
 /* The cutscene player's take (cutscene.cpp) logs what this returned per vsync and, replaying a part of
  * the take, returns the logged values instead: the one host-clock input of game state, made exact. */
 extern int pc_take_scanlines(int value) __attribute__((weak));
 static int scanlines_now(void)
 {
-    if (deterministic_scanlines()) {
-        static unsigned lines, vblank;
-        if (vblank != vsyncs) {
-            vblank = vsyncs;
-            lines = 0;
-        }
-        lines += 8;
-        return lines < 263 ? (int)lines : 262; /* an NTSC field's lines */
+    static unsigned lines, vblank;
+    if (vblank != vsyncs) {
+        vblank = vsyncs;
+        lines = 0;
     }
-    if (!last_vsync.tv_sec && !last_vsync.tv_nsec)
-        return 0;
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    int64_t elapsed = (int64_t)(now.tv_sec - last_vsync.tv_sec) * 1000000000 + now.tv_nsec
-                    - last_vsync.tv_nsec;
-    return (unsigned)((elapsed * 15734) / 1000000000) & 65535;
+    lines += 8;
+    return lines < 263 ? (int)lines : 262; /* an NTSC field's lines */
 }
 int func_800E45B4(void)
 {
