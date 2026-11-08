@@ -14,11 +14,11 @@ pub fn loadScreff2(load: c_int) callconv(.c) void {
         file.lba = 135000;
         file.size = 4096;
         psx.put(&p.slot, @as(?*v.vs_main_CdQueueSlot, @ptrCast(c.vs_main_allocateCdQueueSlot(@ptrCast(&file)))));
-        c.vs_main_cdEnqueue(@ptrCast(psx.get(p.slot)), v.g.vs_overlay_slots()[1]);
+        c.vs_main_cdEnqueue(@ptrCast(@alignCast(psx.get(p.slot))), v.g.vs_overlay_slots()[1]);
         return;
     }
     if (psx.get(p.slot).?.state == 4) {
-        c.vs_main_freeCdQueueSlot(@ptrCast(psx.get(p.slot)));
+        c.vs_main_freeCdQueueSlot(@ptrCast(@alignCast(psx.get(p.slot))));
         p.unk0 = 0;
         c.vs_main_wait();
     }

@@ -50,7 +50,7 @@ from ui_loot_smoke import Loot, CURE_ROOT, CURE_BULB, MISC  # noqa: E402
 CLOSED = 0x3F
 CATEGORIES = ["weapons", "blades", "grips", "shields", "armor", "gems", "misc"]
 MISC_IDX = 112        # vs_main_inventoryIndices: the misc list (64 entries)
-SLOT = 20             # sizeof vs_main_CdQueueSlot
+SLOT = 24             # sizeof vs_main_CdQueueSlot
 LOADING = "Loading"
 SETTLE = 60           # vsyncs a check waits after opening a category
 LONGEST = 10          # the longest wait for MAINMENU a menu open may take (ticks; 2 or 3 seen)

@@ -19,5 +19,5 @@ pub fn loadMpd(id: c_int) callconv(.c) void {
         c.vs_main_nop9(0x8A, 0);
     }
     psx.put(&zone.mpdData, c.vs_main_allocHeapR(psx.conv(c_uint, file.size)));
-    c.vs_main_cdEnqueuePriority(@ptrCast(psx.get(zone.mpdCdFile)), psx.get(zone.mpdData));
+    c.vs_main_cdEnqueuePriority(@ptrCast(@alignCast(psx.get(zone.mpdCdFile))), psx.get(zone.mpdData));
 }

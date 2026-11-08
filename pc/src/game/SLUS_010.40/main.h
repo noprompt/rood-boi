@@ -39,9 +39,8 @@ typedef struct {
     short priority;
     vs_main_CdFile cdFile;
     int unkC;
-    psx_ptr(void) vram;
+    void* vram;
 } vs_main_CdQueueSlot;
-PSX_ASSERT_SIZE(vs_main_CdQueueSlot, 0x14);
 
 enum actions_e { vs_main_actions_daggerArt1 = 184 };
 
@@ -122,12 +121,13 @@ typedef struct {
 PSX_ASSERT_SIZE(soundData_t, 0x88);
 
 typedef struct vs_main_HeapHeader {
-    psx_ptr(struct vs_main_HeapHeader) prev;
-    psx_ptr(struct vs_main_HeapHeader) next;
+    struct vs_main_HeapHeader* prev;
+    struct vs_main_HeapHeader* next;
     u_int blockSz;
     int unkC;
 } vs_main_HeapHeader;
-PSX_ASSERT_SIZE(struct vs_main_HeapHeader, 0x10);
+/* The heap's unit: blockSz counts these, and a block's header is one. */
+#define VS_HEAP_UNIT sizeof(vs_main_HeapHeader)
 
 typedef struct {
     u_char unk0_0 : 4;

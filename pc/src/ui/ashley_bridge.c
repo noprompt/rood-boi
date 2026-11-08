@@ -505,20 +505,20 @@ static void turn(void)
 /* Room left for allocations the count below does not know about. */
 #define HEAP_MARGIN 0x1000
 
-/* What vs_main_allocHeap takes for size bytes: 16-byte units plus its header. */
-static u_int heap_units(u_int size) { return ((size + 15) >> 4) + 1; }
+/* What vs_main_allocHeap takes for size bytes: heap units plus its header. */
+static u_int heap_units(u_int size) { return (size + VS_HEAP_UNIT - 1) / VS_HEAP_UNIT + 1; }
 
 /* The largest free block in heap units, walking the free list as
  * vs_main_allocHeap does (circular through heapA, whose own size is 0). */
 static u_int heap_largest(void)
 {
-    vs_main_HeapHeader* h = psx_get(heapA.next);
+    vs_main_HeapHeader* h = heapA.next;
     u_int best = 0;
     int guard;
     for (guard = 0; h && h != &heapA && guard < 0x10000; ++guard) {
         if (h->blockSz > best)
             best = h->blockSz;
-        h = psx_get(h->next);
+        h = h->next;
     }
     return best;
 }
@@ -604,8 +604,8 @@ static void publish(void)
     snap.model_yaw = model.yaw;
     snap.model_pitch = model.pitch;
     snap.model_blocked = model.state ? PC_UI_MODEL_OK : model.blocked;
-    snap.heap_free = (int)(heap_largest() * 16);
-    snap.heap_need = (int)(model.need * 16);
+    snap.heap_free = (int)(heap_largest() * VS_HEAP_UNIT);
+    snap.heap_need = (int)(model.need * VS_HEAP_UNIT);
     if (model.state)
         vs_main_memcpy(snap.model_rect, model.rect, sizeof snap.model_rect);
     else

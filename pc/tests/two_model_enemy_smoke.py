@@ -82,16 +82,8 @@ def main():
         return [int.from_bytes(raw[i * ptr:(i + 1) * ptr], "little") for i in range(16)]
 
     def heap_free():
-        """Free 16-byte blocks on the game heap (heapA's circular free list)."""
-        head = symbols()["heapA"]
-        raw = game.read_symbol("heapA", 12)
-        node, total = struct.unpack_from("<I", raw, 4)[0], 0
-        for _ in range(4096):
-            if node == head or node == 0:
-                break
-            total += u32(node + 8)
-            node = u32(node + 4)
-        return total
+        """Free blocks on the game heap (heapA's circular free list)."""
+        return game.heap_free()
 
     try:
         check(game.state().get("player") is not None, "continued into gameplay")

@@ -36,7 +36,7 @@ fn loadZnd(id: c_int) void {
         c.vs_main_nop9(0x88, 0);
     }
     psx.put(&zone.zndData, c.vs_main_allocHeapR(psx.conv(c_uint, file.size)));
-    c.vs_main_cdEnqueuePriority(@ptrCast(psx.get(zone.zndCdFile)), psx.get(zone.zndData));
+    c.vs_main_cdEnqueuePriority(@ptrCast(@alignCast(psx.get(zone.zndCdFile))), psx.get(zone.zndData));
     if (zone.unk30 != 0) {
         const music: c_int = psx.at(psx.globalMany(u8, "D_8004FCCC"), id).*;
         if (c.vs_main_getCurrentMusicId() != music) {

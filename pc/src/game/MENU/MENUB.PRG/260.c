@@ -1111,7 +1111,7 @@ static void _applyAllLootLists(vs_battle_lootListNode* node)
     if (node != NULL) {
         while (node != NULL) {
             _applyLootList(&node->loot);
-            node = psx_get(node->next);
+            node = node->next;
         }
     } else {
         _applyLootList(D_800EB9C8);

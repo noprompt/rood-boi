@@ -209,8 +209,42 @@ pub inline fn lowRam(comptime T: type) *align(1) T {
     return @ptrFromInt(0x8000_0000);
 }
 
+/// Struct names, one per line (or `raw`: base types of one byte, void, integers), that `byteAt` rejects at
+/// compile time. Empty except while pc/tools/pointer_sites.py runs: it lists every site that reaches a struct
+/// by byte offset, which a changed layout would read wrongly without any compile error.
+const audit = @embedFile("psx_audit.txt");
+
+fn auditBase(comptime Base: type) void {
+    @setEvalBranchQuota(100_000);
+    const T = switch (@typeInfo(Base)) {
+        .pointer => |p| p.child,
+        .optional => |o| switch (@typeInfo(o.child)) {
+            .pointer => |p| p.child,
+            else => o.child,
+        },
+        else => Base,
+    };
+    const name = @typeName(T);
+    const is_raw = switch (@typeInfo(T)) {
+        .int => true,
+        .@"opaque" => true,
+        .array => |a| @typeInfo(a.child) == .int,
+        else => false,
+    };
+    var lines = std.mem.tokenizeScalar(u8, audit, '\n');
+    while (lines.next()) |line| {
+        const hit = if (std.mem.eql(u8, line, "raw"))
+            is_raw
+        else
+            std.mem.eql(u8, name, line) or std.mem.endsWith(u8, name, "." ++ line) or
+                std.mem.endsWith(u8, name, ".struct_" ++ line);
+        if (hit) @compileError("byteAt: base " ++ name);
+    }
+}
+
 /// `(T*)((char*)base + off)`: an unaligned view at a byte offset.
 pub inline fn byteAt(comptime T: type, base: anytype, off: isize) *align(1) T {
+    if (comptime audit.len != 0) comptime auditBase(@TypeOf(base));
     return @ptrFromInt(@intFromPtr(base) +% @as(usize, @bitCast(off)));
 }
 
@@ -268,7 +302,10 @@ pub fn cptr(comptime CT: type, p: anytype) [*c]CT {
         if (@typeInfo(CT) != .@"opaque" and @sizeOf(CT) != @sizeOf(VT))
             @compileError("psx.cptr: " ++ vn ++ " and " ++ cn ++ " differ in size");
     }
-    return @ptrCast(p);
+    // A guest pointer type is only 4-aligned (GuestPtr); the C type may need more.
+    const have = @typeInfo(@TypeOf(p)).pointer.attrs.@"align" orelse @alignOf(VT);
+    const need = if (@typeInfo(CT) == .@"opaque") 1 else @alignOf(CT);
+    return if (comptime have >= need) @ptrCast(p) else @ptrCast(@alignCast(p));
 }
 
 test "Ptr is 4 bytes and round-trips a low address" {

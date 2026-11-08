@@ -46,7 +46,7 @@ pub fn loadMenuPrg(request: c_int) callconv(.c) c_int {
         else
             v.g.vs_overlay_slots()[2];
 
-        c.vs_main_cdEnqueue(@ptrCast(psx.get(state.cdQueue)), overlaySlot);
+        c.vs_main_cdEnqueue(@ptrCast(@alignCast(psx.get(state.cdQueue))), overlaySlot);
     }
 
     if (state.loading == 0) {
@@ -64,7 +64,7 @@ pub fn loadMenuPrg(request: c_int) callconv(.c) c_int {
     // The C dereferences the queue slot unconditionally.
     const slot = psx.get(state.cdQueue).?;
     if (@as(c_int, slot.state) == c.vs_main_CdQueueStateLoaded) {
-        c.vs_main_freeCdQueueSlot(@ptrCast(slot));
+        c.vs_main_freeCdQueueSlot(@ptrCast(@alignCast(slot)));
         c.vs_main_wait();
 
         state.loading = 0;

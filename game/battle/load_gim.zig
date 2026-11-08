@@ -30,6 +30,6 @@ pub fn loadGim(id: c_int, palette: c_int) callconv(.c) void {
         file.size = @as(c_int, psx.conv(u8, psx.at(lbas, id).*)) << 0xB;
         const first = v.g.D_800EB9BC().*.?;
         psx.put(&first.cdQueueSlot, @as(?*v.vs_main_CdQueueSlot, @ptrCast(c.vs_main_allocateCdQueueSlot(@ptrCast(&file)))));
-        c.vs_main_cdEnqueue(@ptrCast(psx.get(first.cdQueueSlot)), psx.get(first.data));
+        c.vs_main_cdEnqueue(@ptrCast(@alignCast(psx.get(first.cdQueueSlot))), psx.get(first.data));
     }
 }

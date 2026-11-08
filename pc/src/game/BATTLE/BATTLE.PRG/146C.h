@@ -785,11 +785,10 @@ typedef struct {
 } vs_battle_menu9CursorMemory_t;
 
 typedef struct vs_battle_lootListNode {
-    psx_ptr(struct vs_battle_lootListNode) next;
+    struct vs_battle_lootListNode* next;
     int actorId;
     vs_battle_loot loot;
 } vs_battle_lootListNode;
-PSX_ASSERT_SIZE(struct vs_battle_lootListNode, 0x228);
 
 typedef struct {
     POLY_F4 covered;

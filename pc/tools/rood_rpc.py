@@ -76,6 +76,9 @@ _headless = None
 PROFILE = os.environ.get("ROOD_RPC_PROFILE")  # Game.call timing log (profile_report.py)
 
 
+HEAP_POINTER = 8  # a vs_main_HeapHeader link, in bytes (main.h)
+
+
 def symbols():
     """Game symbols -> addresses (native build is non-PIE, so nm is exact)."""
     global _symbols
@@ -678,6 +681,18 @@ class Game:
     def u32(self, name_or_address):
         a = symbols()[name_or_address] if isinstance(name_or_address, str) else name_or_address
         return int.from_bytes(self.read(a, 4), "little")
+
+    def heap_free(self):
+        """The game heap's free total in heap units: heapA's circular free list of vs_main_HeapHeader
+        (prev, next, blockSz: one pointer is HEAP_POINTER bytes; the addresses fit in 32 bits)."""
+        head = symbols()["heapA"]
+        node, total = self.u32(head + HEAP_POINTER), 0
+        for _ in range(4096):
+            if node in (head, 0):
+                break
+            total += self.u32(node + 2 * HEAP_POINTER)
+            node = self.u32(node + HEAP_POINTER)
+        return total
 
     def wait_title(self, timeout=120):
         """Run until the title menu is ready (log marker), then pause.

@@ -81,11 +81,11 @@ pub fn func_800775C0(id: c_int, spawn: ?*v.mpdEnemySpawn, init: ?*v.vs_battle_ch
         }
         psx.put(&zone.unk18, @as(?*v.vs_main_CdQueueSlot, @ptrCast(@alignCast(c.vs_main_allocateCdQueueSlot(@ptrCast(&file))))));
         psx.put(&zone.unk1C, c.vs_main_allocHeapR(psx.conv(c_uint, file.size)));
-        c.vs_main_cdEnqueuePriority(@ptrCast(psx.get(zone.unk18)), psx.get(zone.unk1C));
+        c.vs_main_cdEnqueuePriority(@ptrCast(@alignCast(psx.get(zone.unk18))), psx.get(zone.unk1C));
         while (psx.get(zone.unk18).?.state != 4) {
             _ = c.vs_main_gametimeUpdate(0);
         }
-        c.vs_main_freeCdQueueSlot(@ptrCast(psx.get(zone.unk18)));
+        c.vs_main_freeCdQueueSlot(@ptrCast(@alignCast(psx.get(zone.unk18))));
         psx.put(&zone.unk18, null);
         zone.unk14 = zudIndex +% 1;
     }

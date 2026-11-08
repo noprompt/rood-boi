@@ -32,22 +32,22 @@ pub fn dropLoot(enemy: ?*v.vs_battle_actor) callconv(.c) void {
     lootList.actorId |= c._dropMiscRand(@ptrCast(&lootList.loot), @ptrCast(&temp_s2.unk960));
 
     if (lootList.actorId != 0) {
-        var node: ?*v.vs_battle_lootListNode = v.g._lootListHead().*;
+        var node: ?*align(4) v.vs_battle_lootListNode = v.g._lootListHead().*;
         var insertLoot: c_int = 1;
 
         while (node != null) {
             if (node.?.actorId == e.id) {
                 insertLoot = 0;
             }
-            node = psx.get(node.?.next);
+            node = node.?.next;
         }
 
         if (insertLoot != 0) {
             const actorId = e.id;
-            const next: ?*v.vs_battle_lootListNode = v.g._lootListHead().*;
+            const next: ?*align(4) v.vs_battle_lootListNode = v.g._lootListHead().*;
             v.g._lootListHead().* = lootList;
             lootList.actorId = actorId;
-            psx.put(&lootList.next, next);
+            lootList.next = next;
             return;
         }
     }

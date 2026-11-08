@@ -32,7 +32,7 @@ pub fn func_8007BA98(id0: c_int, count0: c_int, id1: c_int, count1: c_int) callc
             const old_head = v.g._lootListHead().*;
             node.actorId = 0xFF;
             v.g._lootListHead().* = node;
-            psx.put(&node.next, old_head);
+            node.next = old_head;
         } else {
             c.vs_main_freeHeapR(node);
         }

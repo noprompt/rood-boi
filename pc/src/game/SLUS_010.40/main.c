@@ -7968,17 +7968,19 @@ int vs_main_statusEffectParams[][4] = { { 1, 0, 4096, 0 }, { 2, 0, 0, 0 }, { 4, 
 */
 
 extern int randArr[97];
-extern vs_main_HeapHeader* _cdReadBuffer;
+extern u_char* _cdReadBuffer;
 extern padAct_t _padAct[2];
-extern vs_main_HeapHeader heapA;
-extern vs_main_HeapHeader heapB;
+/* The heap's two list heads: native, the header holds real pointers. */
+vs_main_HeapHeader heapA;
+vs_main_HeapHeader heapB;
 extern int randIndex;
 extern DslLOC cdReadLoc;
 extern int D_800501CC;
 extern int D_800501D0;
 extern int D_800501D4;
 extern int D_800501D8;
-extern vs_main_CdQueueSlot _cdQueue[32];
+/* Native: a slot holds a real pointer. */
+vs_main_CdQueueSlot _cdQueue[32];
 extern struct {
     short processing;
     short queued;
@@ -8928,66 +8930,66 @@ int vs_main_processPadState(void)
 
 void vs_main_freeHeapR(void* block)
 {
-    vs_main_HeapHeader* var_a1 = psx_get(heapA.prev);
+    vs_main_HeapHeader* var_a1 = heapA.prev;
     vs_main_HeapHeader* target = (vs_main_HeapHeader*)block - 1;
 
-    for (; var_a1 >= target || target >= psx_get(var_a1->next);
-        var_a1 = psx_get(var_a1->prev)) {
-        if (var_a1 >= psx_get(var_a1->next)
-            && ((var_a1 < target) || (target < psx_get(var_a1->next)))) {
+    for (; var_a1 >= target || target >= var_a1->next;
+        var_a1 = var_a1->prev) {
+        if (var_a1 >= var_a1->next
+            && ((var_a1 < target) || (target < var_a1->next))) {
             break;
         }
     }
 
-    if ((target + target->blockSz) == psx_get(var_a1->next)) {
-        target->blockSz += psx_get(var_a1->next)->blockSz;
-        psx_copy(target->next, psx_get(var_a1->next)->next);
-        psx_set(psx_get(target->next)->prev, target);
+    if ((target + target->blockSz) == var_a1->next) {
+        target->blockSz += var_a1->next->blockSz;
+        target->next = var_a1->next->next;
+        target->next->prev = target;
     } else {
-        psx_copy(target->next, var_a1->next);
-        psx_set(psx_get(target->next)->prev, target);
+        target->next = var_a1->next;
+        target->next->prev = target;
     }
 
     if ((var_a1 + var_a1->blockSz) == target) {
         var_a1->blockSz += target->blockSz;
-        psx_copy(var_a1->next, target->next);
-        psx_set(psx_get(var_a1->next)->prev, var_a1);
+        var_a1->next = target->next;
+        var_a1->next->prev = var_a1;
         return;
     }
-    psx_set(var_a1->next, target);
-    psx_set(target->prev, var_a1);
+    var_a1->next = target;
+    target->prev = var_a1;
 }
 
 void vs_main_freeHeap(void* block)
 {
-    vs_main_HeapHeader* var_a1 = psx_get(heapA.next);
+    vs_main_HeapHeader* var_a1 = heapA.next;
     vs_main_HeapHeader* target = (vs_main_HeapHeader*)block - 1;
 
-    for (; var_a1 >= target || target >= psx_get(var_a1->next);
-        var_a1 = psx_get(var_a1->next)) {
-        if (var_a1 >= psx_get(var_a1->next)
-            && ((var_a1 < target) || (target < psx_get(var_a1->next)))) {
+    for (; var_a1 >= target || target >= var_a1->next;
+        var_a1 = var_a1->next) {
+        if (var_a1 >= var_a1->next
+            && ((var_a1 < target) || (target < var_a1->next))) {
             break;
         }
     }
 
-    if ((target + target->blockSz) == psx_get(var_a1->next)) {
-        target->blockSz += psx_get(var_a1->next)->blockSz;
-        psx_copy(target->next, psx_get(var_a1->next)->next);
-        psx_set(psx_get(target->next)->prev, target);
+    if ((target + target->blockSz) == var_a1->next) {
+        target->blockSz += var_a1->next->blockSz;
+        target->next = var_a1->next->next;
+        target->next->prev = target;
     } else {
-        psx_copy(target->next, var_a1->next);
-        psx_set(psx_get(target->next)->prev, target);
+        target->next = var_a1->next;
+        target->next->prev = target;
     }
 
     if ((var_a1 + var_a1->blockSz) == target) {
         var_a1->blockSz += target->blockSz;
-        psx_copy(var_a1->next, target->next);
-        psx_set(psx_get(var_a1->next)->prev, var_a1);
+        var_a1->next = target->next;
+        var_a1->next->prev = var_a1;
         return;
     }
-    psx_set(var_a1->next, target);
-    psx_set(target->prev, var_a1);
+    var_a1->next = target;
+    target->prev = var_a1;
 }
 
 void* vs_main_allocHeapR(u_int size)
@@ -8996,15 +8998,15 @@ void* vs_main_allocHeapR(u_int size)
     vs_main_HeapHeader* var_a2;
     u_int blockSz;
 
-    blockSz = ((size + 15) >> 4) + 1;
+    blockSz = (size + VS_HEAP_UNIT - 1) / VS_HEAP_UNIT + 1;
     var_a2 = &heapA;
-    var_a1 = psx_get(heapA.prev);
+    var_a1 = heapA.prev;
 
     while (1) {
         if (var_a1->blockSz >= blockSz) {
             if (var_a1->blockSz == blockSz) {
-                psx_copy(var_a2->prev, var_a1->prev);
-                psx_copy(psx_get(var_a1->prev)->next, var_a1->next);
+                var_a2->prev = var_a1->prev;
+                var_a1->prev->next = var_a1->next;
             } else {
                 var_a1->blockSz = var_a1->blockSz - blockSz;
                 var_a1 += var_a1->blockSz;
@@ -9016,7 +9018,7 @@ void* vs_main_allocHeapR(u_int size)
         if (var_a1 == &heapA) {
             return 0;
         }
-        var_a1 = psx_get(var_a1->prev);
+        var_a1 = var_a1->prev;
     }
 }
 
@@ -9027,21 +9029,21 @@ void* vs_main_allocHeap(u_int size)
     vs_main_HeapHeader* var_v1;
 
     var_v1 = &heapA;
-    var_a1 = psx_get(heapA.next);
-    blockSz = ((size + 0xF) >> 4) + 1;
+    var_a1 = heapA.next;
+    blockSz = (size + VS_HEAP_UNIT - 1) / VS_HEAP_UNIT + 1;
 
     while (1) {
         if (var_a1->blockSz >= blockSz) {
             if (var_a1->blockSz == blockSz) {
-                psx_copy(var_v1->next, var_a1->next);
-                psx_copy(psx_get(var_a1->next)->prev, var_a1->prev);
+                var_v1->next = var_a1->next;
+                var_a1->next->prev = var_a1->prev;
             } else {
                 vs_main_HeapHeader* temp_v1 = var_a1 + blockSz;
                 temp_v1->blockSz = var_a1->blockSz - blockSz;
-                psx_copy(temp_v1->prev, var_a1->prev);
-                psx_copy(temp_v1->next, var_a1->next);
-                psx_set(psx_get(temp_v1->prev)->next, temp_v1);
-                psx_set(psx_get(temp_v1->next)->prev, temp_v1);
+                temp_v1->prev = var_a1->prev;
+                temp_v1->next = var_a1->next;
+                temp_v1->prev->next = temp_v1;
+                temp_v1->next->prev = temp_v1;
                 var_a1->blockSz = blockSz;
             }
             return (u_long*)(var_a1 + 1);
@@ -9050,20 +9052,20 @@ void* vs_main_allocHeap(u_int size)
         if (var_a1 == &heapA) {
             return 0;
         }
-        var_a1 = psx_get(var_a1->next);
+        var_a1 = var_a1->next;
     }
 }
 
 void vs_main_initHeap(vs_main_HeapHeader* node, u_int value)
 {
-    psx_set(heapA.prev, node);
-    psx_set(heapA.next, node);
+    heapA.prev = node;
+    heapA.next = node;
     heapA.blockSz = 0;
-    psx_set(node->prev, &heapA);
-    psx_set(node->next, &heapA);
-    node->blockSz = value / 16 - 1;
-    psx_set(heapB.prev, &heapB);
-    psx_set(heapB.next, &heapB);
+    node->prev = &heapA;
+    node->next = &heapA;
+    node->blockSz = value / VS_HEAP_UNIT - 1;
+    heapB.prev = &heapB;
+    heapB.next = &heapB;
     heapB.blockSz = 0;
 }
 
@@ -9088,7 +9090,7 @@ static void _diskReadCallback(u_char intr, u_char result[] __attribute__((unused
     if (vs_main_disk.bufferMode == cdBufferModeNone) {
         DsGetSector(psx_get(vs_main_disk.vram) + vs_main_disk.sectorBufIndex * 2048, 512);
     } else {
-        DsGetSector(_cdReadBuffer + vs_main_disk.unk3C * 128, 512);
+        DsGetSector(_cdReadBuffer + vs_main_disk.unk3C * 2048, 512);
         if (++vs_main_disk.unk3C >= 16) {
             vs_main_disk.unk3C = 0;
         }
@@ -9363,7 +9365,7 @@ static void func_800443CC(void)
             if (vs_main_disk.bufferMode == cdBufferModeBuffered) {
                 vs_main_memcpy(((char*)psx_get(vs_main_disk.vram)
                                    + (vs_main_disk.sectorBufIndex * 2048)),
-                    _cdReadBuffer + (vs_main_disk.ringBufIndex * 128), 2048);
+                    _cdReadBuffer + (vs_main_disk.ringBufIndex * 2048), 2048);
 
                 ++vs_main_disk.ringBufIndex;
                 if (vs_main_disk.ringBufIndex >= 16) {
@@ -9498,7 +9500,7 @@ void vs_main_freeCdQueueSlot(vs_main_CdQueueSlot* slot)
 void vs_main_cdEnqueue(vs_main_CdQueueSlot* slot, void* vram)
 {
     slot->state = vs_main_CdQueueStateEnqueued;
-    psx_set(slot->vram, vram);
+    slot->vram = vram;
     slot->unkC = 0;
     slot->priority = _cdQueueCount.queued++;
 }
@@ -9514,7 +9516,7 @@ void vs_main_cdEnqueuePriority(vs_main_CdQueueSlot* slot, void* vram)
         }
     }
     slot->state = vs_main_CdQueueStateEnqueued;
-    psx_set(slot->vram, vram);
+    slot->vram = vram;
     slot->unkC = 0;
     slot->priority = 0;
     ++_cdQueueCount.queued;
@@ -9535,7 +9537,7 @@ static void _processCdQueue(void)
                     if (slot->priority == 0) {
                         slot->state = vs_main_CdQueueStateReading;
                         _diskInitRead(
-                            slot->cdFile.lba, slot->cdFile.size, psx_get(slot->vram));
+                            slot->cdFile.lba, slot->cdFile.size, slot->vram);
                         vs_main_disk.framesSinceLastRead = 0;
                         --_cdQueueCount.queued;
                         ++_cdQueueCount.processing;
@@ -9561,7 +9563,7 @@ int pc_cd_queue_load(vs_main_CdQueueSlot* slot)
         || _diskGetState() != diskIdle) {
         return 0;
     }
-    _diskInitRead(slot->cdFile.lba, slot->cdFile.size, psx_get(slot->vram));
+    _diskInitRead(slot->cdFile.lba, slot->cdFile.size, slot->vram);
     vs_main_disk.framesSinceLastRead = 0;
     --_cdQueueCount.queued;
     slot->state = vs_main_CdQueueStateLoaded;

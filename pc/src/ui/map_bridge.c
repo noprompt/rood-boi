@@ -54,15 +54,15 @@ extern vs_main_HeapHeader heapA; /* main.c: the game heap's free list (vs_main_a
  * "map_heap_free", so a test sees the map screen give back what it took. */
 int pc_ui_map_heap_free(void)
 {
-    vs_main_HeapHeader* h = psx_get(heapA.next);
+    vs_main_HeapHeader* h = heapA.next;
     u_int best = 0;
     int guard;
     for (guard = 0; h && h != &heapA && guard < 0x10000; ++guard) {
         if (h->blockSz > best)
             best = h->blockSz;
-        h = psx_get(h->next);
+        h = h->next;
     }
-    return (int)(best * 16);
+    return (int)(best * VS_HEAP_UNIT);
 }
 
 static int pending_tab = -1; /* a tab click (or the list's L1 / R1): the shell reopens there */

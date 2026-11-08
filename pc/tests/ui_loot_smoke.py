@@ -239,15 +239,7 @@ class Session:
         return int.from_bytes(self.g.read(address, 4), "little")
 
     def heap_free(self):
-        """The game heap's free total (heapA's circular free list: +4 next, +8 the block's size)."""
-        head = self.sym["heapA"]
-        node, total = self.u32(head + 4), 0
-        for _ in range(4096):
-            if node in (head, 0):
-                break
-            total += self.u32(node + 8)
-            node = self.u32(node + 4)
-        return total
+        return self.g.heap_free()
 
     def field_mode(self):
         return self.u32(self.sym["D_800F196C"])

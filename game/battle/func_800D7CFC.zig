@@ -12,11 +12,11 @@ fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
         cd_file.lba = psx.conv(@TypeOf(cd_file.lba), lba);
         cd_file.size = psx.conv(@TypeOf(cd_file.size), size);
         cur.* = @ptrCast(c.vs_main_allocateCdQueueSlot(&cd_file));
-        c.vs_main_cdEnqueue(@ptrCast(cur.*), buf);
+        c.vs_main_cdEnqueue(@ptrCast(@alignCast(cur.*)), buf);
         return 1;
     }
 
-    const slot: [*c]c.vs_main_CdQueueSlot = @ptrCast(cur.*.?);
+    const slot: [*c]c.vs_main_CdQueueSlot = @ptrCast(@alignCast(cur.*.?));
     if (slot.*.state == c.vs_main_CdQueueStateLoaded) {
         c.vs_main_freeCdQueueSlot(slot);
         cur.* = null;

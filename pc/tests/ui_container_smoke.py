@@ -200,14 +200,7 @@ class Session:
         return self.g.call("card")["writes"]
 
     def heap_free(self):
-        head = self.sym["heapA"]
-        node, total = self.u32(head + 4), 0
-        for _ in range(4096):
-            if node in (head, 0):
-                break
-            total += self.u32(node + 8)
-            node = self.u32(node + 4)
-        return total
+        return self.g.heap_free()
 
     def item_state(self, i):
         items = self.ptr("vs_battle_menuItems")

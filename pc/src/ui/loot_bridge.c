@@ -432,7 +432,7 @@ static void apply_all(vs_battle_lootListNode* node) /* _applyAllLootLists 1077 *
     if (node != NULL) {
         while (node != NULL) {
             apply_list(&node->loot);
-            node = psx_get(node->next);
+            node = node->next;
         }
     } else {
         apply_list(D_800EB9C8);
@@ -1373,7 +1373,7 @@ int pc_ui_loot_debug_open(const unsigned char* data, int nodes, int chest)
         if (node == NULL) {
             while (_lootListHead != head) {
                 node = _lootListHead;
-                _lootListHead = psx_get(node->next);
+                _lootListHead = node->next;
                 vs_main_freeHeapR(node);
             }
             return 0;
@@ -1381,7 +1381,7 @@ int pc_ui_loot_debug_open(const unsigned char* data, int nodes, int chest)
         vs_main_bzero(node, sizeof *node);
         vs_battle_memcpy(&node->loot, data + i * sizeof node->loot, sizeof node->loot);
         node->actorId = 0xFF;
-        psx_set(node->next, _lootListHead);
+        node->next = _lootListHead;
         _lootListHead = node;
     }
     func_800CB158(_lootListHead);

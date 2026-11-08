@@ -213,14 +213,7 @@ class Run:
         return tuple(self.g.read(self.sym["vs_main_stateFlags"] + f, 1)[0] for f in FLAGS)
 
     def heap_free(self):
-        head = self.sym["heapA"]
-        node, total = self.u32(head + 4), 0
-        for _ in range(4096):
-            if node in (head, 0):
-                break
-            total += self.u32(node + 8)
-            node = self.u32(node + 4)
-        return total
+        return self.g.heap_free()
 
     def clean(self):
         """What a finished action leaves (each should be its idle value)."""
