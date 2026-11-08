@@ -240,6 +240,44 @@ class Tests(unittest.TestCase):
                 memory[:] = wrong
                 self.assertFalse(scenario.witness(game)["ok"])
 
+    def test_menu_recipes_add_up_and_witness_exactly(self):
+        import tempfile
+        names = [n for n in scenarios.SCENARIOS if n.startswith("menu_") and n in scenarios.IMPLEMENTED]
+        self.assertEqual(len(names), 5)
+        for name in names:
+            scenario = scenarios.SCENARIOS[name]
+            self.assertEqual(scenario.ticks, scenarios.vsyncs_of(scenario.steps))
+            self.assertTrue(scenario.loads and scenario.expected, name)
+        scenario = scenarios.SCENARIOS["menu_equip_setup"]
+        data = {"hp": 157, "menu": [63, 0, 0, 0], "submenus": [0] * 8, "settings": "", "option_flags": 0x30,
+                "mapped_abilities": [0] * 8, "weapons": [1, 0, 0, 0, 0, 0, 0, 0],
+                "shields": [0, 1, 0, 0, 0, 0, 0, 0], "misc": []}
+        lines = "".join(f"[disc] LBA {lba}, 2048 bytes -> 0x1\n" for lba in (85000, 104291, 85049, 85255, 85049))
+        with tempfile.NamedTemporaryFile("w+") as log:
+            game = SimpleNamespace(log=log.name)
+            log.write("[disc] LBA 85000, 1 bytes -> 0x1\n")  # before the baseline
+            log.flush()
+            with patch.object(scenarios, "dump", lambda game: dict(data)):
+                scenario.reset_witness(game)
+                log.write(lines)
+                log.flush()
+                self.assertTrue(scenario.witness(game)["ok"])
+                data["shields"] = [1, 0, 0, 0, 0, 0, 0, 0]  # the equipment never changed
+                self.assertFalse(scenario.witness(game)["ok"])
+                data["shields"] = [0, 1, 0, 0, 0, 0, 0, 0]
+                log.write("[disc] LBA 85075, 2048 bytes -> 0x1\n")  # an overlay the recipe must not load
+                log.flush()
+                self.assertFalse(scenario.witness(game)["ok"])
+
+    def test_menu_overlay_sectors_match_the_split_when_present(self):
+        path = corpus.ROOT / "build/src/include/lbas.h"
+        if not path.exists():
+            self.skipTest("no split output")
+        text = path.read_text()
+        for lba, name in scenarios.MENU_OVERLAYS.items():
+            suffix = "MAINMENU_PRG" if name == "MAINMENU" else name + "_PRG"
+            self.assertIn(f"#define VS_{suffix}_LBA {lba}\n", text, name)
+
     def test_profile_has_classic_feature_gates(self):
         values = dict(line.split() for line in corpus.PROFILE.splitlines())
         for key in ("qol_skip_charging", "qol_fast_travel", "ui_menus", "widescreen", "camera_stick"):

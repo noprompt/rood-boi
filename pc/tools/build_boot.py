@@ -1069,7 +1069,17 @@ active = ownership_tool.Table([]) if not ZIG else ownership_table.for_build(
     {source for source, _ in sources}, {"battle"} if battle else set())
 
 
+source_names = dict(sources)
+# Units with a C copy (ownership.toml lang = "c"): their statics are shared
+# with the copy (ownership.share_statics). Unit -> the statics' link names.
+c_units = {s.unit for s in active.subsystems if s.lang == "c"}
+shared_statics = {}
+zig_active = active.zig_only()
+
+
 def route_definitions(text, source):
+    if source in c_units:
+        text, shared_statics[source] = ownership_tool.share_statics(text, source_names[source], copy=False)
     names = active.routed_names(source)
     if not names:
         return text
@@ -1102,7 +1112,12 @@ def pc_unit_statics(source, name, obj, pre, win_pre):
 
 
 game_objects = []  # objects of the game's (-nostdinc) units
-for source, name in sources:
+
+
+def preprocess_unit(source, name, rewrite):
+    """Preprocess a game unit (and its COFF twin's text), the routing's text
+    edits `rewrite(text)` applied: (pre, win_pre), or None when a pass failed
+    (recorded in arch64_results)."""
     cpp_args = [
         "-E",
         *game_cpp_flags,
@@ -1130,19 +1145,27 @@ for source, name in sources:
                                  capture_output=True, cwd=root)
         if win_cpp.returncode:
             arch64_results.append(("c", "win:" + source, win_cpp.returncode, win_cpp.stderr.decode(errors="replace")))
-            continue
+            return None
         win_pre = out / (name + ".win.i")
-        win_pre.write_bytes(route_definitions(lp64_longs(result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
+        win_pre.write_bytes(rewrite(lp64_longs(result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
                                                         files=sorted((root / "tools/etc").glob("vsString*.py")),
-                                                        input=win_cpp.stdout)), source))
+                                                        input=win_cpp.stdout))))
     if not coff and arch64 and cpp.returncode:  # record it and go on, like a compile error
         arch64_results.append(("c", source, cpp.returncode, cpp.stderr.decode(errors="replace")))
-        continue
+        return None
     pre = out / (name + ".i")
     if not coff:
         encoded = result_cache.run([sys.executable, "-m", "tools.etc.vsStringTransformer"], root,
                                    files=sorted((root / "tools/etc").glob("vsString*.py")), input=cpp.stdout)
-        pre.write_bytes(route_definitions(encoded, source))
+        pre.write_bytes(rewrite(encoded))
+    return pre, win_pre
+
+
+for source, name in sources:
+    preprocessed = preprocess_unit(source, name, lambda text: route_definitions(text, source))
+    if preprocessed is None:
+        continue
+    pre, win_pre = preprocessed
     obj = out / (name + ".o")
     # main.c and MAINMENU statics that only other code calls (by address on
     # the PS1) must survive compilation to be exposed below.
@@ -1202,6 +1225,43 @@ for source, name in sources:
         state_sections(obj)
         if source in pc_static_units:
             pc_unit_statics(source, name, obj, pre, win_pre)
+    if source in c_units:  # the copy links to these (they were renamed by share_statics)
+        objcopy([f"--globalize-symbol={n}" for n in shared_statics[source]], obj)
+    objects.append(obj)
+    game_objects.append(obj)
+# The C copies (ownership.toml lang = "c") are the owned side of their unit:
+# the unit's text rules with `__owned` for the routed functions, the unit's
+# statics extern (one storage with the original), the dialect the modern C
+# design asks for (pc/docs/plans/2026-11-06-modern-c-design.md).
+copy_flags = ["-std=gnu23" if f == "-std=gnu17" else f for f in flags]
+copies = {}
+for s in active.subsystems:
+    if s.lang == "c":
+        copies.setdefault((s.unit, s.copy), set()).update(n for _, n in s.functions)
+for (copy_unit, copy_source), copy_names in sorted(copies.items()):
+    def copy_text(text, unit=copy_unit, names=copy_names):
+        text, _ = ownership_tool.share_statics(text, source_names[unit], copy=True)
+        text, counts = ownership_tool.rename_definitions(text, names, suffix=b"__owned")
+        if any(count != 1 for count in counts.values()):
+            raise SystemExit(f"{copy_source}: expected one routed definition each: {counts}")
+        return text
+    copy_name = source_names[copy_unit] + "_copy"
+    preprocessed = preprocess_unit(copy_source, copy_name, copy_text)
+    if preprocessed is None:
+        continue
+    pre, win_pre = preprocessed
+    obj = out / (copy_name + ".o")
+    keep = ["-ftrivial-auto-var-init=zero"] if engine_library else []  # as the original (above)
+    if not compile_object(["gcc", *copy_flags, *keep, "-c", str(pre), "-o", str(obj)], copy_source,
+                          win_args=win_pre and ["gcc", *copy_flags, *keep, "-c", str(win_pre), "-o", str(obj)]):
+        continue
+    if not coff:
+        for line in query(["readelf", "-SW", str(obj)]).splitlines():
+            section = re.match(r"\s*\[\s*\d+\]\s+(\.(data|bss)(\.\S+)?)\s+\w+\s+\w+\s+\w+\s+(\w+)", line)
+            # .data.rel.ro: constant after relocation (switch tables under -fpie).
+            if section and int(section.group(4), 16) and not section.group(1).startswith(".data.rel.ro"):
+                raise SystemExit(f"{copy_source}: the copy holds state of its own ({section.group(1)}); "
+                                 "its unit's statics are shared, a new one has no owner yet")
     objects.append(obj)
     game_objects.append(obj)
 # Unit path -> the name of its objects here (battle_146C.o, battle_helpers.o): the
@@ -1243,11 +1303,11 @@ if ZIG:
     unit_names = dict(sources)
     generated = {}  # overlay -> {module: (path, deps)}, and the COFF twin's
     win_generated = {}
-    for owned_overlay in sorted({s.overlay for s in active.subsystems}):
+    for owned_overlay in sorted({s.overlay for s in zig_active.subsystems}):
         # Per-unit `views` (DWARF layouts, readable names from MEANINGS.tsv)
         # and `c` (translate-c of the routed .i): PORTING.md §2.
-        for unit in sorted({s.unit for s in active.subsystems if s.overlay == owned_overlay and s.views}):
-            subs = [s for s in active.subsystems if s.unit == unit and s.views]
+        for unit in sorted({s.unit for s in zig_active.subsystems if s.overlay == owned_overlay and s.views}):
+            subs = [s for s in zig_active.subsystems if s.unit == unit and s.views]
             types = sorted({t for s in subs for t in s.views.get("types", [])})
             names = sorted({n for s in subs for n in s.views.get("globals", [])})
             declarations = sorted({d for s in subs for d in s.views.get("declarations", [])})
@@ -1297,7 +1357,7 @@ if ZIG:
         # game_lib.py (hot swap) builds the same modules for the development library.
         (zig_dir / f"{owned_overlay}_modules.json").write_text(json.dumps(
             {name: [path, deps] for name, (path, deps) in generated.get(owned_overlay, {}).items()}, indent=1))
-    for owned_overlay in sorted({s.overlay for s in active.subsystems}):
+    for owned_overlay in sorted({s.overlay for s in zig_active.subsystems}):
         extra = generated.get(owned_overlay, {})
         modules = {
             "root": (f"game/{owned_overlay}/root.zig", ["common", "ownership", *sorted(extra)]),

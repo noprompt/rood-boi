@@ -35,6 +35,10 @@ headless mode): a new game binary replaces it. `run.py --clean` removes the
 test outputs (pc/tools/clean_build.py).
 
 Suites start longest first by the last run's times (<out>/durations.json).
+--budget MINUTES (verify.sh's quick lane): the selection is cut to fit, the
+shortest suites first by those times (unknown ones at a quarter of their
+timeout); the rest are named as deferred (<out>/deferred.txt) and left to the
+daily full lane, so a big change never makes the quick lane run for hours.
 --profile adds <suite>/rpc-profile.txt and python.prof (profile_report.py).
 
 The game binaries are not rebuilt here (pc/tools/build_boot.py --battle, and
@@ -1077,6 +1081,34 @@ def schedule(selected, timings, config):
     return first + rest
 
 
+def fit_budget(selected, timings, config, seconds):
+    """(kept, deferred): the selection cut to `seconds` of estimated time
+    (the last run's, else a quarter of the timeout), shortest first, in the
+    selection's order; snapshot_equivalence stays with the checkpoint suites
+    it makes save states for, and counts against the budget."""
+    try:
+        known = json.loads(timings.read_text()).get(config, {})
+    except (OSError, ValueError):
+        known = {}
+    def cost(suite):
+        return known.get(suite.name, suite.timeout / 4)
+    names = {s.name for s in selected}
+    used, keep = 0.0, set()
+    snapshot = next((s for s in selected if s.name == "snapshot_equivalence"), None)
+    for suite in sorted((s for s in selected if s is not snapshot), key=cost):
+        extra = cost(suite)
+        if snapshot and suite.name in CHECKPOINT_SUITES and snapshot.name not in keep:
+            extra += cost(snapshot)
+        if used + extra > seconds:
+            continue
+        used += extra
+        keep.add(suite.name)
+        if snapshot and suite.name in CHECKPOINT_SUITES:
+            keep.add(snapshot.name)
+    assert keep <= names
+    return [s for s in selected if s.name in keep], [s for s in selected if s.name not in keep]
+
+
 def record_durations(timings, config, results):
     try:
         data = json.loads(timings.read_text())
@@ -1205,6 +1237,9 @@ def make_parser():
                         help="verify.sh's quick lane (with --changed): long suites only when the change touches "
                              "them; Vulkan/null: the selection plus ctest/null_backend_smoke; GL: a sanity subset "
                              "plus what GL's own files select (affected.toml [quick])")
+    parser.add_argument("--budget", type=float, metavar="MINUTES",
+                        help="cut the selection to fit MINUTES of the last run's times, shortest first; the "
+                             "rest are deferred to the full lane (<out>/deferred.txt)")
     parser.add_argument("--nice", type=int, default=int(os.environ.get("ROOD_TEST_NICE", "10")),
                         help="CPU niceness of the suites (default 10; 0 = as is), with idle I/O priority and "
                              "a low GPU priority where the driver has one (ROOD_GPU_PRIORITY=low)")
@@ -1320,6 +1355,13 @@ def main():
             # it makes (or finds) the save states those suites resume
             wanted.add("snapshot_equivalence")
         selected = [s for s in selected if s.name in wanted]
+    deferred = []
+    if args.budget is not None:
+        selected, deferred = fit_budget(selected, OUT / "durations.json", f"{args.arch}-{args.renderer}-{mode}",
+                                        args.budget * 60)
+        if deferred:
+            print(f"--budget {args.budget:g} min: {len(selected)} suite(s) run, {len(deferred)} deferred to the "
+                  f"full lane: {', '.join(s.name for s in deferred)}")
     if args.list:
         for s in selected:
             print(f"{s.name:<45} {s.timeout:5.0f}s  {s.note}")
@@ -1331,6 +1373,7 @@ def main():
         print("no suites match", args.patterns)
         return 2
     OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / "deferred.txt").write_text("".join(f"{s.name}\n" for s in deferred))
     lock_file = open(OUT / ".lock", "w")
     try:
         fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)

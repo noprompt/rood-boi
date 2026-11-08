@@ -15,6 +15,7 @@ const unsigned pc_subsystem_count = 2;
 const char* const pc_subsystem_names[] = { "alpha", "beta" };
 const unsigned char pc_subsystem_defaults[] = { 0, 1 };
 const unsigned char pc_subsystem_dev_defaults[] = { 0, 1 }; /* (not the development host: unused) */
+const unsigned char pc_subsystem_native[] = { 0, 0 }; /* no C copies here */
 static int shadow_ready;
 int pc_shadow_available(void) { return shadow_ready; }
 void pc_unimplemented(const char* what) { (void)what; abort(); }

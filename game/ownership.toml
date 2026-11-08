@@ -9,6 +9,14 @@
 #             original | owned
 #   dev_default  the development host's instead (its owned code is a reloadable
 #             library, pc/src/game_host.inc); absent: default
+#   lang      zig (default) | c. A C subsystem's owned code is a C copy of its unit
+#             under game/ (modern C, pc/docs/plans/2026-11-06-modern-c-design.md):
+#             overlay is the game/ subdirectory, copy the file; the build renames its
+#             routed functions F__owned and shares the unit's statics with it
+#             (pc/tools/ownership.py share_statics). It is linked into the host: the
+#             development host's reloadable library holds no C copies, so its
+#             dev_default is original (ROOD_OWNER=name=owned runs the copy there too),
+#             and shadow mode is not available for it (alternate mode is).
 #   roots     pointer globals the field mapper follows (pc/tools/field_map.py), or
 #             TYPE@ADDRESS for a block the code addresses by number (the scratchpad)
 
@@ -2568,3 +2576,15 @@ functions = [
 [subsystem.d2_weapon_packets.views]
 types = []
 globals = []
+
+# The first C copy (modern C pilot): MENU1.PRG, the Break Arts menu. Its one global
+# function is routed; the file's other functions are static, called within the copy.
+[subsystem.menu1]
+overlay = "menu"
+lang = "c"
+unit = "src/MENU/MENU1.PRG/30.c"
+copy = "game/menu/menu1.c"
+default = "original"
+functions = [
+    { addr = 0x80103270, name = "vs_menu1_exec" },  # the Break Arts menu (state machine)
+]

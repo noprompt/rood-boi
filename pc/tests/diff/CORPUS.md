@@ -128,3 +128,54 @@ Do not use this partial corpus as a subsystem-flip gate.
   two kills (the kill counts per class, the streak, the streak score, the
   kill flags), `action_name_window` the exact text of its three name windows.
 
+
+## MENU recipes (the menu_* scenarios)
+
+For the MENU overlays' flip (pc/docs/plans/2026-11-06-modern-c-design.md): classic input only, from the
+`save_room` checkpoint (zone 9 room 17, the `inert` profile pins `ui_menus 0`), no setup before the mark.
+The field menu is opened with Triangle (its top level, `vs_battle_menuState.currentMenu` 0, is MAINMENU's
+own; `0x3F` is no menu). `vs_battle_loadMenuPrg` (BATTLE 5BF94.c) reads the overlay of the menu number
+`currentMenu & 0x3F` into overlay slot 2 (MAINMENU into slot 1) with the sector table `_menuLbas`
+(menuLbas.c); `vs_mainMenu_exec` (MAINMENU C48.c) dispatches to it.
+
+| menu number | overlay | the menu in the game | sector |
+| --- | --- | --- | --- |
+| 0 | MAINMENU | the command list (the top level), and every screen's shell | 85000 |
+| 1 | MENU0 | Magic (the spell class lists; Teleportation) | 85030 |
+| 2 | MENU1 | Break Arts | 85039 |
+| 3 | MENU2 | Battle Abilities (chain and defense lists, buttons assigned) | 85043 |
+| 4 | MENU3 | Items: Equip (the slots and their lists) and the MISC list of L2 + Up | 85049 |
+| 5 | MENU4 | Status | 85063 |
+| 6 | MENU5 | Map | 85075 |
+| 7 | MENU7 | Data: Save and Load (the card screens), Game Over's load, the container's save | 85126 |
+| 8 | MENU8 | Options (and the rename grid) | 85215 |
+| 9 | MENU9 | Score | 85222 |
+| 10 | MENUE | Quick Manual | 85300 |
+| 11 | (MENUA) | none: no overlay | |
+| 12 | MENUB | Loot (a chest, or what a defeated enemy leaves) | 85239 |
+| 13 | MENUC | Setup (Assemble, Attach Gems, Disassemble, Rename, Repair, Combine: the workshop) | 85255 |
+| 14 | MENUD | the storage container | 85285 |
+| 15 | MENUF | the loot and file screen after a fight | 85306 |
+
+Only the field menu's commands are reachable from this save: Magic and Break Arts rows are absent in it
+(MENU0, MENU1), the container, the loot and MENUF's screens need a box, a chest or a fight (not covered).
+
+Each recipe's witness is exact and has two parts: the MENU overlays the game read from the disc during the
+play, in order (the `[disc] LBA` lines of the game's log after the mark), and the game state its screens
+changed. A replay keeps only its end state, so a value a recipe changes and restores is witnessed by ending
+on the change.
+
+| recipe | vsyncs | overlays loaded | witness state |
+| --- | --- | --- | --- |
+| `menu_items_use` | 618 | MAINMENU, MAINMENU | L2 + Up, MISC list, Cure Root used: its count 12 -> 11, HP 208, menu closed |
+| `menu_equip_setup` | 1912 | MAINMENU, MENU3, MENUC, MENU3 | Items > Equip > Shield: Pelta Shield, Buckler, Pelta Shield; Setup (workshop caution): shield flags `[0,1,...]`, weapon unchanged, menu closed |
+| `menu_abilities_status` | 1215 | MAINMENU, MENU2, MENU4 | chain abilities on Circle and Triangle, defense abilities on Circle and Square (settings bytes), Status for Ashley and the dummy; menu closed |
+| `menu_map_score_manual` | 1758 | MAINMENU, MENU5, MENU9, MENUE | Map (pan, next area), Score, Quick Manual; HP unchanged, menu closed |
+| `menu_options_data` | 1728 | MAINMENU, MENU8, MENU7 | Options: a setting changed (first settings byte 0x30 -> 0x10); Data > Save > slot 1, cancel; Data > Load > slot 1's file list left open (currentMenu 0x47, substate 0x0A). The card is only read |
+
+```sh
+ROOD_HEADLESS=egl ROOD_RENDERER=vulkan ROOD_ARCH=64 python3 pc/tests/diff/differ.py battle_44F14 \
+  --profile inert --scenario menu_equip_setup --mode tick
+```
+
+`control` always runs first. The battle subsystem named there is only a vehicle: nothing MENU is routed yet.

@@ -9,7 +9,10 @@ owned code (game/):
     .inc the unit includes is made global the same way);
   - strip_bodies: the unit's declarations only (the input of zig translate-c);
   - routing_source: the trampolines (asm per ABI) and the subsystem tables;
-  - ownership_zig: the table as a comptime Zig module.
+  - ownership_zig: the table as a comptime Zig module;
+  - share_statics: for a `lang = "c"` subsystem (the owned code is a C copy of
+    the unit under game/), the unit's statics made global and the copy's
+    declared extern, so the two sides share one storage.
 """
 import dataclasses
 import pathlib
@@ -18,6 +21,7 @@ import tomllib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OWNERS = ("original", "owned")
+LANGS = ("zig", "c")
 MAX_SUBSYSTEMS = 128  # pc_owner[] in ownership.c
 
 
@@ -37,6 +41,12 @@ class Subsystem:
     # The development host's own default (its owned code is a reloadable
     # library: pc/src/game_host.inc); absent: `default`.
     dev_default: str = ""
+    # "zig": the owned code is game/<overlay>/root.zig. "c": it is the C copy
+    # `copy` (a path from the repository root, game/<overlay>/<name>.c) of the
+    # unit, built with its F renamed F__owned (rename_definitions) and linked
+    # into the host; no Zig object, no reloadable library (game_lib.py).
+    lang: str = "zig"
+    copy: str = ""
 
     def zig_name(self, name):
         return self.zig.get(name, name)
@@ -49,6 +59,16 @@ class Table:
     def routed_names(self, unit):
         return {name for s in self.subsystems if s.unit == unit for _, name in s.functions}
 
+    def zig_only(self):
+        """The Zig subsystems (indexes kept): what Zig and the reloadable
+        library are built from. A C copy is linked into the host."""
+        return Table([s for s in self.subsystems if s.lang == "zig"])
+
+    def library_routes(self):
+        """routes() of the Zig subsystems, the slots of the reloadable
+        library (a C route has none)."""
+        return self.zig_only().routes()
+
     def for_build(self, compiled_units, overlays):
         """The subsystems this build can route: the unit is compiled here AND
         the subsystem's overlay (its game/<overlay> Zig object and the
@@ -57,7 +77,9 @@ class Table:
         as well) must not drag a battle subsystem into a build that has no
         BATTLE.PRG: the table check would find no function at the battle
         addresses and the empty battle Zig object would be a new link input."""
-        return Table([s for s in self.subsystems if s.unit in compiled_units and s.overlay in overlays])
+        # A C subsystem has no object of its overlay: its unit decides.
+        return Table([s for s in self.subsystems
+                      if s.unit in compiled_units and (s.overlay in overlays or s.lang == "c")])
 
     def routes(self):
         """[(name, subsystem index)] in table order."""
@@ -163,9 +185,25 @@ def load(path=ROOT / "game/ownership.toml"):
             if fn in seen:
                 raise ValueError(f"{fn} is routed by both {seen[fn]} and {name}")
             seen[fn] = name
+        lang = entry.get("lang", "zig")
+        if lang not in LANGS:
+            raise ValueError(f"{name}: lang {lang!r} is not one of {', '.join(LANGS)}")
+        copy = entry.get("copy", "")
+        if lang == "c":
+            if not re.fullmatch(rf"game/{re.escape(entry['overlay'])}/[\w.-]+\.c", copy):
+                raise ValueError(f"{name}: copy = {copy!r} must be a C file game/{entry['overlay']}/NAME.c")
+            if zig or entry.get("views"):
+                raise ValueError(f"{name}: a C subsystem has no zig paths or views")
+            # The reloadable library holds no C copies: the development host
+            # runs the original unless asked (ROOD_OWNER=name=owned).
+            if "dev_default" in entry and dev_default != "original":
+                raise ValueError(f"{name}: a C subsystem's dev_default is original")
+            dev_default = "original"
+        elif copy:
+            raise ValueError(f"{name}: copy is for lang = \"c\"")
         subsystems.append(Subsystem(name, index, entry["overlay"], entry["unit"], default,
                                     list(entry.get("roots", [])), functions, dict(entry.get("views", {})), zig,
-                                    dev_default))
+                                    dev_default, lang, copy))
     if len(subsystems) > MAX_SUBSYSTEMS:
         raise ValueError(f"{len(subsystems)} subsystems: pc_owner[] holds {MAX_SUBSYSTEMS}")
     return Table(subsystems)
@@ -273,7 +311,7 @@ def _file_at(markers, offset):
     return markers[i][1] if i >= 0 else b""
 
 
-def rename_definitions(text, names, host_suffixes=HOST_INCLUDE_SUFFIXES):
+def rename_definitions(text, names, host_suffixes=HOST_INCLUDE_SUFFIXES, suffix=b"__orig"):
     """Rename file-scope definitions only; return bytes and per-name counts.
     Each renamed definition is preceded by a declaration of the original
     name with the definition's own header (`T* f(int);`), so the unit's later
@@ -290,7 +328,11 @@ def rename_definitions(text, names, host_suffixes=HOST_INCLUDE_SUFFIXES):
     declaration of F, so F is the external symbol the trampoline defines and
     the unit's calls and address-of uses reach it. Host names are unique
     (pc_cb_<addr>, charge_skip_*), so the global names cannot collide; a
-    `static inline` is refused. Unrouted statics keep their linkage."""
+    `static inline` is refused. Unrouted statics keep their linkage.
+
+    `suffix` is `__owned` for a C copy (build_boot.py): the same text rules
+    give the copy's F__owned, and the copy's own calls of F reach the
+    trampoline, as the original's do."""
     tokens, found = _file_scope_functions(text)
     markers = sorted((m.start(), m.group(1)) for m in _LINEMARKER.finditer(text))
     wanted = {n.encode(): n for n in names}
@@ -323,7 +365,7 @@ def rename_definitions(text, names, host_suffixes=HOST_INCLUDE_SUFFIXES):
                 at = _after_blanks(text, tokens[i][1])
         head += text[at:end] + tail
         edits.append((tokens[start][0], tokens[start][0], head + b";\n"))
-        edits.append((tokens[name_index][0], tokens[name_index][1], token + b"__orig"))
+        edits.append((tokens[name_index][0], tokens[name_index][1], token + suffix))
     if unstatic:
         edits += _static_declarations(text, tokens, unstatic)
     for begin, end, new in sorted(edits, key=lambda e: (e[0], e[1]), reverse=True):
@@ -388,6 +430,133 @@ def strip_bodies(text, keep=()):
     return re.sub(rb"(?m)^#[^\n]*\n?", b"", b"".join(pieces))
 
 
+def _static_variables(text):
+    """The static variables of a preprocessed unit, file scope and block scope:
+    [(static token, declarator end token, ';' token, '=' token or None,
+    scope function or None, name token, name)] and the token list. A function (a
+    prototype or a definition) is not one. One declarator per declaration."""
+    tokens, found = _file_scope_functions(text)
+    bodies = [(tokens[n][2].decode(), body, _matching(tokens, body, b"{", b"}")) for n, _, body, _ in found]
+    definitions = [(start, n) for n, _, _, start in found]
+    out = []
+    for i, (_, _, t) in enumerate(tokens):
+        if t != b"static" or any(start <= i < n for start, n in definitions):
+            continue
+        before = next((tokens[j][2] for j in range(i - 1, -1, -1) if not tokens[j][2].startswith(b"#")), b";")
+        if before not in (b"{", b"}", b";"):
+            continue  # `const static T x;`: the declaration began earlier
+        scope = next((name for name, open_, close in bodies if open_ < i < close), None)
+        # The declaration's end: the first ';' outside brackets.
+        nest, end, eq, attribute, first_paren = 0, None, None, None, None
+        for j in range(i + 1, len(tokens)):
+            u = tokens[j][2]
+            if u in (b"(", b"[", b"{"):
+                if u == b"(" and nest == 0 and first_paren is None and eq is None and attribute is None \
+                        and tokens[j - 1][2] != b"__attribute__":
+                    first_paren = j
+                nest += 1
+            elif u in (b")", b"]", b"}"):
+                nest -= 1
+            elif nest == 0 and u == b"=" and eq is None:
+                eq = j
+            elif nest == 0 and u == b"__attribute__" and attribute is None and eq is None:
+                attribute = j
+            elif nest == 0 and u == b",":
+                raise ValueError(f"static declaration with several declarators at offset {tokens[i][0]}")
+            elif nest == 0 and u == b";":
+                end = j
+                break
+        if end is None:
+            raise ValueError(f"static declaration without ';' at offset {tokens[i][0]}")
+        stop = next(j for j in (eq, attribute, end) if j is not None)
+        if first_paren is not None and tokens[first_paren + 1][2] not in (b"*", b"("):
+            continue  # a function prototype
+        if first_paren is not None:  # a function pointer: (*name[N])(...)
+            close = _matching(tokens, first_paren)
+            at = next((j for j in range(first_paren + 1, close) if re.fullmatch(rb"[A-Za-z_]\w*", tokens[j][2])), None)
+        else:
+            depth_, at = 0, None
+            for j in range(i + 1, stop):
+                u = tokens[j][2]
+                if u in (b"[", b"("):
+                    depth_ += 1
+                elif u in (b"]", b")"):
+                    depth_ -= 1
+                elif depth_ == 0 and re.fullmatch(rb"[A-Za-z_]\w*", u):
+                    at = j
+        if at is None:
+            raise ValueError(f"static declaration without a name at offset {tokens[i][0]}")
+        out.append((i, stop, end, eq, scope, at, tokens[at][2].decode()))
+    return tokens, out
+
+
+def static_link_name(unit, scope, name):
+    """The global name of a static (battle_statics.link_name's pattern):
+    `unit__name` for a file static, `unit__function__name` in a block."""
+    return f"{unit}__{scope}__{name}" if scope else f"{unit}__{name}"
+
+
+def share_statics(text, unit, copy):
+    """One storage for the unit and its C copy (`lang = "c"`). Every static
+    variable of the preprocessed text has the global name
+    static_link_name(unit, function, name):
+
+      the original (copy=False): `static T x[N] = init;` keeps its definition
+        and gets that name as its asm label, so the C names in the code stay;
+        `used` keeps it when nothing in the original reads it (the copy may);
+        the build then globalises it (objcopy --globalize-symbol) so the copy
+        links to it;
+      the copy (copy=True): the data is the original's, restored with it when
+        the overlay loads. A file static becomes `extern T x[N]` with the
+        same asm label, no initializer. A block static cannot take a label (a
+        block-scope extern shares its name with every other of that name and
+        with file scope), so it is renamed to the link name, as a block-scope
+        `extern T link[N]`, in its declaration and in every use to the end of
+        its block (a consistent rename of the identifier there, member names
+        after `.` and `->` aside).
+
+    Returns (text, [link names]). Statics that are functions are not touched:
+    code is not state. A `static const` scalar the copy then no longer sees
+    as a constant (an array size, a case label) fails the copy's build."""
+    tokens, variables = _static_variables(text)
+    links, edits = [], []
+    for i, stop, end, eq, scope, at, name in variables:
+        link = static_link_name(unit, scope, name)
+        if link in links:
+            raise ValueError(f"{link}: two statics of one function with the same name")
+        links.append(link)
+        place = tokens[stop][0]
+        label = (b"" if text[place - 1:place] in (b" ", b"\t", b"\n") else b" ") + f'__asm__("{link}") '.encode()
+        if not copy:
+            edits.append((place, place, label + b"__attribute__((used)) "))
+            continue
+        edits.append((tokens[i][0], tokens[i][1], b"extern"))
+        if eq is not None:
+            edits.append((tokens[eq][0], tokens[end][0], b""))
+        if scope is None:
+            edits.append((place, place, label))
+            continue
+        edits.append((tokens[at][0], tokens[at][1], link.encode()))
+        depth, j = 0, i
+        while depth >= 0:  # the block's closing brace
+            j += 1
+            depth += {b"{": 1, b"}": -1}.get(tokens[j][2], 0)
+        aggregates, k = [], end + 1  # closing braces of the struct/union/enum bodies being skipped
+        while k < j:
+            u = tokens[k][2]
+            if u == b"{" and any(t in (b"struct", b"union", b"enum") for t in (tokens[k - 1][2], tokens[k - 2][2])):
+                aggregates.append(_matching(tokens, k, b"{", b"}"))
+            if aggregates and k > aggregates[-1]:
+                aggregates.pop()
+            if u == name.encode() and not aggregates and tokens[k - 1][2] != b"." \
+                    and not (tokens[k - 1][2] == b">" and tokens[k - 2][2] == b"-"):
+                edits.append((tokens[k][0], tokens[k][1], link.encode()))
+            k += 1
+    for begin, finish, new in sorted(edits, key=lambda e: (e[0], e[1]), reverse=True):
+        text = text[:begin] + new + text[finish:]
+    return text, links
+
+
 def routing_source(table, abi, *, reloadable=False):
     """Tail jumps via pc_owner[] without clobbering argument registers.
 
@@ -400,17 +569,24 @@ def routing_source(table, abi, *, reloadable=False):
     if reloadable and abi != "sysv64":
         raise ValueError("reloadable ownership requires sysv64")
     out = ["/* Generated by pc/tools/ownership.py from game/ownership.toml. */"]
+    c_routes = {name for s in table.subsystems if s.lang == "c" for _, name in s.functions}
     if reloadable:
         import hashlib
-        key = hashlib.sha256(repr(table.routes()).encode()).hexdigest()
+        # The library holds the Zig routes only: a C route's F__owned is the
+        # copy's own symbol in the host, its slot stays empty (no signature).
+        key = hashlib.sha256(repr(table.library_routes()).encode()).hexdigest()
         out.append(f'const char pc_owned_abi[] = "{key}";')
         out.append(f"void* pc_owned_slots[{max(1, len(table.routes()))}];")
         out.append("void** pc_owned_table = pc_owned_slots;")
         for name, _ in table.routes():
-            out.append(f"extern const char {name}__owned_abi[];")
+            if name not in c_routes:
+                out.append(f"extern const char {name}__owned_abi[];")
         out.append("const char* const pc_route_signatures[] = { " +
-                   ", ".join(name + "__owned_abi" for name, _ in table.routes()) + " };")
+                   ", ".join("0" if name in c_routes else name + "__owned_abi" for name, _ in table.routes()) +
+                   " };")
         for slot, (name, _) in enumerate(table.routes()):
+            if name in c_routes:
+                continue
             asm = "\\n".join([
                 ".text", f".globl {name}__owned",
                 f".type {name}__owned, @function", ".p2align 4",
@@ -418,6 +594,14 @@ def routing_source(table, abi, *, reloadable=False):
                 f".size {name}__owned, .-{name}__owned",
             ])
             out.append(f'__asm__("{asm}\\n");')
+    # Shadow mode compares the original with the owned code through
+    # signature-typed wrappers (route.zig Shadow); a C route has none yet:
+    # pc_owner_set refuses owner 2 for it (pc_subsystem_native), so this is
+    # never reached.
+    for name in sorted(c_routes):
+        out.append(f'__asm__(".text\\n.globl {name}__shadow\\n"'
+                   + ('' if abi == "win64" else f' ".type {name}__shadow, @function\\n"')
+                   + f' ".p2align 4\\n{name}__shadow:\\n    ud2\\n");')
     rip = "" if abi == "i386" else "(%rip)"
     for route, (name, index) in enumerate(table.routes()):
         reg = "%eax" if abi == "i386" else "%r11d"
@@ -439,12 +623,14 @@ def routing_source(table, abi, *, reloadable=False):
     names = ", ".join(f'"{s.name}"' for s in table.subsystems) or "0"
     defaults = ", ".join(str(OWNERS.index(s.default)) for s in table.subsystems) or "0"
     dev_defaults = ", ".join(str(OWNERS.index(s.dev_default or s.default)) for s in table.subsystems) or "0"
+    native = ", ".join("1" if s.lang == "c" else "0" for s in table.subsystems) or "0"
     routes = ", ".join(f'"{n}"' for n, _ in table.routes()) or "0"
     route_subsystems = ", ".join(str(i) for _, i in table.routes()) or "0"
     out += [f"const unsigned pc_subsystem_count = {len(table.subsystems)};",
             f"const char* const pc_subsystem_names[] = {{ {names} }};",
             f"const unsigned char pc_subsystem_defaults[] = {{ {defaults} }};",
             f"const unsigned char pc_subsystem_dev_defaults[] = {{ {dev_defaults} }};",
+            f"const unsigned char pc_subsystem_native[] = {{ {native} }};  /* a C copy: no shadow mode yet */",
             f"const unsigned pc_route_count = {len(table.routes())};",
             f"const char* const pc_route_names[] = {{ {routes} }};",
             f"const unsigned char pc_route_subsystems[] = {{ {route_subsystems} }};",
@@ -462,7 +648,8 @@ def ownership_zig(table):
              "pub const Subsystem = enum(u8) {"]
     lines += [f"    {s.name} = {s.index}," for s in table.subsystems]
     lines += ["};", "pub const routes = [_]Route{"]
-    lines += [f'    .{{ .name = "{n}", .zig = "{z}", .subsystem = {i} }},' for n, z, i in table.zig_routes()]
+    lines += [f'    .{{ .name = "{n}", .zig = "{z}", .subsystem = {i} }}'
+              + "," for n, z, i in table.zig_only().zig_routes()]
     lines += ["};",
               "/// The routed function names of one subsystem.",
               "pub fn namesOf(comptime s: Subsystem) []const []const u8 {",

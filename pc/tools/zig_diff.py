@@ -202,14 +202,17 @@ def sizes_from_dwarf(obj, names):
     with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False) as f:
         f.write(script)
     try:
-        out = subprocess.run(["gdb", "-batch", "-nx", "-iex", "set auto-load off", str(obj), "-x", f.name],
-                             capture_output=True, text=True).stdout
+        # gdb now and then exits with no output under load (seen twice in a ctest_long run of 30
+        # shards): one retry, then the failure carries what gdb said.
+        for _ in range(2):
+            run = subprocess.run(["gdb", "-batch", "-nx", "-iex", "set auto-load off", str(obj), "-x", f.name],
+                                 capture_output=True, text=True)
+            line = next((l for l in run.stdout.splitlines() if l.startswith("ZDIFF")), None)
+            if line is not None:
+                return json.loads(line[5:])
     finally:
         os.unlink(f.name)
-    line = next((l for l in out.splitlines() if l.startswith("ZDIFF")), None)
-    if line is None:
-        raise Failure(f"gdb on {obj}: no sizes")
-    return json.loads(line[5:])
+    raise Failure(f"gdb on {obj}: no sizes (exit {run.returncode}: {run.stderr.strip()[-300:]!r})")
 
 
 _OBJECT_SIZES = {}

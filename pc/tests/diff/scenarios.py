@@ -5,10 +5,15 @@ action_name_window (the same room's casts, witnessed by the exact text of the
 three name windows they open) and enemy_kill (Ashley kills two hostile
 enemies with her weapon, witnessed by the exact score changes). Routed calls
 must actually occur for a run to pass.
+
+The menu_* recipes (MenuScenario) are for the MENU overlays: from the save
+room checkpoint, classic input only, they open the field menu and go through
+its screens. Each is witnessed by the menu overlays the game loaded (the
+disc reads in the game's log) and by the game state its screens changed.
 """
 import os
 import struct
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -178,9 +183,204 @@ class KillScenario(Scenario):
         game.run(self.ticks - used)
 
 
+
+# The MENU overlays' disc sectors (the retail disc: lbas.h, VS_<name>_LBA), and
+# the menu each is (pc/tests/diff/CORPUS.md).
+MENU_OVERLAYS = {85000: "MAINMENU", 85030: "MENU0", 85039: "MENU1", 85043: "MENU2",
+                 85049: "MENU3", 85063: "MENU4", 85075: "MENU5", 85126: "MENU7",
+                 85215: "MENU8", 85222: "MENU9", 85239: "MENUB", 85255: "MENUC",
+                 85285: "MENUD", 85300: "MENUE", 85306: "MENUF"}
+CLOSED = 0x3F  # vs_battle_menuState.currentMenu with no menu open (the top level is 0)
+PRESS_VSYNCS = 3  # a button held three vsyncs is one press (pc/tools/rood_rpc.py press)
+
+
+def press(button, settle=30):
+    return ("press", button, settle)
+
+
+def wait(vsyncs):
+    return ("wait", vsyncs)
+
+
+def chord(hold, button, settle=60):
+    """`button` pressed while `hold` is already down (the game reads the
+    previous frame's buttons: L2 + a button is a shortcut)."""
+    return ("chord", hold, button, settle)
+
+
+def vsyncs_of(steps):
+    return sum({"press": lambda s: PRESS_VSYNCS + s[2], "wait": lambda s: s[1],
+                "chord": lambda s: 12 + s[3]}[step[0]](step) for step in steps)
+
+
+def disc_loads(game, start):
+    """The MENU overlays the game loaded since byte `start` of its log
+    (boot_runtime.c pc_disc_read: "[disc] LBA <sector>, ..."), in order."""
+    with open(game.log, "rb") as stream:
+        stream.seek(start)
+        lines = stream.read().decode("ascii", "replace").splitlines()
+    loads = []
+    for line in lines:
+        if line.startswith("[disc] LBA "):
+            lba = int(line.split()[2].rstrip(","))
+            if lba in MENU_OVERLAYS:
+                loads.append(MENU_OVERLAYS[lba])
+    return loads
+
+
+def guest(game, name, length):
+    from rood_rpc import symbols
+    return game.read(symbols()[name], length)
+
+
+@dataclass(frozen=True)
+class MenuScenario(Scenario):
+    """Classic-input play in the field menu from the save room checkpoint
+    (zone 9 room 17, Ashley idle, the card a copy of the pinned one): the
+    steps open the field menu (Triangle), go through the screens named by
+    the recipe and leave state the witness reads exactly.
+
+    No setup before the mark beyond checking the room: the checkpoint's state
+    is the recipe's. The witness is exact in two parts: `loads`, the MENU
+    overlays the game read from the disc during the play (in order: the
+    witness is the game's own overlay loader running), and the entries of
+    dump() the screens changed, compared with `expected`. The change a recipe
+    makes and undoes (equipment, an option) is witnessed by ending on the
+    changed value, as the end state is all a replay keeps."""
+    room: tuple = (9, 17)
+    steps: tuple = ()
+    loads: tuple = ()  # the MENU overlays the play loads, in order
+    fields: tuple = ()  # the dump() entries the screens change
+    expected: tuple = ()  # (name, value) pairs for `fields`
+
+    def __post_init__(self):
+        object.__setattr__(self, "ticks", vsyncs_of(self.steps))
+
+    def setup(self, game):
+        state = game.state()
+        if (state["zone"], state["room"]) != self.room:
+            raise RuntimeError("wrong scenario room")
+        menu = game.u32("vs_battle_menuState") & 0xFF
+        if menu != CLOSED:
+            raise RuntimeError(f"the field menu is not closed at the mark ({menu:#x})")
+
+    def reset_witness(self, game):
+        import os
+        object.__setattr__(self, "_log_start", os.path.getsize(game.log))
+
+    def state(self, game):
+        data = dump(game)
+        return {name: data[name] for name in self.fields}
+
+    def witness(self, game):
+        start = getattr(self, "_log_start", None)
+        if start is None:
+            return {"ok": False, "reason": "no baseline"}
+        loads, state = disc_loads(game, start), self.state(game)
+        expected = {name: value for name, value in self.expected}
+        ok = tuple(loads) == self.loads and state == expected
+        return {"ok": ok, "overlay_loads": loads, "expected_loads": list(self.loads),
+                "state": state, "expected_state": expected}
+
+    def play(self, game):
+        used = 0
+        for step in self.steps:
+            if step[0] == "press":
+                game.press(step[1], PRESS_VSYNCS, step[2])
+            elif step[0] == "wait":
+                game.run(step[1])
+            else:
+                game.call("input", buttons=[step[1]], vsyncs=40)
+                game.run(8)
+                game.call("input", buttons=[step[1], step[2]], vsyncs=4)
+                game.run(4 + step[3])
+            used += vsyncs_of([step])
+        if used != self.ticks:
+            raise RuntimeError("the recipe's steps do not add up")
+
+
+OPEN = (press("triangle", 80),)  # the field menu: the cursor is on Battle Abilities
+# Items is one down from there, Status two, Map three, Data four, Options
+# five, Score six, Quick Manual seven (the Magic and Break Arts rows are
+# absent in this save).
+
+
+def dump(game):
+    """What the recipes' screens can change, for finding a recipe's witness."""
+    inventory = guest(game, "vs_main_inventory", 0x1000)
+    settings = guest(game, "vs_main_settings", 0x20)
+    return {"hp": game.state()["hp"], "menu": list(guest(game, "vs_battle_menuState", 4)),
+            "submenus": list(guest(game, "vs_battle_submenuStates", 8)),
+            "settings": settings.hex(), "option_flags": settings[0],
+            "mapped_abilities": list(settings[12:20]),
+            "weapons": [inventory[i * 0x20 + 3] for i in range(8)],
+            "shields": [inventory[0x100 + i * 0x30 + 1] for i in range(8)],
+            "misc": [list(inventory[0xE00 + i * 4:0xE00 + i * 4 + 4]) for i in range(4)]}
+
+
 SCENARIOS = {"enemy_cast_wait": Scenario("enemy_cast_wait"),
              "action_name_window": NameWindowScenario("action_name_window"),
-             "enemy_kill": KillScenario("enemy_kill")}
+             "enemy_kill": KillScenario("enemy_kill"),
+             "menu_items_use": MenuScenario("menu_items_use", steps=(
+                 chord("l2", "up", 90), press("circle", 60), press("circle", 150), wait(300))),
+             "menu_equip_setup": MenuScenario("menu_equip_setup", steps=OPEN + (
+                 press("down"), press("circle", 100), press("circle", 50), press("circle", 50),
+                 press("down", 25), press("circle", 60), press("down", 25), press("circle", 250),
+                 press("circle", 60), press("down", 25), press("circle", 250),
+                 press("circle", 60), press("down", 25), press("circle", 250),
+                 press("cross", 60), press("down", 25), press("circle", 100),
+                 press("down", 25), press("circle", 60), press("cross", 50), press("cross", 60),
+                 press("cross", 60), press("cross", 60))),
+             "menu_abilities_status": MenuScenario("menu_abilities_status", steps=OPEN + (
+                 press("circle", 100), press("circle", 60), press("circle", 30), press("down", 20),
+                 press("triangle", 30), press("cross", 50), press("down", 20), press("circle", 60),
+                 press("circle", 30), press("down", 20), press("square", 30), press("cross", 50),
+                 press("cross", 60), press("down", 20), press("down", 20), press("circle", 100),
+                 press("r1", 40), press("r1", 40), press("down", 20), press("circle", 40),
+                 press("cross", 40), press("cross", 60), press("cross", 60), press("cross", 60))),
+             "menu_map_score_manual": MenuScenario("menu_map_score_manual", steps=OPEN + (
+                 press("down", 50), press("down", 50), press("down", 50), press("circle", 143),
+                 press("right", 50), press("r1", 50), press("down", 50), press("l1", 50),
+                 press("cross", 160), press("down", 50), press("down", 50),
+                 press("down", 50), press("circle", 143), press("cross", 80), press("down", 50),
+                 press("circle", 123), press("down", 50), press("circle", 123), press("cross", 80),
+                 press("cross", 80), press("cross", 80))),
+             "menu_options_data": MenuScenario("menu_options_data", steps=OPEN + (
+                 press("down", 50), press("down", 50), press("down", 50), press("down", 50),
+                 press("down", 50), press("circle", 120), press("down", 35), press("circle", 60),
+                 press("down", 35), press("circle", 60), press("cross", 60), press("up", 45),
+                 press("circle", 120), press("circle", 80), press("circle", 220), press("cross", 80),
+                 press("cross", 80), press("down", 40), press("circle", 80), press("circle", 220))),
+             }
+# Each menu recipe's witness, observed in the original and exact: the overlays it
+# loads, the state its screens leave (the field menu closed is currentMenu 0x3F).
+CLOSED_MENU = ("menu", [CLOSED, 0, 0, 0])
+MENU_WITNESS = {
+    # L2 + Up: the MISC list (MAINMENU only, loaded again for the target); Cure Root
+    # (12 -> 11) used on Ashley (157 + 50 + a point of regeneration)
+    "menu_items_use": (("MAINMENU", "MAINMENU"), ("hp", "misc", "menu"),
+                       (("hp", 208), ("misc", [[67, 1, 11, 1], [75, 1, 13, 2], [83, 1, 20, 3], [84, 1, 5, 4]]),
+                        CLOSED_MENU)),
+    # Items > Equip > Shield: Pelta Shield on, Buckler back on, Pelta Shield on; Setup (the
+    # workshop-only caution)
+    "menu_equip_setup": (("MAINMENU", "MENU3", "MENUC", "MENU3"), ("weapons", "shields", "menu"),
+                         (("weapons", [1, 0, 0, 0, 0, 0, 0, 0]), ("shields", [0, 1, 0, 0, 0, 0, 0, 0]),
+                          CLOSED_MENU)),
+    # Battle Abilities: chain abilities 0x16 on Circle, 0x17 on Triangle, defense abilities 0x28
+    # on Circle, 0x2B on Square; Status (Ashley, the dummy and back)
+    "menu_abilities_status": (("MAINMENU", "MENU2", "MENU4"), ("mapped_abilities", "menu"),
+                              (("mapped_abilities", [0x16, 0x17, 0, 0, 0x28, 0, 0x2B, 0]), CLOSED_MENU)),
+    # Map (pan, the next area), Score, Quick Manual
+    "menu_map_score_manual": (("MAINMENU", "MENU5", "MENU9", "MENUE"), ("hp", "menu"),
+                              (("hp", 157), CLOSED_MENU)),
+    # Options (a setting changed: the first byte of vs_main_settings 0x30 -> 0x10), then
+    # Data > Save > slot 1's files, cancelled, Data > Load > slot 1's files (substate 0x0A)
+    "menu_options_data": (("MAINMENU", "MENU8", "MENU7"), ("option_flags", "menu", "submenus"),
+                          (("option_flags", 0x10), ("menu", [0x47, 0, 0, 0]),
+                           ("submenus", [6, 0, 0, 0, 0, 0, 0, 0x0A]))),
+}
+for _name, (_loads, _fields, _expected) in MENU_WITNESS.items():
+    SCENARIOS[_name] = replace(SCENARIOS[_name], loads=_loads, fields=_fields, expected=_expected)
 for _name in ("spell", "item", "attack", "chain", "cancel", "miss", "defence",
               "break_art", "status", "multiple_targets", "roaming",
               "doors", "events", "cutscene", "menus_hud", "effects", "traps",

@@ -116,6 +116,32 @@ class VerifyArgsTest(unittest.TestCase):
                     changed.assert_called_once_with(base)
                     self.assertIn("nothing to run for this change", output.getvalue())
 
+    def test_quick_lane_has_a_budget(self):
+        budgets = {}
+        for argv in self.verify_calls([]):
+            args = run.make_parser().parse_args(argv)
+            budgets[args.renderer] = args.budget
+        self.assertEqual(budgets, {"null": 4, "vulkan": 9, "gl": 2})
+        for argv in self.verify_calls(["--full"]):
+            self.assertIsNone(run.make_parser().parse_args(argv).budget)
+
+    def test_fit_budget_defers_the_long_suites(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            timings = Path(tmp) / "durations.json"
+            checkpoint = sorted(run.CHECKPOINT_SUITES)[0]
+            timings.write_text(json.dumps({"c": {"short": 30, "medium": 200, "long": 7000, checkpoint: 300,
+                                                 "snapshot_equivalence": 60}}))
+            suites = [run.Suite(name, ["true"], timeout=600, note="")
+                      for name in ["long", "medium", "short", "unknown", checkpoint, "snapshot_equivalence"]]
+            kept, deferred = run.fit_budget(suites, timings, "c", 9 * 60)
+            # short 30 + unknown 150 (a quarter of its timeout) + medium 200 = 380; the checkpoint
+            # suite (300) brings its save states (60): 740 > 540, so it waits with long
+            self.assertEqual([s.name for s in kept], ["medium", "short", "unknown"])
+            self.assertEqual([s.name for s in deferred], ["long", checkpoint, "snapshot_equivalence"])
+            kept, _ = run.fit_budget(suites, timings, "c", 13 * 60)
+            self.assertIn(checkpoint, [s.name for s in kept])
+            self.assertIn("snapshot_equivalence", [s.name for s in kept])
+
     def test_full_lane_runs_every_suite(self):
         calls = self.verify_calls(["--full"])
         self.assertEqual(len(calls), 3)

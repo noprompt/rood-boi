@@ -57,6 +57,16 @@ Battle's routing machinery, with C as the owned language:
    (the modern copy; e.g. `game/menu/mainmenu.c`). The copy compiles as the owned side: `ownership.py`
    gains `lang = "c"` subsystems whose functions are built renamed to `F__owned` (as the Zig exports
    are), routed by the existing trampolines. `ROOD_OWNER=<area>=original` still runs the original.
+   *As built (MENU1 pilot, 2026-11-06):* the copy goes through the original's preprocessing and the same
+   text rename (`__owned`, as the original gets `__orig`); `ownership.share_statics` keeps state in one
+   place: the original's file and function statics get link names and stay in the overlay's sections
+   (restored on each overlay load), the copy refers to them as externs, and the build fails if the
+   copy defines data of its own. Only global functions route: a unit's `static` helpers live inside
+   the copy (MENU1 routes one function, `vs_menu1_exec`), so the check of an area is per unit (tick
+   mode), not per function. C routes have no shadow mode yet (owner 2 is refused for them); the
+   development host links the copy into the executable (not the reloadable library; `dev_default` is
+   original); the Windows twin path is written but untested. `lang` is documented in the header of
+   `game/ownership.toml`; the ownership design is `pc/docs/plans/2026-10-16-ownership-design.md`.
 2. **Route.** One subsystem per original unit (as battle), default original until the area's checks
    pass, then owned (the area's flip, the same day: no long dual life).
 3. **Improve** in small verified steps (below), each its own commit.
@@ -75,7 +85,7 @@ need both in one binary).
    area (`vs_main_loadOverlay` asks the area's owner). Check: tick mode, plus a run with the overlay
    file absent from the disc image (a test option) that still passes.
 3. **Names and types**, function by function: parameters, locals, struct fields, enums; MEANINGS.tsv
-   updated. Check: tick mode and the per-function C diff (zig_diff's harness with a C port: the
+   updated. Check: tick mode, and the per-function C diff for the unit's global functions (zig_diff's harness with a C port: the
    original body against the modern one, random and edge inputs, same memory and calls).
 4. **Structure:** split long functions, remove dead PS1 paths (DrawSync waits, double-buffer juggling
    the PC does not need) where the oracle shows no behaviour change, replace guest pointers with native
@@ -100,7 +110,8 @@ need both in one binary).
 
 - **Tick and alternate mode** (`pc/tests/diff/differ.py`, the group mode added 2026-11-06 for a whole
   area at once): the frozen original against the modern copy, per tick, the `inert` profile.
-- **Per-function C diff**: zig_diff's harness taking a C port (both sides C: the simplest case it has).
+- **Per-function C diff**: zig_diff's harness taking a C port (both sides C: the simplest case it has),
+  for the routed (global) functions; a unit's static helpers are covered by the unit's tick checks.
 - **Recipes per area**: MENU needs its own (open each menu, move through it, equip, use an item, save):
   written with the area's step 1, the first worker task.
 - **64-bit only**: the 32-bit build was retired 2026-11-06 (the user's call; whoever wants it keeps it up).
