@@ -393,13 +393,18 @@ suites = ["tunables_smoke", "skip_charging_smoke", "charge_skip_soak", "soak", "
           "snapshot_equivalence", "facing_cutaway_smoke", "camera_stick_smoke", "ending_smoke", "weapon_slots_smoke",
           "hud_bench_smoke", "classic_parity", "classic_hud_smoke"]
 
+# ---- the lint's baseline ----
+[[rule]]
+paths = ["pc/tools/ps1_address_baseline.json"]
+suites = ["ps1_address_lint"]
+
 # ---- occlusion in play ----
 [[rule]]
 paths = ["pc/src/occlusion.*", "pc/tests/occlusion_smoke.py"]
 suites = ["occlusion_smoke", "ctest", "tunables_smoke"]
 
 [[rule]]
-paths = ["pc/src/game/EFFECT/*", "config/EFFECT/*", "pc/src/effect_*"]
+paths = ["pc/src/game/EFFECT/*", "config/EFFECT/*", "pc/src/effect_*", "pc/src/gte_value*"]
 suites = ["glow_stability_smoke", "damage_numbers_smoke", "skip_charging_smoke", "charge_skip_soak",
           "particles_smoke", "save_point_glow_smoke", "ctest", "soak:save"]
 

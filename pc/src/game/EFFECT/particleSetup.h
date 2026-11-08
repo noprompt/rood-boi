@@ -1,12 +1,11 @@
 /* Shared particle origin, target, and control-point generation.
  * The including effect supplies its original function and state symbols. */
 #include "common.h"
+#include "pc/src/gte_value.h"
 #include "pc/src/game/SLUS_010.40/32154.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/6E644.h"
-#include "vs_inline_c.h"
 #include <rand.h>
-#include <inline_c.h>
 
 #ifndef VS_PARTICLE_SETUP_TYPES
 #define VS_PARTICLE_SETUP_TYPES
@@ -36,6 +35,7 @@ void VS_PARTICLE_RENDER_FUNCTION(
 void VS_PARTICLE_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1,
     D_800F53B8_t* arg2, func_800FA098_arg3* arg3)
 {
+    vs_gte_view view;
     int sp10;
     SVECTOR* temp_s1;
     int temp_a1;
@@ -70,8 +70,7 @@ void VS_PARTICLE_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
 
     vs_battle_lerpVector(
         arg0->unk24, vs_battle_sampleCurve(arg0->unk9, arg3->unkC), &arg1->unkA8);
-    SetRotMatrix(temp_s0);
-    gte_zrtr();
+    view = vs_gte_view_rotation(temp_s0, VS_GTE_NO_SCREEN);
 
     switch (arg1->flags & 0x38) {
     case 0:
@@ -94,7 +93,7 @@ void VS_PARTICLE_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
             temp_s1->vz = (arg1->unkA8.vz * arg1->unk170) >> 0xC;
 
             if (arg1->flags & 0x40000) {
-                ApplyRotMatrix(temp_s1, &arg1->unk34);
+                vs_gte_rotate_to(&arg1->unk34, &view, temp_s1);
                 temp_s1->vx = arg1->unk34.vx;
                 temp_s1->vy = arg1->unk34.vy;
                 temp_s1->vz = arg1->unk34.vz;
@@ -182,7 +181,7 @@ void VS_PARTICLE_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
             }
 
             if (arg1->flags & 0x40000) {
-                ApplyRotMatrix(temp_s1, &arg1->unk34);
+                vs_gte_rotate_to(&arg1->unk34, &view, temp_s1);
                 temp_s1->vx = arg1->unk34.vx;
                 temp_s1->vy = arg1->unk34.vy;
                 temp_s1->vz = arg1->unk34.vz;
@@ -248,7 +247,7 @@ void VS_PARTICLE_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
         temp_s1->vy = 0;
 
         if (arg1->flags & 0x40000) {
-            ApplyRotMatrix(temp_s1, &arg1->unk34);
+            vs_gte_rotate_to(&arg1->unk34, &view, temp_s1);
             temp_s1->vx = arg1->unk34.vx;
             temp_s1->vy = arg1->unk34.vy;
             temp_s1->vz = arg1->unk34.vz;
@@ -298,6 +297,7 @@ void VS_PARTICLE_TARGET_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
 void VS_PARTICLE_CONTROL_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1,
     D_800F53B8_t* arg2, func_800FA098_arg3* arg3)
 {
+    vs_gte_view view;
     SVECTOR sp10;
     SVECTOR sp18;
     int i;
@@ -384,15 +384,10 @@ void VS_PARTICLE_CONTROL_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* 
         vs_battle_svecToVec(temp_s5, &arg1->unk34);
         vs_battle_svecToVec(temp_s5 + 3, &arg1->unk44);
         vs_battle_lookAt(&arg1->unk34, &arg1->unk44, &arg1->unk64);
-        gte_SetRotMatrix(&arg1->unk64);
-        gte_SetTransVector2(&arg1->unk34);
-        gte_ldv0(&sp10);
-        gte_rtv0tr2();
-        gte_stlvnl(&arg1->unk34);
+        view = vs_gte_view_at(&arg1->unk64, &arg1->unk34, VS_GTE_NO_SCREEN);
+        vs_gte_transform_to(&arg1->unk34, &view, &sp10);
         vs_battle_vecToSvec(&arg1->unk34, temp_s5 + 1);
-        gte_ldv0(&sp18);
-        gte_rtv0tr2();
-        gte_stlvnl(&arg1->unk44);
+        vs_gte_transform_to(&arg1->unk44, &view, &sp18);
         vs_battle_vecToSvec(&arg1->unk44, temp_s5 + 2);
     }
 }

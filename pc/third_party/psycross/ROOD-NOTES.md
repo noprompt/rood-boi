@@ -17,3 +17,7 @@ does not use them. Its `long*` GTE out-parameters (`RotTrans`, `RotTransSV`,
 `RotTransPers`/`3`/`4`, `RotAverage4`, `RotAverageNclip4`) are `psx_gte_long*`
 (`libgte.h`: `int` under `ROOD_PC_LP64`, else `long`), matching the game's 32-bit
 SDK `long`; with host longs `*flag |= _flag` was an 8-byte store into a 4-byte slot.
+
+The registers are reached through `gte_cur` (`gtereg.h`): `gte_global` is the game's
+register set, and a value call (`pc/src/gte_value.cpp`) points `gte_cur` at a private
+set for its duration. `gte_cur` and the per-operation scratch are per thread on ELF.

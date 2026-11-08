@@ -32,7 +32,14 @@ RULES = {
     "guest_pointer_access": re.compile(r"\bpsx_(?:get|set|set_raw|copy|add|postinc|load|store)\("),
     "address_as_integer": re.compile(r"\bpsx_to_(?:int|ptr)\(|\bpsx\.(?:addr|rawOf)\("),
     "zig_raw_memory": re.compile(r"\bpsx\.byteAt\(|@ptrFromInt\("),
+    # The GTE as a global register machine (PS1_Ties.md T7): the game's code only.
+    "gte_state_machine": re.compile(r"\bgte_[A-Za-z0-9_]+\("),
+    # The libgte calls that run on the same registers underneath.
+    "gte_sdk_calls": re.compile(r"\b(?:SetRotMatrix|SetTransMatrix|ApplyRotMatrix|ApplyMatrix|RotTransPers[34]?|"
+                                r"RotTrans|RotTransSV|RotAverage4|RotAverageNclip4|SetGeomOffset|SetGeomScreen)\("),
 }
+# Rules that count only under a path (the others count in every tree).
+ONLY_UNDER = {"gte_state_machine": "pc/src/game/", "gte_sdk_calls": "pc/src/game/"}
 COMMENTS = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|//[^\n]*', re.S)
 
 
@@ -59,6 +66,8 @@ def scan():
         code = strip_comments(path.read_text(encoding="utf-8", errors="replace"))
         for number, line in enumerate(code.splitlines(), 1):
             for rule, pattern in RULES.items():
+                if not name.startswith(ONLY_UNDER.get(rule, "")):
+                    continue
                 found = pattern.findall(line)
                 if found:
                     counts[rule] += len(found)

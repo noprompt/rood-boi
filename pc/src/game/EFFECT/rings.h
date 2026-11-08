@@ -1,11 +1,10 @@
 /* Shared three-row textured ring effect. The overlay supplies its entry point and color
  * table. */
 #include "common.h"
+#include "pc/src/gte_value.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "pc/src/game/SLUS_010.40/32154.h"
-#include "vs_inline_c.h"
 #include "gpu.h"
-#include <inline_c.h>
 #include <rand.h>
 #ifndef VS_RING_TYPES
 #define VS_RING_TYPES
@@ -25,6 +24,8 @@ extern u_char VS_RING_COLORS[][4];
 
 int VS_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
+    vs_gte_view view;
+    vs_gte_result projected;
     int radius[3];
     int height[3];
     SVECTOR vertices[3][9];
@@ -204,18 +205,15 @@ int VS_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         } while ((column = (int)color) < (int)(colorStart + 12));
 #endif
         if (scratch->flags & 0x20000) {
-            SetRotMatrix(&battle->unk1C[effect->unkC8].unk58);
-            SetTransMatrix(&battle->unk1C[effect->unkC8].unk58);
+            view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            SetRotMatrix(&vs_scratch.viewMatrix);
-            SetTransMatrix(&vs_scratch.viewMatrix);
+            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
         }
         for (drawRow = 0; drawRow < 3; ++drawRow) {
             for (drawColumn = 0; drawColumn < 9; ++drawColumn) {
-                gte_ldv0(&vertices[drawRow][drawColumn]);
-                gte_rtps2();
-                gte_stsxy(&screen[drawRow][drawColumn]);
-                gte_stszotz(&depths[drawRow][drawColumn]);
+                projected = vs_gte_project(&view, &vertices[drawRow][drawColumn]);
+                screen[drawRow][drawColumn] = projected.sxy;
+                depths[drawRow][drawColumn] = projected.otz;
             }
         }
         func_800D6D24(&state->texture);
@@ -286,13 +284,10 @@ int VS_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         if (effect->unk3) {
             child.unk60 = 0;
             if (effect->flags & 0x20000) {
-                SetRotMatrix(actorMatrix);
-                SetTransMatrix(actorMatrix);
+                view = vs_gte_view_of(actorMatrix, VS_GTE_NO_SCREEN);
                 setVector(&scratch->unk2C, scratch->unk98.vx, scratch->unk98.vy,
                     scratch->unk98.vz);
-                gte_ldv0(&scratch->unk2C);
-                gte_rtv0tr2();
-                gte_stlvnl(&scratch->unk34);
+                vs_gte_transform_to(&scratch->unk34, &view, &scratch->unk2C);
                 setVector(&child.unkC, scratch->unk34.vx * ONE, scratch->unk34.vy * ONE,
                     scratch->unk34.vz * ONE);
             } else {

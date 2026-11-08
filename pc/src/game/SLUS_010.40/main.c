@@ -16,6 +16,7 @@
 #include <libgpu.h>
 #include <rand.h>
 #include "pc/src/psx_types.h"
+#include "pc/src/gte_value.h"
 
 typedef struct {
     int unk0[2];
@@ -10071,15 +10072,10 @@ static void _do_panSfx(int arg0, int arg1, int coords, int z)
 
 void vs_main_panSfx(int arg0, int arg1, SVECTOR* vec)
 {
-    int z;
-    psx_long coords;
-    psx_long value;
-    psx_long flag;
+    vs_gte_view view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+    vs_gte_result projected = vs_gte_project(&view, vec);
 
-    SetRotMatrix(&vs_scratch.viewMatrix);
-    SetTransMatrix(&vs_scratch.viewMatrix);
-    z = RotTransPers(vec, &coords, &value, &flag);
-    _do_panSfx(arg0, arg1, coords, z);
+    _do_panSfx(arg0, arg1, projected.sxy, projected.otz);
 }
 
 static int func_80045B28(int arg0, int arg1)
@@ -10452,15 +10448,10 @@ static void func_80046310(int arg0, u_int arg1[], int arg2, int arg3, int arg4)
 
 static void func_800463BC(int arg0, u_int* arg1, int arg2, SVECTOR* vec)
 {
-    int z;
-    psx_long sxy;
-    psx_long value;
-    psx_long flag;
+    vs_gte_view view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+    vs_gte_result projected = vs_gte_project(&view, vec);
 
-    SetRotMatrix(&vs_scratch.viewMatrix);
-    SetTransMatrix(&vs_scratch.viewMatrix);
-    z = RotTransPers(vec, &sxy, &value, &flag);
-    func_80046310(arg0, arg1, arg2, sxy, z);
+    func_80046310(arg0, arg1, arg2, projected.sxy, projected.otz);
 }
 
 void func_8004644C(int arg0, int* arg1, int arg2)

@@ -372,7 +372,7 @@ def objcopy(args, obj):
 
 
 # Host units whose statics are game state (state_sections).
-STATE_HOST_UNITS = {"runtime", "cd_drive", "mdec", "xa_audio", "audio_libspu", "gte", "libgte", "inline"}
+STATE_HOST_UNITS = {"runtime", "cd_drive", "mdec", "xa_audio", "audio_libspu", "gte", "gte_value", "libgte", "inline"}
 # --engine-library: the host executable's units besides the game's own (src/
 # and the pc/src units built like them) and the generated tables: those whose
 # state is game state, or that read or drive it outside a frame (save states,
@@ -1555,6 +1555,25 @@ for name, compiler, source, extra in [
     ) and name in STATE_HOST_UNITS:
         state_sections(obj)
     objects.append(obj)
+# The GTE maths as values (pc/src/gte_value_core.h), on the same register code.
+obj = out / "gte_value.o"
+if compile_object(
+    [
+        "g++",
+        *[f for f in flags if f not in ["-fgnu89-inline", *c_only_flags]],
+        "-nostdinc++",
+        "-Ipc/src",
+        "-I" + str(vendor / "include"),
+        "-c",
+        "pc/src/gte_value.cpp",
+        "-o",
+        str(obj),
+    ],
+    "pc/src/gte_value.cpp",
+    "c++",
+):
+    state_sections(obj)
+objects.append(obj)
 if arch64:
     from lp64_report import write_report
 

@@ -1,4 +1,5 @@
 /* Shared segmented particle ribbon renderer. */
+#include "pc/src/gte_value.h"
 #include "gpu.h"
 
 #ifndef VS_PARTICLE_PRIM_TYPE
@@ -17,6 +18,8 @@ typedef struct {
 void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1,
     D_800F53B8_t* arg2, func_800FA098_arg3* arg3)
 {
+    vs_gte_view view;
+    vs_gte_result projected;
     vs_particlePrim quad;
     DVECTOR screenPoints[10];
     int depths[10];
@@ -68,11 +71,9 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
     color.cd = primPolyGT4SemiTrans;
 
     if (arg1->flags & 0x20000) {
-        SetRotMatrix(&arg2->unk1C[arg0->unkC8].unk58);
-        SetTransMatrix(&arg2->unk1C[arg0->unkC8].unk58);
+        view = vs_gte_view_of(&arg2->unk1C[arg0->unkC8].unk58, vs_gte_screen_current());
     } else {
-        SetRotMatrix(&vs_scratch.viewMatrix);
-        SetTransMatrix(&vs_scratch.viewMatrix);
+        view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
     }
 
     func_800D6D24(&arg3->unk10);
@@ -82,25 +83,25 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
     for (particleIndex = 0; particleIndex < arg3->unk2; ++particleIndex) {
 
         controlPoints = &arg3->unk4[particleIndex * 4];
-        gte_ldv0(controlPoints);
-        gte_rtps2();
-        gte_stsxy(&screenPoints[0]);
-        gte_stszotz(&depths[0]);
+        projected = vs_gte_project(&view, controlPoints);
+        screenPoints[0].vx = projected.sx;
+        screenPoints[0].vy = projected.sy;
+        depths[0] = projected.otz;
         curveSamples[0] = 0;
         for (segment = 1; segment < 8; ++segment) {
             curveSamples[segment] = segment * 0x600 + rand() % width - width / 2;
             vs_battle_splineInterpolate(controlPoints, controlPoints + 1,
                 controlPoints + 2, controlPoints + 3, curveSamples[segment] - 0x1000,
                 &arg1->unk2C);
-            gte_ldv0(&arg1->unk2C);
-            gte_rtps2();
-            gte_stsxy(&screenPoints[segment]);
-            gte_stszotz(&depths[segment]);
+            projected = vs_gte_project(&view, &arg1->unk2C);
+            screenPoints[segment].vx = projected.sx;
+            screenPoints[segment].vy = projected.sy;
+            depths[segment] = projected.otz;
         }
-        gte_ldv0(controlPoints + 3);
-        gte_rtps2();
-        gte_stsxy(&screenPoints[segment]);
-        gte_stszotz(&depths[segment]);
+        projected = vs_gte_project(&view, controlPoints + 3);
+        screenPoints[segment].vx = projected.sx;
+        screenPoints[segment].vy = projected.sy;
+        depths[segment] = projected.otz;
         curveSamples[segment] = 0x3000;
 
         for (segment = 0; segment < 8; ++segment) {

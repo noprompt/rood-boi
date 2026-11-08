@@ -1,10 +1,9 @@
 /* Animated nine-by-nine textured effect grid. */
 #include "common.h"
+#include "pc/src/gte_value.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "pc/src/game/SLUS_010.40/main.h"
-#include "vs_inline_c.h"
 #include "gpu.h"
-#include <inline_c.h>
 
 typedef struct {
     u_char lifetime, effect, u, v, uScroll, vScroll;
@@ -22,6 +21,8 @@ typedef struct {
 
 int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
+    vs_gte_view view;
+    vs_gte_result projected;
     int x[9];
     int z[9];
     SVECTOR vertices[9][9];
@@ -185,18 +186,15 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         for (sample = 0; sample < 9; ++sample)
             v[sample] = uvBase + effect->unk94[0][2] * sample / 8;
         if (scratch->flags & 0x20000) {
-            SetRotMatrix(&battle->unk1C[effect->unkC8].unk58);
-            SetTransMatrix(&battle->unk1C[effect->unkC8].unk58);
+            view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            SetRotMatrix(&vs_scratch.viewMatrix);
-            SetTransMatrix(&vs_scratch.viewMatrix);
+            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
         }
         for (row = 0; row < 9; ++row) {
             for (column = 0; column < 9; ++column) {
-                gte_ldv0(&vertices[row][column]);
-                gte_rtps2();
-                gte_stsxy(&screen[row][column]);
-                gte_stszotz(&depths[row][column]);
+                projected = vs_gte_project(&view, &vertices[row][column]);
+                screen[row][column] = projected.sxy;
+                depths[row][column] = projected.otz;
             }
         }
         for (row = 0; row < 8; ++row) {

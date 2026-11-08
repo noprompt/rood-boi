@@ -10,7 +10,8 @@
 
 
 
-GTERegisters gteRegs;
+GTERegisters gte_global;
+GTE_THREAD GTERegisters* gte_cur = &gte_global;
 
 /* ROOD: widescreen projection and a log of projected screen positions.
  * pc_gte_widescreen scales projected X about the screen centre by 3/4 (16:9 Hor+); the
@@ -246,9 +247,10 @@ int pc_gte_projected_candidates(int sx, int sy, int* slots, unsigned* sequences,
 #endif
 
 
-static int m_sf;
-static long long m_mac0;
-static long long m_mac3;
+/* (Per operation scratch: per thread, with the registers.) */
+static GTE_THREAD int m_sf;
+static GTE_THREAD long long m_mac0;
+static GTE_THREAD long long m_mac3;
 
 unsigned int gte_leadingzerocount(unsigned int lzcs) 
 {

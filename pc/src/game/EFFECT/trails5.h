@@ -7,10 +7,9 @@
 #include "common.h"
 #include "pc/src/game/EFFECT/trails.h"
 #include "pc/src/game/SLUS_010.40/32154.h"
-#include "vs_inline_c.h"
 #include "gpu.h"
-#include <inline_c.h>
 #include <libgte.h>
+#include "pc/src/gte_value.h"
 #include <rand.h>
 
 typedef struct {
@@ -27,6 +26,7 @@ extern int VS_TRAIL_CORNER_STATE;
 void VS_TRAIL_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1,
     D_800F53B8_t* arg2, func_800FA76C_arg3* arg3)
 {
+    vs_gte_view view;
     int sp10;
     int sp14;
     MATRIX* matrix;
@@ -63,8 +63,7 @@ void VS_TRAIL_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
 
     vs_battle_lerpVector(arg0->unk24,
         vs_battle_sampleCurve(arg0->unk9, arg3->curveSampleDistance), &arg1->unkA8);
-    SetRotMatrix(matrix);
-    gte_zrtr();
+    view = vs_gte_view_rotation(matrix, VS_GTE_NO_SCREEN);
 
     switch (arg1->flags & 0x38) {
     case 0:
@@ -86,7 +85,7 @@ void VS_TRAIL_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
                 ((arg1->unkA8.vz * arg1->unk170) >> 0xC));
 
             if (arg1->flags & 0x40000) {
-                ApplyRotMatrix(splinePoint, &arg1->unk34);
+                vs_gte_rotate_to(&arg1->unk34, &view, splinePoint);
                 copyVector(splinePoint, &arg1->unk34);
             }
 
@@ -172,7 +171,7 @@ void VS_TRAIL_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
             }
 
             if (arg1->flags & 0x40000) {
-                ApplyRotMatrix(splinePoint, &arg1->unk34);
+                vs_gte_rotate_to(&arg1->unk34, &view, splinePoint);
                 copyVector(splinePoint, &arg1->unk34);
             }
 
@@ -232,7 +231,7 @@ void VS_TRAIL_ORIGIN_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
         splinePoint->vy = 0;
 
         if (arg1->flags & 0x40000) {
-            ApplyRotMatrix(splinePoint, &arg1->unk34);
+            vs_gte_rotate_to(&arg1->unk34, &view, splinePoint);
             copyVector(splinePoint, &arg1->unk34);
         }
 
@@ -278,6 +277,7 @@ void VS_TRAIL_TARGET_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
 void VS_TRAIL_CONTROL_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1,
     D_800F53B8_t* arg2, func_800FA76C_arg3* arg3)
 {
+    vs_gte_view view;
     SVECTOR sp10;
     SVECTOR sp18;
     int i;
@@ -364,15 +364,10 @@ void VS_TRAIL_CONTROL_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg
         vs_battle_svecToVec(temp_s5, &arg1->unk34);
         vs_battle_svecToVec(temp_s5 + 3, &arg1->unk44);
         vs_battle_lookAt(&arg1->unk34, &arg1->unk44, &arg1->unk64);
-        gte_SetRotMatrix(&arg1->unk64);
-        gte_SetTransVector2(&arg1->unk34);
-        gte_ldv0(&sp10);
-        gte_rtv0tr2();
-        gte_stlvnl(&arg1->unk34);
+        view = vs_gte_view_at(&arg1->unk64, &arg1->unk34, VS_GTE_NO_SCREEN);
+        vs_gte_transform_to(&arg1->unk34, &view, &sp10);
         vs_battle_vecToSvec(&arg1->unk34, temp_s5 + 1);
-        gte_ldv0(&sp18);
-        gte_rtv0tr2();
-        gte_stlvnl(&arg1->unk44);
+        vs_gte_transform_to(&arg1->unk44, &view, &sp18);
         vs_battle_vecToSvec(&arg1->unk44, temp_s5 + 2);
     }
 }
@@ -449,6 +444,8 @@ void VS_TRAIL_UPDATE_FUNCTION(func_800FA098_arg0* arg0 __attribute__((unused)),
 void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1,
     D_800F53B8_t* arg2, func_800FA76C_arg3* arg3)
 {
+    vs_gte_view view;
+    vs_gte_result projected;
     unkPrim sp10;
     DVECTOR sp50[6];
     int sp78[6];
@@ -497,11 +494,9 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
     spC0.cd = primPolyGT4SemiTrans;
 
     if (arg1->flags & 0x20000) {
-        SetRotMatrix(&arg2->unk1C[arg0->unkC8].unk58);
-        SetTransMatrix(&arg2->unk1C[arg0->unkC8].unk58);
+        view = vs_gte_view_of(&arg2->unk1C[arg0->unkC8].unk58, vs_gte_screen_current());
     } else {
-        SetRotMatrix(&vs_scratch.viewMatrix);
-        SetTransMatrix(&vs_scratch.viewMatrix);
+        view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
     }
 
     func_800D6D24(&arg3->unkC);
@@ -516,10 +511,10 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
         if (temp_s1->splineSampleCount >= 2) {
             temp_s3 = temp_s1->currentSplineSample;
             for (j = 0; j < temp_s1->splineSampleCount; ++j) {
-                gte_ldv0(&temp[temp_s3]);
-                gte_rtps2();
-                gte_stsxy(&sp50[j]);
-                gte_stszotz(&sp78[j]);
+                projected = vs_gte_project(&view, &temp[temp_s3]);
+                sp50[j].vx = projected.sx;
+                sp50[j].vy = projected.sy;
+                sp78[j] = projected.otz;
                 temp_s3 = (temp_s3 + 4) % 5;
             }
 
@@ -678,6 +673,7 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
 
 int VS_TRAIL_DISPATCH_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
+    vs_gte_view view;
     func_800FB4C0_t sp18;
     func_800FA098_arg0* temp_s3;
     int trail;
@@ -753,8 +749,7 @@ int VS_TRAIL_DISPATCH_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                 sp18.unk60 = 0;
 
                 if (temp_s3->flags & 0x20000) {
-                    SetRotMatrix(&temp_s5->unk1C[temp_s3->unkC8].unk38);
-                    SetTransMatrix(&temp_s5->unk1C[temp_s3->unkC8].unk38);
+                    view = vs_gte_view_of(&temp_s5->unk1C[temp_s3->unkC8].unk38, VS_GTE_NO_SCREEN);
                     s4->unk2C.vx =
                         temp_s0->trails[trail]
                             .splineSamples[temp_s0->trails[trail].currentSplineSample]
@@ -768,9 +763,7 @@ int VS_TRAIL_DISPATCH_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                             .splineSamples[temp_s0->trails[trail].currentSplineSample]
                             .vz;
 
-                    gte_ldv0(&s4->unk2C);
-                    gte_rtv0tr2();
-                    gte_stlvnl(&s4->unk34);
+                    vs_gte_transform_to(&s4->unk34, &view, &s4->unk2C);
 
                     sp18.unkC.vx = s4->unk34.vx * ONE;
                     sp18.unkC.vy = s4->unk34.vy * ONE;

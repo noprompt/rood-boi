@@ -1,14 +1,13 @@
 #define TRAIL_SAMPLE_COUNT 5
 
 #include "common.h"
+#include "pc/src/gte_value.h"
 #include "pc/src/game/SLUS_010.40/32154.h"
 #include "gpu.h"
 #include <rand.h>
 #include "pc/src/game/EFFECT/trails.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
-#include "vs_inline_c.h"
-#include <inline_c.h>
 
 typedef struct {
     u_char lifetime, effect;
@@ -72,6 +71,8 @@ extern u_char D_80100770[][4];
 
 int func_800FA490(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
+    vs_gte_view view;
+    vs_gte_result projected;
     int radius[3];
     int height[3];
     SVECTOR vertices[3][16];
@@ -245,18 +246,15 @@ int func_800FA490(func_800D4910_t* arg0, u_int arg1, int arg2)
         }
 
         if (scratch->flags & 0x20000) {
-            SetRotMatrix(&battle->unk1C[effect->unkC8].unk58);
-            SetTransMatrix(&battle->unk1C[effect->unkC8].unk58);
+            view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            SetRotMatrix(&vs_scratch.viewMatrix);
-            SetTransMatrix(&vs_scratch.viewMatrix);
+            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
         }
         for (drawRow = 0; drawRow < 3; ++drawRow) {
             for (drawColumn = 0; drawColumn < 16; ++drawColumn) {
-                gte_ldv0(&vertices[drawRow][drawColumn]);
-                gte_rtps2();
-                gte_stsxy(&screen[drawRow][drawColumn]);
-                gte_stszotz(&depths[drawRow][drawColumn]);
+                projected = vs_gte_project(&view, &vertices[drawRow][drawColumn]);
+                screen[drawRow][drawColumn] = projected.sxy;
+                depths[drawRow][drawColumn] = projected.otz;
             }
         }
 
@@ -336,14 +334,11 @@ int func_800FA490(func_800D4910_t* arg0, u_int arg1, int arg2)
         if (effect->unk3) {
             child.unk60 = 0;
             if (effect->flags & 0x20000) {
-                SetRotMatrix(actorMatrix);
-                SetTransMatrix(actorMatrix);
+                view = vs_gte_view_of(actorMatrix, VS_GTE_NO_SCREEN);
                 (&scratch->unk2C)->vx = scratch->unk98.vx,
                 (&scratch->unk2C)->vy = scratch->unk98.vy,
                 (&scratch->unk2C)->vz = scratch->unk98.vz;
-                gte_ldv0(&scratch->unk2C);
-                gte_rtv0tr2();
-                gte_stlvnl(&scratch->unk34);
+                vs_gte_transform_to(&scratch->unk34, &view, &scratch->unk2C);
                 (&child.unkC)->vx = scratch->unk34.vx * 4096,
                 (&child.unkC)->vy = scratch->unk34.vy * 4096,
                 (&child.unkC)->vz = scratch->unk34.vz * 4096;
@@ -469,6 +464,7 @@ void func_800FDE78(func_800FD9A4_t* arg0, func_800FA098_arg1* scratch)
 
 int func_800FDEC4(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
+    vs_gte_view view;
     func_800FD9A4_t* state = arg0->unk8;
     D_800F53B8_t* battle = D_800F53BC;
     func_800FA098_arg1* scratch = (void*)0x1F8001D0;
@@ -543,11 +539,8 @@ int func_800FDEC4(func_800D4910_t* arg0, u_int arg1, int arg2)
             scratch->unk2C.vy = (scratch->unkA8.vy * scratch->unk170) >> 12;
             break;
         }
-        SetRotMatrix(&state->unkA8);
-        SetTransMatrix(&state->unkA8);
-        gte_ldv0(&scratch->unk2C);
-        gte_rtv0tr2();
-        gte_stlvnl(&state->unk88);
+        view = vs_gte_view_of(&state->unkA8, VS_GTE_NO_SCREEN);
+        vs_gte_transform_to(&state->unk88, &view, &scratch->unk2C);
         switch (state->mode) {
         case 0:
         case 1:

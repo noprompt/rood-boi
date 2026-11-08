@@ -1,10 +1,9 @@
 /* Animated mirrored nine-row radial surface with per-row color curves. */
 #include "common.h"
+#include "pc/src/gte_value.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "pc/src/game/SLUS_010.40/32154.h"
-#include "vs_inline_c.h"
 #include "gpu.h"
-#include <inline_c.h>
 #include <rand.h>
 #ifndef VS_MIRROR_SURFACE_TYPES
 #define VS_MIRROR_SURFACE_TYPES
@@ -33,6 +32,8 @@ extern SVECTOR VS_MIRROR_SURFACE_VERTICES[5][16];
 
 int VS_MIRROR_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
+    vs_gte_view view;
+    vs_gte_result projected;
     SVECTOR vertices[9][16];
     int screen[9][16];
     int depths[9][16];
@@ -186,18 +187,15 @@ int VS_MIRROR_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
             colors[row].cd = primPolyGT4SemiTrans;
         }
         if (scratch->flags & 0x20000) {
-            SetRotMatrix(&battle->unk1C[effect->unkC8].unk58);
-            SetTransMatrix(&battle->unk1C[effect->unkC8].unk58);
+            view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            SetRotMatrix(&vs_scratch.viewMatrix);
-            SetTransMatrix(&vs_scratch.viewMatrix);
+            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
         }
         for (row = 0; row < 9; ++row) {
             for (column = 0; column < 16; ++column) {
-                gte_ldv0(&vertices[row][column]);
-                gte_rtps2();
-                gte_stsxy(&screen[row][column]);
-                gte_stszotz(&depths[row][column]);
+                projected = vs_gte_project(&view, &vertices[row][column]);
+                screen[row][column] = projected.sxy;
+                depths[row][column] = projected.otz;
             }
         }
         func_800D6D24(&state->texture);

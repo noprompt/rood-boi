@@ -103,7 +103,20 @@ typedef struct
 extern "C" {
 #endif
 
-extern GTERegisters gteRegs;
+/* ROOD: the registers the operations act on are reached through gte_cur. It
+ * points at gte_global (the game's one register set) except inside a value
+ * call (pc/src/gte_value.h), which points it at a private set for the call's
+ * duration, so those calls neither read nor change the game's registers.
+ * Per thread where the platform has __thread (not MinGW: its emulated TLS would
+ * land in the save-state sections). */
+#ifdef _WIN32
+#define GTE_THREAD
+#else
+#define GTE_THREAD __thread
+#endif
+extern GTERegisters gte_global;
+extern GTE_THREAD GTERegisters* gte_cur;
+#define gteRegs (*gte_cur)
 
 extern int GTE_operator(int);
 extern int LIM(int value, int max, int min, unsigned int flag);

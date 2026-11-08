@@ -443,3 +443,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_test(NAME lua_menu_probe COMMAND lua_menu_probe ${CMAKE_CURRENT_BINARY_DIR}/lua_menu_probe_scratch
         ${CMAKE_CURRENT_SOURCE_DIR}/plugins)
 endif()
+
+# TEMPORARY: the GTE value functions against the old register interface
+# (pc/tests/gte_value_probe.c). Delete with the old state machine.
+add_executable(gte_value_probe tests/gte_value_probe.c third_party/psycross/src/psx/INLINE_C.C
+    src/gte_value.cpp third_party/psycross/src/gte/PsyX_GTE.cpp)
+set_source_files_properties(third_party/psycross/src/psx/INLINE_C.C PROPERTIES LANGUAGE C COMPILE_FLAGS "-x c")
+# (As the game build compiles it: the C math.h, since the C++ one pulls in sys/types.h.)
+set_source_files_properties(third_party/psycross/src/gte/PsyX_GTE.cpp PROPERTIES COMPILE_OPTIONS "-nostdinc++")
+target_include_directories(gte_value_probe PRIVATE src third_party/psycross/include third_party/psycross/include/psx)
+target_compile_definitions(gte_value_probe PRIVATE ROOD_PC_LP64 USE_PGXP=0 USE_EXTENDED_PRIM_POINTERS=0)
+target_compile_options(gte_value_probe PRIVATE -fno-strict-aliasing -funsigned-char)
+add_test(NAME gte_value_probe COMMAND gte_value_probe)

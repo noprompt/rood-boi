@@ -5,14 +5,13 @@
 #include "common.h"
 #include <rand.h>
 #include <abs.h>
-#include <inline_c.h>
-#include "vs_inline_c.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/44F14.h"
 #include "pc/src/game/SLUS_010.40/main.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/30DB0.h"
 #include "pc/src/psx_types.h"
+#include "pc/src/gte_value.h"
 
 typedef struct {
     char prefix[0x30];
@@ -88,17 +87,19 @@ static inline void func_800B26B8(void* actor, MATRIX* parent, int bone, int save
     int boneOffset;
     actorBoneMatrix* destination;
     MATRIX* table;
+    vs_gte_view view;
+    vs_gte_result transformed;
     *matrix = ((savedBoneMatrix*)((char*)actor + (saved << 5)))->matrix;
     func_800B196C(parent, matrix);
-    gte_SetRotMatrix(parent);
-    gte_SetTransMatrix(parent);
+    view = vs_gte_view_of(parent, VS_GTE_NO_SCREEN);
     savedAddress = (char*)actor + ((saved - 1) << 5);
     scratch->translation.vx = *(u_short*)(savedAddress + 0x18A4);
     scratch->translation.vy = *(u_short*)(savedAddress + 0x18A8);
     scratch->translation.vz = *(u_short*)(savedAddress + 0x18AC);
-    gte_ldv0((void*)0x1F8003A8);
-    gte_rtv0tr2();
-    gte_stlvnl((void*)0x1F8003D4);
+    transformed = vs_gte_transform(&view, &scratch->translation);
+    matrix->t[0] = transformed.mac[1];
+    matrix->t[1] = transformed.mac[2];
+    matrix->t[2] = transformed.mac[3];
     table = D_800F2458.boneMatrices;
     boneOffset = bone << 5;
     *(MATRIX*)((char*)table + boneOffset) = *matrix;
@@ -124,18 +125,20 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
     vs_scratch_t* frame;
     int blend;
     u_int flags;
+    vs_gte_view view;
+    vs_gte_result transformed;
 
     psx_copy(scratch->model, actor->unk0.unk68);
-    gte_SetRotMatrix(parent);
-    gte_SetTransMatrix(parent);
+    view = vs_gte_view_of(parent, VS_GTE_NO_SCREEN);
     *(int*)&scratch->translation = *(int*)&scratch->offset;
     *(int*)&scratch->translation.vz = *(int*)&scratch->offset.vz;
-    gte_ldv0((void*)0x1F8003A8);
-    gte_rtv0tr2();
+    transformed = vs_gte_transform(&view, &scratch->translation);
     scratch->rotation.vx = actor->unk704.unk0[0].vx >> 1;
     scratch->rotation.vy = actor->unk704.unk0[0].vy >> 1;
     scratch->rotation.vz = actor->unk704.unk0[0].vz >> 1;
-    gte_stlvnl((void*)0x1F8003D4);
+    scratch->matrix.t[0] = transformed.mac[1];
+    scratch->matrix.t[1] = transformed.mac[2];
+    scratch->matrix.t[2] = transformed.mac[3];
     scratch->rotation.vx += actor->unk0.unk24;
     scratch->rotation.vy += actor->unk0.facing;
     scratch->rotation.vz += actor->unk0.unk28;
@@ -201,14 +204,12 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
         } else {
             parentBone = psx_get(scratch->model)->armatures[i].unk4;
             psx_set(scratch->parent, &actor->bones[parentBone]);
-            gte_SetRotMatrix(psx_get(scratch->parent));
-            gte_SetTransMatrix(psx_get(scratch->parent));
+            view = vs_gte_view_of(psx_get(scratch->parent), VS_GTE_NO_SCREEN);
             length = (u_short)psx_get(scratch->model)->armatures[parentBone].unk0;
             scratch->translation.vy = 0;
             scratch->translation.vz = 0;
             scratch->translation.vx = -length;
-            gte_ldv0(&scratch->translation);
-            gte_rtv0tr2();
+            transformed = vs_gte_transform(&view, &scratch->translation);
             scratch->rotation.vx = actor->unk704.unk0[i].vx >> 1;
             scratch->rotation.vy = actor->unk704.unk0[i].vy >> 1;
             scratch->rotation.vz = actor->unk704.unk0[i].vz >> 1;
@@ -278,7 +279,9 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
                 break;
             }
 
-            gte_stlvnl(&scratch->matrix.t);
+            scratch->matrix.t[0] = transformed.mac[1];
+            scratch->matrix.t[1] = transformed.mac[2];
+            scratch->matrix.t[2] = transformed.mac[3];
             *(int*)&scratch->rotation &= 0x0FFF0FFF;
             *(int*)&scratch->rotation.vz &= 0xFFF;
             if (value >= 7) {
