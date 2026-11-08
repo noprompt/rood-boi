@@ -389,8 +389,8 @@ suites = ["title_fade_smoke", "skip_intro_smoke", "opening_smoke", "input:*", "s
           "interp_menu_2d_smoke", "widescreen_smoke", "save_menu_smoke", "movie_smoke"]
 
 [[rule]]
-paths = ["pc/src/game/ENDING/*", "config/ENDING/*"]
-suites = ["ending_smoke"]
+paths = ["pc/src/game/ENDING/*", "config/ENDING/*", "pc/src/draw_items.*"]
+suites = ["ending_smoke", "classic_parity", "snapshot_equivalence", "golden_frames", "ctest"]
 
 # ---- the small overlays' split config (no source of their own here) ----
 [[rule]]

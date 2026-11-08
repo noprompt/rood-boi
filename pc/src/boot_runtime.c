@@ -1002,6 +1002,9 @@ extern void pc_ui_bubble_packet(const void*, int, int, const int*) __attribute__
 extern int pc_weather_packet_hidden(const void*) __attribute__((weak));
 extern void pc_weather_frame_drawn(void) __attribute__((weak));
 extern int pc_hw_suppress __attribute__((weak)); /* gpu_hw.c: the packet is left out of the hardware picture */
+/* Typed draw items (draw_items.c) placed in the ordering table by marker packets: drawn where the marker is. */
+extern int pc_frame_marker(const uint32_t*, int*, int*) __attribute__((weak));
+extern void pc_frame_draw_run(int, int) __attribute__((weak));
 /* gpu_hw.c: the ordering table about to be drawn holds native draws, and
  * starts in drawing area `clip` (x, y, w, h). */
 extern void pc_hw_ot_native_area(const int*) __attribute__((weak));
@@ -1072,6 +1075,8 @@ void pc_draw_packet(void* data, int chain)
         ot_scene = NULL, ot_front = 0;
     pc_cost_end(PC_COST_DRAW, cost);
 }
+/* A packet lowered from a draw item (draw_items.c): drawn as one member of an ordering table. */
+void pc_draw_item_packet(void* packet) { draw_packet(packet, 2); }
 /* The photo mode's hidden game 2D (photo.cpp, rood.ui.hide{game2d}): in the field's ordering tables
  * (D_80055C80, 0x822 entries each, drawn from the far end), the packets linked at entries below
  * pc_photo_game2d_slots (the HUD, text and window layer: vs_scratch.unk4 is entry 18, the game's 2D
@@ -1134,13 +1139,15 @@ static int mode_packet(const uint32_t* p)
             return 0;
     return 1;
 }
+/* chain: 1 an ordering table, walked by its links; 0 a single packet DrawPrim hands over; 2 a single packet a
+ * typed draw item lowered to (draw_items.c), drawn as a member of an ordering table. */
 static void draw_packet(void* data, int chain)
 {
     uint32_t* p = data;
-    int hide2d = chain && &pc_photo_hide_game2d && pc_photo_hide_game2d && &pc_photo_game2d_slots, hidden = 0;
+    int hide2d = chain == 1 && &pc_photo_hide_game2d && pc_photo_hide_game2d && &pc_photo_game2d_slots, hidden = 0;
     for (unsigned links = 0; links < 100000; links++) {
         uint32_t tag = *p;
-        if (chain)
+        if (chain == 1)
             ot_layers_note(p);
         uint32_t t_list;
         int t_first, t_count;
@@ -1178,6 +1185,11 @@ static void draw_packet(void* data, int chain)
         if (render_is_marker && pc_hw_native_marker && render_is_marker(p)) {
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
             pc_hw_native_marker(p[2], draw_x, draw_y, clip, texture_window, (int)mask_set);
+        }
+        {
+            int run, run_count;
+            if (pc_frame_marker && pc_frame_marker(p, &run, &run_count))
+                pc_frame_draw_run(run, run_count);
         }
         uint32_t list;
         int first, count;

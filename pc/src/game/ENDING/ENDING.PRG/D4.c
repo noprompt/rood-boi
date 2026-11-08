@@ -6,6 +6,7 @@
 #include "gpu.h"
 #include "texture_t.h"
 #include "scratch.h"
+#include "pc/src/draw_items.h"
 #include <libapi.h>
 #include <libetc.h>
 #include <memory.h>
@@ -91,7 +92,6 @@ void _renderText(_creditsElement* arg0);
 static void func_8006B9B4(void);
 static void _setDrawEnv(DRAWENV*);
 static void func_8006A888(void);
-static void* _insertTpage(int tPage, int otOffset);
 static void func_8006A9C0(func_8006A9C0_t2*);
 static void _resetElements(void);
 static int _renderElements(void);
@@ -103,6 +103,7 @@ static int _drawScreen(u_long*);
 static void func_8006B884(void);
 static int _ease(short mode, short currentStep, short totalSteps);
 static void _updateClearGameStats(void);
+static void _beginFrame(void);
 static void func_8006B930(void);
 static void _checkStreamXaEnd(void);
 static void func_8006BD78(void);
@@ -290,19 +291,20 @@ void _renderPhantomPain(_creditsElement* element)
     SVECTOR rot;
     SVECTOR vertices[4];
     MATRIX matrix;
-    long p;
-    long flag;
+    psx_long p;
+    psx_long flag;
     u_short brightness;
     u_short scale;
     u_short i;
     u_short j;
-    POLY_FT4* poly;
+    psx_long sxy[4];
+    pc_item* poly;
+    int k;
     int dx;
     int dy;
     int shift;
     int d;
 
-    poly = psx_slot_get(POLY_FT4*, 0x1F800000, 0);
     memset(&rot, 0, sizeof(rot));
 
     switch (element->state) {
@@ -377,22 +379,27 @@ void _renderPhantomPain(_creditsElement* element)
                     * scale)
                 >> 12;
 
-            SetPolyFT4(poly);
-            setSemiTrans(poly, 1);
             RotTransPers4(&vertices[0], &vertices[1], &vertices[2], &vertices[3],
-                (long*)&poly->x0, (long*)&poly->x1, (long*)&poly->x2, (long*)&poly->x3,
-                &p, &flag);
-            poly->u0 = poly->u2 = j * 9;
-            poly->u1 = poly->u3 = (j + 1) * 9;
-            poly->v0 = poly->v1 = i * 4 + 180;
-            poly->v2 = poly->v3 = (i + 1) * 4 + 180;
+                &sxy[0], &sxy[1], &sxy[2], &sxy[3], &p, &flag);
+            poly = pc_frame_add(PC_ITEM_POLY, 3);
+            if (poly == NULL) {
+                continue;
+            }
+            poly->verts = 4;
+            poly->flags = PC_ITEM_TEXTURED | PC_ITEM_SEMI;
+            for (k = 0; k < 4; ++k) {
+                poly->x[k] = sxy[k];
+                poly->y[k] = sxy[k] >> 16;
+            }
+            poly->u[0] = poly->u[2] = j * 9;
+            poly->u[1] = poly->u[3] = (j + 1) * 9;
+            poly->v[0] = poly->v[1] = i * 4 + 180;
+            poly->v[2] = poly->v[3] = (i + 1) * 4 + 180;
             poly->clut = getClut(896, 83);
-            poly->tpage = 46;
-            poly->r0 = poly->g0 = poly->b0 = brightness;
-            AddPrim(psx_slot_get(void*, 0x1F800000, 1) + 12, poly++);
+            poly->mode = 46;
+            poly->rgb[0][0] = poly->rgb[0][1] = poly->rgb[0][2] = brightness;
         }
     }
-    psx_slot_set(POLY_FT4*, 0x1F800000, 0, poly);
 }
 
 void _renderFin(_creditsElement* arg0)
@@ -401,10 +408,6 @@ void _renderFin(_creditsElement* arg0)
     int temp_a0;
     int temp_v0;
     u_char var_s0;
-    void** p;
-    int new_var;
-
-    SPRT* sprt = psx_slot_get(SPRT*, 0x1F800000, 0);
 
     switch (arg0->state) {
     case 1:
@@ -444,31 +447,13 @@ void _renderFin(_creditsElement* arg0)
         break;
     }
 
-    SetSprt(sprt);
-    setXY0(sprt, 248, 184);
-    setUV0(sprt, 0, 160);
-    setWH(sprt, 36, 17);
-    sprt->r0 = sprt->g0 = sprt->b0 = var_s0;
-    setClut(sprt, 896, 82);
-
-    p = (void**)0x1F800000;
-    setaddr(sprt, ((u_long*)psx_slot_get(void*, p, 1))[1]);
-    setaddr(psx_slot_get(void*, p, 1) + 4, sprt++);
-
-    new_var = 0;
-    psx_slot_set(void*, p, new_var, sprt);
-    psx_slot_set(void*, p, new_var,
-        _insertTpage(getTPage(clut4Bit, semiTransparencyFull, 896, 0), 1));
+    pc_frame_sprite(1, 248, 184, 36, 17, 0, 160, PC_GREY(var_s0), getClut(896, 82),
+        PC_ITEM_MODE(getTPage(clut4Bit, semiTransparencyFull, 896, 0)), 0);
 }
 
 void _renderVagrantStory(_creditsElement* element)
 {
-    SPRT* sprt;
     int var_fp;
-    void** s0;
-    int new_var;
-
-    sprt = psx_slot_get(SPRT*, 0x1F800000, 0);
 
     switch (element->state) {
     case 1:
@@ -506,37 +491,10 @@ void _renderVagrantStory(_creditsElement* element)
         break;
     }
 
-    SetSprt(sprt);
-    setSemiTrans(sprt, 1);
-    setXY0(sprt, element->x >> 8, element->y >> 8);
-    setUV0(sprt, 0, 96);
-    setWH(sprt, 208, 48);
-    setClut(sprt, 896, 80);
-    sprt->r0 = sprt->g0 = sprt->b0 = var_fp;
-
-    s0 = (void**)0x1F800000;
-    setaddr(sprt, getaddr(psx_slot_get(void*, s0, 1) + 12));
-    setaddr(psx_slot_get(void*, s0, 1) + 12, sprt++);
-
-    new_var = 0;
-    psx_slot_set(void*, s0, new_var, sprt);
-
-    sprt = _insertTpage(0x2E, 3);
-
-    SetSprt(sprt);
-    setSemiTrans(sprt, 1);
-    setXY0(sprt, element->x >> 8, element->y >> 8);
-    setUV0(sprt, 0, 0x60);
-    setWH(sprt, 0xD0, 0x30);
-    setClut(sprt, 896, 81);
-    sprt->r0 = sprt->g0 = sprt->b0 = var_fp;
-
-    setaddr(sprt, getaddr(psx_slot_get(void*, s0, 1) + 12));
-    setaddr(psx_slot_get(void*, s0, 1) + 12, sprt++);
-
-    psx_slot_set(void*, s0, new_var, sprt);
-    psx_slot_set(void*, s0, new_var, _insertTpage(0x4E, 3));
-    return;
+    pc_frame_sprite(3, element->x >> 8, element->y >> 8, 208, 48, 0, 96, PC_GREY(var_fp),
+        getClut(896, 80), PC_ITEM_MODE(0x2E), PC_ITEM_SEMI);
+    pc_frame_sprite(3, element->x >> 8, element->y >> 8, 0xD0, 0x30, 0, 0x60, PC_GREY(var_fp),
+        getClut(896, 81), PC_ITEM_MODE(0x4E), PC_ITEM_SEMI);
 }
 
 static int _inverseDistanceFromScreencenter(int arg0, int arg1)
@@ -656,9 +614,7 @@ static void func_80069388(func_80069388_t* arg0, short arg1, short arg2)
 
 static void _renderllustration(_creditsElement* element)
 {
-    SPRT* sprt;
     short temp_v0;
-    void** p;
 
     temp_v0 = element->state - 1;
 
@@ -713,34 +669,10 @@ static void _renderllustration(_creditsElement* element)
         break;
     }
 
-    p = (void**)0x1F800000;
-    sprt = psx_slot_get(void*, p, 0);
-
-    SetSprt(sprt);
-    setXY0(sprt, 0, 0);
-    setWH(sprt, 0xA0, 0xE0);
-    setUV0(sprt, 0, 0);
-    setSemiTrans(sprt, 1);
-    setClut(sprt, 0, D_800DBB6C);
-    sprt->r0 = sprt->g0 = sprt->b0 = D_800DBB68;
-
-    AddPrim(psx_slot_get(void*, p, 1) + 0x10, sprt++);
-
-    psx_slot_set(void*, p, 0, sprt);
-    sprt = _insertTpage(getTPage(1, 2, D_800DBB6A, 256), 4);
-
-    SetSprt(sprt);
-    setXY0(sprt, 0xA0, 0);
-    setWH(sprt, 0xA0, 0xE0);
-    setUV0(sprt, 0x20, 0);
-    setSemiTrans(sprt, 1);
-    setClut(sprt, 0, D_800DBB6C);
-    sprt->r0 = sprt->g0 = sprt->b0 = D_800DBB68;
-
-    AddPrim(psx_slot_get(void*, p, 1) + 0x10, sprt++);
-
-    psx_slot_set(void*, p, 0, sprt);
-    psx_slot_set(void*, p, 0, _insertTpage(getTPage(1, 2, D_800DBB6A + 64, 256), 4));
+    pc_frame_sprite(4, 0, 0, 0xA0, 0xE0, 0, 0, PC_GREY(D_800DBB68),
+        getClut(0, D_800DBB6C), PC_ITEM_MODE(getTPage(1, 2, D_800DBB6A, 256)), PC_ITEM_SEMI);
+    pc_frame_sprite(4, 0xA0, 0, 0xA0, 0xE0, 0x20, 0, PC_GREY(D_800DBB68),
+        getClut(0, D_800DBB6C), PC_ITEM_MODE(getTPage(1, 2, D_800DBB6A + 64, 256)), PC_ITEM_SEMI);
 }
 
 static int _creditsStrWidth(u_char* str)
@@ -784,9 +716,6 @@ static int _creditsStrWidth(u_char* str)
 // https://decomp.me/scratch/86Hv9
 void _renderText(_creditsElement* element)
 {
-    void** p;
-    SPRT* sprt;
-    POLY_FT4* poly;
     u_char* str;
     short i;
     short len;
@@ -799,7 +728,6 @@ void _renderText(_creditsElement* element)
     u_short width;
     short glyphWidth;
 
-    sprt = psx_slot_get(SPRT*, 0x1F800000, 0);
     charTableOffset = 0;
     underline = 0;
 
@@ -845,69 +773,48 @@ void _renderText(_creditsElement* element)
             }
         } else {
             glyph = charTableOffset + c - 32;
-            setSprt(sprt);
-            setXY0(sprt, x, y);
-            setUV0(sprt, (glyph & 0xF) * 16, (glyph >> 4) * 16);
             glyphWidth = _glyphWidths[glyph];
-            setWH(sprt, glyphWidth, 16);
-            setClut(sprt, 960, 480);
+            pc_frame_sprite(3, x, y, glyphWidth, 16, (glyph & 0xF) * 16, (glyph >> 4) * 16,
+                PC_GREY(D_800DC19C), getClut(960, 480), PC_ITEM_MODE(31), 0);
             x += glyphWidth - 1;
-            sprt->r0 = sprt->g0 = sprt->b0 = D_800DC19C;
-            addPrim((u_long*)psx_get(((vs_scratch_t*)0x1F800000)->unk4) + 3, sprt);
-            ++sprt;
         }
     }
 
     if (underline != 0) {
-        p = (void**)0x1F800000;
+        pc_item* poly;
+
         x = 160 - ((element->width + 32) >> 1);
 
-        SetSprt(sprt);
         y += underline;
-        setXY0(sprt, x, y);
-        setUV0(sprt, 0, 208);
-        setWH(sprt, 16, 3);
-        setClut(sprt, 960, 480);
-        sprt->r0 = sprt->g0 = sprt->b0 = D_800DC19C;
-        AddPrim(psx_slot_get(void*, p, 1) + 12, sprt++);
+        pc_frame_sprite(3, x, y, 16, 3, 0, 208, PC_GREY(D_800DC19C),
+            getClut(960, 480), PC_ITEM_MODE(31), 0);
 
-        poly = (POLY_FT4*)sprt;
-        SetPolyFT4(poly);
+        poly = pc_frame_add(PC_ITEM_POLY, 3);
         x += 16;
-        poly->x0 = poly->x2 = x;
+        if (poly != NULL) {
+            poly->verts = 4;
+            poly->flags = PC_ITEM_TEXTURED;
+            poly->x[0] = poly->x[2] = x;
+            poly->x[1] = poly->x[3] = x + element->width;
+            poly->y[0] = poly->y[1] = y;
+            poly->y[2] = poly->y[3] = y + 3;
+            poly->u[0] = poly->u[2] = 8;
+            poly->v[2] = poly->v[3] = 211;
+            poly->u[1] = poly->u[3] = 16;
+            poly->v[0] = poly->v[1] = 208;
+            poly->mode = 31;
+            poly->clut = getClut(960, 480);
+            poly->rgb[0][0] = poly->rgb[0][1] = poly->rgb[0][2] = D_800DC19C;
+        }
         x += element->width;
-        poly->y0 = poly->y1 = y;
-        poly->y2 = poly->y3 = y + 3;
-        poly->u0 = poly->u2 = 8;
-        poly->v2 = poly->v3 = 211;
-        poly->u1 = poly->u3 = 16;
-        poly->v0 = poly->v1 = 208;
-        poly->tpage = 31;
-        poly->clut = getClut(960, 480);
-        poly->x1 = poly->x3 = x;
-        poly->r0 = poly->g0 = poly->b0 = D_800DC19C;
-        AddPrim(psx_slot_get(void*, p, 1) + 12, poly++);
 
-        sprt = (SPRT*)poly;
-        SetSprt(sprt);
-        setUV0(sprt, 168, 208);
-        setXY0(sprt, x, y);
-        setWH(sprt, 16, 3);
-        setClut(sprt, 960, 480);
-        sprt->r0 = sprt->g0 = sprt->b0 = D_800DC19C;
-        AddPrim(psx_slot_get(void*, p, 1) + 12, sprt++);
+        pc_frame_sprite(3, x, y, 16, 3, 168, 208, PC_GREY(D_800DC19C),
+            getClut(960, 480), PC_ITEM_MODE(31), 0);
     }
-
-    psx_slot_set(SPRT*, 0x1F800000, 0, sprt);
-    psx_slot_set(void*, 0x1F800000, 0, _insertTpage(31, 3));
 }
 
 void _renderCopyright(_creditsElement* arg0)
 {
-    void** p = (void**)0x1F800000;
-    SPRT* sprt = psx_slot_get(void*, p, 0);
-    int new_var;
-
     if (arg0->state == 1) {
         arg0->x = 100 << 8;
         arg0->y = 224 << 8;
@@ -921,95 +828,47 @@ void _renderCopyright(_creditsElement* arg0)
         return;
     }
 
-    SetSprt(sprt);
-    setXY0(sprt, arg0->x >> 8, arg0->y >> 8);
-    setUV0(sprt, 0, 0x30);
-    setWH(sprt, 0x78, 0x10);
-    setClut(sprt, 960, 64);
-    sprt->r0 = sprt->g0 = sprt->b0 = D_800DC19C;
-
-    setaddr(sprt, ((u_long*)psx_slot_get(void*, p, 1))[3]);
-    setaddr(psx_slot_get(void*, p, 1) + 12, sprt++);
-
-    new_var = 0;
-    psx_slot_set(void*, p, new_var, sprt);
-    psx_slot_set(void*, p, new_var,
-        _insertTpage(getTPage(clut4Bit, semiTransparencyFull, 960, 0), 3));
+    pc_frame_sprite(3, arg0->x >> 8, arg0->y >> 8, 0x78, 0x10, 0, 0x30, PC_GREY(D_800DC19C),
+        getClut(960, 64), PC_ITEM_MODE(getTPage(clut4Bit, semiTransparencyFull, 960, 0)), 0);
 }
 
 static void _renderBackground(_creditsElement* arg0 __attribute__((unused)))
 {
-    TILE* tile;
-    POLY_G4* poly;
-    SPRT* sprt;
-    void** data;
+    int subtract = PC_ITEM_MODE(getTPage(clut8Bit, semiTransparencySubtract, 0, 0));
+    pc_item* poly;
 
-    data = (void**)0x1F800000;
+    pc_frame_sprite(0x7FF, 0, 10, 256, 204, 0, 10, PC_GREY(D_800DC19C),
+        getClut(780, 255), PC_ITEM_MODE(getTPage(clut4Bit, semiTransparencyFull, 768, 0)), 0);
+    pc_frame_sprite(0x7FF, 256, 10, 64, 204, 0, 10, PC_GREY(D_800DC19C),
+        getClut(780, 255), PC_ITEM_MODE(getTPage(clut4Bit, semiTransparencyFull, 832, 0)), 0);
 
-    sprt = psx_slot_get(void*, data, 0);
-    SetSprt(sprt);
-    setXY0(sprt, 0, 10);
-    setUV0(sprt, 0, 10);
-    setWH(sprt, 256, 204);
-    setClut(sprt, 780, 255);
-    sprt->r0 = sprt->g0 = sprt->b0 = D_800DC19C;
-    AddPrim(psx_slot_get(void*, data, 1) + 0x1FFC, sprt++);
-    psx_slot_set(void*, data, 0, sprt);
+    poly = pc_frame_add(PC_ITEM_POLY, 2);
+    if (poly != NULL) {
+        poly->verts = 4;
+        poly->flags = PC_ITEM_SHADED | PC_ITEM_SEMI;
+        poly->mode = subtract;
+        poly->x[0] = poly->x[2] = 0;
+        poly->x[1] = poly->x[3] = 320;
+        poly->y[0] = poly->y[1] = 10;
+        poly->y[2] = poly->y[3] = 30;
+        memset(poly->rgb[0], 255, 6);
+    }
 
-    sprt = (SPRT*)_insertTpage(getTPage(clut4Bit, semiTransparencyFull, 768, 0), 0x7FF);
-    SetSprt(sprt);
-    setUV0(sprt, 0, 10);
-    setXY0(sprt, 256, 10);
-    setWH(sprt, 64, 204);
-    setClut(sprt, 780, 255);
-    sprt->r0 = sprt->g0 = sprt->b0 = D_800DC19C;
-    AddPrim(psx_slot_get(void*, data, 1) + 0x1FFC, sprt++);
-    psx_slot_set(void*, data, 0, sprt);
+    poly = pc_frame_add(PC_ITEM_POLY, 2);
+    if (poly != NULL) {
+        poly->verts = 4;
+        poly->flags = PC_ITEM_SHADED | PC_ITEM_SEMI;
+        poly->mode = subtract;
+        poly->x[0] = poly->x[2] = 0;
+        poly->x[1] = poly->x[3] = 320;
+        poly->y[0] = poly->y[1] = 194;
+        poly->y[2] = poly->y[3] = 214;
+        memset(poly->rgb[2], 255, 6);
+    }
 
-    poly =
-        (POLY_G4*)_insertTpage(getTPage(clut4Bit, semiTransparencyFull, 832, 0), 0x7FF);
-    SetPolyG4(poly);
-    poly->x0 = poly->x2 = 0;
-    poly->x1 = poly->x3 = 320;
-    poly->y0 = poly->y1 = 10;
-    poly->y2 = poly->y3 = 30;
-    poly->r0 = poly->r1 = poly->g0 = poly->g1 = poly->b0 = poly->b1 = 255;
-    poly->r2 = poly->r3 = poly->g2 = poly->g3 = poly->b2 = poly->b3 = 0;
-    setSemiTrans(poly, 1);
-    AddPrim(psx_slot_get(void*, data, 1) + 8, poly++);
-
-    SetPolyG4(poly);
-    poly->x0 = poly->x2 = 0;
-    poly->x1 = poly->x3 = 320;
-    poly->y0 = poly->y1 = 194;
-    poly->y2 = poly->y3 = 214;
-    poly->r0 = poly->r1 = poly->g0 = poly->g1 = poly->b0 = poly->b1 = 0;
-    poly->r2 = poly->r3 = poly->g2 = poly->g3 = poly->b2 = poly->b3 = 255;
-    setSemiTrans(poly, 1);
-    AddPrim(psx_slot_get(void*, data, 1) + 8, poly++);
-
-    tile = (TILE*)poly;
-    SetTile(tile);
-    tile->r0 = tile->g0 = tile->b0 = 0;
-    setWH(tile, 320, 10);
-    setXY0(tile, 0, 0);
-    AddPrim(psx_slot_get(void*, data, 1) + 8, tile++);
-
-    SetTile(tile);
-    tile->r0 = tile->g0 = tile->b0 = 0;
-    setWH(tile, 320, 10);
-    setXY0(tile, 0, 0);
-    AddPrim(psx_slot_get(void*, data, 1) + 8, tile++);
-
-    SetTile(tile);
-    tile->r0 = tile->g0 = tile->b0 = 0;
-    setWH(tile, 320, 10);
-    setXY0(tile, 0, 214);
-    AddPrim(psx_slot_get(void*, data, 1) + 8, tile++);
-    psx_slot_set(void*, data, 0, tile);
-
-    psx_slot_set(void*, data, 0,
-        _insertTpage(getTPage(clut8Bit, semiTransparencySubtract, 0, 0), 2));
+    pc_frame_tile(2, 0, 0, 320, 10, 0, subtract, 0);
+    pc_frame_tile(2, 0, 0, 320, 10, 0, subtract, 0);
+    pc_frame_tile(2, 0, 214, 320, 10, 0, subtract, 0);
 }
 
 static void _backgroundFadeIn(_creditsElement* element)
@@ -1047,8 +906,7 @@ static void _backgroundFadeOut(_creditsElement* arg0)
 
 static void func_8006A4D8(_creditsElement* element)
 {
-    void** s2 = (void**)0x1F800000;
-    TILE* temp_s0 = psx_slot_get(void*, s2, 0);
+    int level;
 
     if (element->state == 1) {
         element->currentStep = 0;
@@ -1059,18 +917,9 @@ static void func_8006A4D8(_creditsElement* element)
         D_800DC188 = 1;
     }
 
-    SetTile(temp_s0);
-    setSemiTrans(temp_s0, 1);
-    temp_s0->r0 = temp_s0->g0 = temp_s0->b0 =
-        (_ease(easeModeEaseOut, element->currentStep, 128) * 255) >> 0xC;
-    setWH(temp_s0, 320, 240);
-    setXY0(temp_s0, 0, 0);
-
-    AddPrim(psx_slot_get(void*, s2, 1), temp_s0++);
-
-    psx_slot_set(void*, s2, 0, temp_s0);
-    psx_slot_set(void*, s2, 0,
-        _insertTpage(getTPage(clut4Bit, semiTransparencySubtract, 0, 0), 0));
+    level = (_ease(easeModeEaseOut, element->currentStep, 128) * 255) >> 0xC;
+    pc_frame_tile(0, 0, 0, 320, 240, PC_GREY(level),
+        PC_ITEM_MODE(getTPage(clut4Bit, semiTransparencySubtract, 0, 0)), PC_ITEM_SEMI);
 }
 
 void vs_ending_exec(void)
@@ -1161,7 +1010,7 @@ static void func_8006A888(void)
 
         D_800DC19A = VSync(1);
 
-        func_8006B930();
+        _beginFrame();
         _parseCreditsScript();
         _renderElements();
         func_8006AF64();
@@ -1171,22 +1020,10 @@ static void func_8006A888(void)
             _skipInvoked = 1;
         }
 
-        _drawScreen(psx_slot_get(u_long*, 0x1F800004, 0) + 0x7FF);
+        _drawScreen(NULL);
 
         ++D_800DC18C;
     }
-}
-
-static void* _insertTpage(int tPage, int otOffset)
-{
-    void** scratch;
-    DR_TPAGE* drTpage;
-
-    scratch = (void**)0x1F800000;
-    drTpage = psx_slot_get(void*, scratch, 0);
-    SetDrawTPage(drTpage, 0, 1, tPage & 0xFFFF);
-    AddPrim(psx_slot_get(void*, scratch, 1) + (otOffset * 4), drTpage++);
-    return drTpage;
 }
 
 static void func_8006A9C0(func_8006A9C0_t2* arg0)
@@ -1464,54 +1301,6 @@ int func_8006AF64(void)
     }
 }
 
-static void func_8006B324(short arg0, short arg1, int arg2, u_char* arg3)
-{
-    int temp_v0;
-    u_char var_v1_2;
-    int var_v1;
-    SPRT_8* var_a2;
-    u_long** t4;
-
-    var_v1 = *arg3;
-    var_a2 = psx_slot_get(void*, 0x1F800000, 0);
-
-    while (var_v1 != 0) {
-
-        temp_v0 = var_v1 - 32;
-        var_v1_2 = temp_v0;
-
-        if (((temp_v0 & 0xFF) < 96u) && (var_v1_2 != 0)) {
-
-            if (var_v1_2 == 60) {
-                var_v1_2 = 15;
-            }
-
-            if (var_v1_2 > 64) {
-                var_v1_2 -= 32;
-            }
-
-            setSprt8(var_a2);
-            setShadeTex(var_a2, 1);
-            setXY0(var_a2, arg0, arg1);
-            setUV0(var_a2, (var_v1_2 & 0xF) * 8, (var_v1_2 & 0xF0) / 2);
-            setClut(var_a2, 960, arg2 + 32);
-
-            t4 = (u_long**)0x1F800000;
-            setaddr(var_a2, *psx_slot_get(u_long*, t4, 1) & 0xFFFFFF);
-            setaddr(psx_slot_get(u_long*, t4, 1), var_a2);
-
-            ++var_a2;
-        }
-
-        ++arg3;
-        var_v1 = *arg3;
-        arg0 += 7;
-    }
-
-    psx_slot_set(void*, 0x1F800000, 0, var_a2);
-    psx_slot_set(void*, 0x1F800000, 0, _insertTpage(0xF, 0));
-}
-
 static void func_8006B450(int arg0, int arg1, int arg2, int arg3, int arg4, int arg5)
 {
     RECT rect;
@@ -1554,6 +1343,8 @@ static void func_8006B450(int arg0, int arg1, int arg2, int arg3, int arg4, int 
     vs_main_frameDuration = 0;
 }
 
+/* The credits are drawn from the frame's items alone (arg0 NULL); the MISSION COMPLETE screen's leaves are
+ * still packets, so its frames are an ordering table with the items placed in it. */
 static int _drawScreen(u_long* arg0)
 {
     int _[2];
@@ -1567,7 +1358,11 @@ static int _drawScreen(u_long* arg0)
 
     PutDispEnv(&vs_main_dispEnv[vs_main_frameBuf]);
     PutDrawEnv(&vs_main_drawEnv[vs_main_frameBuf]);
-    DrawOTag(arg0);
+    if (arg0 == NULL) {
+        pc_frame_draw();
+    } else {
+        DrawOTag(arg0);
+    }
 
     ++vs_main_frameDuration;
 
@@ -1625,11 +1420,17 @@ static void func_8006B884(void)
 
 static void _updateClearGameStats(void) { _do_updateClearGameStats(); }
 
+static void _beginFrame(void)
+{
+    vs_main_processPadState();
+    pc_frame_begin();
+}
+
 static void func_8006B930(void)
 {
     void* temp_a0;
 
-    vs_main_processPadState();
+    _beginFrame();
     temp_a0 = D_80055C80[vs_main_frameBuf];
     psx_set(vs_scratch.unk8, temp_a0 + 8);
     psx_set(vs_scratch.unk4, temp_a0 + 0x48);
@@ -1982,10 +1783,10 @@ static int _renderCongratulationsScreen(void)
 
 void func_8006C3CC(int arg0)
 {
-    int var_s2;
     int i;
+    int first;
     int temp_s4;
-    POLY_FT4* poly;
+    pc_item* poly;
 
     if (arg0 < 0) {
         arg0 = 0;
@@ -2001,21 +1802,29 @@ void func_8006C3CC(int arg0)
         return;
     }
 
-    poly = psx_slot_get(void*, 0x1F800000, 0);
-    var_s2 = 64;
+    first = pc_frame_count();
 
     for (i = 0; i < 5; ++i) {
-        setPolyFT4(poly);
-        setXY4(poly, i * 64, 8, 64 + i * 64, 8, i * 64, 232, 64 + i * 64, 232);
-        setUV4(poly, 0, 0, 64, 0, 0, 224, 64, 224);
-        setRGB0(poly, temp_s4, temp_s4, temp_s4);
-        setClut(poly, 0, 0);
-        poly->tpage = (i + 16) | getTPage(3, 0, 0, 0);
-        AddPrim(psx_slot_get(void*, 0x1F800004, 0) + 0x1FF8, poly++);
-        var_s2 += 64;
+        poly = pc_frame_add(PC_ITEM_POLY, 0x7FE);
+        if (poly == NULL) {
+            continue;
+        }
+        poly->verts = 4;
+        poly->flags = PC_ITEM_TEXTURED;
+        poly->x[0] = poly->x[2] = i * 64;
+        poly->x[1] = poly->x[3] = 64 + i * 64;
+        poly->y[0] = poly->y[1] = 8;
+        poly->y[2] = poly->y[3] = 232;
+        poly->u[1] = poly->u[3] = 64;
+        poly->v[2] = poly->v[3] = 224;
+        poly->rgb[0][0] = poly->rgb[0][1] = poly->rgb[0][2] = temp_s4;
+        poly->mode = (i + 16) | getTPage(3, 0, 0, 0);
     }
 
-    psx_slot_set(void*, 0x1F800000, 0, poly);
+    /* the picture draws where the table's slot is, ahead of the leaves still built as packets */
+    psx_slot_set(void*, 0x1F800000, 0,
+        pc_frame_place(first, pc_frame_count() - first,
+            (unsigned*)psx_slot_get(void*, 0x1F800004, 0) + 0x7FE, psx_slot_get(void*, 0x1F800000, 0)));
 }
 
 static void _renderCongratulations(int arg0, int arg1, int arg2)

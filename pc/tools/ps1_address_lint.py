@@ -37,9 +37,25 @@ RULES = {
     # The libgte calls that run on the same registers underneath.
     "gte_sdk_calls": re.compile(r"\b(?:SetRotMatrix|SetTransMatrix|ApplyRotMatrix|ApplyMatrix|RotTransPers[34]?|"
                                 r"RotTrans|RotTransSV|RotAverage4|RotAverageNclip4|SetGeomOffset|SetGeomScreen)\("),
+    # GPU packets written by hand (PS1_Ties.md T4): the libgpu macros and calls that build a packet or link it into an
+    # ordering table, GP0 command words written as hex (the tag in the top byte, after | = ? or :, not read back
+    # with == or case), and packets written field by field and linked by hand. DrawSync and the draw environment are not packets.
+    "gpu_packet_writes": re.compile(
+        r"\b(?:[sS]et(?:Poly|Line|Sprt|Tile|ShadeTex|DrawTPage|DrawMode|DrawArea|DrawOffset|DrawMove|DrawLoad|DrawStp)\w*"
+        r"|setSemiTrans|setShadeTex|[aA]ddPrims?|termPrim|catPrim|setaddr|getaddr|DrawOTag|DrawPrim|ClearOTagR?"
+        r"|_insertT[pP]age|insertT[pP]age|vs_battle_(?:addTile|insertTpage|addPrim)\w*)\s*\("
+        r"|(?:[|?:(]|(?<![=!<>])=)\s*0[xX](?:[2-7][0-9a-fA-F]|[eE][1-6])000000\b"
+        # packets built field by field (the EFFECT plugins: prim->poly.tag, prim->drawMode) and linked by hand
+        # (the tag's length byte OR'd into a link)
+        r"|->(?:poly\.)?tag\s*=(?!=)|\.tag\s*=(?!=)|\bdrawMode\s*=(?!=)|\|\s*0[xX]0[0-9a-fA-F]000000\b"),
 }
 # Rules that count only under a path (the others count in every tree).
 ONLY_UNDER = {"gte_state_machine": "pc/src/game/", "gte_sdk_calls": "pc/src/game/"}
+# Rules that leave out paths: the SDK's own libgpu and the walker that draws the packets (they are what the game's
+# packets are for, T16), and the typed items' lowering to packets (it goes when a renderer takes items directly).
+SKIP_FOR = {"gpu_packet_writes": ("pc/src/game/SLUS_010.40/libgpu/", "pc/src/boot_sdk.c", "pc/src/boot_runtime.c",
+                                  "pc/src/boot_polygons.inc", "pc/src/boot_lines.inc", "pc/src/gpu_hw.c",
+                                  "pc/src/draw_items.c")}
 COMMENTS = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|//[^\n]*', re.S)
 
 
@@ -66,7 +82,7 @@ def scan():
         code = strip_comments(path.read_text(encoding="utf-8", errors="replace"))
         for number, line in enumerate(code.splitlines(), 1):
             for rule, pattern in RULES.items():
-                if not name.startswith(ONLY_UNDER.get(rule, "")):
+                if not name.startswith(ONLY_UNDER.get(rule, "")) or name.startswith(SKIP_FOR.get(rule, ("\0",))):
                     continue
                 found = pattern.findall(line)
                 if found:
