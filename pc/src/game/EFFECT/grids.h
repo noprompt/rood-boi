@@ -4,6 +4,7 @@
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "pc/src/game/SLUS_010.40/main.h"
 #include "gpu.h"
+#include "pc/src/game/EFFECT/effectItem.h"
 
 typedef struct {
     u_char lifetime, effect, u, v, uScroll, vScroll;
@@ -11,13 +12,6 @@ typedef struct {
     short xSpacing, xSpeed, zSpacing, zSpeed, xPhase, zPhase;
     int age;
 } vs_gridState;
-typedef struct {
-    int tag;
-    POLY_FT4 poly;
-    int drawMode;
-    /* Effect packets reserve 60 bytes even for the shorter flat-textured quad. */
-    int padding[3];
-} vs_gridPrim;
 
 int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
@@ -52,7 +46,7 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     func_800FA098_arg1* scratch = (void*)0x1F8001D0;
     func_800FA098_arg0* effect;
     MATRIX* matrix;
-    vs_gridPrim* prim;
+    pc_item* prim;
     alive = 1;
     state = arg0->unk8;
     battle = D_800F53BC;
@@ -174,7 +168,6 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                 color.b = 255;
         } else
             color.b = 128;
-        color.cd = 0x2E;
         scroll = state->uScroll;
         state->uScroll = (scroll + scratch->unk12C[0]) % effect->unk94[0][0];
         uvBase = state->u + scroll;
@@ -224,26 +217,18 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                             depth -= 16;
                         break;
                     }
-                    prim = psx_get(vs_scratch.unk0);
-                    psx_set(vs_scratch.unk0, prim + 1);
-                    prim->poly.tag = 0xE1000000;
-                    prim->drawMode = 0xE1000200;
-                    *(int*)&prim->poly.x0 = screen[row][column];
-                    *(int*)&prim->poly.x1 = screen[row][column + 1];
-                    *(int*)&prim->poly.x2 = screen[row + 1][column];
-                    *(int*)&prim->poly.x3 = screen[row + 1][column + 1];
-                    *(int*)&prim->poly.r0 = *(int*)&color;
-                    prim->poly.u0 = prim->poly.u2 = u[column];
-                    prim->poly.u1 = prim->poly.u3 = u[column + 1];
-                    prim->poly.v0 = prim->poly.v1 = v[row];
-                    prim->poly.v2 = prim->poly.v3 = v[row + 1];
-                    prim->poly.tpage = state->tpage;
-                    prim->poly.clut = state->clut;
-                    prim->tag = (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF)
-                              | 0x0B000000;
-                    ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                        (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                        | (psx_to_int(u_long, prim) & 0xFFFFFF);
+                    prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_FT4, depth);
+                    vs_effect_xy(prim, 0, screen[row][column]);
+                    vs_effect_xy(prim, 1, screen[row][column + 1]);
+                    vs_effect_xy(prim, 2, screen[row + 1][column]);
+                    vs_effect_xy(prim, 3, screen[row + 1][column + 1]);
+                    vs_effect_rgb(prim, 0, *(int*)&color);
+                    prim->u[0] = prim->u[2] = u[column];
+                    prim->u[1] = prim->u[3] = u[column + 1];
+                    prim->v[0] = prim->v[1] = v[row];
+                    prim->v[2] = prim->v[3] = v[row + 1];
+                    prim->mode = state->tpage;
+                    prim->clut = state->clut;
                 }
             }
         }

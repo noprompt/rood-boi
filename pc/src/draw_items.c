@@ -9,14 +9,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Items one frame can hold. The credits' busiest frame has about 600. */
-#define ITEMS 1024
+/* Items one frame can hold. The credits' busiest frame has about 600; a battle frame's effects have more. */
+#define ITEMS 2048
 #define MARKER 0x00495449u /* "ITI": a GP0 no-op word, as render.c's markers are */
 
 static struct {
     int count, full;
     pc_item item[ITEMS];
 } frame PC_SAVED_STATE = { 0 };
+
+/* Developer coverage: the call sites that placed an item, by return address (dev_rpc.c effect_sites). */
+#define SITES 4096
+static int sites_on, sites_count, peak;
+static const void* sites[SITES];
 
 /* boot_runtime.c: one lowered packet drawn as a member of an ordering table. */
 extern void pc_draw_item_packet(void* packet);
@@ -26,9 +31,13 @@ extern void pc_gte_new_generation(void);
 
 void pc_frame_begin(void)
 {
+    if (frame.count > peak)
+        peak = frame.count;
     frame.count = 0;
     frame.full = 0;
 }
+
+static pc_item spare; /* where a full frame's item goes: never drawn */
 
 pc_item* pc_frame_add(int kind, int depth)
 {
@@ -70,9 +79,43 @@ void pc_frame_sprite(int depth, int x, int y, int w, int h, int u, int v, int rg
 
 int pc_frame_count(void) { return frame.count; }
 
+pc_item* pc_frame_poly_at(int depth, int kind, int verts, int flags, unsigned* ot, unsigned** cursor)
+{
+    int index = frame.count;
+    pc_item* it = pc_frame_add(kind, depth);
+    if (!it) {
+        memset(&spare, 0, sizeof spare);
+        return &spare;
+    }
+    it->verts = (uint8_t)verts;
+    it->flags = (uint8_t)flags;
+    *cursor = pc_frame_place(index, 1, ot + depth, *cursor);
+    if (sites_on) {
+        const void* site = __builtin_return_address(0);
+        int i;
+        for (i = 0; i < sites_count && sites[i] != site; i++)
+            ;
+        if (i == sites_count && sites_count < SITES)
+            sites[sites_count++] = site;
+    }
+    return it;
+}
+
+/* The sites seen since recording began (return addresses); `on` starts or stops recording, `reset` clears.
+ * `peak` is the most items one frame has held. */
+int pc_frame_sites(int on, int reset, const void*** list, int* peak_items)
+{
+    sites_on = on;
+    if (reset)
+        sites_count = 0, peak = 0;
+    *list = sites;
+    *peak_items = peak;
+    return sites_count;
+}
+
 /* ---- the lowering: an item as the GP0 packet the game used to write ---- */
 
-#define STRIDE 16 /* words per item in the packet arena: a mode packet (2) and the primitive (at most 13) */
+#define STRIDE 20 /* words per item in the packet arena: a mode packet (2) and the primitive (at most 15) */
 static uint32_t* arena;
 
 static uint32_t rgb_word(const pc_item* it, int i)
@@ -89,7 +132,14 @@ static unsigned lower(const pc_item* it, uint32_t* p)
 {
     unsigned n = 0;
     uint32_t semi = it->flags & PC_ITEM_SEMI ? 2u : 0u, raw = it->flags & PC_ITEM_RAW ? 1u : 0u;
+    if (it->flags & PC_ITEM_BRACKET) /* (dither off: a textured polygon's page is in its own words) */
+        p[n++] = 0xe1000000u | (it->kind == PC_ITEM_LINE ? it->mode & 0x1ffu : 0u);
     switch (it->kind) {
+    case PC_ITEM_LINE:
+        p[n++] = rgb_word(it, 0) | (0x40u | semi) << 24;
+        p[n++] = xy_word(it, 0);
+        p[n++] = xy_word(it, 1);
+        break;
     case PC_ITEM_TILE:
         p[n++] = rgb_word(it, 0) | (0x60u | semi) << 24;
         p[n++] = xy_word(it, 0);
@@ -116,6 +166,8 @@ static unsigned lower(const pc_item* it, uint32_t* p)
         break;
     }
     }
+    if (it->flags & PC_ITEM_BRACKET)
+        p[n++] = 0xe1000200u;
     return n;
 }
 
@@ -149,7 +201,9 @@ static void draw_run(int first, int count)
         const pc_item* it = &frame.item[index];
         uint32_t* at = arena + (size_t)index * STRIDE;
         int textured_poly = it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED);
-        if (!textured_poly && it->mode != mode) {
+        if (it->flags & PC_ITEM_BRACKET)
+            mode = 0x200; /* (its words end with the mode set) */
+        else if (!textured_poly && it->mode != mode) {
             at[0] = 0x01ffffffu; /* one word: GP0 E1, as SetDrawTPage wrote */
             at[1] = 0xe1000000u | it->mode;
             mode = it->mode;

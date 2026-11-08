@@ -4,6 +4,7 @@
 #include "pc/src/game/SLUS_010.40/32154.h"
 #include "gpu.h"
 #include <rand.h>
+#include "pc/src/game/EFFECT/effectItem.h"
 
 #define VS_MIRROR_SURFACE_FUNCTION func_800F9818
 #define VS_MIRROR_SURFACE_VERTICES D_800FE5C4
@@ -38,11 +39,6 @@ typedef struct {
     int age;
     func_800D6CF_t texture;
 } vs_closedRingState;
-typedef struct {
-    int tag;
-    POLY_GT4 poly;
-    int drawMode;
-} vs_closedRingPrim;
 typedef struct {
     u_char u;
     u_char v;
@@ -84,7 +80,7 @@ int func_800FD654(func_800D4910_t* arg0, u_int arg1, int arg2)
     int depth;
     int drawRow;
     int drawColumn;
-    vs_closedRingPrim* prim;
+    pc_item* prim;
     pFileBlock1Data* texture;
     alive = 1;
     state = arg0->unk8;
@@ -222,7 +218,6 @@ int func_800FD654(func_800D4910_t* arg0, u_int arg1, int arg2)
             } else {
                 colors[drawRow].b = factors[drawRow];
             }
-            colors[drawRow].cd = primPolyGT4SemiTrans;
         }
 
         if (scratch->flags & 0x20000) {
@@ -254,29 +249,21 @@ int func_800FD654(func_800D4910_t* arg0, u_int arg1, int arg2)
                             + depths[drawRow + 1][drawColumn + 1])
                       / 4;
                 if ((depth < 0x800) && (vs_main_nearClip < depth)) {
-                    prim = psx_get(vs_scratch.unk0);
-                    psx_set(vs_scratch.unk0, prim + 1);
-                    prim->poly.tag = 0xE1000000;
-                    prim->drawMode = 0xE1000200;
-                    *((int*)(&prim->poly.x0)) = screen[drawRow][drawColumn];
-                    *((int*)(&prim->poly.x1)) = screen[drawRow][drawColumn + 1];
-                    *((int*)(&prim->poly.x2)) = screen[drawRow + 1][drawColumn];
-                    *((int*)(&prim->poly.x3)) = screen[drawRow + 1][drawColumn + 1];
-                    *((int*)(&prim->poly.r0)) =
-                        (*((int*)(&prim->poly.r1)) = *((int*)(&colors[drawRow])));
-                    *((int*)(&prim->poly.r2)) =
-                        (*((int*)(&prim->poly.r3)) = *((int*)(&colors[drawRow + 1])));
-                    prim->poly.u0 = (prim->poly.u2 = u[drawColumn & 3]);
-                    prim->poly.u1 = (prim->poly.u3 = u[(drawColumn & 3) + 1]);
-                    prim->poly.v0 = (prim->poly.v1 = v[drawRow]);
-                    prim->poly.v2 = (prim->poly.v3 = v[drawRow + 1]);
-                    prim->poly.tpage = texture->tpage;
-                    prim->poly.clut = texture->clut;
-                    prim->tag = (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF)
-                              | 0x0E000000;
-                    ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                        (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                        | ((psx_to_int(u_long, prim)) & 0xFFFFFF);
+                    prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, depth);
+                    vs_effect_xy(prim, 0, screen[drawRow][drawColumn]);
+                    vs_effect_xy(prim, 1, screen[drawRow][drawColumn + 1]);
+                    vs_effect_xy(prim, 2, screen[drawRow + 1][drawColumn]);
+                    vs_effect_xy(prim, 3, screen[drawRow + 1][drawColumn + 1]);
+                    vs_effect_rgb(prim, 0, *(int*)&colors[drawRow]);
+                    vs_effect_rgb(prim, 1, *(int*)&colors[drawRow]);
+                    vs_effect_rgb(prim, 2, *(int*)&colors[drawRow + 1]);
+                    vs_effect_rgb(prim, 3, *(int*)&colors[drawRow + 1]);
+                    prim->u[0] = prim->u[2] = u[drawColumn & 3];
+                    prim->u[1] = prim->u[3] = u[(drawColumn & 3) + 1];
+                    prim->v[0] = prim->v[1] = v[drawRow];
+                    prim->v[2] = prim->v[3] = v[drawRow + 1];
+                    prim->mode = texture->tpage;
+                    prim->clut = texture->clut;
                 }
             }
 
@@ -285,29 +272,21 @@ int func_800FD654(func_800D4910_t* arg0, u_int arg1, int arg2)
                     + depths[drawRow + 1][0])
                 / 4;
             if ((depth < 0x800) && (vs_main_nearClip < depth)) {
-                prim = psx_get(vs_scratch.unk0);
-                psx_set(vs_scratch.unk0, prim + 1);
-                prim->poly.tag = 0xE1000000;
-                prim->drawMode = 0xE1000200;
-                *((int*)(&prim->poly.x0)) = screen[drawRow][15];
-                *((int*)(&prim->poly.x1)) = screen[drawRow][0];
-                *((int*)(&prim->poly.x2)) = screen[drawRow + 1][15];
-                *((int*)(&prim->poly.x3)) = screen[drawRow + 1][0];
-                *((int*)(&prim->poly.r0)) =
-                    (*((int*)(&prim->poly.r1)) = *((int*)(&colors[drawRow])));
-                *((int*)(&prim->poly.r2)) =
-                    (*((int*)(&prim->poly.r3)) = *((int*)(&colors[drawRow + 1])));
-                prim->poly.u0 = (prim->poly.u2 = u[drawColumn & 3]);
-                prim->poly.u1 = (prim->poly.u3 = u[(drawColumn & 3) + 1]);
-                prim->poly.v0 = (prim->poly.v1 = v[drawRow]);
-                prim->poly.v2 = (prim->poly.v3 = v[drawRow + 1]);
-                prim->poly.tpage = texture->tpage;
-                prim->poly.clut = texture->clut;
-                prim->tag =
-                    (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF) | 0x0E000000;
-                ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                    (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                    | ((psx_to_int(u_long, prim)) & 0xFFFFFF);
+                prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, depth);
+                vs_effect_xy(prim, 0, screen[drawRow][15]);
+                vs_effect_xy(prim, 1, screen[drawRow][0]);
+                vs_effect_xy(prim, 2, screen[drawRow + 1][15]);
+                vs_effect_xy(prim, 3, screen[drawRow + 1][0]);
+                vs_effect_rgb(prim, 0, *(int*)&colors[drawRow]);
+                vs_effect_rgb(prim, 1, *(int*)&colors[drawRow]);
+                vs_effect_rgb(prim, 2, *(int*)&colors[drawRow + 1]);
+                vs_effect_rgb(prim, 3, *(int*)&colors[drawRow + 1]);
+                prim->u[0] = prim->u[2] = u[drawColumn & 3];
+                prim->u[1] = prim->u[3] = u[(drawColumn & 3) + 1];
+                prim->v[0] = prim->v[1] = v[drawRow];
+                prim->v[2] = prim->v[3] = v[drawRow + 1];
+                prim->mode = texture->tpage;
+                prim->clut = texture->clut;
             }
         }
 

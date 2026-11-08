@@ -1,17 +1,10 @@
 /* Shared segmented particle ribbon renderer. */
 #include "pc/src/gte_value.h"
 #include "gpu.h"
+#include "pc/src/game/EFFECT/effectItem.h"
 
 #ifndef VS_PARTICLE_PRIM_TYPE
 #define VS_PARTICLE_PRIM_TYPE
-typedef struct {
-    u_char unk0;
-    u_char unk1;
-    u_char unk2;
-    u_char unk3;
-    POLY_GT4 unk4;
-    int unk38;
-} vs_particlePrim;
 
 #endif
 
@@ -20,7 +13,7 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
 {
     vs_gte_view view;
     vs_gte_result projected;
-    vs_particlePrim quad;
+    pc_item quad;
     DVECTOR screenPoints[10];
     int depths[10];
     int angles[8];
@@ -35,7 +28,7 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
     int offsetX;
     int angleOrDepth;
     int segment;
-    vs_particlePrim* prim;
+    pc_item* prim;
     pFileBlock1Data* texture;
     DVECTOR* point;
     int width;
@@ -68,7 +61,6 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
         color.b = 128;
     }
 
-    color.cd = primPolyGT4SemiTrans;
 
     if (arg1->flags & 0x20000) {
         view = vs_gte_view_of(&arg2->unk1C[arg0->unkC8].unk58, vs_gte_screen_current());
@@ -116,16 +108,16 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
             width += (rand() % arg1->unk108.vy) / 2;
         offsetX = (rcos(angles[0]) * width) >> 0xC;
         offsetY = (rsin(angles[0]) * width) >> 0xC;
-        quad.unk4.x0 = screenStart[0].vx + offsetX;
-        quad.unk4.y0 = screenStart[0].vy + offsetY;
-        quad.unk4.x2 = screenStart[0].vx - offsetX;
-        quad.unk4.y2 = screenStart[0].vy - offsetY;
+        quad.x[0] = screenStart[0].vx + offsetX;
+        quad.y[0] = screenStart[0].vy + offsetY;
+        quad.x[2] = screenStart[0].vx - offsetX;
+        quad.y[2] = screenStart[0].vy - offsetY;
 
-        quad.unk4.u0 = quad.unk4.u2 = texture->u0;
+        quad.u[0] = quad.u[2] = texture->u0;
         topV = texture->v0;
         bottomV = topV + texture->v1;
-        quad.unk4.v0 = topV;
-        quad.unk4.v2 = bottomV;
+        quad.v[0] = topV;
+        quad.v[2] = bottomV;
         for (segment = 0; segment < 7; ++segment) {
             width = arg1->unk108.vx / 2;
             if (arg1->unk108.vy)
@@ -134,15 +126,15 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
             offsetX = (rcos(angleOrDepth) * width) >> 0xC;
             offsetY = (rsin(angleOrDepth) * width) >> 0xC;
             point = &screenStart[segment];
-            quad.unk4.x1 = point[1].vx + offsetX;
-            quad.unk4.y1 = point[1].vy + offsetY;
-            quad.unk4.x3 = point[1].vx - offsetX;
-            quad.unk4.y3 = point[1].vy - offsetY;
+            quad.x[1] = point[1].vx + offsetX;
+            quad.y[1] = point[1].vy + offsetY;
+            quad.x[3] = point[1].vx - offsetX;
+            quad.y[3] = point[1].vy - offsetY;
 
-            quad.unk4.u1 = quad.unk4.u3 =
+            quad.u[1] = quad.u[3] =
                 texture->u0 + ((texture->u1 * curveSamples[segment + 1]) / 0x3000);
-            quad.unk4.v1 = topV;
-            quad.unk4.v3 = bottomV;
+            quad.v[1] = topV;
+            quad.v[3] = bottomV;
             angleOrDepth = (depths[segment] + depths[segment + 1]) / 2;
 
             if ((angleOrDepth < 0x800) && (vs_main_nearClip < angleOrDepth)) {
@@ -166,37 +158,15 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
                         angleOrDepth -= 16;
                     break;
                 }
-                prim = psx_get(vs_scratch.unk0);
-                psx_set(vs_scratch.unk0, prim + 1);
-                prim->unk3 = 0xE;
-                prim->unk4.code = primPolyGT4SemiTrans;
-                prim->unk4.tag = 0xE1000000;
-                prim->unk38 = 0xE1000200;
-                *(int*)&prim->unk0 =
-                    (((u_long*)psx_get(vs_scratch.unk4))[angleOrDepth] & 0xFFFFFF)
-                    | 0x0E000000;
-                ((u_long*)psx_get(vs_scratch.unk4))[angleOrDepth] =
-                    (((u_long*)psx_get(vs_scratch.unk4))[angleOrDepth] & 0xFF000000)
-                    | (psx_to_int(u_long, prim) & 0xFFFFFF);
-                *(int*)&prim->unk4.r0 = *(int*)&color;
-                *(int*)&prim->unk4.r1 = *(int*)&color;
-                *(int*)&prim->unk4.r2 = *(int*)&color;
-                *(int*)&prim->unk4.r3 = *(int*)&color;
-                *(int*)&prim->unk4.x0 = *(int*)&quad.unk4.x0;
-                *(int*)&prim->unk4.x1 = *(int*)&quad.unk4.x1;
-                *(int*)&prim->unk4.x2 = *(int*)&quad.unk4.x2;
-                *(int*)&prim->unk4.x3 = *(int*)&quad.unk4.x3;
-                *(short*)&prim->unk4.u0 = *(short*)&quad.unk4.u0;
-                *(short*)&prim->unk4.u1 = *(short*)&quad.unk4.u1;
-                *(short*)&prim->unk4.u2 = *(short*)&quad.unk4.u2;
-                *(short*)&prim->unk4.u3 = *(short*)&quad.unk4.u3;
-                *(short*)&prim->unk4.tpage = texture->tpage;
-                *(short*)&prim->unk4.clut = texture->clut;
+                prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, angleOrDepth);
+                vs_effect_quad(prim, &quad, texture->tpage, texture->clut);
+                vs_effect_rgb(prim, 0, *(int*)&color);
+                vs_effect_rgb(prim, 1, *(int*)&color);
+                vs_effect_rgb(prim, 2, *(int*)&color);
+                vs_effect_rgb(prim, 3, *(int*)&color);
             }
-            *(int*)&quad.unk4.x0 = *(int*)&quad.unk4.x1;
-            *(int*)&quad.unk4.x2 = *(int*)&quad.unk4.x3;
-            *(short*)&quad.unk4.u0 = *(short*)&quad.unk4.u1;
-            *(short*)&quad.unk4.u2 = *(short*)&quad.unk4.u3;
+            vs_effect_advance(&quad, 0, 1);
+            vs_effect_advance(&quad, 2, 3);
         }
 
         width = arg1->unk108.vx / 2;
@@ -204,13 +174,13 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
             width += (rand() % arg1->unk108.vy) / 2;
         offsetX = (rcos(angles[segment]) * width) >> 0xC;
         offsetY = (rsin(angles[segment]) * width) >> 0xC;
-        quad.unk4.x1 = ((u_short*)screenStart)[segment * 2 + 2] + offsetX;
-        quad.unk4.y1 = ((u_short*)screenStart)[segment * 2 + 3] + offsetY;
-        quad.unk4.x3 = ((u_short*)screenStart)[segment * 2 + 2] - offsetX;
-        quad.unk4.y3 = ((u_short*)screenStart)[segment * 2 + 3] - offsetY;
-        quad.unk4.u1 = quad.unk4.u3 = texture->u0 + texture->u1;
-        quad.unk4.v1 = topV;
-        quad.unk4.v3 = bottomV;
+        quad.x[1] = ((u_short*)screenStart)[segment * 2 + 2] + offsetX;
+        quad.y[1] = ((u_short*)screenStart)[segment * 2 + 3] + offsetY;
+        quad.x[3] = ((u_short*)screenStart)[segment * 2 + 2] - offsetX;
+        quad.y[3] = ((u_short*)screenStart)[segment * 2 + 3] - offsetY;
+        quad.u[1] = quad.u[3] = texture->u0 + texture->u1;
+        quad.v[1] = topV;
+        quad.v[3] = bottomV;
         angleOrDepth = (depths[segment] + depths[segment + 1]) / 2;
 
         if ((angleOrDepth < 0x800) && (vs_main_nearClip < angleOrDepth)) {
@@ -234,32 +204,12 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
                     angleOrDepth -= 16;
                 break;
             }
-            prim = psx_get(vs_scratch.unk0);
-            psx_set(vs_scratch.unk0, prim + 1);
-            prim->unk3 = 0xE;
-            prim->unk4.code = primPolyGT4SemiTrans;
-            prim->unk4.tag = 0xE1000000;
-            prim->unk38 = 0xE1000200;
-            *(int*)&prim->unk0 =
-                (((u_long*)psx_get(vs_scratch.unk4))[angleOrDepth] & 0xFFFFFF)
-                | 0x0E000000;
-            ((u_long*)psx_get(vs_scratch.unk4))[angleOrDepth] =
-                (((u_long*)psx_get(vs_scratch.unk4))[angleOrDepth] & 0xFF000000)
-                | (psx_to_int(u_long, prim) & 0xFFFFFF);
-            *(int*)&prim->unk4.r0 = *(int*)&color;
-            *(int*)&prim->unk4.r1 = *(int*)&color;
-            *(int*)&prim->unk4.r2 = *(int*)&color;
-            *(int*)&prim->unk4.r3 = *(int*)&color;
-            *(int*)&prim->unk4.x0 = *(int*)&quad.unk4.x0;
-            *(int*)&prim->unk4.x1 = *(int*)&quad.unk4.x1;
-            *(int*)&prim->unk4.x2 = *(int*)&quad.unk4.x2;
-            *(int*)&prim->unk4.x3 = *(int*)&quad.unk4.x3;
-            *(short*)&prim->unk4.u0 = *(short*)&quad.unk4.u0;
-            *(short*)&prim->unk4.u1 = *(short*)&quad.unk4.u1;
-            *(short*)&prim->unk4.u2 = *(short*)&quad.unk4.u2;
-            *(short*)&prim->unk4.u3 = *(short*)&quad.unk4.u3;
-            *(short*)&prim->unk4.tpage = texture->tpage;
-            *(short*)&prim->unk4.clut = texture->clut;
+            prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, angleOrDepth);
+            vs_effect_quad(prim, &quad, texture->tpage, texture->clut);
+            vs_effect_rgb(prim, 0, *(int*)&color);
+            vs_effect_rgb(prim, 1, *(int*)&color);
+            vs_effect_rgb(prim, 2, *(int*)&color);
+            vs_effect_rgb(prim, 3, *(int*)&color);
         }
     }
 }

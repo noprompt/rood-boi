@@ -1,12 +1,12 @@
 {
  "ps1_address": 60,
  "scratchpad": 541,
- "unnamed_symbol": 20658,
+ "unnamed_symbol": 20653,
  "guest_pointer_field": 278,
- "guest_pointer_access": 1445,
- "address_as_integer": 411,
+ "guest_pointer_access": 998,
+ "address_as_integer": 321,
  "zig_raw_memory": 1433,
  "gte_state_machine": 16,
  "gte_sdk_calls": 15,
- "gpu_packet_writes": 811
+ "gpu_packet_writes": 464
 }

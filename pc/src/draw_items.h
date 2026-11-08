@@ -29,14 +29,17 @@ enum {
     PC_ITEM_NONE,   /* (a slot that draws nothing) */
     PC_ITEM_TILE,   /* a flat rectangle */
     PC_ITEM_SPRITE, /* a textured rectangle, texels copied 1:1 */
-    PC_ITEM_POLY    /* a triangle or quad: flat or shaded, textured or not */
+    PC_ITEM_POLY,   /* a triangle or quad: flat or shaded, textured or not */
+    PC_ITEM_LINE    /* a flat line from (x[0], y[0]) to (x[1], y[1]) */
 };
 
 enum {
     PC_ITEM_SEMI = 1,     /* blends with what is behind it, by the mode's blend (a textured one: its STP texels) */
     PC_ITEM_RAW = 2,      /* textured: the texels as they are, not scaled by the colour */
     PC_ITEM_TEXTURED = 4, /* polygon: samples a texture (a sprite always does) */
-    PC_ITEM_SHADED = 8    /* polygon: a colour at each corner (else rgb[0] for all) */
+    PC_ITEM_SHADED = 8,   /* polygon: a colour at each corner (else rgb[0] for all) */
+    PC_ITEM_BRACKET = 16  /* polygon or line, as the effect plugins drew: with dither off, the draw mode (a line's is
+                           * `mode`) set for it alone, and page 0, no blend, dither on left after it */
 };
 
 /* The draw mode a tile, a sprite or an untextured polygon draws with, from a
@@ -70,6 +73,11 @@ pc_item* pc_frame_add(int kind, int depth);
 /* Helpers for the common ones (rgb, mode and clut are cut to their fields). */
 void pc_frame_tile(int depth, int x, int y, int w, int h, int rgb, int mode, int flags);
 void pc_frame_sprite(int depth, int x, int y, int w, int h, int u, int v, int rgb, int clut, int mode, int flags);
+/* The next polygon item of a run of one, placed in the ordering table at slot
+ * `depth` of the table at `ot` with a marker packet taken from `*cursor` (the
+ * packet cursor, moved past it). When the frame is full a spare item is returned
+ * that is never drawn, so the caller can fill it all the same. */
+pc_item* pc_frame_poly_at(int depth, int kind, int verts, int flags, unsigned* ot, unsigned** cursor);
 /* The number of items so far: the first index of the next run. */
 int pc_frame_count(void);
 /* Draws the frame's items in order: what DrawOTag did for a table. */

@@ -4,6 +4,7 @@
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "pc/src/game/SLUS_010.40/32154.h"
 #include "gpu.h"
+#include "pc/src/game/EFFECT/effectItem.h"
 #ifndef VS_MESH10_TYPES
 #define VS_MESH10_TYPES
 typedef struct {
@@ -13,11 +14,6 @@ typedef struct {
     func_800D6CF_t texture;
     SVECTOR rotation;
 } vs_mesh10State;
-typedef struct {
-    int tag;
-    POLY_GT3 poly;
-    int drawMode;
-} vs_mesh10Prim;
 typedef struct {
     u_char u, v;
 } vs_mesh10UV;
@@ -45,7 +41,7 @@ int VS_MESH10_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     int color, index, depth;
     pFileBlock1Data* texture;
     u_char* face;
-    vs_mesh10Prim* prim;
+    pc_item* prim;
     alive = 1;
     state = arg0->unk8;
     battle = D_800F53BC;
@@ -133,8 +129,6 @@ int VS_MESH10_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         } else
             colors[1].b = 128;
         do {
-            colors[0].cd = 0x36;
-            colors[1].cd = 0x36;
             for (index = 0; index < 4; ++index) {
                 vertices[index].vx =
                     (VS_MESH10_VERTICES[index].vx * scratch->unkA8.vx) >> 12;
@@ -194,32 +188,18 @@ int VS_MESH10_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                         + depths[VS_MESH10_FACES[index][2]])
                   / 3;
             if (depth < 0x800 && vs_main_nearClip < depth) {
-                prim = psx_get(vs_scratch.unk0);
-                psx_set(vs_scratch.unk0, prim + 1);
-                prim->poly.tag = 0xE1000000;
-                prim->drawMode = 0xE1000200;
-                *(int*)&prim->poly.x0 = screen[VS_MESH10_FACES[index][0]];
-                *(int*)&prim->poly.x1 = screen[VS_MESH10_FACES[index][1]];
-                *(int*)&prim->poly.x2 = screen[VS_MESH10_FACES[index][2]];
-                *(int*)&prim->poly.r0 =
-                    *(int*)&colors[VS_MESH10_VERTICES[VS_MESH10_FACES[index][0]].pad];
-                *(int*)&prim->poly.r1 =
-                    *(int*)&colors[VS_MESH10_VERTICES[VS_MESH10_FACES[index][1]].pad];
-                *(int*)&prim->poly.r2 =
-                    *(int*)&colors[VS_MESH10_VERTICES[VS_MESH10_FACES[index][2]].pad];
-                *(u_short*)&prim->poly.u0 =
-                    *(u_short*)((u_char*)uv + VS_MESH10_FACES[index][3]);
-                *(u_short*)&prim->poly.u1 =
-                    *(u_short*)((u_char*)uv + VS_MESH10_FACES[index][4]);
-                *(u_short*)&prim->poly.u2 =
-                    *(u_short*)((u_char*)uv + VS_MESH10_FACES[index][5]);
-                prim->poly.tpage = texture->tpage;
-                prim->poly.clut = texture->clut;
-                prim->tag =
-                    (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF) | 0x0B000000;
-                ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                    (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                    | (psx_to_int(u_long, prim) & 0xFFFFFF);
+                prim = vs_effect_item(PC_ITEM_POLY, 3, VS_EFFECT_GT3, depth);
+                vs_effect_xy(prim, 0, screen[VS_MESH10_FACES[index][0]]);
+                vs_effect_xy(prim, 1, screen[VS_MESH10_FACES[index][1]]);
+                vs_effect_xy(prim, 2, screen[VS_MESH10_FACES[index][2]]);
+                vs_effect_rgb(prim, 0, *(int*)&colors[VS_MESH10_VERTICES[VS_MESH10_FACES[index][0]].pad]);
+                vs_effect_rgb(prim, 1, *(int*)&colors[VS_MESH10_VERTICES[VS_MESH10_FACES[index][1]].pad]);
+                vs_effect_rgb(prim, 2, *(int*)&colors[VS_MESH10_VERTICES[VS_MESH10_FACES[index][2]].pad]);
+                vs_effect_uv(prim, 0, *(u_short*)((u_char*)uv + VS_MESH10_FACES[index][3]));
+                vs_effect_uv(prim, 1, *(u_short*)((u_char*)uv + VS_MESH10_FACES[index][4]));
+                vs_effect_uv(prim, 2, *(u_short*)((u_char*)uv + VS_MESH10_FACES[index][5]));
+                prim->mode = texture->tpage;
+                prim->clut = texture->clut;
             }
         }
         if (effect->unk3) {

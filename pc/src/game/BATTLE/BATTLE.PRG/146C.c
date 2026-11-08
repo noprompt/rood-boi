@@ -2190,6 +2190,7 @@ INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/146C", D_80068C1C);
 
 /* Declared for the Zig's c module (the C bodies that declared them are gone). */
 extern void pc_story_frame(void);
+extern void pc_frame_begin(void);
 extern void pc_scene_room(const void*);
 extern void pc_room_warp_room_loaded(void);
 extern int pc_fast_travel_begin(int packed);

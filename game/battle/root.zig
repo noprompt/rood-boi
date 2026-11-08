@@ -1139,7 +1139,6 @@ pub const func_800CF48C = @import("func_800CF48C.zig");
 pub const func_800CF514 = @import("func_800CF514.zig");
 pub const func_800CF614 = @import("func_800CF614.zig");
 pub const func_800CF694 = @import("func_800CF694.zig");
-pub const func_800CFAAC = @import("func_800CFAAC.zig");
 pub const func_800CFB68 = @import("func_800CFB68.zig");
 pub const func_800CFE1C = @import("func_800CFE1C.zig");
 pub const func_800CFE7C = @import("func_800CFE7C.zig");

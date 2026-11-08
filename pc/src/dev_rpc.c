@@ -101,6 +101,8 @@
  *                                random numbers whenever an action ends;
  *                                pump false loads the effect's files a step
  *                                a frame, as the game does (default true)
+ *   effect_sites {on, reset}     which effect polygon call sites have run (typed draw items placed by the
+ *                                EFFECT plugins), as return addresses, and the most items a frame held
  *   fast_travel {set, press, audit}  fast travel (fast_travel.c): set {enabled,
  *                                cost (0..3 or free / flat / scaled / game),
  *                                flat, scale, prompt} (settings qol_fast_travel*);
@@ -2987,6 +2989,22 @@ static void handle_method(int fd, const char* request)
             return;
         }
         pc_perf_json(result, (int)sizeof result, flag);
+        reply(fd, id, result);
+    } else if (!strcmp(method, "effect_sites")) {
+        /* Effect polygon call sites that ran (draw_items.c): {on, reset}; replies the return addresses
+         * (pc/tools/build_compare.py maps them to plugin functions) and the most items a frame held. */
+        extern int pc_frame_sites(int, int, const void***, int*);
+        const void** list;
+        int on = 1, reset = 0, peak, count, used;
+        if (params) {
+            bool_value(member(params, "on"), &on);
+            bool_value(member(params, "reset"), &reset);
+        }
+        count = pc_frame_sites(on, reset, &list, &peak);
+        used = snprintf(result, sizeof result, "{\"on\":%d,\"peak_items\":%d,\"sites\":[", on, peak);
+        for (int i = 0; i < count && used < (int)sizeof result - 32; i++)
+            used += snprintf(result + used, sizeof result - used, "%s%llu", i ? "," : "", (unsigned long long)(uintptr_t)list[i]);
+        snprintf(result + used, sizeof result - used, "]}");
         reply(fd, id, result);
     } else if (!strcmp(method, "redraw")) {
         /* The newest frame drawn again as recorded with the current drawing options (MSAA, scale, ...)

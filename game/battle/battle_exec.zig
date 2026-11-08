@@ -66,6 +66,8 @@ pub fn battleExec() callconv(.c) void {
                     psx.put(&v.g.vs_scratch().unk8, ot + 2);
                     psx.put(&v.g.vs_scratch().unk4, ot + 18);
                     _ = c.ClearOTagR(ot, 0x822);
+                    // ROOD_PC: the frame's typed draw items (the effects') start empty with its table.
+                    c.pc_frame_begin();
                     psx.put(&v.g.vs_scratch().unk0, v.g.D_8005E0C0()[psx.conv(usize, v.g.vs_main_frameBuf().*)]);
                     c.AddPrim(ot, psx.at(v.g.D_800F1970(), v.g.vs_main_frameBuf().*));
                     if ((v.g.vs_main_startState().* == 3 or v.g.vs_main_startState().* == 4) and

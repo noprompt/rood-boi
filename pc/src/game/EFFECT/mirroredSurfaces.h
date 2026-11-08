@@ -5,6 +5,7 @@
 #include "pc/src/game/SLUS_010.40/32154.h"
 #include "gpu.h"
 #include <rand.h>
+#include "pc/src/game/EFFECT/effectItem.h"
 #ifndef VS_MIRROR_SURFACE_TYPES
 #define VS_MIRROR_SURFACE_TYPES
 typedef struct {
@@ -14,11 +15,6 @@ typedef struct {
     int factors[9];
     func_800D6CF_t texture;
 } vs_mirrorSurfaceState;
-typedef struct {
-    int tag;
-    POLY_GT4 poly;
-    int drawMode;
-} vs_mirrorSurfacePrim;
 #endif
 extern SVECTOR VS_MIRROR_SURFACE_VERTICES[5][16];
 
@@ -55,7 +51,7 @@ int VS_MIRROR_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     func_800FA098_arg1* scratch = (func_800FA098_arg1*)0x1F8001D0;
     func_800FA098_arg0* effect;
     MATRIX* actorMatrix;
-    vs_mirrorSurfacePrim* prim;
+    pc_item* prim;
     pFileBlock1Data* texture;
 
     alive = 1;
@@ -184,7 +180,6 @@ int VS_MIRROR_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                               * vs_battle_sampleCurve(effect->bCurve, state->age) / 128;
             else
                 colors[row].b = state->factors[row];
-            colors[row].cd = primPolyGT4SemiTrans;
         }
         if (scratch->flags & 0x20000) {
             view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
@@ -211,56 +206,42 @@ int VS_MIRROR_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                             + depths[row + 1][column] + depths[row + 1][column + 1])
                       / 4;
                 if (depth < 0x800 && vs_main_nearClip < depth) {
-                    prim = psx_get(vs_scratch.unk0);
-                    psx_set(vs_scratch.unk0, prim + 1);
-                    prim->poly.tag = 0xE1000000;
-                    prim->drawMode = 0xE1000200;
-                    *(int*)&prim->poly.x0 = screen[row][column];
-                    *(int*)&prim->poly.x1 = screen[row][column + 1];
-                    *(int*)&prim->poly.x2 = screen[row + 1][column];
-                    *(int*)&prim->poly.x3 = screen[row + 1][column + 1];
-                    *(int*)&prim->poly.r0 = *(int*)&prim->poly.r1 = *(int*)&colors[row];
-                    *(int*)&prim->poly.r2 = *(int*)&prim->poly.r3 =
-                        *(int*)&colors[row + 1];
-                    prim->poly.u0 = prim->poly.u2 = u[VS_MIRROR_SURFACE_U_INDEX(column)];
-                    prim->poly.u1 = prim->poly.u3 =
-                        u[VS_MIRROR_SURFACE_U_INDEX(column) + 1];
-                    prim->poly.v0 = prim->poly.v1 = v[row];
-                    prim->poly.v2 = prim->poly.v3 = v[row + 1];
-                    prim->poly.tpage = texture->tpage;
-                    prim->poly.clut = texture->clut;
-                    prim->tag = (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF)
-                              | 0x0E000000;
-                    ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                        (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                        | (psx_to_int(u_long, prim) & 0xFFFFFF);
+                    prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, depth);
+                    vs_effect_xy(prim, 0, screen[row][column]);
+                    vs_effect_xy(prim, 1, screen[row][column + 1]);
+                    vs_effect_xy(prim, 2, screen[row + 1][column]);
+                    vs_effect_xy(prim, 3, screen[row + 1][column + 1]);
+                    vs_effect_rgb(prim, 0, *(int*)&colors[row]);
+                    vs_effect_rgb(prim, 1, *(int*)&colors[row]);
+                    vs_effect_rgb(prim, 2, *(int*)&colors[row + 1]);
+                    vs_effect_rgb(prim, 3, *(int*)&colors[row + 1]);
+                    prim->u[0] = prim->u[2] = u[VS_MIRROR_SURFACE_U_INDEX(column)];
+                    prim->u[1] = prim->u[3] = u[VS_MIRROR_SURFACE_U_INDEX(column) + 1];
+                    prim->v[0] = prim->v[1] = v[row];
+                    prim->v[2] = prim->v[3] = v[row + 1];
+                    prim->mode = texture->tpage;
+                    prim->clut = texture->clut;
                 }
             }
             depth = (depths[row][15] + depths[row][0] + depths[row + 1][15]
                         + depths[row + 1][0])
                   / 4;
             if (depth < 0x800 && vs_main_nearClip < depth) {
-                prim = psx_get(vs_scratch.unk0);
-                psx_set(vs_scratch.unk0, prim + 1);
-                prim->poly.tag = 0xE1000000;
-                prim->drawMode = 0xE1000200;
-                *(int*)&prim->poly.x0 = screen[row][15];
-                *(int*)&prim->poly.x1 = screen[row][0];
-                *(int*)&prim->poly.x2 = screen[row + 1][15];
-                *(int*)&prim->poly.x3 = screen[row + 1][0];
-                *(int*)&prim->poly.r0 = *(int*)&prim->poly.r1 = *(int*)&colors[row];
-                *(int*)&prim->poly.r2 = *(int*)&prim->poly.r3 = *(int*)&colors[row + 1];
-                prim->poly.u0 = prim->poly.u2 = u[VS_MIRROR_SURFACE_U_INDEX(column)];
-                prim->poly.u1 = prim->poly.u3 = u[VS_MIRROR_SURFACE_U_INDEX(column) + 1];
-                prim->poly.v0 = prim->poly.v1 = v[row];
-                prim->poly.v2 = prim->poly.v3 = v[row + 1];
-                prim->poly.tpage = texture->tpage;
-                prim->poly.clut = texture->clut;
-                prim->tag =
-                    (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF) | 0x0E000000;
-                ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                    (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                    | (psx_to_int(u_long, prim) & 0xFFFFFF);
+                prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, depth);
+                vs_effect_xy(prim, 0, screen[row][15]);
+                vs_effect_xy(prim, 1, screen[row][0]);
+                vs_effect_xy(prim, 2, screen[row + 1][15]);
+                vs_effect_xy(prim, 3, screen[row + 1][0]);
+                vs_effect_rgb(prim, 0, *(int*)&colors[row]);
+                vs_effect_rgb(prim, 1, *(int*)&colors[row]);
+                vs_effect_rgb(prim, 2, *(int*)&colors[row + 1]);
+                vs_effect_rgb(prim, 3, *(int*)&colors[row + 1]);
+                prim->u[0] = prim->u[2] = u[VS_MIRROR_SURFACE_U_INDEX(column)];
+                prim->u[1] = prim->u[3] = u[VS_MIRROR_SURFACE_U_INDEX(column) + 1];
+                prim->v[0] = prim->v[1] = v[row];
+                prim->v[2] = prim->v[3] = v[row + 1];
+                prim->mode = texture->tpage;
+                prim->clut = texture->clut;
             }
         }
         ++state->age;

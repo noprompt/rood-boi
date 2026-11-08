@@ -6,6 +6,7 @@
 #include "pc/src/game/SLUS_010.40/32154.h"
 #include "gpu.h"
 #include <rand.h>
+#include "pc/src/game/EFFECT/effectItem.h"
 #ifndef VS_RING_TYPES
 #define VS_RING_TYPES
 typedef struct {
@@ -14,11 +15,6 @@ typedef struct {
     int radius, radiusSpeed, height, heightSpeed, angle, age;
     func_800D6CF_t texture;
 } vs_ringState;
-typedef struct {
-    int tag;
-    POLY_GT4 poly;
-    int drawMode;
-} vs_ringPrim;
 #endif
 extern u_char VS_RING_COLORS[][4];
 
@@ -58,7 +54,7 @@ int VS_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     int* factor;
     u_char* colorStart;
     u_char* color;
-    vs_ringPrim* prim;
+    pc_item* prim;
     pFileBlock1Data* texture;
     func_800FA098_arg0* effect;
     vs_ringState* state;
@@ -239,45 +235,37 @@ int VS_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
                             + depths[drawRow + 1][drawColumn + 1])
                       / 4;
                 if (depth < 0x800 && vs_main_nearClip < depth) {
-                    prim = psx_get(vs_scratch.unk0);
-                    psx_set(vs_scratch.unk0, prim + 1);
-                    prim->poly.tag = 0xE1000000;
-                    prim->drawMode = 0xE1000200;
-                    *(int*)&prim->poly.x0 = screen[drawRow][drawColumn];
+                    prim = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, depth);
+                    vs_effect_xy(prim, 0, screen[drawRow][drawColumn]);
 #ifdef VS_RING_TRANSPOSED
-                    *(int*)&prim->poly.x2 = screen[drawRow][drawColumn + 1];
-                    *(int*)&prim->poly.x1 = screen[drawRow + 1][drawColumn];
+                    vs_effect_xy(prim, 2, screen[drawRow][drawColumn + 1]);
+                    vs_effect_xy(prim, 1, screen[drawRow + 1][drawColumn]);
 #else
-                    *(int*)&prim->poly.x1 = screen[drawRow][drawColumn + 1];
-                    *(int*)&prim->poly.x2 = screen[drawRow + 1][drawColumn];
+                    vs_effect_xy(prim, 1, screen[drawRow][drawColumn + 1]);
+                    vs_effect_xy(prim, 2, screen[drawRow + 1][drawColumn]);
 #endif
-                    *(int*)&prim->poly.x3 = screen[drawRow + 1][drawColumn + 1];
+                    vs_effect_xy(prim, 3, screen[drawRow + 1][drawColumn + 1]);
 #ifdef VS_RING_TRANSPOSED
-                    *(int*)&prim->poly.r0 = *(int*)&prim->poly.r2 =
-                        *(int*)&colors[drawRow];
-                    *(int*)&prim->poly.r1 = *(int*)&prim->poly.r3 =
-                        *(int*)&colors[drawRow + 1];
-                    prim->poly.u0 = prim->poly.u2 = v[drawRow];
-                    prim->poly.u1 = prim->poly.u3 = v[drawRow + 1];
-                    prim->poly.v0 = prim->poly.v1 = u[drawColumn];
-                    prim->poly.v2 = prim->poly.v3 = u[drawColumn + 1];
+                    vs_effect_rgb(prim, 0, *(int*)&colors[drawRow]);
+                    vs_effect_rgb(prim, 2, *(int*)&colors[drawRow]);
+                    vs_effect_rgb(prim, 1, *(int*)&colors[drawRow + 1]);
+                    vs_effect_rgb(prim, 3, *(int*)&colors[drawRow + 1]);
+                    prim->u[0] = prim->u[2] = v[drawRow];
+                    prim->u[1] = prim->u[3] = v[drawRow + 1];
+                    prim->v[0] = prim->v[1] = u[drawColumn];
+                    prim->v[2] = prim->v[3] = u[drawColumn + 1];
 #else
-                    *(int*)&prim->poly.r0 = *(int*)&prim->poly.r1 =
-                        *(int*)&colors[drawRow];
-                    *(int*)&prim->poly.r2 = *(int*)&prim->poly.r3 =
-                        *(int*)&colors[drawRow + 1];
-                    prim->poly.u0 = prim->poly.u2 = u[drawColumn];
-                    prim->poly.u1 = prim->poly.u3 = u[drawColumn + 1];
-                    prim->poly.v0 = prim->poly.v1 = v[drawRow];
-                    prim->poly.v2 = prim->poly.v3 = v[drawRow + 1];
+                    vs_effect_rgb(prim, 0, *(int*)&colors[drawRow]);
+                    vs_effect_rgb(prim, 1, *(int*)&colors[drawRow]);
+                    vs_effect_rgb(prim, 2, *(int*)&colors[drawRow + 1]);
+                    vs_effect_rgb(prim, 3, *(int*)&colors[drawRow + 1]);
+                    prim->u[0] = prim->u[2] = u[drawColumn];
+                    prim->u[1] = prim->u[3] = u[drawColumn + 1];
+                    prim->v[0] = prim->v[1] = v[drawRow];
+                    prim->v[2] = prim->v[3] = v[drawRow + 1];
 #endif
-                    prim->poly.tpage = texture->tpage;
-                    prim->poly.clut = texture->clut;
-                    prim->tag = (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFFFFFF)
-                              | 0x0E000000;
-                    ((u_long*)psx_get(vs_scratch.unk4))[depth] =
-                        (((u_long*)psx_get(vs_scratch.unk4))[depth] & 0xFF000000)
-                        | (psx_to_int(u_long, prim) & 0xFFFFFF);
+                    prim->mode = texture->tpage;
+                    prim->clut = texture->clut;
                 }
             }
         }

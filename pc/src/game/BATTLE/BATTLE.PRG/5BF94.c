@@ -132,14 +132,6 @@ typedef struct {
 } func_800CF988_t;
 
 typedef struct {
-    char unk0[0xC];
-    short unkC;
-    short unkE;
-    short unk10;
-    short unk12;
-} func_800CFAAC_t;
-
-typedef struct {
     u_char order[8];
     u_char unk8;
     u_char unk9;

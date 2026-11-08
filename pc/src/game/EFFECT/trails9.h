@@ -11,15 +11,8 @@
 #include <libgte.h>
 #include "pc/src/gte_value.h"
 #include <rand.h>
+#include "pc/src/game/EFFECT/effectItem.h"
 
-typedef struct {
-    u_char unk0;
-    u_char unk1;
-    u_char unk2;
-    u_char unk3;
-    POLY_GT4 unk4;
-    int unk38;
-} vs_trail9Prim;
 
 extern int VS_TRAIL_CORNER_STATE;
 
@@ -453,7 +446,7 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
 {
     vs_gte_view view;
     vs_gte_result projected;
-    vs_trail9Prim sp10;
+    pc_item sp10;
     DVECTOR sp50[10];
     int sp78[10];
     int spA0[8];
@@ -468,7 +461,7 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
     int temp_s0;
     int var_s0_2;
     int j;
-    vs_trail9Prim* temp_a3;
+    pc_item* temp_a3;
     pFileBlock1Data* temp_s7;
     SVECTOR* temp;
     DVECTOR* temp2;
@@ -498,7 +491,6 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
         spC0.b = 128;
     }
 
-    spC0.cd = primPolyGT4SemiTrans;
 
     if (arg1->flags & 0x20000) {
         view = vs_gte_view_of(&arg2->unk1C[arg0->unkC8].unk58, vs_gte_screen_current());
@@ -535,27 +527,26 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
             temp_s0 = (rcos(spA0[0]) * temp_s3) >> 0xC;
             temp_a1_2 = (rsin(spA0[0]) * temp_s3) >> 0xC;
             spF0 = sp50;
-            sp10.unk4.x0 = spF0[0].vx + temp_s0;
-            sp10.unk4.y0 = spF0[0].vy + temp_a1_2;
-            sp10.unk4.x2 = spF0[0].vx - temp_s0;
-            sp10.unk4.y2 = spF0[0].vy - temp_a1_2;
+            sp10.x[0] = spF0[0].vx + temp_s0;
+            sp10.y[0] = spF0[0].vy + temp_a1_2;
+            sp10.x[2] = spF0[0].vx - temp_s0;
+            sp10.y[2] = spF0[0].vy - temp_a1_2;
 
-            sp10.unk4.u0 = sp10.unk4.u2 =
+            sp10.u[0] = sp10.u[2] =
                 temp_s7->u0 + ((temp_s7->u1 * temp_s1->trailCollapseCounter) / 8);
             spF8 = temp_s7->v0;
             spFC = temp_s7->v0 + temp_s7->v1;
-            sp10.unk4.v0 = spF8;
-            sp10.unk4.v2 = spFC;
-            sp10.unk4.r0 =
+            sp10.v[0] = spF8;
+            sp10.v[2] = spFC;
+            sp10.rgb[0][0] =
                 (spC0.r * arg3->sampledTransparencyCurve[temp_s1->trailCollapseCounter])
                 >> 7;
-            sp10.unk4.g0 =
+            sp10.rgb[0][1] =
                 (spC0.g * arg3->sampledTransparencyCurve[temp_s1->trailCollapseCounter])
                 >> 7;
-            sp10.unk4.b0 =
+            sp10.rgb[0][2] =
                 (spC0.b * arg3->sampledTransparencyCurve[temp_s1->trailCollapseCounter])
                 >> 7;
-            sp10.unk4.code = spC0.cd;
 
             for (j = 0; j < (temp_s1->splineSampleCount - 2); ++j) {
                 var_s0_2 = (spA0[j] + spA0[j + 1]) / 2;
@@ -567,112 +558,69 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
                 temp_s0 = (rcos(var_s0_2) * temp_s3) >> 0xC;
                 temp_a1_2 = (rsin(var_s0_2) * temp_s3) >> 0xC;
                 temp2 = &spF0[j];
-                sp10.unk4.x1 = temp2[1].vx + temp_s0;
-                sp10.unk4.y1 = temp2[1].vy + temp_a1_2;
-                sp10.unk4.x3 = temp2[1].vx - temp_s0;
-                sp10.unk4.y3 = temp2[1].vy - temp_a1_2;
+                sp10.x[1] = temp2[1].vx + temp_s0;
+                sp10.y[1] = temp2[1].vy + temp_a1_2;
+                sp10.x[3] = temp2[1].vx - temp_s0;
+                sp10.y[3] = temp2[1].vy - temp_a1_2;
 
-                sp10.unk4.u1 = sp10.unk4.u3 =
+                sp10.u[1] = sp10.u[3] =
                     temp_s7->u0
                     + ((temp_s7->u1 * ((temp_s1->trailCollapseCounter - j) - 1)) / 8);
-                sp10.unk4.v1 = spF8;
-                sp10.unk4.v3 = spFC;
-                sp10.unk4.r1 =
+                sp10.v[1] = spF8;
+                sp10.v[3] = spFC;
+                sp10.rgb[1][0] =
                     ((spC0.r
                          * arg3->sampledTransparencyCurve[temp_s1->trailCollapseCounter
                                                           - j - 1])
                         >> 7);
-                sp10.unk4.g1 =
+                sp10.rgb[1][1] =
                     ((spC0.g
                          * arg3->sampledTransparencyCurve[temp_s1->trailCollapseCounter
                                                           - j - 1])
                         >> 7);
-                sp10.unk4.b1 =
+                sp10.rgb[1][2] =
                     ((spC0.b
                          * arg3->sampledTransparencyCurve[temp_s1->trailCollapseCounter
                                                           - j - 1])
                         >> 7);
-                sp10.unk4.p1 = spC0.cd;
 
                 temp_s0 = (sp78[j] + sp78[j + 1]) / 2;
 
                 if ((temp_s0 < 0x800) && (vs_main_nearClip < temp_s0)) {
-                    temp_a3 = psx_get(vs_scratch.unk0);
-                    psx_set(vs_scratch.unk0, temp_a3 + 1);
-                    temp_a3->unk3 = 0xE;
-                    temp_a3->unk4.code = primPolyGT4SemiTrans;
-                    temp_a3->unk4.tag = 0xE1000000;
-                    temp_a3->unk38 = 0xE1000200;
-                    *(int*)&temp_a3->unk0 =
-                        (((u_long*)psx_get(vs_scratch.unk4))[temp_s0] & 0xFFFFFF)
-                        | 0x0E000000;
-                    ((u_long*)psx_get(vs_scratch.unk4))[temp_s0] =
-                        (((u_long*)psx_get(vs_scratch.unk4))[temp_s0] & 0xFF000000)
-                        | (psx_to_int(u_long, temp_a3) & 0xFFFFFF);
-                    *(int*)&temp_a3->unk4.r0 = *(int*)&sp10.unk4.r0;
-                    *(int*)&temp_a3->unk4.r1 = *(int*)&sp10.unk4.r1;
-                    *(int*)&temp_a3->unk4.r2 = *(int*)&sp10.unk4.r0;
-                    *(int*)&temp_a3->unk4.r3 = *(int*)&sp10.unk4.r1;
-                    *(int*)&temp_a3->unk4.x0 = *(int*)&sp10.unk4.x0;
-                    *(int*)&temp_a3->unk4.x1 = *(int*)&sp10.unk4.x1;
-                    *(int*)&temp_a3->unk4.x2 = *(int*)&sp10.unk4.x2;
-                    *(int*)&temp_a3->unk4.x3 = *(int*)&sp10.unk4.x3;
-                    *(short*)&temp_a3->unk4.u0 = *(short*)&sp10.unk4.u0;
-                    *(short*)&temp_a3->unk4.u1 = *(short*)&sp10.unk4.u1;
-                    *(short*)&temp_a3->unk4.u2 = *(short*)&sp10.unk4.u2;
-                    *(short*)&temp_a3->unk4.u3 = *(short*)&sp10.unk4.u3;
-                    *(short*)&temp_a3->unk4.tpage = temp_s7->tpage;
-                    *(short*)&temp_a3->unk4.clut = temp_s7->clut;
+                    temp_a3 = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, temp_s0);
+                    vs_effect_quad(temp_a3, &sp10, temp_s7->tpage, temp_s7->clut);
+                    vs_effect_rgb_of(temp_a3, 0, &sp10, 0);
+                    vs_effect_rgb_of(temp_a3, 1, &sp10, 1);
+                    vs_effect_rgb_of(temp_a3, 2, &sp10, 0);
+                    vs_effect_rgb_of(temp_a3, 3, &sp10, 1);
                 }
-                *(int*)&sp10.unk4.x0 = *(int*)&sp10.unk4.x1;
-                *(int*)&sp10.unk4.x2 = *(int*)&sp10.unk4.x3;
-                *(short*)&sp10.unk4.u0 = *(short*)&sp10.unk4.u1;
-                *(short*)&sp10.unk4.u2 = *(short*)&sp10.unk4.u3;
-                *(int*)&sp10.unk4.r0 = *(int*)&sp10.unk4.r1;
+                vs_effect_advance(&sp10, 0, 1);
+                vs_effect_advance(&sp10, 2, 3);
+                vs_effect_rgb_of(&sp10, 0, &sp10, 1);
             }
 
             temp_s0 = (rcos(spA0[j]) * temp_s3) >> 0xC;
             temp_a1_2 = (rsin(spA0[j]) * temp_s3) >> 0xC;
-            sp10.unk4.x1 = ((u_short*)spF0)[j * 2 + 2] + temp_s0;
-            sp10.unk4.y1 = ((u_short*)spF0)[j * 2 + 3] + temp_a1_2;
-            sp10.unk4.x3 = ((u_short*)spF0)[j * 2 + 2] - temp_s0;
-            sp10.unk4.y3 = ((u_short*)spF0)[j * 2 + 3] - temp_a1_2;
-            sp10.unk4.u1 = sp10.unk4.u3 = temp_s7->u0;
-            sp10.unk4.v1 = spF8;
-            sp10.unk4.v3 = spFC;
-            sp10.unk4.r1 = (spC0.r * arg3->sampledTransparencyCurve[0]) >> 7;
-            sp10.unk4.g1 = (spC0.g * arg3->sampledTransparencyCurve[0]) >> 7;
-            sp10.unk4.b1 = (spC0.b * arg3->sampledTransparencyCurve[0]) >> 7;
+            sp10.x[1] = ((u_short*)spF0)[j * 2 + 2] + temp_s0;
+            sp10.y[1] = ((u_short*)spF0)[j * 2 + 3] + temp_a1_2;
+            sp10.x[3] = ((u_short*)spF0)[j * 2 + 2] - temp_s0;
+            sp10.y[3] = ((u_short*)spF0)[j * 2 + 3] - temp_a1_2;
+            sp10.u[1] = sp10.u[3] = temp_s7->u0;
+            sp10.v[1] = spF8;
+            sp10.v[3] = spFC;
+            sp10.rgb[1][0] = (spC0.r * arg3->sampledTransparencyCurve[0]) >> 7;
+            sp10.rgb[1][1] = (spC0.g * arg3->sampledTransparencyCurve[0]) >> 7;
+            sp10.rgb[1][2] = (spC0.b * arg3->sampledTransparencyCurve[0]) >> 7;
 
             temp_s0 = (sp78[j] + sp78[j + 1]) / 2;
 
             if ((temp_s0 < 0x800) && (vs_main_nearClip < temp_s0)) {
-                temp_a3 = psx_get(vs_scratch.unk0);
-                psx_set(vs_scratch.unk0, temp_a3 + 1);
-                temp_a3->unk3 = 0xE;
-                temp_a3->unk4.code = primPolyGT4SemiTrans;
-                temp_a3->unk4.tag = 0xE1000000;
-                temp_a3->unk38 = 0xE1000200;
-                *(int*)&temp_a3->unk0 =
-                    (((u_long*)psx_get(vs_scratch.unk4))[temp_s0] & 0xFFFFFF)
-                    | 0x0E000000;
-                ((u_long*)psx_get(vs_scratch.unk4))[temp_s0] =
-                    (((u_long*)psx_get(vs_scratch.unk4))[temp_s0] & 0xFF000000)
-                    | (psx_to_int(u_long, temp_a3) & 0xFFFFFF);
-                *(int*)&temp_a3->unk4.r0 = *(int*)&sp10.unk4.r0;
-                *(int*)&temp_a3->unk4.r1 = *(int*)&sp10.unk4.r1;
-                *(int*)&temp_a3->unk4.r2 = *(int*)&sp10.unk4.r0;
-                *(int*)&temp_a3->unk4.r3 = *(int*)&sp10.unk4.r1;
-                *(int*)&temp_a3->unk4.x0 = *(int*)&sp10.unk4.x0;
-                *(int*)&temp_a3->unk4.x1 = *(int*)&sp10.unk4.x1;
-                *(int*)&temp_a3->unk4.x2 = *(int*)&sp10.unk4.x2;
-                *(int*)&temp_a3->unk4.x3 = *(int*)&sp10.unk4.x3;
-                *(short*)&temp_a3->unk4.u0 = *(short*)&sp10.unk4.u0;
-                *(short*)&temp_a3->unk4.u1 = *(short*)&sp10.unk4.u1;
-                *(short*)&temp_a3->unk4.u2 = *(short*)&sp10.unk4.u2;
-                *(short*)&temp_a3->unk4.u3 = *(short*)&sp10.unk4.u3;
-                *(short*)&temp_a3->unk4.tpage = temp_s7->tpage;
-                *(short*)&temp_a3->unk4.clut = temp_s7->clut;
+                temp_a3 = vs_effect_item(PC_ITEM_POLY, 4, VS_EFFECT_GT4, temp_s0);
+                vs_effect_quad(temp_a3, &sp10, temp_s7->tpage, temp_s7->clut);
+                vs_effect_rgb_of(temp_a3, 0, &sp10, 0);
+                vs_effect_rgb_of(temp_a3, 1, &sp10, 1);
+                vs_effect_rgb_of(temp_a3, 2, &sp10, 0);
+                vs_effect_rgb_of(temp_a3, 3, &sp10, 1);
             }
         }
     }
