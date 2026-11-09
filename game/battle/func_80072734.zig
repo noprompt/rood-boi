@@ -3,6 +3,12 @@ const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
+/// The 8 bytes from the actor's unk10 (a SVECTOR of its last target position).
+fn unk10Vector(actor: ?*v.vs_battle_actor) v.SVECTOR {
+    const base: [*]const u8 = @ptrCast(actor.?);
+    return @as(*const v.SVECTOR, @ptrCast(@alignCast(base + @offsetOf(v.vs_battle_actor, "unk10")))).*;
+}
+
 /// D_800F19CC, read at each use as the C does.
 fn state() *v.D_800F19CC_t {
     return v.g.D_800F19CC().*.?;
@@ -79,7 +85,7 @@ pub fn func_80072734(arg0: c_int) callconv(.c) void {
     state().unk2C00 = psx.conv(u16, count);
     c.func_800A190C(state().unk8.unk4.unk0.targetActor, 250, &state().unk29A8, 0);
     if (state().unk8.unk4.unk0.targetActor != 0) {
-        state().unk2998 = psx.byteAt(v.SVECTOR, actors[state().unk8.unk4.unk0.targetActor], 16).*;
+        state().unk2998 = unk10Vector(actors[state().unk8.unk4.unk0.targetActor]);
         state().unk2998.pad = 0;
     }
     if (state().unk2984 != 0) {

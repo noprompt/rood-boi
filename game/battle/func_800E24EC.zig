@@ -118,7 +118,7 @@ pub fn func_800E24EC(s: ?*v.vs_battle_aiState, option: c_int) callconv(.c) c_int
                     }
                     const angle: c_int = c.ratan2(st.moveX -% @as(c_int, st.position.v.vx), st.moveZ -% @as(c_int, st.position.v.vz));
                     c.func_800E50A0(st, 1, angle);
-                    if (psx.get(st.actor.targetMovementActor).?.id >= 9) st.bE8 = 1;
+                    if (psx.get(st.actor).?.id >= 9) st.bE8 = 1;
                 },
                 else => {},
             }

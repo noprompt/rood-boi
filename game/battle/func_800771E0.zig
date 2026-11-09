@@ -6,14 +6,15 @@ const v = @import("views_146C");
 const c = @import("c_146C");
 
 /// orig: func_800771E0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
-/// Fills an object-data request for `index` from `src[37]` and populates its slot, when the index and flags allow it.
+/// Fills an object-data request for `index` from the actor's equipped weapon category and populates its slot, when the index and flags allow it.
 pub fn func_800771E0(src: [*c]u8, index: c_int, mode: c_int, flags: c_int) callconv(.c) void {
     if ((mode != 0 or index >= 2) and (index < 2 or (flags & 3) == 1)) {
         // The original leaves the other fields as stack residue and populateDataSlot copies the whole record into its slot; zeroed here.
         var sp10: v.vs_battle_objectData = std.mem.zeroes(v.vs_battle_objectData);
         sp10.dataType = 7;
         sp10.index = psx.conv(i8, index);
-        sp10.modelId = psx.conv(i16, src[37]);
+        const actor: *const v.vs_battle_actor = @ptrCast(@alignCast(src));
+        sp10.modelId = psx.conv(i16, actor.equippedWeaponCategory);
         sp10.actorId = 0;
         _ = c.vs_battle_populateDataSlot(@ptrCast(&sp10));
     }

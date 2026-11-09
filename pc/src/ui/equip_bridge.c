@@ -85,7 +85,7 @@ static const char part_category[8] = { 0, 5, 5, 2, 3, 4, 6, 7 };
 
 static vs_battle_actor2* ashley(void)
 {
-    return vs_battle_characterState ? psx_get(vs_battle_characterState->unk3C) : NULL;
+    return vs_battle_characterState ? vs_battle_characterState->unk3C : NULL;
 }
 
 /* vs_mainMenu_weaponHands: two-handed blade categories. */

@@ -54,7 +54,7 @@ static int _teleportMenu(int init)
     if (init != 0) {
         vs_mainMenu_flyoutMenuRightAndHoistSelection(4, 1);
         state = initTeleport;
-        currentMp = psx_get(vs_battle_characterState->unk3C)->currentMP;
+        currentMp = vs_battle_characterState->unk3C->currentMP;
         return 0;
     }
 

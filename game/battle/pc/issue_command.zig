@@ -16,6 +16,15 @@ fn i16At(base: [*]u8, offset: usize) *align(1) i16 {
 fn i32At(base: [*]u8, offset: usize) *align(1) c_int {
     return @ptrCast(base + offset);
 }
+/// The command block is the actor's own words: unkC, unk10 and unk14 (as words, as halves, as signed).
+fn w0C(a: *ai.vs_battle_actor) *u32 { return @ptrCast(&a.unkC); }
+fn w10(a: *ai.vs_battle_actor) *u32 { return @ptrCast(&a.unk10); }
+fn w14(a: *ai.vs_battle_actor) *u32 { return @ptrCast(&a.unk14); }
+fn h0C(a: *ai.vs_battle_actor) *u16 { return @ptrCast(&a.unkC); }
+fn h10(a: *ai.vs_battle_actor) *u16 { return @ptrCast(&a.unk10); }
+fn h14(a: *ai.vs_battle_actor) *u16 { return @ptrCast(&a.unk14); }
+fn s0C(a: *ai.vs_battle_actor) *c_int { return &a.unkC; }
+fn s10(a: *ai.vs_battle_actor) *c_int { return &a.unk10.s32; }
 /// A byte of the scratchpad at 0x1F800000 + offset (the C's int sum, as a 32-bit guest address).
 fn scratchByte(offset: c_int) *u8 {
     return @ptrFromInt(@as(usize, @as(u32, @bitCast(@as(c_int, 0x1f800000) +% offset))));
@@ -56,22 +65,22 @@ fn gaitSpeed(state: *ai.vs_battle_aiState, walk_high: c_uint, speed: *c_uint, co
 /// The shared move: faces `angle_in`, picks the gait and steps; if a corner
 /// of the actor's square (half-size 0x92) would enter a blocked neighbour,
 /// slides to the tile edge instead (command 0x0D).
-fn moveToward(state: *ai.vs_battle_aiState, command: [*]u8, angle_in: c_int) void {
+fn moveToward(state: *ai.vs_battle_aiState, actor: *ai.vs_battle_actor, angle_in: c_int) void {
     const size: c_int = state.radius;
     const tile = state.tile.raw;
     const tile_x: c_int = @intCast(tile & 0xff); // a byte
     const tile_z: c_int = @intCast((tile >> 16) & 0xff);
     const angle = angle_in & 0xfff;
-    u16At(command, 0xc).* = @intCast(angle); // masked to 12 bits
+    h0C(actor).* = @intCast(angle); // masked to 12 bits
     const turned = (0xc00 -% angle) & 0xfff;
     const x: c_int = state.position.xyz[0];
     var speed: c_uint = undefined;
     var kind: c_int = undefined;
     if (gaitSpeed(state, 0x420000, &speed, &kind) < 0) {
-        command[9] = 2;
+        actor.unk9 = 2;
         return;
     }
-    command[9] = @intCast(kind); // 9 or 10
+    actor.unk9 = @intCast(kind); // 9 or 10
     const step_x = c.rcos(turned) *% @as(c_int, @bitCast(speed));
     const step_z = c.rsin(turned) *% @as(c_int, @bitCast(speed));
     const z: c_int = state.position.xyz[2];
@@ -114,17 +123,17 @@ fn moveToward(state: *ai.vs_battle_aiState, command: [*]u8, angle_in: c_int) voi
     const packed_tile: c_uint = (@as(c_uint, @bitCast(tile_z)) << 16) | @as(c_uint, @bitCast(tile_x));
     if ((state.field9C & 0xff00ff) == packed_tile) return;
     state.field9C = @bitCast(packed_tile);
-    command[9] = 0xd;
-    i32At(command, 0xc).* = slide_x << 12;
-    i32At(command, 0x10).* = slide_z << 12;
+    actor.unk9 = 0xd;
+    s0C(actor).* = slide_x << 12;
+    s10(actor).* = slide_z << 12;
 }
 
 /// orig: walk_to_tile (pc/src/battle_movement.c)
 /// Entry 13: walks to the stored tile 0x170.
-fn walkToTile(state: *ai.vs_battle_aiState, command: [*]u8) void {
+fn walkToTile(state: *ai.vs_battle_aiState, actor: *ai.vs_battle_actor) void {
     const tile = state.next.movementPosition.raw;
-    command[9] = 0x17;
-    u32At(command, 0xc).* = tile;
+    actor.unk9 = 0x17;
+    w0C(actor).* = tile;
     const x: c_int = @bitCast((tile & 0xff) *% 128 +% 64);
     const z: c_int = @as(c_int, @bitCast((tile << 8) >> 17)) +% 64;
     state.unk178 = psx.conv(u16, z);
@@ -132,7 +141,7 @@ fn walkToTile(state: *ai.vs_battle_aiState, command: [*]u8) void {
     const own_x: c_int = state.position.xyz[0];
     const own_z: c_int = state.position.xyz[2];
     const heading = c.ratan2(own_x -% x, own_z -% z);
-    i32At(command, 0x10).* = heading;
+    s10(actor).* = heading;
     c.func_800E4C1C(@intCast(tile & 0xff), @intCast((tile >> 16) & 0xff)); // bytes
 }
 
@@ -142,17 +151,17 @@ fn walkToTile(state: *ai.vs_battle_aiState, command: [*]u8) void {
 /// byte 10 = facing target) and fills it per action (jtbl_800F16F8, 18
 /// entries). Byte 9 receives the command code.
 pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) void {
-    const command: [*]u8 = @ptrCast(state.actor.actorView);
+    const actor: *ai.vs_battle_actor = @ptrCast(state.actor);
     @as(*u32, @ptrFromInt(0x1f8003c8)).* = @bitCast(action);
-    command[8] = 0x80;
-    command[0xa] = state.movementTargetId;
+    actor.unk8 = 0x80;
+    actor.unkA = state.movementTargetId;
     switch (action) {
-        0 => command[9] = 2,
-        1 => command[9] = 1,
-        2 => command[9] = 0x14,
+        0 => actor.unk9 = 2,
+        1 => actor.unk9 = 1,
+        2 => actor.unk9 = 0x14,
         3 => {
-            command[9] = 3;
-            u32At(command, 0xc).* = (@as(c_uint, state.delay) << 16) | (@as(u16, @bitCast(state.heading)) & 0xfff);
+            actor.unk9 = 3;
+            w0C(actor).* = (@as(c_uint, state.delay) << 16) | (@as(u16, @bitCast(state.heading)) & 0xfff);
         },
         4 => {
             const model: [*]u8 = @ptrCast(state.object.actorObject);
@@ -171,54 +180,54 @@ pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) vo
             }
             const code: u8 = if ((@as(c_int, state.field2A) & limit_ok) != 0) 7 else 3;
             const rate: c_uint = state.timer13A;
-            command[9] = code;
+            actor.unk9 = code;
             var value: c_int = undefined;
             if ((0x1000 -% offset) < @as(c_int, @bitCast(rate)) or offset < @as(c_int, @bitCast(rate)) or offset < 1) {
-                command[9] = 4;
+                actor.unk9 = 4;
                 value = target;
             } else {
                 value = sign *% @as(c_int, @bitCast(rate)) +% (if (code == 3) heading else turn);
             }
-            u32At(command, 0xc).* = (@as(c_uint, @bitCast(value)) & 0xffff) | (rate << 16);
+            w0C(actor).* = (@as(c_uint, @bitCast(value)) & 0xffff) | (rate << 16);
         },
-        5 => moveToward(state, command, @as(c_int, state.heading) << 9),
+        5 => moveToward(state, actor, @as(c_int, state.heading) << 9),
         6 => {
             const tile = state.tile.raw;
             const target = state.destination168.destination;
-            moveToward(state, command, c.ratan2(
+            moveToward(state, actor, c.ratan2(
                 @as(c_int, @intCast(tile & 0xff)) - @as(c_int, @intCast(target & 0xff)), // bytes
                 @bitCast(((tile >> 8) << 24) -% ((target >> 8) << 24)),
             ));
         },
-        7 => moveToward(state, command, state.heading),
+        7 => moveToward(state, actor, state.heading),
         8 => {
-            command[9] = 0x13;
-            u32At(command, 0xc).* = @bitCast(state.moveX);
-            u32At(command, 0x14).* = @bitCast(state.moveY);
-            u32At(command, 0x10).* = @bitCast(state.moveZ);
+            actor.unk9 = 0x13;
+            w0C(actor).* = @bitCast(state.moveX);
+            w14(actor).* = @bitCast(state.moveY);
+            w10(actor).* = @bitCast(state.moveZ);
         },
         9, 10 => {
-            command[9] = if (action == 9) 0x10 else 0x11;
-            u32At(command, 0xc).* = @bitCast((state.moveY << 16) | (state.moveX & 0xffff));
-            u16At(command, 0x10).* = @truncate(@as(u32, @bitCast(state.moveZ)));
+            actor.unk9 = if (action == 9) 0x10 else 0x11;
+            w0C(actor).* = @bitCast((state.moveY << 16) | (state.moveX & 0xffff));
+            h10(actor).* = @truncate(@as(u32, @bitCast(state.moveZ)));
         },
         11 => {
             const tile = state.next.movementPosition.raw;
-            u32At(command, 0xc).* = tile;
-            command[9] = 0x15;
+            w0C(actor).* = tile;
+            actor.unk9 = 0x15;
             c.func_800E4C1C(@intCast(tile & 0xff), @intCast((tile >> 16) & 0xff)); // bytes
         },
         12 => {
             const tile = state.next.movementPosition.raw;
             const lift: c_int = state.heightBE;
-            command[9] = 0x16;
+            actor.unk9 = 0x16;
             const x: c_int = @as(c_int, @intCast(tile & 0xff)) << 7; // a byte
             const z: c_int = @as(c_int, @bitCast((tile << 8) >> 17)) +% 0x40;
-            u16At(command, 0x10).* = psx.conv(u16, z);
+            h10(actor).* = psx.conv(u16, z);
             const height = c.func_800E42D4(x, z);
-            u32At(command, 0xc).* = (@as(c_uint, @bitCast(height +% lift)) << 16) | @as(c_uint, @bitCast(x +% 0x40));
+            w0C(actor).* = (@as(c_uint, @bitCast(height +% lift)) << 16) | @as(c_uint, @bitCast(x +% 0x40));
         },
-        13 => walkToTile(state, command),
+        13 => walkToTile(state, actor),
         14 => {
             const here = c.func_800E42E0(state.tile.raw);
             const tile = state.next.movementPosition.raw;
@@ -229,7 +238,7 @@ pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) vo
             if (rise < @as(c_int, state.fB0)) {
                 code = 0xb;
             } else if ((flags & 8) != 0) {
-                walkToTile(state, command);
+                walkToTile(state, actor);
                 return;
             } else if ((flags & 0x30) != 0) {
                 code = 0x12;
@@ -238,8 +247,8 @@ pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) vo
             } else {
                 code = 0xb;
             }
-            command[9] = code;
-            u32At(command, 0xc).* = tile;
+            actor.unk9 = code;
+            w0C(actor).* = tile;
             const tile_x: c_int = @intCast(tile & 0xff); // a byte
             const tile_z: c_int = @intCast((tile >> 16) & 0xff);
             const x = tile_x *% 128 +% 64;
@@ -249,11 +258,11 @@ pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) vo
             var speed: c_uint = undefined;
             var kind: c_int = undefined;
             if (gaitSpeed(state, 0x4200, &speed, &kind) < 0) {
-                command[9] = 2;
+                actor.unk9 = 2;
                 return;
             }
-            u32At(command, 0x10).* = speed;
-            if (u32At(command, 4).* != 0 and (tile & 0xff00) == 0) c.func_800E4C1C(tile_x, tile_z);
+            w10(actor).* = speed;
+            if (actor.id != 0 and (tile & 0xff00) == 0) c.func_800E4C1C(tile_x, tile_z);
         },
         15 => {
             const candidate: [*]u32 = @ptrCast(state.candidate);
@@ -261,22 +270,22 @@ pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) vo
             const target = candidate[3];
             const row: c_int = @intCast(slot & 7);
             const column: c_int = @intCast((slot >> 3) & 3);
-            u32At(command, 0xc).* = (@as(c_uint, @bitCast(column)) << 16) | @as(c_uint, @bitCast(row));
+            w0C(actor).* = (@as(c_uint, @bitCast(column)) << 16) | @as(c_uint, @bitCast(row));
             const slot_flags = psx.byteAt(u32, &state.configs, @as(isize, @intCast(row)) * 32 + @as(isize, @intCast(column)) * 8).*; // row 0..7, column 0..3
             if (((@as(c_uint, 1) << @intCast((slot_flags >> 3) & 3)) & 6) == 0) {
                 const model: [*]u8 = @ptrCast(v.g.D_800F4538()[target & 0xf].?);
-                u32At(command, 0x10).* = u32At(model, 0x1c).* -% (((target >> 7) & 0xfff) << 16);
-                u16At(command, 0x14).* = u16At(model, 0x20).*;
+                w10(actor).* = u32At(model, 0x1c).* -% (((target >> 7) & 0xfff) << 16);
+                h14(actor).* = u16At(model, 0x20).*;
             } else {
-                u32At(command, 0x10).* = (((target >> 4) & 7) << 16) | (target & 0xf);
+                w10(actor).* = (((target >> 4) & 7) << 16) | (target & 0xf);
             }
-            command[9] = 0x18;
+            actor.unk9 = 0x18;
         },
         16 => {
-            command[9] = 6;
-            u32At(command, 0xc).* = @as(u16, @bitCast(state.heading)) | (@as(c_uint, state.timer13A) << 16);
+            actor.unk9 = 6;
+            w0C(actor).* = @as(u16, @bitCast(state.heading)) | (@as(c_uint, state.timer13A) << 16);
         },
-        17 => command[9] = 8,
+        17 => actor.unk9 = 8,
         else => c.pc_unimplemented("actor command beyond jtbl_800F16F8"),
     }
 }

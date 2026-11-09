@@ -106,7 +106,7 @@ def stats_address(g):
     """Ashley's HUD record's currentHP (vs_battle_actors[0] -> +0x3c -> +0x18: HP, max, MP, max, risk)."""
     symbols = rood_rpc.symbols()
     actor = int.from_bytes(g.read(symbols["vs_battle_actors"], PTR), "little")
-    record = int.from_bytes(g.read(actor + 0x3C, 4), "little")
+    record = g.actor_stats(actor)
     return record + 0x18
 
 
@@ -1685,7 +1685,7 @@ def tour_magic(g, symbols, toured, frames):
 def equipped_category(g, symbols):
     """vs_battle_characterState->equippedWeaponCategory (vs_battle_actor + 37)."""
     actor = int.from_bytes(g.read(symbols["vs_battle_characterState"], PTR), "little")
-    return g.read(actor + 37, 1)[0]
+    return g.read(actor + g.actor_offset("weapon"), 1)[0]
 
 
 def tour_arts(g, symbols, toured, frames):
@@ -2052,7 +2052,7 @@ WEAPON_BLADE_DP, WEAPON_DP, SHIELD_PP, SHIELD_BASE_PP = 0x18 + 8, 0x114, 0xDC, 0
 def actor2(g):
     """Ashley's vs_battle_actor2 (vs_battle_actors[0] -> +0x3c): what Status reads."""
     actor = int.from_bytes(g.read(rood_rpc.symbols()["vs_battle_actors"], PTR), "little")
-    return int.from_bytes(g.read(actor + 0x3C, 4), "little")
+    return g.actor_stats(actor)
 
 
 def status_equipment_fixture(g):
@@ -4214,7 +4214,7 @@ def run_file_screens(out, card, card2, env, check, waivers):
         def ashley():  # (vs_battle_actors[0] -> +0x3c: her record, once the room has her)
             actor = int.from_bytes(g.read(symbols["vs_battle_actors"], PTR), "little")
             try:
-                return actor and int.from_bytes(g.read(actor + 0x3C, 4), "little")
+                return actor and g.actor_stats(actor)
             except RpcError:
                 return 0
         g.until(ashley, step=10, guard=600, what="Ashley in the room")

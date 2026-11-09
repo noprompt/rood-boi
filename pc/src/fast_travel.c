@@ -81,7 +81,7 @@ static vs_battle_actor2* ashley(void)
     if (!room_live || vs_battle_roomData.unk0 != 1 || psx_get(vs_battle_roomData.collisionMapSection) == NULL
         || vs_battle_characterState == NULL || vs_battle_actors[0] == NULL)
         return NULL;
-    return psx_get(vs_battle_characterState->unk3C);
+    return vs_battle_characterState->unk3C;
 }
 
 static void fill(pc_ft_state* s)

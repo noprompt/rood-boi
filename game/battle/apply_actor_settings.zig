@@ -54,22 +54,22 @@ pub fn applyActorSettings(state: ?*v.vs_battle_aiState, settings: ?*v.actorSetti
     if ((s.flags & 0xC0) == 0) s.f32 = v.g.D_80069C18()[@as(usize, s.f31)];
     s.f33 = w.byte[0] >> 7;
 
-    const actor = psx.get(s.actor.actorSettingsActor).?;
-    const mode: c_int = @as(c_int, psx.getBits(&actor.flags34.bits, "mode"));
+    const actor = psx.get(s.actor).?;
+    const mode: c_int = @intCast((@as(u32, @bitCast(actor.unk34)) >> 12) & 3);
     s.allowFallback = psx.conv(u8, mode >> 1);
     s.special = psx.conv(u8, mode & 1);
-    s.rate102 = v.g.D_80069C08()[@as(usize, (actor.flags34.raw >> 14) & 1)];
-    s.row = psx.conv(u8, (actor.flags.raw >> 14) & 3);
-    s.fC8 = actor.flags.half[1] & 63;
-    s.fCC = psx.conv(u8, (actor.flags.raw >> 22) & 31);
-    s.fCE = psx.conv(u8, actor.flags.raw >> 27);
-    if (psx.conv(c_uint, @as(c_int, actor.kind) -% 0xAC) < 2) {
+    s.rate102 = v.g.D_80069C08()[@as(usize, (@as(u32, @bitCast(actor.unk34)) >> 14) & 1)];
+    s.row = psx.conv(u8, (actor.flags30.raw >> 14) & 3);
+    s.fC8 = actor.flags30.half[1] & 63;
+    s.fCC = psx.conv(u8, (actor.flags30.raw >> 22) & 31);
+    s.fCE = psx.conv(u8, actor.flags30.raw >> 27);
+    if (psx.conv(c_uint, @as(c_int, actor.subType) -% 0xAC) < 2) {
         const handler: ?*anyopaque = @ptrCast(@constCast(&c.func_800E7F8C));
         psx.put(&s.callback, handler);
         s.f19 = 1;
         c.func_800E7660(@ptrCast(s));
     } else {
-        const entry = v.g.D_800F1790()[@as(usize, (actor.flags.raw >> 4) & 31)];
+        const entry = v.g.D_800F1790()[@as(usize, (actor.flags30.raw >> 4) & 31)];
         psx.put(&s.callback, @as(?*anyopaque, @constCast(entry)));
     }
     s.target16 = 16;

@@ -12,15 +12,15 @@ pub fn func_800DC0D0() callconv(.c) void {
     if (head) |first| {
         var state: *v.vs_battle_aiState = first;
         while (true) {
-            const actor = psx.get(state.actor.actorPhaseFlags);
+            const actor = psx.get(state.actor);
             if ((@as(c_int, state.tbl.targetFlag0) >> 6) != 2) {
                 if (@as(c_int, state.phase12F) == 0) {
                     state.direction130 = 1;
-                    psx.setBits(actor.?, "mode", 1);
+                    actor.?.unkB = (actor.?.unkB & 0xf3) | (1 << 2);
                     changed = 1;
                 } else if (@as(c_int, state.phase12F) == 16) {
                     state.direction130 = -1;
-                    psx.setBits(actor.?, "mode", 2);
+                    actor.?.unkB = (actor.?.unkB & 0xf3) | (2 << 2);
                     changed = 1;
                 }
                 state.phase12F = psx.conv(i8, @as(c_int, state.phase12F) +% @as(c_int, state.direction130));

@@ -159,7 +159,7 @@ class Session:
 
     def actor2(self):
         actor = self.ptr(self.sym["vs_battle_characterState"])
-        return int.from_bytes(self.g.read(actor + 0x3C, 4), "little")
+        return self.g.actor_stats(actor)
 
     def hp(self):
         return struct.unpack("<h", self.g.read(self.actor2() + HP, 2))[0]

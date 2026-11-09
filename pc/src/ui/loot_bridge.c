@@ -1351,7 +1351,7 @@ static int field_free(void)
 {
     return D_800F196C == 1 && vs_battle_screenTransitionStep != 1 && vs_battle_screenTransitionStep != 2
         && vs_battle_screenTransitionStep != 4 && vs_battle_characterState != NULL
-        && !(func_800A0BE0(0) & 0x4000) && psx_get(vs_battle_characterState->unk3C)->unk954 == 0
+        && !(func_800A0BE0(0) & 0x4000) && vs_battle_characterState->unk3C->unk954 == 0
         && vs_battle_menuState.currentMenu == 0x3F;
 }
 int pc_ui_loot_debug_open(const unsigned char* data, int nodes, int chest)

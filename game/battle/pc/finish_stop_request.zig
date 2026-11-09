@@ -11,8 +11,7 @@ pub fn finishStopRequest(state: *ai.vs_battle_aiState) callconv(.c) void {
     const request: c_int = state.mode12D;
     if (request == 0) return;
     if (request == 1) {
-        const command: [*]u8 = @ptrCast(state.actor.actorView);
-        if (command[9] < 9) {
+        if (psx.get(state.actor).?.unk9 < 9) {
             c.func_800DEEFC(state, 1);
             return;
         }

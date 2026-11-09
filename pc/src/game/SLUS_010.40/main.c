@@ -8439,7 +8439,7 @@ void func_80042CB0(void)
         }
         vs_main_actionsLearned[var_s1] = actionsLearned;
     }
-    temp_t0 = psx_get(vs_battle_characterState->unk3C);
+    temp_t0 = vs_battle_characterState->unk3C;
     temp_t5 = &D_80060068;
     temp_t5->unk0.currentHP = temp_t0->currentHP;
     temp_t5->unk0.maxHP = temp_t0->maxHP;

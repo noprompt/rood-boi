@@ -176,7 +176,7 @@ static int shown;    /* the sub-tab showed on the last fill */
 
 static vs_battle_actor2* ashley(void)
 {
-    return vs_battle_characterState ? psx_get(vs_battle_characterState->unk3C) : NULL;
+    return vs_battle_characterState ? vs_battle_characterState->unk3C : NULL;
 }
 
 /* UTF-8 text into out, cut at a code point boundary (as items_bridge.c). */

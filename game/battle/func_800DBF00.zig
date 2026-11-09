@@ -7,14 +7,14 @@ const v = @import("views_73700");
 /// Clears the entry's flag and removes it from the list at D_800F58BC, fixing up the head and tail pointers.
 pub fn func_800DBF00(entry: ?*v.vs_battle_aiState) callconv(.c) void {
     const self = entry.?;
-    const data = psx.get(self.actor.func_800DEB10_t2).?;
+    const data = psx.get(self.actor).?;
     const hub = v.g.D_800F58BC().*.?;
 
     self.phase12F = 0;
-    psx.setBits(data, "unkB_2", 2);
+    data.unkB = (data.unkB & 0xf3) | (2 << 2);
 
     if (psx.get(hub.unk20) == self) {
-        psx.setBits(data, "unkB_2", 2);
+        data.unkB = (data.unkB & 0xf3) | (2 << 2);
         const next = psx.get(psx.get(hub.unk20).?.next1A0);
         psx.put(&hub.unk20, if (next != null) next else psx.get(hub.unk1C));
     }

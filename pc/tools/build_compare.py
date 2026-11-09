@@ -46,7 +46,7 @@ ROOM = (48, 10)
 
 
 ROOM_ENEMIES = range(2, 10)  # vs_battle_actors slots of the room's enemies
-ACTOR_STATS, STATS_HP = 0x3C, 0x18  # vs_battle_actor.unk3C (a 4-byte guest pointer), vs_battle_actor2.currentHP
+STATS_HP = 0x18  # vs_battle_actor2.currentHP (the stats pointer is read by the build's exported offset)
 LOOT_BYTES = 0x220  # vs_battle_loot; a drop node is: next (the pointer's width), int actorId, the loot
 
 
@@ -57,7 +57,7 @@ def loot(g, width):
     pointers = g.read(sym["vs_battle_actors"], 16 * 8)
     for slot in ROOM_ENEMIES:
         actor = int.from_bytes(pointers[slot * 8:slot * 8 + 8], "little")
-        stats = int.from_bytes(g.read(actor + ACTOR_STATS, 4), "little") if actor else 0
+        stats = g.actor_stats(actor) if actor else 0
         if stats:
             g.write(stats + STATS_HP, (0).to_bytes(2, "little"))
     head = lambda: int.from_bytes(g.read(sym["_lootListHead"], 8), "little") & ((1 << 8 * width) - 1)

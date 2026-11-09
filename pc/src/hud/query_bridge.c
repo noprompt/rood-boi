@@ -49,7 +49,7 @@ void pc_game_query_fill(pc_game_query* out)
     out->menu = pc_battle_field_menu_open();
     out->event = pc_battle_event_running && pc_battle_event_running();
     if (guest(vs_battle_characterState, sizeof *vs_battle_characterState))
-        a = psx_get(vs_battle_characterState->unk3C);
+        a = vs_battle_characterState->unk3C;
     actor = D_800F4538[0];
     if (!a || !guest(a, sizeof *a) || !guest(actor, sizeof *actor))
         return;

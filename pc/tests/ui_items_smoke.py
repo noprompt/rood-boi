@@ -176,7 +176,7 @@ class Session:
         return {"inventory": self.inv(), "indices": self.idx()}
 
     def actor2(self):
-        return int.from_bytes(self.g.read(self.ptr(self.sym["vs_battle_characterState"]) + 0x3C, 4), "little")
+        return self.g.actor_stats(self.ptr(self.sym["vs_battle_characterState"]))
 
     def hp(self):
         return struct.unpack("<h", self.g.read(self.actor2() + 0x18, 2))[0]

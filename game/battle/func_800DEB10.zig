@@ -13,7 +13,8 @@ pub fn func_800DEB10(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
 
     // The C dereferences the slot before its NULL check, so a NULL slot crashes there: `.?` traps here.
     const entry = psx.at(v.g.D_800F5878(), req.unk4).*.?;
-    const temp_t1 = psx.get(entry.actor.func_800DEB10_t2).?;
+    const temp_t1 = entry.actor.?;
+    const temp_c: u32 = @bitCast(temp_t1.unkC);
     if (temp_t1.unk9 != 24) return;
 
     var i: c_int = 0;
@@ -21,8 +22,8 @@ pub fn func_800DEB10(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
         const temp_a2 = psx.get(psx.at(&entry.entries.actions, i).*).?;
 
         if (@as(c_int, req.unk0) == @as(c_int, psx.getBits(temp_a2, "unk4_5")) and
-            @as(c_int, temp_t1.unkC) == @as(c_int, psx.getBits(temp_a2, "unk4_0")) and
-            @as(c_int, temp_t1.unkE) == @as(c_int, psx.getBits(temp_a2, "unk4_3")))
+            @as(c_int, @as(u16, @truncate(temp_c))) == @as(c_int, psx.getBits(temp_a2, "unk4_0")) and
+            @as(c_int, @as(u16, @truncate(temp_c >> 16))) == @as(c_int, psx.getBits(temp_a2, "unk4_3")))
         {
             entry.unkFB = psx.conv(u8, psx.getBits(temp_a2, "unkC_0"));
 

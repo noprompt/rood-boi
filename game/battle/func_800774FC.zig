@@ -8,7 +8,7 @@ const c = @import("c_146C");
 pub fn func_800774FC(arg0: c_int, arg1: c_int, bladeWepId: c_int, bladeMaterial: c_int, shieldWepId: c_int, shieldMaterial: c_int, arg6: ?*v.vs_battle_objectData_flags, arg7: c_int) callconv(.c) ?*v.vs_battle_actor {
     const raw: ?*anyopaque = @ptrCast(c.func_80077240(arg0, arg1, bladeWepId, bladeMaterial, shieldWepId, shieldMaterial, @ptrCast(arg6), arg7));
     const aligned: ?*align(4) anyopaque = @alignCast(raw);
-    const temp_v0: ?*v.vs_battle_actor = @ptrCast(aligned);
+    const temp_v0: ?*v.vs_battle_actor = @ptrCast(@alignCast(aligned));
     if (temp_v0) |actor| {
         while (c.vs_battle_getEmptyObjectDataSlot() != 0) {
             _ = c.vs_battle_processObjectDataQueue();

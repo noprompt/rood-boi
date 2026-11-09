@@ -155,7 +155,7 @@ static void copy_text(char* out, int size, const char* text)
 
 static vs_battle_actor2* ashley(void)
 {
-    return vs_battle_characterState ? psx_get(vs_battle_characterState->unk3C) : NULL;
+    return vs_battle_characterState ? vs_battle_characterState->unk3C : NULL;
 }
 
 static void action_name(int id, char* out, int size)

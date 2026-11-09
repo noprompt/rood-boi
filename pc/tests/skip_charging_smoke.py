@@ -177,7 +177,7 @@ class Run:
 
     def actor2(self, slot):
         actor = self.ptr(self.sym["vs_battle_actors"] + slot * PTR)
-        return self.u32(actor + 0x3C) if actor else 0
+        return self.g.actor_stats(actor) if actor else 0
 
     def stats(self, slot):
         """(HP, MP, statuses) of the actor in slot `slot`, or None."""

@@ -74,8 +74,6 @@ WEAPON, SHIELD, BLADE, ARMOR_REC = 32, 48, 44, 40
 INDICES_BYTES = 176
 IDX_WEAPONS, IDX_SHIELDS, IDX_ARMOR = 0, 40, 48
 ACTOR2_BYTES = 0x964  # vs_battle_actor2 (146C.h)
-ACTOR_BYTES = 80  # vs_battle_actor
-ACTOR_UNK3C = 60  # vs_battle_actor.unk3C (weaponDrawn 32, equippedWeaponCategory 37: compared with the rest)
 
 OBJECT_BYTES = 6356  # D_800F4538_t: actor 0's object (3A1A0.h)
 WEP_MODELS = 2  # vs_battle_wepModels[0], [1]: actor 0's weapon and shield
@@ -187,7 +185,7 @@ class Session:
         return self.ptr(self.char_state)
 
     def actor2(self):
-        return int.from_bytes(self.game.read(self.actor() + ACTOR_UNK3C, 4), "little")
+        return self.game.actor_stats(self.actor())
 
     def ws(self):
         return self.game.call("weapon_slots")
@@ -212,7 +210,7 @@ class Session:
         d = {
             "inventory": self.inv(),
             "indices": self.idx(),
-            "actor": g.read(actor, ACTOR_BYTES),
+            "actor": g.read(actor, g.actor_offset("size", 80)),
             "actor2": g.read(self.actor2(), ACTOR2_BYTES),
         }
         d["object0"] = g.read(objects[0], OBJECT_BYTES)

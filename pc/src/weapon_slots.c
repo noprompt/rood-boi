@@ -264,7 +264,7 @@ static void queue_entry(vs_battle_objectData** q, int direct, int type, int inde
     e->index = index;
     e->modelId = model;
     if (type == 3)
-        psx_set(e->unk4, psx_get(vs_battle_characterState->unk48[index]));
+        psx_set(e->unk4, vs_battle_characterState->unk48[index]);
     e->actorId = 0;
     if (type == 3) {
         e->unk11 = 240 + index;
@@ -337,7 +337,7 @@ static void begin_swap(vs_main_inventoryWeapon* w)
 static int swap_allowed(void)
 {
     return ((vs_battle_screenTransitionStep - 1) >= 2U) && (vs_battle_screenTransitionStep != 4)
-        && !(func_800A0BE0(0) & 0x6000) && (psx_get(vs_battle_characterState->unk3C)->unk954 == 0)
+        && !(func_800A0BE0(0) & 0x6000) && (vs_battle_characterState->unk3C->unk954 == 0)
         && (func_8009E4B0(0) == 0) && (vs_battle_objectDataSlots[0].dataType == 0);
 }
 
@@ -689,8 +689,8 @@ void pc_weapon_slots_json(char* out, unsigned size)
     /* What Ashley's battle record has on (the equip routines' result): the
      * inventory index of the weapon and the shield (0 none), the model's
      * category. Only in battle: over the title they are a past battle's. */
-    if (s.in_battle && vs_battle_characterState && psx_get(vs_battle_characterState->unk3C) && D_800F4538[0]) {
-        vs_battle_actor2* actor = psx_get(vs_battle_characterState->unk3C);
+    if (s.in_battle && vs_battle_characterState && vs_battle_characterState->unk3C && D_800F4538[0]) {
+        vs_battle_actor2* actor = vs_battle_characterState->unk3C;
         p += sprintf(p, ",\"actor_weapon\":%d,\"actor_shield\":%d,\"actor_category\":%d,\"weapon_drawn\":%d",
             actor->weapon.index, actor->shield.index, D_800F4538[0]->unk5B1,
             vs_battle_characterState->weaponDrawn & 1);

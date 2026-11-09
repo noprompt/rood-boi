@@ -3,10 +3,9 @@ const ai = @import("views_71618");
 const psx = @import("common").psx;
 const v = @import("views_battle_helpers");
 
-/// The stats record of an actor state: the guest pointer at 0x3C of the record the state points to at 0x54.
+/// The stats record of an actor state: its actor's stats pointer.
 fn statsOf(state: *ai.vs_battle_aiState) [*]u8 {
-    const record: [*]u8 = @ptrCast(state.actor.actorView);
-    return @ptrFromInt(@as(usize, psx.byteAt(u32, record, 0x3c).*));
+    return @ptrCast(psx.get(psx.get(state.actor).?.stats).?);
 }
 
 /// orig: func_800E4DF8 (pc/src/battle_helpers.c)

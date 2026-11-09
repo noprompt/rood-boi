@@ -144,6 +144,11 @@ extern unsigned D_800F5910; /* guest address of the room's u16 link pairs */
 const unsigned pc_ai_offset_priority = __builtin_offsetof(vs_battle_aiState, unk125);
 const unsigned pc_ai_offset_gate = __builtin_offsetof(vs_battle_aiState, gate);
 const unsigned pc_ai_offset_far_end = __builtin_offsetof(vs_battle_aiState, exit);
+/* The actor's layout, for tests that read actor records. */
+const unsigned pc_actor_offset_stats = __builtin_offsetof(vs_battle_actor, unk3C);
+const unsigned pc_actor_offset_models = __builtin_offsetof(vs_battle_actor, unk40);
+const unsigned pc_actor_offset_weapon = __builtin_offsetof(vs_battle_actor, equippedWeaponCategory);
+const unsigned pc_actor_offset_size = sizeof(vs_battle_actor);
 unsigned pc_route_continuations; /* times run (tests read it by symbol) */
 void pc_route_continuation(void* state, unsigned caller_s2)
 {

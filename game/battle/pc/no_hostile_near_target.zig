@@ -22,9 +22,9 @@ fn guestWord(address: c_uint) c_uint {
 /// that reads as hostile, its model D_800F4538[id] (0x800F4538 + id * 4) and
 /// the model's tile (+0x5C) are read through guest RAM as the PS1 does.
 pub fn noHostileNearTarget(state: *ai.vs_battle_aiState, id: c_int) callconv(.c) c_int {
-    var node: ?[*]u8 = @ptrCast(v.g.vs_battle_actors());
-    while (node) |n| : (node = @ptrFromInt(psx.byteAt(u32, n, 0).*)) {
-        const other: c_uint = psx.byteAt(u32, n, 4).*;
+    var node: ?*ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()));
+    while (node) |n| : (node = @ptrCast(n.next)) {
+        const other: c_uint = @bitCast(n.id);
         const relation_address: c_uint = psx.addr(state) +% 0x1a4 +% (other << 2);
         const relation: c_uint = if (other < 16)
             psx.byteAt(u32, &state.tbl.t.targets.bits32, @as(isize, @intCast(other * 4))).*

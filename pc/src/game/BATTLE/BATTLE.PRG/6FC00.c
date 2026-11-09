@@ -69,19 +69,6 @@ static inline int checkHeight(
 
 void func_800D87E8(vs_battle_aiState* state, int id);
 
-typedef struct actorUpdateActor {
-    psx_ptr(struct actorUpdateActor) next;
-    int id;
-    u_char flags;
-    u_char unk9;
-    char unkA;
-    u_int unkB_0 : 2;
-    u_int unkB_2 : 6;
-    char unkC[0x30];
-    psx_ptr(vs_battle_actor2) stats;
-} actorUpdateActor;
-PSX_ASSERT_SIZE(struct actorUpdateActor, 0x40);
-
 typedef struct {
     u_int current : 16;
     u_int max : 16;

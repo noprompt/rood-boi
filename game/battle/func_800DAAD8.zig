@@ -29,7 +29,7 @@ pub fn func_800DAAD8(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     }
 
     const ts: *v.vs_battle_aiState = @ptrCast(s);
-    var actor: ?*v.da4bcActor = @ptrCast(v.g.vs_battle_actors()[0]);
+    var actor: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
     while (actor) |a| : (actor = psx.get(a.next)) {
         if (psx.getBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "mode") != 3 and
             psx.getBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "category") != 0)

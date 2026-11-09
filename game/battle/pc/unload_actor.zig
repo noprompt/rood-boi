@@ -10,14 +10,14 @@ const psx = @import("common").psx;
 /// (for nodes flagged 1 or 4) its AI state, its bit in the grid's busy mask
 /// and, for types 0xAC and 0xAD, the data block at D_800F5920. Nothing
 /// without a grid (D_800F58B8).
-pub fn unloadActor(node: [*]u8) callconv(.c) void {
+pub fn unloadActor(node: *ai.vs_battle_actor) callconv(.c) void {
     if (v.g.D_800F58B8().* == 0) return;
-    const id = psx.byteAt(c_uint, node, 4).*;
-    if (node[0x1c] & 0x14 != 0) v.g.D_800F590C().* -%= @as(c_uint, 1) << @intCast(id & 31);
+    const id: c_uint = @bitCast(node.id);
+    if (@as(u8, @truncate(node.allegiance)) & 0x14 != 0) v.g.D_800F590C().* -%= @as(c_uint, 1) << @intCast(id & 31);
     const states = v.g.D_800F5878();
-    var peer: ?[*]u8 = @ptrCast(v.g.vs_battle_actors()[0]);
-    while (peer) |p| : (peer = @ptrFromInt(@as(usize, psx.byteAt(u32, p, 0).*))) {
-        const other: *ai.vs_battle_aiState = @ptrCast(@alignCast(states[psx.byteAt(c_uint, p, 4).*].?));
+    var peer: ?*ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[0]));
+    while (peer) |p| : (peer = @ptrCast(p.next)) {
+        const other: *ai.vs_battle_aiState = @ptrCast(@alignCast(states[@as(c_uint, @bitCast(p.id))].?));
         if (@as(c_uint, @as(u8, @bitCast(other.target16))) == id) other.target16 = 0x10;
     }
     const grid: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F58BC().*));
@@ -25,7 +25,7 @@ pub fn unloadActor(node: [*]u8) callconv(.c) void {
     while (offset >= 0x28) : (offset -= 4) {
         if (@as(usize, psx.byteAt(u32, grid, @intCast(offset)).*) == @intFromPtr(node)) psx.byteAt(u32, grid, @intCast(offset)).* = 0;
     }
-    if (node[0x1c] & 5 == 0) return;
+    if (@as(u8, @truncate(node.allegiance)) & 5 == 0) return;
     const state = states[id];
     c.func_800E5240(id);
     c.func_800E678C(state);
@@ -36,14 +36,14 @@ pub fn unloadActor(node: [*]u8) callconv(.c) void {
         bits.* = @truncate(@as(c_uint, bits.*) -% bit);
         grid[0x12] -%= 1;
     }
-    node[0xb] &= 0xfc;
+    node.unkB &= 0xfc;
     if (state != null) {
         c.func_800D821C(state);
         c.func_800DBF00(state);
         c.vs_main_freeHeap(state);
         states[id] = null;
     }
-    const kind = psx.byteAt(u16, node, 0x1a).*;
+    const kind = node.subType;
     if (kind == 0xac or kind == 0xad) {
         const data: ?*anyopaque = @ptrFromInt(@as(usize, v.g.D_800F5920().*));
         v.g.D_800F5920().* = 0;

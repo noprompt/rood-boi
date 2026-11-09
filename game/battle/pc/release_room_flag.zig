@@ -14,7 +14,7 @@ pub fn releaseActorRoomFlag(id: c_int) callconv(.c) void {
     if (actor == null and state_slot == null) return;
     const low_ram: [*]u8 = @ptrCast(psx.lowRam(u8));
     const state: *ai.vs_battle_aiState = if (state_slot) |s| @ptrCast(@alignCast(s)) else @ptrCast(@alignCast(low_ram));
-    const kind: c_uint = if (actor) |a| @as([*]u8, @ptrCast(a))[9] else low_ram[9];
+    const kind: c_uint = if (actor) |a| @as(*ai.vs_battle_actor, @ptrCast(@alignCast(a))).unk9 else low_ram[9];
     if (((@as(c_uint, 1) << @intCast(kind & 31)) & 0x4800) == 0) return;
     const flags: c_uint = state.next.movementPosition.raw & 0xff00;
     const model: [*]u8 = @ptrCast(state.object.actorObject);

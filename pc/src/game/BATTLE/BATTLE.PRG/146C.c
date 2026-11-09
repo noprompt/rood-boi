@@ -1627,9 +1627,9 @@ static short _getPhysicalAttackDamage(vs_action_t* action, _hitEntity_t* source,
     int defense;
 
     vs_battle_actor2* sourceActor =
-        psx_get(vs_battle_actors[source->unk0.targetActor]->unk3C);
+        vs_battle_actors[source->unk0.targetActor]->unk3C;
     vs_battle_actor2* targetActor =
-        psx_get(vs_battle_actors[target->unk0.targetActor]->unk3C);
+        vs_battle_actors[target->unk0.targetActor]->unk3C;
     int limb = target->unk0.targetLimb;
 
     sp18.sourceClass = sourceActor->enemyClass;

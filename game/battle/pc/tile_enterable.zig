@@ -30,9 +30,9 @@ pub fn tileEnterable(state: *ai.vs_battle_aiState, tile: c_uint) callconv(.c) c_
     if (!(x < scratch8(0x3dc).* and z < scratch8(0x3dd).*)) return 0;
     if (@as(c_int, navCell(x, z).*) & ((@as(c_int, state.f32) << 8) | 0x80b0) != 0) return 0;
     const self_size: c_int = state.collisionRadius;
-    var node: ?[*]u8 = if (v.g.vs_battle_actors()[0]) |first| @ptrCast(first) else null;
-    while (node) |n| : (node = @ptrFromInt(psx.byteAt(u32, n, 0).*)) {
-        const id = psx.byteAt(c_int, n, 4).*;
+    var node: ?*ai.vs_battle_actor = if (v.g.vs_battle_actors()[0]) |first| @ptrCast(@alignCast(first)) else null;
+    while (node) |n| : (node = @ptrCast(n.next)) {
+        const id = n.id;
         if (id == state.id) continue;
         const model: [*]u8 = @ptrCast(psx.at(v.g.D_800F4538(), id).*.?);
         // An actor without an AI state has a null slot: the PC C then reads

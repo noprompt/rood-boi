@@ -5,20 +5,20 @@ const c = @import("c_7CD68");
 
 /// orig: func_800E6178 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Registers an actor for battle and, when it is active, builds its initialization state; returns 1 when the state is a placed one.
-pub fn initActorState(actor: ?*v.actorInitializationActor, options: c_int) callconv(.c) c_int {
+pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c_int {
     const a = actor.?;
     const id: c_int = a.id;
     const so: i16 = psx.conv(i16, options);
 
-    if ((a.attributes & 0x15) != 0) {
+    if ((a.allegiance & 0x15) != 0) {
         // 1 << id: the x86 shift takes the count modulo 32.
         const sh: u5 = @truncate(@as(c_uint, @bitCast(id)));
         const bit: i32 = @bitCast(@as(c_uint, 1) << sh);
         v.g.D_800F590C().* |= bit;
     }
 
-    if (a.field40 == 0) {
-        const kind = psx.get(a.model).?.kind & 7;
+    if (a.unk40 == 0) {
+        const kind = @as(*v.actorInitializationModel, @ptrCast(psx.get(a.unk44).?)).kind & 7;
         if (kind == 2 or kind == 4) {
             const table = v.g.D_800F58BC().*.?;
             for (0..4) |k| {
@@ -31,16 +31,16 @@ pub fn initActorState(actor: ?*v.actorInitializationActor, options: c_int) callc
         }
     }
 
-    if ((a.attributes & 5) == 0) return 0;
+    if ((a.allegiance & 5) == 0) return 0;
 
     const state: *v.vs_battle_aiState = @ptrCast(@alignCast(c.vs_main_allocHeap(@sizeOf(v.vs_battle_aiState)).?));
     psx.at(v.g.D_800F5878(), id).* = @ptrCast(state);
     c.func_800E4288(state, @sizeOf(v.vs_battle_aiState));
     state.id = psx.conv(u8, id);
-    psx.put(&state.actor.actorInitializationActor, a);
-    const model = psx.get(a.model).?;
+    psx.put(&state.actor, a);
+    const model: *v.actorInitializationModel = @ptrCast(psx.get(a.unk44).?);
     psx.put(&state.object.actorInitializationModel, model);
-    state.stats.actorInitializationStats = @alignCast(psx.get(a.stats));
+    state.stats.actorInitializationStats = @ptrCast(@alignCast(psx.get(a.stats)));
 
     // Uninitialised in the C; func_800A190C's selector 250 (0xFA) always writes it.
     var result: [4]u16 = undefined;
@@ -72,10 +72,10 @@ pub fn initActorState(actor: ?*v.actorInitializationActor, options: c_int) callc
     state.field2A = @intFromBool(c.func_800A152C(id, 2, 3) >= 0);
 
     const stats = psx.get(a.stats).?;
-    state.field224 = stats.field30;
-    state.field225 = stats.field32;
-    state.field226 = stats.field31;
-    state.field227 = stats.field33;
+    state.field224 = stats.unk30;
+    state.field225 = stats.unk32;
+    state.field226 = stats.unk31;
+    state.field227 = stats.unk33;
     if ((state.field224 & 8) != 0) {
         state.distance = @as(c_int, state.field226) << 7;
     } else if ((state.field225 & 8) != 0) {
@@ -87,9 +87,9 @@ pub fn initActorState(actor: ?*v.actorInitializationActor, options: c_int) callc
     if (range < state.field227) range = state.field227;
     state.step = psx.conv(u8, range);
 
-    var packed_: c_int = a.field38;
-    if ((a.field34 & 1) != 0) {
-        c.func_800E5A74(&packed_, @ptrCast(&a.field30));
+    var packed_: c_int = a.unk38;
+    if ((@as(c_uint, @bitCast(a.unk34)) & 1) != 0) {
+        c.func_800E5A74(&packed_, @ptrCast(&a.flags30));
     }
     _ = c.func_800E5A9C(@ptrCast(state), @ptrCast(&packed_));
     c.func_800E7370(@ptrCast(state));
@@ -115,17 +115,16 @@ pub fn initActorState(actor: ?*v.actorInitializationActor, options: c_int) callc
             state.next.nextView = psx.conv(i32, model.tile.raw);
             c.func_800DEEFC(@ptrCast(state), 12);
         } else if (so < 0 or !((@as(c_int, so) << 26) < 0)) {
-            if (a.field1F != 0) {
+            if (a.unk1F != 0) {
                 c.func_800DEEFC(@ptrCast(state), 1);
                 state.mode12D = 1;
             }
         }
     }
 
-    a.flags.bytes.b1 = 0;
-    psx.setBits(&a.flags.bits, "f26", 0);
-    psx.setBits(&a.flags.bits, "f24", 0);
-    state.unk124 = a.flags.bytes.b1;
+    a.unk9 = 0;
+    a.unkB &= 0xf0;
+    state.unk124 = a.unk9;
     state.previous.previousView = -1;
     state.options = so;
 

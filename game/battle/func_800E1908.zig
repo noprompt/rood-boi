@@ -16,7 +16,7 @@ pub fn func_800E1908(state: ?*v.vs_battle_aiState) callconv(.c) void {
     const index: c_int = @as(c_int, s.tile.terrain.p.z) *% width +% @as(c_int, s.tile.terrain.p.x);
     const tile: *align(1) u8 = @ptrFromInt(@as(usize, table +% @as(u32, @bitCast(index))));
     const old: c_int = tile.*;
-    const actor = psx.get(s.actor.terrainMovementActor);
+    const actor = psx.get(s.actor);
 
     tile.* = c.func_800E1850(psx.conv(u8, old), s.tile.terrain.raw, @as(c_int, s.position.xyz[1]));
     c.func_800E3600(@ptrCast(s),
@@ -31,11 +31,11 @@ pub fn func_800E1908(state: ?*v.vs_battle_aiState) callconv(.c) void {
     // x86 masks a variable shift count to 5 bits; the C relies on that.
     const shift: u5 = @truncate(@as(u32, @bitCast(mode)));
     if (((@as(c_int, 0xA0) >> shift) & 1) != 0) {
-        actor.?.mode = 9;
+        actor.?.unk9 = 9;
         if (mode == 5) {
-            actor.?.angle = psx.conv(u16, @as(c_int, s.heading) << 9);
+            @as(*align(1) u16, @ptrCast(&actor.?.unkC)).* = psx.conv(u16, @as(c_int, s.heading) << 9);
         } else {
-            actor.?.angle = psx.conv(u16, s.heading);
+            @as(*align(1) u16, @ptrCast(&actor.?.unkC)).* = psx.conv(u16, s.heading);
         }
     }
 }

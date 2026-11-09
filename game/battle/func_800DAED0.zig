@@ -8,7 +8,7 @@ const c = @import("c_71618");
 /// orig: func_800DAED0 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Updates every listed actor's dispatch state: its distance to the target, or a reset of the state with its terrain.
 pub fn func_800DAED0() callconv(.c) void {
-    const head: *v.actionDispatchActor = @ptrCast(v.g.vs_battle_actors()[0].?);
+    const head: *v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0].?);
     var actor = psx.get(head.next);
     while (actor) |a| {
         // Per-actor state pointer: the scratchpad table at 0x1F80037C, indexed by actor id.
@@ -35,7 +35,7 @@ pub fn func_800DAED0() callconv(.c) void {
                     };
                     state.tbl.t.distances[0] = psx.conv(u32, c.func_800E4624(
                         &state.position.xyz,
-                        &psx.get(head.model).?.position,
+                        @ptrCast(&@as(*v.actionDispatchModel, @ptrCast(psx.get(head.unk44).?)).position),
                         @as(c_int, state.height),
                         height,
                     ));

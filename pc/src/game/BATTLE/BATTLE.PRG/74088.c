@@ -81,11 +81,6 @@ INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/74088", D_80069B68);
 
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/74088", D_80069BBC);
 
-typedef struct actionScoreActor {
-    psx_ptr(struct actionScoreActor) next;
-    int id;
-} actionScoreActor;
-PSX_ASSERT_SIZE(struct actionScoreActor, 0x8);
 typedef struct {
     char pad[14];
     unsigned short flags;
@@ -192,8 +187,8 @@ static inline int snapshotActorStats(void)
     if (D_800F58E8 == NULL) {
         return 0;
     }
-    for (actor = vs_battle_actors[0]; actor != NULL; actor = psx_get(actor->next)) {
-        func_800DC3E8(psx_get(actor->unk3C), &D_800F58E8[actor->id]);
+    for (actor = vs_battle_actors[0]; actor != NULL; actor = actor->next) {
+        func_800DC3E8(actor->unk3C, &D_800F58E8[actor->id]);
     }
     return 1;
 }
@@ -202,8 +197,8 @@ static inline void restoreActorStats(void)
 {
     vs_battle_actor* actor;
 
-    for (actor = vs_battle_actors[0]; actor != NULL; actor = psx_get(actor->next)) {
-        func_800DC3E8(&D_800F58E8[actor->id], psx_get(actor->unk3C));
+    for (actor = vs_battle_actors[0]; actor != NULL; actor = actor->next) {
+        func_800DC3E8(&D_800F58E8[actor->id], actor->unk3C);
     }
     vs_main_freeHeapR(D_800F58E8);
 }
@@ -221,14 +216,6 @@ typedef struct actorEvaluationStats {
     char pad32[1];
     unsigned char f33;
 } actorEvaluationStats;
-typedef struct actorEvaluationActor {
-    psx_ptr(struct actorEvaluationActor) next;
-    int id;
-    unsigned char flags;
-    char pad9[51];
-    psx_ptr(actorEvaluationStats) stats;
-} actorEvaluationActor;
-PSX_ASSERT_SIZE(struct actorEvaluationActor, 0x40);
 typedef struct actorEvaluationContext {
     char pad0[4];
     unsigned char id;

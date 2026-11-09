@@ -65,7 +65,7 @@ static int linked(vs_battle_actor* actor)
 {
     int i;
     for (i = 0; i < 16; ++i)
-        if (vs_battle_actors[i] != NULL && psx_get(vs_battle_actors[i]->next) == actor)
+        if (vs_battle_actors[i] != NULL && vs_battle_actors[i]->next == actor)
             return 1;
     return 0;
 }

@@ -92,7 +92,6 @@ MEMORIES = (106, 124)  # D_800F4EE8 cursorMemories ids 53..61 (MENUC's lists)
 SHIELD_SLOTS = 0x2F    # shields[i].gems[3]: weapon_slots.c's quick-swap bits (a port mod byte)
 WEAPON_SLOT = 7        # weapons[i].gems[3]: its quick-swap slot
 ACTOR2_BYTES = 0x964   # vs_battle_actor2 (BATTLE 146C.h)
-ACTOR_UNK3C = 60       # vs_battle_actor.unk3C: the vs_battle_actor2 (a PS1 address)
 STATUSES = 0x948       # vs_battle_actor2.statuses
 ENCHANT = 0x00400000   # a weapon enchantment's status (func_8006B270 clears 0x01E00000 on vs_battle_equipWeapon)
 
@@ -210,7 +209,7 @@ class Session:
     def actor2(self):
         """Ashley's vs_battle_actor2 (psx_get(vs_battle_characterState->unk3C))."""
         state = self.ptr(self.sym["vs_battle_characterState"])
-        return int.from_bytes(self.g.read(state + ACTOR_UNK3C, 4), "little")
+        return self.g.actor_stats(state)
 
     def statuses(self):
         return struct.unpack("<I", self.g.read(self.actor2() + STATUSES, 4))[0]

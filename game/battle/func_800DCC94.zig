@@ -76,7 +76,7 @@ pub fn func_800DCC94(state: ?*v.vs_battle_aiState, candidate: ?*v.actionCandidat
         c.func_800DCAA0(@ptrCast(st), @as(c_int, @bitCast(psx.addr(stats))), @ptrCast(cand), mode);
         c.func_800DCBD8(@ptrCast(cand));
     }
-    var actor: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
+    var actor: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
     while (actor != null) : (actor = psx.get(actor.?.next)) {
         const a = actor.?;
         const id: c_int = a.id;

@@ -2881,91 +2881,91 @@ void _nop2(void) { }
 
 int _getTotalStrength(void)
 {
-    return psx_get(vs_battle_characterState->unk3C)->totalStrength;
+    return vs_battle_characterState->unk3C->totalStrength;
 }
 
 int _getTotalIntelligence(void)
 {
-    return psx_get(vs_battle_characterState->unk3C)->totalIntelligence;
+    return vs_battle_characterState->unk3C->totalIntelligence;
 }
 
 int _getTotalAgility(void)
 {
-    return psx_get(vs_battle_characterState->unk3C)->totalAgility;
+    return vs_battle_characterState->unk3C->totalAgility;
 }
 
 void _raiseMaxStrength(int amount)
 {
-    psx_get(vs_battle_characterState->unk3C)->totalStrength += amount;
+    vs_battle_characterState->unk3C->totalStrength += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->totalStrength > 999) {
-        psx_get(vs_battle_characterState->unk3C)->totalStrength = 999;
+    if (vs_battle_characterState->unk3C->totalStrength > 999) {
+        vs_battle_characterState->unk3C->totalStrength = 999;
     }
 
-    psx_get(vs_battle_characterState->unk3C)->strength += amount;
+    vs_battle_characterState->unk3C->strength += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->strength > 999) {
-        psx_get(vs_battle_characterState->unk3C)->strength = 999;
+    if (vs_battle_characterState->unk3C->strength > 999) {
+        vs_battle_characterState->unk3C->strength = 999;
     }
 }
 
 void _raiseMaxIntelligence(int amount)
 {
-    psx_get(vs_battle_characterState->unk3C)->totalIntelligence += amount;
+    vs_battle_characterState->unk3C->totalIntelligence += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->totalIntelligence > 999) {
-        psx_get(vs_battle_characterState->unk3C)->totalIntelligence = 999;
+    if (vs_battle_characterState->unk3C->totalIntelligence > 999) {
+        vs_battle_characterState->unk3C->totalIntelligence = 999;
     }
 
-    psx_get(vs_battle_characterState->unk3C)->intelligence += amount;
+    vs_battle_characterState->unk3C->intelligence += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->intelligence > 999) {
-        psx_get(vs_battle_characterState->unk3C)->intelligence = 999;
+    if (vs_battle_characterState->unk3C->intelligence > 999) {
+        vs_battle_characterState->unk3C->intelligence = 999;
     }
 }
 
 void _raiseMaxAgility(int amount)
 {
-    psx_get(vs_battle_characterState->unk3C)->totalAgility += amount;
+    vs_battle_characterState->unk3C->totalAgility += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->totalAgility > 999) {
-        psx_get(vs_battle_characterState->unk3C)->totalAgility = 999;
+    if (vs_battle_characterState->unk3C->totalAgility > 999) {
+        vs_battle_characterState->unk3C->totalAgility = 999;
     }
 
-    psx_get(vs_battle_characterState->unk3C)->agility += amount;
+    vs_battle_characterState->unk3C->agility += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->agility > 999) {
-        psx_get(vs_battle_characterState->unk3C)->agility = 999;
+    if (vs_battle_characterState->unk3C->agility > 999) {
+        vs_battle_characterState->unk3C->agility = 999;
     }
 }
 
 void _raiseMaxHP(int amount)
 {
-    psx_get(vs_battle_characterState->unk3C)->maxHP += amount;
+    vs_battle_characterState->unk3C->maxHP += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->maxHP > 999) {
-        psx_get(vs_battle_characterState->unk3C)->maxHP = 999;
+    if (vs_battle_characterState->unk3C->maxHP > 999) {
+        vs_battle_characterState->unk3C->maxHP = 999;
     }
 
-    psx_get(vs_battle_characterState->unk3C)->currentHP += amount;
+    vs_battle_characterState->unk3C->currentHP += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->currentHP > 999) {
-        psx_get(vs_battle_characterState->unk3C)->currentHP = 999;
+    if (vs_battle_characterState->unk3C->currentHP > 999) {
+        vs_battle_characterState->unk3C->currentHP = 999;
     }
 }
 
 void _raiseMaxMP(int amount)
 {
-    psx_get(vs_battle_characterState->unk3C)->maxMP += amount;
+    vs_battle_characterState->unk3C->maxMP += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->maxMP > 999) {
-        psx_get(vs_battle_characterState->unk3C)->maxMP = 999;
+    if (vs_battle_characterState->unk3C->maxMP > 999) {
+        vs_battle_characterState->unk3C->maxMP = 999;
     }
 
-    psx_get(vs_battle_characterState->unk3C)->currentMP += amount;
+    vs_battle_characterState->unk3C->currentMP += amount;
 
-    if (psx_get(vs_battle_characterState->unk3C)->currentMP > 999) {
-        psx_get(vs_battle_characterState->unk3C)->currentMP = 999;
+    if (vs_battle_characterState->unk3C->currentMP > 999) {
+        vs_battle_characterState->unk3C->currentMP = 999;
     }
 }
 

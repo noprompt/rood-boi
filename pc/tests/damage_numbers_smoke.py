@@ -75,7 +75,7 @@ class Session:
         self.g = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env=env)
         self.sym = symbols()
         actor = self.ptr(self.sym["vs_battle_characterState"])
-        self.actor2 = int.from_bytes(self.g.read(actor + 0x3C, 4), "little")
+        self.actor2 = self.g.actor_stats(actor)
         self.pool = self.ptr(self.sym["D_800F1BAC"])
 
     def ptr(self, address):

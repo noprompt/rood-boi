@@ -1,4 +1,5 @@
 //! Attack trace (D2: 7E05C.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const psx = @import("common").psx;
 const v = @import("views_battle_movement");
@@ -50,8 +51,8 @@ pub fn traceAttack(from: [*]const c_uint, to: [*]const c_uint, out: [*]c_uint, s
         var id: c_int = 0;
         while (id < 16 and hit == 0) : (id += 1) {
             const index: usize = @intCast(id);
-            const actor: [*]u8 = @ptrCast(v.g.vs_battle_actors()[index] orelse continue);
-            if ((actor[0x1c] & 0xea) != 0 or id == self) continue;
+            const actor: *ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[index] orelse continue));
+            if ((@as(u8, @truncate(actor.allegiance)) & 0xea) != 0 or id == self) continue;
             var body: [*]u8 = undefined;
             var reach: c_int = 0x3f;
             var height: c_int = undefined;

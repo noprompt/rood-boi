@@ -96,7 +96,7 @@ def main():
         # A two-model actor (0x3BB4 bytes, unk40 = 2) reserves data slot
         # id + 4 for the second model, which func_800775C0 loads with the
         # model id read from zndEnemies.
-        two = [j for j, a in enumerate(actors()) if 2 <= j < 10 and a and u32(a + 0x40) == 2]
+        two = [j for j, a in enumerate(actors()) if 2 <= j < 10 and a and u32(a + game.actor_offset("models")) == 2]
         check(bool(two), f"the enemy is a two-model actor (actors with unk40 = 2: {two})")
         frames = []
         for k in range(3):

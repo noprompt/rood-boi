@@ -79,5 +79,5 @@ void func_800E6828(vs_battle_aiState*);
 void func_800E7370(vs_battle_aiState*);
 void func_800E72D0(void);
 
-int func_800E6178(actorInitializationActor* actor, int options);
+int func_800E6178(vs_battle_actor* actor, int options);
 

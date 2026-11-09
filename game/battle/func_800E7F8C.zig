@@ -45,16 +45,16 @@ pub fn func_800E7F8C(arg0: ?*v.vs_battle_aiState) callconv(.c) c_int {
 
             if (c.func_800E7698(@ptrCast(self)) != 0) {
                 if (temp.unkA != 0) {
-                    const temp_a1 = psx.get(self.actor.func_800DEB10_t2).?;
+                    const temp_a1 = psx.get(self.actor).?;
 
-                    if (psx.get(temp_a1.unk3C).?.limbs[4].hp >= 2) {
+                    if (psx.get(temp_a1.stats).?.limbs[4].hp >= 2) {
                         temp_a1.unkC = 4;
-                        temp_a1.unkE = 0;
-                        // setVector expanded in the object: x, then y, then z, each read from D_800F4538[0].
+                                        // setVector expanded in the object: x, then y, then z, each read from D_800F4538[0].
                         const cam = v.g.D_800F4538()[0].?;
-                        temp_a1.unk10.vx = cam.unk0.position.vx;
-                        temp_a1.unk10.vy = psx.conv(i16, @as(c_int, cam.unk0.position.vy) -% (@as(c_int, cam.menuCameraHeightOffset) >> 1));
-                        temp_a1.unk10.vz = v.g.D_800F4538()[0].?.unk0.position.vz;
+                        const sv: *align(1) v.SVECTOR = @ptrCast(&temp_a1.unk10);
+                        sv.vx = cam.unk0.position.vx;
+                        sv.vy = psx.conv(i16, @as(c_int, cam.unk0.position.vy) -% (@as(c_int, cam.menuCameraHeightOffset) >> 1));
+                        sv.vz = v.g.D_800F4538()[0].?.unk0.position.vz;
                         temp_a1.unk9 = 24;
                         temp_a1.unk8 = 0x80;
                     }

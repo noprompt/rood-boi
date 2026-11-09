@@ -174,7 +174,7 @@ pub fn func_800DE3E4(state: ?*v.vs_battle_aiState) callconv(.c) void {
     }
 
     if (v.g.D_800F5920().* != null) {
-        const self = psx.get(s.actor.actorView).?;
+        const self = psx.get(s.actor).?;
         if (c.vs_battle_getStateFlag(0xA6) == 4 and self.unk9 == 24 and self.unkC == 4) {
             c.vs_battle_setStateFlag(0xA6, 5);
         }

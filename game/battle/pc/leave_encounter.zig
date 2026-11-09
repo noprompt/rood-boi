@@ -19,9 +19,9 @@ pub fn leaveEncounter(state: *ai.vs_battle_aiState) callconv(.c) void {
     if (mask & bit == 0) return;
     psx.byteAt(u16, room, 0x10).* = psx.conv(u16, mask -% bit);
     state.timer8E = 0;
-    const first = v.g.vs_battle_actors()[0].?;
-    const second: ?[*]u8 = @ptrFromInt(psx.byteAt(u32, first, 0).*);
-    state.timer98 = if (second != null and psx.byteAt(u32, second.?, 0).* == 0) 0 else 0x30;
+    const first: *ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[0].?));
+    const second = first.next;
+    state.timer98 = if (second != null and second.?.next == null) 0 else 0x30;
     state.timer = 90;
     c.func_800DBF00(state);
     room[0x12] -%= 1;

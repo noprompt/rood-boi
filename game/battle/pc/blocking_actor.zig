@@ -53,9 +53,9 @@ pub fn blockingActor(state: *ai.vs_battle_aiState, dir: c_int) callconv(.c) c_in
     const self_size: c_uint = state.collisionRadius;
     const self_height: c_uint = @as(u16, @bitCast(state.extent));
     var result: c_int = 0;
-    var node: ?[*]u8 = if (v.g.vs_battle_actors()[0]) |first| @ptrCast(first) else null;
-    while (node) |n| : (node = @ptrFromInt(psx.byteAt(u32, n, 0).*)) {
-        const id = psx.byteAt(c_int, n, 4).*;
+    var node: ?*ai.vs_battle_actor = if (v.g.vs_battle_actors()[0]) |first| @ptrCast(@alignCast(first)) else null;
+    while (node) |n| : (node = @ptrCast(n.next)) {
+        const id = n.id;
         if (id == state.id) continue;
         const model: [*]u8 = @ptrCast(psx.at(v.g.D_800F4538(), id).*.?);
         const other: *align(4) ai.vs_battle_aiState = @ptrFromInt(psx.byteAt(u32, scratch8(0x37c +% id *% 4), 0).*);

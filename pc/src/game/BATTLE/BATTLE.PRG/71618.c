@@ -59,12 +59,6 @@ typedef struct {
     vs_battle_movementPosition tile;
 } da4bcModel;
 
-typedef struct da4bcActor {
-    psx_ptr(struct da4bcActor) next;
-    int id;
-} da4bcActor;
-PSX_ASSERT_SIZE(struct da4bcActor, 0x8);
-
 typedef struct {
     unsigned int target : 4, pad : 28;
 } da4bcEntryTarget;
@@ -97,16 +91,9 @@ typedef struct actionDispatchModel {
     short status;
     short position[3];
 } actionDispatchModel;
-typedef struct actionDispatchActor {
-    psx_ptr(struct actionDispatchActor) next;
-    int id;
-    char pad8[0x3C];
-    psx_ptr(actionDispatchModel) model;
-} actionDispatchActor;
-PSX_ASSERT_SIZE(struct actionDispatchActor, 0x48);
 typedef struct {
     char pad[0x28];
-    psx_ptr(actionDispatchActor) registered[4];
+    psx_ptr(vs_battle_actor) registered[4];
 } actionDispatchRegistry;
 PSX_ASSERT_SIZE(actionDispatchRegistry, 0x38);
 extern int D_800F16F4;

@@ -253,7 +253,7 @@ def check_game_over_load(args, out, card, check):
         game.call("graphics", widescreen=True, interpolate=True, present_rate=1)
         # Ashley's HP to 0 (vs_battle_actors[0] -> +0x3c -> +0x18): the game's own Game Over follows.
         actor = int.from_bytes(game.read(symbols()["vs_battle_actors"], PTR), "little")
-        record = int.from_bytes(game.read(actor + 0x3C, 4), "little")
+        record = game.actor_stats(actor)
         game.write(record + 0x18, struct.pack("<h", 0))
         game.until(lambda: game.state()["game_over"], step=10, guard=120, what="Game Over")
 

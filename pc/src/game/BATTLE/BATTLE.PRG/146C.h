@@ -563,7 +563,7 @@ typedef struct {
 } vs_battle_actor2;
 
 typedef struct vs_battle_actor {
-    /* 0x00 */ psx_ptr(struct vs_battle_actor) next;
+    /* 0x00 */ struct vs_battle_actor* next;
     /* 0x04 */ int id;
     /* 0x08 */ u_char unk8;
     /* 0x09 */ u_char unk9;
@@ -593,18 +593,24 @@ typedef struct vs_battle_actor {
         u_char u8[4];
         int s32;
     } unk2C;
-    u_short unk30_0 : 4;
-    u_short unk30_4 : 5;
-    u_int unk30_9 : 5;
-    u_int unk30_14 : 18;
+    union {
+        u_int raw;
+        u_short half[2];
+        u_char byte[4];
+        struct {
+            u_short unk30_0 : 4;
+            u_short unk30_4 : 5;
+            u_int unk30_9 : 5;
+            u_int unk30_14 : 18;
+        } bits;
+    } flags30;
     int unk34;
     int unk38;
-    psx_ptr(vs_battle_actor2) unk3C;
+    vs_battle_actor2* unk3C;
     int unk40;
-    psx_ptr(D_800F4538_unk0) unk44;
-    psx_ptr(vs_battle_actor4) unk48[2];
+    D_800F4538_unk0* unk44;
+    vs_battle_actor4* unk48[2];
 } vs_battle_actor;
-PSX_ASSERT_SIZE(struct vs_battle_actor, 0x50);
 
 typedef struct {
     struct {

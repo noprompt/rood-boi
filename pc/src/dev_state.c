@@ -1,6 +1,7 @@
 /* Vagrant Story snapshot for the developer RPC `state` method (dev_rpc.c).
  * Compiled with the game headers so field offsets follow the decompilation. */
 #include "common.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
 #include "../../pc/src/game/SLUS_010.40/main.h"
 
@@ -11,7 +12,6 @@ extern int vs_main_startState;
 extern _mpdRoomDoorSection_t D_800F1AB0;
 /* 146C.h: vs_battle_actors[0] is Ashley; its unk3C points at the HUD record
  * (name[24], then currentHP, maxHP, currentMP, maxMP, risk as shorts). */
-extern unsigned char* vs_battle_actors[];
 extern int sprintf(char*, const char*, ...);
 
 #include "dev_state.h"
@@ -26,12 +26,12 @@ static int guest_pointer(const void* p, unsigned size)
 void pc_dev_state(struct pc_dev_state* out)
 {
     D_800F4538_t* player = D_800F4538[0];
-    unsigned char* actor = vs_battle_actors[0];
+    vs_battle_actor* actor = vs_battle_actors[0];
     short* stats = NULL;
     if (!guest_pointer(player, sizeof *player))
         player = NULL;
-    if (guest_pointer(actor, 0x40) && guest_pointer(psx_load(unsigned char*, actor + 0x3c), 0x24))
-        stats = (short*)(psx_load(unsigned char*, actor + 0x3c) + 0x18);
+    if (guest_pointer(actor, sizeof *actor) && guest_pointer(actor->unk3C, 0x24))
+        stats = (short*)((unsigned char*)actor->unk3C + 0x18);
     out->valid = 1;
     const _mpdRoomDoorSection_t* location = D_800F1AB0.zndId ? &D_800F1AB0 : &D_80061068;
     out->zone = location->zndId;

@@ -678,6 +678,18 @@ class Game:
     def read_symbol(self, name, length=4):
         return self.read(symbols()[name], length)
 
+    def actor_offset(self, name, old=None):
+        """A vs_battle_actor field's byte offset (stats, models, weapon): the game exports its layout.
+        A build older than the export (a comparison baseline) answers `old`."""
+        sym = symbols().get(f"pc_actor_offset_{name}")
+        return int.from_bytes(self.read(sym, 4), "little") if sym else old
+
+    def actor_stats(self, actor):
+        """The actor's stats record address (vs_battle_actor.unk3C: a host pointer, a guest word in old builds)."""
+        offset = self.actor_offset("stats", 0x3C)
+        width = 8 if symbols().get("pc_actor_offset_stats") and os.environ.get("ROOD_ARCH") == "64" else 4
+        return int.from_bytes(self.read(actor + offset, width), "little")
+
     def u32(self, name_or_address):
         a = symbols()[name_or_address] if isinstance(name_or_address, str) else name_or_address
         return int.from_bytes(self.read(a, 4), "little")

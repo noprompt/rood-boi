@@ -213,7 +213,7 @@ static int timer_of(int bit)
 
 static vs_battle_actor2* ashley(void)
 {
-    return vs_battle_characterState ? psx_get(vs_battle_characterState->unk3C) : NULL;
+    return vs_battle_characterState ? vs_battle_characterState->unk3C : NULL;
 }
 
 static void room_now(int* zone, int* room)

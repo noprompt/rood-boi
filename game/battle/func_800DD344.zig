@@ -14,7 +14,7 @@ pub fn func_800DD344(state: ?*v.vs_battle_aiState) callconv(.c) void {
     var classification: c_int = undefined;
 
     if (st.flag13 != 0) {
-        var actor: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
+        var actor: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| {
             id = a.id;
             const firstOther: ?*v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), id).*);
@@ -34,19 +34,19 @@ pub fn func_800DD344(state: ?*v.vs_battle_aiState) callconv(.c) void {
             actor = psx.get(a.next);
         }
     } else if (st.f21 != 0) {
-        var actor: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
+        var actor: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| {
             const otherClass: c_uint = @intCast(@as(c_int, psx.at(&st.tbl.t.targets.reaction, a.id).b.flags) >> 6);
             const other: ?*v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*);
             if (otherClass == 2 and (@as(c_int, psx.at(&other.?.tbl.t.targets.reaction, st.id).b.flags) >> 6) == 2) {
-                var candidate: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
+                var candidate: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
                 while (candidate) |cand| {
                     id = cand.id;
                     if (psx.getBits(&psx.at(&st.tbl.t.targets.reaction, id).p, "classification") == 1 and
                         (psx.at(&st.tbl.t.targets.reaction, id).raw & 1) != 0 and
                         (@as(c_int, psx.at(&other.?.tbl.t.targets.reaction, id).b.flags) >> 6) == 3)
                     {
-                        var ally: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
+                        var ally: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
                         while (ally) |al| {
                             const allyState: ?*v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), al.id).*);
                             if ((@as(c_int, psx.at(&st.tbl.t.targets.reaction, al.id).b.flags) >> 6) == 2 and

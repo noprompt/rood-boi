@@ -224,7 +224,7 @@ class Test:
 
     def actor2(self):
         actor = self.ptr(self.sym["vs_battle_characterState"])
-        return int.from_bytes(self.g.read(actor + 0x3C, 4), "little")
+        return self.g.actor_stats(actor)
 
     def clone(self):
         return self.ptr(self.sym["D_800F4538"] + PTR)  # D_800F4538[1]: the menu clone's slot

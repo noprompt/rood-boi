@@ -34,13 +34,13 @@ fn routeTarget(state: *ai.vs_battle_aiState) void {
 pub fn updateActorNavigation() callconv(.c) void {
     c.func_800E65DC();
     const scratch: [*]c_uint = @ptrFromInt(0x1f800000);
-    var actor: ?[*]u8 = @ptrCast(v.g.vs_battle_actors()[0]);
+    var actor: ?*ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[0]));
     var visited: c_uint = 0;
-    while (actor) |a| : (actor = @ptrFromInt(@as(usize, psx.byteAt(u32, a, 0).*))) {
+    while (actor) |a| : (actor = @ptrCast(a.next)) {
         visited +%= 1;
         if (visited > 17) c.pc_unimplemented("actor navigation list cycle");
-        if (a[8] & 0xc0 != 0) continue;
-        const id = psx.byteAt(c_uint, a, 4).*;
+        if (a.unk8 & 0xc0 != 0) continue;
+        const id: c_uint = @bitCast(a.id);
         if (id >= 17) c.pc_unimplemented("actor navigation index");
         // An actor without an AI state (no attribute bit 0/2) has a null entry;
         // the original then loads its route record from address 0x18C, the PS1
@@ -61,7 +61,6 @@ pub fn updateActorNavigation() callconv(.c) void {
         state.movementTargetId = 16;
         state.flags0.b[2] = 0;
         state.flags0.b[3] = 0;
-        a[3] &= 0xfc;
         state.movementFlags.raw = (flags & ~@as(c_uint, 0xfe0)) | (steps << 5);
         const model = v.g.D_800F4538()[id];
         if (model == null) c.pc_unimplemented("actor navigation model missing");

@@ -87,7 +87,7 @@ static vs_battle_actor2* ashley(void)
     vs_battle_actor2* a;
     if (!vs_battle_characterState || !guest(vs_battle_characterState, sizeof *vs_battle_characterState))
         return NULL;
-    a = psx_get(vs_battle_characterState->unk3C);
+    a = vs_battle_characterState->unk3C;
     return a && guest(a, sizeof *a) ? a : NULL;
 }
 

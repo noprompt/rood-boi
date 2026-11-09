@@ -1,6 +1,7 @@
 //! Command byte request with cooldown (D2: 7BDD4.s; oracle pc/src/battle_movement.c).
 const ai = @import("views_71618");
 const c = @import("c_battle_movement");
+const psx = @import("common").psx;
 
 /// orig: func_800E48A8 (pc/src/battle_movement.c)
 /// With no route (0x18C) and no cooldown (0x155), and a random draw below
@@ -12,6 +13,5 @@ pub fn requestCommandByte(state: *ai.vs_battle_aiState, value: c_int, range: c_i
     if ((@intFromPtr(state.route) | state.unk155) != 0) return;
     if (!(roll < range)) return;
     state.unk155 = 30;
-    const command: [*]u8 = @ptrCast(state.actor.actorView);
-    command[0xb] = @truncate(@as(c_uint, @bitCast(value)));
+    psx.get(state.actor).?.unkB = @truncate(@as(c_uint, @bitCast(value)));
 }

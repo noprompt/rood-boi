@@ -122,7 +122,7 @@ def reach_search(out, env, socket):
 
     def actor2(slot):
         actor = ptr(sym["vs_battle_actors"] + slot * PTR)
-        return int.from_bytes(game.read(actor + 0x3C, 4), "little") if actor else 0
+        return game.actor_stats(actor) if actor else 0
     try:
         weakened = False
         for _ in range(600):

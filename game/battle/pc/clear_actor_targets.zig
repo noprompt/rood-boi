@@ -9,13 +9,11 @@ const v = @import("views_battle_movement");
 /// target is `id` drops it (0x10); then releases actor `id`'s reservation
 /// through func_800D82CC.
 pub fn clearActorTargets(id: c_int) callconv(.c) void {
-    var node: [*]u8 = @ptrCast(v.g.vs_battle_actors()[0].?);
+    var node: *ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[0].?));
     while (true) {
-        const state: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), psx.byteAt(c_uint, node, 4).*).*.?));
+        const state: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), @as(c_uint, @bitCast(node.id))).*.?));
         if (@as(c_uint, @as(u8, @bitCast(state.target16))) == @as(c_uint, @bitCast(id))) state.target16 = 0x10;
-        const next = psx.byteAt(c_uint, node, 0).*;
-        if (next == 0) break;
-        node = @ptrFromInt(next);
+        node = @ptrCast(@alignCast(psx.get(node.next) orelse break));
     }
     c.func_800D82CC(psx.at(v.g.D_800F5878(), id).*);
 }

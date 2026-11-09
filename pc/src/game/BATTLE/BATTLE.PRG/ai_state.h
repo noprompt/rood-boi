@@ -124,24 +124,6 @@ typedef struct actorInitializationModel {
     unsigned short field63E;
 } actorInitializationModel;
 
-typedef struct actorInitializationActor {
-    char pad0[4];
-    int id;
-    actorInitializationFlags flags;
-    char padC[16];
-    unsigned short attributes;
-    char pad1E[1];
-    unsigned char field1F;
-    char pad20[16];
-    int field30;
-    unsigned int field34;
-    int field38;
-    psx_ptr(actorInitializationStats) stats;
-    int field40;
-    psx_ptr(actorInitializationModel) model;
-} actorInitializationActor;
-PSX_ASSERT_SIZE(struct actorInitializationActor, 0x48);
-
 typedef union {
     unsigned int raw;
     struct {
@@ -176,11 +158,6 @@ typedef struct {
     u_int unk5AC_16 : 16;
 } actorObject;
 
-typedef struct {
-    char pad[8];
-    unsigned int low : 26, mode : 2, high : 4;
-} actorPhaseFlags;
-
 typedef union {
     u_int raw;
     struct {
@@ -206,19 +183,6 @@ typedef union {
     unsigned short half[2];
     unsigned char byte[4];
 } actorSettingsWord;
-
-typedef struct actorSettingsActor {
-    char pad0[26];
-    unsigned short kind;
-    char pad1C[20];
-    actorSettingsWord flags;
-    union {
-        unsigned int raw;
-        struct {
-            unsigned int low : 12, mode : 2, high : 18;
-        } bits;
-    } flags34;
-} actorSettingsActor;
 
 typedef struct {
     u_int position;
@@ -259,22 +223,6 @@ typedef struct {
     u_int unkC_19 : 8;
     u_int unkC_27 : 5;
 } func_800DCAA0_t;
-
-typedef struct {
-    char unk0[8];
-    u_char unk8;
-    u_char unk9;
-    char unkA;
-    u_int unkB_0 : 2;
-    u_int unkB_2 : 2;
-    u_int unkB_4 : 4;
-    u_short unkC;
-    u_short unkE;
-    SVECTOR unk10;
-    char unk18[0x24];
-    psx_ptr(vs_battle_actor2) unk3C;
-} func_800DEB10_t2;
-PSX_ASSERT_SIZE(func_800DEB10_t2, 0x40);
 
 typedef struct {
     u_char unk0;
@@ -355,11 +303,6 @@ typedef union {
 } stuckMovementPosition;
 
 typedef struct {
-    char pad[9];
-    unsigned char id;
-} targetMovementActor;
-
-typedef struct {
     unsigned int f0 : 1, f1 : 1, f2 : 1, pad3 : 2, f5 : 1, pad6 : 26;
 } targetMovementFlags;
 
@@ -376,13 +319,6 @@ typedef union {
     unsigned int raw;
     unsigned char b[4];
 } targetMovementPoint;
-
-typedef struct terrainMovementActor {
-    char pad0[9];
-    unsigned char mode;
-    char padA[2];
-    unsigned short angle;
-} terrainMovementActor;
 
 typedef union {
     unsigned int raw;
@@ -467,25 +403,6 @@ typedef struct {
 } D_800F5920_t;
 
 typedef struct {
-    u_char unk0;
-    char unk1;
-    u_char unk2;
-    char unk3[0x3D];
-    int unk40;
-} func_800DEB10_t;
-
-typedef struct {
-    u_short unk0;
-    char unk2[2];
-    u_char unk4;
-    char unk5[0x3F];
-    int unk44;
-    char unk48[2];
-    u_short unk4A;
-    func_800DEB10_t unk4C[0];
-} func_800DEEA4_t;
-
-typedef struct {
     unsigned short first, second;
     unsigned char third, pad;
 } actorSettingsEntry;
@@ -504,6 +421,25 @@ typedef struct {
     u_char classification;
     char pad[3];
 } actionScoreTarget;
+
+typedef struct {
+    u_char unk0;
+    char unk1;
+    u_char unk2;
+    char unk3[0x3D];
+    int unk40;
+} func_800DEB10_t;
+
+typedef struct {
+    u_short unk0;
+    char unk2[2];
+    u_char unk4;
+    char unk5[0x3F];
+    int unk44;
+    char unk48[2];
+    u_short unk4A;
+    func_800DEB10_t unk4C[0];
+} func_800DEEA4_t;
 
 typedef struct vs_battle_aiState {
     /* 0x0 */ union { u_int word; u_char b[4]; } flags0;
@@ -557,7 +493,7 @@ typedef struct vs_battle_aiState {
     /* 0x46 */ u_short unk46;
     /* 0x48 */ union { targetMovementPoint targetMovementPoint; vs_battle_movementPosition movementPosition; int target48; } previous48;
     /* 0x4c */ union { SVECTOR v; short xyz[3]; movementStepPosition step; obstructionVector obstruction; int word[2]; } position;
-    /* 0x54 */ union { vs_battle_actor* actorView; actorInitializationActor* actorInitializationActor; actorSettingsActor* actorSettingsActor; actorPhaseFlags* actorPhaseFlags; func_800DEB10_t2* func_800DEB10_t2; targetMovementActor* targetMovementActor; terrainMovementActor* terrainMovementActor; } actor;
+    /* 0x54 */ vs_battle_actor* actor;
     /* 0x58 */ union { actorInitializationModel* actorInitializationModel; actorObject* actorObject; func_800E1238_t* func_800E1238_t; movementCheckObject* movementCheckObject; D_800F4538_t* D_800F4538_t; movementRecoveryContext* movementRecoveryContext; radialMotionContext* radialMotionContext; targetMovementModel* targetMovementModel; wanderObject* wanderObject; obstructionModel* obstructionModel; } object;
     /* 0x5c */ union { vs_battle_actor2* actor2; actionMetadataStats* actionMetadataStats; actorInitializationStats* actorInitializationStats; actorUpdatePoint* actorUpdatePoint; trackingMotionStats* trackingMotionStats; } stats;
     /* 0x60 */ union { short* shorts; actorUpdatePoint* actorUpdatePoint; } position60;

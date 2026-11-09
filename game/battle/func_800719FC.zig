@@ -3,6 +3,12 @@ const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
+/// The 8 bytes from the actor's unk10 (a SVECTOR of its last target position).
+fn unk10Vector(actor: ?*v.vs_battle_actor) v.SVECTOR {
+    const base: [*]const u8 = @ptrCast(actor.?);
+    return @as(*const v.SVECTOR, @ptrCast(@alignCast(base + @offsetOf(v.vs_battle_actor, "unk10")))).*;
+}
+
 /// D_800F19CC, read at each use as the C does.
 fn state() *v.D_800F19CC_t {
     return v.g.D_800F19CC().*.?;
@@ -32,14 +38,14 @@ pub fn func_800719FC(_: c_int) callconv(.c) void {
     state().unk29B5 = spec.rangeY;
     state().unk29B6 = spec.rangeZ;
     if (state().unk8.unk4.unk0.targetActor != 0) {
-        state().unk8.unk844 = psx.byteAt(v.SVECTOR, actors[state().unk8.unk4.unk0.targetActor], 16).*;
+        state().unk8.unk844 = unk10Vector(actors[state().unk8.unk4.unk0.targetActor]);
         const dx = psx.conv(i16, @as(c_int, state().unk8.unk844.vx) - origin.vx);
         const dz = psx.conv(i16, @as(c_int, state().unk8.unk844.vz) - origin.vz);
         state().unk29B2 = psx.conv(i16, c.ratan2(dx, dz));
         const dy = psx.conv(i16, @as(c_int, state().unk8.unk844.vy) - origin.vy);
         const distance = c.vs_gte_rsqrt(@as(c_int, dx) *% dx +% @as(c_int, dz) *% dz); // two -0x8000s sum to 2^31: wraps
         state().unk29B7 = psx.conv(u8, @divTrunc(c.ratan2(dy, distance), 16) +% 64);
-        state().unk29B8 = psx.byteAt(v.SVECTOR, actors[state().unk8.unk4.unk0.targetActor], 16).*;
+        state().unk29B8 = unk10Vector(actors[state().unk8.unk4.unk0.targetActor]);
     } else {
         state().unk29B7 = 64;
         state().unk29B2 = 0;

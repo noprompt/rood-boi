@@ -314,7 +314,7 @@ def popups(card, out):
         for slot in range(1, 16):
             actor = s.ptr(s.sym["vs_battle_actors"] + slot * D.PTR)
             if actor:
-                enemy = int.from_bytes(g.read(actor + 0x3C, 4), "little")
+                enemy = g.actor_stats(actor)
                 break
         if not check(enemy != 0, "an enemy in zone 9 room 18"):
             return

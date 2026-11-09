@@ -29,10 +29,10 @@ pub fn func_800D8EF4() callconv(.c) void {
     bc.unk24 = 0;
     if (@as(c_int, bc.unk18) < 0xFFFE) bc.unk18 +%= 1;
 
-    var actor: ?*v.actorUpdateActor = @ptrCast(v.g.vs_battle_actors()[0]);
+    var actor: ?*v.vs_battle_actor = @ptrCast(v.g.vs_battle_actors()[0]);
     while (actor) |a| {
-        const flags: c_int = a.flags;
-        psx.setBits(a, "unkB_0", 0);
+        const flags: c_int = a.unk8;
+        a.unkB &= 0xfc;
         const id: c_int = a.id;
         // The state pointer is the scratchpad slot 0x1F80037C + 4 * id, read as a 4-byte guest address.
         const slot: u32 = 0x1F80037C +% @as(u32, @bitCast(@as(c_int, 4) *% id));
@@ -155,7 +155,7 @@ pub fn func_800D8EF4() callconv(.c) void {
             if (c.func_800D85D8(@ptrCast(state)) != 0) break :outcome_blk .idle;
 
             var alert: c_int = 0;
-            const stats: *v.actorUpdateStats = @ptrCast(psx.get(psx.get(state.actor.actorView).?.stats).?);
+            const stats: *v.actorUpdateStats = @ptrCast(psx.get(psx.get(state.actor).?.stats).?);
             const current: c_int = psx.getBits(&stats.hp, "current");
             const max: c_int = psx.getBits(&stats.hp, "max");
             if (state.unk2F != 0) {

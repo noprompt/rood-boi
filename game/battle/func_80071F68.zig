@@ -8,9 +8,10 @@ fn state() *v.D_800F19CC_t {
     return v.g.D_800F19CC().*.?;
 }
 
-/// The u16 at byte `offset` of the user actor (its selected target and limb).
-fn userHalf(offset: isize) c_int {
-    return psx.byteAt(u16, v.g.vs_battle_actors()[state().unk8.unk4.unk0.targetActor], offset).*;
+/// A half of the user actor's unk10 word (its selected target and limb).
+fn userHalf(high: bool) c_int {
+    const word: u32 = @bitCast(v.g.vs_battle_actors()[state().unk8.unk4.unk0.targetActor].?.unk10.s32);
+    return @intCast(if (high) word >> 16 else word & 0xFFFF);
 }
 
 /// orig: func_80071F68 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
@@ -127,8 +128,8 @@ pub fn func_80071F68(arg0: c_int) callconv(.c) void {
     if (state().unk8.unk4.unk0.targetActor != 0) {
         count = 0;
         while (count < state().unk2C00) : (count += 1) { // count < a u16
-            if (@as(c_int, psx.at(&state().unk29C0, count).unk9) == userHalf(0x10) and
-                @as(c_int, psx.at(&@as(*v.actionTargetContextView, @ptrCast(state())).targets, count).limb) == userHalf(0x12))
+            if (@as(c_int, psx.at(&state().unk29C0, count).unk9) == userHalf(false) and
+                @as(c_int, psx.at(&@as(*v.actionTargetContextView, @ptrCast(state())).targets, count).limb) == userHalf(true))
             {
                 state().unk298C = psx.conv(u8, count);
             }
@@ -136,7 +137,7 @@ pub fn func_80071F68(arg0: c_int) callconv(.c) void {
         if (state().unk298C == 0xFF) {
             count = 0;
             while (count < state().unk2C00) : (count += 1) { // count < a u16
-                if (@as(c_int, psx.at(&state().unk29C0, count).unk9) == userHalf(0x10)) {
+                if (@as(c_int, psx.at(&state().unk29C0, count).unk9) == userHalf(false)) {
                     state().unk298C = psx.conv(u8, count);
                 }
             }

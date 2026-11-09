@@ -5,13 +5,13 @@ const c = @import("c_battle_helpers");
 const v = @import("views_battle_helpers");
 
 /// The next record of the list: the guest pointer stored in the first word.
-fn next(node: [*]u8) ?[*]u8 {
-    return @ptrFromInt(@as(usize, psx.byteAt(u32, node, 0).*));
+fn next(node: *ai.vs_battle_actor) ?*ai.vs_battle_actor {
+    return @ptrCast(node.next);
 }
 
 /// The head of the list: vs_battle_actors[0].
-fn first() ?[*]u8 {
-    return @ptrCast(v.g.vs_battle_actors()[0]);
+fn first() ?*ai.vs_battle_actor {
+    return @ptrCast(@alignCast(v.g.vs_battle_actors()[0]));
 }
 
 /// orig: func_800DC810 (pc/src/battle_helpers.c)
@@ -22,11 +22,11 @@ pub fn evaluateActors(context: [*]u8) callconv(.c) void {
     if (first() == null) c.pc_unimplemented("actor evaluation with empty actor list");
     var node = first();
     while (node) |n| : (node = next(n)) {
-        c.func_800DD000(psx.at(v.g.D_800F5878(), psx.byteAt(c_int, n, 4).*).*, context);
+        c.func_800DD000(psx.at(v.g.D_800F5878(), n.id).*, context);
     }
     node = first();
     while (node) |n| : (node = next(n)) {
-        c.func_800DD344(psx.at(v.g.D_800F5878(), psx.byteAt(c_int, n, 4).*).*);
+        c.func_800DD344(psx.at(v.g.D_800F5878(), n.id).*);
     }
 }
 
@@ -39,8 +39,8 @@ pub fn snapshotActorStats(snapshots: [*]u8) callconv(.c) void {
     if (first() == null) c.pc_unimplemented("actor stat snapshot with empty actor list");
     var node = first();
     while (node) |n| : (node = next(n)) {
-        const id = psx.byteAt(c_int, n, 4).*;
-        const stats: [*]u8 = @ptrFromInt(@as(usize, psx.byteAt(u32, n, 0x3c).*));
+        const id = n.id;
+        const stats: [*]u8 = @ptrCast(n.stats);
         const record = psx.byteAt(u8, snapshots, @as(isize, id *% 0x18));
         psx.byteAt(c_int, record, 0).* = id;
         psx.byteAt(c_uint, record, 4).* = psx.byteAt(c_uint, stats, 0x18).*;
@@ -60,7 +60,7 @@ pub fn snapshotActorStats(snapshots: [*]u8) callconv(.c) void {
 pub fn propagateRelations(state: *ai.vs_battle_aiState) callconv(.c) void {
     var node = first();
     while (node) |n| : (node = next(n)) {
-        const id = psx.byteAt(c_int, n, 4).*;
+        const id = n.id;
         const peer: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), id).*.?));
         const self: c_uint = state.id;
         var relation: c_uint = 2;
@@ -82,7 +82,7 @@ pub fn propagateRelations(state: *ai.vs_battle_aiState) callconv(.c) void {
 pub fn applyActorOptions() callconv(.c) void {
     var node = first();
     while (node) |n| : (node = next(n)) {
-        const id = psx.byteAt(c_int, n, 4).*;
+        const id = n.id;
         const entity: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), id).*.?));
         const options: c_int = entity.options;
         if (options < 0) continue;
