@@ -58,7 +58,7 @@ typedef struct {
     unsigned char kind;  /* PC_ITEM_* */
     unsigned char flags; /* PC_ITEM_* flags */
     unsigned char verts; /* polygon: 3 or 4 */
-    unsigned char spare;
+    unsigned short group; /* items added together as one call (pc_frame_add_packets) share it; 0: none */
     unsigned short mode; /* see PC_ITEM_MODE */
     unsigned short clut; /* textured: the CLUT word (y << 6 | x >> 4) */
     int depth; /* sort key: larger first (see above) */
@@ -110,8 +110,27 @@ int pc_frame_lower(int index, unsigned words[3][16], int lengths[3]);
 /* Widescreen: items [first, end) anchored as pc_hw_anchor_packets does a range of packets (their lowered packets have
  * a stable address per index). */
 void pc_frame_anchor(int first, int end, int anchor);
+/* Item `index`, to read or change before the frame is drawn; NULL out of range. */
+pc_item* pc_frame_item(int index);
+/* The command word of item `index`'s lowered packet: ui_text keys its words on it, as it did on a packet's. The index
+ * of the item a command word belongs to, -1 when it is none's. */
+const void* pc_frame_command(int index);
+int pc_frame_command_item(const void* command);
 /* The address of item `index`'s lowered packet (where the draw puts it; the key of anchors and interpolation). */
 const void* pc_frame_packet(int index);
+/* Lifting a packet printer's output to items (pc/src/hud/hud_bridge.c): the game's printers (shared with battle) keep
+ * writing packets; PC_LIFT has a screen's calls to them add items instead, at `depth` (words from vs_scratch.unk4, the
+ * ordering-table slot the packets were linked at), with ui_text's reports following the items. `statement` is the
+ * printer's call with pc_lift_begin() as its `ot` (the word it links at). Packets that are not items (see
+ * pc_frame_add_packets) stay packets in the slot, as before. */
+void* pc_lift_begin(void);
+int pc_lift_end(int depth, int placed, void* ot);
+int pc_lift_at(int depth);
+#define PC_LIFT(depth, statement) \
+    do { \
+        statement; \
+        pc_lift_at(depth); \
+    } while (0)
 /* Draws the frame's items in order: what DrawOTag did for a table. */
 void pc_frame_draw(void);
 /* Links a marker for items [first, first + count) at the head of `*ot_entry`

@@ -108,7 +108,7 @@ int pc_classic_walk(const pc_classic_walker* walker, const unsigned* head, const
 /* ROOD_CLASSIC_ITEMS=1 (dev): the claims of sites the game draws as packets draw as items too, so a display
  * comparison with it on and off covers the packets-to-items path (build_compare.py --new-env). */
 int pc_classic_force_items(void);
-void pc_classic_items_note(int converted);
+void pc_classic_items_note(int converted, int type);
 /* The items of [first, end) that no marker places in a table (a frame with no ordering table: ENDING's), in
  * drawing order, as the packets they lower to. Items a marker places are read by the walks, where the marker is. */
 int pc_classic_walk_items(const pc_classic_walker* walker, int first, int end, pc_classic_packet* out, int max);

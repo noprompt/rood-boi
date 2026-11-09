@@ -3,7 +3,7 @@
  "scratchpad": 516,
  "unnamed_symbol": 20639,
  "guest_pointer_field": 141,
- "guest_pointer_access": 868,
+ "guest_pointer_access": 853,
  "address_as_integer": 309,
  "zig_raw_memory": 1237,
  "gte_state_machine": 16,

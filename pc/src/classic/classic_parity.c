@@ -116,9 +116,14 @@ int pc_classic_force_items(void)
 
 /* A claim's command taken as items (converted) or left as the packets it is, counted; in the forced test mode they are
  * told in the log at each power of ten. */
-void pc_classic_items_note(int converted)
+void pc_classic_items_note(int converted, int type)
 {
     static int counts[2], next[2] = { 1, 1 };
+    static unsigned long long seen[2];
+    if (pc_classic_force_items() && type >= 0 && type < 64 && !(seen[converted != 0] >> type & 1)) {
+        seen[converted != 0] |= 1ull << type;
+        fprintf(stderr, "[classic] command type %d: %s\n", type, converted ? "items" : "packets");
+    }
     int n = ++counts[converted != 0];
     if (pc_classic_force_items() && n == next[converted != 0]) {
         fprintf(stderr, "[classic] claim commands as items: %d %s\n", n, converted ? "converted" : "left as packets");

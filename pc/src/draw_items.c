@@ -105,6 +105,7 @@ int pc_frame_is_placed(int index)
 }
 
 /* Raw GP0 words as items (draw_items.h): the inverse of `lower`, with the draw mode and texture window set along the way. */
+static unsigned short group_serial;
 int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
 {
     int start = pc_item_frame.count, i = 0, mode = -1, window = -1, prims = 0, state_after = 0, last_mode = -1, last_window = -1;
@@ -187,6 +188,10 @@ int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
     /* (state set after the last primitive is only dropped when it is the state that primitive had) */
     if (!prims || (state_after && (mode != last_mode || window != last_window)))
         goto fail;
+    if (!++group_serial)
+        ++group_serial;
+    for (int a = start; a < pc_item_frame.count; a++)
+        pc_item_frame.item[a].group = group_serial;
     for (int a = start, b = pc_item_frame.count - 1; a < b; a++, b--) { /* (items of one depth draw last first) */
         pc_item t = pc_item_frame.item[a];
         pc_item_frame.item[a] = pc_item_frame.item[b];
@@ -244,6 +249,24 @@ const void* pc_frame_packet(int index)
     if (!arena && !(arena = malloc((size_t)ITEMS * STRIDE * sizeof *arena)))
         return NULL;
     return arena + (size_t)index * STRIDE;
+}
+
+pc_item* pc_frame_item(int index)
+{
+    return index >= 0 && index < pc_item_frame.count ? &pc_item_frame.item[index] : NULL;
+}
+/* (the primitive's tag is word 2 of an item's 20, its command word 3) */
+const void* pc_frame_command(int index)
+{
+    const uint32_t* at = pc_frame_packet(index);
+    return at ? at + 3 : NULL;
+}
+int pc_frame_command_item(const void* command)
+{
+    const uint32_t* at = (const uint32_t*)command - 3;
+    if (!arena || !command || at < arena || at >= arena + (size_t)pc_item_frame.count * STRIDE || (size_t)(at - arena) % STRIDE)
+        return -1;
+    return (int)((size_t)(at - arena) / STRIDE);
 }
 
 void pc_frame_anchor(int first, int end, int anchor)

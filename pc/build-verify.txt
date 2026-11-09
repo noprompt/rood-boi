@@ -1,0 +1,14 @@
+play mode: CPUs 8-19 (12), idle scheduling
+lane: quick, the change since main (4c55bb232)
+quick: 71 suites (Vulkan 63, null 3, GL sanity 5), skipped 111 of 176 (full lane)
+play mode: CPUs 8-19 (12), idle scheduling
+PASS  build-64         0s  pc/build/boot64: up to date (nothing changed since its last build)
+play mode: CPUs 8-19 (12), idle scheduling
+PASS  suite-64null     1s  1/1 passed in 0s (null, null, -j 1 + 1)
+play mode: CPUs 8-19 (12), idle scheduling
+FAIL  suite-64vk     693s  49/50 passed in 691s (egl, vulkan, -j 1 + 1) (pc/build/verify/suite-64vk.log)
+play mode: CPUs 8-19 (12), idle scheduling
+PASS  suite-64gl      20s  6/6 passed in 19s (egl, gl, -j 1 + 1)
+deferred to the full lane: affected_test classic_parity emissive_smoke input:data-menu-five-times-then-walk input:start-select-in-battle input:start-through-the-opening narrowed_2d_smoke options_classic_smoke options_confirm_smoke quit_smoke save_menu_smoke scene_smoke ui_text_smoke widescreen_smoke 
+quick: 1 failed in 716s
+exit 1

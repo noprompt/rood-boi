@@ -36,6 +36,7 @@
  * ("status words"). Every style field is a setting ("settings" below). */
 #define _POSIX_C_SOURCE 200809L
 #include "ui_text.h"
+#include "draw_items.h"
 #include "ui_labels.h"
 #include <math.h>
 #include <stddef.h>
@@ -1423,15 +1424,20 @@ static void shift_texels(uint32_t* w, int du)
 }
 
 #include "oracle.h"
-void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, int next_x, int advance)
+static void glyph_now(void* const* commands, int count, int glyph, int x, int y, int next_x, int advance)
 {
     /* The game's ○ / × follow the button roles (button_roles.c): the
      * packets show the other glyph, as if the game had set it. */
     if (pc_button_roles_glyph && glyph >= 0) {
         int shown = pc_button_roles_glyph(glyph);
         if (shown != glyph) {
-            for (int i = 0; i < count; i++)
-                shift_texels(commands[i], (shown - glyph) * 12);
+            for (int i = 0; i < count; i++) {
+                int item = pc_frame_command_item(commands[i]);
+                if (item >= 0) /* (an item: not yet the packet's words) */
+                    pc_frame_item(item)->u[0] = (unsigned char)(pc_frame_item(item)->u[0] + (shown - glyph) * 12);
+                else
+                    shift_texels(commands[i], (shown - glyph) * 12);
+            }
             glyph = shown;
         }
     }
@@ -1450,6 +1456,97 @@ void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, in
         c->x = x >> 16, c->y = y >> 16;
         c->advance = (float)advance;
     }
+}
+
+/* ---- reports held back while a claim's packets are being turned into draw items ----
+ * The printers report their glyphs and words as they set them, by the packets' command words. When the packets become
+ * items the reports are made again by the items' (pc_text_defer_items), or by the packets' own if they stay packets
+ * (pc_text_defer_packets). */
+#define DEFERRED 512
+static struct {
+    int kind; /* 0 glyph, 1 status */
+    void* command[4];
+    int count, glyph, x, y, next_x, advance;
+    const void *first, *end;
+    int typeset_set;
+    pc_text_typeset typeset;
+} deferred[DEFERRED];
+static int defer_on, defer_count, defer_overflow;
+static void status_now(const void* first, const void* end, const pc_text_typeset* typeset);
+
+void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, int next_x, int advance)
+{
+    if (defer_on) {
+        if (defer_count < DEFERRED && count <= 4) {
+            deferred[defer_count].kind = 0;
+            for (int i = 0; i < count; i++)
+                deferred[defer_count].command[i] = commands[i];
+            deferred[defer_count].count = count, deferred[defer_count].glyph = glyph, deferred[defer_count].x = x;
+            deferred[defer_count].y = y, deferred[defer_count].next_x = next_x, deferred[defer_count].advance = advance;
+            ++defer_count;
+        } else
+            defer_overflow = 1;
+        return;
+    }
+    glyph_now(commands, count, glyph, x, y, next_x, advance);
+}
+
+void pc_text_defer(void) { defer_on = 1, defer_count = 0, defer_overflow = 0; }
+
+/* The item a packet's command word is: the sprite or polygon of the items [first, first + count) at its place and texels. */
+static int item_of_packet(const uint32_t* w, int first, int count)
+{
+    for (int i = first; i < first + count; i++) {
+        const pc_item* it = pc_frame_item(i);
+        if (it && (it->kind == PC_ITEM_SPRITE || it->kind == PC_ITEM_POLY) && it->x[0] == (int16_t)w[1] && it->y[0] == (int16_t)(w[1] >> 16)
+            && it->u[0] == (w[2] & 255) && it->v[0] == (w[2] >> 8 & 255))
+            return i;
+    }
+    return -1;
+}
+
+/* The held reports made by the items [first, first + count): 1 when they all map (done), else 0 and none made. */
+int pc_text_defer_items(int first, int count)
+{
+    void* mapped[DEFERRED][4];
+    for (int k = 0; k < defer_count && !defer_overflow; k++) {
+        if (deferred[k].kind)
+            continue;
+        for (int i = 0; i < deferred[k].count; i++) {
+            int item = item_of_packet(deferred[k].command[i], first, count);
+            if (item < 0)
+                return 0;
+            mapped[k][i] = (void*)pc_frame_command(item);
+        }
+    }
+    if (defer_overflow)
+        return 0;
+    defer_on = 0;
+    for (int k = 0; k < defer_count; k++) {
+        if (deferred[k].kind)
+            pc_text_status_items(first, count, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
+        else
+            glyph_now(deferred[k].count ? mapped[k] : NULL, deferred[k].count, deferred[k].glyph, deferred[k].x, deferred[k].y,
+                deferred[k].next_x, deferred[k].advance);
+    }
+    memset(deferred, 0, (size_t)defer_count * sizeof deferred[0]); /* (scratch: the state proofs see none of it) */
+    defer_count = 0;
+    return 1;
+}
+
+/* The held reports made as they were, by the packets (they stay packets). */
+void pc_text_defer_packets(void)
+{
+    defer_on = 0;
+    for (int k = 0; k < defer_count && !defer_overflow; k++) {
+        if (deferred[k].kind)
+            status_now(deferred[k].first, deferred[k].end, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
+        else
+            glyph_now(deferred[k].count ? deferred[k].command : NULL, deferred[k].count, deferred[k].glyph, deferred[k].x,
+                deferred[k].y, deferred[k].next_x, deferred[k].advance);
+    }
+    memset(deferred, 0, (size_t)defer_count * sizeof deferred[0]);
+    defer_count = 0;
 }
 
 int pc_ui_text_piece_call(const void* command, pc_ui_text_piece_info* info)
@@ -2068,6 +2165,21 @@ static long status_glyphs_drawn; /* glyph quads handed to gpu_hw (RPC) */
 void pc_text_status(const void* first, const void* end) { pc_text_status_typeset(first, end, NULL); }
 void pc_text_status_typeset(const void* first, const void* end, const pc_text_typeset* typeset)
 {
+    if (defer_on) {
+        if (defer_count < DEFERRED) {
+            memset(&deferred[defer_count], 0, sizeof deferred[0]);
+            deferred[defer_count].kind = 1, deferred[defer_count].first = first, deferred[defer_count].end = end;
+            if (typeset)
+                deferred[defer_count].typeset = *typeset, deferred[defer_count].typeset_set = 1;
+            ++defer_count;
+        } else
+            defer_overflow = 1;
+        return;
+    }
+    status_now(first, end, typeset);
+}
+static void status_now(const void* first, const void* end, const pc_text_typeset* typeset)
+{
     const uint32_t *w = first, *stop = end;
     if (!w || !stop || stop <= w || stop - w > 8 * STATUS_GLYPHS)
         return;
@@ -2089,6 +2201,33 @@ void pc_text_status_typeset(const void* first, const void* end, const pc_text_ty
             ++s->count;
         }
         w += 1 + len;
+    }
+    if (!s->count)
+        return;
+    s->stamp = call_now();
+    status_next = (status_next + 1) % STATUS_STRINGS;
+}
+
+/* The same from draw items [first, first + count) (a claim's, converted from the printer's packets): in draw order, the
+ * highest index first. */
+void pc_text_status_items(int first, int count, const pc_text_typeset* typeset)
+{
+    status_string* s = &statuses[status_next];
+    memset(s, 0, sizeof *s);
+    if (typeset)
+        s->typeset = *typeset;
+    s->style = PC_UI_TEXT_STATUS;
+    s->tpage = 12;
+    for (int i = first + count - 1; i >= first && s->count < STATUS_GLYPHS; i--) {
+        const pc_item* it = pc_frame_item(i);
+        if (!it || it->kind != PC_ITEM_SPRITE)
+            continue;
+        s->tpage = it->mode & 0x7ff;
+        s->glyph[s->count].command = pc_frame_command(i);
+        s->glyph[s->count].x = it->x[0], s->glyph[s->count].y = it->y[0];
+        s->glyph[s->count].u = it->u[0], s->glyph[s->count].v = it->v[0];
+        s->glyph[s->count].clut = it->clut, s->glyph[s->count].w = it->w;
+        ++s->count;
     }
     if (!s->count)
         return;
@@ -2293,8 +2432,12 @@ int pc_ui_text_status_quad(const uint16_t* vram, const void* command, int u, int
     unsigned now = call_now();
     for (int k = 1; k <= STATUS_STRINGS; k++) {
         status_string* s = &statuses[(status_next - k + STATUS_STRINGS) % STATUS_STRINGS];
-        if (!s->count || now - s->stamp > CALL_AGE || (const char*)command < (const char*)s->glyph[0].command
-            || (const char*)command > (const char*)s->glyph[s->count - 1].command)
+        if (!s->count || now - s->stamp > CALL_AGE)
+            continue;
+        const char *lo = s->glyph[0].command, *hi = s->glyph[s->count - 1].command; /* (items: later glyphs have lower addresses) */
+        if (lo > hi)
+            lo = s->glyph[s->count - 1].command, hi = s->glyph[0].command;
+        if ((const char*)command < lo || (const char*)command > hi)
             continue;
         for (int i = 0; i < s->count; i++) {
             if (s->glyph[i].command != command)
@@ -2339,8 +2482,44 @@ static int small_caps_packet(const uint32_t* p, unsigned clut, int y)
     return in_guest_ram(p, 5) && p[0] >> 24 == 4 && (p[1] >> 24 & 0xfc) == 0x64 && p[3] >> 16 == clut
         && p[4] >> 16 == 10 && (p[4] & 0xffff) >= 1 && (p[4] & 0xffff) <= 15 && (int16_t)(p[2] >> 16) == y;
 }
+/* The same for draw items: a call's sprites are the items of one group, drawn from the highest index down. */
+static int small_caps_item(const pc_item* it, unsigned clut, int y)
+{
+    return it && it->kind == PC_ITEM_SPRITE && it->clut == clut && it->h == 10 && it->w >= 1 && it->w <= 15 && it->y[0] == y;
+}
+static long item_words_found; /* words found among draw items (RPC) */
+static int find_word_items(int index, unsigned clut, status_string* s)
+{
+    const pc_item* it = pc_frame_item(index);
+    int y, start = index, back = 0, i;
+    if (!it || !small_caps_item(it, clut, y = it->y[0]) || !it->group)
+        return 0;
+    while (back++ < STATUS_GLYPHS && pc_frame_item(start + 1) && pc_frame_item(start + 1)->group == it->group
+        && small_caps_item(pc_frame_item(start + 1), clut, y))
+        start++;
+    memset(s, 0, sizeof *s);
+    s->style = PC_UI_TEXT_INFO;
+    s->tpage = pc_frame_item(start)->mode & 0x7ff;
+    for (i = start; i >= 0; i--) {
+        const pc_item* g = pc_frame_item(i);
+        if (!small_caps_item(g, clut, y) || g->group != it->group)
+            break;
+        if (s->count == STATUS_GLYPHS)
+            return 0; /* (longer than any word: glyph by glyph) */
+        s->glyph[s->count].command = pc_frame_command(i);
+        s->glyph[s->count].x = g->x[0], s->glyph[s->count].y = y;
+        s->glyph[s->count].u = g->u[0], s->glyph[s->count].v = g->v[0];
+        s->glyph[s->count].clut = clut, s->glyph[s->count].w = g->w;
+        ++s->count;
+    }
+    ++item_words_found;
+    return 1;
+}
 static int find_word(const void* command, unsigned clut, status_string* s)
 {
+    int item = pc_frame_command_item(command);
+    if (item >= 0)
+        return find_word_items(item, clut, s);
     const uint32_t* p = (const uint32_t*)command - 1;
     if (!in_guest_ram(p, 5))
         return 0;
@@ -2907,7 +3086,7 @@ int pc_ui_text_json(char* out, int size)
     if (used < size)
         used += status_json(out + used, size - used);
     if (used < size)
-        used += snprintf(out + used, (size_t)(size - used), ",\"word_glyphs\":%ld", word_glyphs_drawn);
+        used += snprintf(out + used, (size_t)(size - used), ",\"word_glyphs\":%ld,\"item_words\":%ld", word_glyphs_drawn, item_words_found);
     if (used < size)
         used += snprintf(out + used, (size_t)(size - used), ",\"labels_drawn\":[");
     for (int i = 0, first = 1; i < LABEL_COUNT && used < size; i++)

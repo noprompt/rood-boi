@@ -337,9 +337,11 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
         try:
             hashed(g, out, sample, hashes)
             SCENES[name](g, cp, rood_rpc.symbols())
+            text = g.call("ui_text")  # ui_text's word-level drawing: small-capital words and the status words drawn
         finally:
             g.close()
-        results[name] = hashes
+        results[name] = {"hashes": hashes, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
+                         "status_glyphs": (text.get("status") or {}).get("glyphs") if isinstance(text.get("status"), dict) else text.get("status_glyphs")}
     print("RESULT" + json.dumps(results))
 
 
@@ -368,13 +370,16 @@ def compare_menus(args):
     first, control, new = run_menus(args.old, args, names), run_menus(args.old, args, names), run_menus(args.new, args, names)
     code = 0
     for name in names:
-        a, b, c = first[name], control[name], new[name]
+        a, b, c = first[name]["hashes"], control[name]["hashes"], new[name]["hashes"]
+        words = [(r[name]["word_glyphs"], r[name]["status_glyphs"]) for r in (first, control, new)]
         noise, changed = differing({"frames": a}, {"frames": b}), differing({"frames": a}, {"frames": c})
         print(f"{name}: {len(a)} frames ({len(set(a))} distinct, every {args.menu_sample} vsyncs); control {len(noise)} differ; "
               f"old against new {len(changed)} differ{f' (first at frame {changed[0]})' if changed else ''}")
+        print(f"{name}: ui_text word / status glyphs drawn: old {words[0]}, control {words[1]}, new {words[2]}"
+              f", of the new's, found among draw items: {new[name]['item_words']}{'' if words[0] == words[2] else '  DIFFERENT'}")
         if noise:
             code = 2
-        elif changed and code == 0:
+        elif (changed or words[0] != words[2]) and code == 0:
             code = 1
     if code == 2:
         print("build_compare: the control differs, so this proves nothing")

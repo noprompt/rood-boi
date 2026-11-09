@@ -402,20 +402,20 @@ static void parity(int kind, int element_anchor)
             shadows[j - 1].offset = o, shadows[j - 1].head = h;
         }
     for (i = 0; i < shadow_count; ++i)
-        n += pc_classic_walk(&walker, (const unsigned*)&shadows[i].head, start, psx_get(vs_scratch.unk0), lua + n,
+        n += pc_classic_walk(&walker, (const unsigned*)&shadows[i].head, start, packet_cursor(), lua + n,
             PC_CLASSIC_CAPTURE - n);
     if (box_shadow_id >= 0) { /* (its own anchor: the walker's, as the game's capture) */
         pc_classic_walker box = pc_classic_guest();
         box.anchor = shadow_anchor;
         for (j = kind == PC_HUD_BOX_TEXT ? 3 : 1; j <= (kind == PC_HUD_BOX_TEXT ? 3 : 2); ++j)
             n += pc_classic_walk(&box, (const unsigned*)&box_shadow[box_shadow_id * 4 + j], start,
-                psx_get(vs_scratch.unk0), lua + n, PC_CLASSIC_CAPTURE - n);
+                packet_cursor(), lua + n, PC_CLASSIC_CAPTURE - n);
         if (kind == PC_HUD_TEXT_BAND)
-            n += pc_classic_walk(&box, (const unsigned*)&band_icon_shadow, start, psx_get(vs_scratch.unk0), lua + n,
+            n += pc_classic_walk(&box, (const unsigned*)&band_icon_shadow, start, packet_cursor(), lua + n,
                 PC_CLASSIC_CAPTURE - n);
     }
     for (i = 7; menu_shadowed && i >= 0; --i) /* (a menu row's: the higher slot first) */
-        n += pc_classic_walk(&walker, (const unsigned*)&menu_shadow[i], start, psx_get(vs_scratch.unk0), lua + n,
+        n += pc_classic_walk(&walker, (const unsigned*)&menu_shadow[i], start, packet_cursor(), lua + n,
             PC_CLASSIC_CAPTURE - n);
     n += pc_classic_walk_items(&walker, items, pc_frame_count(), lua + n, PC_CLASSIC_CAPTURE - n); /* (items alone) */
     pc_classic_parity_compare(kind, lua, n, pc_vsync_count ? pc_vsync_count() : 0);
@@ -947,7 +947,7 @@ int vs_mainMenu_renderIntColor(int value, int xy, int color, u_long* before); /*
  * 16, 16, 8 at x + w - i) and a draw mode (semi-transparent, half), into ot. */
 static void button_background_packets(u_long* ot, int x, int y, int w, int h)
 {
-    u_long* p = psx_get(vs_scratch.unk0);
+    u_long* p = packet_cursor();
     int i;
     for (i = 0; i < h; ++i) {
         p[0] = vs_getTag(u_long[6], ot[0]);
@@ -1418,7 +1418,7 @@ static int restyle = 1; /* text reported to ui_text (not for the parity gate's s
 /* n words after a tag at the packet pointer, linked at the head of ot. */
 static u_long* packet(u_long* ot, int n)
 {
-    u_long* p = psx_get(vs_scratch.unk0);
+    u_long* p = packet_cursor();
     p[0] = (*ot & 0xFFFFFF) | ((u_long)n << 24);
     *ot = (psx_to_int(u_long, p) << 8) >> 8;
     psx_set(vs_scratch.unk0, p + 1 + n);
@@ -1544,7 +1544,7 @@ static void text_packets(u_long* ot, const pc_hud_classic_cmd* c)
     {
         char ascii[260];
         int n = 0, i;
-        void* first = psx_get(vs_scratch.unk0);
+        void* first = packet_cursor();
         if (align == 1 || align == 2)
             ascii[n++] = align == 1 ? '$' : '#';
         for (i = 0; i < c->length && n < (int)sizeof ascii - 1; ++i) {
@@ -1554,7 +1554,7 @@ static void text_packets(u_long* ot, const pc_hud_classic_cmd* c)
         ascii[n] = 0;
         vs_battle_renderTextRawColor(ascii, xy(x, y), (int)modulate(c->color), ot);
         if (c->font == 4 && pc_text_status && restyle) /* PC_UI_TEXT_STATUS: set as the status words are */
-            pc_text_status(first, psx_get(vs_scratch.unk0));
+            pc_text_status(first, packet_cursor());
     }
 }
 
@@ -1843,37 +1843,57 @@ static const void* image_source(const pc_hud_classic_cmd* c, int* x, int* y, int
     *x = c->x, *y = c->y, *w = c->w, *h = c->h;
     return c->text;
 }
-/* The commands whose packets can be turned into items after the game's own routine wrote them (the ones that report
- * nothing to ui_text, which keys on packet memory: its text printers, digits and the box tables stay packets). */
+/* The commands whose packets can be turned into items after the game's own routine wrote them. The text printers
+ * report their glyphs to ui_text by packet; those reports are held and made again by the items (pc_text_defer).
+ * Digits (vs_battle_renderValue, _renderDigit, vs_mainMenu_renderIntColor), the box tables' commands and the
+ * menu rows keep their packets: other readers (ui_labels, the text boxes) key on them. */
+extern void pc_text_defer(void) __attribute__((weak));
+extern int pc_text_defer_items(int first, int count) __attribute__((weak));
+extern void pc_text_defer_packets(void) __attribute__((weak));
 static int bridged(int type)
 {
     switch (type) {
     case PC_HUD_CMD_PACKET: case PC_HUD_CMD_RECT: case PC_HUD_CMD_GRADIENT: case PC_HUD_CMD_GLYPH:
     case PC_HUD_CMD_SPRITE: case PC_HUD_CMD_QUAD: case PC_HUD_CMD_CURSOR: case PC_HUD_CMD_WINDOW:
     case PC_HUD_CMD_BAR: case PC_HUD_CMD_STAT_BAR: case PC_HUD_CMD_PLATE:
+    case PC_HUD_CMD_TEXT: case PC_HUD_CMD_TEXT_RAW: case PC_HUD_CMD_FONT_TEXT: /* (ui_text's reports follow: below) */
         return 1;
     }
     return 0;
 }
 static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed);
-/* A command's packets, written at `head` from `mark`, as items at emit_depth (draw_items.h pc_frame_add_packets): placed
- * by a marker linked at `ot` where the game's items were, else alone; the packets' memory given back. When the
- * words are not items the chain is linked into `ot` as the packets they are. */
-static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
+/* Packets a printer writes, lifted to draw items: pc_lift_begin returns the word the printer links its packets at (give
+ * it as the printer's `ot`); pc_lift_end turns what was written into items at `depth`, placed by a marker linked at
+ * `ot` (when `placed`: the frame has a table) or alone, and gives the packets' memory back; ui_text's reports are
+ * held meanwhile and made by the items (pc_text_defer). When the words are not items (the decoder: a primitive with no
+ * draw mode before it, other commands) the packets are linked into `ot` as written, and a frame with no table drops
+ * them (counted). Returns 1 when items were made. The printers stay the game's, shared with battle. */
+static u_long lift_head = 0x00FFFFFF;
+static const unsigned* lift_mark;
+static int lift_type = -1; /* (the claim command being lifted: the test mode's log) */
+void* pc_lift_begin(void)
 {
-    u_long head = 0x00FFFFFF, *end;
+    lift_mark = packet_cursor();
+    lift_head = 0x00FFFFFF;
+    if (pc_text_defer)
+        pc_text_defer();
+    return &lift_head;
+}
+static int lift_end(int depth, int placed, void* ot_in);
+int pc_lift_end(int depth, int placed, void* ot_in)
+{
+    int made = lift_end(depth, placed, ot_in);
+    lift_mark = NULL, lift_head = 0x00FFFFFF; /* (scratch: the state proofs see none of it) */
+    return made;
+}
+static int lift_end(int depth, int placed, void* ot_in)
+{
+    u_long *ot = ot_in, *end = packet_cursor();
     unsigned words[256];
-    int n = 0, first, count, ok = 1;
+    int n = 0, first = -1, count = 0, ok = 1;
     pc_classic_walker guest = pc_classic_guest();
-    const unsigned *tag, *mark;
-    if (!emit_items || !bridged(c->type)) {
-        emit_command_packets(c, ot, kind, shadowed);
-        return;
-    }
-    mark = packet_cursor();
-    emit_command_packets(c, &head, kind, shadowed);
-    end = packet_cursor();
-    for (tag = guest.resolve(head, NULL); tag && ok; tag = guest.resolve(tag[0], NULL)) {
+    const unsigned *tag, *mark = lift_mark;
+    for (tag = guest.resolve(lift_head, NULL); tag && ok; tag = guest.resolve(tag[0], NULL)) {
         unsigned len = tag[0] >> 24;
         if (tag < mark || tag >= (const unsigned*)end || n + (int)len > 256)
             ok = 0;
@@ -1882,26 +1902,46 @@ static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int 
             n += (int)len;
         }
     }
-    if (ok && n && (count = pc_frame_add_packets(emit_depth, words, n, &first)) > 0) {
-        pc_classic_items_note(1);
+    if (ok && n && (count = pc_frame_add_packets(depth, words, n, &first)) > 0
+        && (!pc_text_defer_items || pc_text_defer_items(first, count))) {
+        pc_classic_items_note(1, lift_type);
         /* (given back: the items hold what the packets did; a marker takes the first words) */
-        psx_set(vs_scratch.unk0, emit_placed ? (u_long*)pc_frame_place(first, count, (unsigned*)ot, (unsigned*)mark) : (u_long*)mark);
-        return;
+        psx_set(vs_scratch.unk0, placed ? (u_long*)pc_frame_place(first, count, (unsigned*)ot, (unsigned*)mark) : (u_long*)mark);
+        return 1;
     }
-    pc_classic_items_note(0);
-    if (!emit_placed) { /* (a frame of items alone has no table to link them in: left out) */
+    if (first >= 0 && pc_frame_count() > first && count > 0) /* (the items made, their reports not: given back) */
+        pc_frame_rewind(first);
+    if (pc_text_defer_packets)
+        pc_text_defer_packets();
+    pc_classic_items_note(0, lift_type);
+    if (!placed) { /* (a frame of items alone has no table to link them in: left out) */
         ++claim_items_dropped;
         psx_set(vs_scratch.unk0, (u_long*)mark);
-        return;
+        return 0;
     }
-    if (head != 0x00FFFFFF) { /* (as the packets: the chain's last links to what the slot held) */
-        unsigned* last = (unsigned*)guest.resolve(head, NULL);
+    if (lift_head != 0x00FFFFFF) { /* (as the packets: the chain's last links to what the slot held) */
+        unsigned* last = (unsigned*)guest.resolve(lift_head, NULL);
         while (last && (last[0] & 0xFFFFFF) != 0xFFFFFF)
             last = (unsigned*)guest.resolve(last[0], NULL);
         if (last)
             last[0] = (last[0] & 0xFF000000) | (ot[0] & 0xFFFFFF);
-        ot[0] = head & 0xFFFFFF;
+        ot[0] = lift_head & 0xFFFFFF;
     }
+    return 0;
+}
+/* In the frame's own table: `depth` words from vs_scratch.unk4, as the ordering-table slot the packets were linked at. */
+int pc_lift_at(int depth) { return pc_lift_end(depth, 1, (u_long*)psx_get(vs_scratch.unk4) + depth); }
+
+static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
+{
+    if (!emit_items || !bridged(c->type)) {
+        emit_command_packets(c, ot, kind, shadowed);
+        return;
+    }
+    lift_type = c->type;
+    emit_command_packets(c, pc_lift_begin(), kind, shadowed);
+    pc_lift_end(emit_depth, emit_placed, ot);
+    lift_type = -1;
 }
 static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
 {
@@ -1917,10 +1957,10 @@ static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int ki
             _renderDigit(c->a, (int)xy(c->x, c->y), c->b, ot);
             break;
         case PC_HUD_CMD_TEXT_RAW: { /* as the game calls it (func_800958A4: its string, place, colour word) */
-            void* first = psx_get(vs_scratch.unk0);
+            void* first = packet_cursor();
             vs_battle_renderTextRawColor(c->text, (int)xy(c->x, c->y), c->a, ot);
             if (c->font == 4 && restyle && pc_text_status_typeset)
-                pc_text_status_typeset(first, psx_get(vs_scratch.unk0), &c->typeset);
+                pc_text_status_typeset(first, packet_cursor(), &c->typeset);
             break;
         }
         case PC_HUD_CMD_RECT:
@@ -1957,7 +1997,7 @@ static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int ki
             button_background_packets(ot, c->x, c->y, c->w, c->h);
             break;
         case PC_HUD_CMD_PACKET: {
-            u_long* p = psx_get(vs_scratch.unk0);
+            u_long* p = packet_cursor();
             int words[15] = { c->a, c->b, c->c, c->d };
             int k, n = c->w < 1 ? 1 : c->w > 15 ? 15 : c->w;
             if (n > 4 && c->text)
@@ -2050,7 +2090,7 @@ static void classic_packets(const pc_hud_classic_cmd* cmds, int n, int anchor, i
     restyle = 1;
     emit_depth = 0; /* (a claim's scratch: the state proofs see none of it) */
     if (!shadowed && pc_hw_anchor_packets && anchor != PC_HUD_ANCHOR_GAME) /* placed by data: exactly, no heuristics */
-        pc_hw_anchor_packets(start, psx_get(vs_scratch.unk0),
+        pc_hw_anchor_packets(start, packet_cursor(),
             (anchor == PC_HUD_ANCHOR_LEFT ? PC_ANCHOR_LEFT_EDGE
                     : anchor == PC_HUD_ANCHOR_RIGHT ? PC_ANCHOR_RIGHT_EDGE
                                                     : PC_ANCHOR_CENTRE)
@@ -2108,9 +2148,9 @@ static int immediate_packets(const pc_hud_classic_cmd* cmds, int n, int kind, in
         }
         if (c->alpha <= 0.01f && c->type != PC_HUD_CMD_WINDOW && c->type != PC_HUD_CMD_BAR && c->type != PC_HUD_CMD_CURSOR)
             continue;
-        from = psx_get(vs_scratch.unk0);
+        from = packet_cursor();
         emit_command(c, &head, kind, !draw);
-        to = psx_get(vs_scratch.unk0);
+        to = packet_cursor();
         for (p = from; p < to; p += 1 + (p[0] >> 24)) {
             int words = (int)(p[0] >> 24), k;
             if (!words)
@@ -2254,8 +2294,8 @@ void pc_hud_panels_classic(void* otag)
         if (count > 0)
             classic_packets(cmds, count, anchor, PC_HUD_STATUS, 0);
     panel_first = panel_last = 0;
-    if (psx_get(vs_scratch.unk0) != start) {
+    if (packet_cursor() != start) {
         panel_first = psx_to_int(unsigned, start);
-        panel_last = psx_to_int(unsigned, psx_get(vs_scratch.unk0));
+        panel_last = psx_to_int(unsigned, packet_cursor());
     }
 }
