@@ -1466,7 +1466,7 @@ static void fill_snapshot(int with_preview)
     {
         /* _workshopMaterials (1055) by vs_battle_inWorkshop (146C.c:16710) */
         static char _workshopMaterials[] = { 0, 0xE, 0x18, 0x38, 0xC0, 0x3E, 0xFE };
-        u_char _currentWorkshop = psx_get(vs_battle_roomData.sectionB) != NULL ? vs_battle_inWorkshop() : 0;
+        u_char _currentWorkshop = vs_battle_roomData.sectionB != NULL ? vs_battle_inWorkshop() : 0;
         snap.workshop = _currentWorkshop;
         /* Divergence: an id past the table (none in the game's rooms) works nothing */
         snap.materials = _currentWorkshop < sizeof _workshopMaterials ? (u_char)_workshopMaterials[_currentWorkshop] : 0;

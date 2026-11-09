@@ -78,7 +78,7 @@ void pc_fast_travel_reset(void) { room_live = 0, trip.pending = 0; } /* (a trip 
 
 static vs_battle_actor2* ashley(void)
 {
-    if (!room_live || vs_battle_roomData.unk0 != 1 || psx_get(vs_battle_roomData.collisionMapSection) == NULL
+    if (!room_live || vs_battle_roomData.unk0 != 1 || vs_battle_roomData.collisionMapSection == NULL
         || vs_battle_characterState == NULL || vs_battle_actors[0] == NULL)
         return NULL;
     return vs_battle_characterState->unk3C;

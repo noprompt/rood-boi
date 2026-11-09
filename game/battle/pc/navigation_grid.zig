@@ -18,8 +18,8 @@ fn half(base: [*]u8, offset: usize) *align(1) u16 {
 /// (pc_unimplemented ends the game) and the function returns, where the
 /// oracle would write through a null grid.
 pub fn buildNavigationGrid() callconv(.c) void {
-    const address = c.func_8008B6FC();
-    const section: ?[*]u8 = if (address == 0) null else @ptrFromInt(@as(usize, address));
+    const section: ?[*]u8 = @ptrCast(c.func_8008B6FC());
+    const address = psx.addr(section); // the nav words below are 4-byte guest addresses
     v.g.D_800F58C0().* = address;
     v.g.D_800F58D8().* = address +% 0x400;
     v.g.D_800F58C8().* = address +% 0x440;

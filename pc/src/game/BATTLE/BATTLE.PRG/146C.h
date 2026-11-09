@@ -141,15 +141,15 @@ typedef struct {
     int unk0;
     int unk4;
     int unk8;
-    psx_ptr(int) unkC;
-    psx_ptr(int) unk10;
+    u_int unkC; /* from the section's start: the entries after the header */
+    u_int unk10; /* the same, past the first unk4 / 4 words; 0 when the section has no more */
     int unk14[0];
 } _mpdRoomSectionE;
 PSX_ASSERT_SIZE(_mpdRoomSectionE, 0x14);
 
 typedef struct {
     int visited;
-    psx_ptr(void) dataAddress;
+    u_int dataOffset; /* from the start of the scene: the room's data */
     short zoneId;
     short mapId;
 } vs_battle_room;
@@ -246,32 +246,31 @@ typedef struct {
         u_int section17Len;
         u_int section18Len;
     } header;
-    psx_ptr(int) geometrySection;
-    psx_ptr(_mpdRoomCollisionMapSection) collisionMapSection;
-    psx_ptr(_mpdRoomSection3) section3;
-    psx_ptr(_mpdRoomDoorSection_t) doorSection;
-    int lightingSection;
-    int section6;
-    int section7;
-    int section8;
-    psx_ptr(_mpdRoomSection9) section9;
-    psx_ptr(_mpdRoomSectionA) sectionA;
-    psx_ptr(_mpdRoomSectionB) sectionB;
-    int textureEffectsSection;
-    int sectionD;
-    psx_ptr(_mpdRoomSectionE) sectionE;
-    psx_ptr(vs_battle_scene) sectionF;
-    psx_ptr(u_short) section10;
-    psx_ptr(_mpdRoomSection11) section11;
-    psx_ptr(_mpdRoomSection12) section12;
-    psx_ptr(_mpdRoomSection13) section13;
-    psx_ptr(u_int) section14;
-    int section15;
-    int section16;
-    int section17;
-    psx_ptr(_zoneContextBounds) section18;
+    int* geometrySection;
+    _mpdRoomCollisionMapSection* collisionMapSection;
+    _mpdRoomSection3* section3;
+    _mpdRoomDoorSection_t* doorSection;
+    void* lightingSection;
+    void* section6;
+    void* section7;
+    void* section8;
+    _mpdRoomSection9* section9;
+    _mpdRoomSectionA* sectionA;
+    _mpdRoomSectionB* sectionB;
+    void* textureEffectsSection;
+    void* sectionD;
+    _mpdRoomSectionE* sectionE;
+    vs_battle_scene* sectionF;
+    u_short* section10;
+    _mpdRoomSection11* section11;
+    _mpdRoomSection12* section12;
+    _mpdRoomSection13* section13;
+    u_int* section14;
+    void* section15;
+    void* section16;
+    void* section17;
+    _zoneContextBounds* section18;
 } _mpdRoomSection;
-PSX_ASSERT_SIZE(_mpdRoomSection, 0xc4);
 
 typedef struct {
     /* 0x00 */ short class[2][8];
@@ -687,15 +686,15 @@ typedef struct {
 
 typedef struct {
     int zndId;
-    psx_ptr(vs_main_CdFile) mpdLbas;
+    vs_main_CdFile* mpdLbas;
     int zndEnemyCount;
-    psx_ptr(_zndEnemy) zndEnemies;
-    psx_ptr(vs_main_CdFile) zudFiles;
+    _zndEnemy* zndEnemies;
+    vs_main_CdFile* zudFiles;
     int unk14;
-    psx_ptr(vs_main_CdQueueSlot) unk18;
-    psx_ptr(void) unk1C;
-    psx_ptr(vs_main_CdQueueSlot) zndCdFile;
-    psx_ptr(void) zndData;
+    vs_main_CdQueueSlot* unk18;
+    void* unk1C;
+    vs_main_CdQueueSlot* zndCdFile;
+    void* zndData;
     int musicId;
     int musicSlot;
     int unk30;
@@ -708,13 +707,12 @@ typedef struct {
     int unk4C;
     int unk50;
     int unk54;
-    psx_ptr(vs_main_CdQueueSlot) mpdCdFile;
-    psx_ptr(void) mpdData;
+    vs_main_CdQueueSlot* mpdCdFile;
+    void* mpdData;
     u_int mpdEnemyCount;
-    psx_ptr(_mpdEnemy) mpdEnemies;
+    _mpdEnemy* mpdEnemies;
     int unk68;
 } _zoneContext_t;
-PSX_ASSERT_SIZE(_zoneContext_t, 0x6c);
 
 typedef struct {
     int unk0;
@@ -722,11 +720,6 @@ typedef struct {
     int unk8;
     int unkC;
 } D_800F1A68_t;
-
-typedef struct {
-    u_short unk0_0 : 10;
-    u_short unk0_10 : 6;
-} D_800F18E8_t;
 
 typedef struct {
     int yaw;
@@ -1077,7 +1070,6 @@ void vs_battle_exec(void);
 extern int vs_battle_mapCompletionFlags[];
 extern char vs_battle_loadObjectDataState;
 extern _zoneContext_t _zoneContext;
-extern D_800F18E8_t D_800F18E8;
 extern vs_battle_lootListNode* _lootListHead;
 extern vs_battle_actor* vs_battle_actors[];
 extern _sphericalCamera vs_battle_cameraCurrentSpherical;

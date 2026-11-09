@@ -4,7 +4,8 @@
 #include <sys/types.h>
 #include <libgte.h>
 #include <inline_c.h>
-extern unsigned char vs_battle_roomData[];
+/* dev_state.c: the room's lighting triangle table, and whether the room's lighting is enabled (its signed first byte) */
+extern const unsigned* pc_room_light_table(int* enabled);
 extern void pc_unimplemented(const char*);
 int func_80098C3C(unsigned position, unsigned char* color, const unsigned* triangle);
 

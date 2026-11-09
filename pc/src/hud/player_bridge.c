@@ -503,7 +503,7 @@ const pc_pq_bag* pc_player_bag(void)
 
 static int workshop_now(void)
 {
-    if (vs_battle_roomData.unk0 != 1 || psx_get(vs_battle_roomData.sectionB) == NULL)
+    if (vs_battle_roomData.unk0 != 1 || vs_battle_roomData.sectionB == NULL)
         return 0;
     return vs_battle_inWorkshop();
 }

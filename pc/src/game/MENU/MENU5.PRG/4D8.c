@@ -37,6 +37,8 @@ extern int pc_qol_map_invert;
 
 static int _loadArmFile(void);
 static int _menuManager(void);
+/* A room's data: its offset is from the scene's start. */
+#define vs_battle_roomDataOf(scene, room) ((void*)((char*)(scene) + (room)->dataOffset))
 static void _snapMapToRoom(vs_battle_scene* scene, int roomId);
 static void _scaleRoomVertices(vs_battle_scene* scene, int factor);
 static int _getCurrentRoomIndex(vs_battle_scene* scene);
@@ -1208,7 +1210,7 @@ static void _renderMap(vs_battle_scene* scene)
 
     for (i = 0; i < roomCount; ++i, ++room) {
         if (room->visited != 0) {
-            _renderRoom(i, psx_get(room->dataAddress), room->zoneId, room->mapId);
+            _renderRoom(i, vs_battle_roomDataOf(scene, room), room->zoneId, room->mapId);
         }
     }
 
@@ -1563,7 +1565,7 @@ static void _snapMapToRoom(vs_battle_scene* scene, int roomId)
     minCorner.vy = -0x8000;
     minCorner.vz = -0x8000;
 
-    roomVertices = psx_get(room[roomId].dataAddress);
+    roomVertices = vs_battle_roomDataOf(scene, &room[roomId]);
     roomCount = scene->roomCount;
     vertexCount = roomVertices->vertexCount;
     vector = roomVertices->vertices;
@@ -1595,7 +1597,7 @@ static void _snapMapToRoom(vs_battle_scene* scene, int roomId)
     _centerPoint.vy = minCorner.vy;
 
     for (j = 0; j < roomCount; ++j, ++room) {
-        roomVertices = psx_get(room->dataAddress);
+        roomVertices = vs_battle_roomDataOf(scene, room);
         vertexCount = roomVertices->vertexCount;
         vector = (SVECTOR*)roomVertices;
         vector = (SVECTOR*)((short*)vector + 2);
@@ -1629,7 +1631,7 @@ static void _setCenterpoint(vs_battle_scene* scene, int roomId)
     minCorner.vy = -0x8000;
     minCorner.vz = -0x8000;
 
-    roomVertices = psx_get(room[roomId].dataAddress);
+    roomVertices = vs_battle_roomDataOf(scene, &room[roomId]);
     roomCount = scene->roomCount;
     vertexCount = roomVertices->vertexCount;
     vector = roomVertices->vertices;
@@ -1743,7 +1745,7 @@ static void _smoothMapToCenterpoint(vs_battle_scene* scene)
     roomCount = scene->roomCount;
 
     for (i = 0; i < roomCount; ++i) {
-        dataAddress = psx_get(room->dataAddress);
+        dataAddress = vs_battle_roomDataOf(scene, room);
         vertexCount = dataAddress->vertexCount;
         vector = (SVECTOR*)dataAddress;
         vector = dataAddress->vertices;
@@ -1774,7 +1776,7 @@ static void _scaleRoomVertices(vs_battle_scene* scene, int factor)
     roomCount = scene->roomCount;
 
     for (i = 0; i < roomCount; ++i) {
-        roomVertices = psx_get(room->dataAddress);
+        roomVertices = vs_battle_roomDataOf(scene, room);
         vertextCount = roomVertices->vertexCount;
         vector = (SVECTOR*)roomVertices;
         vector = (SVECTOR*)((int*)vector + 1);
@@ -1840,7 +1842,7 @@ static int _getCurrentRoomIndex(vs_battle_scene* scene)
     int i;
 
     int roomCount = scene->roomCount;
-    vs_battle_room* room = psx_get(vs_battle_roomData.sectionF)->rooms;
+    vs_battle_room* room = vs_battle_roomData.sectionF->rooms;
     int zoneId = room->zoneId;
     int mapId = room->mapId;
     room = scene->rooms;

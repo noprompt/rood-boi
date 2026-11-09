@@ -24,14 +24,14 @@ pub fn loadMpdRoomSection(room: c_int, data: ?*anyopaque) callconv(.c) c_int {
     const heap = c.vs_main_allocHeap(size);
     c.vs_main_memcpy(heap, @ptrFromInt(@intFromPtr(data) + 0x60), size);
     size = 0;
-    // The 24 part pointers from geometrySection on, set by their raw words as the C's psx_set_raw does.
-    const parts: [*]u32 = @ptrCast(&rooms.geometrySection);
+    // The 24 part pointers from geometrySection on.
+    const parts: [*]?*anyopaque = @ptrCast(@alignCast(&rooms.geometrySection));
     i = 0;
     while (i < 24) : (i += 1) { // i < 24
         if (lengths[@intCast(i)] > 0) {
-            parts[@intCast(i)] = @truncate(@intFromPtr(heap) +% size);
+            parts[@intCast(i)] = @ptrFromInt(@intFromPtr(heap) +% size);
         } else {
-            parts[@intCast(i)] = 0;
+            parts[@intCast(i)] = null;
         }
         size +%= psx.conv(c_uint, lengths[@intCast(i)]);
     }
@@ -42,13 +42,12 @@ pub fn loadMpdRoomSection(room: c_int, data: ?*anyopaque) callconv(.c) c_int {
         c.func_8008B390(11, psx.get(rooms.geometrySection));
     }
     if (psx.get(rooms.sectionE)) |section| {
-        const after: *v._mpdRoomSectionE = psx.at(section, 1);
-        psx.put(&section.unkC, @as(*i32, @ptrCast(after)));
+        // Offsets from the section's start, not addresses: the section is file data with 4-byte slots.
+        section.unkC = @sizeOf(v._mpdRoomSectionE);
         if (section.unk8 > 0) {
-            psx.put(&section.unk10, @as(*i32, @ptrCast(after)));
-            psx.put(&section.unk10, psx.at(@as([*]i32, @ptrCast(psx.get(section.unk10).?)), section.unk4 >> 2));
+            section.unk10 = @sizeOf(v._mpdRoomSectionE) +% @as(u32, @bitCast(section.unk4 >> 2)) *% 4;
         } else {
-            psx.put(&section.unk10, null);
+            section.unk10 = 0;
         }
     }
     if (psx.get(rooms.collisionMapSection) != null) {

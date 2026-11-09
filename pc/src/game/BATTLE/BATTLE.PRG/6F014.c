@@ -89,7 +89,9 @@ extern effectExec D_800F56A8[];
 #ifndef ROOD_PC
 extern func_800CF0E8_t* D_800F5798;
 #endif
-extern D_800F569C_t D_800F57A0;
+/* Defined here with D_800F56C8: the two contexts mix words with pointers, so they cannot be LP64 imports. */
+D_800F569C_t D_800F57A0;
+D_800F569C_t D_800F56C8;
 extern int D_800F5874;
 extern vs_battle_aiState* D_800F5878[];
 extern u_short (*D_800F58B8)[32];

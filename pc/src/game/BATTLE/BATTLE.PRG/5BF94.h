@@ -332,25 +332,24 @@ typedef struct {
 typedef struct {
     int unk0;
     int unk4;
-    psx_ptr(pFileBlock5) block5Data;
-    psx_ptr(u_char) curves[32];
-    psx_ptr(pFileCurveBlock) curveBlock;
-    psx_ptr(char) block8Data;
+    pFileBlock5* block5Data;
+    u_char* curves[32];
+    pFileCurveBlock* curveBlock;
+    char* block8Data;
     int block1TableCount;
-    psx_ptr(pFileBlock1Indices) block1Tables[4];
-    psx_ptr(pFileBlock1Data) block1Data;
+    pFileBlock1Indices* block1Tables[4];
+    pFileBlock1Data* block1Data;
     int block2Count;
-    psx_ptr(u_short) block2Data;
-    psx_ptr(pFileBlock9) block9Data;
-    psx_ptr(void) block10Data;
-    psx_ptr(pFileBlock3) block3Data;
-    psx_ptr(u_char) block11Data;
-    psx_ptr(void) block12Data;
-    psx_ptr(void) block13Data;
+    u_short* block2Data;
+    pFileBlock9* block9Data;
+    void* block10Data;
+    pFileBlock3* block3Data;
+    u_char* block11Data;
+    void* block12Data;
+    void* block13Data;
     int unkCC;
-    psx_ptr(void) unkD0;
+    void* unkD0;
 } D_800F569C_t;
-PSX_ASSERT_SIZE(D_800F569C_t, 0xd4);
 
 typedef struct {
     VECTOR position;

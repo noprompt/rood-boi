@@ -48,16 +48,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned char vs_battle_roomData[] __attribute__((weak));
+/* dev_state.c: the loaded room's blocks */
+extern const unsigned char* pc_room_geometry(unsigned* length) __attribute__((weak));
+extern const unsigned char* pc_room_effects(unsigned* length) __attribute__((weak));
 /* The game's effect slots: 12 bytes each (active, type, enabled, -, entry,
  * -); D_800F225A: slots in use. */
 extern unsigned char D_800F1DD8[] __attribute__((weak));
 extern char D_800F225A __attribute__((weak));
 void pc_scene_uv_refresh(void);
 
-#define ROOM_GEOMETRY 0x64 /* vs_battle_roomData.geometrySection */
-#define ROOM_EFFECTS 0x90 /* .textureEffectsSection */
-#define ROOM_EFFECTS_LEN 0x30 /* .header.textureEffectsSectionLen */
 
 /* 0: no effect is modelled (every rewrite re-decodes the meshes, the
  * behaviour before animated materials; for comparisons). ROOD_UV_EFFECTS
@@ -85,8 +84,8 @@ static const int u_byte[4] = { 0x18, 0x1c, 0x13, 0x23 }, v_byte[4] = { 0x19, 0x1
 
 static const unsigned char* effect_section(unsigned* length)
 {
-    *length = *(const unsigned*)(vs_battle_roomData + ROOM_EFFECTS_LEN);
-    return (int)*length > 0 ? psx_load(const unsigned char*, vs_battle_roomData + ROOM_EFFECTS) : NULL;
+    const unsigned char* section = pc_room_effects(length);
+    return (int)*length > 0 ? section : NULL;
 }
 /* The effect entries' fields that never change while the room is shown
  * (positions and tick counters do). */
@@ -141,7 +140,8 @@ static void parse(const unsigned char* data, const unsigned char* section, unsig
 {
     static const int sizes[7] = { 24, 20, 32, 0, 0, 0, 36 };
     effect_count = 0;
-    unsigned geometry_length = *(const unsigned*)(vs_battle_roomData + 4);
+    unsigned geometry_length;
+    pc_room_geometry(&geometry_length);
     int slot = 0;
     for (unsigned at = 0; section && at < length; slot++) {
         const unsigned char* e = section + at;
@@ -327,13 +327,14 @@ static void update(const unsigned char* data)
 
 int pc_uv_effects_frame(const void* data)
 {
-    if (!vs_battle_roomData || !data)
+    if (!pc_room_geometry || !data)
         return 0;
     if (pc_uv_effects_enabled < 0) {
         const char* env = getenv("ROOD_UV_EFFECTS");
         pc_uv_effects_enabled = !env || atoi(env) != 0;
     }
-    const unsigned char* geometry = psx_load(const unsigned char*, vs_battle_roomData + ROOM_GEOMETRY);
+    unsigned geometry_length;
+    const unsigned char* geometry = pc_room_geometry(&geometry_length);
     if (geometry != data)
         return effect_count; /* another block (func_8008E19C's) */
     unsigned length;

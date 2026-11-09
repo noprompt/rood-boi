@@ -1423,7 +1423,7 @@ int pc_ui_menuf_debug_open(int submenu, int boss)
 void func_80074050(_mpdRoomSectionA* arg0, int arg1); /* BATTLE 146C.c */
 static _mpdRoomSection13* room_chest(int index, int* count)
 {
-    _mpdRoomSection13* chests = psx_get(vs_battle_roomData.section13);
+    _mpdRoomSection13* chests = vs_battle_roomData.section13;
     *count = chests != NULL ? (int)(vs_battle_roomData.header.section13Len / sizeof *chests) : 0;
     return index >= 0 && index < *count ? &chests[index] : NULL;
 }

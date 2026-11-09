@@ -4,6 +4,9 @@ const psx = @import("common").psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
+/// The object actor's data: the header, eight bone records and three words (vs_battle_actor_dat2 from unk9B4).
+const object_bytes: usize = @offsetOf(v.D_800F45E0_t, "unk6C") + 8 * @sizeOf(v.D_800F4538_t2) + 12;
+
 /// orig: func_8009998C (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Sets up battle object `arg0`'s data block: copies a matching object's block, or builds its own.
 pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
@@ -17,7 +20,7 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     psx.at(t, obj.index).* = fetched;
     const s1 = fetched orelse return -2;
 
-    _ = c.memset(@as(?*anyopaque, @ptrCast(s1)), @as(c_int, 0), @as(usize, 0x178));
+    _ = c.memset(@as(?*anyopaque, @ptrCast(s1)), @as(c_int, 0), object_bytes);
 
     var found = false;
     var i: c_int = 0;
@@ -34,7 +37,7 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     }
 
     if (found) {
-        c.vs_main_memcpy(@ptrCast(s1), @ptrCast(psx.at(t, obj.dataAddr).*), 0x178);
+        c.vs_main_memcpy(@ptrCast(s1), @ptrCast(psx.at(t, obj.dataAddr).*), @intCast(object_bytes));
     } else {
         const idx = v.g.D_800E919C()[obj.actorId];
         const ent: *v.D_800E8FB4_t = @ptrCast(@alignCast(psx.at(v.g.D_800E8FB4(), idx).*.?));
@@ -85,7 +88,7 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     s1.unk64.unk0 = 0;
     psx.setBits(s1, "unk8_0", 1);
     psx.setBits(s1, "unk8_1", 0);
-    psx.fieldAt(i32, &s1.unk5C, 0).* = psx.byteAt(i32, obj, 0xC).*;
+    psx.fieldAt(i32, &s1.unk5C, 0).* = psx.fieldAt(i32, &obj.unkC, 0).*;
     s1.unk5F = 0;
     s1.unk1C = psx.conv(i16, (@as(c_int, s1.unk5C) << 7) +% 0x40);
     s1.unk20 = psx.conv(i16, (@as(c_int, s1.unk5E) << 7) +% 0x40);

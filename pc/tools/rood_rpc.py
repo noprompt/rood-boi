@@ -7,7 +7,7 @@ Python:
     game.wait_title()
     game.press("start"); game.run(120)              # run 120 vsyncs, then pause
     print(game.state()); game.screenshot("shot.png")
-    game.read_symbol("D_800F18B0", 4)
+    game.read_symbol("randIndex", 4)
     game.close()
 
 CLI:
@@ -693,6 +693,19 @@ class Game:
         """An offset in a D_800F4538_t, exported by the game; `old` is the PS1 layout's, for a baseline older than the export."""
         sym = symbols().get(f"pc_object_offset_{name}")
         return int.from_bytes(self.read(sym, 4), "little") if sym else old
+
+    def room_u32(self, name, old):
+        """A word of the room record (vs_battle_roomData): its state byte or a section length. `old`: the PS1 offset."""
+        sym = symbols().get(f"pc_room_offset_{name}")
+        offset = int.from_bytes(self.read(sym, 4), "little") if sym else old
+        return int.from_bytes(self.read(symbols()["vs_battle_roomData"] + offset, 4), "little")
+
+    def room_pointer(self, name, old):
+        """A section pointer of the room record (a host pointer on 64 bits, a guest word before)."""
+        sym = symbols().get(f"pc_room_offset_{name}")
+        offset = int.from_bytes(self.read(sym, 4), "little") if sym else old
+        width = 8 if sym and os.environ.get("ROOD_ARCH") == "64" else 4
+        return int.from_bytes(self.read(symbols()["vs_battle_roomData"] + offset, width), "little")
 
     def actor_stats(self, actor):
         """The actor's stats record address (vs_battle_actor.unk3C: a host pointer, a guest word in old builds)."""

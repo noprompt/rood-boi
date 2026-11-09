@@ -79,16 +79,16 @@ int func_800FA7B0(func_800D4910_t* arg0, u_int arg1, int arg2)
         state->height = 0;
         state->angle = 0;
         state->age = 0;
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         func_800D6CCC((int*)(&state->texture));
         func_800D6CF0(&state->texture, effect->unkCA, effect->unkCB);
         break;
 
     case 2: {
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         scratch->flags = effect->flags;
         actorMatrix = &battle->unk1C[effect->unkC8].unk38;
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         column = vs_battle_sampleCurve(effect->unk17, state->age);
         fraction = func_800CFE1C(effect->unk30, column);
         column = ((u_char*)effect)[7];
@@ -217,7 +217,7 @@ int func_800FA7B0(func_800D4910_t* arg0, u_int arg1, int arg2)
 
         func_800D6D24(&state->texture);
         texture =
-            &psx_get(D_800F569C->block1Data)[psx_get(state->texture.unk1C)->dataIndex];
+            &D_800F569C->block1Data[psx_get(state->texture.unk1C)->dataIndex];
         for (column = 0; column < 17; ++column)
             u[column] = texture->u0 + ((texture->u1 * column) / 16);
 

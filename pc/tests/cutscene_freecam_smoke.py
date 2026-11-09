@@ -275,8 +275,7 @@ def main():
 
         # ---- a group an event script hides stays hidden from the free camera ----
         scene(COURTYARD, 300)
-        raw = game.read_symbol("vs_battle_roomData", ROOM_GEOMETRY + 4)
-        geometry = struct.unpack_from("<I", raw, ROOM_GEOMETRY)[0]
+        geometry = game.room_pointer("geometrySection", ROOM_GEOMETRY)
         count = struct.unpack("<I", game.read(geometry, 4))[0]
         groups = game.call("room_groups")["groups"]
         shown = [i for i, x in enumerate(groups) if not x["black"] and not x["flags"] & 0x100

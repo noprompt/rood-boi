@@ -59,7 +59,7 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         state->xSpacing = state->xSpeed = 0;
         state->zSpacing = state->zSpeed = 0;
         state->xPhase = state->zPhase = 0;
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         state->tpage =
             ((effect->unkCA & 7) | ((((u_int*)effect)[1] >> 21) & 0xE0)) + 0x18;
         state->clut = ((effect->unkCB & 7) << 6) | 0x3C30;
@@ -68,7 +68,7 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         state->uScroll = state->vScroll = 0;
         break;
     case 2:
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         scratch->flags = effect->flags;
         matrix = &battle->unk1C[effect->unkC8].unk38;
         vs_battle_lerpVector(effect->unk18,

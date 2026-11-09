@@ -27,7 +27,7 @@ typedef struct {
     u_char dataType;
     signed char index;
     short modelId;
-    psx_ptr(void) unk4;
+    void* unk4;
     u_long dataAddr;
     vs_battle_objectData_flags unkC;
     u_char actorId;
@@ -35,7 +35,6 @@ typedef struct {
     char material;
     char variant;
 } vs_battle_objectData;
-PSX_ASSERT_SIZE(vs_battle_objectData, 0x14);
 
 int vs_battle_clamp(short arg0, int arg1, int arg2);
 void func_80091314(int);

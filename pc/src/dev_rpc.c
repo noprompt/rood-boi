@@ -589,6 +589,7 @@ extern int pc_scene_dump(const char*) __attribute__((weak));
 extern void pc_scene_bounds(float*, float*) __attribute__((weak));
 extern int pc_scene_camera_get(float (*)[3], float*, float*, float*, float*) __attribute__((weak));
 extern void pc_rpc_state(char* out, unsigned size) __attribute__((weak)); /* dev_state.c */
+extern void pc_rpc_battle_state(char* out, unsigned size) __attribute__((weak)); /* dev_state.c */
 extern int pc_qol_weapon_slots; /* project_settings.cpp */
 extern int pc_qol_map_invert, pc_qol_fp_invert_y, pc_qol_map_controls; /* project_settings.cpp */
 extern int pc_qol_confirm_cross, pc_qol_field_cross_attack; /* project_settings.cpp */
@@ -4290,6 +4291,14 @@ static void handle_method(int fd, const char* request)
             return;
         }
         pc_rpc_state(result, sizeof result);
+        reply(fd, id, result);
+    } else if (!strcmp(method, "battle_state")) {
+        /* {} every actor slot's named fields (actor record, stats, object, AI state), for comparing two builds. */
+        if (!pc_rpc_battle_state) {
+            fail(fd, id, -32000, "battle_state needs the battle build");
+            return;
+        }
+        pc_rpc_battle_state(result, sizeof result);
         reply(fd, id, result);
     } else if (!strcmp(method, "quit")) {
         /* {} the clean quit; {to: "title" | "desktop"} (quit_options.h): the soft reset's path / the window's close

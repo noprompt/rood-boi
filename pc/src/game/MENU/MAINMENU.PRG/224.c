@@ -32,7 +32,7 @@ void func_800F9A78(int arg0)
     sp10.index = 1;
     sp10.modelId = temp_s2->unk6E6;
     sp10.dataAddr = arg0;
-    psx_set(sp10.unk4, temp_s3);
+    sp10.unk4 = temp_s3;
     sp10.actorId = 0xFF;
     sp10.variant = temp_s2->unk0.unk10;
     sp10.material = 0;
@@ -46,7 +46,7 @@ void func_800F9A78(int arg0)
         sp10.index = 16;
         sp10.modelId = temp_s0->unk6E6;
         sp10.dataAddr = temp_s2->unk17FD;
-        psx_set(sp10.unk4, temp_v0);
+        sp10.unk4 = temp_v0;
         sp10.actorId = 1;
         sp10.unk11 = 0xFC;
         sp10.variant = temp_s2->unk0.unk10;
@@ -64,7 +64,7 @@ void func_800F9A78(int arg0)
             sp10.index = i + 2;
             sp10.modelId = temp_s0->modelId;
             sp10.dataAddr = arg0 * 2 + i;
-            psx_set(sp10.unk4, temp_v0);
+            sp10.unk4 = temp_v0;
             sp10.actorId = 1;
             sp10.unk11 = temp_s0->unkC;
             sp10.material = temp_s0->material;

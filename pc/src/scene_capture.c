@@ -30,14 +30,13 @@ extern unsigned int CFC2(int reg);
 /* The game's room (vs_battle_roomData, BATTLE 146C.h _mpdRoomSection):
  * unk0 is 1 while a room is loaded (func_8008AB80, func_8008ABF0),
  * header.geometrySectionLen the geometry section's size, geometrySection
- * the block func_8009723C draws (a 4-byte guest pointer on every build).
+ * the block func_8009723C draws.
  * A room change frees the block and clears all of it (func_8008ABF0); the
  * disc then reads the next room, possibly into the freed memory, and
  * _loadMpdRoomSection sets the new block only once it is copied whole. */
-extern unsigned char vs_battle_roomData[] __attribute__((weak));
-#define ROOM_LOADED 0x00
-#define ROOM_GEOMETRY_LEN 0x04
-#define ROOM_GEOMETRY 0x64
+/* dev_state.c: the loaded room and its geometry block */
+extern int pc_room_loaded(void) __attribute__((weak));
+extern const unsigned char* pc_room_geometry(unsigned* length) __attribute__((weak));
 #define ROOM_GROUPS_MAX 4096
 
 static scene_triangle* triangles;
@@ -93,10 +92,10 @@ static void decode(const unsigned* poly, unsigned shift, int out[4][3], int quad
  * room is loaded (or the block is too small for its group records). */
 static const unsigned char* live_block(unsigned* length)
 {
-    if (!vs_battle_roomData || vs_battle_roomData[ROOM_LOADED] != 1)
+    if (!pc_room_loaded || !pc_room_loaded())
         return NULL;
-    const unsigned char* data = psx_load(const unsigned char*, vs_battle_roomData + ROOM_GEOMETRY);
-    unsigned size = *(const unsigned*)(vs_battle_roomData + ROOM_GEOMETRY_LEN);
+    unsigned size;
+    const unsigned char* data = pc_room_geometry(&size);
     if (!data || size < 4 || size > 0x200000)
         return NULL;
     unsigned count = *(const unsigned*)data;

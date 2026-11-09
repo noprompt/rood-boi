@@ -1010,7 +1010,6 @@ pub const func_8008BC04 = @import("func_8008BC04.zig");
 pub const func_8008BEBC = @import("func_8008BEBC.zig");
 pub const func_8008BF48 = @import("func_8008BF48.zig");
 pub const func_8008C070 = @import("func_8008C070.zig");
-pub const func_8008C478 = @import("func_8008C478.zig");
 pub const func_8008C49C = @import("func_8008C49C.zig");
 pub const func_8008C518 = @import("func_8008C518.zig");
 pub const func_8008D658 = @import("func_8008D658.zig");

@@ -4,11 +4,11 @@ const v = @import("views_battle_helpers");
 
 /// orig: func_80099514 (pc/src/battle_helpers.c)
 /// Unpacks a 4x4 collision tile value at (x, z) from the selected height
-/// layer of the room map (the guest pointer at roomData + 0x68): a cell index
+/// layer of the room map (roomData.collisionMapSection): a cell index
 /// from the map's row width, the tile's 16-byte pattern, and the cell's
 /// height offset (bits 11-15) added to the tile value, keeping its sign bit.
 pub fn heightTileValue(x: c_uint, z: c_uint, layer: c_uint) callconv(.c) c_int {
-    const map: [*]align(1) i16 = @ptrFromInt(@as(usize, psx.byteAt(u32, v.g.vs_battle_roomData(), 0x68).*));
+    const map: [*]align(1) i16 = @ptrCast(psx.get(v.g.vs_battle_roomData().collisionMapSection).?);
     const cells: c_uint = psx.conv(c_uint, map[3]);
     const cell: c_uint = psx.conv(c_uint, map[0]) *% (z >> 2) +% (x >> 2);
     const packed_cell: c_uint = @as(u16, @bitCast(map[@as(usize, 4 +% layer *% cells +% cell)]));

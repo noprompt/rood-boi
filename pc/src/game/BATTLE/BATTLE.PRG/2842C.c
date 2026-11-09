@@ -283,7 +283,7 @@ void func_80090C2C(int arg0);
  * this a render-only query: the original weather update remains unchanged. */
 int pc_weather_raining(void)
 {
-    return psx_get(vs_battle_roomData.sectionB) != NULL && D_800F1DCA == 1;
+    return vs_battle_roomData.sectionB != NULL && D_800F1DCA == 1;
 }
 #endif
 
@@ -517,4 +517,7 @@ void func_8009722C(void);
 
 #ifdef ROOD_PC
 #include "pc/src/room_callbacks.inc"
+
+/* Defined here: the slots mix words with a pointer, so they cannot be an LP64 import. */
+vs_battle_objectData vs_battle_objectDataSlots[16];
 #endif

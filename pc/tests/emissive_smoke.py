@@ -115,9 +115,8 @@ def window_camera(game, yaw=270):
 
 
 def show_platforms(game):
-    data = game.read_symbol("vs_battle_roomData", 0xB0)
-    table = struct.unpack("<I", data[0xA8:0xAC])[0]
-    count = struct.unpack("<I", data[0x48:0x4C])[0] // 184
+    table = game.room_pointer("section12", 0xA8)
+    count = game.room_u32("section12Len", 0x48) // 184
     for i in range(count):
         word = struct.unpack("<I", game.read(table + i * 184, 4))[0]
         game.write(table + i * 184, struct.pack("<I", word & ~(1 << 9)))
@@ -513,8 +512,7 @@ def object_light_tests(game, out, check):
         check(False, "warped to zone 32 room 3")
         return
     show_platforms(game)
-    data = game.read_symbol("vs_battle_roomData", 0xB0)
-    table = struct.unpack("<I", data[0xA8:0xAC])[0]
+    table = game.room_pointer("section12", 0xA8)
     x, altitude, z = (v / 4096 for v in struct.unpack("<iii", game.read(table + 0xA8, 12)))
     game.call("editor_camera", x=x, y=-altitude - 500, z=z - 600, yaw=0, pitch=-35)
     actor = struct.unpack("<I", game.read_symbol("D_800F4538", 4))[0]  # Ashley's record: position at 0x1C

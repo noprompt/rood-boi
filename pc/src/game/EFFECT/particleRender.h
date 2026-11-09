@@ -70,7 +70,7 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
 
     func_800D6D24(&arg3->unk10);
 
-    texture = &psx_get(D_800F569C->block1Data)[psx_get(arg3->unk10.unk1C)->dataIndex];
+    texture = &D_800F569C->block1Data[psx_get(arg3->unk10.unk1C)->dataIndex];
 
     for (particleIndex = 0; particleIndex < arg3->unk2; ++particleIndex) {
 

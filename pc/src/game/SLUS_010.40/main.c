@@ -8430,7 +8430,7 @@ void func_80042CB0(void)
     D_80061068.unk6_10 = sp10.unk0.unk0.fields.unk0_16;
     D_80061068.unk2.unk0_13 = sp10.unk0.unk0.fields.unk0_8;
     D_80061068.unk4_13 = sp10.unk0.unk0.fields.unk0_24 >> 6;
-    D_80061068.unk6_0 = D_800F18E8.unk0_0;
+    D_80061068.unk6_0 = _zoneContext.unk68 & 0x3FF;
 
     for (var_s1 = 0; var_s1 < 32; ++var_s1) {
         for (actionsLearned = 0, i = 0; i < 8; ++i) {

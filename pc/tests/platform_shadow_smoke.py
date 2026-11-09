@@ -137,9 +137,8 @@ def main():
         if (state["zone"], state["room"]) != (ZONE, ROOM):
             check(False, f"warped to zone {ZONE} room {ROOM} ({state['zone']}/{state['room']})")
             return 1
-        data = game.read_symbol("vs_battle_roomData", 0xB0)
-        table = struct.unpack("<I", data[SECTION12:SECTION12 + 4])[0]
-        count = struct.unpack("<I", data[SECTION12_LEN:SECTION12_LEN + 4])[0] // ENTRY
+        table = game.room_pointer("section12", SECTION12)
+        count = game.room_u32("section12Len", SECTION12_LEN) // ENTRY
         check(table != 0 and count >= 1, f"the room has moving platforms ({count})")
         if not table or not count:
             return 1

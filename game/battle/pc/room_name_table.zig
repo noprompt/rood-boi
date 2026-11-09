@@ -1,6 +1,5 @@
 //! Room-name table setup (D2: 2EA3C.s; oracle pc/src/room_geometry.c).
 const c = @import("c_room_geometry");
-const psx = @import("common").psx;
 
 /// orig: vs_battle_initSceneAndGetRoomNames (pc/src/room_geometry.c)
 /// Turns each 12-byte entry's size (word 1) into a pointer to its name and
@@ -14,7 +13,7 @@ pub fn initSceneAndGetRoomNames(table: [*]c_uint) callconv(.c) [*]u8 {
     while (i < count) : (i +%= 1) {
         const entry: [*]c_uint = @ptrCast(@alignCast(@as([*]u8, @ptrFromInt(@intFromPtr(entries) +% @as(usize, i *% 12)))));
         const size: c_uint = entry[1];
-        entry[1] = psx.addr(name);
+        entry[1] = @truncate(@intFromPtr(name) -% @intFromPtr(table)); // from the table's start
         name = @ptrFromInt(@intFromPtr(name) +% @as(usize, size));
     }
     return name;

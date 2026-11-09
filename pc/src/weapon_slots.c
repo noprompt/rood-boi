@@ -264,7 +264,7 @@ static void queue_entry(vs_battle_objectData** q, int direct, int type, int inde
     e->index = index;
     e->modelId = model;
     if (type == 3)
-        psx_set(e->unk4, vs_battle_characterState->unk48[index]);
+        e->unk4 = vs_battle_characterState->unk48[index];
     e->actorId = 0;
     if (type == 3) {
         e->unk11 = 240 + index;

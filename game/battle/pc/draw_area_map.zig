@@ -36,7 +36,7 @@ pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
     var room: c_uint = 0;
     while (room < count) : (room +%= 1) {
         const entry = advance(table, 1 +% @as(usize, room) *% 3);
-        var data: [*]c_uint = @ptrFromInt(@as(usize, entry[1]));
+        var data: [*]c_uint = @ptrFromInt(@intFromPtr(table) +% entry[1]); // the entry holds the room's offset from the table
         if (entry[0] == 0 or data[0] == 0) continue;
         const vertices: c_int = @bitCast(data[0]);
         data += 1;
@@ -58,7 +58,7 @@ pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
             out[1] = c.MFC2(13);
             out[2] = c.MFC2(14);
         }
-        const base: [*]c_uint = @ptrFromInt(@as(usize, entry[1]));
+        const base: [*]c_uint = @ptrFromInt(@intFromPtr(table) +% entry[1]);
         data = @ptrFromInt(@intFromPtr(base) +% @as(usize, @bitCast(@as(isize, 1 +% vertices *% 2))) *% 4);
         var n: c_uint = data[0];
         data += 1;

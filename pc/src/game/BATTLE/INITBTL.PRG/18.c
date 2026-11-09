@@ -540,11 +540,11 @@ void func_800FA35C(int startState __attribute__((unused)))
     _zoneContext.unk38 = 0;
     _zoneContext.mapId = 0;
     _zoneContext.zndId = 0;
-    psx_set(_zoneContext.unk18, 0);
-    psx_set(_zoneContext.mpdCdFile, NULL);
-    psx_set(_zoneContext.zndCdFile, NULL);
-    psx_set(_zoneContext.mpdData, NULL);
-    psx_set(_zoneContext.zndData, NULL);
+    _zoneContext.unk18 = 0;
+    _zoneContext.mpdCdFile = NULL;
+    _zoneContext.zndCdFile = NULL;
+    _zoneContext.mpdData = NULL;
+    _zoneContext.zndData = NULL;
     _zoneContext.musicSlot = 0;
     _zoneContext.musicId = 0;
     _zoneContext.unk30 = 1;

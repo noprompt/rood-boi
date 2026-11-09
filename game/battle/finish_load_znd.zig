@@ -37,7 +37,7 @@ pub fn finishLoadZnd(id: c_int) callconv(.c) void {
         c.func_800BEB9C(0);
     }
     if (c.vs_main_getCurrentMusicId() != musicId) {
-        if (v.g.D_800F18B0().* != 0) {
+        if (v.g._zoneContext().unk30 != 0) {
             c.vs_main_stopMusic();
             var i: c_int = 0;
             while (i < 4) {

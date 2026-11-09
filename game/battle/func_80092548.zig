@@ -19,7 +19,7 @@ pub fn func_80092548() callconv(.c) void {
     v.g.D_800F1D00().* = 0;
     v.g.D_800F225A().* = 0;
     if (psx.conv(c_int, room.header.textureEffectsSectionLen) > 0) {
-        var data: usize = @as(usize, psx.conv(u32, room.textureEffectsSection));
+        var data: usize = @intFromPtr(room.textureEffectsSection);
         const total: c_int = psx.conv(c_int, room.header.textureEffectsSectionLen);
         var consumed: c_int = 0;
         var index: c_int = 0;
@@ -46,7 +46,7 @@ pub fn func_80092548() callconv(.c) void {
 
     v.g.D_800F225B().* = 0;
     if (psx.conv(c_int, room.header.sectionDLen) > 0) {
-        var data: usize = @as(usize, psx.conv(u32, room.sectionD));
+        var data: usize = @intFromPtr(room.sectionD);
         const total: c_int = psx.conv(c_int, room.header.sectionDLen);
         var offset: c_int = 0;
         var count: c_int = 64;

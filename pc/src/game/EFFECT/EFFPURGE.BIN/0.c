@@ -918,11 +918,11 @@ void vs_effpurge_exec(void)
     _configurePlg();
     vs_battle_pFileLoadContext = _pFiles[D_800F5230.effectId];
     func_800D2698(255);
-    psx_set(D_800F569C->block9Data, NULL);
-    psx_set(D_800F56C8.curveBlock, NULL);
-    psx_set(D_800F56C8.block11Data, NULL);
-    psx_set(D_800F56C8.block12Data, NULL);
-    psx_set(D_800F56C8.block13Data, NULL);
+    D_800F569C->block9Data = NULL;
+    D_800F56C8.curveBlock = NULL;
+    D_800F56C8.block11Data = NULL;
+    D_800F56C8.block12Data = NULL;
+    D_800F56C8.block13Data = NULL;
 }
 
 static void _configureFb(void)

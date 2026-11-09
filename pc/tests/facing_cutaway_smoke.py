@@ -323,8 +323,7 @@ def main():
                     break
                 turn("save-turn-back")
             # The save room's door to room 12 (index 2) leads to room 13 instead.
-            data = symbols()["vs_battle_roomData"]
-            doors = u32(data + 0x70)
+            doors = game.room_pointer("doorSection", 0x70)
             entry = bytearray(game.read(doors + 2 * 12, 12))
             if entry[1] != 12:
                 check(False, f"the save room's third door leads to room 12 ({entry[1]})")

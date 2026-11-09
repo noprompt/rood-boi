@@ -48,13 +48,13 @@ pub fn func_800738E4() callconv(.c) void {
 
     const sound = v.g.vs_main_soundData();
     if (sound.unk4 == 0xFFFF) {
-        if (v.g.D_800F18AC().* != 0) {
-            _ = c.func_80045000(v.g.D_800F18AC().*, 0x7F, 0);
+        if (v.g._zoneContext().musicSlot != 0) {
+            _ = c.func_80045000(v.g._zoneContext().musicSlot, 0x7F, 0);
         }
-    } else if (v.g.D_800F18AC().* != 0 and
-        sound.unk4 == psx.at(&sound.unk14, v.g.D_800F18AC().* -% 1).*)
+    } else if (v.g._zoneContext().musicSlot != 0 and
+        sound.unk4 == psx.at(&sound.unk14, v.g._zoneContext().musicSlot -% 1).*)
     {
-        _ = c.func_8004552C(v.g.D_800F18AC().*, 0x7F, 0x3C);
+        _ = c.func_8004552C(v.g._zoneContext().musicSlot, 0x7F, 0x3C);
     }
     c.func_8006F5CC();
 }

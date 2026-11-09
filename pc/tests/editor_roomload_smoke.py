@@ -81,10 +81,9 @@ def main():
     def live():
         """The game's loaded room block: (group count, first group's
         position) or None while no room is loaded."""
-        raw = game.read_symbol("vs_battle_roomData", ROOM_GEOMETRY + 4)
-        geometry = struct.unpack_from("<I", raw, ROOM_GEOMETRY)[0]
-        length = struct.unpack_from("<I", raw, ROOM_GEOMETRY_LEN)[0]
-        if raw[ROOM_STATE] != 1 or not geometry or length < 4:
+        geometry = game.room_pointer("geometrySection", ROOM_GEOMETRY)
+        length = game.room_u32("geometrySectionLen", ROOM_GEOMETRY_LEN)
+        if game.room_u32("unk0", ROOM_STATE) & 0xFF != 1 or not geometry or length < 4:
             return None
         count = struct.unpack("<I", game.read(geometry, 4))[0]
         position = list(struct.unpack("<3i", game.read(geometry + 8, 12))) if 0 < count <= 4096 else None

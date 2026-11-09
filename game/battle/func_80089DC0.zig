@@ -69,14 +69,11 @@ pub fn func_80089DC0(arg0: c_int) callconv(.c) void {
     }
 
     {
-        const roomCtx = v.g.D_800F18C8();
-        roomCtx.unk0 = 0;
-        const unk8Words: [*]i16 = @ptrCast(&roomCtx.unk8);
-        roomCtx.unk2 = 0;
-        roomCtx.unk4 = 0;
-        roomCtx.unk8 = 0;
-        unk8Words[1] = 0;
-        unk8Words[2] = 0;
+        // The zone's unk48..unk54 words: the first and third cleared whole, the second's and fourth's low halves.
+        zone.unk48 = 0;
+        zone.unk4C = @bitCast(@as(u32, @bitCast(zone.unk4C)) & 0xFFFF0000);
+        zone.unk50 = 0;
+        zone.unk54 = @bitCast(@as(u32, @bitCast(zone.unk54)) & 0xFFFF0000);
     }
 
     c.func_80048EC4();
@@ -112,7 +109,7 @@ pub fn func_80089DC0(arg0: c_int) callconv(.c) void {
 
     c.vs_main_freeHeapR(mpdHeader);
 
-    v.g.D_800F18C8().unk14 = 0;
+    psx.put(&zone.mpdData, null);
 
     c.func_80089A00();
     c.func_80089888();
@@ -207,8 +204,8 @@ pub fn func_80089DC0(arg0: c_int) callconv(.c) void {
             c.func_80093A14();
             c.func_8006F5CC();
             c.func_800CB654(0);
-            if (v.g.D_800F18AC().* != 0) {
-                _ = c.func_80045000(v.g.D_800F18AC().*, 0x7F, 0);
+            if (v.g._zoneContext().musicSlot != 0) {
+                _ = c.func_80045000(v.g._zoneContext().musicSlot, 0x7F, 0);
             }
             v.g.vs_battle_screenTransitionStep().* = 4;
             c.func_80089CE4();

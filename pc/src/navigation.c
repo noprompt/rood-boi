@@ -6,7 +6,7 @@ extern void vs_main_freeHeapR(void*);
 extern void func_800E4288(void*, unsigned);
 extern void func_800E6098(void);
 extern void func_800DC638(void);
-extern unsigned func_8008B6FC(void); /* 146C.c: int, the section's guest address */
+extern void* func_8008B6FC(void); /* 146C.c: the room's section 6 */
 extern unsigned _getCollisionMapDimensions(int);
 extern short func_8008E4AC(void);
 extern unsigned* func_8008B764(unsigned, unsigned, int);

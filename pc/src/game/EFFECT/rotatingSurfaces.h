@@ -76,16 +76,16 @@ int VS_ROTATING_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         state->height = 0;
         state->angle = 0;
         state->age = 0;
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         curveIndex = effect->transparencyCurve;
         if (curveIndex) {
-            sample = psx_get(D_800F569C->curveBlock)->curveSizes[curveIndex];
+            sample = D_800F569C->curveBlock->curveSizes[curveIndex];
             if (sample >= 2)
                 --sample;
             for (initIndex = 0; initIndex < 5; ++initIndex) {
                 state->factors[initIndex] =
-                    psx_get(D_800F569C
-                            ->curves[effect->transparencyCurve])[sample * initIndex / 4]
+                    D_800F569C
+                            ->curves[effect->transparencyCurve][sample * initIndex / 4]
                     * 2;
                 if (state->factors[initIndex] == 256)
                     state->factors[initIndex] = 255;
@@ -99,7 +99,7 @@ int VS_ROTATING_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         func_800D6CF0(&state->texture, effect->unkCA, effect->unkCB);
         break;
     case 2: {
-        effect = &psx_get(D_800F569C->block5Data)->unk4[state->effect];
+        effect = &D_800F569C->block5Data->unk4[state->effect];
         scratch->flags = effect->flags;
         actorMatrix = &battle->unk1C[effect->unkC8].unk38;
         vs_battle_lerpVector(effect->unk18,
@@ -210,7 +210,7 @@ int VS_ROTATING_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         }
         func_800D6D24(&state->texture);
         texture =
-            &psx_get(D_800F569C->block1Data)[psx_get(state->texture.unk1C)->dataIndex];
+            &D_800F569C->block1Data[psx_get(state->texture.unk1C)->dataIndex];
         for (sample = 0; sample < VS_ROTATING_SURFACE_U_SEGMENTS + 1; ++sample)
             u[sample] =
                 texture->u0 + texture->u1 * sample / VS_ROTATING_SURFACE_U_SEGMENTS;

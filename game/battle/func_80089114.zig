@@ -32,7 +32,7 @@ pub fn func_80089114() callconv(.c) void {
     var param: u16 = 0;
     const zone = v.g._zoneContext();
     const actors = v.g.vs_battle_actors();
-    if (psx.global(c_int, "D_800F18E0").* == 0) {
+    if (v.g._zoneContext().mpdEnemyCount == 0) {
         return;
     }
     var j: c_int = 15;

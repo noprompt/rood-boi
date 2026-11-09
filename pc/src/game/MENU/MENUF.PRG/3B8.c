@@ -2316,7 +2316,7 @@ int _initCubePuzzleStart(void)
 
             _puzzleParTime = 600;
             _puzzleRankCap = 1;
-            room = psx_get(vs_battle_roomData.sectionF)->rooms;
+            room = vs_battle_roomData.sectionF->rooms;
             puzzleData = _iqDisData + 0x10440;
 
             for (i = 0; i < 64; ++i, ++puzzleData) {

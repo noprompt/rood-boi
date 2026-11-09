@@ -31,7 +31,7 @@ RULES = {
     "guest_pointer_field": re.compile(r"\bpsx_ptr\("),
     "guest_pointer_access": re.compile(r"\bpsx_(?:get|set|set_raw|copy|add|postinc|load|store)\("),
     "address_as_integer": re.compile(r"\bpsx_to_(?:int|ptr)\(|\bpsx\.(?:addr|rawOf)\("),
-    "zig_raw_memory": re.compile(r"\bpsx\.byteAt\(|@ptrFromInt\("),
+    "zig_raw_memory": re.compile(r"\bpsx\.(?:byteAt|fieldAt)\(|@ptrFromInt\("),
     # The GTE as a global register machine (PS1_Ties.md T7): the game's code only.
     "gte_state_machine": re.compile(r"\bgte_[A-Za-z0-9_]+\("),
     # The libgte calls that run on the same registers underneath.

@@ -3,7 +3,8 @@
 
     python3 pc/tools/build_compare.py OLD_BINARY [NEW_BINARY] [--card CARD] [--seconds 30]
 
-Afterwards every enemy is defeated (its HP written to 0) and the loot the game builds
+Every step the named fields of every actor (RPC battle_state: its record, stats, object and AI state) are
+compared too, which shows what an off-screen actor does. Afterwards every enemy is defeated (its HP written to 0) and the loot the game builds
 is compared too: how many drop nodes, each one's actor id and item bytes.
 
 Runs are deterministic (no wall clock in game logic, no input), so two builds of
@@ -98,12 +99,16 @@ def play(binary, seconds, card, out, width):
     g = start(card, out, "fight")
     try:
         g.call("skip_charging", reset=True)
-        frames = []
+        frames, states = [], []
         for _ in range(seconds * 4):
             g.run(15)
             shot = out / "frame.ppm"
             g.screenshot(str(shot))
             frames.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:16])
+            try:  # a build older than the RPC has none: the comparison says so
+                states.append(g.call("battle_state"))
+            except Exception:
+                states.append(None)
         ended = g.call("skip_charging").get("ended", "")
     finally:
         g.close()
@@ -114,7 +119,7 @@ def play(binary, seconds, card, out, width):
     finally:
         g.close()
     casts = [e for e in (entry.split(":") for entry in ended.split()) if len(e) >= 4 and int(e[0]) != 0 and e[2] == "1"]
-    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops}))
+    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops, "states": states}))
 
 
 SCHOOLS = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))
@@ -517,6 +522,37 @@ def differing(a, b):
     return [i for i, (x, y) in enumerate(zip(a["frames"], b["frames"])) if x != y] + list(range(min(len(a["frames"]), len(b["frames"])), max(len(a["frames"]), len(b["frames"]))))
 
 
+def fields(state):
+    """{slot.section.field: value} of one battle_state reply."""
+    flat = {"rand": state["rand"]}
+    for entry in state["actors"]:
+        for section in ("actor", "object", "model", "ai"):
+            for name, value in entry.get(section, {}).items():
+                if name != "end":
+                    flat[f"slot {entry['slot']} {section}.{name}"] = value
+        if "slot" in entry:
+            for section in ("actor", "object", "model", "ai"):
+                flat.setdefault(f"slot {entry['slot']} {section}", entry.get(section) is not None)
+    return flat
+
+
+def compare_states(old, new):
+    """The first step whose actors', objects' or AI states differ, field by field: what the frames cannot show
+    (an actor off screen). None when the builds agree or one lacks the RPC (printed)."""
+    if not old["states"] or old["states"][0] is None or not new["states"] or new["states"][0] is None:
+        print("states: not compared (a build without RPC battle_state)")
+        return None
+    for step, (a, b) in enumerate(zip(old["states"], new["states"])):
+        x, y = fields(a), fields(b)
+        keys = [k for k in dict.fromkeys(list(x) + list(y)) if x.get(k) != y.get(k)]
+        if keys:
+            first = ", ".join(f"{k}: {x.get(k)} -> {y.get(k)}" for k in keys[:3])
+            print(f"states: differ from step {step} ({step / 4:.2f} s), {len(keys)} fields: {first}")
+            return step
+    print(f"states: {len(old['states'])} steps, every named field of every actor equal")
+    return None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("old")
@@ -556,6 +592,11 @@ def main():
     print(f"old against new: {len(changed)} of {len(first['frames'])} frames differ{f' (first at {changed[0] / 4:.2f} s)' if changed else ''}")
     print(f"casts: old {len(first['casts'])}, new {len(new['casts'])}; the same: {first['casts'] == new['casts']}")
     print(f"drops: old {len(first['drops'])}, new {len(new['drops'])}; the same: {first['drops'] == new['drops']}")
+    state_noise = compare_states(first, control)
+    state_changed = compare_states(first, new)
+    if state_noise is not None:
+        print("build_compare: the control's states differ, so the states prove nothing")
+        return 2
     if noise:
         print("build_compare: the control differs, so this proves nothing")
         return 2
@@ -565,7 +606,7 @@ def main():
     if not first["drops"]:
         print("build_compare: no enemy dropped anything")
         return 2
-    return 0 if not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] else 1
+    return 0 if not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] and state_changed is None else 1
 
 
 if __name__ == "__main__":

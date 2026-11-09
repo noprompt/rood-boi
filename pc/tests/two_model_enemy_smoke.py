@@ -89,8 +89,11 @@ def main():
         check(game.state().get("player") is not None, "continued into gameplay")
         warp(*GHOST_ROOM)
         flags = game.read_symbol("D_8004FE88", 256)
-        zone = game.read_symbol("_zoneContext", 0x6C)
-        znd, count, mpd = (struct.unpack_from("<I", zone, o)[0] for o in (0xC, 0x60, 0x64))
+        width = 8 if os.environ.get("ROOD_ARCH") == "64" else 4
+        zone = game.read_symbol("pc_zone_size", 4)
+        zone = game.read_symbol("_zoneContext", int.from_bytes(zone, "little"))
+        at = lambda name, size: int.from_bytes(zone[game.u32(name):game.u32(name) + size], "little")
+        znd, count, mpd = at("pc_zone_offset_zndEnemies", width), at("pc_zone_offset_mpdEnemyCount", 4), at("pc_zone_offset_mpdEnemies", width)
         shps = [game.read(znd + game.read(mpd + i * 0x28 + 4, 1)[0] * 0x464 + 2, 1)[0] for i in range(count)]
         check(any(flags[s] for s in shps), f"the room spawns a two-model enemy (SHP ids {shps})")
         # A two-model actor (0x3BB4 bytes, unk40 = 2) reserves data slot

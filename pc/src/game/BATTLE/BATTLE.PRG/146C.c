@@ -443,18 +443,6 @@ typedef struct {
 } D_800F1ABC_t;
 
 typedef struct {
-    short unk0;
-    short unk2;
-    short unk4;
-    short unk6;
-    short unk8;
-    short unkA;
-    int unkC;
-    int unk10;
-    int unk14;
-} D_800F18C8_t;
-
-typedef struct {
     int roomSectionOffset;
     u_short roomSectionLen;
     int clearedSectionOffset;
@@ -714,10 +702,6 @@ extern int D_800F1864;
 extern int D_800F1868;
 extern void* D_800F1870;
 extern int _firstPersonViewEnabled;
-extern int D_800F18A8;
-extern int D_800F18AC;
-extern int D_800F18B0;
-extern D_800F18C8_t D_800F18C8;
 extern void* D_800F18E4;
 extern u_int _cameraMode;
 extern char D_800F18F8;
@@ -756,7 +740,9 @@ extern short D_800F1BB6;
 extern void* D_800F1BB8;
 extern char D_800F1BBC;
 extern short vs_battle_doorEntered;
-extern _mpdRoomSection vs_battle_roomData;
+/* Defined here: the room and zone records hold pointers among their words, so they cannot be imports (LP64). */
+_mpdRoomSection vs_battle_roomData;
+_zoneContext_t _zoneContext;
 extern u_short D_800F1CCA;
 extern void* D_800F1CC0;
 extern char D_800F1CD6;
@@ -1888,16 +1874,16 @@ static void _loadZnd(int id)
 
     cdFile.lba = vs_main_zndFiles[id].lba;
     cdFile.size = vs_main_zndFiles[id].size;
-    if (psx_get(_zoneContext.zndCdFile) != 0) {
+    if (_zoneContext.zndCdFile != 0) {
         vs_main_nop9(0x87, 0);
     }
-    psx_set(_zoneContext.zndCdFile, vs_main_allocateCdQueueSlot(&cdFile));
-    if (psx_get(_zoneContext.zndData) != NULL) {
+    _zoneContext.zndCdFile = vs_main_allocateCdQueueSlot(&cdFile);
+    if (_zoneContext.zndData != NULL) {
         vs_main_nop9(0x88, 0);
     }
-    psx_set(_zoneContext.zndData, vs_main_allocHeapR(cdFile.size));
+    _zoneContext.zndData = vs_main_allocHeapR(cdFile.size);
     vs_main_cdEnqueuePriority(
-        psx_get(_zoneContext.zndCdFile), psx_get(_zoneContext.zndData));
+        _zoneContext.zndCdFile, _zoneContext.zndData);
     if (_zoneContext.unk30 != 0) {
         int temp_s0 = D_8004FCCC[id];
         if (vs_main_getCurrentMusicId() != temp_s0) {
@@ -1912,7 +1898,6 @@ void func_80089098(void);
 
 int func_80089104(void);
 
-extern int D_800F18E0;
 
 void func_80089114(void);
 
@@ -1973,7 +1958,7 @@ void func_8008B590(MATRIX* arg0, int arg1);
 
 void func_8008B6B4(void);
 
-int func_8008B6FC(void);
+void* func_8008B6FC(void);
 
 int _getCollisionMapDimensions(int arg0 __attribute__((unused)));
 
@@ -2089,7 +2074,7 @@ short func_8008E4AC(void);
 
 static int _getRoomTrapLevel(void)
 {
-    return psx_get(vs_battle_roomData.sectionB)->trapLevel;
+    return vs_battle_roomData.sectionB->trapLevel;
 }
 
 void func_8008E4DC(int arg0);
