@@ -8992,6 +8992,14 @@ void vs_main_freeHeap(void* block)
     target->prev = var_a1;
 }
 
+/* Blocks start zeroed. The game has reads of memory it never wrote (spell particles among them), so on the
+ * original heap their result depended on the block's old contents and placement. */
+static void* heap_zeroed(vs_main_HeapHeader* block)
+{
+    __builtin_memset(block + 1, 0, (block->blockSz - 1) * VS_HEAP_UNIT);
+    return block + 1;
+}
+
 void* vs_main_allocHeapR(u_int size)
 {
     vs_main_HeapHeader* var_a1;
@@ -9012,7 +9020,7 @@ void* vs_main_allocHeapR(u_int size)
                 var_a1 += var_a1->blockSz;
                 var_a1->blockSz = blockSz;
             }
-            return (u_long*)(var_a1 + 1);
+            return heap_zeroed(var_a1);
         }
         var_a2 = var_a1;
         if (var_a1 == &heapA) {
@@ -9046,7 +9054,7 @@ void* vs_main_allocHeap(u_int size)
                 temp_v1->next->prev = temp_v1;
                 var_a1->blockSz = blockSz;
             }
-            return (u_long*)(var_a1 + 1);
+            return heap_zeroed(var_a1);
         }
         var_v1 = var_a1;
         if (var_a1 == &heapA) {
