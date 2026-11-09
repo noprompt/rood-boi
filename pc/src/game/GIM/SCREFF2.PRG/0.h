@@ -9,9 +9,8 @@ typedef struct {
     short unk4;
     short unk6;
     int unk8;
-    psx_ptr(vs_main_CdQueueSlot) slot;
+    vs_main_CdQueueSlot* slot;
 } D_800EB9B4_t;
-PSX_ASSERT_SIZE(D_800EB9B4_t, 0x10);
 
 #ifdef ROOD_PC
 /* This overlay shares guest addresses with unrelated effect plugins. */

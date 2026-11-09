@@ -103,22 +103,21 @@ typedef struct {
     int currentMusicSlot;
     u_int unk4;
     u_int unk8;
-    psx_ptr(void) currentMusicData;
+    void* currentMusicData;
     char musicIds[4];
     u_int unk14[4];
-    psx_ptr(void) musicData[4];
-    psx_ptr(vs_main_CdQueueSlot) musicQueueSlot[4];
+    void* musicData[4];
+    vs_main_CdQueueSlot* musicQueueSlot[4];
     u_int currentSfxId;
     char sfxIds[4];
-    psx_ptr(void) sfxData[3];
-    psx_ptr(vs_main_CdQueueSlot) sfxQueueSlot[3];
-    psx_ptr(void) unk64[3];
-    psx_ptr(int) unk70[3];
+    void* sfxData[3];
+    vs_main_CdQueueSlot* sfxQueueSlot[3];
+    void* unk64[3];
+    int* unk70[3];
     int soundFileId;
-    psx_ptr(void) soundData;
-    psx_ptr(vs_main_CdQueueSlot) soundQueueSlot;
+    void* soundData;
+    vs_main_CdQueueSlot* soundQueueSlot;
 } soundData_t;
-PSX_ASSERT_SIZE(soundData_t, 0x88);
 
 typedef struct vs_main_HeapHeader {
     struct vs_main_HeapHeader* prev;
@@ -549,14 +548,14 @@ int vs_main_computeSfxPan(int coords, int z);
 void func_80045BFC(int arg0, int arg1, int arg2, char arg3);
 void func_80045C74(int arg0, int arg1, int arg2, char arg3);
 void func_80045CEC(int, int, int, char);
-int func_80046168(u_int);
+int func_80046168(void*);
 int func_80046194(void);
 void func_800461CC(int, u_int[], u_int, int, int);
 void func_800462E8(int arg0, int* arg1, u_int arg2);
 void func_8004644C(int arg0, int* arg1, int arg2);
 void func_80046494(int arg0, int* arg1, int arg2, int arg3, int arg4);
 void vs_main_setMonoSound(int);
-int func_80046608(u_int arg0);
+int func_80046608(void* arg0);
 int func_80046634(void);
 // Parameters left undeclared due to misuse in unused func_8007B378
 void vs_main_loadClutTransition(

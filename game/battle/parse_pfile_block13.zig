@@ -9,5 +9,5 @@ const c = @import("c_6F014");
 pub fn parsePfileBlock13(arg0: ?*anyopaque) callconv(.c) void {
     const state = v.g.D_800F569C().*.?;
     psx.put(&state.block13Data, arg0);
-    state.unkCC = c.func_80046608(psx.addr(arg0));
+    state.unkCC = c.func_80046608(arg0);
 }

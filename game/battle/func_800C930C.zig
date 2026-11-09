@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const block = @import("menu_block.zig");
 
 /// `(enabled >> row) & 1`: the C shifts by a u_int, which x86 takes modulo 32 (a row past 31 only comes from
 /// a stale submenu state).
@@ -39,7 +40,7 @@ pub fn func_800C930C(mode_arg: c_int) callconv(.c) c_int {
             selected = (selected +% 1) % 10;
         }
         v.g.vs_battle_submenuStates()[0] = psx.conv(u8, selected);
-        c.vs_battle_rMemzero(@ptrCast(v.g.vs_battle_menuItems().*), 0xB24);
+        c.vs_battle_rMemzero(@ptrCast(v.g.vs_battle_menuItems().*), @intCast(block.total));
         if (c.pc_ui_menu_open(mode) != 0) {
             v.g.D_800F4CC0().* = 0;
             return 0;

@@ -25,7 +25,7 @@ pub fn func_80091B04() callconv(.c) void {
         const e = &v.g.D_800F1DD8()[@as(usize, @intCast(i + 64))];
         if (e.unk0 != 0 and e.unk2 != 0) {
             e.unk0 = psx.conv(u8, c.func_80092B04(
-                @ptrCast(psx.get(e.unk4)),
+                @ptrCast(@alignCast(psx.get(e.unk4))),
                 @as(c_int, e.unk1),
                 @ptrCast(e),
             ));

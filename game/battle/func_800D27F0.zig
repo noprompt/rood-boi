@@ -13,7 +13,7 @@ pub fn func_800D27F0(script: ?*v.D_800F53B8_t) callconv(.c) ?*v.func_800D2904_t 
         _ = c.func_800CE644(0x14);
     }
     const node = free.?; // the C goes on with NULL (a crash)
-    c.func_800D6CCC(&node.unk3C);
+    c.func_800D6CCC(@ptrCast(&node.sprite));
     node.unk74.fields.age = 0xFF;
     psx.put(&node.previous, null);
     v.g.D_800F55F8().* +%= 1;

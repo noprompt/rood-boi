@@ -22,6 +22,7 @@ typedef struct {
     SVECTOR unk8;
     psx_ptr(char) unk10;
 } D_800EB9B8_unk990;
+PSX_ASSERT_SIZE(D_800EB9B8_unk990, 0x14);
 
 typedef struct {
     func_800C1564_t unk0[2];

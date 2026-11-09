@@ -2,6 +2,7 @@
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const block = @import("menu_block.zig");
 
 /// orig: func_800CACD0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Opens the battle menu into `menuState` when the menu is idle; otherwise plays the invalid sound.
@@ -21,11 +22,11 @@ pub fn func_800CACD0(menuState: c_int, arg1: c_int) callconv(.c) c_int {
 
             _ = c.func_8007E180(6);
 
-            const misc_addr: usize = @intFromPtr(c.vs_main_allocHeapR(0xB24));
+            const misc_addr: usize = @intFromPtr(c.vs_main_allocHeapR(@intCast(block.total)));
             var var_a1: u16 = v.g.vs_main_settings().menuFlags;
-            psx.put(v.g.vs_battle_stringBuf(), @as(?[*]u8, @ptrFromInt(misc_addr +% 0xA00)));
+            psx.put(v.g.vs_battle_stringBuf(), @as(?[*]u8, @ptrFromInt(misc_addr +% block.strings_at)));
             psx.put(v.g.vs_battle_menuItems(), @as(?*v.vs_battle_menuItem_t, @ptrFromInt(misc_addr)));
-            psx.put(v.g.vs_battle_rowTypeBuf(), @as(?[*]i32, @ptrFromInt(misc_addr +% 0xA60)));
+            psx.put(v.g.vs_battle_rowTypeBuf(), @as(?[*]i32, @ptrFromInt(misc_addr +% block.row_types_at)));
 
             var i: c_int = 0;
             while (i < 3) : (i +%= 1) {

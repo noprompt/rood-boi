@@ -8,5 +8,5 @@ const c = @import("c_6F014");
 pub fn parsePfileBlock12(arg0: ?*anyopaque) callconv(.c) void {
     const header = v.g.D_800F569C().*.?;
     psx.put(&header.block12Data, arg0);
-    _ = c.func_80046168(psx.addr(arg0));
+    _ = c.func_80046168(arg0);
 }

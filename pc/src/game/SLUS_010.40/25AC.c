@@ -57,23 +57,21 @@ typedef struct {
 } func_800172D4_t;
 
 typedef struct {
-    psx_ptr(void) unk0;
+    __UINTPTR_TYPE__ unk0; /* a parameter word: an id, or the address of a sequence */
     int unk4;
     int unk8;
     int unkC;
     int unk10;
     int unk14;
 } D_800378C0_t;
-PSX_ASSERT_SIZE(D_800378C0_t, 0x18);
 
 // Streaming state for func_80012F10 (instrument bank uploaded in chunks)
 typedef struct {
-    psx_ptr(int) pInstrumentDst; // next g_InstrumentInfo word to fill
+    int* pInstrumentDst; // next g_InstrumentInfo word to fill
     int SpuAddr; // next SPU transfer address; 0 = start a new stream
     u_int SpuBytesRemaining;
     u_int InstrumentBytesRemaining;
 } D_80039BC8_t;
-PSX_ASSERT_SIZE(D_80039BC8_t, 0x10);
 
 #define AKAO_MAGIC 0x4F414B41 // 'AKAO'
 
@@ -128,7 +126,6 @@ void func_80015220();
 
 extern int _soundEvent;
 extern char _soundFlush[64];
-extern short D_800358FE;
 extern CdlATV _cdlAtv;
 extern D_80036770_t D_80036770;
 extern int D_800377E0[3];
@@ -136,14 +133,15 @@ extern u_int* g_Sound_SfxProgramOffsets;
 extern u_short* g_Sound_SfxMetadataTable;
 extern char* g_Sound_SfxProgramData;
 extern int D_800378A0;
-extern D_800378C0_t D_800378C0;
+D_800378C0_t D_800378C0;
 extern int D_800378E4;
 extern char _spuMemInfo;
 extern volatile int _isSpuTransfer;
-extern FSoundChannel D_80035910[10];
+/* Defined here (LP64): the channels and configs mix words with pointers, so they cannot be imports. */
+/* The 12 sound channels are one array: the game indexes it as D_80035910[0..11] and
+ * as SfxSoundChannels[-10..1] (SfxSoundChannels = D_80035910 + 10). */
+FSoundChannel D_80035910[12];
 extern int D_80039AFC;
-extern int D_80039B14;
-extern int D_80039B64;
 extern int g_Sound_CdVolumeFadeStep;
 extern short g_Sound_CdVolumeFadeLength;
 extern int g_CdVolume;
@@ -160,7 +158,7 @@ extern int D_8003789C;
 extern int D_80039B00;
 extern u_int D_8002F63C[];
 extern int D_80039BCC;
-extern D_80039BC8_t D_80039BC8;
+D_80039BC8_t D_80039BC8;
 extern int D_80037850[16];
 extern FSoundCommandParams D_80037790;
 extern FSoundCommandHandler D_800301E0[];
@@ -169,7 +167,7 @@ extern FSoundChannelConfig* g_pActiveMusicConfig;
 extern FSoundVoiceSchedulerState g_Sound_VoiceSchedulerState;
 extern FSoundGlobalFlags g_Sound_GlobalFlags;
 extern FSpuVoiceInfo g_SpuVoiceInfo[VOICE_COUNT];
-extern FSoundChannel g_ActiveMusicChannels[0x20];
+FSoundChannel g_ActiveMusicChannels[0x20];
 extern FSoundChannelConfig* g_pSavedMousicConfig;
 #ifdef ROOD_PC
 /* With no saved music config the original reads (and clears) fields through
@@ -184,25 +182,28 @@ extern FSoundChannelConfig* g_pSavedMousicConfig;
  * reads a NULL wave: PS1 physical RAM at 0, as above. Zone 15 room
  * 0's and zone 48 room 3's entry sound effects slide the auto-pan depth. */
 #define LFO_WAVE(field)                                                         \
-    (psx_get(field) ? psx_get(field) : (short*)0x80000000)
+    ((field) ? (field) : (short*)0x80000000)
 #else
-#define LFO_WAVE(field) psx_get(field)
+#define LFO_WAVE(field) (field)
 #endif
 extern FSoundChannel* g_pSecondaryMusicChannels;
 extern FSoundFadeTimer g_Sound_MasterFadeTimer;
-extern FSoundCutsceneStreamState g_Sound_Cutscene_StreamState;
+FSoundCutsceneStreamState g_Sound_Cutscene_StreamState;
+/* For the smokes (heal_audio_smoke): where the stream state's fields are in this build. */
+const unsigned pc_sound_stream_offset_voices = __builtin_offsetof(FSoundCutsceneStreamState, VoicesInUseFlags);
+const unsigned pc_sound_stream_offset_pages = __builtin_offsetof(FSoundCutsceneStreamState, TotalPages);
 extern u_int g_Sound_ProgramCounter;
 extern FSoundChannelConfig* g_Sound_VoiceChannelConfigs[VOICE_COUNT];
-extern FSoundChannel SfxSoundChannels[12];
+#define SfxSoundChannels (D_80035910 + 10)
 extern volatile int g_bSpuTransferring;
 #define SPU_PAN_TABLE_SIZE (0x100)
 #define PAN_CENTER_INDEX (SPU_PAN_TABLE_SIZE / 2)
 extern short g_Sound_StereoPanGainTableQ15[SPU_PAN_TABLE_SIZE];
 extern short D_8002F89C;
-extern FSoundChannelConfig g_PushedMusicConfig;
+FSoundChannelConfig g_PushedMusicConfig;
 extern u_int g_Music_LoopCounter;
-extern FSoundChannelConfig D_800366F0;
-extern FSoundChannel D_800378E8[];
+FSoundChannelConfig D_800366F0;
+FSoundChannel D_800378E8[32]; /* 32 channels */
 extern FSoundInstrumentInfo g_InstrumentInfo[256];
 extern short* g_Sound_LfoTable[];
 extern FSoundCommandParams D_80037800;
@@ -212,7 +213,6 @@ extern short D_80036780;
 extern short D_80036782;
 extern int g_Sound_MasterPitchScaleQ16_16;
 extern int g_Sound_TempoMultiplier;
-extern int D_80039B48;
 extern int g_Sound_LfoPhase;
 extern FSoundVoiceModeFlags g_Sound_VoiceModeFlags;
 extern int D_80037894;
@@ -259,7 +259,7 @@ int func_80011E40(void)
     if (g_Sound_VoiceSchedulerState.ActiveChannelMask != 0) {
         var_v1 |= 0x100;
     }
-    if (D_80039B14 != 0) {
+    if (g_Sound_Cutscene_StreamState.VoicesInUseFlags != 0) {
         var_v1 |= 0x10000;
     }
     return var_v1;
@@ -310,13 +310,13 @@ int func_80011F90(void)
 
 u_int func_80011FB4(void* arg0)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     return func_80018C30(0x10);
 }
 
 void func_80011FDC(u_int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     func_80018C30(0x11);
 }
 
@@ -324,7 +324,7 @@ void func_80012004(void) { func_80018C30(0x40); }
 
 int func_80012024(void)
 {
-    D_800358FE = 0;
+    g_PushedMusicConfig.MusicId = 0;
     return 0;
 }
 
@@ -334,7 +334,7 @@ u_int func_80012034(void* arg0, int arg1)
 {
     u_int temp_v0;
 
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     temp_v0 = func_80018C30(0x19);
     func_8001286C(temp_v0, arg1);
     return temp_v0;
@@ -342,7 +342,7 @@ u_int func_80012034(void* arg0, int arg1)
 
 u_int func_80012080(void* arg0, u_int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     D_800378C0.unk8 = arg2 & 0x7F;
     return func_80018C30(0x1A);
@@ -350,25 +350,25 @@ u_int func_80012080(void* arg0, u_int arg1, int arg2)
 
 void func_800120B8(void* arg0, int arg1)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     func_80018C30(0x12);
 }
 
 u_int func_800120E8(void* arg0)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     return func_80018C30(0x14);
 }
 
 void* func_80012110(void* arg0, int arg1)
 {
     u_long v0;
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     func_80018C30(0x16);
     v0 = D_800378C0.unk4 << 0x10;
-    v0 += (u_long)psx_raw(D_800378C0.unk0);
+    v0 += (u_long)((unsigned long)(D_800378C0.unk0));
     return psx_to_ptr(void*, v0);
 }
 
@@ -378,7 +378,7 @@ int func_8001217C(u_long arg0, int arg1, int arg2, int arg3)
 {
     int temp_s0 = g_Sound_SfxProgramOffsets[arg0 & 0x3FF];
     if (temp_s0 != -1) {
-        psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0x3FF));
+        D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0x3FF));
         D_800378C0.unk4 = arg1 & 0xFFFFFF;
         D_800378C0.unk8 = arg2 & 0xFF;
         D_800378C0.unkC = arg3 & 0x7F;
@@ -393,7 +393,7 @@ int func_800121F0(void* arg0, int arg1, int arg2, int arg3)
 
     var_v0 = (void*)-1;
     if (Sound_IsNotAkaoFile(arg0) == 0) {
-        psx_set(D_800378C0.unk0, arg0);
+        D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
         D_800378C0.unk4 = (int)(arg1 & 0xFFFFFF);
         D_800378C0.unk8 = (int)(arg2 & 0xFF);
         D_800378C0.unkC = (int)(arg3 & 0x7F);
@@ -409,14 +409,14 @@ int func_800121F0(void* arg0, int arg1, int arg2, int arg3)
 
 void func_80012288(u_long arg0, int arg1)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     func_80018C30(0x21);
 }
 
 void func_800122C4(u_long arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0x3FF));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0x3FF));
     func_80018C30(0x30);
 }
 
@@ -487,13 +487,13 @@ void vs_sound_setMonoSound(int arg0)
 
 void func_80012440(void* arg0)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     func_80018C30(0x90);
 }
 
 void func_80012468(void* arg0)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     func_80018C30(0x92);
 }
 
@@ -545,20 +545,20 @@ int func_80012568(int arg0)
 
 void func_800125A8(u_long arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0x7F));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0x7F));
     func_80018C30(0xA8);
 }
 
 void func_800125D4(void* arg0, int arg1)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0x7F;
     func_80018C30(0xA9);
 }
 
 void func_80012608(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     D_800378C0.unk8 = arg2 & 0x7F;
     func_80018C30(0xA0);
@@ -566,7 +566,7 @@ void func_80012608(void* arg0, int arg1, int arg2)
 
 void func_8001264C(int arg0, int arg1, int arg2, int arg3)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     D_800378C0.unk8 = arg2;
     D_800378C0.unkC = arg3 & 0x7F;
@@ -575,20 +575,20 @@ void func_8001264C(int arg0, int arg1, int arg2, int arg3)
 
 void func_80012694(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0xFF));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0xFF));
     func_80018C30(0xAA);
 }
 
 void func_800126C0(void* arg0, int arg1)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     func_80018C30(0xAB);
 }
 
 void func_800126F4(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     D_800378C0.unk8 = arg2 & 0xFF;
     func_80018C30(0xA2);
@@ -596,7 +596,7 @@ void func_800126F4(void* arg0, int arg1, int arg2)
 
 void func_80012738(int arg0, int arg1, int arg2, int arg3)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     D_800378C0.unk8 = arg2;
     D_800378C0.unkC = arg3 & 0xFF;
@@ -605,20 +605,20 @@ void func_80012738(int arg0, int arg1, int arg2, int arg3)
 
 void func_80012780(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0xFF));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0xFF));
     func_80018C30(0xAC);
 }
 
 void func_800127AC(void* arg0, int arg1)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     func_80018C30(0xAD);
 }
 
 void func_800127E0(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     D_800378C0.unk8 = arg2 & 0xFF;
     func_80018C30(0xA4);
@@ -626,7 +626,7 @@ void func_800127E0(void* arg0, int arg1, int arg2)
 
 void func_80012824(int arg0, int arg1, int arg2, int arg3)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFFFFFF;
     D_800378C0.unk8 = arg2;
     D_800378C0.unkC = arg3 & 0xFF;
@@ -635,14 +635,14 @@ void func_80012824(int arg0, int arg1, int arg2, int arg3)
 
 void func_8001286C(u_long arg0, int arg1)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0x7F;
     func_80018C30(0xC0);
 }
 
 void func_800128A0(u_long arg0, int arg1, int arg2)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     D_800378C0.unk8 = arg2 & 0x7F;
     func_80018C30(0xC1);
@@ -650,7 +650,7 @@ void func_800128A0(u_long arg0, int arg1, int arg2)
 
 void func_800128D8(void* arg0, int arg1, int arg2, int arg3)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     D_800378C0.unk8 = arg2 & 0x7F;
     D_800378C0.unkC = arg3 & 0x7F;
@@ -659,20 +659,20 @@ void func_800128D8(void* arg0, int arg1, int arg2, int arg3)
 
 void func_80012918(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     func_80018C30(0xC8);
 }
 
 void func_80012940(int arg0, int arg1)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     func_80018C30(0xC9);
 }
 
 void func_80012970(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1;
     D_800378C0.unk8 = arg2;
     func_80018C30(0xCA);
@@ -680,20 +680,20 @@ void func_80012970(void* arg0, int arg1, int arg2)
 
 void func_800129A4(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0xFF));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0xFF));
     func_80018C30(0xD0);
 }
 
 void func_800129D0(int arg0, int arg1)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     func_80018C30(0xD1);
 }
 
 void func_80012A04(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     D_800378C0.unk8 = arg2 & 0xFF;
     func_80018C30(0xD2);
@@ -701,20 +701,20 @@ void func_80012A04(void* arg0, int arg1, int arg2)
 
 void func_80012A40(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0xFF));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0xFF));
     func_80018C30(0xD4);
 }
 
 int func_80012A6C(int arg0, int arg1)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     return func_80018C30(0xD5);
 }
 
 void func_80012AA0(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     D_800378C0.unk8 = arg2 & 0xFF;
     func_80018C30(0xD6);
@@ -722,20 +722,20 @@ void func_80012AA0(void* arg0, int arg1, int arg2)
 
 void func_80012ADC(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, (arg0 & 0xFF));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)((arg0 & 0xFF));
     func_80018C30(0xD8);
 }
 
 void func_80012B08(void* arg0, int arg1)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     func_80018C30(0xD9);
 }
 
 void func_80012B3C(void* arg0, int arg1, int arg2)
 {
-    psx_set(D_800378C0.unk0, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = arg1 & 0xFF;
     D_800378C0.unk8 = arg2 & 0xFF;
     func_80018C30(0xDA);
@@ -873,8 +873,7 @@ int func_80012F10(int* in_Data, u_int in_Size, int in_Slot, int in_Wait)
                 D_80039BC8.SpuAddr = spuAddr;
                 D_80037850[6] = instrumentIndex;
                 D_80039BC8.SpuBytesRemaining = D_80037850[5];
-                psx_set(
-                    D_80039BC8.pInstrumentDst, (int*)&g_InstrumentInfo[instrumentIndex]);
+                D_80039BC8.pInstrumentDst = (int*)&g_InstrumentInfo[instrumentIndex];
                 D_80039BC8.InstrumentBytesRemaining =
                     D_80037850[7] * sizeof(FSoundInstrumentInfo);
             } else {
@@ -890,10 +889,10 @@ int func_80012F10(int* in_Data, u_int in_Size, int in_Slot, int in_Wait)
             }
             // The original reuses the spuAddr stack slot for the chunk size.
             spuAddr = chunk;
-            Sound_memcpy32(in_Data, psx_get(D_80039BC8.pInstrumentDst), spuAddr);
+            Sound_memcpy32(in_Data, D_80039BC8.pInstrumentDst, spuAddr);
             in_Data += (u_int)spuAddr / 4;
             in_Size -= spuAddr;
-            psx_add(D_80039BC8.pInstrumentDst, (u_int)spuAddr / 4);
+            D_80039BC8.pInstrumentDst += (u_int)spuAddr / 4;
             D_80039BC8.InstrumentBytesRemaining -= spuAddr;
             if (D_80039BC8.InstrumentBytesRemaining == 0) {
                 Sound_CopyAndRelocateInstruments(&g_InstrumentInfo[D_80037850[6]],
@@ -958,7 +957,7 @@ int vs_sound_setCdVol(u_int arg0)
 void func_800132C4(void* arg0, int arg1, int arg2)
 {
     if (Sound_IsNotAkaoFile(arg0) == 0) {
-        psx_set(D_800378C0.unk0, arg0);
+        D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
         D_800378C0.unk4 = (arg1 & 0xFF) << 8;
         D_800378C0.unk8 = arg2;
         func_80018C30(0xE0);
@@ -969,20 +968,20 @@ void func_80013328(void) { func_80018C30(0xE2); }
 
 void func_80013348(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, ((arg0 & 0x7F) << 8));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(((arg0 & 0x7F) << 8));
     func_80018C30(0xE4);
 }
 
 void func_80013378(int arg0, int arg1)
 {
-    psx_set_raw(D_800378C0.unk0, void*, arg0);
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(arg0);
     D_800378C0.unk4 = (arg1 & 0x7F) << 8;
     func_80018C30(0xE5);
 }
 
 void func_800133B0(int arg0)
 {
-    psx_set_raw(D_800378C0.unk0, void*, ((arg0 & 0xFF) << 8));
+    D_800378C0.unk0 = (__UINTPTR_TYPE__)(((arg0 & 0xFF) << 8));
     func_80018C30(0xE6);
 }
 
@@ -1145,7 +1144,7 @@ void func_8001369C(void)
     i = *SPU_CONTROL;
     g_Music_LoopCounter = 0;
     D_800378E4 = 0;
-    D_80039B64 = 0;
+    g_Sound_Cutscene_StreamState.ControlFlags = 0;
     g_Sound_Cutscene_StreamState.VolFadeStepsRemaining = 0;
     g_Sound_Cutscene_StreamState.Volume = 0x7F00;
     g_Sound_VoiceModeFlags.Fm = 0;
@@ -1723,11 +1722,11 @@ void func_8001436C(FSoundChannel* in_pChannel, int in_VoiceFlags __attribute__((
         if (in_pChannel->VibratoDelayCurrent == 0) {
             if (--in_pChannel->unkA4 == 0) {
                 in_pChannel->unkA4 = in_pChannel->VibratoRatePhase;
-                Wave = psx_get(in_pChannel->VibratoWave);
+                Wave = in_pChannel->VibratoWave;
                 if (Wave[0] == 0 && Wave[1] == 0) {
-                    psx_set(in_pChannel->VibratoWave, Wave + Wave[2]);
+                    in_pChannel->VibratoWave = Wave + Wave[2];
                 }
-                Sample = *psx_postinc(in_pChannel->VibratoWave);
+                Sample = *(in_pChannel->VibratoWave)++;
                 temp = (in_pChannel->VibratoBase * Sample) >> 16;
                 if (temp != in_pChannel->VibratoPitch) {
                     in_pChannel->VibratoPitch = temp;
@@ -1744,12 +1743,12 @@ void func_8001436C(FSoundChannel* in_pChannel, int in_VoiceFlags __attribute__((
         if (in_pChannel->TremeloDelayCurrent == 0) {
             if (!(--in_pChannel->unkB6 & 0xFFFF)) {
                 in_pChannel->unkB6 = in_pChannel->TremeloRatePhase;
-                Wave = psx_get(in_pChannel->TremeloWave);
+                Wave = in_pChannel->TremeloWave;
                 if (Wave[0] == 0 && Wave[1] == 0) {
-                    psx_set(in_pChannel->TremeloWave, Wave + Wave[2]);
+                    in_pChannel->TremeloWave = Wave + Wave[2];
                 }
                 temp = ((Volume * (in_pChannel->TremeloDepth >> 8)) << 9) >> 16;
-                Sample = *psx_postinc(in_pChannel->TremeloWave);
+                Sample = *(in_pChannel->TremeloWave)++;
                 temp = (temp * Sample) >> 15;
                 if (temp != in_pChannel->TremeloVolume) {
                     in_pChannel->TremeloVolume = temp;
@@ -1762,11 +1761,11 @@ void func_8001436C(FSoundChannel* in_pChannel, int in_VoiceFlags __attribute__((
     if (UpdateFlags & SOUND_UPDATE_PAN_LFO) {
         if (--in_pChannel->AutoPanRateCurrent == 0) {
             in_pChannel->AutoPanRateCurrent = in_pChannel->AutoPanRatePhase;
-            Wave = psx_get(in_pChannel->AutoPanWave);
+            Wave = in_pChannel->AutoPanWave;
             if (Wave[0] == 0 && Wave[1] == 0) {
-                psx_set(in_pChannel->AutoPanWave, Wave + Wave[2]);
+                in_pChannel->AutoPanWave = Wave + Wave[2];
             }
-            Sample = *psx_postinc(in_pChannel->AutoPanWave);
+            Sample = *(in_pChannel->AutoPanWave)++;
             temp = ((in_pChannel->AutoPanDepth >> 8) * Sample) >> 15;
             if (temp != in_pChannel->AutoPanVolume) {
                 in_pChannel->AutoPanVolume = temp;
@@ -1845,11 +1844,11 @@ void func_800147CC(FSoundChannel* in_pChannel, int in_VoiceFlags __attribute__((
         {
             if (--in_pChannel->unkA4 == 0) {
                 in_pChannel->unkA4 = in_pChannel->VibratoRatePhase;
-                Wave = psx_get(in_pChannel->VibratoWave);
+                Wave = in_pChannel->VibratoWave;
                 if (Wave[0] == 0 && Wave[1] == 0) {
-                    psx_set(in_pChannel->VibratoWave, Wave + Wave[2]);
+                    in_pChannel->VibratoWave = Wave + Wave[2];
                 }
-                Sample = *psx_postinc(in_pChannel->VibratoWave);
+                Sample = *(in_pChannel->VibratoWave)++;
                 temp = (in_pChannel->VibratoBase * Sample) >> 16;
                 if (temp != in_pChannel->VibratoPitch) {
                     in_pChannel->VibratoPitch = temp;
@@ -1866,12 +1865,12 @@ void func_800147CC(FSoundChannel* in_pChannel, int in_VoiceFlags __attribute__((
         {
             if (!(--in_pChannel->unkB6 & 0xFFFF)) {
                 in_pChannel->unkB6 = in_pChannel->TremeloRatePhase;
-                Wave = psx_get(in_pChannel->TremeloWave);
+                Wave = in_pChannel->TremeloWave;
                 if (Wave[0] == 0 && Wave[1] == 0) {
-                    psx_set(in_pChannel->TremeloWave, Wave + Wave[2]);
+                    in_pChannel->TremeloWave = Wave + Wave[2];
                 }
                 temp = ((Volume * (in_pChannel->TremeloDepth >> 8)) << 9) >> 16;
-                Sample = *psx_postinc(in_pChannel->TremeloWave);
+                Sample = *(in_pChannel->TremeloWave)++;
                 temp = (temp * Sample) >> 15;
                 if (temp != in_pChannel->TremeloVolume) {
                     in_pChannel->TremeloVolume = temp;
@@ -1884,11 +1883,11 @@ void func_800147CC(FSoundChannel* in_pChannel, int in_VoiceFlags __attribute__((
     if (UpdateFlags & SOUND_UPDATE_PAN_LFO) {
         if (--in_pChannel->AutoPanRateCurrent == 0) {
             in_pChannel->AutoPanRateCurrent = in_pChannel->AutoPanRatePhase;
-            Wave = psx_get(in_pChannel->AutoPanWave);
+            Wave = in_pChannel->AutoPanWave;
             if (Wave[0] == 0 && Wave[1] == 0) {
-                psx_set(in_pChannel->AutoPanWave, Wave + Wave[2]);
+                in_pChannel->AutoPanWave = Wave + Wave[2];
             }
-            Sample = *psx_postinc(in_pChannel->AutoPanWave);
+            Sample = *(in_pChannel->AutoPanWave)++;
             temp = ((in_pChannel->AutoPanDepth >> 8) * Sample) >> 15;
             if (temp != in_pChannel->AutoPanVolume) {
                 in_pChannel->AutoPanVolume = temp;
@@ -2203,7 +2202,7 @@ void func_80015220(void)
     FSoundChannel* pChannel;
 
     ReservedVoices = g_Sound_VoiceSchedulerState.ActiveChannelMask
-                   | g_Sound_VoiceSchedulerState.unk_Flags_0x10 | D_80039B14;
+                   | g_Sound_VoiceSchedulerState.unk_Flags_0x10 | g_Sound_Cutscene_StreamState.VoicesInUseFlags;
     KeyOnFlags = 0;
 
     if ((g_pActiveMusicConfig->ActiveChannelMask & g_pActiveMusicConfig->PendingKeyOnMask)
@@ -2426,7 +2425,7 @@ void func_80015970(int* out_VoiceMask, int in_SavedChannelMask, int in_ActiveCha
     int SavedMask;
 
     Filter = ~(g_Sound_VoiceSchedulerState.ActiveChannelMask
-               | g_Sound_VoiceSchedulerState.unk_Flags_0x10 | D_80039B14);
+               | g_Sound_VoiceSchedulerState.unk_Flags_0x10 | g_Sound_Cutscene_StreamState.VoicesInUseFlags);
     VoiceMask = 0;
     SavedMask = 0;
 
@@ -2545,7 +2544,7 @@ void func_80015BAC(void)
             }
         }
         g_Sound_VoiceSchedulerState.KeyOffFlags |=
-            keyOffMask & ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | D_80039B14);
+            keyOffMask & ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | g_Sound_Cutscene_StreamState.VoicesInUseFlags);
     }
 }
 
@@ -2557,7 +2556,7 @@ void func_80015C9C(FSoundChannel* arg0, char* arg1)
 {
     arg0->VolumeBalance = 0x6E00;
     arg0->Volume = 0x32000000;
-    psx_set(arg0->ProgramCounter, arg1);
+    arg0->ProgramCounter = arg1;
     arg0->Transpose = 0;
     arg0->FineTune = 0;
     arg0->PortamentoSteps = 0;
@@ -2626,10 +2625,10 @@ void Sound_LoadAkaoSequence(FAkaoSequence* in_Sequence)
         mask = 0;
     }
     g_Sound_VoiceSchedulerState.KeyOffFlags |=
-        ~mask & 0xFFFFFF & ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | D_80039B14);
+        ~mask & 0xFFFFFF & ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | g_Sound_Cutscene_StreamState.VoicesInUseFlags);
     pConfig = g_pActiveMusicConfig;
     pConfig->PendingKeyOffMask = 0;
-    if (D_80039B64 & 1) {
+    if (g_Sound_Cutscene_StreamState.ControlFlags & 1) {
         pConfig->ActiveChannelMask = 0;
         pConfig->unk1C |= channelMask;
     } else {
@@ -2643,11 +2642,9 @@ void Sound_LoadAkaoSequence(FAkaoSequence* in_Sequence)
     g_pActiveMusicConfig->StatusFlags |=
         pSequence->unk14 == D_80036770.unk4 ? 0x40 : 0x20;
     pRegion = (char*)pSequence + (pSequence->PatchRegionOffset + 0x30);
-    psx_set(g_pActiveMusicConfig->SequencePatchTable,
-        pSequence->PatchRegionOffset != 0 ? (FAkaoSequence*)pRegion : NULL);
+    g_pActiveMusicConfig->SequencePatchTable = pSequence->PatchRegionOffset != 0 ? (FAkaoSequence*)pRegion : NULL;
     pRegion = (char*)pSequence + (pSequence->KeymapRegionOffset + 0x34);
-    psx_set(g_pActiveMusicConfig->KeymapTable,
-        pSequence->KeymapRegionOffset != 0 ? (u_short*)pRegion : NULL);
+    g_pActiveMusicConfig->KeymapTable = pSequence->KeymapRegionOffset != 0 ? (u_short*)pRegion : NULL;
     g_pActiveMusicConfig->SomeIndexRelatedToSpuVoiceInfo = 0;
     g_pActiveMusicConfig->unk2C = pSequence->unk38;
     g_pActiveMusicConfig->unk30 = pSequence->unk3C;
@@ -2658,7 +2655,7 @@ void Sound_LoadAkaoSequence(FAkaoSequence* in_Sequence)
     pChannelOffsets += 0x20;
     while (i < 0x20) {
         if (channelMask & mask) {
-            psx_set(pChannel->ProgramCounter, (char*)pChannelOffsets + *pChannelOffsets);
+            pChannel->ProgramCounter = (char*)pChannelOffsets + *pChannelOffsets;
             pChannel->Length1 = 4;
             pChannel->Length2 = 2;
             pChannel->VolumeBalance = 0x7F00;
@@ -2698,7 +2695,7 @@ void Sound_LoadAkaoSequence(FAkaoSequence* in_Sequence)
         } else {
             pChannel->Length1 = 3;
             pChannel->Length2 = 1;
-            psx_set(pChannel->ProgramCounter, (char*)&g_Sound_ProgramCounter);
+            pChannel->ProgramCounter = (char*)&g_Sound_ProgramCounter;
             pChannel->VoiceParams.VoiceParamFlags |= 0x4400;
             pChannel->VoiceParams.AdsrUpper =
                 (pChannel->VoiceParams.AdsrUpper & 0xFFE0) | 5;
@@ -2743,7 +2740,7 @@ void Sound_KillMusicConfig(
         for (Count = SOUND_CHANNEL_COUNT; Count != 0; Count--) {
             pChannel->Length1 = 3;
             pChannel->Length2 = 1;
-            psx_set(pChannel->ProgramCounter, (char*)&g_Sound_ProgramCounter);
+            pChannel->ProgramCounter = (char*)&g_Sound_ProgramCounter;
             pChannel++;
         };
 
@@ -2903,7 +2900,7 @@ void func_8001653C(FSoundChannel* in_Channel, FSoundCommandParams* in_CommandPar
     g_Sound_VoiceSchedulerState.ReverbVoiceFlags &= in_VoiceBit;
     g_Sound_VoiceSchedulerState.FmVoiceFlags &= in_VoiceBit;
 
-    if (D_80039B64 & 2) {
+    if (g_Sound_Cutscene_StreamState.ControlFlags & 2) {
         in_VoiceBit = 0x1000;
         in_Channel = D_80035910;
         for (i = 12; i != 0; i--, in_Channel++, in_VoiceBit <<= 1) {
@@ -3083,11 +3080,11 @@ void Sound_SetMusicSequence(FAkaoSequence* in_Sequence, int in_SwapWithSavedStat
     FSoundChannelConfig* pConfig;
 
     if (in_SwapWithSavedState == 0) {
-        Sound_memcpy32(&g_PushedMusicConfig, &D_800366F0, 0x80);
-        Sound_memcpy32(D_800378E8, g_ActiveMusicChannels, 0x2200);
+        Sound_memcpy32(&g_PushedMusicConfig, &D_800366F0, sizeof(FSoundChannelConfig));
+        Sound_memcpy32(D_800378E8, g_ActiveMusicChannels, sizeof(g_ActiveMusicChannels));
     } else {
-        Sound_memswp32(&g_PushedMusicConfig, &D_800366F0, 0x80);
-        Sound_memswp32(D_800378E8, g_ActiveMusicChannels, 0x2200);
+        Sound_memswp32(&g_PushedMusicConfig, &D_800366F0, sizeof(FSoundChannelConfig));
+        Sound_memswp32(D_800378E8, g_ActiveMusicChannels, sizeof(g_ActiveMusicChannels));
     }
 
     g_pActiveMusicConfig->StatusFlags &= ~0x60;
@@ -3098,24 +3095,22 @@ void Sound_SetMusicSequence(FAkaoSequence* in_Sequence, int in_SwapWithSavedStat
     g_pActiveMusicConfig->unk38 = psx_to_int(int, in_Sequence);
     g_pActiveMusicConfig->PendingKeyOnMask = 0;
     g_Sound_GlobalFlags.UpdateFlags |= 0x90;
-    psx_set(g_pActiveMusicConfig->SequencePatchTable,
-        (FAkaoSequence*)((char*)psx_get(g_pActiveMusicConfig->SequencePatchTable)
-                         + delta));
+    g_pActiveMusicConfig->SequencePatchTable = (FAkaoSequence*)((char*)g_pActiveMusicConfig->SequencePatchTable
+                         + delta);
     mask = g_pActiveMusicConfig->ActiveChannelMask;
-    psx_set(g_pActiveMusicConfig->KeymapTable,
-        (u_short*)((char*)psx_get(g_pActiveMusicConfig->KeymapTable) + delta));
+    g_pActiveMusicConfig->KeymapTable = (u_short*)((char*)g_pActiveMusicConfig->KeymapTable + delta);
     g_pActiveMusicConfig->PendingKeyOnMask = g_pActiveMusicConfig->ActiveNoteMask;
 
     pChannel = g_ActiveMusicChannels;
     for (count = 0x20, channelBit = 1; count != 0;
         count--, pChannel++, channelBit <<= 1) {
         if (mask & channelBit) {
-            psx_add(pChannel->ProgramCounter, delta);
-            psx_add(pChannel->Keymap, delta);
-            psx_add(pChannel->LoopStartPc[0], delta);
-            psx_add(pChannel->LoopStartPc[1], delta);
-            psx_add(pChannel->LoopStartPc[2], delta);
-            psx_add(pChannel->LoopStartPc[3], delta);
+            (pChannel->ProgramCounter) += (delta);
+            (pChannel->Keymap) += (delta);
+            (pChannel->LoopStartPc[0]) += (delta);
+            (pChannel->LoopStartPc[1]) += (delta);
+            (pChannel->LoopStartPc[2]) += (delta);
+            (pChannel->LoopStartPc[3]) += (delta);
             pChannel->Length1 += 2;
             pChannel->Length2 += 2;
             pChannel->VoiceParams.VoiceParamFlags |= 0x1FF93;
@@ -3124,7 +3119,7 @@ void Sound_SetMusicSequence(FAkaoSequence* in_Sequence, int in_SwapWithSavedStat
         } else {
             pChannel->Length1 = 4;
             pChannel->Length2 = 2;
-            psx_set(pChannel->ProgramCounter, (char*)&g_Sound_ProgramCounter);
+            pChannel->ProgramCounter = (char*)&g_Sound_ProgramCounter;
         }
         pChannel->VoiceParams.AssignedVoiceNumber = VOICE_COUNT;
     }
@@ -3139,7 +3134,7 @@ void Sound_SetMusicSequence(FAkaoSequence* in_Sequence, int in_SwapWithSavedStat
     pConfig->PendingKeyOffMask = 0;
     g_PushedMusicConfig.MusicId = 0;
     g_Sound_VoiceSchedulerState.KeyOffFlags |=
-        ~mask & 0xFFFFFF & ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | D_80039B14);
+        ~mask & 0xFFFFFF & ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | g_Sound_Cutscene_StreamState.VoicesInUseFlags);
     g_Sound_GlobalFlags.UpdateFlags |= 0x100;
 
     if (in_SwapWithSavedState != 0) {
@@ -3162,7 +3157,7 @@ void Sound_SetMusicSequence(FAkaoSequence* in_Sequence, int in_SwapWithSavedStat
         }
     }
 
-    if (D_80039B64 & 1) {
+    if (g_Sound_Cutscene_StreamState.ControlFlags & 1) {
         g_pActiveMusicConfig->unk1C = g_pActiveMusicConfig->ActiveChannelMask;
         g_pActiveMusicConfig->ActiveChannelMask = 0;
     }
@@ -3202,8 +3197,8 @@ void Sound_Cmd_40_PushMusicState(void)
 
     if (g_pActiveMusicConfig->ActiveChannelMask != 0) {
         FSoundChannel* c;
-        Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, 0x80);
-        Sound_memcpy32(g_ActiveMusicChannels, (FSoundChannelConfig*)D_800378E8, 0x2200);
+        Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, sizeof(FSoundChannelConfig));
+        Sound_memcpy32(g_ActiveMusicChannels, (FSoundChannelConfig*)D_800378E8, sizeof(g_ActiveMusicChannels));
         for (i = 0, c = D_800378E8; i < 32; ++i, ++c) {
             Sound_MapInstrumentToBaseSampleBank(g_PushedMusicConfig.StatusFlags, c);
         }
@@ -3216,9 +3211,9 @@ void Sound_Cmd_19_Unk(FSoundCommandParams* arg0)
         && ((g_pSavedMousicConfig == NULL) || (SAVED_MUSIC_CONFIG->MusicId == 0))) {
         g_pSavedMousicConfig = &g_PushedMusicConfig;
         g_pSecondaryMusicChannels = D_800378E8;
-        Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, 0x80);
+        Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, sizeof(FSoundChannelConfig));
         Sound_memcpy32(g_ActiveMusicChannels,
-            (FSoundChannelConfig*)g_pSecondaryMusicChannels, 0x2200);
+            (FSoundChannelConfig*)g_pSecondaryMusicChannels, sizeof(g_ActiveMusicChannels));
     }
     Sound_LoadAkaoSequence(psx_to_ptr(FAkaoSequence*, arg0->Param1));
     g_pActiveMusicConfig->A_Volume = (arg0->ExtParam1 & 0x7F) << 0x10;
@@ -3240,9 +3235,9 @@ void Sound_Cmd_1A_Unk(FSoundCommandParams* arg0)
             && ((g_pSavedMousicConfig == NULL) || (SAVED_MUSIC_CONFIG->MusicId == 0))) {
             g_pSavedMousicConfig = &g_PushedMusicConfig;
             g_pSecondaryMusicChannels = D_800378E8;
-            Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, 0x80);
+            Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, sizeof(FSoundChannelConfig));
             Sound_memcpy32(g_ActiveMusicChannels,
-                (FSoundChannelConfig*)g_pSecondaryMusicChannels, 0x2200);
+                (FSoundChannelConfig*)g_pSecondaryMusicChannels, sizeof(g_ActiveMusicChannels));
         }
         Sound_LoadAkaoSequence(psx_to_ptr(FAkaoSequence*, arg0->Param1));
         g_pActiveMusicConfig->MusicId = arg0->Param3;
@@ -3906,7 +3901,7 @@ void Sound_Cmd_9B_unk(FSoundCommandParams* arg0 __attribute__((unused)))
     int var_s2;
 
     if (g_pActiveMusicConfig->ActiveChannelMask != 0) {
-        int v0 = ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | D_80039B14);
+        int v0 = ~(g_Sound_VoiceSchedulerState.ActiveChannelMask | g_Sound_Cutscene_StreamState.VoicesInUseFlags);
         var_s2 = 1;
         var_s1 = v0 & 0xFFFFFF;
 
@@ -3928,7 +3923,7 @@ void Sound_Cmd_9B_unk(FSoundCommandParams* arg0 __attribute__((unused)))
         g_pActiveMusicConfig->ActiveChannelMask = 0;
         g_pActiveMusicConfig->unk1C = temp_v1;
     }
-    D_80039B64 |= 1;
+    g_Sound_Cutscene_StreamState.ControlFlags |= 1;
 }
 
 void Sound_Cmd_9A_unk(FSoundCommandParams* in_Params __attribute__((unused)))
@@ -3952,7 +3947,7 @@ void Sound_Cmd_9A_unk(FSoundCommandParams* in_Params __attribute__((unused)))
         g_pActiveMusicConfig->ActiveChannelMask = temp_v1;
         g_Sound_GlobalFlags.UpdateFlags |= 0x100;
     }
-    D_80039B64 &= ~1;
+    g_Sound_Cutscene_StreamState.ControlFlags &= ~1;
 }
 
 void Sound_Cmd_9D_unk(FSoundCommandParams* in_Params __attribute__((unused)))
@@ -3991,7 +3986,7 @@ void Sound_Cmd_9D_unk(FSoundCommandParams* in_Params __attribute__((unused)))
             var_s2 += 1;
         }
     }
-    D_80039B64 |= 2;
+    g_Sound_Cutscene_StreamState.ControlFlags |= 2;
 }
 
 void Sound_Cmd_9C_unk(FSoundCommandParams* in_Params __attribute__((unused)))
@@ -4016,7 +4011,7 @@ void Sound_Cmd_9C_unk(FSoundCommandParams* in_Params __attribute__((unused)))
         g_Sound_VoiceSchedulerState.ActiveChannelMask |= temp_a2;
         g_Sound_GlobalFlags.UpdateFlags |= 0x100;
     }
-    D_80039B64 &= ~2;
+    g_Sound_Cutscene_StreamState.ControlFlags &= ~2;
 }
 
 void Sound_Cmd_9F_unk(FSoundCommandParams* in_Params __attribute__((unused)))
@@ -4068,7 +4063,7 @@ u_int func_80018C30(u_int in_Command)
     case 0x12:
     case 0x19:
     case 0x1A:
-        pSequence = (AkaoSeqHeader*)psx_get(D_800378C0.unk0);
+        pSequence = (AkaoSeqHeader*)D_800378C0.unk0;
         if (*(int*)pSequence->magic == AKAO_MAGIC) {
             g_Sound_GlobalFlags.ControlLatches &= ~0x7700;
             if ((g_pActiveMusicConfig->MusicId != pSequence->id)
@@ -4106,18 +4101,18 @@ u_int func_80018C30(u_int in_Command)
     case 0x14: {
         void* pData;
 
-        if (Sound_IsNotAkaoFile(psx_get(D_800378C0.unk0)) != 0) {
+        if (Sound_IsNotAkaoFile(D_800378C0.unk0) != 0) {
             result = -1;
             break;
         }
-        pData = psx_get(D_800378C0.unk0);
+        pData = D_800378C0.unk0;
         g_pActiveMusicConfig->StatusFlags |= 0x10000;
         D_80037788.PendingSequence = psx_to_int(u_int, pData);
-        result = ((AkaoSeqHeader*)psx_get(D_800378C0.unk0))->id;
+        result = ((AkaoSeqHeader*)D_800378C0.unk0)->id;
         break;
     }
     case 0x16:
-        if ((*(int*)psx_get(D_800378C0.unk0) == AKAO_MAGIC)
+        if ((*(int*)D_800378C0.unk0 == AKAO_MAGIC)
             && (*psx_to_ptr(int*, D_800378C0.unk4) == AKAO_MAGIC)) {
             pSequence = psx_to_ptr(AkaoSeqHeader*, D_800378C0.unk4);
             g_Sound_GlobalFlags.ControlLatches &= ~0x7700;
@@ -4125,10 +4120,10 @@ u_int func_80018C30(u_int in_Command)
             D_800378C0.unk4 = pSequence->id;
             Sound_LoadAkaoSequence((FAkaoSequence*)pSequence);
             g_pActiveMusicConfig->MusicId = pSequence->id;
-            Sound_memcpy32(g_ActiveMusicChannels, D_800378E8, 0x2200);
-            Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, 0x80);
-            pSequence = (AkaoSeqHeader*)psx_get(D_800378C0.unk0);
-            psx_set_raw(D_800378C0.unk0, void*, (u_int)pSequence->id);
+            Sound_memcpy32(g_ActiveMusicChannels, D_800378E8, sizeof(g_ActiveMusicChannels));
+            Sound_memcpy32(&D_800366F0, &g_PushedMusicConfig, sizeof(FSoundChannelConfig));
+            pSequence = (AkaoSeqHeader*)D_800378C0.unk0;
+            D_800378C0.unk0 = (__UINTPTR_TYPE__)((u_int)pSequence->id);
             Sound_LoadAkaoSequence((FAkaoSequence*)pSequence);
             g_pSavedMousicConfig = &g_PushedMusicConfig;
             g_pSecondaryMusicChannels = D_800378E8;
@@ -4149,18 +4144,18 @@ u_int func_80018C30(u_int in_Command)
         in_Command = 0;
         break;
     case 0xD8:
-        pParams->Param1 = (u_int)psx_raw(D_800378C0.unk0);
+        pParams->Param1 = (u_int)((unsigned long)(D_800378C0.unk0));
         D_800301E0[0xD0](pParams);
         in_Command = 0xD4;
         break;
     case 0xD9:
-        pParams->Param1 = (u_int)psx_raw(D_800378C0.unk0);
+        pParams->Param1 = (u_int)((unsigned long)(D_800378C0.unk0));
         pParams->Param2 = D_800378C0.unk4;
         D_800301E0[0xD1](pParams);
         in_Command = 0xD5;
         break;
     case 0xDA:
-        pParams->Param1 = (u_int)psx_raw(D_800378C0.unk0);
+        pParams->Param1 = (u_int)((unsigned long)(D_800378C0.unk0));
         pParams->Param2 = D_800378C0.unk4;
         pParams->Param3 = D_800378C0.unk8;
         D_800301E0[0xD2](pParams);
@@ -4177,7 +4172,7 @@ u_int func_80018C30(u_int in_Command)
         in_Command = 0x9E;
         break;
     default:
-        pParams->Param1 = (u_int)psx_raw(D_800378C0.unk0);
+        pParams->Param1 = (u_int)((unsigned long)(D_800378C0.unk0));
         pParams->Param2 = D_800378C0.unk4;
         pParams->Param3 = D_800378C0.unk8;
         pParams->Param4 = D_800378C0.unkC;
@@ -4289,7 +4284,7 @@ void func_8001924C(void)
                     g_Sound_Cutscene_StreamState.VoiceIndex + 1, 0, temp_s0, 0);
             }
         }
-        D_80039B48 = temp_s1 & 0xFFFF;
+        g_Sound_Cutscene_StreamState.Volume = temp_s1 & 0xFFFF;
     }
     if (D_80036782 != 0) {
         --D_80036782;
@@ -4424,7 +4419,7 @@ int func_80019704(FSoundChannel* arg0, int arg1)
 
     g_pActiveMusicConfig->unk28 += var_a0;
 
-    if ((g_pActiveMusicConfig->unk28 & 0xFFFF0000) || (D_80039B64 & 4)) {
+    if ((g_pActiveMusicConfig->unk28 & 0xFFFF0000) || (g_Sound_Cutscene_StreamState.ControlFlags & 4)) {
         g_pActiveMusicConfig->unk28 = g_pActiveMusicConfig->unk28 & 0xFFFF;
 
         do {
@@ -4565,8 +4560,8 @@ psx_long func_80019A58(void)
             g_pSavedMousicConfig = NULL;
         } else if ((g_pActiveMusicConfig->ActiveChannelMask | g_pActiveMusicConfig->unk1C)
                    == 0) {
-            Sound_memcpy32(g_pSavedMousicConfig, g_pActiveMusicConfig, 0x80);
-            Sound_memcpy32(g_pSecondaryMusicChannels, g_ActiveMusicChannels, 0x2200);
+            Sound_memcpy32(g_pSavedMousicConfig, g_pActiveMusicConfig, sizeof(FSoundChannelConfig));
+            Sound_memcpy32(g_pSecondaryMusicChannels, g_ActiveMusicChannels, sizeof(g_ActiveMusicChannels));
             temp_v0 = g_pSavedMousicConfig;
             g_pSavedMousicConfig = NULL;
             temp_v0->MusicId = 0;
@@ -4617,13 +4612,13 @@ psx_long func_80019A58(void)
         g_Sound_VoiceSchedulerState.TempoAccumumulator +=
             (g_Sound_VoiceSchedulerState.unk14 >> 0x10) & 0xFFFF;
         if ((g_Sound_VoiceSchedulerState.TempoAccumumulator & 0xFFFF0000)
-            || (D_80039B64 & 4)) {
+            || (g_Sound_Cutscene_StreamState.ControlFlags & 4)) {
             g_Sound_VoiceSchedulerState.TempoAccumumulator &= 0xFFFF;
             var_s1 = 0x1000;
             var_s2_2 = D_80035910;
             do {
                 if (i & var_s1) {
-                    if (!(D_80039B64 & 2) || (var_s2_2->unk28 & 0x02000000)) {
+                    if (!(g_Sound_Cutscene_StreamState.ControlFlags & 2) || (var_s2_2->unk28 & 0x02000000)) {
                         ++var_s2_2->unk58;
                         --var_s2_2->Length1;
                         --var_s2_2->Length2;
@@ -4671,7 +4666,7 @@ char func_80019FC4(FSoundChannel* channel)
     int length;
     int jumpOffset;
 
-    pc = psx_get(channel->ProgramCounter);
+    pc = channel->ProgramCounter;
     loopTop = channel->LoopStackTop;
     config = g_pActiveMusicConfig;
 
@@ -4748,7 +4743,7 @@ char func_80019FC4(FSoundChannel* channel)
                 }
                 break;
             case 0x0F:
-                pc = psx_get(channel->ReturnProgramCounter);
+                pc = channel->ReturnProgramCounter;
                 break;
             case 0x1F:
                 pc++;
@@ -4765,7 +4760,7 @@ char func_80019FC4(FSoundChannel* channel)
                 loopTop--;
                 loopTop &= 3;
             } else {
-                pc = psx_get(channel->LoopStartPc[loopTop]);
+                pc = channel->LoopStartPc[loopTop];
             }
             break;
         case 0xCB:
@@ -4777,7 +4772,7 @@ char func_80019FC4(FSoundChannel* channel)
             break;
         case 0xCA:
             if (!(channel->UpdateFlags & 0x200000)) {
-                pc = psx_get(channel->LoopStartPc[loopTop]);
+                pc = channel->LoopStartPc[loopTop];
                 break;
             }
         default:
@@ -4816,7 +4811,7 @@ void func_8001A258(FSoundChannel* arg0, u_int arg1)
     int temp_s2;
 
     if ((arg0->Key < arg1) || (arg0->Key == 0xFF)) {
-        var_s0 = psx_get(arg0->Keymap);
+        var_s0 = arg0->Keymap;
         while (var_s0[13] != 0 && var_s0[2] < arg1) {
             var_s0 += 8;
         }
@@ -4824,7 +4819,7 @@ void func_8001A258(FSoundChannel* arg0, u_int arg1)
         if (arg1 >= arg0->Key) {
             return;
         }
-        var_s0 = psx_get(arg0->Keymap);
+        var_s0 = arg0->Keymap;
         while (var_s0[13] != 0 && arg1 >= var_s0[9]) {
             var_s0 += 8;
         }
@@ -4931,7 +4926,7 @@ int func_8001A64C(FSoundChannel* arg0, int arg1, int arg2)
     int temp_s2;
     char* temp_s1;
 
-    temp_s1 = (char*)psx_get(g_pActiveMusicConfig->KeymapTable);
+    temp_s1 = (char*)g_pActiveMusicConfig->KeymapTable;
     temp_s1 += arg2 * 8;
     g_pActiveMusicConfig->PendingKeyOnMask |= arg1;
 
@@ -5011,21 +5006,21 @@ void func_8001A8D8(FSoundChannel* arg0, int arg1)
     u_int var_s0;
 
     do {
-        temp_a1 = psx_get(arg0->ProgramCounter);
+        temp_a1 = arg0->ProgramCounter;
         var_s0 = temp_a1[0];
-        psx_set(arg0->ProgramCounter, ++temp_a1);
+        arg0->ProgramCounter = ++temp_a1;
 
         if (var_s0 >= 0xA0) {
             temp_v1 = var_s0 - 0xF0;
             if (var_s0 == 0xFE) {
                 temp_a2_2 = temp_a1[0];
-                psx_set(arg0->ProgramCounter, temp_a1 + 1);
+                arg0->ProgramCounter = temp_a1 + 1;
                 D_80030760[temp_a2_2](arg0, arg1);
             } else {
                 if (temp_v1 < 0xE) {
                     var_s0 = temp_v1 * 0xB;
                     arg0->Length1 = temp_a1[0];
-                    psx_set(arg0->ProgramCounter, temp_a1 + 1);
+                    arg0->ProgramCounter = temp_a1 + 1;
                 } else {
                     if (var_s0 == 0xFF) {
                         var_s0 = 0xA0;
@@ -5094,7 +5089,7 @@ void func_8001A8D8(FSoundChannel* arg0, int arg1)
                     if (arg0->Type == 0) {
                         if (D_80039AFC & 0x10) {
                             temp_s0 +=
-                                *((signed char*)psx_get(g_pActiveMusicConfig->unk44)
+                                *((signed char*)g_pActiveMusicConfig->unk44
                                     + ((temp_s0) % 12));
                         }
                         if (temp_a1_2 & 0x1000) {
@@ -5159,13 +5154,13 @@ void func_8001A8D8(FSoundChannel* arg0, int arg1)
                                             : (temp_v1_6 * temp_a2_2))
                                  >> 7;
                 if (!(arg0->SfxMask & 2)) {
-                    psx_set(arg0->VibratoWave, g_Sound_LfoTable[arg0->VibratoType]);
+                    arg0->VibratoWave = g_Sound_LfoTable[arg0->VibratoType];
                     arg0->VibratoDelayCurrent = arg0->VibratoDelay;
                     arg0->unkA4 = 1;
                 }
             }
             if ((temp_s0 & 2) && !(arg0->SfxMask & 2)) {
-                psx_set(arg0->TremeloWave, g_Sound_LfoTable[arg0->TremeloType]);
+                arg0->TremeloWave = g_Sound_LfoTable[arg0->TremeloType];
                 arg0->TremeloDelayCurrent = arg0->TremeloDelay;
                 arg0->unkB6 = 1;
             }
@@ -5259,9 +5254,9 @@ void SoundVM_FE1F_unk(FSoundChannel* in_pChannel, u_int in_VoiceFlags)
 void SoundVM_FE00_SetTempo(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    g_pActiveMusicConfig->Tempo = psx_get(in_pChannel->ProgramCounter)[0] << 0x10;
-    g_pActiveMusicConfig->Tempo |= psx_get(in_pChannel->ProgramCounter)[1] << 0x18;
-    psx_add(in_pChannel->ProgramCounter, sizeof(short));
+    g_pActiveMusicConfig->Tempo = in_pChannel->ProgramCounter[0] << 0x10;
+    g_pActiveMusicConfig->Tempo |= in_pChannel->ProgramCounter[1] << 0x18;
+    (in_pChannel->ProgramCounter) += (sizeof(short));
     g_pActiveMusicConfig->TempoSlideLength = 0;
 }
 
@@ -5274,14 +5269,14 @@ void SoundVM_FE01_SetTempoSlide(
     int Delta;
 
     if ((g_pActiveMusicConfig->TempoSlideLength =
-                *psx_postinc(in_pChannel->ProgramCounter))
+                *(in_pChannel->ProgramCounter)++)
         == 0) {
         g_pActiveMusicConfig->TempoSlideLength = 0x100;
     }
-    pc = psx_get(in_pChannel->ProgramCounter);
+    pc = in_pChannel->ProgramCounter;
     Dest = pc[0] << 0x10;
     Dest |= pc[1] << 0x18;
-    psx_add(in_pChannel->ProgramCounter, 2);
+    (in_pChannel->ProgramCounter) += (2);
     Prev = g_pActiveMusicConfig->Tempo & 0xFFFF0000;
     Delta = Dest - Prev;
     g_pActiveMusicConfig->TempoSlideStep = Delta / g_pActiveMusicConfig->TempoSlideLength;
@@ -5294,10 +5289,10 @@ void SoundVM_FE02_SetMasterReverbDepth(
     char* pc;
     u_int Depth;
 
-    pc = psx_get(in_pChannel->ProgramCounter);
+    pc = in_pChannel->ProgramCounter;
     Depth = (signed char)pc[1] << 0x14;
     Depth |= pc[0] << 0xC;
-    psx_add(in_pChannel->ProgramCounter, sizeof(short));
+    (in_pChannel->ProgramCounter) += (sizeof(short));
     g_pActiveMusicConfig->ReverbDepthSlideLength = 0;
     g_Sound_GlobalFlags.UpdateFlags |= SOUND_GLOBAL_UPDATE_07;
     g_pActiveMusicConfig->RevDepth = Depth;
@@ -5312,14 +5307,14 @@ void SoundVM_FE03_SetMasterReverbSlide(
     char* pc;
 
     g_pActiveMusicConfig->ReverbDepthSlideLength =
-        *psx_postinc(in_pChannel->ProgramCounter);
+        *(in_pChannel->ProgramCounter)++;
     if (g_pActiveMusicConfig->ReverbDepthSlideLength == 0) {
         g_pActiveMusicConfig->ReverbDepthSlideLength = 0x100;
     }
-    pc = psx_get(in_pChannel->ProgramCounter);
+    pc = in_pChannel->ProgramCounter;
     Dest = (signed char)pc[1] << 0x14;
     Dest |= (char)pc[0] << 0xC;
-    psx_add(in_pChannel->ProgramCounter, 2);
+    (in_pChannel->ProgramCounter) += (2);
     Prev = g_pActiveMusicConfig->RevDepth & ~0xFFF;
     g_pActiveMusicConfig->RevDepth = Prev;
     Delta = Dest - Prev;
@@ -5329,8 +5324,8 @@ void SoundVM_FE03_SetMasterReverbSlide(
 void SoundVM_FE06_JumpRelativeOffset(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    short Offset = READ_16LE_PC(psx_get(in_pChannel->ProgramCounter));
-    psx_add(in_pChannel->ProgramCounter, Offset);
+    short Offset = READ_16LE_PC(in_pChannel->ProgramCounter);
+    (in_pChannel->ProgramCounter) += (Offset);
 }
 
 void SoundVM_FE07_JumpRelativeWithThreshold(
@@ -5339,38 +5334,37 @@ void SoundVM_FE07_JumpRelativeWithThreshold(
     short Threshold;
     short Offset;
 
-    Threshold = *psx_postinc(in_pChannel->ProgramCounter);
+    Threshold = *(in_pChannel->ProgramCounter)++;
 
     if (g_pActiveMusicConfig->JumpThresholdValue >= Threshold) {
         // Read signed 16-bit LE offset at current pc, jump relative to pc
-        Offset = READ_16LE_PC(psx_get(in_pChannel->ProgramCounter));
-        psx_add(in_pChannel->ProgramCounter, Offset);
+        Offset = READ_16LE_PC(in_pChannel->ProgramCounter);
+        (in_pChannel->ProgramCounter) += (Offset);
         return;
     }
 
     // Skip over the 16-bit offset operand
-    psx_add(in_pChannel->ProgramCounter, sizeof(short));
+    (in_pChannel->ProgramCounter) += (sizeof(short));
 }
 
 void SoundVM_FE0E_CallRelativeOffset(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    short Offset = READ_16LE_PC(psx_get(in_pChannel->ProgramCounter));
-    psx_set(in_pChannel->ReturnProgramCounter,
-        psx_get(in_pChannel->ProgramCounter) + sizeof(short));
-    psx_add(in_pChannel->ProgramCounter, Offset);
+    short Offset = READ_16LE_PC(in_pChannel->ProgramCounter);
+    in_pChannel->ReturnProgramCounter = in_pChannel->ProgramCounter + sizeof(short);
+    (in_pChannel->ProgramCounter) += (Offset);
 }
 
 void SoundVM_FE0F_Return(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    psx_copy(in_pChannel->ProgramCounter, in_pChannel->ReturnProgramCounter);
+    (in_pChannel->ProgramCounter) = (in_pChannel->ReturnProgramCounter);
 }
 
 void SoundVM_A3_ChannelMasterVolume(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->VolumeBalance = *psx_postinc(in_pChannel->ProgramCounter) << 8;
+    in_pChannel->VolumeBalance = *(in_pChannel->ProgramCounter)++ << 8;
     in_pChannel->VoiceParams.VoiceParamFlags |= VOICE_PARAM_VOLUME;
 }
 
@@ -5382,13 +5376,13 @@ void SoundVM_FE12_VolumeBalanceSlide(
     int Target;
     int Delta;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VolumeBalanceSlideLength = Length;
     if (Length == 0) {
         in_pChannel->VolumeBalanceSlideLength = 0x100;
     }
 
-    Target = *psx_postinc(in_pChannel->ProgramCounter) << 8;
+    Target = *(in_pChannel->ProgramCounter)++ << 8;
 
     VolumeBalance = in_pChannel->VolumeBalance & 0x7F00;
     in_pChannel->VolumeBalance = VolumeBalance;
@@ -5399,7 +5393,7 @@ void SoundVM_FE12_VolumeBalanceSlide(
 void SoundVM_A8_ChannelVolume(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->Volume = (signed char)*psx_postinc(in_pChannel->ProgramCounter) << 0x17;
+    in_pChannel->Volume = (signed char)*(in_pChannel->ProgramCounter)++ << 0x17;
     in_pChannel->ChannelVolumeSlideLength = 0;
     in_pChannel->VoiceParams.VoiceParamFlags |= VOICE_PARAM_VOLUME;
     in_pChannel->KeyOnVolumeSlideLength = 0;
@@ -5413,12 +5407,12 @@ void SoundVM_A9_ChannelVolumeSlide(
     u_short Length;
     int Delta;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     in_pChannel->ChannelVolumeSlideLength = Length;
     if (Length == 0) {
         in_pChannel->ChannelVolumeSlideLength = 0x100;
     }
-    Dest = ((signed char)*psx_postinc(in_pChannel->ProgramCounter) << 0x17);
+    Dest = ((signed char)*(in_pChannel->ProgramCounter)++ << 0x17);
 
     Prev = in_pChannel->Volume & 0xFFFF0000;
     in_pChannel->Volume = Prev;
@@ -5437,15 +5431,15 @@ void SoundVM_FE19_unk(
     int Prev;
     int Delta;
 
-    in_pChannel->unk5C = ((signed char)*psx_postinc(in_pChannel->ProgramCounter)) << 0x17;
-    pPc1 = *psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->unk5C = ((signed char)*(in_pChannel->ProgramCounter)++) << 0x17;
+    pPc1 = *(in_pChannel->ProgramCounter)++;
     in_pChannel->KeyOnVolumeSlideLength = (short)pPc1;
 
     if (pPc1 == 0) {
         in_pChannel->KeyOnVolumeSlideLength = 0x100;
     }
 
-    Dest = ((signed char)*psx_postinc(in_pChannel->ProgramCounter)) << 0x17;
+    Dest = ((signed char)*(in_pChannel->ProgramCounter)++) << 0x17;
     Prev = in_pChannel->unk5C;
     Delta = Dest - Prev;
     in_pChannel->unk60 = Delta / in_pChannel->KeyOnVolumeSlideLength;
@@ -5466,7 +5460,7 @@ void SoundVM_FE1B_unk(
 void SoundVM_FE0C_unk(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    g_pActiveMusicConfig->unk34 = *psx_postinc(in_pChannel->ProgramCounter);
+    g_pActiveMusicConfig->unk34 = *(in_pChannel->ProgramCounter)++;
 }
 
 static void SoundVM_nop(FSoundChannel* in_pChannels, u_int in_VoiceFlags)
@@ -5481,7 +5475,7 @@ void SoundVM_unused1(FSoundChannel* in_pChannel, u_int in_VoiceFlags)
 void SoundVM_unused1(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->unkDC = *psx_postinc(in_pChannel->ProgramCounter) << 8;
+    in_pChannel->unkDC = *(in_pChannel->ProgramCounter)++ << 8;
     in_pChannel->unk8C = 0;
     if (in_pChannel->UpdateFlags & 0x100) {
         in_pChannel->VoiceParams.VoiceParamFlags |= 3;
@@ -5496,11 +5490,11 @@ void SoundVM_unused2(
     short v;
     int pc;
 
-    if ((in_pChannel->unk8C = *psx_postinc(in_pChannel->ProgramCounter)) == 0) {
+    if ((in_pChannel->unk8C = *(in_pChannel->ProgramCounter)++) == 0) {
         in_pChannel->unk8C = 0x100;
     }
 
-    pc = *(psx_postinc(in_pChannel->ProgramCounter)) << 8;
+    pc = *((in_pChannel->ProgramCounter)++) << 8;
     v = in_pChannel->unkDC & 0xFF00;
     in_pChannel->unkDE = ((pc - v) / in_pChannel->unk8C);
     in_pChannel->unkDC = v;
@@ -5511,7 +5505,7 @@ void SoundVM_AA_ChannelPan(
 {
     // Convert signed pan (-64..+63) to unsigned 0..255, center at 0x40 and store as Q8.8
     // pan value
-    in_pChannel->ChannelPan = ((*psx_postinc(in_pChannel->ProgramCounter) + 0x40) & 0xFF)
+    in_pChannel->ChannelPan = ((*(in_pChannel->ProgramCounter)++ + 0x40) & 0xFF)
                            << 8;
     in_pChannel->ChannelPanSlideLength = 0;
     in_pChannel->VoiceParams.VoiceParamFlags |= VOICE_PARAM_VOLUME;
@@ -5525,13 +5519,13 @@ void SoundVM_AB_ChannelPanSlide(
     u_short Dest;
     int Delta;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     in_pChannel->ChannelPanSlideLength = Length;
     if (Length == 0) {
         in_pChannel->ChannelPanSlideLength = 0x100;
     }
 
-    Dest = *psx_postinc(in_pChannel->ProgramCounter);
+    Dest = *(in_pChannel->ProgramCounter)++;
     Dest = ((Dest + 0x40) & 0xFF) << 8; // Center it
     Prev = in_pChannel->ChannelPan & 0xFF00;
     Delta = Dest - Prev;
@@ -5542,7 +5536,7 @@ void SoundVM_AB_ChannelPanSlide(
 void SoundVM_A5_SetOctave(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->Octave = *psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->Octave = *(in_pChannel->ProgramCounter)++;
 }
 
 void SoundVM_A6_IncreaseOctave(
@@ -5560,7 +5554,7 @@ void SoundVM_A7_DecreaseOctave(
 void SoundVM_A1_LoadInstrument(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    int pc = *psx_postinc(in_pChannel->ProgramCounter);
+    int pc = *(in_pChannel->ProgramCounter)++;
 
     int var_s0 = in_pChannel->Type == 0
                    ? func_8001A22C(g_pActiveMusicConfig->StatusFlags, pc)
@@ -5577,7 +5571,7 @@ void SoundVM_FE0A_ClearInstrument(
 {
     u_short Index;
 
-    Index = *psx_postinc(in_pChannel->ProgramCounter);
+    Index = *(in_pChannel->ProgramCounter)++;
     Sound_CopyInstrumentInfoToChannel(in_pChannel, &g_InstrumentInfo[Index], 0x1010);
     in_pChannel->InstrumentIndex = Index;
     in_pChannel->VoiceParams.VolumeScale = 0;
@@ -5592,16 +5586,15 @@ void SoundVM_FE14_ChangePatch(
     u_short* pPatchTable;
     u_char PatchIndex;
 
-    PatchIndex = *psx_postinc(in_pChannel->ProgramCounter);
-    if (psx_get(g_pActiveMusicConfig->SequencePatchTable) != NULL) {
-        pPatchTable = (u_short*)psx_get(g_pActiveMusicConfig->SequencePatchTable);
+    PatchIndex = *(in_pChannel->ProgramCounter)++;
+    if (g_pActiveMusicConfig->SequencePatchTable != NULL) {
+        pPatchTable = (u_short*)g_pActiveMusicConfig->SequencePatchTable;
         if (pPatchTable[PatchIndex] > 0x8000) {
             in_pChannel->VoiceParams.VolumeScale = 0;
             in_pChannel->UpdateFlags &= ~SOUND_UPDATE_UNKNOWN_12;
             return;
         }
-        psx_set_raw(in_pChannel->Keymap, char*,
-            (psx_to_int(int, pPatchTable) + pPatchTable[PatchIndex] + 0x20));
+        in_pChannel->Keymap = (char*)((char*)pPatchTable + pPatchTable[PatchIndex] + 0x20);
         in_pChannel->UpdateFlags &=
             ~(SOUND_UPDATE_DRUM_MODE | SOUND_UPDATE_UNKNOWN_12 | SOUND_UPDATE_UNKNOWN_24
                 | SOUND_UPDATE_UNKNOWN_27 | SOUND_UPDATE_UNKNOWN_28);
@@ -5625,32 +5618,32 @@ void SoundVM_B3_ResetAdsr(
 void SoundVM_C0_ChannelTranspose_Absolute(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->Transpose = (signed char)*psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->Transpose = (signed char)*(in_pChannel->ProgramCounter)++;
 }
 
 void SoundVM_C1_ChannelTranspose_Relative(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->Transpose += (signed char)*psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->Transpose += (signed char)*(in_pChannel->ProgramCounter)++;
 }
 
 void SoundVM_A4_PitchBendSlide(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    int Length = *psx_postinc(in_pChannel->ProgramCounter);
+    int Length = *(in_pChannel->ProgramCounter)++;
     in_pChannel->PitchBendSlideLength = Length;
     if (Length == 0) {
         in_pChannel->PitchBendSlideLength = 0x100;
     }
 
     in_pChannel->PitchBendSlideTranspose =
-        (signed char)*psx_postinc(in_pChannel->ProgramCounter);
+        (signed char)*(in_pChannel->ProgramCounter)++;
 }
 
 void SoundVM_DA_EnablePortamento(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    int Steps = *psx_postinc(in_pChannel->ProgramCounter);
+    int Steps = *(in_pChannel->ProgramCounter)++;
     in_pChannel->PortamentoSteps = Steps;
 
     if (Steps == 0) {
@@ -5674,7 +5667,7 @@ void SoundVM_D8_ChannelFineTune_Absolute(
     u_int ScaledFineTune;
     int FinePitchDelta;
 
-    in_pChannel->FineTune = (signed char)*psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->FineTune = (signed char)*(in_pChannel->ProgramCounter)++;
     ScaledFineTune = in_pChannel->PitchBase * (char)in_pChannel->FineTune;
 
     if (in_pChannel->FineTune < 0) {
@@ -5694,7 +5687,7 @@ void SoundVM_D9_ChannelFineTune_Relative(
     int FinePitchDelta;
 
     in_pChannel->FineTune =
-        in_pChannel->FineTune + (signed char)*psx_postinc(in_pChannel->ProgramCounter);
+        in_pChannel->FineTune + (signed char)*(in_pChannel->ProgramCounter)++;
     ScaledFineTune = in_pChannel->PitchBase * (char)in_pChannel->FineTune;
 
     if (in_pChannel->FineTune < 0) {
@@ -5721,22 +5714,22 @@ void SoundVM_B4_Vibrato(
 
     if (in_pChannel->Type != 0) {
         in_pChannel->VibratoDelay = 0;
-        VibratoDepth = *psx_postinc(in_pChannel->ProgramCounter);
+        VibratoDepth = *(in_pChannel->ProgramCounter)++;
         if (VibratoDepth != 0) {
             in_pChannel->VibratoDepth = VibratoDepth << 8;
         }
     } else {
-        in_pChannel->VibratoDelay = *psx_postinc(in_pChannel->ProgramCounter);
+        in_pChannel->VibratoDelay = *(in_pChannel->ProgramCounter)++;
     }
 
-    VibratoRatePhase = *psx_postinc(in_pChannel->ProgramCounter);
+    VibratoRatePhase = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VibratoRatePhase = VibratoRatePhase;
 
     if (VibratoRatePhase == 0) {
         in_pChannel->VibratoRatePhase = 0x100;
     }
 
-    in_pChannel->VibratoType = *psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->VibratoType = *(in_pChannel->ProgramCounter)++;
     PitchBase = in_pChannel->PitchBase;
     new_var = PitchBase;
     DepthHigh = (in_pChannel->VibratoDepth & 0x7F00) >> 8;
@@ -5747,7 +5740,7 @@ void SoundVM_B4_Vibrato(
         VibratoBase = DepthHigh * new_var;
     }
     in_pChannel->VibratoBase = VibratoBase >> 7;
-    psx_set(in_pChannel->VibratoWave, g_Sound_LfoTable[in_pChannel->VibratoType]);
+    in_pChannel->VibratoWave = g_Sound_LfoTable[in_pChannel->VibratoType];
     in_pChannel->VibratoDelayCurrent = in_pChannel->VibratoDelay;
     in_pChannel->unkA4 = 1;
 }
@@ -5764,7 +5757,7 @@ void SoundVM_B5_VibratoDepth(
 
     // Read vibrato depth parameter from the sequence.
     // Stored in the high byte so bit 15 can act as a mode flag.
-    in_pChannel->VibratoDepth = *psx_postinc(in_pChannel->ProgramCounter) << 8;
+    in_pChannel->VibratoDepth = *(in_pChannel->ProgramCounter)++ << 8;
 
     // Extract the depth magnitude (bits 8–14)
     DepthAmount = (in_pChannel->VibratoDepth & 0x7F00) >> 8;
@@ -5793,11 +5786,11 @@ void SoundVM_DD_VibratoDepthSlide(
     u_short Dest;
     int Delta;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     if (Length == 0) {
         Length = 0x100;
     }
-    Dest = *psx_postinc(in_pChannel->ProgramCounter);
+    Dest = *(in_pChannel->ProgramCounter)++;
     Dest = Dest << 8;
     Prev = in_pChannel->VibratoDepth;
     Delta = Dest - Prev;
@@ -5820,7 +5813,7 @@ void SoundVM_B8_Tremelo(
     int Rate;
 
     in_pChannel->UpdateFlags |= SOUND_UPDATE_TREMOLO;
-    Delay = *psx_postinc(in_pChannel->ProgramCounter);
+    Delay = *(in_pChannel->ProgramCounter)++;
     if (in_pChannel->Type != 0) {
         in_pChannel->TremeloDelay = 0;
         if (Delay != 0) {
@@ -5830,15 +5823,15 @@ void SoundVM_B8_Tremelo(
         in_pChannel->TremeloDelay = Delay;
     }
 
-    Rate = *psx_postinc(in_pChannel->ProgramCounter);
+    Rate = *(in_pChannel->ProgramCounter)++;
     in_pChannel->TremeloRatePhase = Rate;
 
     if (Rate == 0) {
         in_pChannel->TremeloRatePhase = 0x100;
     }
 
-    in_pChannel->TremeloType = *psx_postinc(in_pChannel->ProgramCounter);
-    psx_set(in_pChannel->TremeloWave, g_Sound_LfoTable[in_pChannel->TremeloType]);
+    in_pChannel->TremeloType = *(in_pChannel->ProgramCounter)++;
+    in_pChannel->TremeloWave = g_Sound_LfoTable[in_pChannel->TremeloType];
     in_pChannel->TremeloDelayCurrent = in_pChannel->TremeloDelay;
     in_pChannel->unkB6 = 1;
 }
@@ -5846,7 +5839,7 @@ void SoundVM_B8_Tremelo(
 void SoundVM_B9_TremeloDepth(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->TremeloDepth = (*psx_postinc(in_pChannel->ProgramCounter) & 0x7F) << 8;
+    in_pChannel->TremeloDepth = (*(in_pChannel->ProgramCounter)++ & 0x7F) << 8;
 }
 
 void SoundVM_DE_TremeloDepthSlide(
@@ -5857,11 +5850,11 @@ void SoundVM_DE_TremeloDepthSlide(
     u_int Dest;
     int Delta;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     if (Length == 0) {
         Length = 0x100;
     }
-    Dest = (*psx_postinc(in_pChannel->ProgramCounter) & 0x7f) << 8;
+    Dest = (*(in_pChannel->ProgramCounter)++ & 0x7f) << 8;
     Prev = in_pChannel->TremeloDepth;
     Delta = Dest - Prev;
     in_pChannel->TremeloDepthSlideStep = Delta / Length;
@@ -5882,22 +5875,22 @@ void SoundVM_BC_AutoPan(
     int Rate;
 
     in_pChannel->UpdateFlags |= SOUND_UPDATE_PAN_LFO;
-    Rate = *psx_postinc(in_pChannel->ProgramCounter);
+    Rate = *(in_pChannel->ProgramCounter)++;
     in_pChannel->AutoPanRatePhase = Rate;
 
     if (Rate == 0) {
         in_pChannel->AutoPanRatePhase = 0x100;
     }
 
-    in_pChannel->AutoPanType = *psx_postinc(in_pChannel->ProgramCounter);
-    psx_set(in_pChannel->AutoPanWave, g_Sound_LfoTable[in_pChannel->AutoPanType]);
+    in_pChannel->AutoPanType = *(in_pChannel->ProgramCounter)++;
+    in_pChannel->AutoPanWave = g_Sound_LfoTable[in_pChannel->AutoPanType];
     in_pChannel->AutoPanRateCurrent = 1;
 }
 
 void SoundVM_BD_AutoPanDepth(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->AutoPanDepth = *psx_postinc(in_pChannel->ProgramCounter) << 7;
+    in_pChannel->AutoPanDepth = *(in_pChannel->ProgramCounter)++ << 7;
 }
 
 void SoundVM_DF_AutoPanDepthSlide(
@@ -5908,11 +5901,11 @@ void SoundVM_DF_AutoPanDepthSlide(
     u_short Dest;
     int Delta;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     if (Length == 0) {
         Length = 0x100;
     }
-    Dest = *psx_postinc(in_pChannel->ProgramCounter);
+    Dest = *(in_pChannel->ProgramCounter)++;
     Dest = Dest << 7;
     Prev = in_pChannel->AutoPanDepth;
 
@@ -6024,7 +6017,7 @@ void SoundVM_D1_DEBUG(FSoundChannel* in_pChannel __attribute__((unused)),
 void SoundVM_AC_NoiseClockFrequency(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    int Frequency = *psx_postinc(in_pChannel->ProgramCounter);
+    int Frequency = *(in_pChannel->ProgramCounter)++;
     if (in_pChannel->Type == SOUND_CHANNEL_TYPE_MUSIC) {
         if (Frequency & 0xC0) {
             g_pActiveMusicConfig->NoiseClock =
@@ -6044,7 +6037,7 @@ void SoundVM_AC_NoiseClockFrequency(
 void SoundVM_AD_AttackRate(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short AttackRate = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short AttackRate = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VoiceParams.AdsrLower &= ~SOUND_ADSR_ATTACK_RATE_MASK;
     in_pChannel->VoiceParams.AdsrLower |= AttackRate << SOUND_ADSR_ATTACK_RATE_SHIFT;
     in_pChannel->VoiceParams.VoiceParamFlags |=
@@ -6055,7 +6048,7 @@ void SoundVM_AD_AttackRate(
 void SoundVM_AE_DecayRate(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short DecayRate = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short DecayRate = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VoiceParams.AdsrLower &= ~SOUND_ADSR_DECAY_RATE_MASK;
     in_pChannel->VoiceParams.AdsrLower |= DecayRate << SOUND_ADSR_DECAY_RATE_SHIFT;
     in_pChannel->VoiceParams.VoiceParamFlags |= VOICE_PARAM_ADSR_DR;
@@ -6064,7 +6057,7 @@ void SoundVM_AE_DecayRate(
 void SoundVM_AF_SustainLevel(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short SustainLevel = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short SustainLevel = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VoiceParams.AdsrLower &= ~SOUND_ADSR_SUS_LEVEL_MASK;
     in_pChannel->VoiceParams.AdsrLower |= SustainLevel;
     in_pChannel->VoiceParams.VoiceParamFlags |= VOICE_PARAM_ADSR_SL;
@@ -6073,7 +6066,7 @@ void SoundVM_AF_SustainLevel(
 void SoundVM_B1_SustainRate(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short SustainRate = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short SustainRate = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VoiceParams.AdsrUpper &= ~SOUND_ADSR_SUS_RATE_MASK;
     in_pChannel->VoiceParams.AdsrUpper |= SustainRate << SOUND_ADSR_SUS_RATE_SHIFT;
     in_pChannel->VoiceParams.VoiceParamFlags |=
@@ -6084,7 +6077,7 @@ void SoundVM_B1_SustainRate(
 void SoundVM_B2_ReleaseRate(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short ReleaseRate = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short ReleaseRate = *(in_pChannel->ProgramCounter)++;
     in_pChannel->VoiceParams.AdsrUpper &= ~SOUND_ADSR_RELEASE_RATE_MASK;
     in_pChannel->VoiceParams.AdsrUpper |= ReleaseRate << SOUND_ADSR_RELEASE_RATE_SHIFT;
     in_pChannel->VoiceParams.VoiceParamFlags |=
@@ -6095,7 +6088,7 @@ void SoundVM_B2_ReleaseRate(
 void SoundVM_B7_AttackMode(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short Mode = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short Mode = *(in_pChannel->ProgramCounter)++;
 
     in_pChannel->VoiceParams.AdsrLower &= ~SOUND_ADSR_ATTACK_MODE_MASK;
 
@@ -6108,7 +6101,7 @@ void SoundVM_B7_AttackMode(
 void SoundVM_BB_SustainMode(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short mode = *(psx_postinc(in_pChannel->ProgramCounter));
+    u_short mode = *((in_pChannel->ProgramCounter)++);
     in_pChannel->VoiceParams.AdsrUpper &= ~((1 << 14) | (1 << 15));
 
     switch (mode) {
@@ -6128,7 +6121,7 @@ void SoundVM_BB_SustainMode(
 void SoundVM_BF_ReleaseMode(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short Value = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short Value = *(in_pChannel->ProgramCounter)++;
 
     in_pChannel->VoiceParams.AdsrUpper &= ~SOUND_ADSR_RELEASE_MODE_MASK;
     if (Value == SOUND_RMODE_7) {
@@ -6141,7 +6134,7 @@ void SoundVM_FE10_unk(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
     g_pActiveMusicConfig->SomeIndexRelatedToSpuVoiceInfo =
-        *psx_postinc(in_pChannel->ProgramCounter);
+        *(in_pChannel->ProgramCounter)++;
 }
 
 void SoundVM_FE11_unk(
@@ -6154,8 +6147,7 @@ void SoundVM_C8_LoopPoint(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
     in_pChannel->LoopStackTop = (in_pChannel->LoopStackTop + 1) & 3;
-    psx_copy(
-        in_pChannel->LoopStartPc[in_pChannel->LoopStackTop], in_pChannel->ProgramCounter);
+    in_pChannel->LoopStartPc[in_pChannel->LoopStackTop] = in_pChannel->ProgramCounter;
     in_pChannel->LoopIterationCount[in_pChannel->LoopStackTop] = 0;
     in_pChannel->LoopStepCounterSnapshot[in_pChannel->LoopStackTop] =
         in_pChannel->OpcodeStepCounter;
@@ -6168,7 +6160,7 @@ void SoundVM_C9_LoopN(
     u_short TopIndex;
     u_short DesiredLoopCount;
 
-    DesiredLoopCount = *psx_postinc(in_pChannel->ProgramCounter);
+    DesiredLoopCount = *(in_pChannel->ProgramCounter)++;
     if (DesiredLoopCount == 0) {
         DesiredLoopCount = 0x100;
     }
@@ -6178,8 +6170,7 @@ void SoundVM_C9_LoopN(
     in_pChannel->LoopIterationCount[TopIndex] = NewCount;
 
     if (NewCount != DesiredLoopCount) {
-        psx_copy(in_pChannel->ProgramCounter,
-            in_pChannel->LoopStartPc[in_pChannel->LoopStackTop]);
+        in_pChannel->ProgramCounter = in_pChannel->LoopStartPc[in_pChannel->LoopStackTop];
         in_pChannel->OpcodeStepCounter =
             in_pChannel->LoopStepCounterSnapshot[in_pChannel->LoopStackTop];
         return;
@@ -6198,7 +6189,7 @@ void SoundVM_FE08_JumpOnNthLoopPass(
     // pLoopCount   pOffset
     // 0x01         0x02          0x03         0x04
 
-    N = *psx_postinc(in_pChannel->ProgramCounter);
+    N = *(in_pChannel->ProgramCounter)++;
     if (N == 0) {
         N = 0x100;
     }
@@ -6206,16 +6197,15 @@ void SoundVM_FE08_JumpOnNthLoopPass(
     // If current loop's iteration + 1 != N
     if ((in_pChannel->LoopIterationCount[in_pChannel->LoopStackTop] + 1) != N) {
         // Jumps to next program instruction
-        psx_set(in_pChannel->ProgramCounter,
-            psx_get(in_pChannel->ProgramCounter) + sizeof(u_short));
+        in_pChannel->ProgramCounter = in_pChannel->ProgramCounter + sizeof(u_short);
         return;
     }
 
     // Read the relative offset
-    JumpOffset = READ_16LE_PC(psx_get(in_pChannel->ProgramCounter));
+    JumpOffset = READ_16LE_PC(in_pChannel->ProgramCounter);
 
     // Jump from pOffset to the relative offset
-    psx_add(in_pChannel->ProgramCounter, JumpOffset);
+    (in_pChannel->ProgramCounter) += (JumpOffset);
 }
 
 void SoundVM_FE09_JumpAndPopStackOnNthLoopPass(
@@ -6224,19 +6214,19 @@ void SoundVM_FE09_JumpAndPopStackOnNthLoopPass(
     u_short N;
     short JumpOffset;
 
-    N = *psx_postinc(in_pChannel->ProgramCounter);
+    N = *(in_pChannel->ProgramCounter)++;
     if (N == 0) {
         N = 0x100;
     }
 
     if ((in_pChannel->LoopIterationCount[in_pChannel->LoopStackTop] + 1) != N) {
-        psx_add(in_pChannel->ProgramCounter, sizeof(u_short));
+        (in_pChannel->ProgramCounter) += (sizeof(u_short));
         return;
     }
 
-    JumpOffset = READ_16LE_PC(psx_get(in_pChannel->ProgramCounter));
+    JumpOffset = READ_16LE_PC(in_pChannel->ProgramCounter);
 
-    psx_add(in_pChannel->ProgramCounter, JumpOffset);
+    (in_pChannel->ProgramCounter) += (JumpOffset);
     in_pChannel->LoopStackTop =
         (in_pChannel->LoopStackTop - 1) & SOUND_LOOP_STACK_MAX_INDEX;
 }
@@ -6245,8 +6235,7 @@ void SoundVM_CA_LoopInf(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
     in_pChannel->LoopIterationCount[in_pChannel->LoopStackTop] += 1;
-    psx_copy(
-        in_pChannel->ProgramCounter, in_pChannel->LoopStartPc[in_pChannel->LoopStackTop]);
+    in_pChannel->ProgramCounter = in_pChannel->LoopStartPc[in_pChannel->LoopStackTop];
     in_pChannel->OpcodeStepCounter =
         in_pChannel->LoopStepCounterSnapshot[in_pChannel->LoopStackTop];
 }
@@ -6256,7 +6245,7 @@ void SoundVM_A2_OverwriteNextNoteLength(
 {
     u_short Length;
 
-    Length = *psx_postinc(in_pChannel->ProgramCounter);
+    Length = *(in_pChannel->ProgramCounter)++;
     in_pChannel->LengthFixed = 0;
     in_pChannel->Length2 = Length;
     in_pChannel->Length1 = Length;
@@ -6270,7 +6259,7 @@ void SoundVM_DC_FixNoteLength(
 {
     int NoteLength;
 
-    NoteLength = *(signed char*)psx_postinc(in_pChannel->ProgramCounter);
+    NoteLength = *(signed char*)(in_pChannel->ProgramCounter)++;
     if (NoteLength != 0) {
         NoteLength += in_pChannel->LengthStored;
         if (NoteLength <= 0) {
@@ -6285,7 +6274,7 @@ void SoundVM_DC_FixNoteLength(
 void SoundVM_FE04_ClearKeymapTable(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    if (psx_get(g_pActiveMusicConfig->KeymapTable) != NULL) {
+    if (g_pActiveMusicConfig->KeymapTable != NULL) {
         in_pChannel->UpdateFlags &=
             ~(SOUND_UPDATE_DRUM_MODE | SOUND_UPDATE_UNKNOWN_12 | SOUND_UPDATE_UNKNOWN_24
                 | SOUND_UPDATE_UNKNOWN_27 | SOUND_UPDATE_UNKNOWN_28);
@@ -6303,8 +6292,8 @@ void SoundVM_FE05_MuteVoice(
 void SoundVM_FE15_unk(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    g_pActiveMusicConfig->TimerLower = *psx_postinc(in_pChannel->ProgramCounter);
-    g_pActiveMusicConfig->TimerUpper = *psx_postinc(in_pChannel->ProgramCounter);
+    g_pActiveMusicConfig->TimerLower = *(in_pChannel->ProgramCounter)++;
+    g_pActiveMusicConfig->TimerUpper = *(in_pChannel->ProgramCounter)++;
     g_pActiveMusicConfig->TimerLowerCurrent = 0;
     g_pActiveMusicConfig->TimerUpperCurrent = 0;
 }
@@ -6312,8 +6301,8 @@ void SoundVM_FE15_unk(
 void SoundVM_FE16_unk(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    g_pActiveMusicConfig->TimerTopCurrent = *psx_postinc(in_pChannel->ProgramCounter);
-    g_pActiveMusicConfig->TimerTopCurrent |= *psx_postinc(in_pChannel->ProgramCounter)
+    g_pActiveMusicConfig->TimerTopCurrent = *(in_pChannel->ProgramCounter)++;
+    g_pActiveMusicConfig->TimerTopCurrent |= *(in_pChannel->ProgramCounter)++
                                           << 8;
 }
 
@@ -6328,7 +6317,7 @@ void SoundVM_CE_EnableNoiseAndDelayToggle(FSoundChannel* in_pChannel, u_int in_V
     u_short Timer;
     u_short Value;
 
-    Value = *psx_postinc(in_pChannel->ProgramCounter);
+    Value = *(in_pChannel->ProgramCounter)++;
     if (Value != 0) {
         Timer = Value + 1;
     } else {
@@ -6343,7 +6332,7 @@ void SoundVM_CE_EnableNoiseAndDelayToggle(FSoundChannel* in_pChannel, u_int in_V
 void SoundVM_CF_ToggleNoiseOnDelay(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short Delay = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short Delay = *(in_pChannel->ProgramCounter)++;
     if (Delay != 0) {
         in_pChannel->NoiseTimer = Delay + 1;
         return;
@@ -6356,7 +6345,7 @@ void SoundVM_D2_EnableFmAndDelayToggle(FSoundChannel* in_pChannel, u_int in_Voic
     u_short Timer;
     u_short Value;
 
-    Value = *psx_postinc(in_pChannel->ProgramCounter);
+    Value = *(in_pChannel->ProgramCounter)++;
     if (Value != 0) {
         Timer = Value + 1;
     } else {
@@ -6370,7 +6359,7 @@ void SoundVM_D2_EnableFmAndDelayToggle(FSoundChannel* in_pChannel, u_int in_Voic
 void SoundVM_D3_ToggleFmDelay(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    u_short Delay = *psx_postinc(in_pChannel->ProgramCounter);
+    u_short Delay = *(in_pChannel->ProgramCounter)++;
     if (Delay != 0) {
         in_pChannel->FmTimer = Delay + 1;
         return;
@@ -6421,7 +6410,7 @@ void SoundVM_FE0B_unk(
     char* var_a1;
     char* var_a2;
 
-    pc = psx_get(in_pChannel->ProgramCounter);
+    pc = in_pChannel->ProgramCounter;
     temp_v0 = (pc[1] << 8) | pc[0];
 
     if (temp_v0 != 0) {
@@ -6444,7 +6433,7 @@ void SoundVM_FE0B_unk(
     D_80037800.Param3 = in_pChannel->ChannelPan >> 8;
     D_80037800.Param4 = in_pChannel->Volume >> 0x17;
     Sound_PlaySfxProgram(&D_80037800, var_a1, var_a2, 0);
-    psx_add(in_pChannel->ProgramCounter, 4);
+    (in_pChannel->ProgramCounter) += (4);
 }
 
 void SoundVM_E0_unk(
@@ -6456,8 +6445,8 @@ void SoundVM_E0_unk(
 void SoundVM_FE1C_unk(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    int temp_v0 = *psx_postinc(in_pChannel->ProgramCounter);
-    psx_set(g_pActiveMusicConfig->unk44, (FSoundKeymapEntry8*)&D_8002F66C[temp_v0]);
+    int temp_v0 = *(in_pChannel->ProgramCounter)++;
+    g_pActiveMusicConfig->unk44 = (FSoundKeymapEntry8*)&D_8002F66C[temp_v0];
 }
 
 void SoundVM_FE1D_MarkVoicesKeyed(
@@ -6475,7 +6464,7 @@ void SoundVM_FE1E_ClearVoicesKeyed(
 void SoundVM_E1_SetRandomPitchDepth(
     FSoundChannel* in_pChannel, u_int in_VoiceFlags __attribute__((unused)))
 {
-    in_pChannel->RandomPitchDepth = *psx_postinc(in_pChannel->ProgramCounter);
+    in_pChannel->RandomPitchDepth = *(in_pChannel->ProgramCounter)++;
 }
 
 void SoundVM_E2_ResetRandomPitchDepth(
@@ -6537,7 +6526,7 @@ int Sound_Cutscene_FindFreeVoicePair(void)
 
 void func_8001CE60(void)
 {
-    u_char* temp_s0 = psx_get(g_Sound_Cutscene_StreamState.pCurrentChunk) + 0x800;
+    u_char* temp_s0 = g_Sound_Cutscene_StreamState.pCurrentChunk + 0x800;
     SpuSetTransferStartAddr(0x2100);
     SpuSetTransferCallback(Sound_Cutscene_OnInitialTransferComplete);
     SpuWrite(temp_s0, 0x800);
@@ -6557,7 +6546,7 @@ void Sound_Cutscene_StartStream(u_int* arg0, int arg1, int arg2)
         SpuSetIRQ(0);
         SpuSetIRQCallback(NULL);
         s3 = arg0;
-        psx_set(g_Sound_Cutscene_StreamState.pCurrentChunk, s3 + 0x10);
+        g_Sound_Cutscene_StreamState.pCurrentChunk = s3 + 0x10;
         g_Sound_Cutscene_StreamState.TotalPages = s3[4];
         g_Sound_Cutscene_StreamState.CurrentPage = s3[8];
         g_Sound_Cutscene_StreamState.VoiceIndex = VoiceIndex;
@@ -6574,10 +6563,9 @@ void Sound_Cutscene_StartStream(u_int* arg0, int arg1, int arg2)
         SpuSetTransferStartAddr(0x1100U);
         _isSpuTransfer = 1;
 
-        psx_set(g_Sound_Cutscene_StreamState.unk_Mask_0x4,
-            (g_Sound_Cutscene_StreamState.field2_0x8 & 2)
-                ? psx_get(g_Sound_Cutscene_StreamState.pCurrentChunk) + s3[5]
-                : NULL);
+        g_Sound_Cutscene_StreamState.unk_Mask_0x4 = (g_Sound_Cutscene_StreamState.field2_0x8 & 2)
+                ? g_Sound_Cutscene_StreamState.pCurrentChunk + s3[5]
+                : NULL;
         if (g_Sound_Cutscene_StreamState.field2_0x8 & 1) {
             g_Sound_Cutscene_StreamState.field7_0x1c =
                 (g_Sound_Cutscene_StreamState.field2_0x8 & 2)
@@ -6594,7 +6582,7 @@ void Sound_Cutscene_StartStream(u_int* arg0, int arg1, int arg2)
             transferSize = 0x800;
         }
         SpuWrite(
-            (u_char*)psx_get(g_Sound_Cutscene_StreamState.pCurrentChunk), transferSize);
+            (u_char*)g_Sound_Cutscene_StreamState.pCurrentChunk, transferSize);
         if (arg2 != 0) {
             g_Sound_VoiceSchedulerState.ReverbVoiceFlags |=
                 g_Sound_Cutscene_StreamState.VoicesInUseFlags;
@@ -6665,7 +6653,7 @@ void Sound_Cutscene_BeginPlayback(
         _isSpuTransfer = 0;
         if (g_Sound_Cutscene_StreamState.TotalPages >= 0x1001) {
             g_Sound_Cutscene_StreamState.TotalPages -= 0x1000;
-            psx_add(g_Sound_Cutscene_StreamState.pCurrentChunk, in_SomeIndex);
+            (g_Sound_Cutscene_StreamState.pCurrentChunk) += (in_SomeIndex);
             SpuSetIRQCallback(in_Callback);
         } else {
             SpuSetIRQCallback(IRQCallbackProc);
@@ -6703,16 +6691,15 @@ void Sound_Cutscene_LoadNextBuffer(
         && (g_Sound_Cutscene_StreamState.TotalPages != 0)) {
         SpuSetTransferStartAddr(in_RepeatAddressL);
         spuSetTransferCallback();
-        SpuWrite((u_char*)psx_get(g_Sound_Cutscene_StreamState.pCurrentChunk), in_Param3);
+        SpuWrite((u_char*)g_Sound_Cutscene_StreamState.pCurrentChunk, in_Param3);
         SpuSetIRQ(0);
         if (g_Sound_Cutscene_StreamState.TotalPages > 0x800) {
             SpuSetIRQCallback(in_IrqCallback);
             g_Sound_Cutscene_StreamState.TotalPages -= 0x800;
-            psx_add(g_Sound_Cutscene_StreamState.pCurrentChunk, in_Param3);
-        } else if (psx_get(g_Sound_Cutscene_StreamState.unk_Mask_0x4) != 0) {
+            (g_Sound_Cutscene_StreamState.pCurrentChunk) += (in_Param3);
+        } else if (g_Sound_Cutscene_StreamState.unk_Mask_0x4 != 0) {
             SpuSetIRQCallback(in_IrqCallback);
-            psx_copy(g_Sound_Cutscene_StreamState.pCurrentChunk,
-                g_Sound_Cutscene_StreamState.unk_Mask_0x4);
+            g_Sound_Cutscene_StreamState.pCurrentChunk = g_Sound_Cutscene_StreamState.unk_Mask_0x4;
             g_Sound_Cutscene_StreamState.TotalPages =
                 g_Sound_Cutscene_StreamState.field7_0x1c;
         } else {

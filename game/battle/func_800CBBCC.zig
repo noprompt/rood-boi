@@ -11,7 +11,7 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
     const image = image_arg.?;
     var alpha: c_int = image.unk3;
     var background: c_int = undefined; // set when color is nonzero, the only case that reads it
-    const tiles: [*]align(1) u16 = @ptrFromInt(@intFromPtr(image) + 0x200);
+    const tiles: [*]align(1) u16 = @ptrCast(&image.imageTable[4]); // the PS1's image + 0x200: past the table's first four words
     const scale: c_int = image.unkC & 0x3FFF;
     const columns: c_int = @as(*const [2]u8, @ptrCast(&image.unk4))[0];
     const rows: c_int = @as(*const [2]u8, @ptrCast(&image.unk4))[1];

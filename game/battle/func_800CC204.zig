@@ -14,7 +14,7 @@ pub fn func_800CC204(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
     const image = image_arg.?;
     var left: [240]i16 = undefined;
     var right: [240]i16 = undefined;
-    const tiles: [*]align(1) u16 = @ptrFromInt(@intFromPtr(image) + 0x200);
+    const tiles: [*]align(1) u16 = @ptrCast(&image.imageTable[4]); // the PS1's image + 0x200: past the table's first four words
     const mode: c_int = psx.getBits(image, "unk0_2");
     const widths: [*]u16 = @ptrCast(&image.unk18);
     const page: c_int = @as(c_int, image.unk2) - 18;

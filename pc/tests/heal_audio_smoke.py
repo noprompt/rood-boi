@@ -57,8 +57,8 @@ from checkpoints import launch_at  # noqa: E402
 CURE_ROOT = 323
 MISC = 0xE00  # vs_main_inventory: the misc bag (id u16, count u8, index u8)
 CLOSED = 0x3F
-STREAM = 0x80039B08  # g_Sound_Cutscene_StreamState
-STREAM_VOICES, STREAM_LEFT = STREAM + 0x0C, STREAM + 0x14  # VoicesInUseFlags, TotalPages (bytes still to load)
+# g_Sound_Cutscene_StreamState: VoicesInUseFlags, TotalPages (bytes still to load); the game exports the offsets
+# (its pointer fields are host-sized), 0x0C and 0x14 on the PS1 layout.
 RATE = 44100
 LEVEL_RATIO, REPEAT_LIMIT = 1.3, 0.4
 
@@ -147,11 +147,20 @@ def main():
         def recorded():
             return g.call("system")["audio_recorded"]
 
+        stream_base = sym["g_Sound_Cutscene_StreamState"]
+
+        def field(name, old):
+            at = sym.get(f"pc_sound_stream_offset_{name}")
+            return int.from_bytes(g.read(at, 4), "little") if at else old
+
+        stream_voices = stream_base + field("voices", 0x0C)
+        stream_left = stream_base + field("pages", 0x14)
+
         def stream():
-            return struct.unpack("<i", g.read(STREAM_VOICES, 4))[0]
+            return struct.unpack("<i", g.read(stream_voices, 4))[0]
 
         def left():
-            return struct.unpack("<I", g.read(STREAM_LEFT, 4))[0]
+            return struct.unpack("<I", g.read(stream_left, 4))[0]
 
         def roots():
             raw = g.read(sym["vs_main_inventory"] + MISC, 64 * 4)

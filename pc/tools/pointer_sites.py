@@ -14,7 +14,7 @@ Needs `build_boot.py --arch 64` once (it writes the generated views and c module
 The raw bases (`raw`) are the hard part: they hide the struct, so trace where the pointer came from.
 
 --c is a text scan, not proof: literal offsets added to a char pointer in C, `psx_load`/`psx_store` at an offset,
-Zig casts through `@ptrFromInt(@intFromPtr(...))`, Zig byte pointers indexed by a literal (`state[0x23]`), memcpy/bzero with a hex size, and hex offsets in the Python
+Zig casts through `@ptrFromInt(@intFromPtr(...))`, Zig byte pointers indexed by a literal (`state[0x23]`), memcpy/bzero with a hex size, literal copy/swap/clear sizes (`memcpy(.., 0x80)`, C and Zig: a struct's old size), members indexed by a large literal (`soundData.unk14[16]`: reaches the fields after the array), and hex offsets in the Python
 tests and tools that read game memory (`read_symbol`, `struct.unpack`). Names given narrow it to lines that
 also mention the name; with none it lists them all.
 """
@@ -97,7 +97,14 @@ C_PATTERNS = [
                                  r"[^;\n]*[+-]\s*(?:PSX_OFFSET\()?0x[0-9a-fA-F]+")),
     ("C psx_load/store offset", re.compile(r"\bpsx_(?:load|store|slot_get|slot_set)\([^;\n]*0x[0-9a-fA-F]+")),
     ("C hex size", re.compile(r"\b(?:vs_main_)?(?:memcpy|bzero|memset|allocHeap|Memcpy)\s*\([^;\n]*0x[0-9a-fA-F]{2,}")),
+    # A copy, swap, clear or allocation sized by a literal (0x80, 0x2200, 272) is a struct's old size: sizeof it.
+    ("C copy size", re.compile(r"\b\w*(?:mem(?:cpy|swp|move|set|cmp)|bzero|copy|swap|clear|fill|alloc)\w*\s*\([^;\n]*,\s*(?:0x[0-9a-fA-F]{2,}|[1-9]\d{2,})\s*\)", re.I)),
+    # A struct member indexed past what is probably its declared length reaches the fields after it (unk14[16]).
+    ("C large member index", re.compile(r"(?:\.|->)\w+\[(?:0x[0-9a-fA-F]+|[1-9]\d+|-\d+)\]")),
     ("Zig address cast", re.compile(r"@ptrFromInt\(@intFromPtr\(")),
+    ("Zig copy size", re.compile(r"@(?:memcpy|memset)\b[^;\n]*(?:0x[0-9a-fA-F]{2,}|[1-9]\d{2,})|\b(?:copyForwards|copyBackwards|memcpy|memset)\s*\([^;\n]*(?:0x[0-9a-fA-F]{2,}|[1-9]\d{2,})")),
+    ("Zig slice size", re.compile(r"\[0?\.\.(?:0x[0-9a-fA-F]{2,}|[1-9]\d{2,})\]")),
+    ("Zig large member index", re.compile(r"\.\w+\[(?:0x[0-9a-fA-F]+|[1-9]\d+)\]")),
     ("Zig literal index", re.compile(r"\b[A-Za-z_]\w*\[(?:0x[0-9a-fA-F]+|\d{2,})\]")),
     ("Python offset", re.compile(r"(?:read_symbol|\.read|unpack(?:_from)?)\([^)\n]*(?:\+|,)\s*(?:0x[0-9a-fA-F]+|\d+)")),
 ]

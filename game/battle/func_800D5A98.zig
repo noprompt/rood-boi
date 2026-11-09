@@ -64,7 +64,7 @@ pub fn func_800D5A98(script: ?*v.D_800F53B8_t, state_arg: ?*v.timedSpawnState, k
                 state.delay -%= 1;
             }
         } else if (state.index == targetsCount()) {
-            if ((psx.byteAt(u32, s, 0x14).* & 0xF800) == 0) {
+            if (psx.getBits(s, "unk14_11") == 0) {
                 setAddress(&spawn.unk14, psx.rawOf(v.g.D_800F569C().*.?.block8Data));
                 spawn.unk18 = kind;
                 spawn.unk10 = 0;

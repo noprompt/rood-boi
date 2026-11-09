@@ -137,8 +137,9 @@ typedef struct {
     short unk8;
     short unkA;
     short unkC;
-    int unk10[0xFA];
+    char rest[sizeof(gim_t) - 0x10]; /* the rest of the 5BF94.h gim_t this views (three of them in a row) */
 } D_800EB9BC_t;
+_Static_assert(sizeof(D_800EB9BC_t) == sizeof(gim_t), "D_800EB9BC_t != gim_t");
 
 typedef struct {
     char unk0;

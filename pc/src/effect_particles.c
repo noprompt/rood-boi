@@ -51,21 +51,12 @@ typedef struct func_800D6E44_t {
     func_800D2904_curves curves;
 } func_800D6E44_t;
 
-/* A host view of the game's particle node (func_800D2904_t, 5BF94.h, PS1
- * layout with psx_ptr links), whose int unk3C[8] holds the sprite state
- * (func_800D6CF_t, also PS1 layout): the two views must agree on every target. */
-_Static_assert(sizeof(func_800D6CF_t) <= sizeof(((func_800D2904_t*)0)->unk3C)
-                   && __builtin_offsetof(func_800D6E44_t, sprite)
-                          == __builtin_offsetof(func_800D2904_t, unk3C)
+/* A host view of the game's particle node (func_800D2904_t, 5BF94.h): the two views must agree on every target. */
+_Static_assert(__builtin_offsetof(func_800D6E44_t, sprite) == __builtin_offsetof(func_800D2904_t, sprite)
                    && __builtin_offsetof(func_800D6E44_t, curves)
                           == __builtin_offsetof(func_800D2904_t, unk74)
                    && sizeof(func_800D6E44_t) == sizeof(func_800D2904_t),
                "particle view != func_800D2904_t");
-PSX_ASSERT_SIZE(func_800D6E44_t, 0x78);
-#ifndef ROOD_PC_LP64
-PSX_ASSERT_OFFSET(func_800D6E44_t, sprite, 0x3C);
-PSX_ASSERT_OFFSET(func_800D6E44_t, curves, 0x74);
-#endif
 
 extern u_char D_80040A14[];
 /* Native particles (effect_native.c; absent in unit probes). */

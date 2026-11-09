@@ -53,7 +53,7 @@ extern const unsigned char* pc_room_geometry(unsigned* length) __attribute__((we
 extern const unsigned char* pc_room_effects(unsigned* length) __attribute__((weak));
 /* The game's effect slots: 12 bytes each (active, type, enabled, -, entry,
  * -); D_800F225A: slots in use. */
-extern unsigned char D_800F1DD8[] __attribute__((weak));
+extern int pc_effect_slot(int slot, const unsigned char** record) __attribute__((weak));
 extern char D_800F225A __attribute__((weak));
 void pc_scene_uv_refresh(void);
 
@@ -228,11 +228,8 @@ static void update(const unsigned char* data)
     for (int i = 0; i < effect_count; i++) {
         pc_uv_effect* x = &effects[i];
         const unsigned char* e = NULL;
-        if (D_800F1DD8 && slots >= 0 && x->slot < slots) {
-            const unsigned char* slot = D_800F1DD8 + x->slot * 12;
-            x->running = slot[0] && slot[2];
-            e = psx_load(const unsigned char*, slot + 4);
-        }
+        if (pc_effect_slot && slots >= 0 && x->slot < slots)
+            x->running = pc_effect_slot(x->slot, &e);
         if (e) {
             x->tick = x->type == 0 ? e[14] : e[18];
             if (x->type == 0)

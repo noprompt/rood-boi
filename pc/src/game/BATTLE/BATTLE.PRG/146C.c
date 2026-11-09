@@ -180,10 +180,9 @@ typedef struct {
 } func_80069EF0_t;
 
 typedef struct {
-    psx_ptr(_mpdRoomSectionA) unk0;
+    _mpdRoomSectionA* unk0;
     func_8006EBF8_t unk4;
 } D_800F1910_t;
-PSX_ASSERT_SIZE(D_800F1910_t, 0x14);
 
 typedef struct {
     signed char unk0;
@@ -281,9 +280,8 @@ typedef struct {
 
 typedef struct {
     int unk0;
-    psx_ptr(_mpdRoomSectionA) unk4;
+    _mpdRoomSectionA* unk4;
 } D_800F1D28_t;
-PSX_ASSERT_SIZE(D_800F1D28_t, 0x8);
 
 typedef struct {
     short unk0;
@@ -416,9 +414,8 @@ typedef struct {
 
 typedef struct {
     int count;
-    psx_ptr(_mpdRoomDoorSection_t) values[0];
+    _mpdRoomDoorSection_t* values[32]; /* the PS1's 0x1D08..0x1D28 held a count and 7 words; a room with more matching doors overran it */
 } D_800F1D08_t;
-PSX_ASSERT_SIZE(D_800F1D08_t, 0x4);
 
 typedef struct {
     psx_long mpdOffset;
@@ -708,7 +705,7 @@ extern char D_800F18F8;
 extern int D_800F18FC;
 extern int D_800F1908;
 extern int D_800F190C;
-extern D_800F1910_t D_800F1910;
+D_800F1910_t D_800F1910;
 extern vs_battle_actor* D_800F192C;
 extern int D_800F1968;
 extern u_int D_800F196C;
@@ -747,8 +744,8 @@ extern u_short D_800F1CCA;
 extern void* D_800F1CC0;
 extern char D_800F1CD6;
 extern u_short D_800F1CDC;
-extern D_800F1D08_t D_800F1D08;
-extern D_800F1D28_t D_800F1D28[8];
+D_800F1D08_t D_800F1D08;
+D_800F1D28_t D_800F1D28[8];
 extern short D_800F1D6A;
 extern u_short D_800F1D6C;
 extern int D_800F1D78[5];

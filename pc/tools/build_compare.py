@@ -13,7 +13,8 @@ save room checkpoint and left to play: the enemies walk, attack and cast. Every
 quarter second the frame's hash is taken and, at the end, what was cast. NEW_BINARY
 defaults to this tree's build. OLD against OLD runs first as the control: if that
 differs, the comparison proves nothing and the tool says so. Exit 0 when the frames
-match. Covers this fight only, not every screen or effect.
+match, and the sound: the room's recorded mix (this room, then zone 15 room 0 with its script) must be byte for byte the same
+(--audio off skips it; on a mismatch the first differing time is printed). Covers this fight and this sound only, not every screen or effect.
 
     python3 pc/tools/build_compare.py OLD_BINARY --casts [spells,arts] [--cast-limit N]
 
@@ -553,6 +554,62 @@ def compare_states(old, new):
     return None
 
 
+def play_audio(binary, card, out):
+    """The sound: the fight's room, then room 0 of zone 15 with its script (its entry sound effects), the mix recorded
+    to out/audio.wav. Everything the sound drivers do reaches the wav, which no frame or actor field shows."""
+    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
+    sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    from checkpoints import launch_at
+    out = pathlib.Path(out)
+    g = launch_at("save_room", card=card, fast=True, log=out / "audio.log", audio=f"wav:{out / 'audio.wav'}", extra_env={
+        "ROOD_GI": "0", "ROOD_INTERPOLATE": "0", "ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs")})
+    try:
+        g.call("room_goto", zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
+        for _ in range(80):
+            g.run(20)
+            if g.call("room_goto", action="status")["phase"] in (0, 4):
+                break
+        g.run(1200)
+        g.call("room_goto", zone=15, room=0, enemies=True, scripts=True)
+        g.run(900)
+    finally:
+        g.close()
+    print("RESULT")
+
+
+def run_audio(binary, args):
+    """The recording's samples (the 44-byte header's length is only updated once a second: it is skipped)."""
+    with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
+        done = subprocess.run([sys.executable, __file__, "--play-audio", binary, "--card", args.card, "--out", out], capture_output=True, text=True)
+        wav = pathlib.Path(out) / "audio.wav"
+        if "RESULT" not in done.stdout or not wav.exists():
+            sys.exit(f"build_compare: {binary} did not finish the sound run:\n{done.stderr[-1500:]}")
+        return wav.read_bytes()[44:]
+
+
+def first_difference(a, b):
+    """The first differing byte of two recordings (None when equal), found in blocks."""
+    n, step = min(len(a), len(b)), 1 << 16
+    for i in range(0, n, step):
+        if a[i:min(i + step, n)] != b[i:min(i + step, n)]:
+            j = next(k for k in range(i, min(i + step, n)) if a[k] != b[k])
+            return j
+    return None if len(a) == len(b) else n
+
+
+def compare_audio(args):
+    """Old, old again (the control) and new: 0 when the new recording is the old one, byte for byte."""
+    first, control, new = run_audio(args.old, args), run_audio(args.old, args), run_audio(args.new, args)
+    noise, changed = first_difference(first, control), first_difference(first, new)
+    seconds = lambda i: i // 4 / 44100
+    print(f"audio: control {'identical' if noise is None else f'differs from {seconds(noise):.2f} s'}; "
+          f"old {len(first)} bytes, new {len(new)}; " + ("identical" if changed is None else f"first differs at {seconds(changed):.2f} s"))
+    if noise is not None:
+        print("build_compare: the control's audio differs, so the audio proves nothing")
+        return 2
+    return 0 if changed is None else 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("old")
@@ -566,6 +623,8 @@ def main():
     parser.add_argument("--width", type=int, default=8, help=argparse.SUPPRESS)
     parser.add_argument("--play", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--play-casts", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--play-audio", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--audio", choices=["on", "off"], default="on", help="the sound lane after the fight: the room's recorded mix, old, old again and new, byte for byte")
     parser.add_argument("--menus", nargs="?", const="ending,menuf", help="the menus' lane: the routes to play (ending,menuf,mainmenu)")
     parser.add_argument("--menu-sample", type=int, default=MENU_SAMPLE, help="--menus: vsyncs between display hashes")
     parser.add_argument("--claims", choices=["on", "off"], default="on", help="--menus: rood.classic's claims on or off")
@@ -578,6 +637,8 @@ def main():
     args = parser.parse_args()
     if args.play:
         return play(args.old, args.seconds, args.card, args.out, args.width)
+    if args.play_audio:
+        return play_audio(args.old, args.card, args.out)
     if args.play_casts:
         return play_casts(args.old, args.card, args.out, args.casts, args.cast_limit)
     if args.play_menus:
@@ -606,7 +667,11 @@ def main():
     if not first["drops"]:
         print("build_compare: no enemy dropped anything")
         return 2
-    return 0 if not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] and state_changed is None else 1
+    verdict = 0 if not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] and state_changed is None else 1
+    if args.audio == "on":
+        sound = compare_audio(args)
+        verdict = verdict or sound
+    return verdict
 
 
 if __name__ == "__main__":

@@ -62,31 +62,6 @@ typedef struct {
 } func_800D6894_t;
 
 typedef struct {
-    u_int unk0_0 : 1;
-    u_int unk0_1 : 1;
-    u_int unk0_2 : 1;
-    u_int unk0_3 : 3;
-    u_int unk0_6 : 3;
-    u_int unk0_9 : 3;
-    u_int unk0_12 : 1;
-    u_int unk0_13 : 3;
-    char unk2;
-    char unk3;
-    short unk4;
-    short id;
-    short unk8;
-    short unkA;
-    short unkC;
-    short unkE;
-    psx_ptr(u_short) data;
-    psx_ptr(vs_main_CdQueueSlot) cdQueueSlot;
-    short unk18[240];
-    u_short imageTable[254];
-    int unk3F4;
-} gim_t;
-PSX_ASSERT_SIZE(gim_t, 0x3f8);
-
-typedef struct {
     psx_ptr(D_800F53B8_t3) unk0;
     psx_ptr(D_800F53B8_t3) unk4;
     psx_ptr(D_800F53B8_t3) unk8;
@@ -101,7 +76,6 @@ typedef struct {
     u_char unk23;
     int unk24;
 } D_800F53B8_t2;
-PSX_ASSERT_SIZE(D_800F53B8_t2, 0x28);
 
 typedef struct {
     char unk0[0x22];
@@ -350,7 +324,6 @@ typedef struct {
     short delay;
     short index;
 } timedSpawnState;
-PSX_ASSERT_SIZE(timedSpawnState, 0x10);
 
 int func_800D5A98(D_800F53B8_t*, timedSpawnState*, int);
 int func_800D5D74(D_800F53B8_t*, func_800D5780_t*);
@@ -485,7 +458,6 @@ extern D_800F54B8_t D_800F54B8[];
 extern short D_800F54D0;
 extern D_800F54D8_t D_800F54D8;
 extern u_char D_800F4E80;
-extern D_800F53B8_t3 D_800F5234;
 extern char D_800F5518;
 extern D_800F54D8_t D_800F5520[2];
 extern short D_800F55A0;
@@ -1292,13 +1264,6 @@ typedef struct {
     int ax, ay, az;
 } effectMotionState;
 
-typedef struct {
-    char prefix[0x62];
-    short targetX, targetY, targetZ;
-    char padding[8];
-    int attraction;
-} effectAttractionView;
-
 void func_800D52A4(func_800D2904_t* node);
 
 void* _getPFileBlock3section(pFileBlock3* arg0, int arg1);
@@ -1379,7 +1344,7 @@ int func_800D6A18(D_800F53B8_t* arg0, func_800D5780_t* arg1);
 
 void func_800D6AEC(D_800F53B8_t* arg0, int arg1);
 
-void func_800D6CCC(int* arg0);
+void func_800D6CCC(void* sprite);/* a func_800D6CF_t, cleared whole */
 
 void func_800D6CF0(func_800D6CF_t* arg0, int arg1, int arg2);
 

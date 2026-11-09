@@ -15,7 +15,7 @@ pub fn func_800D6AEC(arg0: ?*v.D_800F53B8_t, arg1: c_int) callconv(.c) void {
         // x86 masks a variable shift count by 31; the count is 0..31 here.
         const sh: u5 = @intCast(var_s1 & 31);
         if (((psx.get(self.unkD1C.unk30).?.unk4 >> sh) & 1) != 0) {
-            const temp_a1: *v.func_800D5780_t = @ptrCast(psx.at(psx.get(self.unkD1C.unk30).?, var_s1 *% 2 +% 1));
+            const temp_a1: *v.func_800D5780_t = @alignCast(psx.at(&psx.get(self.unkD1C.unk30).?.unk8, var_s1));
             // No case for types 0 and 11: temp is uninitialised in the original; 0 here.
             const temp: c_int = switch (@as(c_int, psx.getBits(&temp_a1.unk4, "unk0_0"))) {
                 1 => c.func_800D57FC(@ptrCast(self), @ptrCast(temp_a1)),

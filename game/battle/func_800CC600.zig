@@ -13,7 +13,7 @@ fn tpage(tp: c_int, abr: c_int, x: c_int, y: c_int) c_uint {
 /// Below full brightness: per 64-pixel column, the image blended with the frame (sprites through a texture page of the buffer, its tiles in between, the frame copied back) at the image's brightness; at 128 the plain image (func_800CBBCC).
 pub fn func_800CC600(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv(.c) void {
     const image = image_arg.?;
-    const tiles: [*]align(1) u16 = @ptrFromInt(@intFromPtr(image) + 0x200);
+    const tiles: [*]align(1) u16 = @ptrCast(&image.imageTable[4]); // the PS1's image + 0x200: past the table's first four words
     const mode: c_int = psx.getBits(image, "unk0_2");
     var fb: c_int = 0;
     if (v.g.vs_main_frameBuf().* == 0) {

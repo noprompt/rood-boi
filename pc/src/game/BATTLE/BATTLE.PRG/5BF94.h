@@ -83,6 +83,31 @@ typedef struct {
 } vs_battle_menuState_t;
 PSX_ASSERT_SIZE(vs_battle_menuState_t, 0x8);
 
+/* The GIM image loader's record: three in a row, shared with 4A0A8.c's view of them. */
+typedef struct {
+    u_int unk0_0 : 1;
+    u_int unk0_1 : 1;
+    u_int unk0_2 : 1;
+    u_int unk0_3 : 3;
+    u_int unk0_6 : 3;
+    u_int unk0_9 : 3;
+    u_int unk0_12 : 1;
+    u_int unk0_13 : 3;
+    char unk2;
+    char unk3;
+    short unk4;
+    short id;
+    short unk8;
+    short unkA;
+    short unkC;
+    short unkE;
+    u_short* data;
+    vs_main_CdQueueSlot* cdQueueSlot;
+    short unk18[240];
+    u_short imageTable[254];
+    int unk3F4;
+} gim_t;
+
 typedef struct {
     u_int unk0_0 : 4;
     u_int unk0_4 : 2;
@@ -375,7 +400,7 @@ typedef struct func_800D2904_t {
     int unk18[3];
     int unk24[3];
     int unk30[3];
-    int unk3C[8];
+    func_800D6CF_t sprite; /* the sprite state (the PS1's int unk3C[8]) */
     int unk5C;
     u_int unk60_0 : 8;
     u_int unk60_8 : 4;
@@ -390,7 +415,6 @@ typedef struct func_800D2904_t {
     int unk70;
     func_800D2904_curves unk74;
 } func_800D2904_t;
-PSX_ASSERT_SIZE(struct func_800D2904_t, 0x78);
 
 typedef struct {
     int unk0;
@@ -436,7 +460,6 @@ typedef struct {
     /* 0xA */ short unkA;
     /* 0xC */ int unkC;
 } func_800D5780_t;
-PSX_ASSERT_SIZE(func_800D5780_t, 0x10);
 
 typedef struct {
     char unk0;
@@ -457,7 +480,6 @@ typedef struct {
     short unk3A;
     int unk3C;
 } D_800F53B8_t3;
-PSX_ASSERT_SIZE(D_800F53B8_t3, 0x40);
 
 typedef struct D_800F53B8_t {
     psx_ptr(struct D_800F53B8_t) next;
@@ -475,7 +497,6 @@ typedef struct D_800F53B8_t {
     func_800CE714_t2_2 unk1C[16];
     D_800F53B8_t3 unkD1C;
 } D_800F53B8_t;
-PSX_ASSERT_SIZE(struct D_800F53B8_t, 0xd5c);
 
 typedef struct {
     u_char unk0[0xC];
@@ -681,7 +702,7 @@ void vs_battle_splineInterpolate(
 void vs_battle_svecToVec(SVECTOR* arg0, VECTOR* arg1);
 void vs_battle_vecToSvec(VECTOR* arg0, SVECTOR* arg1);
 void func_800D2ADC(D_800F53B8_t*, int, int, int, func_800FB4C0_t*);
-void func_800D6CCC(int* arg0);
+void func_800D6CCC(void* sprite); /* a func_800D6CF_t, cleared whole */
 void func_800D6CF0(func_800D6CF_t* arg0, int arg1, int arg2);
 
 extern u_short vs_battle_menuStrings[];

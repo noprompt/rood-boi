@@ -17,7 +17,7 @@ pub fn func_800D55A4(arg0: ?*v.D_800F53B8_t, arg1: c_int, _: c_int) callconv(.c)
         c.vs_main_freeHeapR(psx.get(owner.unkD1C.unk30));
     }
 
-    const size: c_int = entry.count *% 16 +% 8;
+    const size: c_int = entry.count *% @as(c_int, @sizeOf(v.func_800D5780_t)) +% @as(c_int, @offsetOf(v.D_800F53B8_t4, "unk8"));
     psx.put(&owner.unkD1C.unk30, c.vs_main_allocHeapR(psx.conv(c_uint, size)));
     const p = psx.get(owner.unkD1C.unk30).?;
     p.unk0 = psx.conv(u8, entry.count);
@@ -35,7 +35,8 @@ pub fn func_800D55A4(arg0: ?*v.D_800F53B8_t, arg1: c_int, _: c_int) callconv(.c)
         }
 
         slot.unk6 = -1;
-        psx.byteAt(c_int, slot, 8).* = 0;
+        slot.unk8 = 0;
+        slot.unkA = 0;
         slot.unkC = 0;
         _ = c.func_800D5780(@ptrCast(slot));
         // i & 31: the C shifts by i, and x86 takes the count modulo 32.

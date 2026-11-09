@@ -19,12 +19,20 @@ pub fn func_800CEF74(arg0: c_int) callconv(.c) c_int {
         const flags = v.g.D_800F521C();
         if ((flags.* & bit) != 0) {
             const a1 = psx.get(v.g.D_800F569C().*.?.block8Data);
+            // The PS1 read the text-run records straight out of the effect parameter block (D_800F5234 =
+            // D_800F5230 + 4, 12-byte records at +0 and +0xC) through t3 pointers; func_800CE714 only copies
+            // each one's first record, so two local t3s carry them.
+            const run = &v.g.D_800F5230().unk4;
+            var first: v.D_800F53B8_t3 = undefined;
+            var second: v.D_800F53B8_t3 = undefined;
+            first.unk0 = psx.fieldAt(v.D_800F53B8_t3_2, run, 0).*;
+            second.unk0 = psx.fieldAt(v.D_800F53B8_t3_2, run, 0xC).*;
             sp10.unk18 = arg0 *% 3;
-            psx.put(&sp10.unk0, v.g.D_800F5234());
-            psx.put(&sp10.unk4, v.g.D_800F5234());
+            psx.put(&sp10.unk0, &first);
+            psx.put(&sp10.unk4, &first);
             sp10.unk10 = 0;
-            psx.put(&sp10.unk8, psx.byteAt(v.D_800F53B8_t3, v.g.D_800F5234(), 0xC));
-            psx.put(&sp10.unkC, psx.byteAt(v.D_800F53B8_t3, v.g.D_800F5234(), 0xC));
+            psx.put(&sp10.unk8, &second);
+            psx.put(&sp10.unkC, &second);
             psx.put(&sp10.unk1C, null);
             sp10.unk20 = v.g.D_800F5318().*;
             psx.put(&sp10.unk14, a1);

@@ -14,7 +14,7 @@ pub fn func_800D52A4(node: ?*v.func_800D2904_t) callconv(.c) void {
     var cur = node;
     while (cur) |n| {
         // state = (effectMotionState*)&node->unk8
-        const state = psx.byteAt(v.effectMotionState, n, 8);
+        const state = psx.fieldAt(v.effectMotionState, &n.unk8, 0);
         var damping: c_int = @as(c_int, n.unk8) -% drag;
 
         state.vx = @divTrunc(state.vx *% damping +% (state.fx << 12), @as(c_int, n.unk8)) +%
@@ -29,13 +29,12 @@ pub fn func_800D52A4(node: ?*v.func_800D2904_t) callconv(.c) void {
             ((gravityZ *% @as(c_int, state.gravityScale)) >> 12);
         state.z +%= state.vz;
 
-        const attr = psx.byteAt(v.effectAttractionView, n, 0);
-        damping = attr.attraction;
+        damping = n.unk70; // the attraction; its target is unk62[0..2]
         if (damping != 0) {
             var direction: v.VECTOR = undefined;
-            direction.vx = @as(c_int, attr.targetX) -% (state.x >> 12);
-            direction.vy = @as(c_int, attr.targetY) -% (state.y >> 12);
-            direction.vz = @as(c_int, attr.targetZ) -% (state.z >> 12);
+            direction.vx = @as(c_int, n.unk62[0]) -% (state.x >> 12);
+            direction.vy = @as(c_int, n.unk62[1]) -% (state.y >> 12);
+            direction.vz = @as(c_int, n.unk62[2]) -% (state.z >> 12);
             if (direction.vx != 0 or direction.vy != 0 or direction.vz != 0) {
                 _ = c.VectorNormal(psx.cptr(c.VECTOR, &direction), psx.cptr(c.VECTOR, &direction));
                 direction.vx = (direction.vx *% damping) >> 12;

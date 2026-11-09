@@ -65,10 +65,9 @@ typedef struct {
     u_char unk1;
     char unk2;
     char unk3;
-    psx_ptr(D_800F1DD8_t2) unk4;
-    psx_ptr(D_800F1DD8_t2) unk8;
+    D_800F1DD8_t2* unk4;
+    D_800F1DD8_t2* unk8;
 } D_800F1DD8_t;
-PSX_ASSERT_SIZE(D_800F1DD8_t, 0xc);
 
 typedef struct {
     short unk0;
@@ -250,7 +249,15 @@ extern short D_800F1DC4;
 extern char D_800F1DCA;
 extern char D_800F1DCB;
 extern void* D_800F1DD4;
-extern D_800F1DD8_t D_800F1DD8[];
+D_800F1DD8_t D_800F1DD8[96]; /* 0x480 bytes of 12-byte entries on the PS1 */
+
+/* room_effects.c: whether slot is running and its record (the PS1 reads were by byte offset). */
+int pc_effect_slot(int slot, const unsigned char** record)
+{
+    const D_800F1DD8_t* e = &D_800F1DD8[slot];
+    *record = (const unsigned char*)e->unk4;
+    return e->unk0 && e->unk2;
+}
 extern short D_800F2258;
 extern char D_800F225A;
 extern char D_800F225B;

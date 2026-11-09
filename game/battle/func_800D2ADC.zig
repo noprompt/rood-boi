@@ -113,7 +113,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
         node = n;
         n.unk6A = psx.conv(u8, scratch.unk168);
         n.unk6B = psx.conv(u8, scratch.unk16C);
-        c.func_800D6CF0(@ptrCast(&n.unk3C), def.unk1, def.unk0);
+        c.func_800D6CF0(@ptrCast(&n.sprite), def.unk1, def.unk0);
     }
 
     c.vs_battle_lerpVector(&def.unk18, curveAt(def.unk8), vp(&scratch.unk98));

@@ -23,7 +23,7 @@ pub fn func_800D4C18(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int {
             c.func_800D2ADC(@ptrCast(a), @as(c_int, n.tickEvent) -% 1, 0, 0, @ptrCast(n));
         }
         if (n.lifetime == -1) {
-            if (psx.byteAt(u8, n, 0x42).* == 0) {
+            if (n.sprite.unk6 == 0) {
                 if (n.endEvent != 0) {
                     c.func_800D2ADC(@ptrCast(a), @as(c_int, n.endEvent) -% 1, 0, 0, @ptrCast(n));
                 }
