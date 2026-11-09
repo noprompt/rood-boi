@@ -17,7 +17,7 @@ pub fn func_800DAC80(context: ?*v.vs_battle_aiState, action: ?*v.func_800DCAA0_t
     v.g.D_800F58E0().* = 1;
 
     const actor = v.g.D_800F4538()[psx.getBits(act, "unkC_0")];
-    if (actor != null and (psx.byteAt(c_uint, actor.?, 8).* & 0x180000) != 0) {
+    if (actor != null and (psx.fieldAt(c_uint, &actor.?.unk0._bits_skip, 0).* & 0x180000) != 0) {
         psx.setBits(act, "unkC_4", psx.conv(u3, c.func_800E45D4(2)));
         psx.setBits(act, "unkC_7", 217);
     }

@@ -271,7 +271,7 @@ pub fn issueCommand(state: *ai.vs_battle_aiState, action: c_int) callconv(.c) vo
             const row: c_int = @intCast(slot & 7);
             const column: c_int = @intCast((slot >> 3) & 3);
             w0C(actor).* = (@as(c_uint, @bitCast(column)) << 16) | @as(c_uint, @bitCast(row));
-            const slot_flags = psx.byteAt(u32, &state.configs, @as(isize, @intCast(row)) * 32 + @as(isize, @intCast(column)) * 8).*; // row 0..7, column 0..3
+            const slot_flags = psx.fieldAt(u32, &state.configs, @as(isize, @intCast(row)) * 32 + @as(isize, @intCast(column)) * 8).*; // row 0..7, column 0..3
             if (((@as(c_uint, 1) << @intCast((slot_flags >> 3) & 3)) & 6) == 0) {
                 const model: [*]u8 = @ptrCast(v.g.D_800F4538()[target & 0xf].?);
                 w10(actor).* = u32At(model, 0x1c).* -% (((target >> 7) & 0xfff) << 16);

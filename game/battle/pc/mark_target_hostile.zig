@@ -10,7 +10,7 @@ const c = @import("c_battle_helpers");
 /// byte 0x18 is set to 1, then func_800D8260(state, 6, 0x28) and
 /// func_800E48A8(state, 2, 0x80). The old word is kept across those calls.
 pub fn markTargetHostile(state: *ai.vs_battle_aiState, id: c_int) callconv(.c) void {
-    const target = psx.byteAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4));
+    const target = psx.fieldAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4));
     const flags = target.*;
     if (((flags >> 6) & 3) < 3) {
         _ = c.rand();

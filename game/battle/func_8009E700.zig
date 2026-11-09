@@ -10,9 +10,9 @@ pub fn func_8009E700(actorId: c_int, animation: c_int) callconv(.c) void {
     if (actor) |a| {
         const currentAnimation: c_int = a.animationId;
         if (currentAnimation != 0xC6 and currentAnimation != 0xC8 and
-            (a.unk0.unkF != 0 or (psx.byteAt(u32, a, 8).* & 0x184000) != 0x80000))
+            (a.unk0.unkF != 0 or (psx.fieldAt(u32, &a.unk0._bits_skip, 0).* & 0x184000) != 0x80000))
         {
-            const flags = psx.byteAt(u32, a, 8).*;
+            const flags = psx.fieldAt(u32, &a.unk0._bits_skip, 0).*;
             const state = flags & 0x70000000;
             if (((flags >> 16) & 7) < 2 and state != 0x20000000 and state != 0x50000000) {
                 const action = flags & 0x0F000000;
@@ -24,9 +24,9 @@ pub fn func_8009E700(actorId: c_int, animation: c_int) callconv(.c) void {
                     skipMove = true;
                 }
                 if (!skipMove) {
-                    const movementFlags = psx.byteAt(u32, a, 8).*;
+                    const movementFlags = psx.fieldAt(u32, &a.unk0._bits_skip, 0).*;
                     if ((movementFlags & 0x180000) == 0x100000) {
-                        if (psx.byteAt(u32, a, 0x18).* != 0) {
+                        if (psx.fieldAt(u32, &a.unk0.unk18, 0).* != 0) {
                             a.unk0.unk1A = 0;
                             a.unk0.unk18 = 0;
                             a.unk0.position.vx = psx.conv(i16, @as(c_int, psx.conv(u16, a.unk0.position.vx)) +%
@@ -91,20 +91,20 @@ pub fn func_8009E700(actorId: c_int, animation: c_int) callconv(.c) void {
                 }
             }
             // resetState:
-            if ((psx.byteAt(u32, a, 8).* & 0x180000) != 0x100000) {
-                psx.byteAt(u32, a, 8).* &= 0xFFE7FFFF;
+            if ((psx.fieldAt(u32, &a.unk0._bits_skip, 0).* & 0x180000) != 0x100000) {
+                psx.fieldAt(u32, &a.unk0._bits_skip, 0).* &= 0xFFE7FFFF;
             }
             a.unk5C8 = 0;
             a.unk0.unk18 = 0;
             a.unk0.unk1A = 0;
-            psx.byteAt(u32, a, 8).* &= 0xFFFFBFFF;
+            psx.fieldAt(u32, &a.unk0._bits_skip, 0).* &= 0xFFFFBFFF;
             _ = c.func_800A0ABC(actorId);
         }
     } else {
         const object = psx.at(v.g.D_800F45E0(), actorId).*;
         if (object) |obj| {
             const objectState: c_int = obj.unk1A;
-            if ((objectState == 0xF9 or objectState == 0xFF) and psx.byteAt(u8, obj, 0x170).* == 0) {
+            if ((objectState == 0xF9 or objectState == 0xFF) and psx.fieldAt(u8, &obj.unk6C, 260).* == 0) {
                 obj.unk1A = 0;
             }
         }

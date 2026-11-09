@@ -1,5 +1,6 @@
 //! Battle actor setup: records an actor's kind and, for an active actor, builds its initialization state (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_7CD68");
 const c = @import("c_7CD68");
 
@@ -18,7 +19,9 @@ pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c
     }
 
     if (a.unk40 == 0) {
-        const kind = @as(*v.actorInitializationModel, @ptrCast(psx.get(a.unk44).?)).kind & 7;
+        const object: *v.D_800F4538_t = @ptrCast(@alignCast(psx.get(a.unk44).?));
+        // The kind word sits 0x100 bytes into the object's bone records.
+        const kind = psx.fieldAt(c_uint, &object.bones, 0x100).* & 7;
         if (kind == 2 or kind == 4) {
             const table = v.g.D_800F58BC().*.?;
             for (0..4) |k| {
@@ -38,16 +41,16 @@ pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c
     c.func_800E4288(state, @sizeOf(v.vs_battle_aiState));
     state.id = psx.conv(u8, id);
     psx.put(&state.actor, a);
-    const model: *v.actorInitializationModel = @ptrCast(psx.get(a.unk44).?);
-    psx.put(&state.object.actorInitializationModel, model);
+    const model: *v.D_800F4538_t = @ptrCast(@alignCast(psx.get(a.unk44).?));
+    psx.put(&state.object.D_800F4538_t, model);
     state.stats.actorInitializationStats = @ptrCast(@alignCast(psx.get(a.stats)));
 
     // Uninitialised in the C; func_800A190C's selector 250 (0xFA) always writes it.
     var result: [4]u16 = undefined;
     c.func_800A190C(state.id, 250, &result, 0);
-    state.height = psx.conv(i16, @as(c_int, result[1]) -% @as(c_int, model.position[1]));
+    state.height = psx.conv(i16, @as(c_int, result[1]) -% @as(c_int, model.unk0.position.vy));
 
-    var radius: c_uint = model.radius;
+    var radius: c_uint = model.unk63C;
     if (id == 0) {
         state.radius = 40;
     } else if (radius < 63) {
@@ -64,8 +67,8 @@ pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c
         state.collisionRadius = psx.conv(u16, radius);
     }
 
-    psx.put(&state.position60.shorts, &model.position[0]);
-    psx.put(&state.tilePointer.words, &model.tile.raw);
+    psx.put(&state.position60.shorts, &model.unk0.position.vx);
+    psx.put(&state.tilePointer.words, psx.fieldAt(u32, &model.unk0.currentTileX, 0));
     state.unk89 = 0;
     state.field8A = 0;
     state.direction = 1;
@@ -100,7 +103,7 @@ pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c
     }
     state.clearance = -256;
     state.heightBE = -128;
-    state.extent = @bitCast(model.field63E);
+    state.extent = @bitCast(model.menuCameraHeightOffset);
     state.tile.sraw = psx.conv(i32, psx.get(state.tilePointer.words).?.*);
     state.field110 = psx.conv(i32, psx.get(state.tilePointer.words).?.*);
     state.field194 = -1;
@@ -109,10 +112,10 @@ pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c
 
     if (id != 0) {
         if ((state.flags & 0x30) != 0 and (state.flags & 0xC6) != 0 and
-            (psx.at(psx.at(v.g.D_800F58B8().*.?, model.tile.p.z), model.tile.p.x).* & 0x10) != 0 and
-            (model.flags & 0x200000) == 0)
+            (psx.at(psx.at(v.g.D_800F58B8().*.?, model.unk0.currentTileZ), model.unk0.currentTileX).* & 0x10) != 0 and
+            (common.object.flags8(model).* & 0x200000) == 0)
         {
-            state.next.nextView = psx.conv(i32, model.tile.raw);
+            state.next.nextView = psx.conv(i32, psx.fieldAt(u32, &model.unk0.currentTileX, 0).*);
             c.func_800DEEFC(@ptrCast(state), 12);
         } else if (so < 0 or !((@as(c_int, so) << 26) < 0)) {
             if (a.unk1F != 0) {

@@ -877,7 +877,7 @@ functions = [
 ]
 
 [subsystem.battle_7CD68_port.views]
-types = ["D_800F16EC_t", "D_800F58BC_t", "actionMetadataAction", "actionMetadataEntry", "vs_battle_aiState", "actionMetadataStats", "vs_battle_actor", "actorInitializationModel", "actorInitializationStats", "actorSettingsWord", "func_800E5568_t", "func_800E5698_t2", "func_800E5A74_t", "vs_action_t", "D_800F4538_unk0", "vs_battle_actor2"]
+types = ["D_800F4538_t", "D_800F16EC_t", "D_800F58BC_t", "actionMetadataAction", "actionMetadataEntry", "vs_battle_aiState", "actionMetadataStats", "vs_battle_actor", "actorInitializationStats", "actorSettingsWord", "func_800E5568_t", "func_800E5698_t2", "func_800E5A74_t", "vs_action_t", "D_800F4538_unk0", "vs_battle_actor2"]
 globals = ["D_80069C08", "D_80069C18", "D_80069C1C", "D_80069C3C", "D_800F16EC", "D_800F1790", "D_800F17B8", "D_800F17C8", "D_800F17D8", "D_800F5878", "D_800F58B8", "D_800F58BC", "D_800F58C0", "D_800F58C8", "D_800F58D0", "D_800F590C", "vs_battle_actors", "vs_main_actions"]
 
 [subsystem.battle_71618_port]
@@ -1146,7 +1146,7 @@ functions = [
 ]
 
 [subsystem.battle_49268_port.views]
-types = ["CVECTOR", "D_800F4538_t", "D_800F4538_unk68", "D_800F45E0_t", "D_800F45E0_unk68", "MATRIX", "SVECTOR", "VECTOR", "_wepModelOffsets", "actorBoneMatrix", "boneTransformScratch", "savedBoneMatrix", "vs_battle_wepModels_t", "weaponMatrix", "weaponRotation", "weaponTransformScratch"]
+types = ["CVECTOR", "D_800F4538_t", "D_800F4538_unk68", "D_800F45E0_t", "D_800F45E0_unk68", "MATRIX", "SVECTOR", "VECTOR", "_wepModelOffsets", "boneTransformScratch", "vs_battle_wepModels_t", "weaponMatrix", "weaponRotation", "weaponTransformScratch"]
 globals = ["D_800F2458", "D_800F3C58", "D_800F3C78", "D_800F4538", "vs_battle_wepTextures", "vs_main_nearClip"]
 
 [subsystem.battle_5BE50_port]
@@ -1186,7 +1186,7 @@ functions = [
 ]
 
 [subsystem.battle_7EE98_port.views]
-types = ["D_800F4538_t", "D_800F58BC_t", "D_800F5920_t", "vs_battle_actor", "vs_battle_aiState", "func_800E78F4_t2", "radialMotion", "radialMotionActor", "radialMotionContext", "trackingMotion", "trackingMotionActor", "trackingMotionStats", "vs_battle_actor2", "D_800F4538_unk0"]
+types = ["D_800F4538_t", "D_800F58BC_t", "D_800F5920_t", "vs_battle_actor", "vs_battle_aiState", "func_800E78F4_t2", "radialMotion", "radialMotionActor", "trackingMotion", "trackingMotionActor", "trackingMotionStats", "vs_battle_actor2", "D_800F4538_unk0"]
 globals = ["D_800F17DC", "D_800F4538", "D_800F58BC", "D_800F5918", "D_800F591C", "D_800F5920"]
 
 [subsystem.battle_3A1A0_port]
@@ -2241,7 +2241,7 @@ functions = [
 ]
 
 [subsystem.d2_battle_motion.views]
-types = []
+types = ["D_800F4538_t"]
 globals = ["D_800F4538"]
 
 [subsystem.d2_battle_movement]
@@ -2322,7 +2322,7 @@ functions = [
 ]
 
 [subsystem.d2_battle_movement.views]
-types = ["vs_battle_aiState"]
+types = ["vs_battle_aiState", "D_800F4538_t"]
 globals = ["D_800F1758", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58B8", "D_800F58BC", "D_800F58D0", "D_800F58D8", "D_800F58E0", "D_800F5920", "vs_battle_actors"]
 
 [subsystem.d2_boot_sdk]

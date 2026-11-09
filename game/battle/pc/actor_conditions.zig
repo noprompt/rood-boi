@@ -38,7 +38,7 @@ pub fn slotUsable(state: *ai.vs_battle_aiState, row: c_int, column: c_int) callc
             }
         }
     }
-    const slot_flags = psx.byteAt(c_uint, &state.configs, @as(isize, slot *% 8));
+    const slot_flags = psx.fieldAt(c_uint, &state.configs, @as(isize, slot *% 8));
     slot_flags.* = (slot_flags.* & ~@as(c_uint, 0x80)) | (@as(c_uint, @bitCast(usable)) << 7);
     return usable;
 }

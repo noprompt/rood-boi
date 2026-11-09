@@ -8,5 +8,5 @@ const psx = @import("common").psx;
 /// squares its constant 10 instead, so `range` is not read.
 pub fn beyondReach(state: *ai.vs_battle_aiState, id: c_int, range: c_int) callconv(.c) c_int {
     _ = range;
-    return @intFromBool(100 < psx.byteAt(c_uint, &state.tbl.t.distances, @as(isize, id) * 4).*);
+    return @intFromBool(100 < psx.fieldAt(c_uint, &state.tbl.t.distances, @as(isize, id) * 4).*);
 }

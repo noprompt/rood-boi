@@ -15,7 +15,7 @@ pub fn canEngageTarget(state: *ai.vs_battle_aiState, candidate: [*]u8) callconv(
     if (state.timer8E != 0) return 1;
     if (state.timer98 != 0) return 0;
     const target: usize = psx.byteAt(u32, candidate, 12).* & 0xf;
-    if (psx.byteAt(u32, &state.tbl.t.targets.bits32, @as(isize, @intCast(target * 4))).* & 1 == 0) return 0; // target < 16
+    if (psx.fieldAt(u32, &state.tbl.t.targets.bits32, @as(isize, @intCast(target * 4))).* & 1 == 0) return 0; // target < 16
 
     const count: c_uint = room[0xd];
     if (count < psx.byteAt(u32, room, 0x24).*) return 0;

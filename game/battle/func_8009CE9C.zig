@@ -13,10 +13,10 @@ pub fn func_8009CE9C(index: c_uint) callconv(.c) c_int {
     while (i < 17) : (i += 1) {
         const temp = v.g.D_800F4538()[i];
         if (temp) |actor| {
-            // Byte offsets: D_800E8F2C + 0x183E and index + 0x183D; index is 1..3 here.
-            const selOff: isize = @as(isize, v.g.D_800E8F2C().*) + 0x183E;
-            const idxOff: isize = @as(isize, @intCast(index)) + 0x183D;
-            if (psx.byteAt(u8, actor, selOff).* != 0xFF and psx.byteAt(u8, actor, idxOff).* == 0xFF) {
+            // The bytes from unk183C: D_800E8F2C + 2 (unk183E) and index + 1; index is 1..3 here.
+            const selOff: isize = @as(isize, v.g.D_800E8F2C().*) + 2;
+            const idxOff: isize = @as(isize, @intCast(index)) + 1;
+            if (psx.fieldAt(u8, &actor.unk183C, selOff).* != 0xFF and psx.fieldAt(u8, &actor.unk183C, idxOff).* == 0xFF) {
                 if (actor.unk180C[0].unk1 >= 2) {
                     _ = c.func_800AB098(@ptrCast(actor), 0, 0);
                 }

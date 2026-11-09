@@ -19,7 +19,7 @@ pub fn func_800A0104(index: c_int, material: c_int) callconv(.c) c_int {
     scratch.unk84.vz = psx.conv(i16, @as(c_int, psx.at(table, m +% 2).*) *% 1024);
     _ = c.RotMatrixYXZ_gte(@ptrCast(&scratch.unk84), @ptrCast(&obj.unk6C[4]));
     obj.unk18 = 0;
-    psx.byteAt(c_int, obj, 0x24).* = 0;
+    psx.fieldAt(c_int, &obj.unk24, 0).* = 0;
     obj.unk28 = 0;
     return 0;
 }

@@ -10,10 +10,6 @@ fn abs(x: c_int) c_int {
     return if (x >= 0) x else -%x;
 }
 
-fn word(actor: *v.D_800F4538_t, offset: isize) c_uint {
-    return psx.byteAt(c_uint, actor, offset).*;
-}
-
 /// `func_800A8B34(&p, direction)`: the tile probe (it writes p's height and area).
 fn tileProbe(p: *v.SVECTOR, direction: c_int) c_int {
     return c.func_800A8B34(@ptrCast(p), direction);
@@ -163,7 +159,7 @@ fn slideXBack(l: *Locals) c_int {
 fn slideX(l: *Locals) c_int {
     const a = l.actor;
     const pos = &a.unk0.position;
-    if (word(a, 8) & 0x70000 != 0) return 3;
+    if (common.object.flags8(a).* & 0x70000 != 0) return 3;
     signedSide(l, l.motion.vx < 0, 6, 2);
     l.direction -%= 1;
     setV(&l.probe, "vx", @as(c_int, pos.vx) +% l.motion.vx +% l.offset);
@@ -257,7 +253,7 @@ fn slideZBack(l: *Locals) c_int {
 fn slideZ(l: *Locals) c_int {
     const a = l.actor;
     const pos = &a.unk0.position;
-    if (word(a, 8) & 0x70000 != 0) return 3;
+    if (common.object.flags8(a).* & 0x70000 != 0) return 3;
     signedSide(l, l.motion.vz < 0, 4, 0);
     l.direction -%= 1;
     setV(&l.probe, "vz", @as(c_int, pos.vz) +% l.motion.vz +% l.offset);
@@ -369,9 +365,9 @@ pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c
         .diagonal = @divTrunc(c.rsin(0x200) *% radius, 4096),
     };
     scratch.unk0 = -0xC0;
-    if (word(a, 8) & 0x800000 != 0) {
+    if (common.object.flags8(a).* & 0x800000 != 0) {
         scratch.unk40 = -0x40;
-    } else if (word(a, 0x5AC) & 8 != 0) {
+    } else if (common.object.flags5AC(a).* & 8 != 0) {
         scratch.unk0 = -0x140;
         scratch.unk40 = -0x40;
     } else {
@@ -382,7 +378,7 @@ pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c
         scratch.unk40 = -0x100;
         psx.setBits(a, "unk5AC_10", 0);
         psx.setBits(a, "unk5AC_12", 0);
-        if (word(a, 0xC) & 0xF == 0) {
+        if (common.object.flagsC(a).* & 0xF == 0) {
             l.probeTiles[0] = c.func_800A8D64(@ptrCast(&a.unk0.position), a.unk0.unk5D);
             if (l.probeTiles[0] == null) psx.setBits(a, "unk5AC_10", 1);
         }
@@ -406,7 +402,7 @@ pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c
     c.func_800A70DC(@ptrCast(a), l.diagonal);
     c.func_800A7524(@ptrCast(a), @ptrCast(m));
     psx.setBits(a, "unk5AC_10", 0);
-    if (word(a, 0xC) & 0xF == 0) {
+    if (common.object.flagsC(a).* & 0xF == 0) {
         l.probeTiles[0] = c.func_800A8D64(@ptrCast(&a.unk0.position), a.unk0.unk5D);
         psx.setBits(a, "unk5AC_10", @intFromBool(l.probeTiles[0] == null));
     }
@@ -484,13 +480,13 @@ pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c
         // xProbe is unset when x is 0 (then xResults[0] is 0xFF and the steps are unused).
         const steps = if (l.xResults[0] != 0xFF) climb(l.xProbe.vy, a) else 1;
         if (allWithin(&l.xResults, steps)) {
-            if (word(a, 0x5AC) & 0x4000 != 0) {
+            if (common.object.flags5AC(a).* & 0x4000 != 0) {
                 if (faces(a, if (x < 0) 6 else 2)) return slideX(&l);
             }
             return acceptX(&l);
         }
         if (allBelow2(&l.zResults)) {
-            if (word(a, 0x5AC) & 0x4000 != 0) {
+            if (common.object.flags5AC(a).* & 0x4000 != 0) {
                 if (m.vz < 0) {
                     if (a.unk17FE == 4) return slideX(&l);
                 } else if (a.unk17FE == 0) return slideX(&l);
@@ -502,7 +498,7 @@ pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c
 
     const steps = if (l.zResults[0] != 0xFF) climb(l.zProbe.vy, a) else 1;
     if (allWithin(&l.zResults, steps)) {
-        if (word(a, 0x5AC) & 0x4000 != 0) {
+        if (common.object.flags5AC(a).* & 0x4000 != 0) {
             if (z < 0) {
                 if (a.unk17FE == 4) return slideZ(&l);
             } else if (a.unk17FE == 0) return slideZ(&l);
@@ -510,7 +506,7 @@ pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c
         return acceptZ(&l);
     }
     if (allBelow2(&l.xResults)) {
-        if (word(a, 0x5AC) & 0x4000 != 0) {
+        if (common.object.flags5AC(a).* & 0x4000 != 0) {
             if (faces(a, if (m.vx < 0) 6 else 2)) return slideZ(&l);
         }
         return acceptX(&l);

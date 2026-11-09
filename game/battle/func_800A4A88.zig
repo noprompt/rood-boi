@@ -14,20 +14,20 @@ pub fn func_800A4A88(actor: ?*v.D_800F4538_t, mode: c_int) callconv(.c) void {
         0 => {
             if (psx.getBits(&a.unk0, "unkC_0") == 0) return;
             contact = @ptrCast(c.func_800A4A24(@as(c_int, psx.getBits(&a.unk0, "unkC_0"))));
-            a.unk6EE = psx.conv(u8, @as(c_int, contact.unk0) -% @as(c_int, psx.byteAt(i16, a, 0x17EC).*));
-            a.unk6EF = psx.conv(u8, @as(c_int, contact.unk4) -% @as(c_int, psx.byteAt(i16, a, 0x17F0).*));
+            a.unk6EE = psx.conv(u8, @as(c_int, contact.unk0) -% @as(c_int, psx.fieldAt(i16, &a.unk17EC, 0).*));
+            a.unk6EF = psx.conv(u8, @as(c_int, contact.unk4) -% @as(c_int, psx.fieldAt(i16, &a.unk17EC, 4).*));
             a.unk0.position.vx = psx.conv(i16, @as(c_int, a.unk0.position.vx) +% @as(c_int, psx.conv(i8, a.unk6EE)));
             a.unk0.position.vz = psx.conv(i16, @as(c_int, a.unk0.position.vz) +% @as(c_int, psx.conv(i8, a.unk6EF)));
             a.unk0.position.vy = psx.conv(i16, @as(c_int, a.unk0.position.vy) +%
-                (@as(c_int, contact.unk2) -% @as(c_int, psx.byteAt(i16, a, 0x17EE).*)));
+                (@as(c_int, contact.unk2) -% @as(c_int, psx.fieldAt(i16, &a.unk17EC, 2).*)));
         },
         1 => {
-            const movement: c_uint = psx.byteAt(c_uint, a, 8).* & 0x70000;
+            const movement: c_uint = psx.fieldAt(c_uint, &a.unk0._bits_skip, 0).* & 0x70000;
             if (movement == 0x20000 or movement == 0x30000) return;
             const contactId: c_int = @as(c_int, psx.getBits(&a.unk0, "unkC_0"));
             if (@as(c_int, psx.getBits(&a.unk0, "unkC_4")) != contactId) {
                 if (a.unk0.unkF == 0 and contactId != 0 and
-                    contactId != @as(c_int, psx.byteAt(i16, a, 0x17F2).*))
+                    contactId != @as(c_int, psx.fieldAt(i16, &a.unk17EC, 6).*))
                 {
                     c.func_800E4BE0(contactId);
                 }
@@ -42,21 +42,21 @@ pub fn func_800A4A88(actor: ?*v.D_800F4538_t, mode: c_int) callconv(.c) void {
             const previous: c_int = @as(c_int, psx.getBits(&a.unk0, "unkC_4"));
             if (current != previous) {
                 if (psx.getBits(&a.unk0, "unkC_0") != 0) {
-                    psx.byteAt(i16, a, 0x17F2).* = psx.conv(i16, current);
+                    psx.fieldAt(i16, &a.unk17EC, 6).* = psx.conv(i16, current);
                     c.func_8008C49C(@as(c_int, psx.getBits(&a.unk0, "unkC_0")) -% 2, @as(c_int, a.unk0.unkF));
                 } else {
                     c.func_8008C49C(previous -% 2, -1);
-                    if ((psx.byteAt(c_uint, a, 8).* & 0x70000) == 0) {
+                    if ((psx.fieldAt(c_uint, &a.unk0._bits_skip, 0).* & 0x70000) == 0) {
                         a.unk6EE = 0;
                         a.unk6EF = 0;
                     }
                 }
             }
-            if (a.unk0.unkF == 0 and (psx.byteAt(c_uint, a, 8).* & 0x70000) == 0 and
-                @as(c_int, psx.getBits(&a.unk0, "unkC_0")) != @as(c_int, psx.byteAt(i16, a, 0x17F2).*))
+            if (a.unk0.unkF == 0 and (psx.fieldAt(c_uint, &a.unk0._bits_skip, 0).* & 0x70000) == 0 and
+                @as(c_int, psx.getBits(&a.unk0, "unkC_0")) != @as(c_int, psx.fieldAt(i16, &a.unk17EC, 6).*))
             {
-                c.func_800E4BD8(@as(c_int, psx.byteAt(i16, a, 0x17F2).*));
-                psx.byteAt(i16, a, 0x17F2).* = 0;
+                c.func_800E4BD8(@as(c_int, psx.fieldAt(i16, &a.unk17EC, 6).*));
+                psx.fieldAt(i16, &a.unk17EC, 6).* = 0;
             }
             a.unk0.unk5D = psx.conv(u8, psx.getBits(&a.unk0, "unkC_0"));
             psx.setBits(&a.unk0, "unkC_4", psx.getBits(&a.unk0, "unkC_0"));
@@ -65,7 +65,7 @@ pub fn func_800A4A88(actor: ?*v.D_800F4538_t, mode: c_int) callconv(.c) void {
         else => {},
     }
 
-    psx.byteAt(i16, a, 0x17EC).* = contact.unk0;
-    psx.byteAt(i16, a, 0x17EE).* = contact.unk2;
-    psx.byteAt(i16, a, 0x17F0).* = contact.unk4;
+    psx.fieldAt(i16, &a.unk17EC, 0).* = contact.unk0;
+    psx.fieldAt(i16, &a.unk17EC, 2).* = contact.unk2;
+    psx.fieldAt(i16, &a.unk17EC, 4).* = contact.unk4;
 }

@@ -83,7 +83,7 @@ fn loadSpecial(object: *v.vs_battle_objectData, sectors: *c_uint) ?c_int {
 fn startLoad(object: *v.vs_battle_objectData, actor: ?*v.D_800F4538_t, sectors: *c_uint) ?c_int {
     switch (object.actorId) {
         0 => {
-            const sequences: usize = @intFromPtr(actor) +% 0x5F4;
+            const sequences: usize = @intFromPtr(&actor.?.texMapOverlays); // the sequence tables start here
             sectors.* = @as(c_uint, loadU16(offset(sequences, 0xA0 +% @as(c_int, object.modelId) *% 2)) >> 11);
             if (sectors.* == 0) return 0;
             v.g.D_800F22C8().* = c.vs_main_allocHeapR(sectors.* << 11);
@@ -125,7 +125,7 @@ fn startLoad(object: *v.vs_battle_objectData, actor: ?*v.D_800F4538_t, sectors: 
             if (object.modelId == 0) return 0;
             object.modelId -%= 1;
             if (actor.?.unk6E6 == 2) return loadSpecial(object, sectors);
-            const seq: usize = @intFromPtr(actor) +% 0x6CC;
+            const seq: usize = @intFromPtr(&actor.?.unk6BC) +% 0x10;
             sectors.* = @as(c_uint, loadU16(offset(seq, @as(c_int, object.modelId) *% 2)) >> 11);
             if (sectors.* == 0) return -2;
             v.g.D_800F22D8().lba = psx.conv(i32, psx.at(&actor.?.spSeqLbas, object.modelId).*);

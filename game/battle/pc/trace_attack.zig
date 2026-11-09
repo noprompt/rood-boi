@@ -61,11 +61,12 @@ pub fn traceAttack(from: [*]const c_uint, to: [*]const c_uint, out: [*]c_uint, s
                 if (body[0x12] == 0 or body[0x1a] != 0) continue;
                 height = 0x80;
             } else {
-                body = @ptrCast(v.g.D_800F4538()[index] orelse continue);
-                const pose = body[0xb] & 0xf;
-                reach = psx.byteAt(u16, body, 0x63c).*;
-                if (pose == 1 or pose == 2 or (body[0x5af] & 1) == 1) continue;
-                height = psx.byteAt(u16, body, 0x63e).*;
+                const object = v.g.D_800F4538()[index] orelse continue;
+                body = @ptrCast(object);
+                const pose = psx.fieldAt(u8, &object.unk0._bits_skip, 3).* & 0xf;
+                reach = object.unk63C;
+                if (pose == 1 or pose == 2 or (psx.fieldAt(u8, &object._bits_unk5AC_0, 3).* & 1) == 1) continue;
+                height = object.menuCameraHeightOffset;
             }
             const position: c_uint = psx.byteAt(c_uint, body, 0x1c).*;
             height >>= 1;

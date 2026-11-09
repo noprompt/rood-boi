@@ -212,7 +212,7 @@ def main():
              "the Ashley model")
         g.run(8)
         address = clone()
-        rim = g.read(address + 0x17FD, 1)[0] if address else -1
+        rim = g.read(address + g.object_offset("unk17FD", 0x17FD), 1)[0] if address else -1
         studio = g.call("graphics").get("menu_studio")
         check(studio == 1 and rim == 0,
               f"the model view's own light: graphics menu_studio {studio} (want 1), the clone's rim copy "
@@ -258,13 +258,13 @@ def main():
             colour, depth = pictures(g, out / f"view{view}")
             # the clone alone (nothing behind it): gaps
             g.call("pause", paused=False)
-            g.write(address + 0x17FD, bytes([0]))
+            g.write(address + g.object_offset("unk17FD", 0x17FD), bytes([0]))
             g.run(3)
             g.call("pause", paused=True)
             alone_count = g.call("render_stats")["object_instances"]
             alone, alone_depth = pictures(g, out / f"view{view}-alone")
             n_gap, holes = gaps(alone_depth, box)
-            g.write(address + 0x17FD, bytes([rim]))
+            g.write(address + g.object_offset("unk17FD", 0x17FD), bytes([rim]))
             g.call("pause", paused=False)
             total_gap += n_gap
             extra.append(shown - alone_count)

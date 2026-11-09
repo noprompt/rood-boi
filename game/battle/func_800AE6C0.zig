@@ -25,7 +25,7 @@ pub fn func_800AE6C0(arg0: ?*v.D_800F4538_t, arg1: c_int, arg2: c_int) callconv(
         }
 
         const temp_v0: c_int = c.vs_main_computeSfxPan(
-            psx.byteAt(c_int, &temp.unk6FC, 0).*,
+            psx.fieldAt(c_int, &temp.unk6FC, 0).*,
             @as(c_int, temp.unk6FC.vz),
         );
         sp10[0] = temp_v0 >> 16;

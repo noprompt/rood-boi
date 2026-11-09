@@ -24,7 +24,7 @@ pub fn func_800A6AA0(actor: ?*v.D_800F4538_t, speed: c_int, _: c_int) callconv(.
         quadrant = @divTrunc(quadrant, 1024);
     }
 
-    const flags: c_uint = psx.byteAt(c_uint, a, 0x5AC).*;
+    const flags: c_uint = psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).*;
 
     var next: c_int = 0;
     var frames: c_int = 0;
@@ -40,7 +40,7 @@ pub fn func_800A6AA0(actor: ?*v.D_800F4538_t, speed: c_int, _: c_int) callconv(.
         }
         if (animation == 0x5F) return 0;
         play_pending = true;
-    } else if ((psx.byteAt(c_uint, a, 8).* & 0x400000) != 0) {
+    } else if ((psx.fieldAt(c_uint, &a.unk0._bits_skip, 0).* & 0x400000) != 0) {
         if (speed >= @as(c_int, a.unk5B9)) {
             next = @as(c_int, v.g.D_800E90D0()[@intCast(quadrant)]);
             frames = 20;
@@ -59,7 +59,7 @@ pub fn func_800A6AA0(actor: ?*v.D_800F4538_t, speed: c_int, _: c_int) callconv(.
             if (animation == 0x14 or animation == 0x11) {
                 next = 0x19;
             } else {
-                psx.byteAt(c_uint, a, 0x5AC).* = flags & ~@as(c_uint, 0x8000);
+                psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).* = flags & ~@as(c_uint, 0x8000);
                 return 0;
             }
         }
@@ -72,11 +72,11 @@ pub fn func_800A6AA0(actor: ?*v.D_800F4538_t, speed: c_int, _: c_int) callconv(.
     } else if (speed >= @as(c_int, a.unk5B9) - 1) {
         if (ua -% 0x13 < 2) return 0;
         if ((ua -% 0xF < 4) or (ua -% 0x2E < 11) or (ua -% 9 < 4) or animation == 1 or animation == 6) {
-            const old = psx.byteAt(c_uint, a, 0x5AC).*;
+            const old = psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).*;
             const state: c_uint = (old >> 25) & 1;
             var result: c_uint = old & ~@as(c_uint, 0x02000000);
             result |= (state ^ 1) << 25;
-            psx.byteAt(c_uint, a, 0x5AC).* = result;
+            psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).* = result;
             _ = c.func_800A0204(a.unk0.unkF, @as(c_int, @intCast(state)) +% 0x13, 0, 6);
             return 0;
         }
@@ -104,11 +104,11 @@ pub fn func_800A6AA0(actor: ?*v.D_800F4538_t, speed: c_int, _: c_int) callconv(.
         }
         if (do_toggle) {
             // walk_toggle
-            const walkState: c_uint = psx.byteAt(c_uint, a, 0x5AC).*;
+            const walkState: c_uint = psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).*;
             const phase: c_uint = (walkState >> 25) & 1;
             const step: u8 = psx.conv(u8, phase);
             next = @as(c_int, step) +% 0xD;
-            psx.byteAt(c_uint, a, 0x5AC).* = (walkState & ~@as(c_uint, 0x02000000)) | ((phase ^ 1) << 25);
+            psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).* = (walkState & ~@as(c_uint, 0x02000000)) | ((phase ^ 1) << 25);
             if (quadrant == 2) {
                 next = @as(c_int, step) +% 0xF;
             }

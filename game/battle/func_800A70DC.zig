@@ -34,7 +34,7 @@ pub fn func_800A70DC(actor: ?*v.D_800F4538_t, diagonal: c_int) callconv(.c) void
         samples.blocked[@intCast(i)] = 0;
     }
 
-    if ((psx.byteAt(c_uint, a, 0x5AC).* & 0x600) != 0) {
+    if ((psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).* & 0x600) != 0) {
         i = 7;
         while (i >= 0) : (i -%= 1) {
             samples.heights[@intCast(i)] = 0;

@@ -21,9 +21,13 @@ fn packetEnd(p: *v.DR_MOVE) void {
 
 /// orig: func_800AB4F0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Steps the four scrolling texture parts of `actor` and copies each moved window with a move packet.
-pub fn func_800AB4F0(actor: ?*anyopaque) callconv(.c) void {
-    const base: [*]u8 = @ptrCast(actor.?);
-    const page: usize = base[0x5BB];
+pub fn func_800AB4F0(actor: ?*v.D_800F4538_t) callconv(.c) void {
+    const a = actor.?;
+    const page: usize = a.unk5BB;
+    // The part bounds (unk614 from byte 8), the scroll states (unk181C) and the part records (texMapOverlays).
+    const bounds_base: [*]u8 = @as([*]u8, @ptrCast(&a.unk614)) + 8;
+    const state_base: [*]u8 = @ptrCast(&a.unk181C);
+    const part_base: [*]u8 = @ptrCast(&a.texMapOverlays);
     const table = v.g.D_800E8F30();
     const originX: c_int = @as(c_int, @as(*align(1) const i16, @ptrCast(table + page * 4)).*) << 6;
     const originY: c_int = (@as(c_int, @as(*align(1) const i16, @ptrCast(table + page * 4 + 2)).*) << 8) +%
@@ -34,13 +38,13 @@ pub fn func_800AB4F0(actor: ?*anyopaque) callconv(.c) void {
     var height: c_int = 0;
     var i: usize = 0;
     while (i < 4) : (i += 1) {
-        const bounds = base + 0x61C + i * 8;
+        const bounds = bounds_base + i * 8;
         if (bounds[2] != 0) {
-            const state = base + 0x181C + i * 8;
+            const state = state_base + i * 8;
             state[5] = psx.conv(u8, @as(c_int, state[5]) +% @divTrunc(v.g.vs_gametime_tickspeed().*, 2));
             if (state[4] < state[5]) {
                 state[5] = 0;
-                const part = base + 0x5F4 + i * 4;
+                const part = part_base + i * 4;
                 if (bounds[2] != 0 and @as(c_int, bounds[2]) != height) {
                     var width: c_int = part[2];
                     const px: c_int = state[0];
@@ -68,7 +72,7 @@ pub fn func_800AB4F0(actor: ?*anyopaque) callconv(.c) void {
                     state[0] = psx.conv(u8, x);
                     state[1] = psx.conv(u8, y);
                     var destX: c_int = undefined;
-                    if (@as(*align(1) const c_int, @ptrCast(base + 0x5AC)).* & 0x8000000 == 0) {
+                    if (@as(c_int, @bitCast(common.object.flags5AC(a).*)) & 0x8000000 == 0) {
                         x = @divTrunc(x, 4);
                         width = @divTrunc(width, 4);
                         destX = @as(c_int, part[0]) >> 2;

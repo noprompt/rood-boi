@@ -57,7 +57,7 @@ pub fn func_800D8EF4() callconv(.c) void {
             if ((flags & 0x40) != 0 or state.route != null or
                 (@as(c_int, psx.getBits(&object.?.flags.bits, "unk16")) |
                 @as(c_int, psx.getBits(&object.?.flags.bits, "unk19")) |
-                @as(c_int, psx.getBits(object.?, "unk5AC_15"))) != 0 or
+                @as(c_int, psx.getBits(psx.get(state.object.D_800F4538_t).?, "unk5AC_15"))) != 0 or
                 id == 0)
                 break :outcome_blk .skip;
             if (psx.getBits(&object.?.flags.bits, "unk31") != 0) {

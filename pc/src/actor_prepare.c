@@ -13,6 +13,16 @@
 #include "pc/src/psx_types.h"
 #include "pc/src/gte_value.h"
 
+/* The object's size, for tests that read a whole object. */
+const unsigned pc_object_size = sizeof(D_800F4538_t);
+/* The offsets tests mask or read in an object (ui_equip_smoke): the bone matrices, unk6FC, the animation buffers. */
+const unsigned pc_object_offset_bones = __builtin_offsetof(D_800F4538_t, bones);
+const unsigned pc_object_offset_bones_end = __builtin_offsetof(D_800F4538_t, bones) + sizeof(((D_800F4538_t*)0)->bones);
+const unsigned pc_object_offset_unk6FC = __builtin_offsetof(D_800F4538_t, unk6FC);
+const unsigned pc_object_offset_unk704 = __builtin_offsetof(D_800F4538_t, unk704);
+const unsigned pc_object_offset_unk11A4 = __builtin_offsetof(D_800F4538_t, unk11A4);
+const unsigned pc_object_offset_unk17FD = __builtin_offsetof(D_800F4538_t, unk17FD);
+
 typedef struct {
     char prefix[0x30];
     CVECTOR color;
@@ -68,43 +78,29 @@ void func_8008C458(int, int, void*, void*);
 int vs_gte_rsqrt(int);
 
 typedef struct {
-    char prefix[0x1870];
-    MATRIX matrix;
-} savedBoneMatrix;
-typedef struct {
-    char prefix[0x6C];
-    MATRIX matrix;
-} actorBoneMatrix;
-typedef struct {
     char prefix[0x4C];
     SVECTOR translation;
 } boneTransformScratch;
-static inline void func_800B26B8(void* actor, MATRIX* parent, int bone, int saved)
+static inline void func_800B26B8(void* actorData, MATRIX* parent, int bone, int saved)
 {
+    D_800F4538_t* actor = actorData;
     boneTransformScratch* scratch = (void*)0x1F80035C;
     MATRIX* matrix = (void*)0x1F8003C0;
-    char* savedAddress;
-    int boneOffset;
-    actorBoneMatrix* destination;
-    MATRIX* table;
+    MATRIX* savedMatrix = (MATRIX*)actor->unk1890[saved - 1]; /* the saved bone matrices follow unk1890 */
     vs_gte_view view;
     vs_gte_result transformed;
-    *matrix = ((savedBoneMatrix*)((char*)actor + (saved << 5)))->matrix;
+    *matrix = *savedMatrix;
     func_800B196C(parent, matrix);
     view = vs_gte_view_of(parent, VS_GTE_NO_SCREEN);
-    savedAddress = (char*)actor + ((saved - 1) << 5);
-    scratch->translation.vx = *(u_short*)(savedAddress + 0x18A4);
-    scratch->translation.vy = *(u_short*)(savedAddress + 0x18A8);
-    scratch->translation.vz = *(u_short*)(savedAddress + 0x18AC);
+    scratch->translation.vx = (u_short)savedMatrix->t[0];
+    scratch->translation.vy = (u_short)savedMatrix->t[1];
+    scratch->translation.vz = (u_short)savedMatrix->t[2];
     transformed = vs_gte_transform(&view, &scratch->translation);
     matrix->t[0] = transformed.mac[1];
     matrix->t[1] = transformed.mac[2];
     matrix->t[2] = transformed.mac[3];
-    table = D_800F2458.boneMatrices;
-    boneOffset = bone << 5;
-    *(MATRIX*)((char*)table + boneOffset) = *matrix;
-    destination = (void*)((char*)actor + boneOffset);
-    destination->matrix = *matrix;
+    D_800F2458.boneMatrices[bone] = *matrix;
+    actor->bones[bone] = *matrix;
 }
 
 void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
@@ -114,7 +110,6 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
     D_800F4538_t* source;
     int _[2] __attribute__((unused));
     actorIdentity savedIdentity;
-    char* savedAddress;
     int i;
     int value;
     int parentBone;
@@ -128,7 +123,7 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
     vs_gte_view view;
     vs_gte_result transformed;
 
-    psx_copy(scratch->model, actor->unk0.unk68);
+    psx_set(scratch->model, actor->unk0.unk68);
     view = vs_gte_view_of(parent, VS_GTE_NO_SCREEN);
     *(int*)&scratch->translation = *(int*)&scratch->offset;
     *(int*)&scratch->translation.vz = *(int*)&scratch->offset.vz;
@@ -143,20 +138,20 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
     scratch->rotation.vy += actor->unk0.facing;
     scratch->rotation.vz += actor->unk0.unk28;
 
-    if (*(u_int*)((char*)actor + 0x5AC) & 0x200000) {
+    if (VS_OBJECT_FLAGS5AC(actor) & 0x200000) {
         if ((short)func_800BEB00() == 4 || (((actorFlags*)actor)->flags & 4)) {
             if (arg2 == 0) {
-                flags = *(u_int*)((char*)actor + 0x5AC);
+                flags = VS_OBJECT_FLAGS5AC(actor);
                 if (!(flags & 0x400000)) {
                     value = actor->unk1802[0] + 1;
                     if (actor->unk1802[1] < value) {
-                        *(u_int*)((char*)actor + 0x5AC) = flags | 0x400000;
+                        VS_OBJECT_FLAGS5AC(actor) = flags | 0x400000;
                         value = actor->unk1802[1];
                     }
                 } else {
                     value = actor->unk1802[0] - 1;
                     if (value < 0) {
-                        *(u_int*)((char*)actor + 0x5AC) = flags & ~0x400000;
+                        VS_OBJECT_FLAGS5AC(actor) = flags & ~0x400000;
                         value = 0;
                     }
                 }
@@ -238,7 +233,7 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
             case 5:
             case 6:
                 if (((actorFlags*)actor)->flags & 4) {
-                    boneSpin* spin = (boneSpin*)((char*)actor + 0x1874) + value;
+                    boneSpin* spin = (boneSpin*)&actor->unk1864.unk10 + value;
                     scratch->rotation.vx = spin->angle += spin->step;
                 }
                 break;
@@ -346,13 +341,13 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
     savedIdentity = *(actorIdentity*)actor;
     source = actor;
     if (arg2 < 2) {
-        psx_copy(scratch->model, actor->unk0.unk68);
+        psx_set(scratch->model, actor->unk0.unk68);
         scratch->unk36 = actor->unk6E8;
         scratch->unk38 = actor->unk6EA;
         scratch->tpage = D_800F46A8[actor->unk5BB].tpage;
     } else {
         *(actorIdentity*)actor = *(actorIdentity*)D_800F4538[arg2];
-        psx_copy(scratch->model, D_800F4538[arg2]->unk0.unk68);
+        psx_set(scratch->model, D_800F4538[arg2]->unk0.unk68);
         scratch->unk36 = D_800F4538[arg2]->unk6E8;
         scratch->unk38 = D_800F4538[arg2]->unk6EA;
         scratch->tpage = D_800F46A8[D_800F4538[arg2]->unk5BB].tpage;
@@ -378,8 +373,8 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
             if (arg2 == 1) {
                 func_800B3CF0(&D_800F2458, actor, &actor->unk6F8, psx_get(scratch->model));
             } else {
-                if (!(*(u_int*)((char*)actor + 0x5AC) & 0x100)) {
-                    if (*(u_int*)((char*)actor + 0x648) & 0x10000) {
+                if (!(VS_OBJECT_FLAGS5AC(actor) & 0x100)) {
+                    if (VS_OBJECT_FLAGS648(actor) & 0x10000) {
                         value = actor->unk0.position.vz;
                         value <<= 16;
                         func_8008C458(value | actor->unk0.position.vx, actor->unk0.unk5D,

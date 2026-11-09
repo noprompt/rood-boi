@@ -8,7 +8,7 @@ const c = @import("c_3A1A0");
 pub fn func_800A48CC(index: c_int, direction: c_int, distance: c_int) callconv(.c) void {
     // The C indexes D_800F4538 without a bounds check and dereferences the entry unguarded.
     const actor = psx.at(v.g.D_800F4538(), index).*.?;
-    const flags = psx.byteAt(v.vs_battleMovementModeFlags, actor, 0x5B0);
+    const flags = psx.fieldAt(v.vs_battleMovementModeFlags, &actor._bits_unk5AC_0, 4);
 
     if (psx.getBits(actor, "unk5AC_0") != 0) return;
     if (psx.getBits(&actor.unk0, "unkA_3") != 0) return;

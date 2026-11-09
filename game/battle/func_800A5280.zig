@@ -1,23 +1,24 @@
 //! Moves one battle actor a step towards a heading: tilts, falls, stops and
 //! animation choices from the actor's flags and the terrain probe
 //! (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
 
 /// The actor's status word: the u32 at byte 8.
 inline fn statusWord(actor: *v.D_800F4538_t) c_uint {
-    return psx.byteAt(c_uint, actor, 8).*;
+    return psx.fieldAt(c_uint, &actor.unk0._bits_skip, 0).*;
 }
 
 /// The actor's movement flags word: the u32 at byte 0x5AC.
 inline fn flagsWord(actor: *v.D_800F4538_t) c_uint {
-    return psx.byteAt(c_uint, actor, 0x5AC).*;
+    return psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).*;
 }
 
 /// The u32 at byte 0xC (the unkC_0 area nibble and its neighbours).
 inline fn areaWord(actor: *v.D_800F4538_t) c_uint {
-    return psx.byteAt(c_uint, actor, 0xC).*;
+    return psx.fieldAt(c_uint, &actor.unk0._bits_skip, 4).*;
 }
 
 /// Label `fall` of func_800A5280: the actor starts to fall; always returns 3.
@@ -167,9 +168,9 @@ pub fn func_800A5280(index: c_int, direction_in: c_int, distance_in: c_int, inpu
                             if (index != 0) {
                                 return 3;
                             }
-                            const flags = psx.byteAt(v.vs_battleMovementModeFlags, actor, 0x5B0);
+                            const flags = psx.fieldAt(v.vs_battleMovementModeFlags, &actor._bits_unk5AC_0, 4);
                             if (@divTrunc(distance, 4096) >= @as(c_int, actor.unk5B9)) {
-                                if ((psx.byteAt(c_uint, actor, 0x5B0).* & 4) == 0) {
+                                if ((common.object.flags5B0(actor).* & 4) == 0) {
                                     distance = @as(c_int, actor.unk5BA) << 12;
                                 }
                             } else {
@@ -392,23 +393,23 @@ pub fn func_800A5280(index: c_int, direction_in: c_int, distance_in: c_int, inpu
     }
 
     if ((flagsWord(actor) & 0x1000) != 0 and speed == 0) {
-        if (@as(c_int, psx.byteAt(u16, actor, 0x18D6).*) == @as(c_int, actor.unk0.position.vx) +% @as(c_int, motion.vx) and
-            @as(c_int, psx.byteAt(u16, actor, 0x18D8).*) == @as(c_int, actor.unk0.position.vz) +% @as(c_int, motion.vz))
+        if (@as(c_int, psx.fieldAt(u16, &actor.unk18D6, 0).*) == @as(c_int, actor.unk0.position.vx) +% @as(c_int, motion.vx) and
+            @as(c_int, psx.fieldAt(u16, &actor.unk18D8, 0).*) == @as(c_int, actor.unk0.position.vz) +% @as(c_int, motion.vz))
         {
             distance = 0;
             return done(actor, distance, direction, status);
         }
-        psx.byteAt(u16, actor, 0x18D6).* = psx.byteAt(u16, actor, 0x18D2).*;
-        psx.byteAt(u16, actor, 0x18D8).* = psx.byteAt(u16, actor, 0x18D4).*;
-        psx.byteAt(u16, actor, 0x18D2).* = psx.conv(u16, @as(c_int, actor.unk0.position.vx) +% @as(c_int, motion.vx));
-        psx.byteAt(u16, actor, 0x18D4).* = psx.conv(u16, @as(c_int, actor.unk0.position.vz) +% @as(c_int, motion.vz));
+        psx.fieldAt(u16, &actor.unk18D6, 0).* = psx.fieldAt(u16, &actor.unk18D2, 0).*;
+        psx.fieldAt(u16, &actor.unk18D8, 0).* = psx.fieldAt(u16, &actor.unk18D4, 0).*;
+        psx.fieldAt(u16, &actor.unk18D2, 0).* = psx.conv(u16, @as(c_int, actor.unk0.position.vx) +% @as(c_int, motion.vx));
+        psx.fieldAt(u16, &actor.unk18D4, 0).* = psx.conv(u16, @as(c_int, actor.unk0.position.vz) +% @as(c_int, motion.vz));
     } else {
-        const previousX: c_int = @as(c_int, psx.byteAt(u16, actor, 0x18D2).*);
-        const previousZ: c_int = @as(c_int, psx.byteAt(u16, actor, 0x18D4).*);
-        psx.byteAt(u16, actor, 0x18D2).* = 0;
-        psx.byteAt(u16, actor, 0x18D4).* = 0;
-        psx.byteAt(u16, actor, 0x18D6).* = psx.conv(u16, previousX);
-        psx.byteAt(u16, actor, 0x18D8).* = psx.conv(u16, previousZ);
+        const previousX: c_int = @as(c_int, psx.fieldAt(u16, &actor.unk18D2, 0).*);
+        const previousZ: c_int = @as(c_int, psx.fieldAt(u16, &actor.unk18D4, 0).*);
+        psx.fieldAt(u16, &actor.unk18D2, 0).* = 0;
+        psx.fieldAt(u16, &actor.unk18D4, 0).* = 0;
+        psx.fieldAt(u16, &actor.unk18D6, 0).* = psx.conv(u16, previousX);
+        psx.fieldAt(u16, &actor.unk18D8, 0).* = psx.conv(u16, previousZ);
     }
 
     actor.unk5BE = 4;
@@ -590,7 +591,7 @@ pub fn func_800A5280(index: c_int, direction_in: c_int, distance_in: c_int, inpu
             actor.unk0.unk34.vy = 0;
             _ = c.func_800A0204(index, 0x2F, 0, 4);
             psx.setBits(&actor.unk0, "unkA_0", 3);
-            const flags = psx.byteAt(v.vs_battleMovementModeFlags, actor, 0x5B0);
+            const flags = psx.fieldAt(v.vs_battleMovementModeFlags, &actor._bits_unk5AC_0, 4);
             psx.setBits(flags, "fast", 0);
             psx.setBits(flags, "mode", 1);
             if (distance >= @as(c_int, actor.unk5B9)) {

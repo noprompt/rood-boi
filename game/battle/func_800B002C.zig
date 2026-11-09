@@ -7,7 +7,7 @@ const v = @import("views_44F14");
 const c = @import("c_44F14");
 
 fn word8(a: *v.D_800F4538_t) c_int {
-    return psx.byteAt(c_int, a, 8).*;
+    return psx.fieldAt(c_int, &a.unk0._bits_skip, 0).*;
 }
 
 /// The C's `apply:` tail: the head angles clamped to the actor's limit around the current ones.
@@ -43,14 +43,14 @@ pub fn func_800B002C(actor: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
     const a = actor.?;
     const body = &a.unk0;
 
-    if (psx.byteAt(c_int, &body.unk2C, 0).* == 0x10001000 and body.unk30 == 4096) {
-        scratch.offset.vx = @as(i16, @bitCast(psx.byteAt(u16, a, 0x84C).*)) >> 1;
-        scratch.offset.vy = @as(i16, @bitCast(psx.byteAt(u16, a, 0x84E).*)) >> 1;
-        scratch.offset.vz = @as(i16, @bitCast(psx.byteAt(u16, a, 0x850).*)) >> 1;
+    if (psx.fieldAt(c_int, &body.unk2C, 0).* == 0x10001000 and body.unk30 == 4096) {
+        scratch.offset.vx = @as(i16, @bitCast(psx.fieldAt(u16, &a.unk704.unk0, 328).*)) >> 1;
+        scratch.offset.vy = @as(i16, @bitCast(psx.fieldAt(u16, &a.unk704.unk0, 330).*)) >> 1;
+        scratch.offset.vz = @as(i16, @bitCast(psx.fieldAt(u16, &a.unk704.unk0, 332).*)) >> 1;
     } else {
-        scratch.offset.vx = psx.conv(i16, @divTrunc(@as(c_int, psx.byteAt(i16, a, 0x84C).*) *% body.unk2E, 8192));
-        scratch.offset.vy = psx.conv(i16, @divTrunc(@as(c_int, psx.byteAt(i16, a, 0x84E).*) *% body.unk30, 8192));
-        scratch.offset.vz = psx.conv(i16, @divTrunc(@as(c_int, psx.byteAt(i16, a, 0x850).*) *% body.unk2C, 8192));
+        scratch.offset.vx = psx.conv(i16, @divTrunc(@as(c_int, psx.fieldAt(i16, &a.unk704.unk0, 328).*) *% body.unk2E, 8192));
+        scratch.offset.vy = psx.conv(i16, @divTrunc(@as(c_int, psx.fieldAt(i16, &a.unk704.unk0, 330).*) *% body.unk30, 8192));
+        scratch.offset.vz = psx.conv(i16, @divTrunc(@as(c_int, psx.fieldAt(i16, &a.unk704.unk0, 332).*) *% body.unk2C, 8192));
     }
     scratch.offset.vx = psx.conv(i16, @divTrunc(@as(c_int, scratch.offset.vx) *% a.unk183C, 4096));
     scratch.offset.vy = psx.conv(i16, @divTrunc(@as(c_int, scratch.offset.vy) *% a.unk183C, 4096));
@@ -114,10 +114,10 @@ pub fn func_800B002C(actor: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
     }
     c.func_800B07DC(@ptrCast(a));
     if (word8(a) & 0x3F0000 == 0) {
-        psx.byteAt(c_int, &body.lastTouchedTileX, 0).* = psx.byteAt(c_int, &body.currentTileX, 0).*;
-        psx.byteAt([2]c_int, &body.unk4C, 0).* = psx.byteAt([2]c_int, &body.position, 0).*;
+        psx.fieldAt(c_int, &body.lastTouchedTileX, 0).* = psx.fieldAt(c_int, &body.currentTileX, 0).*;
+        psx.fieldAt([2]c_int, &body.unk4C, 0).* = psx.fieldAt([2]c_int, &body.position, 0).*;
         if (psx.getBits(body, "unkC_0") == 0) {
-            a.unk1868 = psx.byteAt(c_int, &body.currentTileX, 0).*;
+            a.unk1868 = psx.fieldAt(c_int, &body.currentTileX, 0).*;
         }
         body.unk52 = body.facing;
     }
@@ -186,7 +186,7 @@ pub fn func_800B002C(actor: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
         yaw = wrapClamp(yaw);
         pitch = wrapClamp(pitch);
         apply(a, scratch, yaw, pitch);
-    } else if (psx.byteAt(c_int, &body.unk14, 0).* != 0) {
+    } else if (psx.fieldAt(c_int, &body.unk14, 0).* != 0) {
         apply(a, scratch, 0, 0);
     } else {
         scratch.angleX = 0;

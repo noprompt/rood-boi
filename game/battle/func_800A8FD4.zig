@@ -20,11 +20,11 @@ pub fn func_800A8FD4(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) 
         @as(*align(1) v.actorCollisionExclusion, @ptrFromInt(clear)).excluded = 0;
     }
 
-    const flags: c_uint = psx.byteAt(c_uint, a, 0x5AC).*;
+    const flags: c_uint = psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).*;
     if ((flags & 0x800) != 0) return psx.conv(c_int, flags & 0x800);
 
-    const radius: c_int = psx.byteAt(u16, a, 0x640).*;
-    var minY: c_int = @as(c_int, a.unk0.position.vy) -% @as(c_int, psx.byteAt(u16, a, 0x642).*);
+    const radius: c_int = psx.fieldAt(u16, &a.unk640, 0).*;
+    var minY: c_int = @as(c_int, a.unk0.position.vy) -% @as(c_int, psx.fieldAt(u16, &a.unk640, 2).*);
     const minX: c_int = @as(c_int, a.unk0.position.vx) -% radius;
     const maxX: c_int = @as(c_int, a.unk0.position.vx) +% radius;
     const minZ: c_int = @as(c_int, a.unk0.position.vz) -% radius;
@@ -36,13 +36,13 @@ pub fn func_800A8FD4(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) 
     while (i < 17) : (i += 1) {
         const other = slots[@intCast(i)] orelse continue;
 
-        const otherFlags: c_uint = psx.byteAt(c_uint, other, 8).*;
+        const otherFlags: c_uint = psx.fieldAt(c_uint, &other.unk0._bits_skip, 0).*;
         if ((otherFlags & 1) != 0) continue;
-        if ((psx.byteAt(c_uint, other, 0x5AC).* & 0x1000000) != 0) continue;
+        if ((psx.fieldAt(c_uint, &other._bits_unk5AC_0, 0).* & 0x1000000) != 0) continue;
         if (other.unk0.unk13 == 0xFC) continue;
         if ((otherFlags & 0xF000000) == 0x2000000) continue;
 
-        const otherRadius: c_int = psx.byteAt(u16, other, 0x640).*;
+        const otherRadius: c_int = psx.fieldAt(u16, &other.unk640, 0).*;
         const ox: c_int = other.unk0.position.vx;
         const oy: c_int = other.unk0.position.vy;
         const oz: c_int = other.unk0.position.vz;
@@ -51,7 +51,7 @@ pub fn func_800A8FD4(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) 
         if (oz +% otherRadius < minZ) continue;
         if (maxZ < oz -% otherRadius) continue;
         if (oy < minY) continue;
-        if (@as(c_int, a.unk0.position.vy) < oy -% @as(c_int, psx.byteAt(u16, other, 0x642).*)) continue;
+        if (@as(c_int, a.unk0.position.vy) < oy -% @as(c_int, psx.fieldAt(u16, &other.unk640, 2).*)) continue;
 
         @as(*align(1) v.actorCollisionExclusion, @ptrFromInt(scratch + @as(usize, @intCast(i)))).excluded = 1;
 

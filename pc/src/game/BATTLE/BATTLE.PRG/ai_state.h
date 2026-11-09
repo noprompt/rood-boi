@@ -106,27 +106,6 @@ typedef struct actorInitializationStats {
 typedef union {
     unsigned int raw;
     struct {
-        unsigned char x, y, z, w;
-    } p;
-} actorInitializationPoint;
-
-typedef struct actorInitializationModel {
-    char pad0[8];
-    unsigned int flags;
-    char padC[16];
-    short position[3];
-    char pad22[58];
-    actorInitializationPoint tile;
-    char pad60[268];
-    unsigned int kind;
-    char pad170[1228];
-    unsigned short radius;
-    unsigned short field63E;
-} actorInitializationModel;
-
-typedef union {
-    unsigned int raw;
-    struct {
         unsigned int x : 8, y : 8, z : 8, status : 8;
     } p;
 } vs_battle_movementPosition;
@@ -152,10 +131,6 @@ typedef struct {
     char unk28[0x34];
     vs_battle_movementPosition tile;
     vs_battle_movementPosition lastTile;
-    char unk64[0x548];
-    u_int unk5AC_0 : 15;
-    u_int unk5AC_15 : 1;
-    u_int unk5AC_16 : 16;
 } actorObject;
 
 typedef union {
@@ -289,11 +264,6 @@ typedef struct {
     char pad[0x1C];
     obstructionVector position;
 } obstructionModel;
-
-typedef struct {
-    char pad[0x5B0];
-    unsigned int a : 4, active : 1, b : 27;
-} radialMotionContext;
 
 typedef union {
     u_int raw;
@@ -494,7 +464,7 @@ typedef struct vs_battle_aiState {
     /* 0x48 */ union { targetMovementPoint targetMovementPoint; vs_battle_movementPosition movementPosition; int target48; } previous48;
     /* 0x4c */ union { SVECTOR v; short xyz[3]; movementStepPosition step; obstructionVector obstruction; int word[2]; } position;
     /* 0x54 */ vs_battle_actor* actor;
-    /* 0x58 */ union { actorInitializationModel* actorInitializationModel; actorObject* actorObject; func_800E1238_t* func_800E1238_t; movementCheckObject* movementCheckObject; D_800F4538_t* D_800F4538_t; movementRecoveryContext* movementRecoveryContext; radialMotionContext* radialMotionContext; targetMovementModel* targetMovementModel; wanderObject* wanderObject; obstructionModel* obstructionModel; } object;
+    /* 0x58 */ union { actorObject* actorObject; func_800E1238_t* func_800E1238_t; movementCheckObject* movementCheckObject; D_800F4538_t* D_800F4538_t; movementRecoveryContext* movementRecoveryContext; targetMovementModel* targetMovementModel; wanderObject* wanderObject; obstructionModel* obstructionModel; } object;
     /* 0x5c */ union { vs_battle_actor2* actor2; actionMetadataStats* actionMetadataStats; actorInitializationStats* actorInitializationStats; actorUpdatePoint* actorUpdatePoint; trackingMotionStats* trackingMotionStats; } stats;
     /* 0x60 */ union { short* shorts; actorUpdatePoint* actorUpdatePoint; } position60;
     /* 0x64 */ union { u_int* words; actorUpdatePoint* actorUpdatePoint; } tilePointer;

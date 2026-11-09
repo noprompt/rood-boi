@@ -22,11 +22,11 @@ pub fn func_800AE4FC(arg0: ?*v.D_800F4538_unk0, arg1: c_int) callconv(.c) void {
         sp1 = 0;
     } else {
         // The int at byte 8 of unk0: `(int*)&nQuads + 1`.
-        if ((psx.byteAt(c_int, &actor.unk0, 8).* & 0x3F9F00) != 0x8000) {
+        if ((psx.fieldAt(c_int, &actor.unk0, 8).* & 0x3F9F00) != 0x8000) {
             _ = c.func_800A1280(@as(c_int, rec.unkF), 0xFF, @ptrCast(&actor.unk6FC), 0);
         }
 
-        const temp = c.vs_main_computeSfxPan(psx.byteAt(c_int, &actor.unk6FC, 0).*, @as(c_int, actor.unk6FC.vz));
+        const temp = c.vs_main_computeSfxPan(psx.fieldAt(c_int, &actor.unk6FC, 0).*, @as(c_int, actor.unk6FC.vz));
         sp0 = temp >> 16;
         if (actor.unk17E4.unk1 != 0) {
             sp0 = @as(c_int, actor.unk17E4.unk1);

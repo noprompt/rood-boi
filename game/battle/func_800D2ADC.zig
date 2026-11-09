@@ -479,7 +479,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
 
     c.vs_battle_lerp2DVector(&def.unk94[3], curveAt(def.unk11), &scratch.unk14C);
     node = first;
-    scratch.unk154.@"packed" = psx.byteAt(i32, &def.rCurve, 0).*;
+    scratch.unk154.@"packed" = psx.fieldAt(i32, &def.rCurve, 0).*;
     // The PC C skips this read when no node was taken (count 0).
     if (count > 0) scratch.unk154.fields.age = node.?.unk74.fields.age;
     i = 0;
@@ -489,7 +489,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
         const value = uniform(scratch.unk14C[0], scratch.unk14C[1]);
         n.unk74.@"packed" = scratch.unk154.@"packed";
         n.unk70 = value;
-        psx.byteAt(u16, &n.endEvent, 0).* = psx.byteAt(u16, &def.unk2, 0).*;
+        psx.fieldAt(u16, &n.endEvent, 0).* = psx.fieldAt(u16, &def.unk2, 0).*;
         psx.setBits(n, "unk60_0", scratch.unk180);
         psx.setBits(n, "unk60_8", psx.conv(u4, arg3));
         node = next(n);

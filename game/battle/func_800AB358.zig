@@ -23,13 +23,14 @@ pub fn func_800AB358(index: c_int, arg: [*c]u8) callconv(.c) void {
 
     if (v.g.D_800F2450()[v.g.D_800E8F2C().*] != 0) {
         const actorStruct = actorPtr.?;
-        const actor: [*]u8 = @ptrCast(actorStruct);
+        // The part records (texMapOverlays) as bytes.
+        const actor: [*]u8 = @ptrCast(&actorStruct.texMapOverlays);
 
         var srcX: c_int = arg[2];
         var srcY: c_int = arg[3];
-        srcY +%= @as(c_int, actor[@as(usize, v.g.D_800E8F2C().*) + 0x183E]);
+        srcY +%= @as(c_int, psx.fieldAt(u8, &actorStruct.unk183C, @as(isize, v.g.D_800E8F2C().*) + 2).*);
 
-        const partOff: usize = 0x5F4 + @as(usize, arg[1]) * 4;
+        const partOff: usize = @as(usize, arg[1]) * 4;
         var dstX: c_int = actor[partOff];
         var width: c_int = actor[partOff + 2];
         const height: c_int = actor[partOff + 3];

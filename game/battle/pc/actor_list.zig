@@ -68,8 +68,8 @@ pub fn propagateRelations(state: *ai.vs_battle_aiState) callconv(.c) void {
             const column: c_int = @intFromBool(!((id < 1) or (peer.f2C >= 3)));
             relation = v.g.D_80069C0C()[@intCast(@as(c_int, state.f2C) * 2 + column)];
         }
-        const outgoing = psx.byteAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4));
-        const reciprocal = psx.byteAt(c_uint, &peer.tbl.t.targets.bits32, @as(isize, @intCast(self * 4))).*;
+        const outgoing = psx.fieldAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4));
+        const reciprocal = psx.fieldAt(c_uint, &peer.tbl.t.targets.bits32, @as(isize, @intCast(self * 4))).*;
         outgoing.* = (outgoing.* & ~@as(c_uint, 0xc0)) | (relation << 6);
         if (reciprocal & 0xc0 == 0) c.func_800E7370(peer);
     }

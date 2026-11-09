@@ -17,12 +17,12 @@ pub fn candidateStartable(state: *ai.vs_battle_aiState, candidate: [*]u8) callco
     const room: [*]u8 = @ptrFromInt(v.g.D_800F58BC().*);
     if (psx.byteAt(u16, room, 0x18).* < (psx.byteAt(u32, candidate, 4).* >> 13) & 0xffff) return 0;
     if (c.func_800DBCB4(state, candidate) == 0) return 0;
-    const limit: c_int = psx.byteAt(c_int, &state.tbl.t.distances, @as(isize, @intCast(target * 4))).*; // target < 16
+    const limit: c_int = psx.fieldAt(c_int, &state.tbl.t.distances, @as(isize, @intCast(target * 4))).*; // target < 16
     if (v.g.D_800F45E0()[target] != null) {
         if (0x19000 < limit or state.flag13 != 0 or c.func_800DBCEC(state, @intCast(target)) != 0) return 0;
     }
     const distance: c_int = @bitCast(psx.byteAt(u32, candidate, 8).*);
-    const relation: c_int = psx.byteAt(c_int, &state.tbl.t.targets.bits32, @as(isize, @intCast(target * 4))).*;
+    const relation: c_int = psx.fieldAt(c_int, &state.tbl.t.targets.bits32, @as(isize, @intCast(target * 4))).*;
     if (distance < limit) return 0;
     _ = c.vs_gte_rsqrt(distance);
     const options = psx.byteAt(u32, candidate, 16).*;

@@ -12,9 +12,9 @@ pub fn func_800AB098(actor: ?*v.D_800F4538_t, index: c_int, frame: c_int) callco
     const sel: c_int = v.g.D_800E8F2C().*;
     if (psx.at(&a.unk183E, sel).* == 0xFF) return;
 
-    // &actor->unk1802[2] + index: byte offset 0x1804, then 4-byte steps.
-    const anim_off: c_int = 0x1804 +% index *% 4;
-    var anim: *v.func_800AB098_t = psx.byteAt(v.func_800AB098_t, a, @as(isize, anim_off));
+    // &actor->unk1802[2] + index: 4-byte steps from the third byte of unk1802.
+    const anim_off: c_int = 2 +% index *% 4;
+    var anim: *v.func_800AB098_t = psx.fieldAt(v.func_800AB098_t, &a.unk1802, @as(isize, anim_off));
     var fallback: v.func_800AB098_t = undefined;
     if (anim.columns == 0) {
         fallback.overlay = if (index != 0) 7 else 5;
@@ -34,7 +34,7 @@ pub fn func_800AB098(actor: ?*v.D_800F4538_t, index: c_int, frame: c_int) callco
     var width: c_int = overlay.w;
     const height: c_int = overlay.h;
 
-    if ((psx.byteAt(c_int, a, 0x5AC).* & 0x0800_0000) == 0) {
+    if ((psx.fieldAt(c_int, &a._bits_unk5AC_0, 0).* & 0x0800_0000) == 0) {
         srcX = @divTrunc(srcX, 4);
         width = @divTrunc(width, 4);
         dstX = @divTrunc(dstX, 4);

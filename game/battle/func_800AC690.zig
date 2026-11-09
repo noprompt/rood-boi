@@ -8,11 +8,6 @@ const c = @import("c_40564");
 
 const Actor = v.D_800F4538_t;
 
-/// The 32-bit word at byte `off` of the actor.
-fn word(actor: *Actor, off: isize) *align(1) c_uint {
-    return psx.byteAt(c_uint, actor, off);
-}
-
 fn halfTick() c_int {
     return @divTrunc(v.g.vs_gametime_tickspeed().*, 2);
 }
@@ -26,11 +21,11 @@ fn timer(actor: *Actor) i8 {
 /// The actor's sound profile: 3 (flags 0xF00), 4 (0x400000), 5 (0x200000),
 /// 6 (0x5AC bit 3), else unk5B0's low two bits.
 fn getProfile(actor: *Actor) c_int {
-    const flags = word(actor, 8).*;
+    const flags = common.object.flags8(actor).*;
     if (flags & 0xF00 != 0) return 3;
     if (flags & 0x400000 != 0) return 4;
     if (flags & 0x200000 != 0) return 5;
-    if (word(actor, 0x5AC).* & 8 != 0) return 6;
+    if (common.object.flags5AC(actor).* & 8 != 0) return 6;
     return @as(c_int, psx.getBits(actor, "unk5B0_0")) & 3;
 }
 
@@ -48,7 +43,7 @@ const Next = enum { proceed, land, fall };
 pub fn func_800AC690(arg0: c_int, arg1: ?*Actor) callconv(.c) void {
     const actor = arg1.?;
     const profile = getProfile(actor);
-    const flags = word(actor, 8).*;
+    const flags = common.object.flags8(actor).*;
     const state: c_int = @intCast((flags >> 16) & 7);
 
     switch (state) {
@@ -63,18 +58,18 @@ pub fn func_800AC690(arg0: c_int, arg1: ?*Actor) callconv(.c) void {
             } else {
                 if (actor.unk181A == 0) actor.unk0.unk34.vy = -30;
                 actor.unk5B7 = 0;
-                word(actor, 8).* = (word(actor, 8).* & 0xFFF8FFFF) | 0x30000;
-                if (word(actor, 0xC).* & 0xF != 0) {
+                common.object.flags8(actor).* = (common.object.flags8(actor).* & 0xFFF8FFFF) | 0x30000;
+                if (common.object.flagsC(actor).* & 0xF != 0) {
                     c.func_8008C49C(@as(c_int, psx.getBits(&actor.unk0, "unkC_0")) -% 2, -1);
-                    word(actor, 0xC).* &= ~@as(c_uint, 0xF);
+                    common.object.flagsC(actor).* &= ~@as(c_uint, 0xF);
                 }
             }
         },
         3 => airborne(arg0, actor, profile, state),
         4 => {
             if (flags & 0x200000 != 0) {
-                word(actor, 8).* = flags & ~@as(c_uint, 0x200000);
-                word(actor, 8).* &= ~@as(c_uint, 0x400000);
+                common.object.flags8(actor).* = flags & ~@as(c_uint, 0x200000);
+                common.object.flags8(actor).* &= ~@as(c_uint, 0x400000);
             }
             c.func_800ACF54(@ptrCast(actor));
             actor.unk0.unk11 = psx.conv(u8, @as(c_int, actor.unk0.unk11) -% halfTick());
@@ -82,13 +77,13 @@ pub fn func_800AC690(arg0: c_int, arg1: ?*Actor) callconv(.c) void {
             if (timer(actor) == 0) {
                 actor.unk6EC = 0;
                 if (actor.unk0.unkF != 0) {
-                    if (word(actor, 8).* & 0x400000 == 0 and actor.unk5CC != 0) return;
+                    if (common.object.flags8(actor).* & 0x400000 == 0 and actor.unk5CC != 0) return;
                     if (profile != 3) c.func_800A0204(arg0, 1, 0, 8);
                     c.func_800E4C28(@as(c_int, actor.unk0.currentTileX), @as(c_int, actor.unk0.currentTileZ));
                     c.func_800E6EB0(actor.unk0.unkF);
                 }
                 actor.unk1846 = 0;
-                word(actor, 8).* &= 0xFFF8FFFF;
+                common.object.flags8(actor).* &= 0xFFF8FFFF;
             }
         },
         else => {},
@@ -108,7 +103,7 @@ fn airborne(arg0: c_int, actor: *Actor, profile: c_int, state: c_int) void {
     }
     var y: c_int = undefined;
     var limit: c_int = undefined;
-    if (word(actor, 8).* & 0x400000 != 0) {
+    if (common.object.flags8(actor).* & 0x400000 != 0) {
         // func_800AC690_timer_t.timer: the top byte of the word at 0x5B4 (unk5B7).
         y = halfTick();
         actor.unk5B7 = psx.conv(u8, @as(c_int, actor.unk5B7) +% y);
@@ -214,18 +209,18 @@ fn airborne(arg0: c_int, actor: *Actor, profile: c_int, state: c_int) void {
             return;
         }
     }
-    psx.byteAt(i16, &actor.unk6EE, 0).* = 0;
+    psx.fieldAt(i16, &actor.unk6EE, 0).* = 0;
     psx.setBits(&actor.unk0, "unkC_0", @truncate(@as(u8, @truncate(@as(c_uint, @bitCast(v.g.D_800F49F4().*))))));
     actor.unk0.unk5D = psx.conv(u8, v.g.D_800F49F4().*);
     psx.setBits(actor, "unk5AC_28", @truncate(v.g.D_800F49F8().*));
     vel.vy = psx.conv(i16, y -% pos.vy);
-    word(actor, 8).* = (word(actor, 8).* & ~@as(c_uint, 0x70000)) | 0x40000;
+    common.object.flags8(actor).* = (common.object.flags8(actor).* & ~@as(c_uint, 0x70000)) | 0x40000;
     c.func_800AA698(arg0, @ptrCast(vel), 0);
-    var floor: c_int = @as(c_int, pos.vy) -% psx.byteAt(i16, &actor.unk0.unk4C, 2).*;
+    var floor: c_int = @as(c_int, pos.vy) -% psx.fieldAt(i16, &actor.unk0.unk4C, 2).*;
     floor = @divTrunc(floor, 64);
     actor.unk0.unk11 = 0;
     if (y < 3000) {
-        const f = word(actor, 8).*;
+        const f = common.object.flags8(actor).*;
         if (actor.unk0.unkF != 0 or f & 0xF00 == 0 or ((f >> 8) & 0xF) >= 6) {
             if (floor >= 4) {
                 c.func_800AE828(arg0, @ptrCast(actor), 0x42);
@@ -236,7 +231,7 @@ fn airborne(arg0: c_int, actor: *Actor, profile: c_int, state: c_int) void {
         }
     }
     actor.unk181A = 0;
-    word(actor, 0x5AC).* &= ~@as(c_uint, 0x0400_0000);
+    common.object.flags5AC(actor).* &= ~@as(c_uint, 0x0400_0000);
     c.func_800A0204(arg0, psx.at(v.g.D_800E9300(), profile).*, 0, 8);
 }
 

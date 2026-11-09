@@ -684,6 +684,16 @@ class Game:
         sym = symbols().get(f"pc_actor_offset_{name}")
         return int.from_bytes(self.read(sym, 4), "little") if sym else old
 
+    def object_size(self):
+        """The byte size of a D_800F4538_t (the game exports it; a baseline built before answers the PS1 size)."""
+        sym = symbols().get("pc_object_size")
+        return int.from_bytes(self.read(sym, 4), "little") if sym else 6356
+
+    def object_offset(self, name, old):
+        """An offset in a D_800F4538_t, exported by the game; `old` is the PS1 layout's, for a baseline older than the export."""
+        sym = symbols().get(f"pc_object_offset_{name}")
+        return int.from_bytes(self.read(sym, 4), "little") if sym else old
+
     def actor_stats(self, actor):
         """The actor's stats record address (vs_battle_actor.unk3C: a host pointer, a guest word in old builds)."""
         offset = self.actor_offset("stats", 0x3C)

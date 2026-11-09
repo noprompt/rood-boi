@@ -1,6 +1,7 @@
 //! Spawns an enemy: its actor block, its ZUD models loaded and requested, its setup (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const std = @import("std");
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
@@ -42,26 +43,27 @@ pub fn func_800775C0(id: c_int, spawn: ?*v.mpdEnemySpawn, init: ?*v.vs_battle_ch
     const shieldId: c_int = @as(u8, @bitCast(data.shield.base.wepId));
     const two_part = psx.globalMany(u8, "D_8004FE88")[data.unk2] != 0;
     var actor: *v.vs_battle_actor = undefined;
-    // The block: the actor, its stats, its object (the model), then the unk48 records (the PS1's 0x50-byte actor first).
-    const head = @sizeOf(v.vs_battle_actor);
-    const stats_at = head;
-    const object_at = head + 0x964;
-    const records_at = head + 0x2264;
+    // The block: the actor, its stats, its object (the model), then the unk48 records: two weapon records,
+    // or for a two-part enemy the second part's object.
+    const stats_at = @offsetOf(v.vs_battle_actor_dat2, "unk0") + @offsetOf(@FieldType(v.vs_battle_actor_dat2, "unk0"), "unk50");
+    const object_at = @offsetOf(v.vs_battle_actor_dat2, "unk9B4");
+    const records_at = @offsetOf(v.vs_battle_actor_dat, "unk22B4");
+    const object_size = common.object.region(v.D_800F4538_t);
     if (two_part) {
-        const block = c.vs_main_allocHeap(head + 0x3B64).?;
+        const block = c.vs_main_allocHeap(@intCast(records_at + object_size)).?;
         actor = @ptrCast(@alignCast(block));
         psx.put(&actor.stats, at(v.vs_battle_actor2, block, stats_at));
         actor.unk40 = 2;
         psx.put(&actor.unk44, at(v.D_800F4538_unk0, block, object_at));
         psx.put(&actor.unk48[0], at(v.vs_battle_actor4, block, records_at));
     } else {
-        const block = c.vs_main_allocHeap(head + 0x2E34).?;
+        const block = c.vs_main_allocHeap(@intCast(@sizeOf(v.vs_battle_actor_dat))).?;
         actor = @ptrCast(@alignCast(block));
         psx.put(&actor.stats, at(v.vs_battle_actor2, block, stats_at));
         actor.unk40 = 1;
         psx.put(&actor.unk44, at(v.D_800F4538_unk0, block, object_at));
         psx.put(&actor.unk48[0], at(v.vs_battle_actor4, block, records_at));
-        psx.put(&actor.unk48[1], at(v.vs_battle_actor4, block, head + 0x284C));
+        psx.put(&actor.unk48[1], at(v.vs_battle_actor4, block, records_at + @sizeOf(v.vs_battle_actor4)));
     }
     var category: c_int = 10;
     if (bladeId != 0) {

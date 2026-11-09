@@ -27,7 +27,7 @@ pub fn func_800E7960(state: ?*v.vs_battle_aiState) callconv(.c) void {
         motion.radiusSquared = psx.conv(i32, c.func_800E4660(0x7C0 -% @as(c_int, st.position.v.vx), 0, 0x7C0 -% @as(c_int, st.position.v.vz)));
         motion.flag3 +%= 1;
     }
-    psx.setBits(psx.get(st.object.radialMotionContext).?, "active", 0);
+    psx.setBits(psx.get(st.object.D_800F4538_t).?, "unk5B0_4", 0); // the radial motion's active flag
 
     var radius: c_int = c.vs_gte_rsqrt(motion.radiusSquared);
     if (radius < 1024) radius +%= 32;

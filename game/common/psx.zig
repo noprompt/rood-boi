@@ -248,6 +248,12 @@ pub inline fn byteAt(comptime T: type, base: anytype, off: isize) *align(1) T {
     return @ptrFromInt(@intFromPtr(base) +% @as(usize, @bitCast(off)));
 }
 
+/// `(T*)((char*)field + off)`: a view at an offset from a named field of a pointer-free struct, for words that
+/// span or overlay its members (a bitfield run, a table inside an array). The anchor moves with a layout change.
+pub inline fn fieldAt(comptime T: type, field: anytype, off: isize) *align(1) T {
+    return @ptrFromInt(@intFromPtr(field) +% @as(usize, @bitCast(off)));
+}
+
 /// C's `long` in game code: 4 bytes on 32-bit, 8 on 64-bit Linux and on the
 /// Windows twin (whose units have `long` respelled `long long`).
 pub const Long = if (@sizeOf(usize) == 8) i64 else i32;

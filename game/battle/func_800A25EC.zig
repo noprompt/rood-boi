@@ -28,7 +28,7 @@ pub fn func_800A25EC(actor: ?*v.D_800F4538_t) callconv(.c) void {
     a.unk0.position.vx = next.vx;
     a.unk0.position.vz = next.vz;
 
-    if ((psx.byteAt(c_uint, a, 8).* & 0x70000) != 0) {
+    if ((psx.fieldAt(c_uint, &a.unk0._bits_skip, 0).* & 0x70000) != 0) {
         c.func_800AC690(@as(c_int, a.unk0.unkF), @ptrCast(a));
     } else {
         const height: i16 = next.vy;

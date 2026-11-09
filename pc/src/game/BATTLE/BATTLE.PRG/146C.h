@@ -626,7 +626,8 @@ typedef struct {
 
 typedef struct {
     vs_battle_actor_dat2 unk0;
-    char unkB2C[0x1788];
+    /* the rest of the object: its room runs from unk9B4 */
+    char unkB2C[VS_OBJECT_REGION - (sizeof(vs_battle_actor_dat2) - __builtin_offsetof(vs_battle_actor_dat2, unk9B4))];
     vs_battle_actor4 unk22B4[2];
 } vs_battle_actor_dat;
 

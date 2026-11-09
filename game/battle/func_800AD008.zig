@@ -15,7 +15,7 @@ pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
     }
     psx.setBits(actor, "unk5AC_23", 0);
     pose.unk540 = 0;
-    psx.byteAt(u8, &pose.unk544, 5).* = 0;
+    psx.fieldAt(u8, &pose._bits_unk548_0, 1).* = 0;
     pose.unk150[41].vx = 0;
     pose.unk150[41].vy = 0;
     pose.unk150[41].vz = 0;
@@ -45,7 +45,7 @@ pub fn func_800AD008(arg0: ?*anyopaque, arg1: ?*anyopaque) callconv(.c) void {
         psx.put(&pose.unk544, data);
     }
     psx.setBits(pose, "unk548_16", 0);
-    psx.byteAt(u8, &pose.unk544, 4).* = actor.animationId;
+    psx.fieldAt(u8, &pose._bits_unk548_0, 0).* = actor.animationId;
 
     if (header[4] != 0) {
         const data: *align(1) u8 = @ptrFromInt(@as(usize, dataBase +% psx.conv(u32, header[4])));

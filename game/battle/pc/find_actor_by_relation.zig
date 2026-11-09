@@ -11,7 +11,7 @@ pub fn findActorByRelation(state: *ai.vs_battle_aiState, tile: ?*u32, relation: 
     while (node) |n| : (node = @ptrCast(n.next)) {
         const id = n.id;
         if (id == state.id) continue;
-        if ((psx.byteAt(u32, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* & 0xc0) != psx.conv(c_uint, relation) << 6) continue;
+        if ((psx.fieldAt(u32, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* & 0xc0) != psx.conv(c_uint, relation) << 6) continue;
         if (tile) |out| {
             const object: [*]u8 = @ptrCast(n.unk44);
             out.* = psx.byteAt(u32, object, 0x5c).*;

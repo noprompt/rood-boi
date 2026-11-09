@@ -1,5 +1,8 @@
 /* Native translation of BATTLE/4B16C.s func_800B4B14: the three-ring
  * Gouraud shadow follows nearby terrain, then enters the original PSX OT. */
+#include "common.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
+#include "pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
 #include <sys/types.h>
 #include <libgte.h>
@@ -43,18 +46,18 @@ static short slope_angle(int a, int b, unsigned radius)
 /* photo.h (rood.ui.hide{actors}), dev_state.c: a hidden character casts no drop shadow either. */
 extern int pc_photo_hide_actors __attribute__((weak));
 extern int pc_dev_actor_of(const void* p) __attribute__((weak));
-void pc_actor_shadow(unsigned char* actor, unsigned char* scratch)
+void pc_actor_shadow(D_800F4538_t* actor, unsigned char* scratch)
 {
     if (&pc_photo_hide_actors && pc_photo_hide_actors && pc_dev_actor_of) {
         int slot = pc_dev_actor_of(actor);
         if (slot >= 0 && (pc_photo_hide_actors & (slot == 0 ? 1 : 2)))
             return;
     }
-    SVECTOR* position = (SVECTOR*)(actor + 0x1c);
+    SVECTOR* position = &actor->unk0.position;
     int floor = func_800A6EE8(position, 0, 0, 3);
     if (position->vy > floor)
         floor = position->vy;
-    unsigned radius = *(unsigned short*)(actor + 0x64c);
+    unsigned radius = actor->shadowRadius;
     int extent = ((*(short*)(scratch + 0x3b2) - floor) >> 3) + radius;
     if (extent < 20)
         extent = 20;
@@ -89,15 +92,15 @@ transform:;
     MATRIX* camera = (MATRIX*)(scratch + 0x14);
     RotMatrixYXZ_gte(&slope, &terrain);
     func_800B196C(camera, &terrain);
-    SVECTOR angles = *(SVECTOR*)(actor + 0x24);
-    angles.vy += *(short*)(actor + 0x186c);
+    SVECTOR angles = *(SVECTOR*)&actor->unk0.unk24; /* unk24, facing, unk28, unk2A */
+    angles.vy += (short)actor->unk1864.unk8;
     RotMatrixYXZ_gte(&angles, &rotation);
     func_800B196C(&terrain, &rotation);
-    unsigned scale_x = (unsigned)(int)*(short*)(actor + 0x1870) >> 1;
-    unsigned scale_z = (unsigned)(int)*(short*)(actor + 0x1872) >> 1;
-    VECTOR scale = { (((size * *(unsigned short*)(actor + 0x2e)) >> 12) * scale_z) >> 12,
-        *(unsigned*)(actor + 0x30),
-        (((size * *(unsigned short*)(actor + 0x2c)) >> 12) * scale_x) >> 12, 0 };
+    unsigned scale_x = (unsigned)(int)(short)actor->unk1864.unkC >> 1;
+    unsigned scale_z = (unsigned)(int)(short)actor->unk1864.unkE >> 1;
+    VECTOR scale = { (((size * (unsigned short)actor->unk0.unk2E) >> 12) * scale_z) >> 12,
+        *(unsigned*)&actor->unk0.unk30, /* unk30 and unk32 */
+        (((size * (unsigned short)actor->unk0.unk2C) >> 12) * scale_x) >> 12, 0 };
     func_800B396C(&rotation, &scale);
     SetRotMatrix(camera);
     SetTransMatrix(camera);
@@ -123,11 +126,11 @@ transform:;
             depth[i + j] = MFC2(17 + j);
         }
     }
-    *(unsigned*)(actor + 0x6fc) = xy[0];
-    *(unsigned*)(actor + 0x700) = depth[0];
-    unsigned rgb = *(unsigned*)(actor + 0x1864);
+    *(unsigned*)&actor->unk6FC.vx = xy[0];
+    *(unsigned*)&actor->unk6FC.vz = depth[0];
+    unsigned rgb = actor->unk1864.unk0;
     int light = (((rgb & 255) + ((rgb >> 8) & 255) * 2 + (rgb >> 16)) >> 2) + 64
-              - *(signed char*)(actor + 0x6f2) * 4;
+              - (signed char)actor->unk6F2 * 4;
     if (light < 0)
         light = 0;
     if (light > 255)

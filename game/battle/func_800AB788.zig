@@ -7,14 +7,15 @@ const c = @import("c_40564");
 
 /// orig: func_800AB788 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Steps an actor's (or object's) palette fade, blends its colours and loads the CLUT.
-pub fn func_800AB788(actor: [*c]u8, object: [*c]u8, _: c_int) callconv(.c) void {
+pub fn func_800AB788(actor_in: ?*v.D_800F4538_t, object: [*c]u8, _: c_int) callconv(.c) void {
+    const actor: [*c]u8 = @ptrCast(actor_in);
     // With no actor the fade and colours belong to the object; otherwise to the actor.
     const base: [*c]u8 = if (actor == null) object else actor;
 
     var count: c_int = 16;
     if (actor != null) {
         count = 160;
-        if ((psx.byteAt(c_uint, actor, 0x5AC).* & 0x800_0000) == 0) {
+        if ((common.object.flags5AC(actor_in.?).* & 0x800_0000) == 0) {
             count = 16;
         }
     }
@@ -50,12 +51,13 @@ pub fn func_800AB788(actor: [*c]u8, object: [*c]u8, _: c_int) callconv(.c) void 
     }
     s1.* = psx.conv(u8, value);
 
-    const src_off: isize = if (actor == null) 0x12C else 0x1424;
-    const dst_off: isize = if (actor == null) 0x14C else 0x16A4;
+    // The actor's colour tables are in unk1424 (the second 0x280 bytes in); the object's are at 0x12C and 0x14C.
+    const src: [*]u8 = if (actor_in) |a| @ptrCast(&a.unk1424) else @as([*]u8, @ptrCast(base)) + 0x12C;
+    const dst: [*]u8 = if (actor_in) |a| @as([*]u8, @ptrCast(&a.unk1424)) + 0x280 else @as([*]u8, @ptrCast(base)) + 0x14C;
 
     var i: c_int = 0;
     while (i < count) : (i +%= 1) {
-        var color: c_int = @as(c_int, psx.byteAt(u16, base, @as(isize, src_off) + 2 * @as(isize, i)).*);
+        var color: c_int = @as(c_int, psx.fieldAt(u16, src, 2 * @as(isize, i)).*);
         if (color != 0) {
             var r: c_int = color & 31;
             var g: c_int = (color >> 5) & 31;
@@ -85,13 +87,13 @@ pub fn func_800AB788(actor: [*c]u8, object: [*c]u8, _: c_int) callconv(.c) void 
             if (b > 31) {
                 b = 31;
             }
-            psx.byteAt(u16, base, @as(isize, dst_off) + 2 * @as(isize, i)).* =
+            psx.fieldAt(u16, dst, 2 * @as(isize, i)).* =
                 psx.conv(u16, color | (b << 10) | (g << 5) | r);
         }
     }
 
     // The CLUT source is the colour table just written (object or actor).
-    const img: [*c]const u16 = @ptrFromInt(@as(usize, psx.addr(base) +% @as(u32, @intCast(dst_off))));
+    const img: [*c]const u16 = @ptrCast(@alignCast(dst));
     if (actor == null) {
         c.vs_main_loadClut(img, 31, psx.conv(c_uint, @as(c_int, psx.byteAt(u8, object, 15).*) *% 16), psx.conv(c_uint, count));
     } else {

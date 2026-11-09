@@ -15,7 +15,7 @@ pub fn fleeFromHostiles(state: *ai.vs_battle_aiState, kind: c_int) callconv(.c) 
     var node: ?*ai.vs_battle_actor = if (v.g.vs_battle_actors()[0]) |first| @ptrCast(@alignCast(first)) else null;
     while (node) |n| : (node = @ptrCast(n.next)) {
         const id = n.id;
-        if (((psx.byteAt(u32, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* >> 5) & 7) < 7) continue;
+        if (((psx.fieldAt(u32, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* >> 5) & 7) < 7) continue;
         const model: [*]u8 = @ptrCast(psx.at(v.g.D_800F4538(), id).*.?);
         count += 1; // one per actor in the list
         sum_x +%= psx.conv(c_uint, @as(c_int, psx.byteAt(i16, model, 0x1c).*));

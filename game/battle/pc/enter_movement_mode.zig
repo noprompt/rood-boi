@@ -50,7 +50,7 @@ pub fn enterMovementMode(state: *ai.vs_battle_aiState, mode: c_int) callconv(.c)
         result = 1;
     }
     state.field8A = psx.conv(u8, mode);
-    psx.byteAt(u8, &state.requests, @as(isize, mode *% 2)).* = 0;
+    psx.fieldAt(u8, &state.requests, @as(isize, mode *% 2)).* = 0;
     c.func_800E4BB8(state);
     return result;
 }

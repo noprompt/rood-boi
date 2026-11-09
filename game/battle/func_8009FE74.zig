@@ -9,11 +9,11 @@ pub fn func_8009FE74(slot: c_int, bit: c_int) callconv(.c) c_int {
 
     var a0: *u8 = undefined;
     if (temp_v0) |actor| {
-        a0 = psx.byteAt(u8, actor, 0x64);
+        a0 = psx.fieldAt(u8, &actor.unk0.unk64.unk0, 0);
     } else {
         const other: ?*v.D_800F45E0_t = psx.at(v.g.D_800F45E0(), slot).*;
         const o = other orelse return -1;
-        a0 = psx.byteAt(u8, o, 0x64);
+        a0 = psx.fieldAt(u8, &o.unk64.unk0, 0);
     }
 
     if (bit == -1) {

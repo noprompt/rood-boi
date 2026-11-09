@@ -13,7 +13,7 @@ pub fn func_800B6B98(origin: ?*v.SVECTOR, script: [*c]u8, result: ?*v.textPlacem
     var dx: i16 = 0;
     var dy: i16 = 0;
     const offset: c.textOffset = c.func_800CCE10(script[5] & 0xF, (@as(c_int, o.vz) ^ direction) *% 4, script[6], script[7]);
-    r.offset = .{ ._bits_0 = @bitCast(offset) };
+    r.offset = .{ ._bits_x = @bitCast(offset) };
     const x: i16 = psx.conv(i16, @as(c_int, o.vx) +% psx.getBits(&r.offset, "x"));
     r.x = x;
     const y: i16 = psx.conv(i16, @as(c_int, o.vy) +% psx.getBits(&r.offset, "y"));

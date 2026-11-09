@@ -25,7 +25,7 @@ pub fn func_800A3C34(tile_x: c_int, tile_z: c_int, y_floor: c_int, mode: c_int) 
         }
 
         // The word at 0x5AC (the C's `(int*)&unk5B4 - 2`): its top nibble is unk5AC_28.
-        if (i == 0 and (psx.byteAt(c_uint, actor, 0x5AC).* & 0xF000_0000) != 0) {
+        if (i == 0 and (psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).* & 0xF000_0000) != 0) {
             const temp = v.g.D_800F45E0()[@as(usize, psx.getBits(actor, "unk5AC_28"))].?;
             if (tile_x == @as(c_int, temp.unk5C) and tile_z == @as(c_int, temp.unk5E)) return actor;
             continue;

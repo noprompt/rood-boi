@@ -8,7 +8,7 @@ const c = @import("c_3A1A0");
 /// Places a point on the ground for the actor in scratchpad slot 0x1F8003BC, writing its height and flags, or returns the blocked code.
 pub fn func_800A8B34(point: ?*v.SVECTOR, slot: c_int) callconv(.c) c_int {
     const sb: *v.D_1F8003BC_t = @ptrFromInt(0x1F8003BC);
-    const actor: *v.D_800F45E0_t = psx.get(sb.unk18).?;
+    const actor: *v.D_800F45E0_t = @alignCast(psx.get(sb.unk18).?);
     const limit: c_int = @as(c_int, sb.unk1C[@intCast(slot & 7)]);
 
     if ((@as(c_int, psx.getBits(actor, "unk5AC_9")) << 9) != 0) return 0;

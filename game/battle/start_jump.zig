@@ -8,11 +8,11 @@ const c = @import("c_38C1C");
 /// Starts an actor's jump to a scripted anchor or a tile, setting its velocity and hang frames.
 pub fn startJump(actor: ?*v.D_800F4538_t, target: [*c]u8, speed_in: c_int, facing: c_short) callconv(.c) void {
     const a: *v.D_800F4538_t = actor.?;
-    const flags: *align(1) c_uint = psx.byteAt(c_uint, a, 8);
+    const flags: *align(1) c_uint = psx.fieldAt(c_uint, &a.unk0._bits_skip, 0);
     if ((flags.* & 0x70000) != 0) return;
 
     a.unk0.unk11 = 6;
-    const word5ac: *align(1) c_uint = psx.byteAt(c_uint, a, 0x5AC);
+    const word5ac: *align(1) c_uint = psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0);
     word5ac.* &= ~@as(c_uint, 0x4000000);
     var speed = speed_in;
     if (speed >= @as(c_int, a.unk5B9)) {
@@ -37,7 +37,7 @@ pub fn startJump(actor: ?*v.D_800F4538_t, target: [*c]u8, speed_in: c_int, facin
         y = c.func_800A3500(x, z);
     }
 
-    psx.byteAt(c_int, a, 0x5EC).* = psx.byteAt(c_int, target, 0).*;
+    psx.fieldAt(c_int, &a.unk5EC.vx, 0).* = psx.byteAt(c_int, target, 0).*;
     a.unk1814 = psx.conv(i16, x);
     a.unk1818 = psx.conv(i16, z);
     x -%= @as(c_int, a.unk0.position.vx);

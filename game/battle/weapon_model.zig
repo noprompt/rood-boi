@@ -70,19 +70,19 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
         scratch.translation.vy = 0;
         scratch.translation.vz = 0;
         scratch.translation.vx = psx.conv(i16, -%length);
-        c.MTC2(psx.byteAt(c_uint, &scratch.translation, 0).*, 0);
-        c.MTC2(psx.byteAt(c_uint, &scratch.translation, 4).*, 1);
+        c.MTC2(psx.fieldAt(c_uint, &scratch.translation, 0).*, 0);
+        c.MTC2(psx.fieldAt(c_uint, &scratch.translation, 4).*, 1);
         _ = c.doCOP2(0x0480012);
 
         const rotation = psx.byteAt(v.weaponRotation, w, i << 3);
         scratch.rotation.vx = rotation.rotation.vx;
         scratch.rotation.vy = rotation.rotation.vy;
         scratch.rotation.vz = rotation.rotation.vz;
-        psx.byteAt(c_uint, &scratch.matrix.t, 0).* = c.MFC2(25);
-        psx.byteAt(c_uint, &scratch.matrix.t, 4).* = c.MFC2(26);
-        psx.byteAt(c_uint, &scratch.matrix.t, 8).* = c.MFC2(27);
-        psx.byteAt(c_int, &scratch.rotation, 0).* &= 0x0FFF0FFF;
-        psx.byteAt(c_int, &scratch.rotation.vz, 0).* &= 0xFFF;
+        psx.fieldAt(c_uint, &scratch.matrix.t, 0).* = c.MFC2(25);
+        psx.fieldAt(c_uint, &scratch.matrix.t, 4).* = c.MFC2(26);
+        psx.fieldAt(c_uint, &scratch.matrix.t, 8).* = c.MFC2(27);
+        psx.fieldAt(c_int, &scratch.rotation, 0).* &= 0x0FFF0FFF;
+        psx.fieldAt(c_int, &scratch.rotation.vz, 0).* &= 0xFFF;
 
         c.func_800B17F0(@ptrCast(&scratch.rotation), psx.cptr(c.MATRIX, &scratch.matrix));
         c.func_800B196C(
@@ -94,8 +94,8 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
     }
 
     const a = actor.?;
-    if ((psx.byteAt(c_int, a, 8).* & 2) != 0) {
-        if (psx.byteAt(i16, a, 0x1E).* >= 256) {
+    if ((psx.fieldAt(c_int, &a.unk0._bits_skip, 0).* & 2) != 0) {
+        if (a.unk0.position.vy >= 256) {
             if (a.unk0.unkF == 0 or c.func_800BEB00() != 4) return;
         }
         if (c.func_800B3A68(
@@ -107,7 +107,7 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
             scratch.tpage = psx.conv(u16, psx.at(v.g.vs_battle_wepTextures(), w.texSlot).tpage);
             scratch.clut = psx.conv(u16, psx.at(v.g.vs_battle_wepTextures(), w.clutSlotOffset).clut0);
 
-            const flags: c_uint = psx.byteAt(c_uint, a, 8).*;
+            const flags: c_uint = psx.fieldAt(c_uint, &a.unk0._bits_skip, 0).*;
             var value: c_int = 0;
             if ((((flags >> 8) & 15) -% 4) < 5) {
                 value = 1;
@@ -122,7 +122,7 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
                 color.g = w.unk5C0;
                 color.b = w.unk5C0;
             } else {
-                psx.byteAt(c_int, &color, 0).* = psx.byteAt(c_int, a, 0x54).*;
+                psx.fieldAt(c_int, &color, 0).* = a.unk0.unk54;
             }
 
             if (value != 0) {

@@ -8,10 +8,10 @@ const v = @import("views_40564");
 /// Copies the words at 0x5C and 0x1C into 0x60 and 0x4C, the word at 0x5C into 0x1868 unless bit C_0 is set, and 0x26 into 0x52.
 pub fn func_800ACF54(arg0: ?*v.D_800F45E0_t) callconv(.c) void {
     const a = arg0.?;
-    a.unk60 = psx.byteAt(i32, a, 0x5C).*;
-    psx.byteAt(v.func_800ACF54_t, a, 0x4C).* = psx.byteAt(v.func_800ACF54_t, a, 0x1C).*;
+    a.unk60 = psx.fieldAt(i32, &a.unk5C, 0).*;
+    psx.fieldAt(v.func_800ACF54_t, &a.unk28, 0x24).* = psx.fieldAt(v.func_800ACF54_t, &a.unk1C, 0).*;
     if (psx.getBits(a, "unkC_0") == 0) {
-        a.unk1868 = psx.byteAt(i32, a, 0x5C).*;
+        a.unk1868 = psx.fieldAt(i32, &a.unk5C, 0).*;
     }
     a.unk52 = a.unk26;
 }

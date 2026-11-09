@@ -21,7 +21,7 @@ pub fn func_800CE714(src_block: ?*v.D_800F53B8_t2, dst_block: ?*v.D_800F53B8_t) 
     psx.setBits(dst, "unk14_16", 0);
 
     for (&dst.unk1C) |*entry| {
-        psx.byteAt(i16, &entry.unk4, 2).* = 0;
+        psx.fieldAt(i16, &entry.unk4, 2).* = 0;
         entry.unk4 = 0;
         entry.unk0 = 0;
         entry.unkC = 0;

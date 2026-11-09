@@ -9,7 +9,7 @@ const c = @import("c_3A1A0");
 /// Sets up the actor's object step and moves the actor one tile; returns -1 when it cannot.
 pub fn func_800A3E6C(actorId: c_int) callconv(.c) c_int {
     const actor: *v.D_800F4538_t = psx.at(v.g.D_800F4538(), actorId).*.?;
-    if ((psx.byteAt(c_uint, actor, 0x5AC).* & 0x100000) != 0) {
+    if ((psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).* & 0x100000) != 0) {
         return -1;
     }
     const objectId = c.func_800A38E0(actorId);
@@ -25,12 +25,12 @@ pub fn func_800A3E6C(actorId: c_int) callconv(.c) c_int {
 
     object.unk34 = 0;
     object.unk38 = 0;
-    const mode = psx.byteAt(u8, object, 0x16C).* & 7;
+    const mode = psx.fieldAt(u8, &object.unk6C, 256).* & 7;
     var step: c_int = 0;
     if (mode <= 3) {
         if (mode <= 1) {
-            const idx: c_int = @as(c_int, psx.byteAt(u8, object, 0x16E).*) *% 4 +% v.g.D_800F49E8().*;
-            psx.byteAt(u8, object, 0x16E).* = psx.at(v.g.D_800E8FD0(), idx).*;
+            const idx: c_int = @as(c_int, psx.fieldAt(u8, &object.unk6C, 258).*) *% 4 +% v.g.D_800F49E8().*;
+            psx.fieldAt(u8, &object.unk6C, 258).* = psx.at(v.g.D_800E8FD0(), idx).*;
         }
         if (mode == 3) {
             step = 0x20;
@@ -50,20 +50,20 @@ pub fn func_800A3E6C(actorId: c_int) callconv(.c) c_int {
         object.unk36 = 0;
         _ = c.func_800AE6C0(@ptrCast(actor), 0x2C, 0x2D);
         _ = c.func_800A0204(actorId, height +% 0x4F, 0, 4);
-        psx.byteAt(c_uint, actor, 0x5AC).* |= 0x100000;
+        psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).* |= 0x100000;
         _ = c.func_800E4C1C(
             @divTrunc(@as(c_int, object.unk1C) +% @as(c_int, object.unk34), 128),
             @divTrunc(@as(c_int, object.unk20) +% @as(c_int, object.unk38), 128),
         );
     } else if (mode >= 4 and mode <= 6) {
-        if ((psx.byteAt(c_uint, actor, 0x5AC).* & 8) != 0) {
+        if ((psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).* & 8) != 0) {
             _ = c.func_800A0204(actorId, 0x4C, 0, 4);
             _ = c.func_800AE6C0(@ptrCast(actor), 0x2E, 0x2F);
-            psx.byteAt(c_uint, actor, 0x5AC).* |= 0x100000;
+            psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).* |= 0x100000;
         } else {
             _ = c.func_800A0204(actorId, height +% 0x47, 0, 4);
             _ = c.func_800AE6C0(@ptrCast(actor), 0x2C, 0x2D);
-            psx.byteAt(c_uint, actor, 0x5AC).* |= 0x100000;
+            psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).* |= 0x100000;
         }
         var dx: c_int = 0;
         var dz: c_int = 0;

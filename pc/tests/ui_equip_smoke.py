@@ -75,7 +75,6 @@ INDICES_BYTES = 176
 IDX_WEAPONS, IDX_SHIELDS, IDX_ARMOR = 0, 40, 48
 ACTOR2_BYTES = 0x964  # vs_battle_actor2 (146C.h)
 
-OBJECT_BYTES = 6356  # D_800F4538_t: actor 0's object (3A1A0.h)
 WEP_MODELS = 2  # vs_battle_wepModels[0], [1]: actor 0's weapon and shield
 MODEL_HEADER = 20  # vs_battle_wepModels_t up to unk13: counts, flags, material, modelId, texSlot, unk11..13
 
@@ -88,9 +87,9 @@ MASKS = [
     ("actor2", 0x398 + k * 0xDC, 0x398 + k * 0xDC + 2, f"limbs[{k}].hp: regenerates with game time; " + FRAMES)
     for k in range(6)
 ] + [
-    ("object0", 108, 1452, "bones[42]: the pose matrices, recomputed from the animation every frame"),
-    ("object0", 0x6FC, 0x704, "unk6FC: already differs between two processes before any menu (pose sway)"),
-    ("object0", 0x704, 0x11A4, "unk704, unkC54: the animation frame buffers (func_800AFA28); "
+    ("object0", ("bones", 108), ("bones_end", 1452), "bones[42]: the pose matrices, recomputed from the animation every frame"),
+    ("object0", ("unk6FC", 0x6FC), ("unk704", 0x704), "unk6FC: already differs between two processes before any menu (pose sway)"),
+    ("object0", ("unk704", 0x704), ("unk11A4", 0x11A4), "unk704, unkC54: the animation frame buffers (func_800AFA28); "
                                "their phase follows the frame count, " + FRAMES),
 ] + [
     ("models", i * MODEL_HEADER + 15, i * MODEL_HEADER + 16,
@@ -152,6 +151,8 @@ class Session:
         self.out, self.shots, self.name = out, shots, name
         # Continue from the card (checkpoints.py: booted, or its validated save state).
         self.game = launch_at("save_room", card=card, fast=True, log=out / f"{name}.log", extra_env=env)
+        for key, old in (("bones", 108), ("bones_end", 1452), ("unk6FC", 0x6FC), ("unk704", 0x704), ("unk11A4", 0x11A4)):
+            OBJECT_OFFSETS[key] = self.game.object_offset(key, old)
         sym = symbols()
         self.menu_state = sym["vs_battle_menuState"]
         self.inventory = sym["vs_main_inventory"]
@@ -213,7 +214,7 @@ class Session:
             "actor": g.read(actor, g.actor_offset("size", 80)),
             "actor2": g.read(self.actor2(), ACTOR2_BYTES),
         }
-        d["object0"] = g.read(objects[0], OBJECT_BYTES)
+        d["object0"] = g.read(objects[0], g.object_size())
         models = b""
         for i in range(WEP_MODELS):
             p = self.ptr(self.wep_models + i * PTR)
@@ -463,8 +464,13 @@ def diff(a, b):
     return found
 
 
+OBJECT_OFFSETS = {}  # the object masks' offsets, read from the game
+
+
 def masked(region, offset):
-    return any(r == region and s <= offset < e for r, s, e, _ in MASKS)
+    def at(bound):
+        return bound if isinstance(bound, int) else OBJECT_OFFSETS[bound[0]]
+    return any(r == region and at(s) <= offset < at(e) for r, s, e, _ in MASKS)
 
 
 def main():

@@ -22,7 +22,7 @@ pub fn func_800A2790(actor: ?*v.D_800F4538_t) callconv(.c) void {
     a.unk0.currentTileZ = psx.conv(u8, @divTrunc(@as(c_int, a.unk0.position.vz), 128));
 
     // *(u_int*)((char*)actor + 8) |= 0x200000: a 32-bit access at byte 8, unaligned as the C has it.
-    const flags = psx.byteAt(u32, a, 8);
+    const flags = psx.fieldAt(u32, &a.unk0._bits_skip, 0);
     flags.* |= 0x200000;
 
     c.func_800AA850(a.unk0.unkF, a.unk1848.unk6, 12);

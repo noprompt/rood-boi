@@ -11,8 +11,8 @@ const psx = @import("common").psx;
 /// 0xE with the bits from its own low five bits up.
 pub fn releaseActorTile(state: *ai.vs_battle_aiState) callconv(.c) void {
     const grid: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F58BC().*));
-    const x: c_uint = psx.byteAt(u8, &state.next, 0).*;
-    const z: c_uint = psx.byteAt(u8, &state.next, 2).*;
+    const x: c_uint = psx.fieldAt(u8, &state.next, 0).*;
+    const z: c_uint = psx.fieldAt(u8, &state.next, 2).*;
     const active = state.gate;
     state.f1A = 0;
     if (x >= grid[1] and x <= grid[0] and z >= grid[3] and z <= grid[2]) c.func_800E4C28(@bitCast(x), @bitCast(z));

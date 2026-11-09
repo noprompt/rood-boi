@@ -53,7 +53,7 @@ pub fn func_800A38E0(actorId: c_int) callconv(.c) c_int {
     if (found == 0) return -1;
     const object = psx.at(v.g.D_800F45E0(), found).*;
     const objectId: c_int = found;
-    const b16c: u8 = psx.byteAt(u8, object.?, 0x16C).*;
+    const b16c: u8 = psx.fieldAt(u8, &object.?.unk6C, 256).*;
     if ((b16c & 0x30) == 0x10) return -1;
     if (object.?.unk1A != 0) return -1;
 

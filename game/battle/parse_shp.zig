@@ -1,5 +1,6 @@
 //! Parses an actor's shape file (SHP) into its actor slot, in two passes (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
@@ -26,7 +27,7 @@ inline fn byte(data: usize) *u8 {
 
 /// *(u_int*)((char*)actor + 0x5AC): the actor's flag word.
 inline fn flagWord(actor: *v.D_800F4538_t) c_uint {
-    return psx.byteAt(c_uint, actor, 0x5AC).*;
+    return psx.fieldAt(c_uint, &actor._bits_unk5AC_0, 0).*;
 }
 
 /// A texture slot's VRAM origin from D_800E8F30 (x, y in 4-byte entries) and D_800E8F90 (the y step).
@@ -88,7 +89,7 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
             if (entry.* == null) {
                 entry.* = @ptrCast(@alignCast(psx.get(object.unk4)));
                 if (entry.* == null) return -2;
-                _ = memset(entry.*, 0, 0x1900);
+                _ = memset(entry.*, 0, common.object.region(v.D_800F4538_t));
                 entry.*.?.unk5BB = 0xFF;
                 entry.*.?.unk0.unk12 = 0xFF;
             }
@@ -98,8 +99,8 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
             if (modelId == 0x7F) {
                 a.unk6E6 = psx.conv(u16, modelId);
                 a.unk0.unkF = psx.conv(u8, object.index);
-                psx.byteAt(u16, &a.unk640, 0).* = 0x40;
-                psx.byteAt(u16, &a.unk640, 2).* = 10000;
+                psx.fieldAt(u16, &a.unk640, 0).* = 0x40;
+                psx.fieldAt(u16, &a.unk640, 2).* = 10000;
                 reset(a.unk0.unkF);
                 psx.setBits(&a.unk0, "skip", 0);
                 c.func_800A30A0(a.unk0.unkF, @ptrCast(&object.unkC), 0, 1);
@@ -120,24 +121,24 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
     const actor = actor_opt.?;
 
     if (stage == .copy_shared) {
-        c.vs_main_memcpy(actor, psx.at(actors, object.dataAddr).*, 0x1900);
+        c.vs_main_memcpy(actor, psx.at(actors, object.dataAddr).*, @intCast(common.object.region(v.D_800F4538_t))); // the object's room in its block
         if (psx.getBits(actor, "unk5B0_5") != 0 and actor.unk5BB != 0xFF) {
             var i: c_int = 0;
             while (i < @as(c_int, psx.getBits(&actor.unk0, "unk8_4")) + 1) : (i += 1) { // i <= 7
                 psx.at(textures, @as(c_int, actor.unk5BB) + i).refCount +%= 1;
             }
         }
-        psx.byteAt(v.vs_battle_objectData_flags, &actor.unk0.currentTileX, 0).* = object.unkC;
+        psx.fieldAt(v.vs_battle_objectData_flags, &actor.unk0.currentTileX, 0).* = object.unkC;
         clutCount.* = if (flagWord(actor) & 0x08000000 != 0) 0xA0 else 0x10;
         stage = .setup_palettes;
     }
 
     if (stage == .parse) {
         data = advance(data, 4);
-        psx.byteAt(v.vs_battle_objectData_flags, &actor.unk0.currentTileX, 0).* = object.unkC;
+        psx.fieldAt(v.vs_battle_objectData_flags, &actor.unk0.currentTileX, 0).* = object.unkC;
         psx.setBits(&actor.unk0, "skip", 1);
-        psx.byteAt(c_int, &actor.unk0.nBones, 0).* = readInt(data);
-        psx.byteAt(c_int, &actor.unk0.nQuads, 0).* = readInt(data +% 4);
+        psx.fieldAt(c_int, &actor.unk0.nBones, 0).* = readInt(data);
+        psx.fieldAt(c_int, &actor.unk0.nQuads, 0).* = readInt(data +% 4);
         data = advance(data, 8);
         c.vs_main_memcpy(&actor.texMapOverlays, @ptrFromInt(data), 0xE8);
         data = advance(data, 0xE8);
@@ -382,19 +383,19 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
     psx.setBits(&actor.unk0, "unkC_4", 0);
     psx.setBits(actor, "unk5AC_11", 0);
     psx.setBits(&actor.unk0, "unk9_7", 1);
-    psx.byteAt(c_int, &actor.unk6F0, 0).* = 0;
+    psx.fieldAt(c_int, &actor.unk6F0, 0).* = 0;
     psx.setBits(actor, "unk648_0", 800);
     actor.unk0.unk54 = 0x808080;
-    psx.byteAt(c_int, &actor.unk0.unk58, 0).* = 0x404040;
+    psx.fieldAt(c_int, &actor.unk0.unk58, 0).* = 0x404040;
     actor.unk183C = psx.conv(i16, v.g.D_800F4438().vx);
 
     var i: c_int = 0;
     while (i < actor.unk0.nBones) : (i += 1) {
         const armature = psx.at(&psx.get(actor.unk0.unk68).?.armatures, i);
         if (armature.unk8 >= 3 and armature.unk8 < 7) {
-            const joint = psx.byteAt([2]u16, &actor.unk1880, (@as(isize, armature.unk8) - 3) * 4);
+            const joint = psx.fieldAt([2]u16, &actor.unk1880, (@as(isize, armature.unk8) - 3) * 4);
             joint[1] = 0;
-            joint[0] = psx.byteAt(u16, &armature.unkA, 0).*;
+            joint[0] = psx.fieldAt(u16, &armature.unkA, 0).*;
         }
     }
     i = 0;

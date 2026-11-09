@@ -335,7 +335,11 @@ class Emitter:
                 if item > start:
                     if start > cursor:
                         lines.append(f"    _pad_{cursor}: [{start - cursor}]u8,")
-                    lines.append(f"    _bits_{start}: [{item - start}]u8,")
+                    first = min((f for f in bitfields if start <= f["bitpos"] // 8 < item), key=lambda f: f["bitpos"],
+                                default=None)
+                    # named by its first bitfield, so a layout change keeps the name
+                    label = zid(self.field_name(name, first["name"])).strip('@"') if first else str(start)
+                    lines.append(f"    _bits_{label}: [{item - start}]u8,")
                     cursor = item
                 continue
             f = item

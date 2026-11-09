@@ -31,8 +31,8 @@ pub fn func_800CFEF0(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
             switch (@as(c_int, definition.unk0) & 0x18) {
                 0x10 => {
                     if (ctx.unkD1C.unk24.unk0 == 4) {
-                        state.actor = psx.byteAt(u8, &ctx.unkD1C.unk24.unk4, 0).*;
-                        state.bone = psx.byteAt(u8, &ctx.unkD1C.unk24.unk4, 2).*;
+                        state.actor = psx.fieldAt(u8, &ctx.unkD1C.unk24.unk4, 0).*;
+                        state.bone = psx.fieldAt(u8, &ctx.unkD1C.unk24.unk4, 2).*;
                     } else {
                         state.actor = 0xFF;
                         c.func_800CFE98(@ptrCast(&ctx.unkD1C.unk24.unk4), @ptrCast(&state.attachment));
@@ -40,8 +40,8 @@ pub fn func_800CFEF0(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
                 },
                 8 => {
                     if (ctx.unkD1C.unkC.unk0 == 4) {
-                        state.actor = psx.byteAt(u8, &ctx.unkD1C.unkC.unk4, 0).*;
-                        state.bone = psx.byteAt(u8, &ctx.unkD1C.unkC.unk4, 2).*;
+                        state.actor = psx.fieldAt(u8, &ctx.unkD1C.unkC.unk4, 0).*;
+                        state.bone = psx.fieldAt(u8, &ctx.unkD1C.unkC.unk4, 2).*;
                     } else {
                         state.actor = 0xFF;
                         c.func_800CFE98(@ptrCast(&ctx.unkD1C.unkC.unk4), @ptrCast(&state.attachment));
@@ -61,8 +61,8 @@ pub fn func_800CFEF0(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
             switch (@as(c_int, definition.unk0) & 0xC00) {
                 0x800 => {
                     if (ctx.unkD1C.unk24.unk0 == 4) {
-                        state.targetActor = psx.byteAt(u8, &ctx.unkD1C.unk24.unk4, 0).*;
-                        state.targetBone = psx.byteAt(u8, &ctx.unkD1C.unk24.unk4, 2).*;
+                        state.targetActor = psx.fieldAt(u8, &ctx.unkD1C.unk24.unk4, 0).*;
+                        state.targetBone = psx.fieldAt(u8, &ctx.unkD1C.unk24.unk4, 2).*;
                     } else {
                         state.targetActor = 0xFF;
                         state.saved = @as(*const v.SVECTOR, @ptrCast(&ctx.unkD1C.unk24.unk4)).*;
@@ -70,8 +70,8 @@ pub fn func_800CFEF0(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
                 },
                 0x400 => {
                     if (ctx.unkD1C.unkC.unk0 == 4) {
-                        state.targetActor = psx.byteAt(u8, &ctx.unkD1C.unkC.unk4, 0).*;
-                        state.targetBone = psx.byteAt(u8, &ctx.unkD1C.unkC.unk4, 2).*;
+                        state.targetActor = psx.fieldAt(u8, &ctx.unkD1C.unkC.unk4, 0).*;
+                        state.targetBone = psx.fieldAt(u8, &ctx.unkD1C.unkC.unk4, 2).*;
                     } else {
                         state.targetActor = 0xFF;
                         state.saved = @as(*const v.SVECTOR, @ptrCast(&ctx.unkD1C.unkC.unk4)).*;

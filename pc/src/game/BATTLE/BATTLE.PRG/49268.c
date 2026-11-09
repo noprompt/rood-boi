@@ -59,14 +59,6 @@ void func_800B3CF0(void*, void*, void*, void*);
 void func_800B217C(vs_battle_wepModels_t* weapon, MATRIX* source);
 
 typedef struct {
-    char prefix[0x1870];
-    MATRIX matrix;
-} savedBoneMatrix;
-typedef struct {
-    char prefix[0x6C];
-    MATRIX matrix;
-} actorBoneMatrix;
-typedef struct {
     char prefix[0x4C];
     SVECTOR translation;
 } boneTransformScratch;

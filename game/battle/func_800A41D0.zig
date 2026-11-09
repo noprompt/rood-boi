@@ -13,13 +13,13 @@ pub fn func_800A41D0(actor: ?*v.D_800F4538_t, mode: c_int) callconv(.c) void {
 
     if (mode == 2) {
         const obj = object.?;
-        switch (psx.byteAt(u8, obj, 0x16C).* & 7) {
+        switch (psx.fieldAt(u8, &obj.unk6C, 256).* & 7) {
             0, 1 => obj.unk1A = 0xF9,
             2 => obj.unk1A = 0xFF,
             3 => obj.unk1A = 0xFE,
             else => {},
         }
-        psx.byteAt(u8, obj, 0x170).* = 0;
+        psx.fieldAt(u8, &obj.unk6C, 260).* = 0;
         _ = c.func_800E68A0(@ptrCast(obj));
         return;
     }
@@ -67,7 +67,7 @@ pub fn func_800A41D0(actor: ?*v.D_800F4538_t, mode: c_int) callconv(.c) void {
     const obj = object.?;
     _ = c.func_800E4C28(@as(c_int, obj.unk5C), @as(c_int, obj.unk5E));
     _ = c.func_800E68A0(@ptrCast(obj));
-    if ((psx.byteAt(c_int, obj, 0x16C).* & 0x30) == 0x20) {
+    if ((psx.fieldAt(c_int, &obj.unk6C, 256).* & 0x30) == 0x20) {
         _ = c.func_800E68A0(@ptrCast(obj));
     }
 

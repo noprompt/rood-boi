@@ -127,7 +127,7 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
     );
     v.g.D_800F3C58()[0] = scratch.matrix;
     @as(*v.MATRIX, @ptrCast(&obj.unk6C[0])).* = scratch.matrix;
-    if (psx.byteAt(c_int, obj, 0x2C).* != 0x400040 or obj.unk30 != 64) {
+    if (psx.fieldAt(c_int, &obj.unk2C, 0).* != 0x400040 or obj.unk30 != 64) {
         scratch.scale.vx = obj.unk2C;
         scratch.scale.vy = obj.unk2E;
         scratch.scale.vz = obj.unk30;
@@ -140,7 +140,7 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
     }
     v.g.D_800F3C78().* = scratch.matrix;
     @as(*v.MATRIX, @ptrCast(&obj.unk6C[1])).* = scratch.matrix;
-    if ((psx.byteAt(c_int, obj, 8).* & 2) != 0) {
+    if ((psx.fieldAt(c_int, &obj._bits_unk8_0, 0).* & 2) != 0) {
         if (c.func_800B3A68(
             obj,
             psx.cptr(c.MATRIX, @as(*v.MATRIX, @ptrCast(&obj.unk6C[0]))),
@@ -148,12 +148,12 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
             psx.get(obj.unk68),
         ) != 0) {
             scratch.tpage = c.GetTPage(0, 0, 0x40, 0x100);
-            if (obj.unk64.unk0 != 0 or ((psx.byteAt(c_uint, obj, 8).* >> 8) & 0xF) >= 6) {
+            if (obj.unk64.unk0 != 0 or ((psx.fieldAt(c_uint, &obj._bits_unk8_0, 0).* >> 8) & 0xF) >= 6) {
                 scratch.clut = c.GetClut((@as(c_int, obj.unkF) << 4) +% 0x300, 0xFF);
             } else {
                 scratch.clut = c.GetClut((@as(c_int, obj.unkF) << 4) +% 0x300, 0xED);
             }
-            const flags: c_uint = psx.byteAt(c_uint, obj, 8).*;
+            const flags: c_uint = psx.fieldAt(c_uint, &obj._bits_unk8_0, 0).*;
             var value = false;
             if ((((flags >> 8) & 0xF) -% 4) < 5) {
                 if ((flags & 0xF00) != 0x600) value = true;

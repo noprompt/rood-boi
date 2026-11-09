@@ -171,7 +171,7 @@ pub fn func_800B0908(object: ?*v.objectAnimationState, _: c_int) callconv(.c) vo
                 other = c.func_800A91DC(@as(c_int, obj.tileX), @as(c_int, obj.tileZ), 1);
                 if (other != 0) {
                     const landed = psx.at(v.g.D_800F45E0(), other).*.?;
-                    other = @as(c_int, psx.byteAt(u8, landed, 0x16C).*) & 7;
+                    other = @as(c_int, psx.fieldAt(u8, &landed.unk6C, 256).*) & 7;
                     if (other >= 5) {
                         if (other == (@as(c_int, obj.material) & 7)) {
                             obj.mode = 0xFD;

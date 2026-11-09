@@ -27,7 +27,7 @@ pub fn noHostileNearTarget(state: *ai.vs_battle_aiState, id: c_int) callconv(.c)
         const other: c_uint = @bitCast(n.id);
         const relation_address: c_uint = psx.addr(state) +% 0x1a4 +% (other << 2);
         const relation: c_uint = if (other < 16)
-            psx.byteAt(u32, &state.tbl.t.targets.bits32, @as(isize, @intCast(other * 4))).*
+            psx.fieldAt(u32, &state.tbl.t.targets.bits32, @as(isize, @intCast(other * 4))).*
         else
             guestWord(relation_address);
         if (((relation >> 6) & 3) < 3) continue;

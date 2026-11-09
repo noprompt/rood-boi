@@ -6,13 +6,14 @@ const c = @import("c_49268");
 
 /// orig: func_800B26B8 (pc/src/game/BATTLE/BATTLE.PRG/49268.c)
 /// Takes the saved bone matrix, rotates and translates it by the parent matrix, and stores it into the bone table and the actor.
-pub fn func_800B26B8(actor: ?*anyopaque, parent: ?*v.MATRIX, bone: c_int, saved: c_int) callconv(.c) void {
+pub fn func_800B26B8(actor_in: ?*v.D_800F4538_t, parent: ?*v.MATRIX, bone: c_int, saved: c_int) callconv(.c) void {
     const scratch: *v.boneTransformScratch = @ptrFromInt(0x1F80035C);
     const matrix: *v.MATRIX = @ptrFromInt(0x1F8003C0);
 
-    // *matrix = ((savedBoneMatrix*)(unsigned)((saved << 5) + (int)psx_addr(actor)))->matrix;
-    const src_addr: c_uint = psx.conv(c_uint, saved << 5) +% psx.addr(actor.?);
-    matrix.* = @as(*align(1) const v.savedBoneMatrix, @ptrFromInt(@as(usize, src_addr))).matrix;
+    const actor = actor_in.?;
+    // The saved bone matrices are the 32-byte records from unk1890.
+    const saved_matrix = psx.fieldAt(v.MATRIX, &actor.unk1890, @as(isize, saved -% 1) << 5);
+    matrix.* = saved_matrix.*;
 
     c.func_800B196C(psx.cptr(c.MATRIX, parent.?), psx.cptr(c.MATRIX, matrix));
 
@@ -27,10 +28,9 @@ pub fn func_800B26B8(actor: ?*anyopaque, parent: ?*v.MATRIX, bone: c_int, saved:
     c.CTC2(words[6], 6);
     c.CTC2(words[7], 7);
 
-    const saved_off: c_int = (saved -% 1) << 5;
-    scratch.translation.vx = psx.conv(i16, psx.byteAt(u16, actor.?, @as(isize, saved_off) + 0x18A4).*);
-    scratch.translation.vy = psx.conv(i16, psx.byteAt(u16, actor.?, @as(isize, saved_off) + 0x18A8).*);
-    scratch.translation.vz = psx.conv(i16, psx.byteAt(u16, actor.?, @as(isize, saved_off) + 0x18AC).*);
+    scratch.translation.vx = psx.conv(i16, psx.fieldAt(u16, &saved_matrix.t[0], 0).*);
+    scratch.translation.vy = psx.conv(i16, psx.fieldAt(u16, &saved_matrix.t[1], 0).*);
+    scratch.translation.vz = psx.conv(i16, psx.fieldAt(u16, &saved_matrix.t[2], 0).*);
 
     // gte_ldv0(0x1F8003A8); gte_rtv0tr2(); gte_stlvnl(0x1F8003D4);
     const tr: [*]align(1) const c_uint = @ptrFromInt(0x1F8003A8);
@@ -48,7 +48,6 @@ pub fn func_800B26B8(actor: ?*anyopaque, parent: ?*v.MATRIX, bone: c_int, saved:
     const table_addr: c_uint = psx.conv(c_uint, bone_offset) +% psx.addr(table);
     @as(*align(1) v.MATRIX, @ptrFromInt(@as(usize, table_addr))).* = matrix.*;
 
-    // destination->matrix = *matrix;
-    const dest_addr: c_uint = psx.conv(c_uint, bone_offset) +% psx.addr(actor.?);
-    @as(*align(1) v.actorBoneMatrix, @ptrFromInt(@as(usize, dest_addr))).matrix = matrix.*;
+    // actor->bones[bone] = *matrix;
+    psx.fieldAt(v.MATRIX, &actor.bones, bone_offset).* = matrix.*;
 }

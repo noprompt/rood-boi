@@ -1,4 +1,5 @@
 //! Actor turn and walk requests (D2: 4A0A8.c's inline assembly; oracle pc/src/battle_motion.c).
+const psx = @import("common").psx;
 const c = @import("c_battle_motion");
 const v = @import("views_battle_motion");
 
@@ -8,13 +9,14 @@ const v = @import("views_battle_motion");
 /// 0x5EC and `b << 16` at 0x5F0, and sets byte 0xB to 1. The linked actor
 /// (byte 0x17FD) gets the same request when its id is 2 or more.
 pub fn requestTurn(id: c_int, position: [*]const c_int, b: c_int) callconv(.c) void {
-    const model: [*]u8 = @ptrCast(v.g.D_800F4538()[@intCast(id)].?);
-    if (model[0xb] & 0xf != 0) return;
-    const linked: c_int = model[0x17fd];
-    @as(*u16, @ptrCast(@alignCast(model + 0x1a))).* = 0;
-    @as(*c_int, @ptrCast(@alignCast(model + 0x5ec))).* = position[0];
-    @as(*c_uint, @ptrCast(@alignCast(model + 0x5f0))).* = @as(c_uint, @bitCast(b)) << 16;
-    model[0xb] = 1;
+    const a = v.g.D_800F4538()[@intCast(id)].?;
+    const flags = psx.fieldAt(u8, &a.unk0._bits_skip, 3);
+    if (flags.* & 0xf != 0) return;
+    const linked: c_int = a.unk17FD;
+    a.unk0.unk1A = 0;
+    psx.fieldAt(c_int, &a.unk5EC, 0).* = position[0];
+    psx.fieldAt(c_uint, &a.unk5EC, 4).* = @as(c_uint, @bitCast(b)) << 16;
+    flags.* = 1;
     if (linked >= 2) c.func_800B6580(linked, @constCast(position), b);
 }
 

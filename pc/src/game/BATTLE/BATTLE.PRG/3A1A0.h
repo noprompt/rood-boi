@@ -64,14 +64,13 @@ typedef struct {
     SVECTOR unk3F0[42];
     u_short unk540;
     u_short unk542;
-    psx_ptr(u_char) unk544;
+    u_char* unk544;
     int unk548_0 : 16;
     int unk548_16 : 1;
     int unk548_17 : 1;
     int unk548_18 : 14;
     int unk54C;
 } D_800F4538_unkC54;
-PSX_ASSERT_SIZE(D_800F4538_unkC54, 0x550);
 
 typedef struct {
     int unk0;
@@ -194,9 +193,8 @@ typedef struct {
     u_char lastTouchedTileZ;
     u_char unk63;
     D_800F4538_unk64 unk64;
-    psx_ptr(D_800F4538_unk68) unk68;
+    D_800F4538_unk68* unk68;
 } D_800F4538_unk0;
-PSX_ASSERT_SIZE(D_800F4538_unk0, 0x6c);
 
 typedef struct {
     u_char unk0_0 : 4;
@@ -269,10 +267,10 @@ typedef struct {
     char unk5CC;
     char unk5CD;
     short unk5CE;
-    psx_ptr(void) unk5D0;
-    psx_ptr(void) unk5D4;
-    psx_ptr(void) unk5D8;
-    psx_ptr(void) unk5DC[4];
+    void* unk5D0;
+    void* unk5D4;
+    void* unk5D8;
+    void* unk5DC[4];
     SVECTOR unk5EC;
     texMapOverlay_t texMapOverlays[8];
     u_char unk614[0x24];
@@ -356,8 +354,19 @@ typedef struct {
     u_char unk1880[0x10];
     u_char unk1890[2][0x20];
     u_char unk18D0[2];
+    short unk18D2;
+    short unk18D4;
+    short unk18D6;
+    short unk18D8;
 } D_800F4538_t;
-PSX_ASSERT_SIZE(D_800F4538_t, 0x18d4);
+
+/* The room an actor's object takes in its heap block: the object, rounded up to 0x100 bytes. */
+#define VS_OBJECT_REGION (((unsigned long)sizeof(D_800F4538_t) + 0xFF) & ~0xFFUL)
+
+/* The words of the bitfield runs, which follow the bone matrices and unk646: addressed from
+ * their neighbours, so a layout change moves them along. */
+#define VS_OBJECT_FLAGS5AC(o) (*(u_int*)((char*)&(o)->bones + sizeof((o)->bones)))
+#define VS_OBJECT_FLAGS648(o) (*(u_int*)((char*)&(o)->unk646 + sizeof((o)->unk646)))
 
 typedef struct {
     u_char nBones;
@@ -496,7 +505,7 @@ typedef struct {
     char unk5F;
     int unk60;
     D_800F4538_unk64 unk64;
-    psx_ptr(D_800F45E0_unk68) unk68;
+    D_800F45E0_unk68* unk68;
     D_800F4538_t2 unk6C[42];
     u_int unk5AC_0 : 4;
     u_int unk5AC_4 : 2;
@@ -539,13 +548,10 @@ typedef struct {
     char unk5CC;
     char unk5CD;
     short unk5CE;
-    int unk5D0;
-    int unk5D4;
-    psx_ptr(void) unk5D8;
-    int unk5DC;
-    int unk5E0;
-    int unk5E4;
-    int unk5E8;
+    void* unk5D0;
+    void* unk5D4;
+    void* unk5D8;
+    void* unk5DC[4];
     u_char unk5EC[0x52];
     u_short unk63E;
     u_char unk640[8];
@@ -603,7 +609,6 @@ typedef struct {
     int unk1868;
     int unk187C;
 } D_800F45E0_t;
-PSX_ASSERT_SIZE(D_800F45E0_t, 0x1880);
 
 int func_800A1108(int, void*);
 void func_800A36E0(int, int, func_8006EBF8_t*);

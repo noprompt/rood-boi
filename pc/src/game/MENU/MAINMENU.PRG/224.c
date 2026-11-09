@@ -27,7 +27,7 @@ void func_800F9A78(int arg0)
     void* temp_v0;
 
     temp_s2 = D_800F4538[arg0];
-    temp_s3 = vs_main_allocHeap(0x1900);
+    temp_s3 = vs_main_allocHeap(VS_OBJECT_REGION);
     sp10.dataType = 2;
     sp10.index = 1;
     sp10.modelId = temp_s2->unk6E6;
@@ -41,7 +41,7 @@ void func_800F9A78(int arg0)
 
     if (temp_s2->unk17FD >= 2) {
         temp_s0 = D_800F4538[temp_s2->unk17FD];
-        temp_v0 = vs_main_allocHeap(0x1900);
+        temp_v0 = vs_main_allocHeap(VS_OBJECT_REGION);
         sp10.dataType = 2;
         sp10.index = 16;
         sp10.modelId = temp_s0->unk6E6;
@@ -75,14 +75,14 @@ void func_800F9A78(int arg0)
     while (vs_battle_processObjectDataQueue() != 0)
         ;
 
-    psx_copy(temp_s3->unk5D4, temp_s2->unk5D4);
+    temp_s3->unk5D4 = temp_s2->unk5D4;
 
     if (temp_s2->unk0.unkF == 0) {
-        psx_set(temp_s3->unk5D8, vs_main_allocHeap(0x7800));
+        temp_s3->unk5D8 = vs_main_allocHeap(0x7800);
 
-        func_8009C378(psx_get(temp_s3->unk5D8), psx_get(temp_s2->unk5D8));
+        func_8009C378(temp_s3->unk5D8, temp_s2->unk5D8);
     } else {
-        psx_copy(temp_s3->unk5D8, temp_s2->unk5D8);
+        temp_s3->unk5D8 = temp_s2->unk5D8;
     }
 
     temp_s3->unk5B1 = temp_s2->unk5B1;

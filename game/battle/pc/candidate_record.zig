@@ -31,7 +31,7 @@ pub fn addScoredCandidate(state: *ai.vs_battle_aiState, candidate: [*]align(1) c
     if (count >= 16 or (candidate[3] >> 19) & 0xff == 0) return;
     const used: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F5904().*));
     used[((candidate[3] & 0xf) << 8) + ((candidate[1] >> 5) & 0xff)] = 1;
-    const record = psx.byteAt(u8, &state.candidates, @as(isize, count *% 0x14));
+    const record = psx.fieldAt(u8, &state.candidates, @as(isize, count *% 0x14));
     psx.at(&state.entries.candidates, count).* = @ptrCast(@alignCast(record));
     state.count470 = count +% 1;
     c.func_800DC2E0(record, @ptrCast(candidate));
@@ -48,7 +48,7 @@ pub fn canTargetActor(state: *ai.vs_battle_aiState, candidate: [*]align(1) c_uin
     const word = candidate[1];
     const options = candidate[4];
     const slot: c_int = @bitCast((word & 7) *% 4 +% ((word >> 3) & 3));
-    const relation = (psx.byteAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* >> 6) & 3;
+    const relation = (psx.fieldAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* >> 6) & 3;
     if (relation < 2) return 0;
     if (options & 0x20 != 0) {
         const peer_flags = psx.byteAt(c_uint, peer, 0x10).*;
@@ -58,6 +58,6 @@ pub fn canTargetActor(state: *ai.vs_battle_aiState, candidate: [*]align(1) c_uin
         if (action_flags & 0x100 == 0 and (action_flags >> 9) & mask == 0) return 0;
     }
     if (options & 0x10 != 0 and relation < 3) return 0;
-    if ((psx.byteAt(c_uint, &state.configs, @as(isize, slot *% 8)).* >> 1) & 1 != 0 and id == state.id) return 0;
+    if ((psx.fieldAt(c_uint, &state.configs, @as(isize, slot *% 8)).* >> 1) & 1 != 0 and id == state.id) return 0;
     return 1;
 }

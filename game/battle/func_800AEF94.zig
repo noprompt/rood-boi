@@ -18,11 +18,6 @@ fn objectOffset() *v.SVECTOR {
     return @ptrFromInt(0x1F80_035C + @offsetOf(v.actorTransformScratch, "offset"));
 }
 
-/// The 32-bit flag word at byte `off` of an actor or object.
-fn word(p: anytype, off: isize) *align(1) c_uint {
-    return psx.byteAt(c_uint, p, off);
-}
-
 /// unk17E4's colour (unk1, unk2) stepped towards unk17E8's over unk3 frames.
 fn fadeColour(a: *Actor) void {
     const fade = &a.unk17E4;
@@ -85,24 +80,24 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
     const entries = v.g.D_800F4538();
     while (true) {
         if (psx.at(entries, i).*) |actor| {
-            if (actor.unk0.nBones != 0 and word(actor, 8).* & 1 == 0 and actor.unk0.unk13 != 0xFC) {
+            if (actor.unk0.nBones != 0 and common.object.flags8(actor).* & 1 == 0 and actor.unk0.unk13 != 0xFC) {
                 c.func_800AAE9C(@ptrCast(actor));
                 if (actor.unk0.unk64.unk0 != 0) c.func_800AB788(@ptrCast(actor), null, 0);
-                if (word(actor, 8).* & 0xF00 != 0) c.func_800AB9A4(@ptrCast(actor));
-                const flags = word(actor, 8).*;
-                word(actor, 8).* = flags & 0x7FFF_FFFF;
+                if (common.object.flags8(actor).* & 0xF00 != 0) c.func_800AB9A4(@ptrCast(actor));
+                const flags = common.object.flags8(actor).*;
+                common.object.flags8(actor).* = flags & 0x7FFF_FFFF;
                 if (flags & 4 != 0) {
                     fadeColour(actor);
                     loadTexture(entries, i, actor);
-                    if (word(actor, 0x5AC).* & 3 != 0) c.func_800AC540(i, @ptrCast(actor));
+                    if (common.object.flags5AC(actor).* & 3 != 0) c.func_800AC540(i, @ptrCast(actor));
                     if (v.g.vs_gametime_tickspeed().* == 4) actor.unk5B2 *%= 2;
                     c.func_800AF6E8(@ptrCast(actor));
                     actor.unk5B2 = 1;
-                    actor.unk5B2 = psx.conv(u8, ((word(actor, 0x5B0).* >> 3) & 1) +% 1);
+                    actor.unk5B2 = psx.conv(u8, ((common.object.flags5B0(actor).* >> 3) & 1) +% 1);
                 } else {
                     c.func_800AEAE8(@ptrCast(actor));
                 }
-                if (word(actor, 8).* & 0x2000 != 0) {
+                if (common.object.flags8(actor).* & 0x2000 != 0) {
                     if (psx.at(entries, actor.unk0.unk12).*) |parent| {
                         c.func_800B28A8(@ptrCast(actor), @ptrCast(psx.at(&parent.bones, actor.unk0.unk13)), 0);
                     } else {
@@ -126,8 +121,8 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
                             const attached = psx.at(entries, actor.unk17FD).*.?;
                             c.func_800AAE9C(@ptrCast(attached));
                             if (attached.unk0.unk64.unk0 != 0) c.func_800AB788(@ptrCast(attached), null, 0);
-                            if (word(attached, 8).* & 0xF00 != 0) c.func_800AB9A4(@ptrCast(attached));
-                            if (word(actor, 8).* & 4 != 0) {
+                            if (common.object.flags8(attached).* & 0xF00 != 0) c.func_800AB9A4(@ptrCast(attached));
+                            if (common.object.flags8(actor).* & 4 != 0) {
                                 fadeColour(attached);
                                 loadTexture(entries, i, attached);
                             }
@@ -141,7 +136,7 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
                     }
                 }
                 if (actor.unk63C >= 0x80 and actor.unk5CC != 0) {
-                    word(actor, 8).* = word(actor, 8).* | 0x8000_0000;
+                    common.object.flags8(actor).* = common.object.flags8(actor).* | 0x8000_0000;
                 }
             }
         }
@@ -153,9 +148,9 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
     const weapons = v.g.vs_battle_wepModels();
     while (true) {
         if (psx.at(weapons, i).*) |weapon| {
-            if (word(weapon, 8).* & 0x10 != 0 and weapon.unkD != 0) {
-                if (psx.at(entries, @as(u8, @truncate(word(weapon, 8).*)) & 0xF).*) |actor| {
-                    const flags = word(actor, 8).*;
+            if (psx.byteAt(c_uint, weapon, 8).* & 0x10 != 0 and weapon.unkD != 0) {
+                if (psx.at(entries, @as(u8, @truncate(psx.byteAt(c_uint, weapon, 8).*)) & 0xF).*) |actor| {
+                    const flags = common.object.flags8(actor).*;
                     if (flags & 1 == 0 and flags & 2 != 0 and flags & 0x1000 == 0) {
                         c.func_800B217C(@ptrCast(weapon), @ptrCast(psx.at(&actor.bones, weapon.unkD)));
                     }
@@ -176,14 +171,14 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
                     const tick = v.g.vs_gametime_tickspeed().*;
                     c.func_800B0908(@ptrCast(object), (tick +% @as(c_int, @bitCast(@as(c_uint, @bitCast(tick)) >> 31))) >> 1);
                 }
-                const packedPosition = psx.byteAt(c_int, &object.unk1C, 0).*;
+                const packedPosition = psx.fieldAt(c_int, &object.unk1C, 0).*;
                 const offset = objectOffset();
                 offset.vz = object.unk20;
                 const modelHeight: c_uint = @bitCast(psx.byteAt(c_int, psx.get(object.unk68).?, 0x50).*);
                 psx.byteAt(c_int, offset, 0).* = packedPosition;
                 offset.vy = psx.conv(i16, @as(c_int, @as(u16, @bitCast(offset.vy))) +% @divTrunc(@as(c_int, @bitCast(modelHeight)), 2));
                 if (object.unk64.unk0 != 0) c.func_800AB788(null, @ptrCast(object), 0);
-                if (word(object, 8).* & 0xF00 != 0) c.func_800AB9A4(@ptrCast(object));
+                if (psx.fieldAt(c_uint, &object._bits_unk8_0, 0).* & 0xF00 != 0) c.func_800AB9A4(@ptrCast(object));
                 c.func_800B1A68(@ptrCast(object), @ptrCast(camera));
             }
         }

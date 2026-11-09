@@ -9,10 +9,10 @@ const c = @import("c_7EE98");
 /// Advances a radial motion one frame; returns 1 when the motion has finished.
 pub fn func_800E7698(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     const st = state.?;
-    const context = psx.get(st.object.radialMotionContext).?;
+    const context = psx.get(st.object.D_800F4538_t).?;
     const motion: *v.radialMotion = @ptrCast(v.g.D_800F5920().*.?);
     st.count470 = 0;
-    psx.setBits(context, "active", @intFromBool(motion.frame < 14));
+    psx.setBits(context, "unk5B0_4", @intFromBool(motion.frame < 14)); // the active flag
     _ = c.func_800E4660(@as(c_int, 0x7C0) -% @as(c_int, st.position.v.vx), 0, @as(c_int, 0x7C0) -% @as(c_int, st.position.v.vz));
     switch (motion.state) {
         0 => {
@@ -38,7 +38,7 @@ pub fn func_800E7698(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
                 angle = -%angle;
                 angle +%= 0xC00;
                 motion.facing = psx.conv(i16, angle & 0xFFF);
-                psx.setBits(context, "active", 0);
+                psx.setBits(context, "unk5B0_4", 0);
                 return 1;
             }
         },

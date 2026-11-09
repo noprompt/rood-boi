@@ -536,9 +536,9 @@ static u_int clone_units(void)
     int i;
     if (!a)
         return 0;
-    n = heap_units(0x1900);
+    n = heap_units(VS_OBJECT_REGION);
     if (a->unk17FD >= 2)
-        n += heap_units(0x1900);
+        n += heap_units(VS_OBJECT_REGION);
     for (i = 0; i < 2; ++i) {
         int k = a->unk0.unkF * 2 + i;
         if (k < 20 && vs_battle_wepModels[k])

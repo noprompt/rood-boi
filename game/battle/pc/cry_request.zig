@@ -11,7 +11,7 @@ const v = @import("views_battle_movement");
 /// 2, a pitch at 0x188 by remaining length before func_800DEEFC(16). Returns
 /// 1 while at least 2 frames remained.
 pub fn requestCry(state: *ai.vs_battle_aiState, chance: c_int, kind: c_int, slot: c_int) callconv(.c) c_int {
-    const entry = psx.byteAt(u16, &state.requests, @as(isize, slot *% 2));
+    const entry = psx.fieldAt(u16, &state.requests, @as(isize, slot *% 2));
     var count: c_int = (entry.* >> 8) & 0xff;
     var stored: c_int = entry.* & 0xff;
     if (count == 0) {

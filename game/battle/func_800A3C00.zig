@@ -16,5 +16,5 @@ pub fn func_800A3C00(slot: ?*v.D_800F45E0_t, index: c_uint) callconv(.c) ?*v.D_8
         @bitCast(index),
     );
     const aligned: ?*align(4) anyopaque = @alignCast(raw);
-    return @ptrCast(aligned);
+    return @ptrCast(@alignCast(aligned));
 }

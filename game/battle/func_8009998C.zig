@@ -38,7 +38,7 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     } else {
         const idx = v.g.D_800E919C()[obj.actorId];
         const ent: *v.D_800E8FB4_t = @ptrCast(@alignCast(psx.at(v.g.D_800E8FB4(), idx).*.?));
-        psx.byteAt(i32, s1, 0).* = ent.unk0;
+        psx.fieldAt(i32, &s1.unk0, 0).* = ent.unk0;
         s1.unk4 = ent.unk4;
         const temp_s0: c_int = ent.unk8;
         const after: *anyopaque = @ptrCast(@as([*]v.D_800E8FB4_t, @ptrCast(ent)) + 1);
@@ -85,7 +85,7 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
     s1.unk64.unk0 = 0;
     psx.setBits(s1, "unk8_0", 1);
     psx.setBits(s1, "unk8_1", 0);
-    psx.byteAt(i32, s1, 0x5C).* = psx.byteAt(i32, obj, 0xC).*;
+    psx.fieldAt(i32, &s1.unk5C, 0).* = psx.byteAt(i32, obj, 0xC).*;
     s1.unk5F = 0;
     s1.unk1C = psx.conv(i16, (@as(c_int, s1.unk5C) << 7) +% 0x40);
     s1.unk20 = psx.conv(i16, (@as(c_int, s1.unk5E) << 7) +% 0x40);
@@ -98,7 +98,7 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
         var j: c_int = 0;
         while (j < @as(c_int, obj.index)) : (j += 1) {
             const temp_a0 = psx.at(t, j).* orelse continue;
-            if (psx.byteAt(i32, temp_a0, 0x5C).* == psx.byteAt(i32, s1, 0x5C).* and
+            if (psx.fieldAt(i32, &temp_a0.unk5C, 0).* == psx.fieldAt(i32, &s1.unk5C, 0).* and
                 @as(c_int, temp_a0.unk1E) == @as(c_int, s1.unk1E) +% 0x80 and
                 @as(c_int, psx.getBits(&temp_a0.unk6C[8], "actorId")) > 4)
             {
