@@ -28,6 +28,7 @@
 #include "insertTPage.h"
 #include "vs_string.h"
 #include "gpu.h"
+#include "pc/src/game/menuItem.h"
 #include <libetc.h>
 #include <stdio.h>
 #include <strings.h>
@@ -1563,39 +1564,21 @@ void _renderEnemyInfoBg(int x, int y, int w, int h, int color)
 {
     int i;
     int var_s7;
-    LINE_G2* line;
-    POLY_F4* poly;
-
-    void** scratch = (void**)getScratchAddr(0);
-
-    line = psx_slot_get(void*, scratch, 0);
+    int mode = PC_ITEM_MODE(getTPage(0, 3, 0, 0)); /* (the draw mode its packets had inserted before them) */
 
     for (i = y, var_s7 = w; i < ((y + h) - 1); ++i, --var_s7) {
-        setLineG2(line);
-        setXY2(line, x, i, (x + var_s7) - 1, i);
-        setRGB0(line, _bgColorStops0[color].r0, _bgColorStops0[color].g0,
-            _bgColorStops0[color].b0);
-        setRGB1(line, _bgColorStops1[color].r0, _bgColorStops1[color].g0,
-            _bgColorStops1[color].b0);
-
-        AddPrim(psx_slot_get(void*, getScratchAddr(1), 0) + 0x1C, line++);
+        vs_menu_line_g(7, mode, 0, 0,
+            vs_getRGB888(_bgColorStops0[color].r0, _bgColorStops0[color].g0, _bgColorStops0[color].b0),
+            vs_getXY(x, i),
+            vs_getRGB888(_bgColorStops1[color].r0, _bgColorStops1[color].g0, _bgColorStops1[color].b0),
+            vs_getXY((x + var_s7) - 1, i));
     }
 
     x += 2;
     y += 2;
-    poly = (POLY_F4*)line;
 
-    setPolyF4(poly);
-    setXY4(poly, x, y, (x + w) - 1, y, x, (y + h) - 1, (x + w) - h, (y + h) - 1);
-    setRGB0(poly, 0, 0, 0);
-
-    scratch = (void**)getScratchAddr(0);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 0x1C, poly++);
-
-    psx_slot_set(void*, scratch, 0, (void*)poly);
-
-    _insertTPage(7, getTPage(0, 3, 0, 0));
+    vs_menu_f4(7, mode, 0, 0, vs_getXY(x, y), vs_getXY((x + w) - 1, y), vs_getXY(x, (y + h) - 1),
+        vs_getXY((x + w) - h, (y + h) - 1));
 }
 
 /**
@@ -1603,49 +1586,19 @@ void _renderEnemyInfoBg(int x, int y, int w, int h, int color)
  */
 void _renderGradientQuad(int x, int y, int w, int h, int color)
 {
-    char b1;
-    char g0;
-    char r1;
-    char g1;
-    char r0;
-    char b0;
-    POLY_G4* polyG4;
-    POLY_F4* polyF4;
-    void** scratch = (void**)0x1F800000;
-
+    int mode = PC_ITEM_MODE(getTPage(0, 3, 0, 0));
+    unsigned c0 = vs_getRGB888(_bgColorStops0[color].r0, _bgColorStops0[color].g0, _bgColorStops0[color].b0);
+    unsigned c1 = vs_getRGB888(_bgColorStops1[color].r0, _bgColorStops1[color].g0, _bgColorStops1[color].b0);
     int a3 = (x + w) - 1;
     int a2 = (y + h) - 1;
 
-    polyG4 = psx_slot_get(void*, scratch, 0);
-    setPolyG4(polyG4);
-    r0 = _bgColorStops0[color].r0;
-    g0 = _bgColorStops0[color].g0;
-    b0 = _bgColorStops0[color].b0;
-    r1 = _bgColorStops1[color].r0;
-    g1 = _bgColorStops1[color].g0;
-    b1 = _bgColorStops1[color].b0;
-
-    setXY4(polyG4, x, y, a3, y, x, a2, a3, a2);
-    setRGB0(polyG4, r0, g0, b0);
-    setRGB1(polyG4, r1, g1, b1);
-    setRGB2(polyG4, r0, g0, b0);
-    setRGB3(polyG4, r1, g1, b1);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 0x1C, polyG4++);
+    vs_menu_g4(7, mode, 0, c0, vs_getXY(x, y), c1, vs_getXY(a3, y), c0, vs_getXY(x, a2), c1, vs_getXY(a3, a2));
 
     x += 2;
     y += 2;
 
-    polyF4 = (POLY_F4*)polyG4;
-    setPolyF4(polyF4);
-    setXY4(polyF4, x, y, (x + w) - 1, y, x, (y + h) - 1, (x + w) - 1, (y + h) - 1);
-    setRGB0(polyF4, 0, 0, 0);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 0x1C, polyF4++);
-
-    psx_slot_set(void*, scratch, 0, polyF4);
-
-    _insertTPage(7, getTPage(0, 3, 0, 0));
+    vs_menu_f4(7, mode, 0, 0, vs_getXY(x, y), vs_getXY((x + w) - 1, y), vs_getXY(x, (y + h) - 1),
+        vs_getXY((x + w) - 1, (y + h) - 1));
 }
 
 /**
@@ -1654,31 +1607,11 @@ void _renderGradientQuad(int x, int y, int w, int h, int color)
  */
 void _renderFooterBg(int x)
 {
-    POLY_F4* polyF4;
-    void** scratch = (void**)getScratchAddr(0);
-    POLY_G4* polyG4 = psx_slot_get(void*, scratch, 0);
+    int mode = PC_ITEM_MODE(getTPage(0, 2, 0, 0));
 
-    setPolyG4(polyG4);
-    setXY4(polyG4, 0, x, 320, x, 0, x + 8, 320, x + 8);
-    setRGB0(polyG4, 0, 0, 0);
-    setRGB1(polyG4, 0, 0, 0);
-    setRGB2(polyG4, 128, 128, 128);
-    setRGB3(polyG4, 128, 128, 128);
-    setSemiTrans(polyG4, 1);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 0x1C, polyG4++);
-
-    polyF4 = (POLY_F4*)polyG4;
-
-    setPolyF4(polyF4);
-    setXY4(polyF4, 0, x + 8, 320, x + 8, 0, 240, 320, 240);
-    setRGB0(polyF4, 0, 0, 0);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 0x1C, polyF4++);
-
-    psx_slot_set(void*, scratch, 0, polyF4);
-
-    _insertTPage(7, getTPage(0, 2, 0, 0));
+    vs_menu_g4(7, mode, 1, 0, vs_getXY(0, x), 0, vs_getXY(320, x), vs_getRGB888(128, 128, 128), vs_getXY(0, x + 8),
+        vs_getRGB888(128, 128, 128), vs_getXY(320, x + 8));
+    vs_menu_f4(7, mode, 0, 0, vs_getXY(0, x + 8), vs_getXY(320, x + 8), vs_getXY(0, 240), vs_getXY(320, 240));
 }
 
 void _renderScreenEdgeFade(void);
@@ -1852,36 +1785,18 @@ void _renderTitleNo(int x, int y, int titleNo, int dimmed)
     char digits[2];
 #endif
     int i;
-    POLY_FT4* poly;
 
     sprintf(digits, "%02d", titleNo);
 
     x += 19;
-    poly = psx_slot_get(void*, 0x1F800000, 0);
 
     for (i = 1; i >= 0; --i, x -= 5) {
+        int u = (digits[i] - 48) * 6;
 
-        setPolyFT4(poly);
-        setXY4(poly, x, y - 4, x + 6, y - 4, x, y + 6, x + 6, y + 6);
-        setcode(poly, (getcode(poly) | 0x02) & 0xFE);
-
-        setUV4(poly, (digits[i] - 48) * 6, 0, ((digits[i] - 48) * 6) + 6, 0,
-            (digits[i] - 48) * 6, 10, ((digits[i] - 48) * 6) + 6, 10);
-
-        if (dimmed != 0) {
-            setTPage(poly, 0, 1, 768, 0);
-            setRGB0(poly, 32, 32, 32);
-            setClut(poly, 880, 223);
-        } else {
-            setTPage(poly, 0, 0, 768, 0);
-            setRGB0(poly, 128, 128, 128);
-            setClut(poly, 832, 223);
-        }
-
-        AddPrim(psx_slot_get(void*, 0x1F800008, 0), poly++);
+        vs_menu_ft4(-16, 0, dimmed != 0 ? getTPage(0, 1, 768, 0) : getTPage(0, 0, 768, 0),
+            dimmed != 0 ? getClut(880, 223) : getClut(832, 223), 1, 0, dimmed != 0 ? vs_getRGB888(32, 32, 32) : vs_getRGB888(128, 128, 128),
+            vs_getXY(x, y - 4), vs_getXY(x + 6, y - 4), vs_getXY(x, y + 6), vs_getXY(x + 6, y + 6), u, (u + 6), u | (10 << 8), (u + 6) | (10 << 8));
     }
-
-    psx_slot_set(void*, 0x1F800000, 0, poly);
 }
 
 /**
@@ -1901,35 +1816,18 @@ void _renderEnemyNo(int x, int y, int enemyNo, int dimmed)
     char digits[2];
 #endif
     int i;
-    POLY_FT4* poly;
 
     sprintf(digits, "%03d", enemyNo);
 
     x += 0x18;
-    poly = psx_slot_get(void*, getScratchAddr(0), 0);
 
     for (i = 2; i >= 0; --i, x -= 5) {
+        int u = (digits[i] - 48) * 6;
 
-        setPolyFT4(poly);
-        setXY4(poly, x, y - 4, x + 6, y - 4, x, y + 6, x + 6, y + 6);
-        setcode(poly, (getcode(poly) | 0x02) & 0xFE);
-        setUV4(poly, (digits[i] - 48) * 6, 0, ((digits[i] - 48) * 6) + 6, 0,
-            (digits[i] - 48) * 6, 10, ((digits[i] - 48) * 6) + 6, 10);
-
-        if (dimmed != 0) {
-            setTPage(poly, 0, 1, 768, 0);
-            setRGB0(poly, 32, 32, 32);
-            setClut(poly, 880, 223);
-        } else {
-            setTPage(poly, 0, 0, 768, 0);
-            setRGB0(poly, 128, 128, 128);
-            setClut(poly, 832, 223);
-        }
-
-        AddPrim(psx_slot_get(void*, getScratchAddr(2), 0), poly++);
+        vs_menu_ft4(-16, 0, dimmed != 0 ? getTPage(0, 1, 768, 0) : getTPage(0, 0, 768, 0),
+            dimmed != 0 ? getClut(880, 223) : getClut(832, 223), 1, 0, dimmed != 0 ? vs_getRGB888(32, 32, 32) : vs_getRGB888(128, 128, 128),
+            vs_getXY(x, y - 4), vs_getXY(x + 6, y - 4), vs_getXY(x, y + 6), vs_getXY(x + 6, y + 6), u, (u + 6), u | (10 << 8), (u + 6) | (10 << 8));
     }
-
-    psx_slot_set(void*, getScratchAddr(0), 0, poly);
 }
 
 /**
@@ -2173,32 +2071,12 @@ void _renderEnemyDetailScreen(int animState, int state)
  */
 void _renderScreenEdgeFade(void)
 {
-    void** scratch = (void**)0x1F800000;
-    POLY_G4* poly = psx_slot_get(void*, scratch, 0);
+    int mode = PC_ITEM_MODE(getTPage(0, 2, 0, 0));
 
-    setPolyG4(poly);
-    setXY4(poly, 0, 0, 64, 0, 0, 240, 64, 240);
-    setRGB0(poly, 128, 128, 128);
-    setRGB1(poly, 0, 0, 0);
-    setRGB2(poly, 128, 128, 128);
-    setRGB3(poly, 0, 0, 0);
-    setSemiTrans(poly, 1);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 0x20, poly++);
-
-    setPolyG4(poly);
-    setXY4(poly, 256, 0, 320, 0, 256, 240, 320, 240);
-    setRGB0(poly, 0, 0, 0);
-    setRGB1(poly, 128, 128, 128);
-    setRGB2(poly, 0, 0, 0);
-    setRGB3(poly, 128, 128, 128);
-    setSemiTrans(poly, 1);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 32, poly++);
-
-    psx_slot_set(void*, scratch, 0, poly);
-
-    _insertTPage(8, getTPage(0, 2, 0, 0));
+    vs_menu_g4(8, mode, 1, vs_getRGB888(128, 128, 128), vs_getXY(0, 0), 0, vs_getXY(64, 0), vs_getRGB888(128, 128, 128),
+        vs_getXY(0, 240), 0, vs_getXY(64, 240));
+    vs_menu_g4(8, mode, 1, 0, vs_getXY(256, 0), vs_getRGB888(128, 128, 128), vs_getXY(320, 0), 0, vs_getXY(256, 240),
+        vs_getRGB888(128, 128, 128), vs_getXY(320, 240));
 }
 
 void _strcpy(u_char* dest, u_char* src)
@@ -2852,20 +2730,10 @@ void _renderEnemyNavigation(int direction)
         }
 
         x -= 8;
-        scratch = (void**)getScratchAddr(0);
-        poly = psx_slot_get(void*, scratch, 0);
 
-        setPolyFT4(poly);
-        setXY4(poly, x, 96, x + 16, 96, x, 112, x + 16, 112);
-        setUV4(poly, direction * 16, 48, (direction * 16) + 16, 48, direction * 16, 64,
-            (direction * 16) + 16, 64);
-        setTPage(poly, 0, 0, 768, 0);
-        poly->clut = clut;
-        setShadeTex(poly, 1);
-
-        AddPrim(psx_slot_get(void*, scratch, 1), poly++);
-
-        psx_slot_set(void*, scratch, 0, poly);
+        vs_menu_ft4(0, 0, getTPage(0, 0, 768, 0), clut, 0, 1, 0, vs_getXY(x, 96), vs_getXY(x + 16, 96), vs_getXY(x, 112),
+            vs_getXY(x + 16, 112), (direction * 16) | (48 << 8), ((direction * 16) + 16) | (48 << 8),
+            (direction * 16) | (64 << 8), ((direction * 16) + 16) | (64 << 8));
     }
 }
 

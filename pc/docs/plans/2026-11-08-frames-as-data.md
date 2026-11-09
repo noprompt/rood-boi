@@ -113,6 +113,17 @@ still a packet printer).
   textured polygon.
 - State proofs mask the item list (`pc_item_frame`), since a claim's items follow the game's.
 
+## MENU's hand-built packets (step 1 of MENU)
+
+MENU8, MAINMENU 58EC, MENU4, MENU9, MENUE and MENU5 build their flat and shaded primitives as items (`pc/src/game/menuItem.h`:
+`vs_menu_g3 / g4 / f4 / ft4 / line / line_g / tile / sprite / area / mode / mask`; the words each packet had, the slot as a depth
+in words from `vs_scratch.unk4`, `unk8` -16). What a packet's neighbours did to it became item fields: `PC_ITEM_INHERIT` (a flat
+item with no draw mode before it draws in the GPU's), `after` (a draw mode left set), `before` (the mode whose dither bits a
+textured polygon draws with), `tw` (texture window), and the state kinds `PC_ITEM_MODE_SET`, `PC_ITEM_MASK`, `PC_ITEM_AREA`.
+A slot written `unk4 - 12` on a `void*` is 12 bytes, 3 words (the button background was first taken for 12 words: the parity gate
+found it). The printers' own output (text, sprites, stat bars, digits) is still packets. The parity gate compares packet lists
+as the GPU takes them (`canonicalise`), so a site whose game side is items and whose claim is packets, or the reverse, compares.
+
 Not done: items for sprites, tiles and lines in a claim (needs the mode word as an item field), the texture window
 and mask fields, widescreen anchors of item ranges (`pc_hw_anchor_packets` takes packet addresses; the lowered arena
 has stable ones per index), and a per-frame reset for menus beyond battle's `ClearOTagR` (menus run inside battle's

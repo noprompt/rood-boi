@@ -30,8 +30,10 @@ enum {
     PC_ITEM_TILE,   /* a flat rectangle */
     PC_ITEM_SPRITE, /* a textured rectangle, texels copied 1:1 */
     PC_ITEM_POLY,   /* a triangle or quad: flat or shaded, textured or not */
-    PC_ITEM_LINE,   /* a flat line from (x[0], y[0]) to (x[1], y[1]) */
-    PC_ITEM_AREA    /* the drawing area for the items drawn after it: (x[0], y[0]) and w, h */
+    PC_ITEM_LINE,   /* a line from (x[0], y[0]) to (x[1], y[1]): flat, or shaded from rgb[0] to rgb[1] */
+    PC_ITEM_AREA,   /* the drawing area for the items drawn after it: (x[0], y[0]) and w, h */
+    PC_ITEM_MODE_SET, /* the draw mode (GP0 E1: `mode`) for the items drawn after it that carry none (PC_ITEM_INHERIT) */
+    PC_ITEM_MASK    /* the mask bit set when drawing (x[0] 1) or not (0): GP0 E6 */
 };
 
 enum {
@@ -42,13 +44,18 @@ enum {
     PC_ITEM_BRACKET = 16, /* polygon or line, as the effect plugins drew: with dither off, the draw mode (a line's is
                            * `mode`) set for it alone, and page 0, no blend, dither on left after it */
     PC_ITEM_PLACED = 32,  /* a marker in an ordering table draws it (set by pc_frame_place) */
-    PC_ITEM_WINDOW = 64   /* `tw` is the texture window it draws with (GP0 E2); without the flag the window is left as it is */
+    PC_ITEM_WINDOW = 64,  /* `tw` is the texture window it draws with (GP0 E2); without the flag the window is left as it is */
+    PC_ITEM_AFTER = 128,  /* `after` is the draw mode (GP0 E1) left set after it; without the flag the mode it drew with stays */
+    PC_ITEM_BEFORE = 256  /* textured polygon: `before` is the draw mode (GP0 E1) set before it, whose dither and display bits it
+                           * draws with (its own page word sets the rest) */
 };
 
 /* The draw mode a tile, a sprite or an untextured polygon draws with, from a
  * libgpu texture page word (getTPage: page, blend, colour depth): what
  * SetDrawTPage(.., 0, 1, page) set, dither on. A textured polygon carries its
  * own page in `mode` (as its packet did): give it the page word as it was. */
+/* A flat item with this mode draws in whatever draw mode the GPU is in (the packet had no draw mode before it). */
+#define PC_ITEM_INHERIT 0xffff
 #define PC_ITEM_MODE(page) (((page) & 0x9ff) | 0x200)
 /* A colour as the items take it: 0xBBGGRR, each channel cut to a byte. */
 #define PC_RGB(r, g, b) (((r) & 0xff) | ((g) & 0xff) << 8 | ((b) & 0xff) << 16)
@@ -56,8 +63,8 @@ enum {
 
 typedef struct {
     unsigned char kind;  /* PC_ITEM_* */
-    unsigned char flags; /* PC_ITEM_* flags */
     unsigned char verts; /* polygon: 3 or 4 */
+    unsigned short flags; /* PC_ITEM_* flags */
     unsigned short group; /* items added together as one call (pc_frame_add_packets) share it; 0: none */
     unsigned short mode; /* see PC_ITEM_MODE */
     unsigned short clut; /* textured: the CLUT word (y << 6 | x >> 4) */
@@ -67,6 +74,8 @@ typedef struct {
     unsigned char u[4], v[4]; /* textured: texel at each corner (a sprite's top left is u[0], v[0]) */
     unsigned char rgb[4][3];  /* colour per corner; a flat item's is rgb[0] */
     unsigned tw;              /* PC_ITEM_WINDOW: the window word's 20 bits */
+    unsigned short after;     /* PC_ITEM_AFTER: the draw mode word's bits */
+    unsigned short before;    /* PC_ITEM_BEFORE: likewise */
 } pc_item;
 
 /* A new frame: the previous frame's items are dropped. */

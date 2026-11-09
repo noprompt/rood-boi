@@ -179,6 +179,13 @@ enum vs_mainMenu_rowTypeFlags {
     rowTypeDisabled = 1,
 };
 
+/* A row's kind is the top byte of its type word (the equipment rows' icon: a gem slot, a shield by its material
+ * below it); not a GPU command. */
+enum vs_mainMenu_rowTypeKinds {
+    rowTypeGem = 0x58 << 24,
+    rowTypeShield = 0x3C << 24,
+};
+
 /**
  * Initialises multiple menu rows
  *

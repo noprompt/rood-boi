@@ -109,6 +109,7 @@ static unsigned short group_serial;
 int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
 {
     int start = pc_item_frame.count, i = 0, mode = -1, window = -1, prims = 0, state_after = 0, last_mode = -1, last_window = -1;
+    pc_item* last = NULL;
     *first = start;
     while (i < n) {
         unsigned c = w[i] >> 24;
@@ -128,13 +129,12 @@ int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
                 goto fail;
             it->x[0] = (int16_t)x, it->y[0] = (int16_t)y, it->w = (int16_t)(x1 - x + 1), it->h = (int16_t)(y1 - y + 1);
             i += 2, prims++;
-            last_mode = mode, last_window = window;
+            last_mode = mode, last_window = window, last = it;
             continue;
         }
         if (c >= 0x20 && c < 0x40) {
             int quad = (c & 8) != 0, tex = (c & 4) != 0, shade = (c & 0x10) != 0, verts = quad ? 4 : 3, k = i;
-            if (i + (shade ? verts : 1) + verts + (tex ? verts : 0) > n || (!tex && mode < 0) || (tex && mode >= 0 && (mode & 0x600))
-                || !(it = pc_frame_add(PC_ITEM_POLY, depth)))
+            if (i + (shade ? verts : 1) + verts + (tex ? verts : 0) > n || !(it = pc_frame_add(PC_ITEM_POLY, depth)))
                 goto fail;
             it->verts = (uint8_t)verts;
             it->flags = (uint8_t)((c & 2 ? PC_ITEM_SEMI : 0) | (c & 1 ? PC_ITEM_RAW : 0) | (tex ? PC_ITEM_TEXTURED : 0)
@@ -156,38 +156,45 @@ int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
                 }
             }
             if (!tex)
-                it->mode = (uint16_t)mode;
+                it->mode = mode < 0 ? PC_ITEM_INHERIT : (uint16_t)mode;
+            else if (mode >= 0)
+                it->flags |= PC_ITEM_BEFORE, it->before = (uint16_t)mode; /* (the draw mode its dither bits come from) */
             i = k, prims++;
         } else if ((c & 0xfc) == 0x60 || (c & 0xfc) == 0x64) { /* a tile or a sprite, of a size it carries */
             int tex = (c & 4) != 0, need = tex ? 4 : 3;
-            if (i + need > n || mode < 0 || !(it = pc_frame_add(tex ? PC_ITEM_SPRITE : PC_ITEM_TILE, depth)))
+            if (i + need > n || !(it = pc_frame_add(tex ? PC_ITEM_SPRITE : PC_ITEM_TILE, depth)))
                 goto fail;
             it->flags = (uint8_t)((c & 2 ? PC_ITEM_SEMI : 0) | (c & 1 ? PC_ITEM_RAW : 0));
-            it->mode = (uint16_t)mode;
+            it->mode = mode < 0 ? PC_ITEM_INHERIT : (uint16_t)mode;
             it->rgb[0][0] = (uint8_t)w[i], it->rgb[0][1] = (uint8_t)(w[i] >> 8), it->rgb[0][2] = (uint8_t)(w[i] >> 16);
             it->x[0] = (int16_t)w[i + 1], it->y[0] = (int16_t)(w[i + 1] >> 16);
             if (tex)
                 it->u[0] = (uint8_t)w[i + 2], it->v[0] = (uint8_t)(w[i + 2] >> 8), it->clut = (uint16_t)(w[i + 2] >> 16);
             it->w = (int16_t)w[i + need - 1], it->h = (int16_t)(w[i + need - 1] >> 16);
             i += need, prims++;
-        } else if (c == 0x40 || c == 0x42) { /* a flat line */
-            if (i + 3 > n || mode < 0 || !(it = pc_frame_add(PC_ITEM_LINE, depth)))
+        } else if (c == 0x40 || c == 0x42 || c == 0x50 || c == 0x52) { /* a line, flat or shaded */
+            int shaded = c >= 0x50, need = shaded ? 4 : 3;
+            if (i + need > n || !(it = pc_frame_add(PC_ITEM_LINE, depth)))
                 goto fail;
-            it->flags = (uint8_t)(c & 2 ? PC_ITEM_SEMI : 0);
-            it->mode = (uint16_t)mode;
+            it->flags = (uint8_t)((c & 2 ? PC_ITEM_SEMI : 0) | (shaded ? PC_ITEM_SHADED : 0));
+            it->mode = mode < 0 ? PC_ITEM_INHERIT : (uint16_t)mode;
             it->rgb[0][0] = (uint8_t)w[i], it->rgb[0][1] = (uint8_t)(w[i] >> 8), it->rgb[0][2] = (uint8_t)(w[i] >> 16);
             it->x[0] = (int16_t)w[i + 1], it->y[0] = (int16_t)(w[i + 1] >> 16);
-            it->x[1] = (int16_t)w[i + 2], it->y[1] = (int16_t)(w[i + 2] >> 16);
-            i += 3, prims++;
+            if (shaded)
+                it->rgb[1][0] = (uint8_t)w[i + 2], it->rgb[1][1] = (uint8_t)(w[i + 2] >> 8), it->rgb[1][2] = (uint8_t)(w[i + 2] >> 16);
+            it->x[1] = (int16_t)w[i + need - 1], it->y[1] = (int16_t)(w[i + need - 1] >> 16);
+            i += need, prims++;
         } else
             goto fail;
         if (window >= 0)
             it->flags |= PC_ITEM_WINDOW, it->tw = (unsigned)window;
-        last_mode = mode, last_window = window;
+        last_mode = mode, last_window = window, last = it;
     }
-    /* (state set after the last primitive is only dropped when it is the state that primitive had) */
-    if (!prims || (state_after && (mode != last_mode || window != last_window)))
+    /* (a draw mode set after the last primitive stays with it; a window set after it is not kept) */
+    if (!prims || (state_after && window != last_window))
         goto fail;
+    if (state_after && mode != last_mode)
+        last->flags |= PC_ITEM_AFTER, last->after = (uint16_t)mode;
     if (!++group_serial)
         ++group_serial;
     for (int a = start; a < pc_item_frame.count; a++)
@@ -292,11 +299,24 @@ static unsigned lower(const pc_item* it, uint32_t* p)
     if (it->flags & PC_ITEM_BRACKET) /* (dither off: a textured polygon's page is in its own words) */
         p[n++] = 0xe1000000u | (it->kind == PC_ITEM_LINE ? it->mode & 0x1ffu : 0u);
     switch (it->kind) {
+    case PC_ITEM_MODE_SET:
+        p[n++] = 0xe1000000u | it->mode;
+        break;
+    case PC_ITEM_MASK:
+        p[n++] = 0xe6000000u | (it->x[0] ? 1u : 0u);
+        break;
     case PC_ITEM_AREA:
         p[n++] = 0xe3000000u | ((uint32_t)it->y[0] & 0x3ffu) << 10 | ((uint32_t)it->x[0] & 0x3ffu);
         p[n++] = 0xe4000000u | ((uint32_t)(it->y[0] + it->h - 1) & 0x3ffu) << 10 | ((uint32_t)(it->x[0] + it->w - 1) & 0x3ffu);
         break;
     case PC_ITEM_LINE:
+        if (it->flags & PC_ITEM_SHADED) {
+            p[n++] = rgb_word(it, 0) | (0x50u | semi) << 24;
+            p[n++] = xy_word(it, 0);
+            p[n++] = rgb_word(it, 1);
+            p[n++] = xy_word(it, 1);
+            break;
+        }
         p[n++] = rgb_word(it, 0) | (0x40u | semi) << 24;
         p[n++] = xy_word(it, 0);
         p[n++] = xy_word(it, 1);
@@ -329,6 +349,8 @@ static unsigned lower(const pc_item* it, uint32_t* p)
     }
     if (it->flags & PC_ITEM_BRACKET)
         p[n++] = 0xe1000200u;
+    if (it->flags & PC_ITEM_AFTER)
+        p[n++] = 0xe1000000u | it->after;
     return n;
 }
 
@@ -374,7 +396,11 @@ int pc_frame_lower(int index, unsigned words[3][16], int lengths[3])
         words[packets][0] = 0xe2000000u | (it->tw & 0xfffffu);
         lengths[packets++] = 1;
     }
-    if (it->kind != PC_ITEM_AREA && !(it->flags & PC_ITEM_BRACKET) && !(it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED))) {
+    if (it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED) && (it->flags & PC_ITEM_BEFORE)) {
+        words[packets][0] = 0xe1000000u | it->before;
+        lengths[packets++] = 1;
+    } else if (it->kind != PC_ITEM_AREA && it->mode != PC_ITEM_INHERIT && !(it->flags & PC_ITEM_BRACKET)
+        && !(it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED))) {
         words[0][0] = 0xe1000000u | it->mode;
         lengths[packets++] = 1;
     }
@@ -403,11 +429,19 @@ static void draw_run(int first, int count)
             window = (int)it->tw;
             pc_draw_item_packet(at + 18);
         }
-        if (it->kind == PC_ITEM_AREA) {
-            /* (a drawing area: no draw mode) */
+        if (textured_poly && (it->flags & PC_ITEM_BEFORE) && it->before != mode) {
+            at[0] = 0x01ffffffu; /* one word: GP0 E1, set before the polygon (its dither bits stay) */
+            at[1] = 0xe1000000u | it->before;
+            mode = it->before;
+            pc_draw_item_packet(at);
+        }
+        if (it->kind == PC_ITEM_MODE_SET)
+            mode = it->mode; /* (its packet is the mode) */
+        if (it->kind == PC_ITEM_AREA || it->kind == PC_ITEM_MODE_SET || it->kind == PC_ITEM_MASK) {
+            /* (a state: no draw mode of its own) */
         } else if (it->flags & PC_ITEM_BRACKET)
             mode = 0x200; /* (its words end with the mode set) */
-        else if (!textured_poly && it->mode != mode) {
+        else if (!textured_poly && it->mode != PC_ITEM_INHERIT && it->mode != mode) {
             at[0] = 0x01ffffffu; /* one word: GP0 E1, as SetDrawTPage wrote */
             at[1] = 0xe1000000u | it->mode;
             mode = it->mode;
@@ -417,6 +451,8 @@ static void draw_run(int first, int count)
         unsigned words = lower(it, at + 3);
         at[2] = (words << 24) | 0xffffffu;
         pc_draw_item_packet(at + 2);
+        if (it->flags & PC_ITEM_AFTER)
+            mode = it->after; /* (left set after it) */
     }
 }
 

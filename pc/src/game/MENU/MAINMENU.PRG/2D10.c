@@ -38,7 +38,7 @@ vs_battle_menuItem_t* vs_mainMenu_initWeaponDetailsRow(
             int gem;
 
             menuText[1] = NULL;
-            rowType = 0x58000000;
+            rowType = rowTypeGem;
             menuText[0] = (char*)&vs_mainMenu_itemHelp[VS_ITEMHELP_BIN_OFFSET_none];
             gem = weapon->gems[xOffset];
 
@@ -91,7 +91,7 @@ vs_battle_menuItem_t* vs_mainMenu_initShieldDetailsRow(
         char gem;
 
         menuText[1] = 0;
-        rowType = 0x58000000;
+        rowType = rowTypeGem;
         menuText[0] = (char*)&vs_mainMenu_itemHelp[0x0340B];
         gem = shield->gems[xOffset];
 
@@ -263,7 +263,7 @@ void vs_mainMenu_setShieldRow(
 
     menuText[0] = vs_mainMenu_itemNames[shieldBase->id + VS_ITEMNAME_BIN_INDEX_item0];
     menuText[1] = buf;
-    *rowType = (shieldBase->material << 0x10) + 0x3C000000;
+    *rowType = (shieldBase->material << 0x10) + rowTypeShield;
 }
 
 void vs_mainMenu_setShieldRowFromInventory(
@@ -345,7 +345,7 @@ void vs_mainMenu_setGemRow(
 
     menuText[0] = vs_mainMenu_itemNames[gem->id];
     menuText[1] = buf;
-    *rowType = 0x58000000;
+    *rowType = rowTypeGem;
 }
 
 void vs_mainMenu_setMiscRow(

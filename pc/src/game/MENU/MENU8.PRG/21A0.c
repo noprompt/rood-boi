@@ -9,6 +9,7 @@
 #include "build/assets/MENU/MENU8.PRG/rename.h"
 #include "vs_string.h"
 #include "gpu.h"
+#include "pc/src/game/menuItem.h"
 #include <libetc.h>
 #ifdef ROOD_PC
 #include "pc/src/classic/classic_hook.h"
@@ -147,7 +148,6 @@ static void _renderRenameMenu(int xOffset)
     // Seemingly no purpose, perhaps an unimplemented animation
     static char D_80105EF4 = 0;
 
-    u_int* sp18;
     int x;
     int y;
     int j;
@@ -155,8 +155,6 @@ static void _renderRenameMenu(int xOffset)
     char* commandString;
     u_long* prim;
     int counter;
-
-    sp18 = (u_int*)psx_get(vs_scratch.unk4) - 1;
 
 #ifdef ROOD_PC
     /* PC_CLASSIC (classic_hook.h): the grid, from its slide, the command bars' fades
@@ -205,8 +203,6 @@ static void _renderRenameMenu(int xOffset)
         vs_getWH(16, 16), ((-xOffset + 16) & 0xFFFF) | (34 << 16));
     prim[4] = vs_getUV0Clut(176, 112, 944, 223);
 
-    prim += 6;
-
     _controllerActionAnimationCounters[_selectedControllerAction] = 8;
     _selectedControllerAction = 0;
 
@@ -218,30 +214,17 @@ static void _renderRenameMenu(int xOffset)
             --_controllerActionAnimationCounters[i];
         }
 
-        x = vs_battle_uiGradientStop(8 - counter, 0, 128) | 0x50000000;
+        x = vs_battle_uiGradientStop(8 - counter, 0, 128);
         y = vs_battle_uiGradientStop(counter, 0, 128);
 
         for (j = 0; j < 12; ++j) {
-            int v1;
+            int v1 = j - 96;
 
-            prim[0] = (*sp18 & 0xFFFFFF) | 0x06000000;
-            prim[1] = vs_getTpage(0, 0, 0, 0, 1);
-            prim[2] = x;
-            prim[3] = ((-xOffset) & 0xFFFF) | (j + 20 + i * 16) << 16;
-            prim[4] = y;
-
-            v1 = j - 96;
-
-            prim[5] = ((-xOffset - v1) & 0xFFFF) | (j + 20 + i * 16) << 16;
-            prim[6] = vs_getTpage(0, 0, 0, 0, 0);
-
-            *sp18 = (psx_to_int(u_long, prim) << 8) >> 8;
-
-            prim += 7;
+            vs_menu_line_g(-1, vs_getTpage(0, 0, 0, 0, 1), vs_getTpage(0, 0, 0, 0, 0), 0, x,
+                ((-xOffset) & 0xFFFF) | (j + 20 + i * 16) << 16, y,
+                ((-xOffset - v1) & 0xFFFF) | (j + 20 + i * 16) << 16);
         }
     }
-
-    psx_set(vs_scratch.unk0, prim);
 
     vs_battle_setFontStyle(4);
 
@@ -274,8 +257,6 @@ static void _renderRenameMenu(int xOffset)
     }
 
     if (xOffset == 0) {
-        u_long* a1;
-
         int color = vs_getRGB888(64, 64, 64);
         x = 0x37F9;
 
@@ -302,22 +283,8 @@ static void _renderRenameMenu(int xOffset)
         vs_battle_setSpriteDefault(vs_getWH(16, 16), (j + 296) | (48 << 16))[4] =
             (x << 0x10) | vs_getUV(16, 48);
 
-        a1 = psx_get(vs_scratch.unk8);
-        prim = psx_get(vs_scratch.unk0);
-
-        prim[0] = (psx_to_int(u_long, a1[0]) & 0xFFFFFF) | 0x09000000;
-        prim[1] = vs_getTpage(0, 0, 0, 0, 1);
-        prim[2] = vs_getRGB0(primPolyG4, 0, 0, 0);
-        prim[3] = vs_getRGB888(208, 0, 30);
-        prim[4] = 0;
-        prim[5] = vs_getRGB888(232, 0, 32);
-        prim[6] = 0xC0A080;
-        prim[7] = vs_getRGB888(232, 0, 46);
-        prim[8] = 0;
-        prim[9] = vs_getRGB888(0, 1, 30);
-
-        ((u_long*)psx_get(vs_scratch.unk8))[0] = (psx_to_int(u_long, prim) << 8) >> 8;
-        psx_set(vs_scratch.unk0, prim + 10);
+        vs_menu_g4(-16, vs_getTpage(0, 0, 0, 0, 1), 0, vs_getRGB0(primPolyG4, 0, 0, 0), vs_getRGB888(208, 0, 30), 0,
+            vs_getRGB888(232, 0, 32), 0xC0A080, vs_getRGB888(232, 0, 46), 0, vs_getRGB888(0, 1, 30));
 
         if (++D_80105EF4 >= 12) {
             D_80105EF4 = 0;
@@ -337,21 +304,9 @@ static void _renderRenameMenu(int xOffset)
     }
 
     for (j = 0; j < 16; j += 4) {
-        prim = psx_get(vs_scratch.unk0);
-
-        prim[0] = (*sp18 & 0xFFFFFF) | 0x09000000;
-        prim[1] = vs_getTpage(0, 0, 0, 0, 1);
-        prim[2] = vs_getRGB0(primPolyG4, 0, 65, 107);
-        prim[3] = xOffset + _backgroundHexCoords[j];
-        prim[4] = vs_getRGB888(0, 5, 51);
-        prim[5] = xOffset + _backgroundHexCoords[j + 1];
-        prim[6] = vs_getRGB888(0, 5, 51);
-        prim[7] = xOffset + _backgroundHexCoords[j + 2];
-        prim[8] = vs_getRGB888(0, 5, 51);
-        prim[9] = xOffset + _backgroundHexCoords[j + 3];
-
-        *sp18 = (psx_to_int(u_long, prim) << 8) >> 8;
-        psx_set(vs_scratch.unk0, (u_long*)(prim + 10));
+        vs_menu_g4(-1, vs_getTpage(0, 0, 0, 0, 1), 0, vs_getRGB0(primPolyG4, 0, 65, 107), xOffset + _backgroundHexCoords[j],
+            vs_getRGB888(0, 5, 51), xOffset + _backgroundHexCoords[j + 1], vs_getRGB888(0, 5, 51),
+            xOffset + _backgroundHexCoords[j + 2], vs_getRGB888(0, 5, 51), xOffset + _backgroundHexCoords[j + 3]);
     }
 #ifdef ROOD_PC
     if (pc_classic_site)
@@ -365,30 +320,15 @@ static void _renderRenameMenu(int xOffset)
  */
 static void _highlightSelection(int x, int y, int w, int h)
 {
-    u_long* temp_t0;
-    u_long* temp_t4;
 #ifdef ROOD_PC
     /* PC_CLASSIC (classic_hook.h): the box, from its place and size. */
     pc_classic_rename_box pcBox = { x, y, w, h };
     void* pcBoxFirst = psx_load(void*, (u_int*)0x1F800000);
 #endif
 
-    temp_t4 = psx_get(vs_scratch.unk8);
-    temp_t0 = psx_get(vs_scratch.unk0);
-
-    temp_t0[0] = (*temp_t4 & 0xFFFFFF) | 0x09000000;
-    temp_t0[1] = vs_getTpage(0, 0, 0, semiTransparencyFull, ditheringOn);
-    temp_t0[2] = vs_getRGB0(primPolyG4SemiTrans, 128, 160, 192);
-    temp_t0[3] = (x | (y << 16));
-    temp_t0[4] = 0;
-    temp_t0[5] = (x + w) | (y << 16);
-    temp_t0[6] = 0;
-    temp_t0[7] = x | ((y + h) << 16);
-    temp_t0[8] = vs_getRGB888(128, 160, 192);
-    temp_t0[9] = (x + w) | ((y + h) << 16);
-
-    *temp_t4 = (psx_to_int(u_long, temp_t0) << 8) >> 8;
-    psx_set(vs_scratch.unk0, temp_t0 + 10);
+    vs_menu_g4(-16, vs_getTpage(0, 0, 0, semiTransparencyFull, ditheringOn), 1,
+        vs_getRGB0(primPolyG4SemiTrans, 128, 160, 192), (x | (y << 16)), 0, (x + w) | (y << 16), 0, x | ((y + h) << 16),
+        vs_getRGB888(128, 160, 192), (x + w) | ((y + h) << 16));
 #ifdef ROOD_PC
     if (pc_classic_site)
         pc_classic_site(PC_CLASSIC_SITE_RENAME_BOX, &pcBox, 0, 0, pcBoxFirst,

@@ -302,17 +302,64 @@ def scene_mainmenu(g, cp, symbols):
     g.press("cross", vsyncs=3, settle=60)
 
 
+def scene_manual(g, cp, symbols):
+    """The Quick Manual (MENUE): the list, a topic's pages, back (classic_parity.py's own opening)."""
+    from menu_nav import top_command
+    flags = int.from_bytes(g.read(symbols["vs_main_settings"] + 2, 2), "little")
+    g.write(symbols["vs_main_settings"] + 2, (flags | 1 << cp.MANUAL_COMMAND).to_bytes(2, "little"))
+    g.press("triangle", vsyncs=3, settle=30)
+    top_command(g, symbols, cp.MANUAL_COMMAND)
+    g.press("circle", vsyncs=2, settle=2)
+    g.run(400)  # (a fixed wait: the manual's own state is read by symbol, and not by every build's)
+    for button in ("down", "down", "up", "circle"):
+        g.press(button, vsyncs=3, settle=40)
+    for button in ("down", "down", "up", "up"):
+        g.press(button, vsyncs=3, settle=20)
+    for _ in range(2):
+        g.press("cross", vsyncs=3, settle=40)
+
+
 def scene_menuf(g, cp, symbols):
     """MENUF's screens, each played through and again skipped (classic_parity.py tour_menuf)."""
     cp.tour_menuf(g, symbols, lambda *args, **kwargs: None, lambda: None)
 
 
-SCENES = {"ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu}
+def own_menus(cp, out, card, env, wrap):
+    """Every MAINMENU screen's tour (classic_parity.py run_menus: Items, the magic and arts lists, Abilities, the manual,
+    Status, Score, the Map, Data, Setup and its rename grid, Loot, Storage), the games it launches hashed. The gate's own
+    parity mode is on there (the game draws, its claims are only compared): this is the game's drawing."""
+    import tomllib
+    real = cp.launch_at
+
+    def launch(*args, **kwargs):
+        g = real(*args, **kwargs)
+        wrap(g)
+        return g
+    cp.launch_at = launch
+    # (the manual's own state is read by symbol, which not every build answers: its route is the `manual` one)
+    cp.tour_manual = lambda *args, **kwargs: None
+    cp.manual_open = lambda *args, **kwargs: None
+    cp.MENUS_CARD2[:] = [cp.card2_fixture(out, card)]  # (card 2: Data's file states, as classic_parity.py main())
+    waivers = tomllib.loads((ROOT / "pc/tests/classic/waivers.toml").read_text())
+    cp.run_menus(out, card, env, lambda ok, message: ok, waivers, list(cp.MENUS))
 
 
-def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=()):
+def tour(name):
+    """classic_parity.py's tour `name` from a fresh game (each opens its screen itself): its pad work and waits, hashed."""
+    def scene(g, cp, symbols):
+        import collections
+        getattr(cp, f"tour_{name}")(g, symbols, lambda *args, **kwargs: None, lambda: collections.defaultdict(int))
+    return scene
+
+
+SCENES = {"ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu, "manual": scene_manual,
+          "score": tour("score"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items")}
+OWN = {"menus": own_menus}  # (routes that launch their own games, and take hashed() as wrap)
+
+
+def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan"):
     """The routes of `names`, each in a game of its own: {route: [display hashes]}."""
-    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64",
+    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER=renderer, ROOD_ARCH="64",
                       ROOD_TEST_SNAPSHOTS="0")
     sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
     import classic_parity as cp
@@ -326,10 +373,25 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
            "ROOD_GI": "0", "ROOD_AUDIO": "none", "ROOD_WINDOW": "1280x720" if aspect == "16:9" else "960x720", "ROOD_LIGHTS": str(out / "lights"),
            "ROOD_PREFABS": str(out / "prefabs"), "ROOD_OUT": str(out)}
     env.update(kv.split("=", 1) for kv in extra_env)
+    if renderer == "null":  # (the CPU reference frame: no GPU, the original drawing; quicker and the manual opens)
+        env["SDL_VIDEO_DRIVER"] = "invalid-null-classic-parity"
     if claims == "on":
         env["ROOD_PLUGINS_SHIPPED"] = str(ROOT / "pc/plugins")
     results = {}
     for name in names:
+        if name in OWN:
+            hashes = []
+            plugins = out / "own-plugins"
+            plugins.mkdir()
+            own = {k: v for k, v in env.items() if k not in ("ROOD_AUDIO", "ROOD_GI", "ROOD_WINDOW", "ROOD_OUT", "ROOD_LIGHTS", "ROOD_PREFABS")}  # (as classic_parity's)
+            own.update(ROOD_PLUGINS=str(plugins), ROOD_PLUGINS_SHIPPED=str(ROOT / "pc/plugins"), ROOD_CLASSIC_PARITY="1")
+            (out / "own-settings.cfg").write_text(f"ui_menus 0\nui_text font\naspect {aspect}\ninterpolate 0\n")
+            own["ROOD_SETTINGS"] = str(out / "own-settings.cfg")
+            own_card = out / f"card-{name}.mcd"
+            own_card.write_bytes(pathlib.Path(card).read_bytes())
+            OWN[name](cp, out, str(own_card), own, lambda game: hashed(game, out, sample, hashes))
+            results[name] = {"hashes": hashes, "word_glyphs": None, "item_words": None, "status_glyphs": None}
+            continue
         card_copy = out / f"card-{name}.mcd"
         card_copy.write_bytes(pathlib.Path(card).read_bytes())
         g = launch_at("save_room", card=str(card_copy), fast=True, log=out / f"{name}.log", extra_env=env)
@@ -337,7 +399,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
         try:
             hashed(g, out, sample, hashes)
             SCENES[name](g, cp, rood_rpc.symbols())
-            text = g.call("ui_text")  # ui_text's word-level drawing: small-capital words and the status words drawn
+            text = g.call("ui_text") if renderer != "null" else {}  # ui_text's word-level drawing: small-capital words and the status words drawn
         finally:
             g.close()
         results[name] = {"hashes": hashes, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
@@ -353,7 +415,7 @@ def env_of(binary, args):
 def run_menus(binary, args, names):
     with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
         done = subprocess.run([sys.executable, __file__, "--play-menus", binary, "--menus", ",".join(names), "--menu-sample",
-                               str(args.menu_sample), "--claims", args.claims, "--aspect", args.aspect, "--card", args.card, "--out", out]
+                               str(args.menu_sample), "--claims", args.claims, "--aspect", args.aspect, "--renderer", args.renderer, "--card", args.card, "--out", out]
                               + [a for kv in env_of(binary, args) for a in ("--env", kv)],
                               capture_output=True, text=True)
     lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
@@ -364,9 +426,9 @@ def run_menus(binary, args, names):
 
 def compare_menus(args):
     names = [n for n in args.menus.split(",") if n]
-    unknown = [n for n in names if n not in SCENES]
+    unknown = [n for n in names if n not in SCENES and n not in OWN]
     if unknown:
-        sys.exit(f"build_compare: no route {unknown} (have {', '.join(SCENES)})")
+        sys.exit(f"build_compare: no route {unknown} (have {', '.join(list(SCENES) + list(OWN))})")
     first, control, new = run_menus(args.old, args, names), run_menus(args.old, args, names), run_menus(args.new, args, names)
     code = 0
     for name in names:
@@ -473,6 +535,7 @@ def main():
     parser.add_argument("--claims", choices=["on", "off"], default="on", help="--menus: rood.classic's claims on or off")
     parser.add_argument("--new-env", action="append", default=[], metavar="KEY=VALUE", help="--menus: set in NEW's game (a dev flag such as ROOD_CLASSIC_ITEMS=1)")
     parser.add_argument("--env", action="append", default=[], help=argparse.SUPPRESS)
+    parser.add_argument("--renderer", choices=["vulkan", "null"], default="vulkan", help="--menus: null hashes the CPU reference frame (the original drawing, no GPU; no ui_text)")
     parser.add_argument("--aspect", choices=["4:3", "16:9"], default="4:3", help="--menus: the display's aspect")
     parser.add_argument("--play-menus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
@@ -482,7 +545,7 @@ def main():
     if args.play_casts:
         return play_casts(args.old, args.card, args.out, args.casts, args.cast_limit)
     if args.play_menus:
-        return play_menus(args.old, args.card, args.out, args.menus.split(","), args.menu_sample, args.claims, args.aspect, args.env)
+        return play_menus(args.old, args.card, args.out, args.menus.split(","), args.menu_sample, args.claims, args.aspect, args.env, args.renderer)
     if args.menus:
         return compare_menus(args)
     if args.casts:

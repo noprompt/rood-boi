@@ -8,12 +8,14 @@
 #include "pc/src/game/MENU/MAINMENU.PRG/C48.h"
 #include "pc/src/game/MENU/MAINMENU.PRG/224.h"
 #include "pc/src/game/MENU/MAINMENU.PRG/2D10.h"
+#include "pc/src/game/menuItem.h"
 #include "pc/src/game/MENU/MAINMENU.PRG/58EC.h"
 #include "build/assets/MENU/MENU4.PRG/status.h"
 #include "build/assets/MENU/MENU4.PRG/status.h"
 #include "build/assets/MENU/ITEMNAME.BIN.h"
 #include "build/assets/MENU/ITEMHELP.BIN.h"
 #include "gpu.h"
+#include "pc/src/game/menuItem.h"
 #include <libetc.h>
 
 static u_short _statusStrings[] = {
@@ -850,22 +852,11 @@ static void _renderBasicStats(void)
  */
 void _drawStatusIndicator(int colorIndex, int xy, int subdued)
 {
-    u_int color;
-    u_long* prim;
-    u_long* temp_t1;
+    u_int color = D_800EBC54[colorIndex] >> subdued;
 
-    temp_t1 = psx_get(vs_scratch.unk8);
-    prim = psx_get(vs_scratch.unk0);
-    color = D_800EBC54[colorIndex] >> subdued;
-    prim[0] = (*temp_t1 & 0xFFFFFF) | 0x06000000;
-    prim[1] = color | (primTile << 24);
-    prim[2] = xy;
-    prim[3] = vs_getWH(7, 7);
-    prim[4] = (color * 2) | (primTile << 24);
-    prim[5] = xy + vs_getXY(1, 1);
-    prim[6] = vs_getWH(5, 5);
-    *temp_t1 = (psx_to_int(u_long, prim) << 8) >> 8;
-    psx_set(vs_scratch.unk0, prim + 7);
+    /* (the inner square draws after the outer: submitted first) */
+    vs_menu_tile(-16, 0, 0, color * 2, xy + vs_getXY(1, 1), vs_getWH(5, 5));
+    vs_menu_tile(-16, 0, 0, color, xy, vs_getWH(7, 7));
 }
 
 /**
@@ -876,16 +867,11 @@ static void _drawLimbLeaderLine(
 {
     int temp_t2;
     int temp_v0;
-    u_long* prim;
-    u_long* temp_t0;
     int x;
 
     opaque = (0x687018 << opaque) | ((33 - opaque) << 25);
     temp_t2 = limb * 16 + 42;
     limb = ((xy >> 16) - temp_t2);
-
-    prim = psx_get(vs_scratch.unk0);
-    temp_t0 = psx_get(vs_scratch.unk4);
 
     x = (short)xy;
 
@@ -895,19 +881,10 @@ static void _drawLimbLeaderLine(
 
     limb = (limb * 3) >> 1;
 
-    prim[0] = (temp_t0[-1] & 0xFFFFFF) | 0x08000000;
-    prim[1] = 0xE1000000;
-    prim[2] = opaque;
-    prim[3] = xy;
     temp_v0 = ((x + ((limb * 2) / 3)) & 0xFFFF) | (temp_t2 << 0x10);
-    prim[4] = temp_v0;
-    prim[5] = (temp_t0[-1] & 0xFFFFFF) | 0x03000000;
-    prim[6] = opaque;
-    prim[7] = temp_v0;
-    prim[8] = (temp_t2 << 0x10) | 216;
-    temp_t0[-1] = ((psx_to_int(u_long, prim) << 8) >> 8);
-    prim += 9;
-    psx_set(vs_scratch.unk0, prim);
+    /* (the line and its second leg: the draw mode set, then the horizontal line; the second leg first as submitted) */
+    vs_menu_line(-1, 0xE1000000, (opaque >> 24) & 2, opaque, temp_v0, (temp_t2 << 0x10) | 216);
+    vs_menu_line(-1, 0xE1000000, (opaque >> 24) & 2, opaque, xy, temp_v0);
 }
 
 /**
@@ -1384,7 +1361,7 @@ static void _setWeaponRow(int row, vs_battle_uiWeapon* weapon, int init)
         if (xOffset < gemSlots) {
             menuText[1] = 0;
             menuText[0] = (char*)&vs_mainMenu_itemHelp[VS_ITEMHELP_BIN_OFFSET_none];
-            rowType = 0x58000000;
+            rowType = rowTypeGem;
 
             if (weapon->gems[xOffset].id != 0) {
                 vs_main_inventoryGem gem;
@@ -1430,7 +1407,7 @@ static void _setShieldRow(int row, vs_battle_uiShield* shield, int init)
 
         menuText[1] = NULL;
         menuText[0] = (char*)(&vs_mainMenu_itemHelp[VS_ITEMHELP_BIN_OFFSET_none]);
-        rowType = 0x58000000;
+        rowType = rowTypeGem;
 
         if (shield->gems[gemSlot].id != 0) {
             vs_main_inventoryGem gem;

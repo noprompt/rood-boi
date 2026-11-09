@@ -5,6 +5,7 @@
 #include "pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "gpu.h"
+#include "pc/src/game/menuItem.h"
 #include "vs_string.h"
 #include <libetc.h>
 #ifdef ROOD_PC
@@ -706,7 +707,6 @@ static void _renderAbilityCost(void)
 
     if (animState < 8) {
         int i;
-        u_long* poly;
         int x0;
         int x1 = -vs_battle_rowAnimationSteps[animState];
 
@@ -717,22 +717,11 @@ static void _renderAbilityCost(void)
         }
 
         x0 = x1 & 0xFFFF;
-        poly = psx_get(vs_scratch.unk0);
 
-        poly[0] = (*scratch & 0xFFFFFF) | 0x0A000000;
-        poly[1] = vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn);
-        poly[2] = vs_getRGB0(primPolyG4, 8, 8, 32);
-        poly[3] = x0 | (160 << 16);
-        poly[4] = vs_getRGB888(64, 48, 102);
-        poly[5] = (x1 + 80) | (160 << 16);
-        poly[6] = vs_getRGB888(8, 8, 32);
-        poly[7] = x0 | (171 << 16);
-        poly[8] = vs_getRGB888(64, 48, 102);
-        poly[9] = (x1 + 80) | (171 << 16);
-        poly[10] = vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff);
-
-        *scratch = (psx_to_int(u_long, poly) << 8) >> 8;
-        psx_set(vs_scratch.unk0, poly + 11);
+        vs_menu_g4_after(vs_menu_depth(scratch), vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn),
+            vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff), vs_getRGB0(primPolyG4, 8, 8, 32),
+            x0 | (160 << 16), vs_getRGB888(64, 48, 102), (x1 + 80) | (160 << 16), vs_getRGB888(8, 8, 32),
+            x0 | (171 << 16), vs_getRGB888(64, 48, 102), (x1 + 80) | (171 << 16));
 
         vs_battle_addTile(
             scratch, vs_getRGB0(primTile, 0, 0, 0), x0 | (162 << 16), vs_getWH(82, 11));
@@ -742,22 +731,12 @@ static void _renderAbilityCost(void)
 void vs_mainmenu_renderButtonBackground(int x, int y, int w, int h)
 {
     int i;
-    u_long* var_t2 = psx_get(vs_scratch.unk0);
-    u_long* temp_v1 = psx_get(vs_scratch.unk4) - 0xC;
 
     for (i = 0; i < h; ++i) {
-        var_t2[0] = vs_getTag(u_long[6], temp_v1[0]);
-        var_t2[1] = vs_getTpage(0, 0, 0, 0, ditheringOn);
-        var_t2[2] = vs_getRGB0(primLineG2, 64, 56, 32);
-        var_t2[3] = ((x & 0xFFFF) | ((y + i) << 0x10));
-        var_t2[4] = vs_getRGB888(16, 16, 8);
-        var_t2[5] = vs_getXY_2((x + w) - i, y + i);
-        var_t2[6] = vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff);
-        temp_v1[0] = ((psx_to_int(u_long, var_t2) << 8) >> 8);
-        var_t2 += 7;
+        vs_menu_line_g(-3, vs_getTpage(0, 0, 0, 0, ditheringOn),
+            vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff), 0, vs_getRGB0(primLineG2, 64, 56, 32),
+            ((x & 0xFFFF) | ((y + i) << 0x10)), vs_getRGB888(16, 16, 8), vs_getXY_2((x + w) - i, y + i));
     }
-
-    psx_set(vs_scratch.unk0, var_t2);
 }
 
 void vs_mainMenu_setBackgroundRenderPriority(int otOffset, int brightness)
@@ -1473,8 +1452,6 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
     }
 
     if (wh != 0) {
-        prim = psx_get(vs_scratch.unk0);
-
         for (i = 0; i < 12; ++i) {
 
             if (scroll == 0) {
@@ -1483,21 +1460,13 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
                 var_s3 = 120 - i * 8;
             }
 
-            prim[0] = vs_getTag(u_long[6], *before);
-            prim[1] = vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn);
-            prim[2] = vs_battle_uiGradientStop(8 - gradientState, backgroundWidth, var_s3)
-                    | 0x52000000;
-            prim[3] = xy;
-            prim[4] = vs_battle_uiGradientStop(gradientState, backgroundWidth, var_s3);
-            prim[5] = ((xy + wh - 1) & 0xFFFF) | ((xy >> 0x10) << 0x10);
-            prim[6] = vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOff);
-
-            *before = (psx_to_int(u_long, prim) << 8) >> 8;
-            prim += 7;
+            vs_menu_line_g(vs_menu_depth(before), vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn),
+                vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOff), 1,
+                vs_battle_uiGradientStop(8 - gradientState, backgroundWidth, var_s3), xy,
+                vs_battle_uiGradientStop(gradientState, backgroundWidth, var_s3),
+                ((xy + wh - 1) & 0xFFFF) | ((xy >> 0x10) << 0x10));
             xy += vs_getXY(0, 1);
         }
-
-        psx_set(vs_scratch.unk0, prim);
 
         if (scroll == 0) {
             vs_battle_addTile(before, vs_getRGB0(primTile, 0, 0, 0),

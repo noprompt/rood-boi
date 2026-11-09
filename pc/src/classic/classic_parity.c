@@ -611,6 +611,61 @@ void pc_classic_capture_allocated(int kind, int count)
         kinds[kind].allocated = count;
 }
 
+/* A packet list as the GPU takes it: one packet to a command, a draw mode or texture window set again to what it
+ * already is left out, and the words that do nothing (GP0 00 and 03) too. How the game packs its packets (a draw
+ * mode and a sprite in one, one draw mode for several sprites) and how draw items lower to them (a draw mode before
+ * each flat item) are then the same list. A packet keeps the anchor of the packet its words came from. */
+#define CANON_MAX (PC_CLASSIC_CAPTURE * 4)
+static int canonicalise(const pc_classic_packet* in, int n, pc_classic_packet* out, int max)
+{
+    int m = 0;
+    long mode = -1, window = -1;
+    for (int k = 0; k < n; k++) {
+        const pc_classic_packet* p = &in[k];
+        int i = 0, words = p->words < PC_CLASSIC_PACKET_WORDS ? p->words : PC_CLASSIC_PACKET_WORDS;
+        while (i < words) {
+            unsigned c = p->w[i] >> 24;
+            int len = words - i;
+            if (c == 0xE1 || c == 0xE2 || (c >= 0xE3 && c <= 0xE6) || c == 0 || c == 3 || c == 1 || c == 2 || c == 0x80)
+                len = c == 2 ? 3 : c == 0x80 ? 4 : 1;
+            else if (c >= 0x20 && c < 0x40)
+                len = ((c & 0x10) ? (c & 8 ? 4 : 3) : 1) + (c & 8 ? 4 : 3) + ((c & 4) ? (c & 8 ? 4 : 3) : 0);
+            else if (c == 0x40 || c == 0x42)
+                len = 3;
+            else if (c == 0x50 || c == 0x52)
+                len = 4;
+            else if (c >= 0x60 && c < 0x80)
+                len = 2 + ((c & 4) ? 1 : 0) + (((c >> 3) & 3) == 0 ? 1 : 0);
+            if (len > words - i)
+                len = words - i;
+            if (c == 0 || c == 3) {
+                i += len;
+                continue;
+            }
+            if ((c == 0xE1 && mode == (long)p->w[i]) || (c == 0xE2 && window == (long)p->w[i])) {
+                i += len;
+                continue;
+            }
+            if (c == 0xE1)
+                mode = (long)p->w[i];
+            else if (c == 0xE2)
+                window = (long)p->w[i];
+            else if ((c & 0xE4) == 0x24 && mode >= 0 && len > ((c & 0x10) ? 5 : 4)) /* (a textured polygon's page is the mode's low bits after it) */
+                mode = (long)((mode & ~0x1FFL) | (p->w[i + ((c & 0x10) ? 5 : 4)] >> 16 & 0x1FF));
+            if (m < max) {
+                pc_classic_packet* q = &out[m++];
+                memset(q, 0, sizeof *q);
+                q->words = (unsigned char)len;
+                q->anchor = p->anchor;
+                q->at = p->at;
+                memcpy(q->w, p->w + i, (size_t)len * sizeof q->w[0]);
+            }
+            i += len;
+        }
+    }
+    return m;
+}
+
 void pc_classic_parity_compare(int kind, const pc_classic_packet* lua, int count, unsigned vsync)
 {
     if (kind <= 0 || kind >= PC_CLASSIC_KINDS)
@@ -623,7 +678,9 @@ void pc_classic_parity_compare(int kind, const pc_classic_packet* lua, int count
     k->lua_count = count;
     k->lua_vsync = vsync;
     ++k->frames;
-    if (!pc_classic_compare(k->game, k->game_count, lua, count, &d)) {
+    static pc_classic_packet canon_game[CANON_MAX], canon_lua[CANON_MAX];
+    int game_n = canonicalise(k->game, k->game_count, canon_game, CANON_MAX), lua_n = canonicalise(lua, count, canon_lua, CANON_MAX);
+    if (!pc_classic_compare(canon_game, game_n, canon_lua, lua_n, &d)) {
         ++k->matched;
         return;
     }
@@ -636,12 +693,12 @@ void pc_classic_parity_compare(int kind, const pc_classic_packet* lua, int count
         k->first = d;
         k->first_vsync = vsync;
         copy_text(k->first_text, sizeof k->first_text, k->text);
-        k->first_game_ok = d.index < k->game_count;
-        k->first_lua_ok = d.index < count;
+        k->first_game_ok = d.index < game_n;
+        k->first_lua_ok = d.index < lua_n;
         if (k->first_game_ok)
-            k->first_game = k->game[d.index];
+            k->first_game = canon_game[d.index];
         if (k->first_lua_ok)
-            k->first_lua = lua[d.index];
+            k->first_lua = canon_lua[d.index];
     }
 }
 

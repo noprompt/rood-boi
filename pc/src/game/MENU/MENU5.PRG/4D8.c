@@ -20,6 +20,7 @@
 #include "build/assets/MENU/MENU5.PRG/paling.h"
 #include "build/src/include/lbas.h"
 #include "gpu.h"
+#include "pc/src/game/menuItem.h"
 #include "insertTPage.h"
 #include <libetc.h>
 #include <abs.h>
@@ -1010,8 +1011,6 @@ static void _renderScreen(void)
 #include "build/assets/MENU/MENU5.PRG/paling.vsString"
     };
 
-    DR_STP* stp;
-    void** pScratch = (void**)getScratchAddr(0);
     vs_main_flags_t* flags;
     int scene;
 
@@ -1028,18 +1027,13 @@ static void _renderScreen(void)
     _drawUIControls();
 #endif
 
-    stp = (DR_STP*)(psx_slot_get(void*, pScratch, 0));
-
-    SetDrawStp(stp, 1);
-    AddPrim((DR_STP*)(psx_slot_get(void*, pScratch, 1) + 0x1FFC), stp++);
+    vs_menu_mask(0x7FF, 1); /* (the mask bit set: drawn last, as the packet at the table's far end) */
 
     flags = &vs_main_stateFlags;
     scene = _currentScene;
 
     do {
     } while (0);
-
-    psx_slot_set(DR_STP*, pScratch, 0, stp);
 
     if (flags->mapPaling[scene] != 0) {
         _applyPalingScreenEffect();
@@ -1233,10 +1227,6 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
     u_char* var_s3;
     int i;
     int j;
-    POLY_G3* polyG3;
-    POLY_G4* polyG4;
-    LINE_G2* lineG2;
-    TILE* tile;
     int const* new_var;
 
     short (*var_s1)[4] = (void*)getScratchAddr(64);
@@ -1272,9 +1262,11 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
     var_s3 = roomData;
     var_s3 += 4;
     elementCount = *(int*)roomData;
-    polyG3 = psx_slot_get(void*, getScratchAddr(0), 0);
 
     for (i = 0; i < elementCount; ++i) {
+        unsigned c0;
+        unsigned c1;
+        unsigned c2;
 
         sp38 = var_s1[var_s3[0]][2];
 
@@ -1286,33 +1278,31 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
             sp38 = var_s1[var_s3[2]][2];
         }
 
-        setPolyG3(polyG3);
-        polyG3->x0 = var_s1[var_s3[0]][0];
-        polyG3->x1 = var_s1[var_s3[1]][0];
-        polyG3->x2 = var_s1[var_s3[2]][0];
-        polyG3->y0 = var_s1[var_s3[0]][1];
-        polyG3->y1 = var_s1[var_s3[1]][1];
-        polyG3->y2 = var_s1[var_s3[2]][1];
-
         DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
-        setRGB0(polyG3, colorOut0.r, colorOut0.g, colorOut0.b);
+        c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut0);
-        setRGB1(polyG3, colorOut0.r, colorOut0.g, colorOut0.b);
+        c1 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         DpqColor(&colorIn, var_s1[var_s3[2]][3], &colorOut0);
-        setRGB2(polyG3, colorOut0.r, colorOut0.g, colorOut0.b);
+        c2 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        AddPrim(psx_slot_get(int*, getScratchAddr(0), 1) + sp38, polyG3++);
+        vs_menu_g3(sp38, 0, 0, c0, vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1]), c1,
+            vs_getXY(var_s1[var_s3[1]][0], var_s1[var_s3[1]][1]), c2,
+            vs_getXY(var_s1[var_s3[2]][0], var_s1[var_s3[2]][1]));
 
         var_s3 += 4;
     }
 
     elementCount = *(int*)var_s3;
     var_s3 += 4;
-    polyG4 = (POLY_G4*)polyG3;
 
     for (i = 0; i < elementCount; ++i) {
+        unsigned c0;
+        unsigned c1;
+        unsigned c2;
+        unsigned c3;
+
         sp38 = var_s1[var_s3[0]][2];
 
         if (sp38 < var_s1[var_s3[1]][2]) {
@@ -1327,29 +1317,23 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
             sp38 = var_s1[var_s3[3]][2];
         }
 
-        setPolyG4(polyG4);
-        polyG4->x0 = var_s1[var_s3[0]][0];
-        polyG4->x1 = var_s1[var_s3[1]][0];
-        polyG4->x2 = var_s1[var_s3[3]][0];
-        polyG4->x3 = var_s1[var_s3[2]][0];
-        polyG4->y0 = var_s1[var_s3[0]][1];
-        polyG4->y1 = var_s1[var_s3[1]][1];
-        polyG4->y2 = var_s1[var_s3[3]][1];
-        polyG4->y3 = var_s1[var_s3[2]][1];
-
+        /* (the corners in the packet's order: the third and fourth swapped) */
         DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
-        setRGB0(polyG4, colorOut0.r, colorOut0.g, colorOut0.b);
+        c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut0);
-        setRGB1(polyG4, colorOut0.r, colorOut0.g, colorOut0.b);
+        c1 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         DpqColor(&colorIn, var_s1[var_s3[3]][3], &colorOut0);
-        setRGB2(polyG4, colorOut0.r, colorOut0.g, colorOut0.b);
+        c2 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         DpqColor(&colorIn, var_s1[var_s3[2]][3], &colorOut0);
-        setRGB3(polyG4, colorOut0.r, colorOut0.g, colorOut0.b);
+        c3 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        AddPrim(psx_slot_get(int*, getScratchAddr(0), 1) + sp38, polyG4++);
+        vs_menu_g4(sp38, 0, 0, c0, vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1]), c1,
+            vs_getXY(var_s1[var_s3[1]][0], var_s1[var_s3[1]][1]), c2,
+            vs_getXY(var_s1[var_s3[3]][0], var_s1[var_s3[3]][1]), c3,
+            vs_getXY(var_s1[var_s3[2]][0], var_s1[var_s3[2]][1]));
 
         var_s3 += 4;
     }
@@ -1357,10 +1341,15 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
     new_var = (int*)var_s3;
     elementCount = *new_var;
     var_s3 += 4;
-    lineG2 = (LINE_G2*)polyG4;
 
     for (i = 0; i < elementCount; ++i) {
-        long scratch = 0;
+        int x0;
+        int x1;
+        int y0;
+        int y1;
+        unsigned c0;
+        unsigned c1;
+
         sp38 = var_s1[var_s3[0]][2] - 1;
 
         if (sp38 < var_s1[var_s3[1]][2]) {
@@ -1373,58 +1362,19 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
 
         DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
         DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
+        c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
+        c1 = vs_getRGB888(colorOut1.r, colorOut1.g, colorOut1.b);
 
-        setLineG2(lineG2);
-        setSemiTrans(lineG2, 1);
+        x0 = var_s1[var_s3[0]][0];
+        x1 = var_s1[var_s3[1]][0];
+        y0 = var_s1[var_s3[0]][1];
+        y1 = var_s1[var_s3[1]][1];
 
-        lineG2->x0 = var_s1[var_s3[0]][0] - 1;
-        lineG2->x1 = var_s1[var_s3[1]][0] - 1;
-        lineG2->y0 = var_s1[var_s3[0]][1];
-        lineG2->y1 = var_s1[var_s3[1]][1];
-
-        setRGB0(lineG2, colorOut0.r, colorOut0.g, colorOut0.b);
-        setRGB1(lineG2, colorOut1.r, colorOut1.g, colorOut1.b);
-
-        AddPrim(psx_slot_get(int*, (0x1f800000 + scratch), 1) + sp38, lineG2++);
-
-        setLineG2(lineG2);
-        setSemiTrans(lineG2, 1);
-
-        lineG2->x0 = var_s1[var_s3[0]][0];
-        lineG2->x1 = var_s1[var_s3[1]][0];
-        lineG2->y0 = var_s1[var_s3[0]][1] - 1;
-        lineG2->y1 = var_s1[var_s3[1]][1] - 1;
-
-        setRGB0(lineG2, colorOut0.r, colorOut0.g, colorOut0.b);
-        setRGB1(lineG2, colorOut1.r, colorOut1.g, colorOut1.b);
-
-        AddPrim(psx_slot_get(int*, (0x1f800000 + scratch), 1) + sp38, lineG2++);
-
-        setLineG2(lineG2);
-        setSemiTrans(lineG2, 1);
-
-        lineG2->x0 = var_s1[var_s3[0]][0] + 1;
-        lineG2->x1 = var_s1[var_s3[1]][0] + 1;
-        lineG2->y0 = var_s1[var_s3[0]][1];
-        lineG2->y1 = var_s1[var_s3[1]][1];
-
-        setRGB0(lineG2, colorOut0.r, colorOut0.g, colorOut0.b);
-        setRGB1(lineG2, colorOut1.r, colorOut1.g, colorOut1.b);
-
-        AddPrim(psx_slot_get(int*, (0x1f800000 + scratch), 1) + sp38, lineG2++);
-
-        setLineG2(lineG2);
-        setSemiTrans(lineG2, 1);
-
-        lineG2->x0 = var_s1[var_s3[0]][0];
-        lineG2->x1 = var_s1[var_s3[1]][0];
-        lineG2->y0 = var_s1[var_s3[0]][1] + 1;
-        lineG2->y1 = var_s1[var_s3[1]][1] + 1;
-
-        setRGB0(lineG2, colorOut0.r, colorOut0.g, colorOut0.b);
-        setRGB1(lineG2, colorOut1.r, colorOut1.g, colorOut1.b);
-
-        AddPrim(psx_slot_get(int*, (0x1f800000 + scratch), 1) + sp38, lineG2++);
+        /* (the line's four neighbours, a pixel left, up, right and down, then the line itself) */
+        vs_menu_line_g(sp38, 0, 0, 1, c0, vs_getXY(x0 - 1, y0), c1, vs_getXY(x1 - 1, y1));
+        vs_menu_line_g(sp38, 0, 0, 1, c0, vs_getXY(x0, y0 - 1), c1, vs_getXY(x1, y1 - 1));
+        vs_menu_line_g(sp38, 0, 0, 1, c0, vs_getXY(x0 + 1, y0), c1, vs_getXY(x1 + 1, y1));
+        vs_menu_line_g(sp38, 0, 0, 1, c0, vs_getXY(x0, y0 + 1), c1, vs_getXY(x1, y1 + 1));
 
         if (roomIndex == _currentRoomIndex) {
             colorIn.g = 0xFF;
@@ -1432,19 +1382,11 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
             colorIn.b = 0x80;
             DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
             DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
+            c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
+            c1 = vs_getRGB888(colorOut1.r, colorOut1.g, colorOut1.b);
         }
 
-        setLineG2(lineG2);
-
-        lineG2->x0 = var_s1[var_s3[0]][0];
-        lineG2->x1 = var_s1[var_s3[1]][0];
-        lineG2->y0 = var_s1[var_s3[0]][1];
-        lineG2->y1 = var_s1[var_s3[1]][1];
-
-        setRGB0(lineG2, colorOut0.r, colorOut0.g, colorOut0.b);
-        setRGB1(lineG2, colorOut1.r, colorOut1.g, colorOut1.b);
-
-        AddPrim(psx_slot_get(int*, (0x1f800000 + scratch), 1) + sp38, lineG2++);
+        vs_menu_line_g(sp38, 0, 0, 0, c0, vs_getXY(x0, y0), c1, vs_getXY(x1, y1));
 
         var_s3 += 4;
     }
@@ -1472,21 +1414,9 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
         DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
         DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
 
-        setLineG2(lineG2);
-
-        do {
-            setSemiTrans(lineG2, 1);
-        } while (0);
-
-        lineG2->x0 = var_s1[var_s3[0]][0];
-        lineG2->x1 = var_s1[var_s3[1]][0];
-        lineG2->y0 = var_s1[var_s3[0]][1];
-        lineG2->y1 = var_s1[var_s3[1]][1];
-
-        setRGB0(lineG2, colorOut0.r, colorOut0.g, colorOut0.b);
-        setRGB1(lineG2, colorOut1.r, colorOut1.g, colorOut1.b);
-
-        AddPrim(psx_slot_get(int*, getScratchAddr(0), 1) + sp38, lineG2++);
+        vs_menu_line_g(sp38, 0, 0, 1, vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b),
+            vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1]), vs_getRGB888(colorOut1.r, colorOut1.g, colorOut1.b),
+            vs_getXY(var_s1[var_s3[1]][0], var_s1[var_s3[1]][1]));
     }
 
 #ifdef ROOD_PC
@@ -1496,21 +1426,17 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
         var_s1[i][0] = pc_gte_unnarrow_x(var_s1[i][0]);
     }
 #endif
-    tile = (TILE*)lineG2;
     elementCount = *(int*)var_s3;
     var_s3 += 4;
 
     for (i = 0; i < elementCount; ++i, var_s3 += 4) {
 
         sp3C = 0;
-        psx_slot_set(void*, getScratchAddr(0), 0, tile);
-
         if ((var_s3[3] != 0) && (func_8010839C(var_s3[3], arg2, arg3) != 0)
             && (roomIndex == _currentRoomIndex)) {
 
             func_80107630(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1] - 0xE, var_s3[3]);
 
-            tile = psx_slot_get(void*, getScratchAddr(0), 0);
             sp3C = 1;
         }
 
@@ -1601,32 +1527,18 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
                 }
             }
 
-            tile = psx_slot_get(void*, getScratchAddr(0), 0);
-
             if (sp3C != 0) {
-                int** s2;
                 sp38 = var_s1[var_s3[0]][2] - 1;
 
-                setTile(tile);
-                setXY0(tile, var_s1[var_s3[0]][0] - 1, var_s1[var_s3[0]][1]);
-                setWH(tile, 3, 1);
-                setRGB0(tile, colorIn.r, colorIn.g, colorIn.b);
-
-                AddPrim(psx_slot_get(int*, getScratchAddr(0), 1) + sp38, tile++);
-
-                setTile(tile);
-                setXY0(tile, var_s1[var_s3[0]][0], var_s1[var_s3[0]][1] - 1);
-                setWH(tile, 1, 3);
-                setRGB0(tile, colorIn.r, colorIn.g, colorIn.b);
-
-                s2 = ((int**)getScratchAddr(0));
-
-                AddPrim(psx_slot_get(int*, s2, 1) + sp38, tile++);
+                /* (the marker's two bars: its cross, one pixel thick) */
+                vs_menu_tile(sp38, 0, 0, vs_getRGB888(colorIn.r, colorIn.g, colorIn.b),
+                    vs_getXY(var_s1[var_s3[0]][0] - 1, var_s1[var_s3[0]][1]), vs_getWH(3, 1));
+                vs_menu_tile(sp38, 0, 0, vs_getRGB888(colorIn.r, colorIn.g, colorIn.b),
+                    vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1] - 1), vs_getWH(1, 3));
             }
         }
     }
 
-    psx_slot_set(void*, getScratchAddr(0), 0, tile);
 
     return 1;
 }
@@ -1910,48 +1822,17 @@ static void _buildPitchMatrix(MATRIX* arg0, short arg1)
 
 static void _darkenBackground(void)
 {
-    SPRT* sprt;
-    u_long* pScratch1;
-    u_long* pScratch2;
-
-    _insertTPage(0x7FE, getTPage(0, 3, 0, 0));
-
-    pScratch1 = getScratchAddr(0);
-    sprt = psx_to_ptr(SPRT*, pScratch1[0]);
-    setSprt(sprt);
-    setSemiTrans(sprt, 1);
-    setShadeTex(sprt, 1);
-    setXY0(sprt, 0, 0);
-    setWH(sprt, 192, 240);
-    setUV0(sprt, 0, 0);
-    setClut(sprt, 0, 0);
-    AddPrim(psx_to_ptr(void*, pScratch1[1] + 0x7FE * 4), sprt++);
-    *getScratchAddr(0) = psx_to_int(u_long, sprt);
-
-    if (vs_main_frameBuf != 0) {
-        _insertTPage(0x7FE, getTPage(2, 0, 320, 0));
-    } else {
-        _insertTPage(0x7FE, getTPage(2, 0, 0, 0));
+    /* The packets were linked with a draw mode in between; the chain drew the second sprite in the page the last one
+     * named, the first in the one before it, and left the first mode (semi-transparency 3) set after them. */
+    vs_menu_sprite(0x7FE, PC_ITEM_MODE(getTPage(2, 0, vs_main_frameBuf != 0 ? 320 : 0, 0)), 1, 1, 0, 0, 0, 192, 240, 0, 0, 0);
+    {
+        pc_item* first = pc_frame_item(pc_frame_count() - 1);
+        if (first) {
+            first->flags |= PC_ITEM_AFTER;
+            first->after = (unsigned short)(PC_ITEM_MODE(getTPage(0, 3, 0, 0)) & 0x3fff);
+        }
     }
-
-    sprt = psx_to_ptr(SPRT*, *getScratchAddr(0));
-    setSprt(sprt);
-    setSemiTrans(sprt, 1);
-    setShadeTex(sprt, 1);
-    setXY0(sprt, 192, 0);
-    setWH(sprt, 128, 240);
-    setUV0(sprt, 0, 0);
-    setClut(sprt, 0, 0);
-
-    pScratch2 = getScratchAddr(0);
-    AddPrim(psx_to_ptr(void*, pScratch2[1] + 0x7FE * 4), sprt++);
-    pScratch2[0] = psx_to_int(u_long, sprt);
-
-    if (vs_main_frameBuf != 0) {
-        _insertTPage(0x7FE, getTPage(2, 0, 512, 0));
-    } else {
-        _insertTPage(0x7FE, getTPage(2, 0, 192, 0));
-    }
+    vs_menu_sprite(0x7FE, PC_ITEM_MODE(getTPage(2, 0, vs_main_frameBuf != 0 ? 512 : 192, 0)), 1, 1, 0, 192, 0, 128, 240, 0, 0, 0);
 }
 
 static int _getCurrentRoomIndex(vs_battle_scene* scene)
@@ -2004,64 +1885,37 @@ static void _applyPalingScreenEffect(void)
 {
     int y;
 
-    _insertTPage(0x7FE, getTPage(0, 3, 0, 0));
+    /* (a draw mode alone, at the table's far end: what draws after it with no mode of its own has this one) */
+    vs_menu_mode(0x7FE, PC_ITEM_MODE(getTPage(0, 3, 0, 0)));
 
     for (y = 0; y < 239; ++y) {
         int x;
-        void** new_var;
-        int v;
-        SPRT* sprt = psx_slot_get(void*, getScratchAddr(0), 0);
 
-        setSprt(sprt);
-        setSemiTrans(sprt, 1);
-        setRGB0(sprt, 128, 128, 128);
-
-        v = _menuFramesCounter;
-        new_var = (void**)getScratchAddr(0);
-
+        x = rsin((_menuFramesCounter + y) << 6);
         if (y & 1) {
-            x = rsin((_menuFramesCounter + y) << 6);
             if (x < 0) {
                 x += 127;
             }
             x = x >> 7;
         } else {
-            x = rsin((_menuFramesCounter + y) << 6);
             if (x < 0) {
                 x += 127;
             }
             x = -(x >> 7);
         }
 
-        setXY0(sprt, x, y);
-        setWH(sprt, 192, 1);
-        setUV0(sprt, 0, y);
-        setClut(sprt, 0, 0);
+        /* (each sprite draws in the page the mode inserted after it names) */
+        vs_menu_sprite(8, PC_ITEM_MODE(getTPage(2, 0, vs_main_frameBuf != 0 ? 320 : 0, 0)), 1, 0, 0x808080, x, y, 192, 1, 0, y,
+            getClut(0, 0));
 
-        AddPrim(psx_slot_get(void*, new_var, 1) + 0x20, sprt++);
-
-        psx_slot_set(void*, new_var, 0, (void*)sprt);
-
-        if (vs_main_frameBuf != 0) {
-            _insertTPage(8, getTPage(2, 0, 320, 0));
-        } else {
-            _insertTPage(8, getTPage(2, 0, 0, 0));
-        }
-
-        sprt = psx_slot_get(void*, getScratchAddr(0), 0);
-        setSprt(sprt);
-        setSemiTrans(sprt, 1);
-        setRGB0(sprt, 128, 128, 128);
-
+        x = rsin((_menuFramesCounter + y) << 6);
         if (y & 1) {
-            x = rsin((_menuFramesCounter + y) << 6);
             if (x < 0) {
                 x += 127;
             }
             x = (x >> 7) + 192;
         } else {
             int offset;
-            x = rsin((_menuFramesCounter + y) << 6);
             offset = x >> 7;
             if (x < 0) {
                 offset = (x + 127) >> 7;
@@ -2069,19 +1923,8 @@ static void _applyPalingScreenEffect(void)
             x = 192 - offset;
         }
 
-        setXY0(sprt, x, y);
-        setWH(sprt, 128, 1);
-        setUV0(sprt, 0, y);
-
-        AddPrim(psx_slot_get(void*, new_var, 1) + 0x20, sprt++);
-
-        psx_slot_set(void*, new_var, 0, (void*)sprt);
-
-        if (vs_main_frameBuf != 0) {
-            _insertTPage(8, getTPage(2, 0, 512, 0));
-        } else {
-            _insertTPage(8, getTPage(2, 0, 192, 0));
-        }
+        vs_menu_sprite(8, PC_ITEM_MODE(getTPage(2, 0, vs_main_frameBuf != 0 ? 512 : 192, 0)), 1, 0, 0x808080, x, y, 128, 1, 0, y,
+            0);
     }
 }
 
@@ -2089,26 +1932,16 @@ static void _drawUIControlsBackground(int x, int y, int w, int h)
 {
     int i;
     int lineW;
-    POLY_F4* poly;
-    void** pScratch;
-    LINE_G2* line = psx_slot_get(void*, getScratchAddr(0), 0);
+    /* (the mode inserted at the slot's head after the four backgrounds is the one they draw in) */
+    int mode = PC_ITEM_MODE(getTPage(2, 0, 192, 0));
 
     for (i = y, lineW = w; i < (y + h - 1); ++i, --lineW) {
-        setLineG2(line);
-        setXY2(line, x, i, x + lineW - 1, i);
-        setRGB0(line, 0x40, 0x38, 0x20);
-        setRGB1(line, 0x10, 0x10, 8);
-        AddPrim(psx_slot_get(int*, getScratchAddr(1), 0) + 7, line++);
+        vs_menu_line_g(7, mode, 0, 0, vs_getRGB888(0x40, 0x38, 0x20), vs_getXY(x, i), vs_getRGB888(0x10, 0x10, 8),
+            vs_getXY(x + lineW - 1, i));
     }
     x += 2;
     y += 2;
-    poly = (POLY_F4*)line;
-    setPolyF4(poly);
-    setXY4(poly, x, y, x + w - 1, y, x, y + h - 1, x + w - h, y + h - 1);
-    setRGB0(poly, 0, 0, 0);
-    pScratch = (void**)getScratchAddr(0);
-    AddPrim(psx_slot_get(void*, pScratch, 1) + 28, poly++);
-    psx_slot_set(void*, pScratch, 0, (void*)poly);
+    vs_menu_f4(7, mode, 0, 0, vs_getXY(x, y), vs_getXY(x + w - 1, y), vs_getXY(x, y + h - 1), vs_getXY(x + w - h, y + h - 1));
 }
 
 static void _drawUIControls(void)
@@ -2272,8 +2105,6 @@ static void _drawUIControls(void)
         _drawUIControlsBackground(uiXOffset + 16, 54, 78, 12);
         _drawUIControlsBackground(uiXOffset + 16, 72, 60, 12);
 
-        _insertTPage(7, getTPage(2, 0, 192, 0));
-
         _renderCompass(62, 184, _cameraAngles.vy);
 
     } else {
@@ -2289,24 +2120,12 @@ static RECT D_80108D14[] = { { 192, 144, 26, 8 }, { 216, 160, 39, 8 } };
 
 static void _renderIcon(int id, int x, int y)
 {
-    RECT* icon;
-    void** scratch = (void**)getScratchAddr(0);
-    POLY_FT4* poly = psx_slot_get(void*, scratch, 0);
+    RECT* icon = &_iconRects[id];
 
-    setPolyFT4(poly);
-    setShadeTex(poly, 1);
-
-    icon = &_iconRects[id];
-
-    setXY4(poly, x - icon->w / 2, y, icon->w + (x - icon->w / 2), y, x - icon->w / 2,
-        y + 8, icon->w + (x - icon->w / 2), y + 8);
-    setUV4(poly, icon->x, icon->y, icon->x + icon->w, icon->y, icon->x, icon->y + 8,
-        icon->x + icon->w, icon->y + 8);
-    setTPage(poly, 0, 0, 768, 0);
-    setClut(poly, 848, 223);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) + 28, poly++);
-    psx_slot_set(void*, scratch, 0, poly);
+    vs_menu_ft4(7, 0, getTPage(0, 0, 768, 0), getClut(848, 223), 0, 1, 0, vs_getXY(x - icon->w / 2, y),
+        vs_getXY(icon->w + (x - icon->w / 2), y), vs_getXY(x - icon->w / 2, y + 8), vs_getXY(icon->w + (x - icon->w / 2), y + 8),
+        icon->x | (icon->y << 8), (icon->x + icon->w) | (icon->y << 8), icon->x | ((icon->y + 8) << 8),
+        (icon->x + icon->w) | ((icon->y + 8) << 8));
 }
 
 static void func_80107630(int x, int y, int id)
@@ -2314,41 +2133,27 @@ static void func_80107630(int x, int y, int id)
     RECT* rect0;
     RECT* rect1;
     int temp;
-    void** new_var = (void**)getScratchAddr(0);
-    POLY_FT4* poly = psx_slot_get(void*, new_var, 0);
     int s6 = (id - 1);
 
     id = vs_main_stateFlags.unk33F[id] & 1;
     rect0 = &D_80108D04[id];
 
-    setPolyFT4(poly);
-    setShadeTex(poly, 1);
-    setXY4(poly, x - (rect0->w / 2), y, rect0->w + (x - rect0->w / 2), y,
-        x - (rect0->w / 2), rect0->h + y, rect0->w + (x - rect0->w / 2), rect0->h + y);
-    setUV4(poly, rect0->x, rect0->y, rect0->x + rect0->w, rect0->y, rect0->x,
-        rect0->y + rect0->h, rect0->x + rect0->w, rect0->y + rect0->h);
-    setTPage(poly, 0, 0, 768, 0);
-    setClut(poly, 976, 223);
-
     temp = s6 & 0x7F;
 
-    AddPrim(psx_slot_get(void*, new_var, 1) + 28, poly++);
+    vs_menu_ft4(7, 0, getTPage(0, 0, 768, 0), getClut(976, 223), 0, 1, 0, vs_getXY(x - (rect0->w / 2), y),
+        vs_getXY(rect0->w + (x - rect0->w / 2), y), vs_getXY(x - (rect0->w / 2), rect0->h + y),
+        vs_getXY(rect0->w + (x - rect0->w / 2), rect0->h + y), rect0->x | (rect0->y << 8),
+        (rect0->x + rect0->w) | (rect0->y << 8), rect0->x | ((rect0->y + rect0->h) << 8),
+        (rect0->x + rect0->w) | ((rect0->y + rect0->h) << 8));
 
     y += rect0->h;
     rect1 = &D_80108D14[id];
 
-    setPolyFT4(poly);
-    setShadeTex(poly, 1);
-    setXY4(poly, x - (rect1->w / 2), y, rect1->w + (x - rect1->w / 2), y,
-        x - (rect1->w / 2), rect1->h + y, rect1->w + (x - rect1->w / 2), rect1->h + y);
-    setUV4(poly, rect1->x, rect1->y, rect1->x + rect1->w, rect1->y, rect1->x,
-        rect1->y + rect1->h, rect1->x + rect1->w, rect1->y + rect1->h);
-    setTPage(poly, 0, 0, 768, 0);
-    setClut(poly, 864, 223);
-
-    AddPrim(psx_slot_get(void*, new_var, 1) + 28, poly++);
-
-    psx_slot_set(void*, new_var, 0, poly);
+    vs_menu_ft4(7, 0, getTPage(0, 0, 768, 0), getClut(864, 223), 0, 1, 0, vs_getXY(x - (rect1->w / 2), y),
+        vs_getXY(rect1->w + (x - rect1->w / 2), y), vs_getXY(x - (rect1->w / 2), rect1->h + y),
+        vs_getXY(rect1->w + (x - rect1->w / 2), rect1->h + y), rect1->x | (rect1->y << 8),
+        (rect1->x + rect1->w) | (rect1->y << 8), rect1->x | ((rect1->y + rect1->h) << 8),
+        (rect1->x + rect1->w) | ((rect1->y + rect1->h) << 8));
 
     _addMapLabel(x, y, 0, temp);
 }
@@ -2389,121 +2194,57 @@ static void _renderDoorName(int x, int y, int doorId)
 
 static void _insertLine(int x0, int y0, int x1, int y1)
 {
-    u_long** p = (u_long**)getScratchAddr(0);
-    LINE_F2* line = psx_slot_get(LINE_F2*, p, 0);
-
-    setLineF2(line);
-    setXY2(line, x0, y0, x1, y1);
-    setRGB0(line, 128, 128, 128);
-
-    AddPrim(psx_slot_get(u_long*, p, 1) + 8, line++);
-
-    psx_slot_set(u_long*, p, 0, (u_long*)line);
+    vs_menu_line(8, 0, 0, vs_getRGB888(128, 128, 128), vs_getXY(x0, y0), vs_getXY(x1, y1));
 }
 
 static void _renderCompass(int x, int y, int angle)
 {
     int i;
     int uCoords[] = { 0x30, 0x40, 0x48, 0x38 };
-    void** new_var2;
-    void** new_var3;
     int v;
     int new_var4;
-
-    POLY_FT4* poly = psx_slot_get(void*, 0x1F800000, 0);
 
     for (i = 0; i < 8; ++i) {
 
         _computeRotatedRect(x, y, 43, 3, angle + (i * 256));
 
-        setPolyFT4(poly);
-        setSemiTrans(poly, 1);
-        setShadeTex(poly, 1);
-
         new_var4 = 45;
 
         if (!(i & 3)) {
             v = 128;
-            setUV4(poly, 2, v, new_var4, v, 2, 131, new_var4, 131);
         } else {
             v = 132;
-            setUV4(poly, 2, v, new_var4, v, 2, 135, new_var4, 135);
         }
 
-        setXY4(poly, _compassBounds[0].x, _compassBounds[0].y, _compassBounds[1].x,
-            _compassBounds[1].y, _compassBounds[2].x, _compassBounds[2].y,
-            _compassBounds[3].x, _compassBounds[3].y);
-        setTPage(poly, 0, 1, 448, 256);
-        setClut(poly, 960, 222);
-
-        new_var3 = (void**)0x1F800000;
-
-        AddPrim(psx_slot_get(void*, new_var3, 1) + 28, poly++);
+        vs_menu_ft4(7, 0, getTPage(0, 1, 448, 256), getClut(960, 222), 1, 1, 0,
+            vs_getXY(_compassBounds[0].x, _compassBounds[0].y), vs_getXY(_compassBounds[1].x, _compassBounds[1].y),
+            vs_getXY(_compassBounds[2].x, _compassBounds[2].y), vs_getXY(_compassBounds[3].x, _compassBounds[3].y), 2 | (v << 8),
+            new_var4 | (v << 8), 2 | ((v + 3) << 8), new_var4 | ((v + 3) << 8));
     }
 
     _computeRotatedRect(x, y, 39, 39, angle + 0x200);
 
     for (i = 0; i < 4; ++i) {
 
-        setPolyFT4(poly);
-        setShadeTex(poly, 1);
-        setXY4(poly, _compassBounds[i].x - 3, _compassBounds[i].y - 3,
-            _compassBounds[i].x + 4, _compassBounds[i].y - 3, _compassBounds[i].x - 3,
-            _compassBounds[i].y + 4, _compassBounds[i].x + 4, _compassBounds[i].y + 4);
-        setUV4(poly, uCoords[i], 128, uCoords[i] + 7, 128, uCoords[i], 135,
-            uCoords[i] + 7, 135);
-        setTPage(poly, 0, 0, 448, 256);
+        vs_menu_ft4(6, 0, getTPage(0, 0, 448, 256), i == 0 ? getClut(960, 221) : getClut(1008, 220), 0, 1, 0,
+            vs_getXY(_compassBounds[i].x - 3, _compassBounds[i].y - 3), vs_getXY(_compassBounds[i].x + 4, _compassBounds[i].y - 3),
+            vs_getXY(_compassBounds[i].x - 3, _compassBounds[i].y + 4), vs_getXY(_compassBounds[i].x + 4, _compassBounds[i].y + 4),
+            uCoords[i] | (128 << 8), (uCoords[i] + 7) | (128 << 8), uCoords[i] | (135 << 8), (uCoords[i] + 7) | (135 << 8));
 
-        if (i == 0) {
-            setClut(poly, 960, 221);
-        } else {
-            setClut(poly, 1008, 220);
-        }
-
-        new_var3 = (void**)0x1F800000;
-
-        AddPrim(psx_slot_get(void*, new_var3, 1) + 0x18, poly++);
-
-        setPolyFT4(poly);
-        setSemiTrans(poly, 1);
-        setShadeTex(poly, 1);
-        setXY4(poly, _compassBounds[i].x - 6, _compassBounds[i].y - 6,
-            _compassBounds[i].x + 7, _compassBounds[i].y - 6, _compassBounds[i].x - 6,
-            _compassBounds[i].y + 7, _compassBounds[i].x + 7, _compassBounds[i].y + 7);
-        setUV4(poly, 1, 137, 14, 137, 1, 150, 14, 150);
-        setTPage(poly, 0, 1, 448, 256);
-
-        if (i == 0) {
-            setClut(poly, 976, 222);
-        } else {
-            setClut(poly, 960, 222);
-        }
-
-        new_var3 = (void**)0x1F800000;
-
-        AddPrim(psx_slot_get(void*, new_var3, 1) + 0x18, poly++);
+        vs_menu_ft4(6, 0, getTPage(0, 1, 448, 256), i == 0 ? getClut(976, 222) : getClut(960, 222), 1, 1, 0,
+            vs_getXY(_compassBounds[i].x - 6, _compassBounds[i].y - 6), vs_getXY(_compassBounds[i].x + 7, _compassBounds[i].y - 6),
+            vs_getXY(_compassBounds[i].x - 6, _compassBounds[i].y + 7), vs_getXY(_compassBounds[i].x + 7, _compassBounds[i].y + 7),
+            1 | (137 << 8), 14 | (137 << 8), 1 | (150 << 8), 14 | (150 << 8));
     }
 
     _computeRotatedRect(x, y, 15, 15, (angle - _cameraAngles.vz) + 0x200);
     _computeRotatedRect(
         _compassBounds[0].x, _compassBounds[0].y, 15, 17, angle - _cameraAngles.vz);
 
-    setPolyFT4(poly);
-    setSemiTrans(poly, 1);
-    setShadeTex(poly, 1);
-    setXY4(poly, _compassBounds[0].x, _compassBounds[0].y, _compassBounds[1].x,
-        _compassBounds[1].y, _compassBounds[2].x, _compassBounds[2].y,
-        _compassBounds[3].x, _compassBounds[3].y);
-    setUV4(poly, 0x14, 0x88, 0x23, 0x88, 0x14, 0x99, 0x23, 0x99);
-    setTPage(poly, 0, 0, 448, 256);
-    setClut(poly, 992, 222);
-
-    new_var2 = (void**)0x1F800000;
-    new_var3 = (void**)0x1F800000;
-
-    AddPrim(psx_slot_get(void*, new_var3, 1) + 0x18, poly++);
-
-    psx_slot_set(void*, new_var2, 0, (void*)poly);
+    vs_menu_ft4(6, 0, getTPage(0, 0, 448, 256), getClut(992, 222), 1, 1, 0, vs_getXY(_compassBounds[0].x, _compassBounds[0].y),
+        vs_getXY(_compassBounds[1].x, _compassBounds[1].y), vs_getXY(_compassBounds[2].x, _compassBounds[2].y),
+        vs_getXY(_compassBounds[3].x, _compassBounds[3].y), 0x14 | (0x88 << 8), 0x23 | (0x88 << 8), 0x14 | (0x99 << 8),
+        0x23 | (0x99 << 8));
 }
 
 static void _computeRotatedRect(int arg0, int arg1, int arg2, int arg3, int arg4)
