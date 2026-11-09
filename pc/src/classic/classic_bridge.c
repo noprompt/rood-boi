@@ -110,9 +110,22 @@ static const int panel_slots[] = { -4, -8, -12, -16 };
 extern int pc_photo_hide_hud(void) __attribute__((weak));
 extern int pc_photo_hud_words __attribute__((weak)), pc_photo_hud_timer __attribute__((weak));
 
+/* The site's draw items (PC_CLASSIC set them for the call: draw_items.h pc_frame_site; a site called without them has
+ * none), read by the layer below for the call's length. */
+static int site_first, site_end;
+void pc_classic_site_items(int* first, int* end) { *first = site_first, *end = site_end; }
+/* The game's drawing of the site hidden: its packets no-ops and its items not drawn. */
+static void hide_site(void* first)
+{
+    pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+    pc_frame_suppress(site_first, site_end);
+}
+
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end)
 {
     static pc_classic_packet captured[PC_CLASSIC_CAPTURE];
+    pc_frame_site_range(&site_first, &site_end);
+    pc_frame_site(0, 0);
     /* (the HUD's sites, the words over the actors and the timer with them (photo_ui.cpp hud_words, hud_timer);
      * the emotes, the text boxes and the images were never the HUD's to hide; the dialogue has its own, GAME2D) */
     int hide = pc_photo_hide_hud && pc_photo_hide_hud()
@@ -131,7 +144,7 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
     if (kind >= PC_CLASSIC_STATUS && kind <= PC_CLASSIC_DAMAGE) {
         pc_hud_element(kind, record, x, y, first, end);
         if (hide) /* (a classic claim's own packets too: allocated after the game's) */
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_TARGET_ROW || kind == PC_CLASSIC_TARGET_LINE || kind == PC_CLASSIC_TARGET_MARKER) {
@@ -143,83 +156,83 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
         else
             pc_hud_target_marker(record, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_IMAGE) {
         pc_hud_image(record, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_BOX_TEXT) {
         pc_hud_box_text(record, x, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_TEXT_BAND) {
         pc_hud_text_band(record, x, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_TEXT_FRAME) {
         pc_hud_text_frame(record, x, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_EMOTE) {
         pc_hud_emote(record, x, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_TIMER) {
         pc_hud_timer(record, x, y, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_ACTOR_WORD) {
         pc_hud_actor_word(record, x, y, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_ABILITY_ICONS) {
         pc_hud_ability_icons(record, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_BATTLE_MODE) {
         pc_hud_battle_mode(record, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_STATUS_ICONS) {
         pc_hud_status_icons(record, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_FIGURE) {
         pc_hud_figure(record, x, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_GAUGES) {
         pc_hud_gauges(record, first, end);
         if (hide)
-            pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+            hide_site(first);
         return;
     }
     if (hide && kind == PC_CLASSIC_STATUS_PANEL) {
-        pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+        hide_site(first);
         return;
     }
     if (kind == PC_CLASSIC_STATUS_PANEL && pc_classic_capturing()) {

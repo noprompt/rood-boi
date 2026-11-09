@@ -16,7 +16,7 @@
 static struct {
     int count, full;
     pc_item item[ITEMS];
-} frame PC_SAVED_STATE = { 0 };
+} pc_item_frame PC_SAVED_STATE = { 0 };
 
 /* Developer coverage: the call sites that placed an item, by return address (dev_rpc.c effect_sites). */
 #define SITES 4096
@@ -31,22 +31,22 @@ extern void pc_gte_new_generation(void);
 
 void pc_frame_begin(void)
 {
-    if (frame.count > peak)
-        peak = frame.count;
-    frame.count = 0;
-    frame.full = 0;
+    if (pc_item_frame.count > peak)
+        peak = pc_item_frame.count;
+    pc_item_frame.count = 0;
+    pc_item_frame.full = 0;
 }
 
 static pc_item spare; /* where a full frame's item goes: never drawn */
 
 pc_item* pc_frame_add(int kind, int depth)
 {
-    if (frame.count == ITEMS) {
-        if (!frame.full++)
+    if (pc_item_frame.count == ITEMS) {
+        if (!pc_item_frame.full++)
             fprintf(stderr, "[items] a frame holds %d items: the rest are left out\n", ITEMS);
         return NULL;
     }
-    pc_item* it = &frame.item[frame.count++];
+    pc_item* it = &pc_item_frame.item[pc_item_frame.count++];
     memset(it, 0, sizeof *it);
     it->kind = (uint8_t)kind;
     it->depth = depth;
@@ -77,11 +77,130 @@ void pc_frame_sprite(int depth, int x, int y, int w, int h, int u, int v, int rg
     it->rgb[0][0] = (uint8_t)rgb, it->rgb[0][1] = (uint8_t)(rgb >> 8), it->rgb[0][2] = (uint8_t)(rgb >> 16);
 }
 
-int pc_frame_count(void) { return frame.count; }
+int pc_frame_count(void) { return pc_item_frame.count; }
+
+/* The classic layer's site range (draw_items.h). */
+static int site_first, site_end;
+void pc_frame_site(int first, int end) { site_first = first, site_end = end; }
+void pc_frame_site_range(int* first, int* end) { *first = site_first, *end = site_end; }
+
+int pc_frame_suppress(int first, int end)
+{
+    int n = 0;
+    for (int i = first < 0 ? 0 : first; i < end && i < pc_item_frame.count; i++)
+        if (pc_item_frame.item[i].kind != PC_ITEM_NONE)
+            pc_item_frame.item[i].kind = PC_ITEM_NONE, n++;
+    return n;
+}
+
+void pc_frame_rewind(int count)
+{
+    if (count >= 0 && count < pc_item_frame.count)
+        pc_item_frame.count = count, pc_item_frame.full = 0;
+}
+
+int pc_frame_is_placed(int index)
+{
+    return index >= 0 && index < pc_item_frame.count && (pc_item_frame.item[index].flags & PC_ITEM_PLACED) != 0;
+}
+
+/* Raw GP0 words as items (draw_items.h): the inverse of `lower`, with the draw mode and texture window set along the way. */
+int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
+{
+    int start = pc_item_frame.count, i = 0, mode = -1, window = -1, prims = 0, state_after = 0, last_mode = -1, last_window = -1;
+    *first = start;
+    while (i < n) {
+        unsigned c = w[i] >> 24;
+        pc_item* it;
+        if (c == 0xe1) {
+            mode = (int)(w[i] & 0x3fff), state_after = 1, i++;
+            continue;
+        }
+        if (c == 0xe2) {
+            window = (int)(w[i] & 0xfffff), state_after = 1, i++;
+            continue;
+        }
+        state_after = 0;
+        if (c == 0xe3 && i + 1 < n && w[i + 1] >> 24 == 0xe4) {
+            int x = (int)(w[i] & 0x3ff), y = (int)(w[i] >> 10 & 0x3ff), x1 = (int)(w[i + 1] & 0x3ff), y1 = (int)(w[i + 1] >> 10 & 0x3ff);
+            if (!(it = pc_frame_add(PC_ITEM_AREA, depth)))
+                goto fail;
+            it->x[0] = (int16_t)x, it->y[0] = (int16_t)y, it->w = (int16_t)(x1 - x + 1), it->h = (int16_t)(y1 - y + 1);
+            i += 2, prims++;
+            last_mode = mode, last_window = window;
+            continue;
+        }
+        if (c >= 0x20 && c < 0x40) {
+            int quad = (c & 8) != 0, tex = (c & 4) != 0, shade = (c & 0x10) != 0, verts = quad ? 4 : 3, k = i;
+            if (i + (shade ? verts : 1) + verts + (tex ? verts : 0) > n || (!tex && mode < 0) || (tex && mode >= 0 && (mode & 0x600))
+                || !(it = pc_frame_add(PC_ITEM_POLY, depth)))
+                goto fail;
+            it->verts = (uint8_t)verts;
+            it->flags = (uint8_t)((c & 2 ? PC_ITEM_SEMI : 0) | (c & 1 ? PC_ITEM_RAW : 0) | (tex ? PC_ITEM_TEXTURED : 0)
+                | (shade ? PC_ITEM_SHADED : 0));
+            for (int v = 0; v < verts; v++) {
+                if (v == 0 || shade) {
+                    it->rgb[v][0] = (uint8_t)w[k], it->rgb[v][1] = (uint8_t)(w[k] >> 8), it->rgb[v][2] = (uint8_t)(w[k] >> 16);
+                    k++;
+                }
+                it->x[v] = (int16_t)w[k], it->y[v] = (int16_t)(w[k] >> 16);
+                k++;
+                if (tex) {
+                    it->u[v] = (uint8_t)w[k], it->v[v] = (uint8_t)(w[k] >> 8);
+                    if (v == 0)
+                        it->clut = (uint16_t)(w[k] >> 16);
+                    else if (v == 1)
+                        it->mode = (uint16_t)(w[k] >> 16);
+                    k++;
+                }
+            }
+            if (!tex)
+                it->mode = (uint16_t)mode;
+            i = k, prims++;
+        } else if ((c & 0xfc) == 0x60 || (c & 0xfc) == 0x64) { /* a tile or a sprite, of a size it carries */
+            int tex = (c & 4) != 0, need = tex ? 4 : 3;
+            if (i + need > n || mode < 0 || !(it = pc_frame_add(tex ? PC_ITEM_SPRITE : PC_ITEM_TILE, depth)))
+                goto fail;
+            it->flags = (uint8_t)((c & 2 ? PC_ITEM_SEMI : 0) | (c & 1 ? PC_ITEM_RAW : 0));
+            it->mode = (uint16_t)mode;
+            it->rgb[0][0] = (uint8_t)w[i], it->rgb[0][1] = (uint8_t)(w[i] >> 8), it->rgb[0][2] = (uint8_t)(w[i] >> 16);
+            it->x[0] = (int16_t)w[i + 1], it->y[0] = (int16_t)(w[i + 1] >> 16);
+            if (tex)
+                it->u[0] = (uint8_t)w[i + 2], it->v[0] = (uint8_t)(w[i + 2] >> 8), it->clut = (uint16_t)(w[i + 2] >> 16);
+            it->w = (int16_t)w[i + need - 1], it->h = (int16_t)(w[i + need - 1] >> 16);
+            i += need, prims++;
+        } else if (c == 0x40 || c == 0x42) { /* a flat line */
+            if (i + 3 > n || mode < 0 || !(it = pc_frame_add(PC_ITEM_LINE, depth)))
+                goto fail;
+            it->flags = (uint8_t)(c & 2 ? PC_ITEM_SEMI : 0);
+            it->mode = (uint16_t)mode;
+            it->rgb[0][0] = (uint8_t)w[i], it->rgb[0][1] = (uint8_t)(w[i] >> 8), it->rgb[0][2] = (uint8_t)(w[i] >> 16);
+            it->x[0] = (int16_t)w[i + 1], it->y[0] = (int16_t)(w[i + 1] >> 16);
+            it->x[1] = (int16_t)w[i + 2], it->y[1] = (int16_t)(w[i + 2] >> 16);
+            i += 3, prims++;
+        } else
+            goto fail;
+        if (window >= 0)
+            it->flags |= PC_ITEM_WINDOW, it->tw = (unsigned)window;
+        last_mode = mode, last_window = window;
+    }
+    /* (state set after the last primitive is only dropped when it is the state that primitive had) */
+    if (!prims || (state_after && (mode != last_mode || window != last_window)))
+        goto fail;
+    for (int a = start, b = pc_item_frame.count - 1; a < b; a++, b--) { /* (items of one depth draw last first) */
+        pc_item t = pc_item_frame.item[a];
+        pc_item_frame.item[a] = pc_item_frame.item[b];
+        pc_item_frame.item[b] = t;
+    }
+    return pc_item_frame.count - start;
+fail:
+    pc_frame_rewind(start);
+    return 0;
+}
 
 pc_item* pc_frame_poly_at(int depth, int kind, int verts, int flags, unsigned* ot, unsigned** cursor)
 {
-    int index = frame.count;
+    int index = pc_item_frame.count;
     pc_item* it = pc_frame_add(kind, depth);
     if (!it) {
         memset(&spare, 0, sizeof spare);
@@ -89,7 +208,8 @@ pc_item* pc_frame_poly_at(int depth, int kind, int verts, int flags, unsigned* o
     }
     it->verts = (uint8_t)verts;
     it->flags = (uint8_t)flags;
-    *cursor = pc_frame_place(index, 1, ot + depth, *cursor);
+    if (ot) /* (a frame of items alone has no table to place it in) */
+        *cursor = pc_frame_place(index, 1, ot + depth, *cursor);
     if (sites_on) {
         const void* site = __builtin_return_address(0);
         int i;
@@ -117,6 +237,20 @@ int pc_frame_sites(int on, int reset, const void*** list, int* peak_items)
 
 #define STRIDE 20 /* words per item in the packet arena: a mode packet (2) and the primitive (at most 15) */
 static uint32_t* arena;
+extern void pc_hw_anchor_packets(const void* start, const void* end, int anchor) __attribute__((weak));
+
+const void* pc_frame_packet(int index)
+{
+    if (!arena && !(arena = malloc((size_t)ITEMS * STRIDE * sizeof *arena)))
+        return NULL;
+    return arena + (size_t)index * STRIDE;
+}
+
+void pc_frame_anchor(int first, int end, int anchor)
+{
+    if (pc_hw_anchor_packets && end > first && pc_frame_packet(first))
+        pc_hw_anchor_packets(pc_frame_packet(first), (const char*)pc_frame_packet(end - 1) + STRIDE * sizeof *arena, anchor);
+}
 
 static uint32_t rgb_word(const pc_item* it, int i)
 {
@@ -135,6 +269,10 @@ static unsigned lower(const pc_item* it, uint32_t* p)
     if (it->flags & PC_ITEM_BRACKET) /* (dither off: a textured polygon's page is in its own words) */
         p[n++] = 0xe1000000u | (it->kind == PC_ITEM_LINE ? it->mode & 0x1ffu : 0u);
     switch (it->kind) {
+    case PC_ITEM_AREA:
+        p[n++] = 0xe3000000u | ((uint32_t)it->y[0] & 0x3ffu) << 10 | ((uint32_t)it->x[0] & 0x3ffu);
+        p[n++] = 0xe4000000u | ((uint32_t)(it->y[0] + it->h - 1) & 0x3ffu) << 10 | ((uint32_t)(it->x[0] + it->w - 1) & 0x3ffu);
+        break;
     case PC_ITEM_LINE:
         p[n++] = rgb_word(it, 0) | (0x40u | semi) << 24;
         p[n++] = xy_word(it, 0);
@@ -175,9 +313,9 @@ static unsigned lower(const pc_item* it, uint32_t* p)
 static int ordered(int first, int count, uint64_t* keys)
 {
     int n = 0;
-    for (int i = first; i < first + count && i < frame.count; i++)
-        if (frame.item[i].kind != PC_ITEM_NONE)
-            keys[n++] = (uint64_t)((int64_t)INT32_MAX - frame.item[i].depth) << 32 | (uint32_t)(0xffffffffu - (uint32_t)i);
+    for (int i = first; i < first + count && i < pc_item_frame.count; i++)
+        if (pc_item_frame.item[i].kind != PC_ITEM_NONE)
+            keys[n++] = (uint64_t)((int64_t)INT32_MAX - pc_item_frame.item[i].depth) << 32 | (uint32_t)(0xffffffffu - (uint32_t)i);
     for (int a = 1; a < n; a++) { /* (insertion sort: the list is nearly in order, a few depths) */
         uint64_t k = keys[a];
         int b = a;
@@ -188,20 +326,63 @@ static int ordered(int first, int count, uint64_t* keys)
     return n;
 }
 
+int pc_frame_order(int first, int count, int unplaced, int* out, int max)
+{
+    uint64_t keys[ITEMS];
+    int n = ordered(first, count, keys), m = 0;
+    for (int k = 0; k < n && m < max; k++) {
+        int index = (int)(0xffffffffu - (uint32_t)keys[k]);
+        if (!unplaced || !(pc_item_frame.item[index].flags & PC_ITEM_PLACED))
+            out[m++] = index;
+    }
+    return m;
+}
+
+int pc_frame_lower(int index, unsigned words[3][16], int lengths[3])
+{
+    const pc_item* it;
+    uint32_t tmp[16];
+    unsigned n, packets = 0;
+    if (index < 0 || index >= pc_item_frame.count || pc_item_frame.item[index].kind == PC_ITEM_NONE)
+        return 0;
+    it = &pc_item_frame.item[index];
+    n = lower(it, tmp);
+    if (it->flags & PC_ITEM_WINDOW) {
+        words[packets][0] = 0xe2000000u | (it->tw & 0xfffffu);
+        lengths[packets++] = 1;
+    }
+    if (it->kind != PC_ITEM_AREA && !(it->flags & PC_ITEM_BRACKET) && !(it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED))) {
+        words[0][0] = 0xe1000000u | it->mode;
+        lengths[packets++] = 1;
+    }
+    memcpy(words[packets], tmp, n * sizeof tmp[0]);
+    lengths[packets++] = (int)n;
+    return (int)packets;
+}
+
 /* Draws a run. `mode` is the draw mode the GPU is in; a packet sets it only when an item needs another
  * (a textured polygon sets its page itself, as it did). */
 static void draw_run(int first, int count)
 {
     uint64_t keys[ITEMS];
     int n = ordered(first, count, keys), mode = -1;
+    unsigned window = ~0u; /* (the texture window the GPU is in, when an item set it) */
     if (!arena && !(arena = malloc((size_t)ITEMS * STRIDE * sizeof *arena)))
         return;
     for (int k = 0; k < n; k++) {
         int index = (int)(0xffffffffu - (uint32_t)keys[k]);
-        const pc_item* it = &frame.item[index];
+        const pc_item* it = &pc_item_frame.item[index];
         uint32_t* at = arena + (size_t)index * STRIDE;
         int textured_poly = it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED);
-        if (it->flags & PC_ITEM_BRACKET)
+        if ((it->flags & PC_ITEM_WINDOW) && it->tw != window) {
+            at[18] = 0x01ffffffu; /* one word: GP0 E2, the texture window */
+            at[19] = 0xe2000000u | (it->tw & 0xfffffu);
+            window = (int)it->tw;
+            pc_draw_item_packet(at + 18);
+        }
+        if (it->kind == PC_ITEM_AREA) {
+            /* (a drawing area: no draw mode) */
+        } else if (it->flags & PC_ITEM_BRACKET)
             mode = 0x200; /* (its words end with the mode set) */
         else if (!textured_poly && it->mode != mode) {
             at[0] = 0x01ffffffu; /* one word: GP0 E1, as SetDrawTPage wrote */
@@ -221,7 +402,7 @@ void pc_frame_draw(void)
     uint64_t cost = pc_cost_begin();
     if (pc_hw_begin_ot)
         pc_hw_begin_ot();
-    draw_run(0, frame.count);
+    draw_run(0, pc_item_frame.count);
     if (pc_hw_end_ot)
         pc_hw_end_ot();
     pc_gte_new_generation();
@@ -232,6 +413,8 @@ void pc_frame_draw(void)
 
 uint32_t* pc_frame_place(int first, int count, uint32_t* ot_entry, uint32_t* packet)
 {
+    for (int i = first; i < first + count && i < pc_item_frame.count; i++)
+        pc_item_frame.item[i].flags |= PC_ITEM_PLACED;
     packet[0] = (*ot_entry & 0xffffff) | 3u << 24;
     packet[1] = MARKER;
     packet[2] = (uint32_t)first & 0xffffff;

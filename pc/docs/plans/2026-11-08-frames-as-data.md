@@ -86,16 +86,37 @@ skip fade. They draw into the frame list; the credits loop no longer touches the
 buffers, `vs_scratch.unk0/4/8`, or `ClearOTagR`. `_insertTpage` and an unused `SPRT_8` routine are deleted. The MISSION
 COMPLETE backdrop (`func_8006C3CC`, five polygons) is an item run placed by marker.
 
-**What stays packets, and why.** The MISSION COMPLETE leaves (`renderTextures.h`, 12 hits, shared with MENUF's
-3B8.c) and the ordering table that holds them. They are the classic layer's `menuf` site
-(`pc_classic_site`, default on): the game's packets between two cursor values are suppressed and the Lua
-claim (`rood.classic`) emits its own packets into the slots `unk4 - 28` and `unk8`, by walking packet memory and
-the scratchpad slots (`classic_bridge.c`, `hud_bridge.c classic_finish`, `pc_classic_suppress`). That is a
-packet protocol end to end, and MENUF shares the leaves. Converting the leaves means moving that layer to items
-(a site's range is an item range; suppress marks items as `PC_ITEM_NONE`; a claim emits items at a slot depth),
-which is the same step MENU needs and not ENDING's alone. ENDING was still a good proof: it holds a mixed
-frame (items among packets, one slot's order against the leaves), a GTE-projected polygon set, the tpage-after
-pattern, translucent subtract blends, and the two ways a frame ends.
+**MISSION COMPLETE and MENUF's leaves.** The leaves (`renderTextures.h`, MENUF's `3B8.c`: fades, tint, pop, wipe, the stat
+wheel's lines, the two draw areas, the PRESS BUTTON sprite) are items now, through `menufLeaf.h` (`_leafItem`, depth
+-7 as their packets' slot 28 bytes before `unk4`). MENUF's frame is the game's table, so each item is placed by a
+marker; ENDING's frame is items alone (`PC_LEAF_TABLE 0`), so the credits and MISSION COMPLETE no longer touch
+`ClearOTagR`, `DrawOTag`, the packet buffers or `vs_scratch.unk0/4/8`. A drawing area is an item kind
+(`PC_ITEM_AREA`: x, y, w, h; lowered to E3 and E4).
+
+## The classic layer on items
+
+A site is a range of packets (the cursor before and after) and a range of items (`pc_frame_count()` before and
+after: `PC_CLASSIC` records both; `pc_frame_site` passes the item range to `pc_classic_site`, which clears it
+after reading, so a direct caller has none). A site's game code may emit either, or both (MENUF's prompt text is
+still a packet printer).
+
+- Capture: the walks and scans of `classic_parity.c` expand a marker packet into its items, lowered to the packets
+  they stand for, in drawing order, so a placed item is read exactly where its marker is. Items that no marker
+  places (a frame with no table) are read from the site's item range (`pc_classic_walk_items`).
+- Suppress: a marker found by `pc_classic_suppress` (or `_linked`) marks its run `PC_ITEM_NONE`, and the site's
+  item range is marked as a whole (`pc_frame_suppress`). Items are mutable until the frame is drawn.
+- Claim: when the game's drawing of the site was items, `emit_command` turns a raw `d.packet` into an item at
+  the slot's depth (`pc_frame_add_words`: polygons and areas; other words fall back to a packet), placed by a marker
+  where the game's were, else added alone. The parity gate gives its items back (`pc_frame_rewind`). `d.text_raw`
+  and the other commands still call the game's printers, which write packets; they move with the printers.
+- Lowering for capture (`pc_frame_lower`) is the draw's: a draw mode packet before a flat item, none before a
+  textured polygon.
+- State proofs mask the item list (`pc_item_frame`), since a claim's items follow the game's.
+
+Not done: items for sprites, tiles and lines in a claim (needs the mode word as an item field), the texture window
+and mask fields, widescreen anchors of item ranges (`pc_hw_anchor_packets` takes packet addresses; the lowered arena
+has stable ones per index), and a per-frame reset for menus beyond battle's `ClearOTagR` (menus run inside battle's
+frame, which calls `pc_frame_begin` there).
 
 ## What depends on packet memory (found in ENDING and its neighbours)
 

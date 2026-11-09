@@ -23,6 +23,14 @@ control) and new are compared action by action. Where the new build records them
 (RPC effect_sites), the effect polygon call sites that ran are mapped to plugin
 functions and counted against all of the build's (the coverage the frames cover).
 Slow (several minutes); its actions are the spells' effect plugins, not every one.
+
+    python3 pc/tools/build_compare.py OLD_BINARY --menus [ending,menuf] [--menu-sample N] [--claims off] [--aspect 16:9] [--new-env K=V]
+
+The menus' lane: the screens the classic UI draws, reached by the routes classic_parity.py tours them by (the
+save room's game, the classic look: the shipped plugins on, so rood.classic's claims draw what they claim;
+--claims off leaves the game's own drawing), with the display hashed every N vsyncs (default 10) through
+everything each route does. Old, old again (the control) and new are compared route by route. The routes are
+SCENES below: a new screen's route is one function there, or one of classic_parity.py's tours wrapped as the others are.
 """
 import argparse
 import hashlib
@@ -249,6 +257,130 @@ def play_casts(binary, card, out, kinds, limit):
     print("RESULT" + json.dumps({"actions": actions, "sites": sites, "peak": peak}))
 
 
+MENU_SAMPLE = 10  # vsyncs between display hashes in a menu route
+
+
+def hashed(g, out, sample, hashes):
+    """g.run in steps that end on multiples of `sample` vsyncs, the display hashed at each: the hashes are the
+    route's, whatever the route waits on (classic_parity.py's tours run a vsync at a time and press buttons)."""
+    run, shot, state = g.run, out / "frame.ppm", {"t": 0}
+
+    def stepping(vsyncs):
+        left = vsyncs
+        while left > 0:
+            step = min(left, sample - state["t"] % sample)
+            run(step)
+            state["t"] += step
+            left -= step
+            if state["t"] % sample == 0:
+                g.screenshot(str(shot))
+                hashes.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:12])
+    g.run = stepping
+
+
+def scene_ending(g, cp, symbols):
+    """The credits skipped, MISSION COMPLETE coming in, at rest and left with Cross (its fade-out)."""
+    from ending_smoke import CREDITS_DONE, RANK_SCREEN_STEP
+    step = lambda: int.from_bytes(g.read(RANK_SCREEN_STEP, 4), "little")
+    g.call("ending")
+    g.run(1200)
+    g.press("start", vsyncs=4, settle=200)
+    g.until(lambda: step() > 0x120, step=30, guard=1800, what="the MISSION COMPLETE screen")
+    g.run(120)
+    g.press("cross", vsyncs=3, settle=240)
+
+
+def scene_mainmenu(g, cp, symbols):
+    """The menu opened from the field, each top command entered, moved through and left."""
+    g.press("triangle", vsyncs=3, settle=60)
+    for _ in range(9):
+        g.press("circle", vsyncs=3, settle=60)
+        for button in ("down", "down", "up", "right", "left"):
+            g.press(button, vsyncs=3, settle=12)
+        g.press("cross", vsyncs=3, settle=40)
+        g.press("down", vsyncs=3, settle=12)
+    g.press("cross", vsyncs=3, settle=60)
+
+
+def scene_menuf(g, cp, symbols):
+    """MENUF's screens, each played through and again skipped (classic_parity.py tour_menuf)."""
+    cp.tour_menuf(g, symbols, lambda *args, **kwargs: None, lambda: None)
+
+
+SCENES = {"ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu}
+
+
+def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=()):
+    """The routes of `names`, each in a game of its own: {route: [display hashes]}."""
+    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64",
+                      ROOD_TEST_SNAPSHOTS="0")
+    sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    import classic_parity as cp
+    import rood_rpc
+    from checkpoints import launch_at
+    out = pathlib.Path(out)
+    (out / "plugins").mkdir()
+    settings = out / "settings.cfg"
+    settings.write_text(f"ui_menus 0\nui_text font\ninterpolate 0\naspect {aspect}\n")
+    env = {"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(out / "plugins"), "ROOD_PLUGIN_DATA": str(out / "plugin_data"),
+           "ROOD_GI": "0", "ROOD_AUDIO": "none", "ROOD_WINDOW": "1280x720" if aspect == "16:9" else "960x720", "ROOD_LIGHTS": str(out / "lights"),
+           "ROOD_PREFABS": str(out / "prefabs"), "ROOD_OUT": str(out)}
+    env.update(kv.split("=", 1) for kv in extra_env)
+    if claims == "on":
+        env["ROOD_PLUGINS_SHIPPED"] = str(ROOT / "pc/plugins")
+    results = {}
+    for name in names:
+        card_copy = out / f"card-{name}.mcd"
+        card_copy.write_bytes(pathlib.Path(card).read_bytes())
+        g = launch_at("save_room", card=str(card_copy), fast=True, log=out / f"{name}.log", extra_env=env)
+        hashes = []
+        try:
+            hashed(g, out, sample, hashes)
+            SCENES[name](g, cp, rood_rpc.symbols())
+        finally:
+            g.close()
+        results[name] = hashes
+    print("RESULT" + json.dumps(results))
+
+
+def env_of(binary, args):
+    """--new-env's settings, for NEW's runs only."""
+    return args.new_env if binary == args.new else []
+
+
+def run_menus(binary, args, names):
+    with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
+        done = subprocess.run([sys.executable, __file__, "--play-menus", binary, "--menus", ",".join(names), "--menu-sample",
+                               str(args.menu_sample), "--claims", args.claims, "--aspect", args.aspect, "--card", args.card, "--out", out]
+                              + [a for kv in env_of(binary, args) for a in ("--env", kv)],
+                              capture_output=True, text=True)
+    lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
+    if not lines:
+        sys.exit(f"build_compare: {binary} did not finish:\n{done.stderr[-1500:]}\n{done.stdout[-1500:]}")
+    return json.loads(lines[-1][6:])
+
+
+def compare_menus(args):
+    names = [n for n in args.menus.split(",") if n]
+    unknown = [n for n in names if n not in SCENES]
+    if unknown:
+        sys.exit(f"build_compare: no route {unknown} (have {', '.join(SCENES)})")
+    first, control, new = run_menus(args.old, args, names), run_menus(args.old, args, names), run_menus(args.new, args, names)
+    code = 0
+    for name in names:
+        a, b, c = first[name], control[name], new[name]
+        noise, changed = differing({"frames": a}, {"frames": b}), differing({"frames": a}, {"frames": c})
+        print(f"{name}: {len(a)} frames ({len(set(a))} distinct, every {args.menu_sample} vsyncs); control {len(noise)} differ; "
+              f"old against new {len(changed)} differ{f' (first at frame {changed[0]})' if changed else ''}")
+        if noise:
+            code = 2
+        elif changed and code == 0:
+            code = 1
+    if code == 2:
+        print("build_compare: the control differs, so this proves nothing")
+    return code
+
+
 def coverage(binary, sites):
     """(sites run, all sites, functions run, all functions) of the effect polygon calls in `binary`: the recorded return
     addresses against every call to pc_frame_poly_at, by the function holding each."""
@@ -331,12 +463,23 @@ def main():
     parser.add_argument("--width", type=int, default=8, help=argparse.SUPPRESS)
     parser.add_argument("--play", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--play-casts", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--menus", nargs="?", const="ending,menuf", help="the menus' lane: the routes to play (ending,menuf,mainmenu)")
+    parser.add_argument("--menu-sample", type=int, default=MENU_SAMPLE, help="--menus: vsyncs between display hashes")
+    parser.add_argument("--claims", choices=["on", "off"], default="on", help="--menus: rood.classic's claims on or off")
+    parser.add_argument("--new-env", action="append", default=[], metavar="KEY=VALUE", help="--menus: set in NEW's game (a dev flag such as ROOD_CLASSIC_ITEMS=1)")
+    parser.add_argument("--env", action="append", default=[], help=argparse.SUPPRESS)
+    parser.add_argument("--aspect", choices=["4:3", "16:9"], default="4:3", help="--menus: the display's aspect")
+    parser.add_argument("--play-menus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.play:
         return play(args.old, args.seconds, args.card, args.out, args.width)
     if args.play_casts:
         return play_casts(args.old, args.card, args.out, args.casts, args.cast_limit)
+    if args.play_menus:
+        return play_menus(args.old, args.card, args.out, args.menus.split(","), args.menu_sample, args.claims, args.aspect, args.env)
+    if args.menus:
+        return compare_menus(args)
     if args.casts:
         return compare_casts(args)
     first, control, new = run(args.old, args, args.old_width), run(args.old, args, args.old_width), run(args.new, args, args.new_width)

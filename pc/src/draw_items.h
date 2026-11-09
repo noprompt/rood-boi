@@ -30,7 +30,8 @@ enum {
     PC_ITEM_TILE,   /* a flat rectangle */
     PC_ITEM_SPRITE, /* a textured rectangle, texels copied 1:1 */
     PC_ITEM_POLY,   /* a triangle or quad: flat or shaded, textured or not */
-    PC_ITEM_LINE    /* a flat line from (x[0], y[0]) to (x[1], y[1]) */
+    PC_ITEM_LINE,   /* a flat line from (x[0], y[0]) to (x[1], y[1]) */
+    PC_ITEM_AREA    /* the drawing area for the items drawn after it: (x[0], y[0]) and w, h */
 };
 
 enum {
@@ -38,8 +39,10 @@ enum {
     PC_ITEM_RAW = 2,      /* textured: the texels as they are, not scaled by the colour */
     PC_ITEM_TEXTURED = 4, /* polygon: samples a texture (a sprite always does) */
     PC_ITEM_SHADED = 8,   /* polygon: a colour at each corner (else rgb[0] for all) */
-    PC_ITEM_BRACKET = 16  /* polygon or line, as the effect plugins drew: with dither off, the draw mode (a line's is
+    PC_ITEM_BRACKET = 16, /* polygon or line, as the effect plugins drew: with dither off, the draw mode (a line's is
                            * `mode`) set for it alone, and page 0, no blend, dither on left after it */
+    PC_ITEM_PLACED = 32,  /* a marker in an ordering table draws it (set by pc_frame_place) */
+    PC_ITEM_WINDOW = 64   /* `tw` is the texture window it draws with (GP0 E2); without the flag the window is left as it is */
 };
 
 /* The draw mode a tile, a sprite or an untextured polygon draws with, from a
@@ -63,6 +66,7 @@ typedef struct {
     short w, h;       /* a rectangle's size */
     unsigned char u[4], v[4]; /* textured: texel at each corner (a sprite's top left is u[0], v[0]) */
     unsigned char rgb[4][3];  /* colour per corner; a flat item's is rgb[0] */
+    unsigned tw;              /* PC_ITEM_WINDOW: the window word's 20 bits */
 } pc_item;
 
 /* A new frame: the previous frame's items are dropped. */
@@ -75,11 +79,39 @@ void pc_frame_tile(int depth, int x, int y, int w, int h, int rgb, int mode, int
 void pc_frame_sprite(int depth, int x, int y, int w, int h, int u, int v, int rgb, int clut, int mode, int flags);
 /* The next polygon item of a run of one, placed in the ordering table at slot
  * `depth` of the table at `ot` with a marker packet taken from `*cursor` (the
- * packet cursor, moved past it). When the frame is full a spare item is returned
+ * packet cursor, moved past it); a NULL `ot` places nothing (a frame of items alone). When the frame is full a spare item is returned
  * that is never drawn, so the caller can fill it all the same. */
 pc_item* pc_frame_poly_at(int depth, int kind, int verts, int flags, unsigned* ot, unsigned** cursor);
 /* The number of items so far: the first index of the next run. */
 int pc_frame_count(void);
+/* The classic layer's protocol (pc/src/classic): a site is a range of items, [first, end) of the frame's
+ * list. pc_frame_site sets the range of the site about to be reported (PC_CLASSIC does, around the
+ * statement), pc_frame_site_range reads it. */
+void pc_frame_site(int first, int end);
+void pc_frame_site_range(int* first, int* end);
+/* Items [first, end) are no longer drawn (kind none); how many were. Items are mutable until the frame ends. */
+int pc_frame_suppress(int first, int end);
+/* Drops the items from index `count` on (a draw that was never to show, given back). */
+void pc_frame_rewind(int count);
+/* Whether item `index` is placed in an ordering table, and its kind. */
+int pc_frame_is_placed(int index);
+/* Raw GP0 words in draw order (one packet's payload, or several joined) as items at `depth`: polygons, tiles, sprites,
+ * flat lines and drawing areas, each with the draw mode (E1) and texture window (E2) the words had set before it.
+ * The items are added so that they draw in the order of the words. Returns how many items were added (from index *first); 0 when the words are anything else (a primitive with no
+ * draw mode set before it, a state word after the last primitive, other commands): nothing is added then. */
+int pc_frame_add_packets(int depth, const unsigned* words, int n, int* first);
+/* Items [first, first + count) in the order they draw (the larger depth first, then the later submission first),
+ * leaving out items that are placed in a table when `unplaced` is set; their indices go to out (at most max). */
+int pc_frame_order(int first, int count, int unplaced, int* out, int max);
+/* The packets item `index` is: what the GPU is given for it, up to three (a texture window, a draw mode, then the
+ * primitive; a polygon that carries its page has no mode packet). The payload words of packet k go to words[k] (at most 16),
+ * how many in lengths[k]; returns the number of packets. */
+int pc_frame_lower(int index, unsigned words[3][16], int lengths[3]);
+/* Widescreen: items [first, end) anchored as pc_hw_anchor_packets does a range of packets (their lowered packets have
+ * a stable address per index). */
+void pc_frame_anchor(int first, int end, int anchor);
+/* The address of item `index`'s lowered packet (where the draw puts it; the key of anchors and interpolation). */
+const void* pc_frame_packet(int index);
 /* Draws the frame's items in order: what DrawOTag did for a table. */
 void pc_frame_draw(void);
 /* Links a marker for items [first, first + count) at the head of `*ot_entry`

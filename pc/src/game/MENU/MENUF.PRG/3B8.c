@@ -6,6 +6,8 @@
 #include "build/src/include/lbas.h"
 #include "gpu.h"
 #include "texture_t.h"
+#define PC_LEAF_TABLE 1 /* (the leaves' items are placed in the frame's ordering table: menufLeaf.h) */
+#include "pc/src/game/menufLeaf.h"
 #include <stdio.h>
 #include <libetc.h>
 #include <rand.h>
@@ -1940,8 +1942,7 @@ void _renderStoredTime(int x, int y, int slot, int timer)
 void _renderTextureFadeIn(int x, int y, int texIndex, int brightness)
 {
     _texture_t* texture;
-    POLY_FT4* poly;
-    void** scratch;
+    pc_item* poly;
 
     PC_MENUF_CALL(FADE, x, y, texIndex, brightness, 0, NULL);
 
@@ -1949,38 +1950,25 @@ void _renderTextureFadeIn(int x, int y, int texIndex, int brightness)
         return;
     }
 
-    poly = psx_slot_get(void*, getScratchAddr(0), 0);
+    poly = _leafItem(PC_ITEM_POLY, 4, PC_ITEM_TEXTURED | PC_ITEM_SEMI);
     texture = &_disMap[texIndex];
-
-    setPolyFT4(poly);
-    setXY4(
-        poly, x, y, texture->w + x, y, x, texture->h + y, texture->w + x, texture->h + y);
-    setUV4(poly, texture->x, texture->y, texture->x + texture->w, texture->y, texture->x,
-        texture->y + texture->h, texture->x + texture->w, texture->y + texture->h);
-    setSemiTrans(poly, 1);
+    _leafQuad(poly, x, y, texture);
 
     if (brightness < 8) {
-        setRGB0(poly, brightness * 16, brightness * 16, brightness * 16);
-        poly->tpage = texture->tpage | getTPage(0, semiTransparencyFull, 0, 0);
+        _leafRgb(poly, 0, brightness * 16, brightness * 16, brightness * 16);
+        poly->mode = texture->tpage | getTPage(0, semiTransparencyFull, 0, 0);
         poly->clut = texture->clut + 1;
     } else {
-        setRGB0(poly, 128, 128, 128);
-        poly->tpage = texture->tpage;
+        _leafRgb(poly, 0, 128, 128, 128);
+        poly->mode = texture->tpage;
         poly->clut = texture->clut;
     }
-
-    scratch = (void**)getScratchAddr(0);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) - 0x1C, poly++);
-
-    psx_slot_set(void*, scratch, 0, poly);
 }
 
 void _renderTextureFadeInClut(int x, int y, int texIndex, int brightness, int clut)
 {
     _texture_t* texture;
-    POLY_FT4* poly;
-    void** scratch;
+    pc_item* poly;
 
     PC_MENUF_CALL(FADE_CLUT, x, y, texIndex, brightness, clut, NULL);
 
@@ -1988,31 +1976,19 @@ void _renderTextureFadeInClut(int x, int y, int texIndex, int brightness, int cl
         return;
     }
 
-    poly = psx_slot_get(void*, getScratchAddr(0), 0);
+    poly = _leafItem(PC_ITEM_POLY, 4, PC_ITEM_TEXTURED | PC_ITEM_SEMI);
     texture = &_disMap[texIndex];
-
-    setPolyFT4(poly);
-    setXY4(
-        poly, x, y, texture->w + x, y, x, texture->h + y, texture->w + x, texture->h + y);
-    setUV4(poly, texture->x, texture->y, texture->x + texture->w, texture->y, texture->x,
-        texture->y + texture->h, texture->x + texture->w, texture->y + texture->h);
-    setSemiTrans(poly, 1);
+    _leafQuad(poly, x, y, texture);
 
     if (brightness < 8) {
-        setRGB0(poly, brightness * 16, brightness * 16, brightness * 16);
-        poly->tpage = texture->tpage | getTPage(0, semiTransparencyFull, 0, 0);
+        _leafRgb(poly, 0, brightness * 16, brightness * 16, brightness * 16);
+        poly->mode = texture->tpage | getTPage(0, semiTransparencyFull, 0, 0);
         poly->clut = clut + 1;
     } else {
-        setRGB0(poly, 128, 128, 128);
-        poly->tpage = texture->tpage;
+        _leafRgb(poly, 0, 128, 128, 128);
+        poly->mode = texture->tpage;
         poly->clut = clut;
     }
-
-    scratch = (void**)getScratchAddr(0);
-
-    AddPrim(psx_slot_get(void*, scratch, 1) - 0x1C, poly++);
-
-    psx_slot_set(void*, scratch, 0, poly);
 }
 
 void _renderTime(int x, int y, int timer, int time, int isNewRecord)
@@ -2066,11 +2042,9 @@ void _renderStatWheel(int x, int y, int timer, int arg3)
 
     RECT sp18;
     char buf[8];
-    DR_AREA* area;
+    pc_item* area;
     int i;
     int j;
-    void** p;
-    void** q;
     int new_var2;
     int v1;
     int len;
@@ -2096,17 +2070,12 @@ void _renderStatWheel(int x, int y, int timer, int arg3)
 
         x += 2 + _disMap[26].w;
         new_var2 = 16;
-        p = (void**)0x1F800000;
-        area = psx_slot_get(void*, p, 0);
-
-        SetDrawArea(area, &vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip);
+        area = _leafItem(PC_ITEM_AREA, 0, 0);
+        _leafArea(area, &vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip);
         PC_MENUF_CALL(AREA, vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip.x,
             vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip.y, -1,
             vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip.w,
             vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip.h, NULL);
-        AddPrim(psx_slot_get(void*, p, 1) - 0x1C, area++);
-
-        psx_slot_set(void*, p, 0, area);
 
         if (vs_main_drawEnv[(vs_main_frameBuf + 1) & 1].clip.x >= 320) {
             sp18.x = 320;
@@ -2175,21 +2144,15 @@ void _renderStatWheel(int x, int y, int timer, int arg3)
             }
         }
 
-        q = (void**)0x1F800000;
-        area = psx_slot_get(void*, q, 0);
-
-        SetDrawArea(area, &sp18);
+        area = _leafItem(PC_ITEM_AREA, 0, 0);
+        _leafArea(area, &sp18);
         PC_MENUF_CALL(AREA, sp18.x, sp18.y, -1, sp18.w, sp18.h, NULL);
-        AddPrim(psx_slot_get(void*, q, 1) - 0x1C, area++);
-
-        psx_slot_set(void*, q, 0, area);
     }
 }
 
 void _renderPressButtonPrompt(int x, int y, int arg2, int arg3)
 {
-    POLY_FT4* poly;
-    void** p;
+    pc_item* poly;
     int v1;
 
     PC_MENUF_CALL(PROMPT, x, y, -1, arg2, arg3, NULL);
@@ -2222,41 +2185,47 @@ void _renderPressButtonPrompt(int x, int y, int arg2, int arg3)
         y = v1 - ((arg3 & 0xF) >> 2);
     }
 
-    poly = psx_slot_get(void*, 0x1F800000, 0);
-
-    setPolyFT4(poly);
-    setShadeTex(poly, 1);
-    setXY4(poly, x, y - 2, x + 16, y - 2, x, y + 14, x + 16, y + 0xE);
-    setUV4(poly, 32, 128, 48, 128, 32, 144, 48, 144);
-    setTPage(poly, 0, 0, 768, 0);
-    setClut(poly, 944, 223);
-
-    p = (void**)0x1F800000;
-
-    AddPrim(psx_slot_get(void*, p, 1) - 0x1C, poly++);
-
-    psx_slot_set(void*, p, 0, poly);
+    poly = _leafItem(PC_ITEM_POLY, 4, PC_ITEM_TEXTURED | PC_ITEM_RAW);
+    poly->x[0] = (short)x, poly->y[0] = (short)(y - 2);
+    poly->x[1] = (short)(x + 16), poly->y[1] = (short)(y - 2);
+    poly->x[2] = (short)x, poly->y[2] = (short)(y + 14);
+    poly->x[3] = (short)(x + 16), poly->y[3] = (short)(y + 0xE);
+    poly->u[0] = 32, poly->v[0] = 128;
+    poly->u[1] = 48, poly->v[1] = 128;
+    poly->u[2] = 32, poly->v[2] = 144;
+    poly->u[3] = 48, poly->v[3] = 144;
+    poly->mode = getTPage(0, 0, 768, 0);
+    poly->clut = getClut(944, 223);
 }
 
 #include "pc/src/game/renderTextures.h"
+
+/* One line of the stat wheel's picture: its texels' row texY, with the CLUT and blend given (-1: the page's own). */
+static void _wheelLine(int x, int y, int texY, int texId, int brightness, int clut, int blend)
+{
+    pc_item* poly = _leafItem(PC_ITEM_POLY, 4, PC_ITEM_TEXTURED | PC_ITEM_SEMI);
+    poly->x[0] = (short)x, poly->y[0] = (short)y;
+    poly->x[1] = (short)(_disMap[texId].w + x), poly->y[1] = (short)y;
+    poly->x[2] = (short)x, poly->y[2] = (short)(y + 1);
+    poly->x[3] = (short)(_disMap[texId].w + x), poly->y[3] = (short)(y + 1);
+    poly->u[0] = (unsigned char)_disMap[texId].x, poly->v[0] = (unsigned char)texY;
+    poly->u[1] = (unsigned char)(_disMap[texId].x + _disMap[texId].w), poly->v[1] = (unsigned char)texY;
+    poly->u[2] = (unsigned char)_disMap[texId].x, poly->v[2] = (unsigned char)(texY + 1);
+    poly->u[3] = (unsigned char)(_disMap[texId].x + _disMap[texId].w), poly->v[3] = (unsigned char)(texY + 1);
+    _leafRgb(poly, 0, brightness, brightness, brightness);
+    poly->clut = (unsigned short)clut;
+    poly->mode = blend >= 0 ? _disMap[texId].tpage | getTPage(0, blend, 0, 0) : _disMap[texId].tpage;
+}
 
 void _renderAnimatedStatWheel(int x, int y, int texId)
 {
     int i;
     int brightness;
-    void** p = (void**)0x1F800000;
-    POLY_FT4* poly = psx_slot_get(void*, p, 0);
     int texY = _disMap[texId].y;
 
     PC_MENUF_CALL(WHEEL, x, y, texId, 0, 0, NULL);
 
     for (i = 0; i < _disMap[texId].h; ++i, ++y, ++texY) {
-
-        setPolyFT4(poly);
-        setXY4(
-            poly, x, y, _disMap[texId].w + x, y, x, y + 1, _disMap[texId].w + x, y + 1);
-        setUV4(poly, _disMap[texId].x, texY, _disMap[texId].x + _disMap[texId].w, texY,
-            _disMap[texId].x, texY + 1, _disMap[texId].x + _disMap[texId].w, texY + 1);
 
         if (y < 190) {
             brightness = 128 - ((189 - y) * 16);
@@ -2265,27 +2234,8 @@ void _renderAnimatedStatWheel(int x, int y, int texId)
                 brightness = 0;
             }
 
-            setRGB0(poly, brightness, brightness, brightness);
-            setSemiTrans(poly, 1);
-            setClut(poly, 816, 511);
-            poly->tpage = _disMap[texId].tpage | getTPage(0, semiTransparencyFull, 0, 0);
-
-            AddPrim(psx_slot_get(void*, p, 1) - 0x1C, poly++);
-
-            setPolyFT4(poly);
-            setXY4(poly, x, y, _disMap[texId].w + x, y, x, y + 1, _disMap[texId].w + x,
-                y + 1);
-            setUV4(poly, _disMap[texId].x, texY, _disMap[texId].x + _disMap[texId].w,
-                texY, _disMap[texId].x, texY + 1, _disMap[texId].x + _disMap[texId].w,
-                texY + 1);
-
-            setRGB0(poly, brightness, brightness, brightness);
-            setSemiTrans(poly, 1);
-            setClut(poly, 816, 511);
-            poly->tpage =
-                _disMap[texId].tpage | getTPage(0, semiTransparencySubtract, 0, 0);
-
-            AddPrim(psx_slot_get(void*, p, 1) - 0x1C, poly++);
+            _wheelLine(x, y, texY, texId, brightness, getClut(816, 511), semiTransparencyFull);
+            _wheelLine(x, y, texY, texId, brightness, getClut(816, 511), semiTransparencySubtract);
 
         } else if (y >= 206) {
 
@@ -2295,38 +2245,13 @@ void _renderAnimatedStatWheel(int x, int y, int texId)
                 brightness = 0;
             }
 
-            setRGB0(poly, brightness, brightness, brightness);
-            setSemiTrans(poly, 1);
-            setClut(poly, 816, 511);
-            poly->tpage = _disMap[texId].tpage | getTPage(0, semiTransparencyFull, 0, 0);
-
-            AddPrim(psx_slot_get(void*, p, 1) - 0x1C, poly++);
-
-            setPolyFT4(poly);
-            setXY4(poly, x, y, _disMap[texId].w + x, y, x, y + 1, _disMap[texId].w + x,
-                y + 1);
-            setUV4(poly, _disMap[texId].x, texY, _disMap[texId].x + _disMap[texId].w,
-                texY, _disMap[texId].x, texY + 1, _disMap[texId].x + _disMap[texId].w,
-                texY + 1);
-            setRGB0(poly, brightness, brightness, brightness);
-            setSemiTrans(poly, 1);
-            setClut(poly, 816, 511);
-            poly->tpage =
-                _disMap[texId].tpage | getTPage(0, semiTransparencySubtract, 0, 0);
-
-            AddPrim(psx_slot_get(void*, p, 1) - 0x1C, poly++);
+            _wheelLine(x, y, texY, texId, brightness, getClut(816, 511), semiTransparencyFull);
+            _wheelLine(x, y, texY, texId, brightness, getClut(816, 511), semiTransparencySubtract);
 
         } else {
-            setRGB0(poly, 128, 128, 128);
-            setSemiTrans(poly, 1);
-            setClut(poly, 800, 511);
-            poly->tpage = _disMap[texId].tpage;
-
-            AddPrim(psx_slot_get(void*, p, 1) - 0x1C, poly++);
+            _wheelLine(x, y, texY, texId, 128, getClut(800, 511), -1);
         }
     }
-
-    psx_slot_set(void*, p, 0, poly);
 }
 
 static void _nop0(void);

@@ -87,7 +87,7 @@ paths = [
     "pc/src/snapshot.*", "pc/src/memory.*", "pc/src/overlay_statics.c", "pc/src/psx_*", "pc/src/platform.h",
     "pc/src/win_compat.h", "pc/src/pc_paths.h", "pc/src/cd_drive.c",
     # the game's main executable and headers, shared by every scene
-    "pc/src/game/SLUS_010.40/*", "pc/src/game/include/*", "pc/src/game/GIM/*", "pc/src/game/renderTextures.h",
+    "pc/src/game/SLUS_010.40/*", "pc/src/game/include/*", "pc/src/game/GIM/*", "pc/src/game/renderTextures.h", "pc/src/game/menufLeaf.h",
 ]
 suites = ["@broad"]
 

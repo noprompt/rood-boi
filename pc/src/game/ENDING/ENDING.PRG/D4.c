@@ -6,6 +6,7 @@
 #include "gpu.h"
 #include "texture_t.h"
 #include "scratch.h"
+#define PC_LEAF_TABLE 0 /* (the frame is items alone: the leaves' items are placed in no table: menufLeaf.h) */
 #include "pc/src/draw_items.h"
 #include <libapi.h>
 #include <libetc.h>
@@ -99,12 +100,11 @@ static _creditsElement* _addRenderer(void (*arg0)(_creditsElement*));
 static void _parseCreditsScript(void);
 static void func_8006AF44(func_8006A9C0_t2* arg0, void* arg1);
 int func_8006AF64(void);
-static int _drawScreen(u_long*);
+static int _drawScreen(void);
 static void func_8006B884(void);
 static int _ease(short mode, short currentStep, short totalSteps);
 static void _updateClearGameStats(void);
 static void _beginFrame(void);
-static void func_8006B930(void);
 static void _checkStreamXaEnd(void);
 static void func_8006BD78(void);
 static int func_8006BE04(void);
@@ -159,7 +159,7 @@ extern u_char D_800DB876;
 /* The classic look drawn in Lua (classic_hook.h PC_CLASSIC): the MISSION COMPLETE
  * screen's leaves (pc/src/game/renderTextures.h, MENUF's own: 3B8.c) record their calls as
  * MENUF's do, one element a frame (pc_classic_menuf, its screen PC_CLASSIC_MENUF_ENDING),
- * the range around them (_renderCongratulationsScreen: not the picture under them,
+ * the items they add the site's range (_renderCongratulationsScreen: not the picture under them,
  * func_8006C3CC). */
 static pc_classic_menuf _pcMenuF;
 static int _pcMenuFOn;
@@ -195,19 +195,20 @@ static void _pcMenuFCall(int op, int x, int y, int tex, int a, int b, P_CODE* co
 }
 #define PC_MENUF_CALL(op, x, y, tex, a, b, colours) \
     _pcMenuFCall(PC_CLASSIC_MENUF_##op, x, y, tex, a, b, colours)
-static void* _pcLeavesBegin(void)
+static int _pcLeavesBegin(void)
 {
     memset(&_pcMenuF, 0, sizeof _pcMenuF);
     _pcMenuF.screen = PC_CLASSIC_MENUF_ENDING;
     _pcMenuFOn = 1;
-    return psx_load(void*, (u_int*)0x1F800000);
+    return pc_frame_count();
 }
-static void _pcLeavesEnd(void* first)
+static void _pcLeavesEnd(int first)
 {
     _pcMenuFOn = 0;
-    if (pc_classic_site)
-        pc_classic_site(PC_CLASSIC_SITE_MENUF, &_pcMenuF, 0, 0, first,
-            psx_load(void*, (u_int*)0x1F800000));
+    if (pc_classic_site) { /* (a site of items alone: no packets) */
+        pc_frame_site(first, pc_frame_count());
+        pc_classic_site(PC_CLASSIC_SITE_MENUF, &_pcMenuF, 0, 0, NULL, NULL);
+    }
 }
 #endif
 extern P_CODE D_800DBAA8[];
@@ -1020,7 +1021,7 @@ static void func_8006A888(void)
             _skipInvoked = 1;
         }
 
-        _drawScreen(NULL);
+        _drawScreen();
 
         ++D_800DC18C;
     }
@@ -1343,9 +1344,8 @@ static void func_8006B450(int arg0, int arg1, int arg2, int arg3, int arg4, int 
     vs_main_frameDuration = 0;
 }
 
-/* The credits are drawn from the frame's items alone (arg0 NULL); the MISSION COMPLETE screen's leaves are
- * still packets, so its frames are an ordering table with the items placed in it. */
-static int _drawScreen(u_long* arg0)
+/* Every frame here is the frame's items alone: no ordering table, no packets. */
+static int _drawScreen(void)
 {
     int _[2];
     int temp_s1;
@@ -1358,11 +1358,7 @@ static int _drawScreen(u_long* arg0)
 
     PutDispEnv(&vs_main_dispEnv[vs_main_frameBuf]);
     PutDrawEnv(&vs_main_drawEnv[vs_main_frameBuf]);
-    if (arg0 == NULL) {
-        pc_frame_draw();
-    } else {
-        DrawOTag(arg0);
-    }
+    pc_frame_draw();
 
     ++vs_main_frameDuration;
 
@@ -1412,10 +1408,6 @@ static void func_8006B884(void)
 {
     func_8006B450(0x140, 0xF0, 0x200, 0, 0, 0);
     vs_main_initHeap((vs_main_HeapHeader*)0x8010C000, 0xF2000);
-    D_8005E0C0[0] = vs_main_allocHeap(0x20000);
-    D_8005E0C0[1] = vs_main_allocHeap(0x20000);
-    D_80055C80[0] = vs_main_allocHeap(0x2088);
-    D_80055C80[1] = vs_main_allocHeap(0x2088);
 }
 
 static void _updateClearGameStats(void) { _do_updateClearGameStats(); }
@@ -1424,18 +1416,6 @@ static void _beginFrame(void)
 {
     vs_main_processPadState();
     pc_frame_begin();
-}
-
-static void func_8006B930(void)
-{
-    void* temp_a0;
-
-    _beginFrame();
-    temp_a0 = D_80055C80[vs_main_frameBuf];
-    psx_set(vs_scratch.unk8, temp_a0 + 8);
-    psx_set(vs_scratch.unk4, temp_a0 + 0x48);
-    ClearOTagR((u_long*)temp_a0, 0x822);
-    psx_set(vs_scratch.unk0, D_8005E0C0[vs_main_frameBuf]);
 }
 
 static void func_8006B9B4(void)
@@ -1560,16 +1540,16 @@ static void func_8006BD78(void)
     SetDispMask(1);
 
     do {
-        func_8006B930();
+        _beginFrame();
         temp_s0 = func_8006BE04();
-        _drawScreen(psx_slot_get(u_long*, 0x1F800004, 0) + 0x7FF);
+        _drawScreen();
     } while (temp_s0 == 0);
 
     do {
-        func_8006B930();
+        _beginFrame();
         temp_s0 = _renderCongratulationsScreen();
         VSync(0);
-        _drawScreen(psx_slot_get(u_long*, 0x1F800004, 0) + 0x7FF);
+        _drawScreen();
     } while (temp_s0 == 0);
 }
 
@@ -1737,7 +1717,7 @@ static int _renderCongratulationsScreen(void)
 
         func_8006C3CC(D_800DC20C);
 #ifdef ROOD_PC
-        void* pcFirst = _pcLeavesBegin();
+        int pcFirst = _pcLeavesBegin();
 #endif
         _renderCongratulations(0xA0, 0x28, D_800DC20C);
         _renderIncrementalScore(0xA0, 0x50, D_800DC20C - 0x20, D_800DC210);
@@ -1761,7 +1741,7 @@ static int _renderCongratulationsScreen(void)
 
         func_8006C3CC(8 - D_800DC20C);
 #ifdef ROOD_PC
-        void* pcFirst = _pcLeavesBegin();
+        int pcFirst = _pcLeavesBegin();
 #endif
         _renderCongratulations(0xA0, 0x28, 8 - D_800DC20C);
         _renderScore(0xA0, 0x50, 8 - D_800DC20C, 3);
@@ -1784,7 +1764,6 @@ static int _renderCongratulationsScreen(void)
 void func_8006C3CC(int arg0)
 {
     int i;
-    int first;
     int temp_s4;
     pc_item* poly;
 
@@ -1801,8 +1780,6 @@ void func_8006C3CC(int arg0)
     if (arg0 <= 0) {
         return;
     }
-
-    first = pc_frame_count();
 
     for (i = 0; i < 5; ++i) {
         poly = pc_frame_add(PC_ITEM_POLY, 0x7FE);
@@ -1821,10 +1798,6 @@ void func_8006C3CC(int arg0)
         poly->mode = (i + 16) | getTPage(3, 0, 0, 0);
     }
 
-    /* the picture draws where the table's slot is, ahead of the leaves still built as packets */
-    psx_slot_set(void*, 0x1F800000, 0,
-        pc_frame_place(first, pc_frame_count() - first,
-            (unsigned*)psx_slot_get(void*, 0x1F800004, 0) + 0x7FE, psx_slot_get(void*, 0x1F800000, 0)));
 }
 
 static void _renderCongratulations(int arg0, int arg1, int arg2)

@@ -105,6 +105,13 @@ pc_classic_walker pc_classic_guest(void); /* (made at the call: no host data poi
  * outside it ends them). Returns how many went into out (at most max). */
 int pc_classic_walk(const pc_classic_walker* walker, const unsigned* head, const void* lo, const void* hi,
     pc_classic_packet* out, int max);
+/* ROOD_CLASSIC_ITEMS=1 (dev): the claims of sites the game draws as packets draw as items too, so a display
+ * comparison with it on and off covers the packets-to-items path (build_compare.py --new-env). */
+int pc_classic_force_items(void);
+void pc_classic_items_note(int converted);
+/* The items of [first, end) that no marker places in a table (a frame with no ordering table: ENDING's), in
+ * drawing order, as the packets they lower to. Items a marker places are read by the walks, where the marker is. */
+int pc_classic_walk_items(const pc_classic_walker* walker, int first, int end, pc_classic_packet* out, int max);
 /* The packets of [lo, hi) in allocation order (each packet's length after
  * the next): RPC packets {range} and the hooks' emit-only suppression. */
 int pc_classic_scan(const pc_classic_walker* walker, const void* lo, const void* hi, pc_classic_packet* out, int max);

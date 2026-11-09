@@ -17,6 +17,7 @@
 #define ROOD_CLASSIC_HOOK_H
 #ifdef ROOD_PC
 #include "classic_parity.h"
+#include "pc/src/draw_items.h"
 #define PC_CLASSIC_SITE_GAUGES 8       /* classic_parity.h PC_CLASSIC_GAUGES: func_800CA2DC's gauges */
 #define PC_CLASSIC_SITE_FIGURE 9       /* Ashley's five limb sprites */
 /* Snapshot at the status carousel's emit boundary; no game pointers escape. */
@@ -230,12 +231,19 @@ typedef struct {
 } pc_classic_mainmenu;
 void pc_classic_mainmenu_read(pc_classic_mainmenu* out); /* 58EC.c */
 void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end) __attribute__((weak));
+/* The draw items of the site being reported ([first, end) of the frame's list), for the layers below it. */
+void pc_classic_site_items(int* first, int* end);
+/* A site's range is its packets (the cursor before and after) and its draw items (the frame list's count before and
+ * after: draw_items.h pc_frame_site). A site draws as either, or both: whichever its game code emits. */
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \
         void* pc_classic_first = psx_load(void*, (u_int*)0x1F800000); \
+        int pc_classic_items = pc_frame_count(); \
         statement; \
-        if (pc_classic_site) \
+        if (pc_classic_site) { \
+            pc_frame_site(pc_classic_items, pc_frame_count()); \
             pc_classic_site(kind, record, x, y, pc_classic_first, psx_load(void*, (u_int*)0x1F800000)); \
+        } \
     } while (0)
 #endif
 #endif

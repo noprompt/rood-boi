@@ -4722,7 +4722,9 @@ def packet_masks(symbols, pointer):
     packets after the game's no-ops, so later packets, and the links to them, sit further on."""
     masks = [[symbols["D_800F4CD0"], 3 * 34 * 4]]
     rows = {name: a for a, n, name in Symbols(rood_rpc.BINARY).rows if name in ("D_800F1CC0", "D_800F1BB8")}
-    return masks + [[a, pointer] for a in rows.values()]
+    # the frame's draw items (draw_items.c, saved state): a claim's items follow the game's, which it marks not drawn
+    items = [(a, n) for a, n, name in Symbols(rood_rpc.BINARY).rows if name == "pc_item_frame"]
+    return masks + [[a, pointer] for a in rows.values()] + [[a, n] for a, n in items]
 
 
 def state_masks(g):

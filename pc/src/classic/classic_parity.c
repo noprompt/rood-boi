@@ -14,6 +14,14 @@ extern unsigned pc_ui_text_glyph_at(unsigned tpage, unsigned clut, int u0, int v
 /* gpu_hw.c: the widescreen anchor of a packet in the ordering table being built */
 extern int pc_hw_anchor_of(const void* packet) __attribute__((weak));
 
+/* draw_items.c: typed draw items placed in a table by marker packets (pc_frame_place); the walker draws them
+ * where the marker is, so a capture reads them there (as the packets they lower to). Absent in the probe. */
+extern int pc_frame_marker(const unsigned* packet, int* first, int* count) __attribute__((weak));
+extern int pc_frame_order(int first, int count, int unplaced, int* out, int max) __attribute__((weak));
+extern int pc_frame_lower(int index, unsigned words[3][16], int lengths[3]) __attribute__((weak));
+extern int pc_frame_suppress(int first, int end) __attribute__((weak));
+extern const void* pc_frame_packet(int index) __attribute__((weak));
+
 static const char* const KIND_NAMES[PC_CLASSIC_KINDS] = { "", "status", "chain", "buff", "damage", "", "", "",
     "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker", "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value", "items_category", "items_status_button", "equip_stats", "dp_pp_bars", "gem_slots", "stat_page", "ok_mark", "storage_buttons", "storage_counts", "loot_capacities", "discard_count", "rename_grid", "rename_box", "file_menu", "file_element", "menuf", "menuf_load", "status_panel" }; /* (hud.h's travel, notice, name_window: not the classic layer's) */
 const char* pc_classic_kind_name(int kind)
@@ -96,6 +104,69 @@ static void keep(const pc_classic_walker* walker, const unsigned* tag, const voi
     p->at = (unsigned short)(((const char*)tag - (const char*)lo) / 4);
 }
 
+int pc_classic_force_items(void)
+{
+    static int forced = -1;
+    if (forced < 0) {
+        const char* v = getenv("ROOD_CLASSIC_ITEMS");
+        forced = v && *v == '1';
+    }
+    return forced;
+}
+
+/* A claim's command taken as items (converted) or left as the packets it is, counted; in the forced test mode they are
+ * told in the log at each power of ten. */
+void pc_classic_items_note(int converted)
+{
+    static int counts[2], next[2] = { 1, 1 };
+    int n = ++counts[converted != 0];
+    if (pc_classic_force_items() && n == next[converted != 0]) {
+        fprintf(stderr, "[classic] claim commands as items: %d %s\n", n, converted ? "converted" : "left as packets");
+        next[converted != 0] *= 10;
+    }
+}
+
+/* Items in drawing order as the packets they lower to (the draw mode before a flat one, the primitive), after
+ * `tag` (the marker that places them: their place and anchor), or at no tag (unplaced items of a site's range). */
+#define ITEM_RUN 2048
+static int item_packets(const pc_classic_walker* walker, const unsigned* tag, const void* lo, int first, int count,
+    int unplaced, pc_classic_packet* out, int max)
+{
+    static int order[ITEM_RUN];
+    int n, k, m = 0;
+    if (!pc_frame_order || !pc_frame_lower)
+        return 0;
+    n = pc_frame_order(first, count, unplaced, order, ITEM_RUN);
+    for (k = 0; k < n; k++) {
+        unsigned words[3][16];
+        int lengths[3], packets = pc_frame_lower(order[k], words, lengths);
+        for (int j = 0; j < packets && m < max; j++) {
+            pc_classic_packet* p = &out[m++];
+            memset(p, 0, sizeof *p);
+            p->words = (unsigned char)lengths[j];
+            memcpy(p->w, words[j], (size_t)lengths[j] * sizeof words[j][0]);
+            normalise(p);
+            p->anchor = (signed char)(walker->anchor && pc_frame_packet ? walker->anchor(pc_frame_packet(order[k]), walker->user) : 0);
+            p->at = (unsigned short)(tag ? ((const char*)tag - (const char*)lo) / 4 : 0);
+        }
+    }
+    return m;
+}
+/* A marker's run, or one packet. */
+static int keep_or_expand(const pc_classic_walker* walker, const unsigned* tag, const void* lo, pc_classic_packet* out,
+    int max)
+{
+    int first, count;
+    if (pc_frame_marker && pc_frame_marker(tag, &first, &count))
+        return item_packets(walker, tag, lo, first, count, 0, out, max);
+    keep(walker, tag, lo, out);
+    return 1;
+}
+int pc_classic_walk_items(const pc_classic_walker* walker, int first, int end, pc_classic_packet* out, int max)
+{
+    return end > first ? item_packets(walker, NULL, NULL, first, end - first, 1, out, max) : 0;
+}
+
 int pc_classic_walk(const pc_classic_walker* walker, const unsigned* head, const void* lo, const void* hi,
     pc_classic_packet* out, int max)
 {
@@ -108,7 +179,7 @@ int pc_classic_walk(const pc_classic_walker* walker, const unsigned* head, const
         if (n >= PC_CLASSIC_PACKET_WORDS || (const void*)(tag + 1 + n) > hi)
             break; /* not a packet: the walk ends */
         if (n && count < max)
-            keep(walker, tag, lo, &out[count++]);
+            count += keep_or_expand(walker, tag, lo, &out[count], max - count);
         tag = walker->resolve(tag[0], walker->user);
     }
     return count;
@@ -123,7 +194,7 @@ int pc_classic_scan(const pc_classic_walker* walker, const void* lo, const void*
         if (n >= PC_CLASSIC_PACKET_WORDS || (const void*)(tag + 1 + n) > hi)
             break;
         if (n)
-            keep(walker, tag, lo, &out[count++]);
+            count += keep_or_expand(walker, tag, lo, &out[count], max - count);
         tag += 1 + n;
     }
     return count;
@@ -174,6 +245,9 @@ int pc_classic_suppress(void* lo, void* hi)
         if (tag[0] >> 24 && !mode_only(tag)) {
             if (suppressed_count < (int)(sizeof suppressed / sizeof suppressed[0]))
                 suppressed[suppressed_count].tag = tag, suppressed[suppressed_count++].n = (unsigned char)n;
+            int first, items;
+            if (pc_frame_marker && pc_frame_suppress && pc_frame_marker(tag, &first, &items))
+                pc_frame_suppress(first, first + items); /* (its items are no longer drawn) */
             tag[0] &= 0x00FFFFFFu;
             ++count;
         }
@@ -205,6 +279,9 @@ int pc_classic_suppress_linked(const unsigned* head, void* lo, void* hi)
         if (tag[0] >> 24 && !mode_only(tag)) {
             if (suppressed_count < (int)(sizeof suppressed / sizeof suppressed[0]))
                 suppressed[suppressed_count].tag = tag, suppressed[suppressed_count++].n = (unsigned char)n;
+            int first, items;
+            if (pc_frame_marker && pc_frame_suppress && pc_frame_marker(tag, &first, &items))
+                pc_frame_suppress(first, first + items);
             tag[0] &= 0x00FFFFFFu;
             ++count;
         }

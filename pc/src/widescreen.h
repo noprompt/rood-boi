@@ -12,6 +12,7 @@
 #ifndef ROOD_WIDESCREEN_H
 #define ROOD_WIDESCREEN_H
 #ifdef ROOD_PC
+#include "pc/src/draw_items.h"
 extern int pc_gte_anchored; /* > 0: projections are not narrowed */
 int pc_gte_unnarrow_x(int sx); /* a narrowed screen X as the 4:3 projection gives it */
 void pc_hw_anchor_packets(const void* start, const void* end, int anchor) __attribute__((weak));
@@ -57,13 +58,16 @@ extern int pc_gte_widescreen;
         --pc_gte_anchored; \
     } while (0)
 /* Anchor the packets the statement allocates from the scratchpad's packet
- * pointer (0x1F800000). */
+ * pointer (0x1F800000), and the draw items it adds. */
 #define PC_ANCHOR_PACKETS(anchor, statement) \
     do { \
         void* pc_anchor_start = psx_load(void*, (u_int*)0x1F800000); \
+        int pc_anchor_items = pc_frame_count(); \
         statement; \
-        if (pc_hw_anchor_packets) \
+        if (pc_hw_anchor_packets) { \
             pc_hw_anchor_packets(pc_anchor_start, psx_load(void*, (u_int*)0x1F800000), anchor); \
+            pc_frame_anchor(pc_anchor_items, pc_frame_count(), anchor); \
+        } \
     } while (0)
 #endif
 #endif
