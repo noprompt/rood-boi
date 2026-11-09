@@ -7,11 +7,11 @@ const c = @import("c_74088");
 
 /// orig: func_800DD604 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Chooses the usable armor slot with the highest config value and records it in the action choice.
-pub fn func_800DD604(state: ?*v.actionChoiceState) callconv(.c) void {
+pub fn func_800DD604(state: ?*v.vs_battle_aiState) callconv(.c) void {
     var best: c_uint = 0;
     const s = state.?;
-    const choice: *v.actionChoice = &s.choice;
-    const stats = psx.get(s.stats).?;
+    const choice: *v.actionChoice = &s.entry.choice;
+    const stats = psx.get(s.stats.actor2).?;
     // vs_main_actions viewed as actionChoiceInfo (52-byte stride): flag28 of entry `action`.
     const infos: [*]v.actionChoiceInfo = @ptrCast(v.g.actions());
 
@@ -21,7 +21,7 @@ pub fn func_800DD604(state: ?*v.actionChoiceState) callconv(.c) void {
         while (col < 4) : (col += 1) {
             const r: usize = @intCast(row);
             const k: usize = @intCast(col);
-            const config: *v.actionSlotConfig = &s.configs[r][k];
+            const config: *v.actionSlotConfig = &s.configs.actionSlotConfig[r][k];
             const action: c_int = @as(c_int, psx.conv(u16, stats.armor[r][k].id));
             if (c.func_800E4DF8(@ptrCast(s), row, col) != 0 and
                 psx.getBits(config, "usable") != 0 and

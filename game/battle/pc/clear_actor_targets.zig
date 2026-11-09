@@ -1,4 +1,5 @@
 //! Dropping targets on an actor (D2: 7E05C.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const psx = @import("common").psx;
 const v = @import("views_battle_movement");
@@ -10,8 +11,8 @@ const v = @import("views_battle_movement");
 pub fn clearActorTargets(id: c_int) callconv(.c) void {
     var node: [*]u8 = @ptrCast(v.g.vs_battle_actors()[0].?);
     while (true) {
-        const state: [*]u8 = @ptrCast(psx.at(v.g.D_800F5878(), psx.byteAt(c_uint, node, 4).*).*.?);
-        if (@as(c_uint, state[0x16]) == @as(c_uint, @bitCast(id))) state[0x16] = 0x10;
+        const state: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), psx.byteAt(c_uint, node, 4).*).*.?));
+        if (@as(c_uint, @as(u8, @bitCast(state.target16))) == @as(c_uint, @bitCast(id))) state.target16 = 0x10;
         const next = psx.byteAt(c_uint, node, 0).*;
         if (next == 0) break;
         node = @ptrFromInt(next);

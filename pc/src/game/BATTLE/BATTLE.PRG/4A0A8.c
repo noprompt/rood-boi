@@ -610,7 +610,6 @@ int vs_battle_script_showTextBox(u_char* script, short arg1 __attribute__((unuse
 
 int vs_battle_script_dismissTextBox(u_char* arg0, short arg1);
 
-
 textOffset func_800CCE10(int, int, int, int);
 
 int func_800B6B98( SVECTOR* origin, u_char* script, textPlacement* result, u_char direction);
@@ -652,7 +651,6 @@ int func_800B770C(u_char* arg0, short arg1);
 int func_800B77DC(u_char* arg0, short arg1);
 
 int func_800B784C(u_char* arg0, short arg1);
-
 
 void func_800A9988(int, SVECTOR*, int, int);
 
@@ -798,9 +796,7 @@ int func_800B9C58(u_char* arg0, short arg1);
 
 int func_800B9D74(u_char* arg0, short arg1);
 
-
 int func_800B9DB4(u_char* arg0, short arg1);
-
 
 int func_800B9F28(u_char* arg0, short arg1);
 
@@ -968,7 +964,6 @@ void func_800BB9B0(void);
 
 void func_800BBAFC(void);
 
-
 extern P_CODE D_800E9C08;
 extern D_800F1A68_t D_800E9C0C;
 
@@ -1032,7 +1027,6 @@ VECTOR* _vectorSubtract(VECTOR* arg0, VECTOR* arg1, VECTOR* arg2);
 
 VECTOR* _vectorFixedPointMult(VECTOR* arg0, VECTOR* arg1, int arg2);
 
-
 static VECTOR* _copyVector(VECTOR* arg0, VECTOR* arg1)
 {
     copyVector(arg0, arg1);
@@ -1057,7 +1051,6 @@ static int _vectorMagnitude(VECTOR* arg0)
 }
 
 VECTOR* _setVectorImm(VECTOR* arg0, u_char* arg1);
-
 
 static VECTOR* _sVectorToFixedPointVector(VECTOR* arg0, SVECTOR* arg1)
 {
@@ -1089,7 +1082,6 @@ int _atan2FixedPoint(int arg0, int arg1);
 
 void _vecToRotMatrix(VECTOR* arg0, MATRIX* arg1);
 
-
 static void _toNormalIntegerVector(VECTOR* arg0, VECTOR* arg1)
 {
     VECTOR sp10;
@@ -1116,7 +1108,6 @@ void vs_battle_setStateFlag(short id, char value);
 
 int func_800BEC30(void);
 
-
 extern char D_800F4BA8;
 int func_8007C218(int);
 int func_800A0024(int, void*);
@@ -1127,11 +1118,9 @@ short func_800BEC58(int arg0, int arg1, int arg2, int arg3);
 
 void func_800BF5F0(u_char* data);
 
-
 short func_800BFBB8(u_char** arg0, short arg1);
 
 int func_800BF850(void);
-
 
 /* The event opcode table: native function pointers in the original's order (guest address 0x800E9D30).
  * pc_event_* take the handlers that the original calls with fewer arguments. */

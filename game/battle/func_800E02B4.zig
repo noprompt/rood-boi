@@ -12,7 +12,7 @@ fn dirEntry(direction: c_int) *align(1) v.D_800F16EC_t {
 }
 
 /// Per-state word in the scratchpad table at 0x1F80037C (OBSTRUCTION_STATES).
-fn scratchState(id: i32) *align(1) v.obstructionState {
+fn scratchState(id: i32) *align(1) v.vs_battle_aiState {
     // 4 * id wraps in int, then sign-extends to the target's address width.
     const off: isize = @as(c_int, 4) *% id;
     const addr: usize = @as(usize, 0x1F80037C) +% @as(usize, @bitCast(off));
@@ -42,7 +42,7 @@ fn markTested(cache: *v.obstructionCache, direction: c_int) void {
 
 /// orig: func_800E02B4 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Tests whether a move of `state` in `direction` (`ahead` steps) is blocked by a point or an actor, caching the answer per direction.
-pub fn func_800E02B4(state: ?*v.obstructionState, direction: c_int, ahead: c_int) callconv(.c) c_int {
+pub fn func_800E02B4(state: ?*v.vs_battle_aiState, direction: c_int, ahead: c_int) callconv(.c) c_int {
     const cache: *v.obstructionCache = @ptrFromInt(0x1F8003D0);
     // Shift count is the low 5 bits (x86 masks it); direction is not range-checked by the C.
     const shift: u5 = psx.conv(u5, direction);
@@ -53,9 +53,9 @@ pub fn func_800E02B4(state: ?*v.obstructionState, direction: c_int, ahead: c_int
     const dir = dirEntry(direction);
     const dvx: c_int = @as(c_int, psx.getBits(dir, "dx"));
     const dvz: c_int = @as(c_int, psx.getBits(dir, "dz"));
-    const x: c_int = @as(c_int, st.position.x) +% ahead *% (@as(c_int, st.step) *% dvx);
-    const y: c_int = @as(c_int, st.position.y);
-    const z: c_int = @as(c_int, st.position.z) +% ahead *% (@as(c_int, st.step) *% dvz);
+    const x: c_int = @as(c_int, st.position.obstruction.x) +% ahead *% (@as(c_int, st.step) *% dvx);
+    const y: c_int = @as(c_int, st.position.obstruction.y);
+    const z: c_int = @as(c_int, st.position.obstruction.z) +% ahead *% (@as(c_int, st.step) *% dvz);
 
     var points: [4]v.obstructionVector align(4) = undefined;
     var i: c_int = c.func_8008D2C0(@ptrCast(&points));
@@ -68,7 +68,7 @@ pub fn func_800E02B4(state: ?*v.obstructionState, direction: c_int, ahead: c_int
         if (ahead != 0 and behindDirection(direction, dx, dz)) continue;
 
         const radius: c_uint = psx.conv(c_uint, @as(c_int, st.radius) +% 96);
-        const height: c_uint = psx.conv(c_uint, (@as(c_int, st.height) +% 32) >> 1);
+        const height: c_uint = psx.conv(c_uint, (@as(c_int, st.extent) +% 32) >> 1);
         if (absU(dx) <= radius and absU(dz) <= radius and absU(dy) <= height) {
             markTested(cache, direction);
             psx.at(&cache.result, direction).* = 1;
@@ -79,7 +79,7 @@ pub fn func_800E02B4(state: ?*v.obstructionState, direction: c_int, ahead: c_int
     var actor: ?*v.vs_battle_actor = v.g.vs_battle_actors()[0];
     while (actor) |a| : (actor = psx.get(a.next)) {
         const other = scratchState(a.id);
-        const model = psx.get(other.model);
+        const model = psx.get(other.object.obstructionModel);
         if (other.id == st.id or other.id == 0) continue;
 
         const m = model.?;
@@ -92,7 +92,7 @@ pub fn func_800E02B4(state: ?*v.obstructionState, direction: c_int, ahead: c_int
         const height: c_uint = if (other.id == 0)
             @as(c_uint, 0xFFFF_FFFF)
         else
-            psx.conv(c_uint, (@as(c_int, st.height) +% @as(c_int, other.height)) >> 1);
+            psx.conv(c_uint, (@as(c_int, st.extent) +% @as(c_int, other.height)) >> 1);
         if (absU(dx) <= radius and absU(dz) <= radius and absU(dy) <= height) {
             markTested(cache, direction);
             psx.at(&cache.result, direction).* = psx.conv(u8, a.id +% 1);

@@ -1,4 +1,5 @@
 //! Marking an actor as a target of the state (D2: 73C84.s; oracle pc/src/battle_helpers.c).
+const ai = @import("views_71618");
 const psx = @import("common").psx;
 const c = @import("c_battle_helpers");
 
@@ -8,12 +9,12 @@ const c = @import("c_battle_helpers");
 /// the actor first reacts: rand() is drawn (its result unused),
 /// byte 0x18 is set to 1, then func_800D8260(state, 6, 0x28) and
 /// func_800E48A8(state, 2, 0x80). The old word is kept across those calls.
-pub fn markTargetHostile(state: [*]u8, id: c_int) callconv(.c) void {
-    const target = psx.byteAt(c_uint, state, 0x1a4 + @as(isize, id *% 4));
+pub fn markTargetHostile(state: *ai.vs_battle_aiState, id: c_int) callconv(.c) void {
+    const target = psx.byteAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4));
     const flags = target.*;
     if (((flags >> 6) & 3) < 3) {
         _ = c.rand();
-        state[0x18] = 1;
+        state.unk18 = 1;
         c.func_800D8260(state, 6, 0x28);
         c.func_800E48A8(state, 2, 0x80);
     }

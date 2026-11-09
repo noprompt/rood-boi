@@ -12,7 +12,7 @@ const Label = enum { normal, move, case2, case4, case7 };
 
 /// orig: func_800D9E18 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Decides whether the candidate movement state moves toward the entry's target; returns 1 when it does.
-pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandidateEntry) callconv(.c) c_int {
+pub fn func_800D9E18(state: ?*v.vs_battle_aiState, entry: ?*v.actionCandidateEntry) callconv(.c) c_int {
     const st = state.?;
     var id: c_int = undefined;
     var flag: c_int = undefined;
@@ -20,7 +20,7 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
     var limit: c_uint = undefined;
     var active: c_int = 0;
 
-    if (st.count == 0) return 0;
+    if (st.count470 == 0) return 0;
     const ent = entry.?;
     id = @as(c_int, psx.getBits(ent, "targetId"));
     if (id == 16) return 0;
@@ -28,7 +28,7 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
     const slot: *const c_uint = @ptrFromInt(@as(usize, @as(c_uint, @bitCast(@as(c_int, 0x1F80037C) +% (id *% 4)))));
     if (slot.* == 0) return 0;
 
-    var label: Label = switch (st.mode) {
+    var label: Label = switch (st.mode12E) {
         1 => .normal,
         2 => .case2,
         4 => .case4,
@@ -43,9 +43,9 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
             .normal => {
                 limit = 0x1F80;
                 if ((@as(c_int, st.flags) & 8) == 0)
-                    limit = psx.conv(c_uint, vs_gte_rsqrt(ent.distanceSquared) +% (@as(c_int, st.maxRange) << 5));
+                    limit = psx.conv(c_uint, vs_gte_rsqrt(ent.distanceSquared) +% (@as(c_int, st.step) << 5));
                 limit = limit *% limit;
-                if ((@as(c_int, st.targets[@intCast(id)].bytes[0]) >> 6) == 2) {
+                if ((@as(c_int, st.tbl.t.targets.word[@intCast(id)].bytes[0]) >> 6) == 2) {
                     distance = ent.distanceSquared;
                     flag = 0;
                     active = 1;
@@ -64,7 +64,7 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
                 if (active != 0) {
                     v.g.D_800F58BC().*.?.unk24 +%= 1;
                     const target: usize = @intCast(psx.getBits(ent, "targetId"));
-                    if (st.distances[@intCast(id)] < limit and (st.targets[target].raw & 1) != 0)
+                    if (st.tbl.t.distances[@intCast(id)] < limit and (st.tbl.t.targets.word[target].raw & 1) != 0)
                         c.func_800D836C(@ptrCast(st));
                 }
                 {
@@ -90,7 +90,7 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
                         &point[0],
                         @ptrCast(&v.g.D_800F4538()[@intCast(id)].?.unk0.position),
                         @as(c_int, st.height),
-                        @as(c_int, @as(*align(1) v.candidateMovementState, @ptrCast(v.g.D_800F5878()[@intCast(id)].?)).height),
+                        @as(c_int, @as(*align(1) v.vs_battle_aiState, @ptrCast(v.g.D_800F5878()[@intCast(id)].?)).height),
                     );
                     distance = psx.conv(c_uint, vs_gte_rsqrt(@as(c_uint, @bitCast(pos))));
                     distance = @as(c_uint, @intFromBool(
@@ -102,18 +102,18 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
                         continue :dispatch;
                     }
                 }
-                const x: c_int = (@as(c_int, st.next.bytes[0]) << 7) +% 64;
-                const z: c_int = (@as(c_int, st.next.bytes[2]) << 7) +% 64;
+                const x: c_int = (@as(c_int, st.destination168.candidateMovementWord.bytes[0]) << 7) +% 64;
+                const z: c_int = (@as(c_int, st.destination168.candidateMovementWord.bytes[2]) << 7) +% 64;
                 const y: c_int = c.func_800E42D4(x, z);
                 if (c.func_800E4660(
-                    x -% @as(c_int, st.position[0]),
-                    y -% @as(c_int, st.position[1]),
-                    z -% @as(c_int, st.position[2]),
+                    x -% @as(c_int, st.position.xyz[0]),
+                    y -% @as(c_int, st.position.xyz[1]),
+                    z -% @as(c_int, st.position.xyz[2]),
                 ) <= 0xFFFF) {
-                    st.target = psx.conv(u8, id);
+                    st.movementTargetId = psx.conv(u8, id);
                     c.func_800DB5B8(@ptrCast(st), st.destination.raw, 2);
                 } else {
-                    st.f1 = 1;
+                    st.flags0.b[1] = 1;
                     c.func_800DB5DC(@ptrCast(st), st.destination.raw, 256);
                 }
                 return 1;
@@ -123,7 +123,7 @@ pub fn func_800D9E18(state: ?*v.candidateMovementState, entry: ?*v.actionCandida
                 c.func_800D82CC(@ptrCast(st));
                 id = 0;
                 flag = 1;
-                if ((@as(c_int, st.targets[0].bytes[0]) >> 6) == 3) {
+                if ((@as(c_int, st.tbl.t.targets.word[0].bytes[0]) >> 6) == 3) {
                     distance = 640;
                     {
                         label = .move;

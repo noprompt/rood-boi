@@ -11,7 +11,7 @@ const c = @import("c_74088");
 fn statusScore(stats: *v.actionStatSnapshot, id: c_int) c_int {
     var sum: c_int = 0;
     const row = psx.at(stats, id);
-    const scoreState = psx.globalMany(?*v.actionScoreState, "D_800F5878")[@as(usize, @intCast(row.unknown & 15))].?;
+    const scoreState = psx.globalMany(?*v.vs_battle_aiState, "D_800F5878")[@as(usize, @intCast(row.unknown & 15))].?;
     const noCost = scoreState.maxActionCost == 0;
     var i: c_int = 0;
     while (i < 32) : (i += 1) {
@@ -55,7 +55,7 @@ fn extraRatio(stats: *v.actionStatSnapshot, id: c_int) c_int {
 
 /// orig: func_800DCC94 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Scores one candidate action against every battle target and writes the result to the candidate.
-pub fn func_800DCC94(state: ?*v.actionScoreState, candidate: ?*v.actionCandidateEntry, mode: c_int, action: ?*v.actionScoreMetadata) callconv(.c) void {
+pub fn func_800DCC94(state: ?*v.vs_battle_aiState, candidate: ?*v.actionCandidateEntry, mode: c_int, action: ?*v.actionScoreMetadata) callconv(.c) void {
     var special: c_int = 0;
     var flags: c_int = 0;
     if (action) |a| flags = @as(c_int, a.flags);
@@ -80,7 +80,7 @@ pub fn func_800DCC94(state: ?*v.actionScoreState, candidate: ?*v.actionCandidate
     while (actor != null) : (actor = psx.get(actor.?.next)) {
         const a = actor.?;
         const id: c_int = a.id;
-        const kind: c_uint = psx.at(&st.targets, id).classification >> 6;
+        const kind: c_uint = psx.at(&st.tbl.t.targets.score, id).classification >> 6;
         if (kind == 1) continue;
         var value: c_int = c.func_800DC284(
             statusScore(stats, id),

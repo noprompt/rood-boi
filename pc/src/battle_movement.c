@@ -3,7 +3,8 @@
  * keep the original ABI; return values reproduce the original $v0 where C
  * callers test them. */
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
-extern unsigned char *D_800F5878[], *D_800F4538[], *vs_battle_actors[];
+#include "game/BATTLE/BATTLE.PRG/ai_state.h"
+extern unsigned char* D_800F5878[];
 extern unsigned D_800F58D8; /* a 32-bit guest address */
 /* Scratchpad bytes and words; pointers kept there are 4-byte guest addresses
  * (SCRATCH_PTR), like every pointer stored inside the PS1-layout actor and AI
@@ -67,7 +68,6 @@ void func_800DB5FC(void* state);
 void func_800DB820(void* state);
 
 
-extern unsigned char* D_800F45E0[];
 /* Guest words at 0x800F58xx hold 32-bit guest addresses (see psx_load). */
 extern unsigned D_800F58BC, D_800F58B8;
 extern int func_800E4660(int, int, int);
@@ -140,26 +140,30 @@ extern unsigned D_800F5910; /* guest address of the room's u16 link pairs */
  * `caller_s2` passes it. func_800D954C shifts byte 3 out and the command
  * consumers (func_80075554, func_800A208C, func_800B6580) read bytes 0-2
  * only, so the value is unobservable; callers pass what they know. */
+/* The AI state's layout for the test that pokes it (route_continuation_smoke reads these by symbol). */
+const unsigned pc_ai_offset_priority = __builtin_offsetof(vs_battle_aiState, unk125);
+const unsigned pc_ai_offset_gate = __builtin_offsetof(vs_battle_aiState, gate);
+const unsigned pc_ai_offset_far_end = __builtin_offsetof(vs_battle_aiState, exit);
 unsigned pc_route_continuations; /* times run (tests read it by symbol) */
 void pc_route_continuation(void* state, unsigned caller_s2)
 {
-    unsigned char* base = state;
+    vs_battle_aiState* base = state;
     ++pc_route_continuations;
-    if (base[0x35] < 2) {
-        *(int*)(base + 0x19c) = -1;
-        func_800E4BD8(base[0x19b]);
-        base[0x19b] = 0;
+    if (base->tile.b[1] < 2) {
+        *(int*)&base->exit = -1;
+        func_800E4BD8(base->gate);
+        base->gate = 0;
         return;
     }
-    int index = func_800DFAF8(psx_to_int(int, base), *(unsigned*)(base + 0x19c), 0);
+    int index = func_800DFAF8(psx_to_int(int, base), *(unsigned*)&base->exit, 0);
     if (index >= 0) {
         unsigned link = psx_to_ptr(unsigned short*, D_800F5910)[index * 2];
         unsigned tile = (caller_s2 & 0xff000000u) | (link & 0x1f) | (((link >> 5) & 0x1f) << 16);
         if (func_800D954C(state, tile) > 0) {
-            *(int*)(base + 0x19c) = -1;
+            *(int*)&base->exit = -1;
             func_800E4BD8((index >> 1) + 2);
-            base[0x19b] = 0;
-            *(unsigned*)(base + 0x170) = tile;
+            base->gate = 0;
+            base->next.movementPosition.raw = tile;
             func_800DEEFC(state, 14);
             return;
         }
@@ -218,7 +222,7 @@ extern void func_800DB5DC(void*, unsigned, int);
  * func_800DA1D4. */
 static int behaviour_800DBA4C(void* state)
 {
-    if (!((unsigned char*)state)[0xe])
+    if (!((vs_battle_aiState*)state)->flagE)
         return func_800DA1D4(state);
     if (!func_800DB61C(state, 1))
         func_800DB5B0(state);
@@ -229,14 +233,14 @@ static int behaviour_800DBA4C(void* state)
  * flag 0x20), stance 0 capping that by the candidate's rsqrt distance. */
 static int behaviour_800DBA88(void* state)
 {
-    unsigned char* base = state;
-    if (base[0xe])
+    vs_battle_aiState* base = state;
+    if (base->flagE)
         return func_800DB61C(state, 1);
-    unsigned stance = (1u << base[0x131]) & 3;
+    unsigned stance = (1u << base->status) & 3;
     if (!stance)
         return func_800DA1D4(state);
-    unsigned* best = psx_load(unsigned*, base + 0x430);
-    int limit = (psx_load(unsigned char*, base + 0x58))[0xa] & 0x20 ? 0x140 : 0x100;
+    unsigned* best = (unsigned*)base->entries.candidates[0];
+    int limit = ((unsigned char*)base->object.actorObject)[0xa] & 0x20 ? 0x140 : 0x100;
     unsigned target = best[3] & 0xf;
     if (stance & 1) {
         int root = vs_gte_rsqrt((int)best[2]);
@@ -251,7 +255,7 @@ static int behaviour_800DBA88(void* state)
  * (func_800DB5DC), near ones by area (func_800DB5B8, range 5). */
 static int behaviour_800DBB98(void* state)
 {
-    unsigned char* base = state;
+    vs_battle_aiState* base = state;
     unsigned tile;
     int result = func_800DA1D4(state);
     if (result)
@@ -259,7 +263,7 @@ static int behaviour_800DBB98(void* state)
     int id = func_800DBB2C(state, &tile, 2);
     if (id < 0)
         return 0;
-    if (0x64000u < *(unsigned*)(base + 0x1e4 + id * 4))
+    if (0x64000u < base->tbl.t.distances[id])
         func_800DB5DC(state, tile, 0);
     else
         func_800DB5B8(state, tile, 5);
@@ -357,12 +361,12 @@ int func_800D98E8(void* state, int dir);
  * original also stashes `dir` in GTE VXY2, which is not reproduced. */
 int D_800D9B6C(void* state, int dir)
 {
-    unsigned char* base = state;
+    vs_battle_aiState* base = state;
     if ((SCRATCH8(0x3d0) >> dir) & 1)
         return (SCRATCH8(0x3d1) >> dir) & 1;
     int blocked = func_800D98E8(state, dir);
     if (!blocked) {
-        unsigned tile = *(unsigned*)(base + 0x34), fine = *(unsigned*)(base + 0x120);
+        unsigned tile = base->tile.raw, fine = base->unk120;
         int packed = SCRATCH8(0x3ec + dir), probe = dir;
         int tile_x = tile & 0xff, tile_z = (tile >> 16) & 0xff;
         int next_x = ((int)(fine & 0xff) + direction_dx(packed)) >> 1;
@@ -376,7 +380,7 @@ int D_800D9B6C(void* state, int dir)
         if (!SCRATCH32(0x3f4)) {
             blocked = func_800E4690(tile, probe);
         } else {
-            unsigned reserved = *(unsigned*)(base + 0x38);
+            unsigned reserved = base->previous.stuckMovementPosition.raw;
             unsigned char* reserved_cell =
                 cells + (((reserved >> 10) & 0x3fc0) | ((reserved & 0xff) << 1));
             if (reserved_cell == (unsigned char*)cell) {
@@ -389,15 +393,15 @@ int D_800D9B6C(void* state, int dir)
         if (blocked)
             goto done;
         unsigned flags = *cell;
-        if ((blocked = (flags >> 4) & (base[6] ^ 1)))
+        if ((blocked = (flags >> 4) & (base->flags4.b[2] ^ 1)))
             goto done;
         if ((blocked = ((flags >> 5) & 1) | ((flags >> 7) & 1)))
             goto done;
-        if ((blocked = base[0x32] & (flags >> 8)))
+        if ((blocked = base->f32 & (flags >> 8)))
             goto done;
         unsigned here = *(unsigned short*)(cells + tile_x * 2 + tile_z * 64);
-        if ((base[0x29] & (base[2] ^ 1)) && (here & 0xf) != (flags & 0xf)
-            && (base[0x154] & 0xf) != (flags & 0xf)) {
+        if ((base->f29 & (base->flags0.b[2] ^ 1)) && (here & 0xf) != (flags & 0xf)
+            && (base->area & 0xf) != (flags & 0xf)) {
             blocked = 1;
             goto done;
         }
@@ -468,10 +472,10 @@ unsigned func_800E3DDC(void* state, unsigned flags, direction_test test);
 
 
 /* Shared tail of the three step planners (7B5DC.s L800E3F50/L800E4084). */
-static int finish_step(unsigned char* base, unsigned flags, int dir, int axis_only)
+static int finish_step(vs_battle_aiState* base, unsigned flags, int dir, int axis_only)
 {
     unsigned plan = func_800E3CDC(base, (flags & 0xfffffff1) | ((unsigned)dir << 1));
-    unsigned tile = *(unsigned*)(base + 0x34), target = *(unsigned*)(base + 0x168);
+    unsigned tile = base->tile.raw, target = base->destination168.destination;
     int tile_x = tile & 0xff, tile_z = (tile >> 16) & 0xff;
     int target_x = target & 0xff, target_z = (target >> 16) & 0xff;
     unsigned x, z;
@@ -486,30 +490,30 @@ static int finish_step(unsigned char* base, unsigned flags, int dir, int axis_on
         z = 0;
     }
     plan = (plan & 0x3fffff) | (z << 27) | (x << 22) | 1;
-    *(unsigned*)(base + 0x190) = plan;
+    base->movementFlags.raw = plan;
     return 1;
 }
 /* 7B5DC.s: step around an obstacle between headings `from` and `to`. */
 int func_800E3EAC(void* state, int from, int to, direction_test test)
 {
-    unsigned char* base = state;
-    unsigned flags = func_800E3DDC(state, *(unsigned*)(base + 0x190), test);
+    vs_battle_aiState* base = state;
+    unsigned flags = func_800E3DDC(state, base->movementFlags.raw, test);
     int turn = (flags & 0x10) ? 2 : -2;
     int offset = ((from + turn) & 7) == to ? turn : 4;
     int dir = (to + offset) & 7;
     if (!test(state, dir)) {
         dir = (((flags >> 1) & 7) + turn) & 7;
         if (!test(state, dir)) {
-            *(unsigned*)(base + 0x190) = flags;
+            base->movementFlags.raw = flags;
             return 0;
         }
     }
     return finish_step(base, flags, dir, 0);
 }
-static int final_step(unsigned char* base, unsigned flags, int dir, direction_test test)
+static int final_step(vs_battle_aiState* base, unsigned flags, int dir, direction_test test)
 {
     if (!test(base, dir)) {
-        *(unsigned*)(base + 0x190) = flags;
+        base->movementFlags.raw = flags;
         return 0;
     }
     return finish_step(base, flags, dir, 1);
@@ -518,8 +522,8 @@ static int final_step(unsigned char* base, unsigned flags, int dir, direction_te
  * succeeds at once, otherwise try the reverse heading, then reverse - turn. */
 int func_800E3FF4(void* state, int heading, int side, direction_test test)
 {
-    unsigned char* base = state;
-    unsigned flags = func_800E3DDC(state, *(unsigned*)(base + 0x190), test);
+    vs_battle_aiState* base = state;
+    unsigned flags = func_800E3DDC(state, base->movementFlags.raw, test);
     int turn = (flags & 0x10) ? 1 : -1;
     if (turn == side)
         return finish_step(base, flags, heading, 1);
@@ -532,8 +536,8 @@ int func_800E3FF4(void* state, int heading, int side, direction_test test)
  * reverse, then dir reversed. */
 int func_800E40F0(void* state, int dir, direction_test test)
 {
-    unsigned char* base = state;
-    unsigned flags = func_800E3DDC(state, *(unsigned*)(base + 0x190), test);
+    vs_battle_aiState* base = state;
+    unsigned flags = func_800E3DDC(state, base->movementFlags.raw, test);
     int turn = (flags & 0x10) ? 2 : -2;
     int next = (dir - turn) & 7;
     if (test(state, next))
@@ -548,12 +552,12 @@ int func_800E40F0(void* state, int dir, direction_test test)
  * target is within 0x31000 (squared, tile centres) and byte 4 bit 0 is set,
  * then refresh the step tile (func_800E3BC8). The original stashes $ra/$a0/$v0
  * in GTE VXY0/VZ0/VXY1, which is not reproduced. */
-static int near_target(unsigned char* base)
+static int near_target(vs_battle_aiState* base)
 {
-    unsigned tile = *(unsigned*)(base + 0x34), target = *(unsigned*)(base + 0x168);
+    unsigned tile = base->tile.raw, target = base->destination168.destination;
     int dx = (int)((target & 0xff) << 7) - (int)((tile & 0xff) << 7);
     int dz = (int)(((target << 8) >> 17)) - (int)(((tile << 8) >> 17));
-    return ((dx * dx + dz * dz) < 0x31000) & *(int*)(base + 4);
+    return ((dx * dx + dz * dz) < 0x31000) & (int)base->flags4.word;
 }
 int func_800E3C30(void* state, int a, int b, direction_test test)
 {
@@ -650,7 +654,6 @@ void func_800E48A8(void* state, int value, int range);
 
 extern int func_8008D2C0(void*);
 extern short func_8008DC7C(int, int);
-extern unsigned char* D_800F45E0[];
 /* 7E05C.s func_800E6BA0 (register ABI: the probe point in $s2-$s4): 1 unless
  * one of the room's obstacle points (func_8008D2C0) lies within 0x40 / 0x20 /
  * 0x40 of it (obstacle Y raised by 0x20). */

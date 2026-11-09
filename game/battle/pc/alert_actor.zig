@@ -1,4 +1,5 @@
 //! Alerting an actor (D2: 7BDD4.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const psx = @import("common").psx;
 const v = @import("views_battle_movement");
@@ -8,7 +9,7 @@ const v = @import("views_battle_movement");
 /// with that actor; id 0 and empty slots do nothing.
 pub fn alertActor(id: c_int) callconv(.c) void {
     if (id == 0) return;
-    const state: [*]u8 = @ptrCast(psx.at(v.g.D_800F5878(), id).* orelse return);
-    state[0x13f] = 30;
+    const state: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), id).* orelse return));
+    state.minDelay = 30;
     c.func_800E4C8C(state);
 }

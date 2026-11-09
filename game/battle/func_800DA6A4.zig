@@ -5,7 +5,7 @@ const c = @import("c_71618");
 
 /// orig: func_800DA6A4 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Advances the action candidate state `state`; returns 1 when the candidate was accepted.
-pub fn func_800DA6A4(state: ?*v.da4bcState) callconv(.c) c_int {
+pub fn func_800DA6A4(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     const s = state.?;
     if (s.flagE != 0)
         return c.func_800DB61C(@ptrCast(s), 1);

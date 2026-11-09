@@ -1,4 +1,5 @@
 //! Recording and scoring action candidates (D2: 73C84.s, 73B0C.s, 7C4F4.s; oracle pc/src/battle_helpers.c).
+const ai = @import("views_71618");
 const psx = @import("common").psx;
 const c = @import("c_battle_helpers");
 const v = @import("views_battle_helpers");
@@ -25,14 +26,14 @@ pub fn recordCandidate(candidate: [*]align(1) c_uint, info: [*]u8) callconv(.c) 
 /// Appends a scored candidate (fewer than 16 so far, nonzero weight in bits
 /// 19-26 of word 3) to the state's list at 0x2F0, records its pointer at
 /// 0x430, and marks (target, action) used in the table at D_800F5904.
-pub fn addScoredCandidate(state: [*]u8, candidate: [*]align(1) c_uint) callconv(.c) void {
-    const count = psx.byteAt(c_int, state, 0x470).*;
+pub fn addScoredCandidate(state: *ai.vs_battle_aiState, candidate: [*]align(1) c_uint) callconv(.c) void {
+    const count = state.count470;
     if (count >= 16 or (candidate[3] >> 19) & 0xff == 0) return;
     const used: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F5904().*));
     used[((candidate[3] & 0xf) << 8) + ((candidate[1] >> 5) & 0xff)] = 1;
-    const record = psx.byteAt(u8, state, 0x2f0 + @as(isize, count *% 0x14));
-    psx.byteAt(c_uint, state, 0x430 + @as(isize, count *% 4)).* = psx.addr(record);
-    psx.byteAt(c_int, state, 0x470).* = count +% 1;
+    const record = psx.byteAt(u8, &state.candidates, @as(isize, count *% 0x14));
+    psx.at(&state.entries.candidates, count).* = @ptrCast(@alignCast(record));
+    state.count470 = count +% 1;
     c.func_800DC2E0(record, @ptrCast(candidate));
 }
 
@@ -42,12 +43,12 @@ pub fn addScoredCandidate(state: [*]u8, candidate: [*]align(1) c_uint) callconv(
 /// candidate bit 5 adds a relation < 3 check against the action's target
 /// mask (unless action flag 0x100); bit 4 rejects relation < 3; slot flag
 /// bit 1 rejects targeting oneself.
-pub fn canTargetActor(state: [*]u8, candidate: [*]align(1) c_uint, id: c_int) callconv(.c) c_int {
-    const peer: [*]u8 = @ptrCast(psx.at(v.g.D_800F5878(), id).* orelse return 0);
+pub fn canTargetActor(state: *ai.vs_battle_aiState, candidate: [*]align(1) c_uint, id: c_int) callconv(.c) c_int {
+    const peer: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), id).* orelse return 0));
     const word = candidate[1];
     const options = candidate[4];
     const slot: c_int = @bitCast((word & 7) *% 4 +% ((word >> 3) & 3));
-    const relation = (psx.byteAt(c_uint, state, 0x1a4 + @as(isize, id *% 4)).* >> 6) & 3;
+    const relation = (psx.byteAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4)).* >> 6) & 3;
     if (relation < 2) return 0;
     if (options & 0x20 != 0) {
         const peer_flags = psx.byteAt(c_uint, peer, 0x10).*;
@@ -57,6 +58,6 @@ pub fn canTargetActor(state: [*]u8, candidate: [*]align(1) c_uint, id: c_int) ca
         if (action_flags & 0x100 == 0 and (action_flags >> 9) & mask == 0) return 0;
     }
     if (options & 0x10 != 0 and relation < 3) return 0;
-    if ((psx.byteAt(c_uint, state, 0x230 + @as(isize, slot *% 8)).* >> 1) & 1 != 0 and id == state[0x88]) return 0;
+    if ((psx.byteAt(c_uint, &state.configs, @as(isize, slot *% 8)).* >> 1) & 1 != 0 and id == state.id) return 0;
     return 1;
 }

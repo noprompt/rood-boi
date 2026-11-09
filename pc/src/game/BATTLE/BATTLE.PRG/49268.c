@@ -39,7 +39,6 @@ int func_800A190C(int, int, SVECTOR*, int);
 
 void func_800B1A68(D_800F45E0_t* object, MATRIX* camera);
 
-
 typedef struct {
     char prefix[0x20];
     MATRIX matrix;
@@ -58,7 +57,6 @@ void func_800B516C(void*, void*, void*, void*);
 void func_800B3CF0(void*, void*, void*, void*);
 
 void func_800B217C(vs_battle_wepModels_t* weapon, MATRIX* source);
-
 
 typedef struct {
     char prefix[0x1870];

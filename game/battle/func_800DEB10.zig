@@ -13,12 +13,12 @@ pub fn func_800DEB10(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
 
     // The C dereferences the slot before its NULL check, so a NULL slot crashes there: `.?` traps here.
     const entry = psx.at(v.g.D_800F5878(), req.unk4).*.?;
-    const temp_t1 = psx.get(entry.unk54).?;
+    const temp_t1 = psx.get(entry.actor.func_800DEB10_t2).?;
     if (temp_t1.unk9 != 24) return;
 
     var i: c_int = 0;
-    while (i < entry.unk470) : (i +%= 1) {
-        const temp_a2 = psx.get(psx.at(&entry.unk430, i).*).?;
+    while (i < entry.count470) : (i +%= 1) {
+        const temp_a2 = psx.get(psx.at(&entry.entries.actions, i).*).?;
 
         if (@as(c_int, req.unk0) == @as(c_int, psx.getBits(temp_a2, "unk4_5")) and
             @as(c_int, temp_t1.unkC) == @as(c_int, psx.getBits(temp_a2, "unk4_0")) and
@@ -36,7 +36,7 @@ pub fn func_800DEB10(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
                     if (actor == null or
                         ((@as(c_int, 0x14) >> @as(u5, psx.getBits(&actor.?.unk6C[8], "actorId"))) & 1) != 0)
                     {
-                        c.func_800E4CE8(psx.cptr(c.func_800DEEA4_t2, entry));
+                        c.func_800E4CE8(@ptrCast(entry));
                         return;
                     }
                 }
@@ -44,5 +44,5 @@ pub fn func_800DEB10(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
         }
     }
 
-    c.func_800E4C8C(psx.cptr(c.func_800DEEA4_t2, entry));
+    c.func_800E4C8C(@ptrCast(entry));
 }

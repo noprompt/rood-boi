@@ -57,7 +57,6 @@ void func_800AE828(int arg0, D_800F4538_t* arg1, int arg2);
 
 void func_800AE980(D_800F4538_unkC54* dst, D_800F4538_unkC54* src, int count);
 
-
 typedef struct {
     char prefix[0x3A];
     u_short angleX, angleY;
@@ -74,7 +73,6 @@ extern struct {
 void func_800B07DC(D_800F4538_t*);
 
 void func_800AEAE8(D_800F4538_t* actor);
-
 
 extern MATRIX D_8005E218;
 extern MATRIX D_800F4910;
@@ -95,10 +93,8 @@ typedef struct {
 
 void func_800AECA0(MATRIX* source);
 
-
 void func_800AEEC4(D_800F4538_t* arg0) __attribute__((unused));
 void func_800AEEC4(D_800F4538_t* arg0);
-
 
 void func_800AAE9C(void*);
 void func_800AB4F0(void*);
@@ -122,10 +118,8 @@ void func_800AF6E8(D_800F4538_t* arg0);
 
 void func_800AF844(SVECTOR* dst, SVECTOR* src, int count);
 
-
 void func_800AF960(D_800F45E0_t* arg0) __attribute__((unused));
 void func_800AF960(D_800F45E0_t* arg0);
-
 
 struct animationFrameScratch {
     char prefix[8];
@@ -137,7 +131,6 @@ void func_800AFDE8(int, SVECTOR*, int);
 void func_800AFA28(D_800F4538_t* actor, D_800F4538_unkC54* state, int mode);
 
 void func_800AFDE8(int offset, SVECTOR* value, int rotation);
-
 
 int func_800A92B8(int x, int z);
 int vs_gte_rsqrt(int);
@@ -152,7 +145,6 @@ typedef struct {
 void func_800B002C(D_800F4538_t* actor, int arg1);
 
 void func_800B07DC(D_800F4538_t* actor);
-
 
 struct objectAnimationState {
     char prefix[8];
@@ -179,7 +171,6 @@ int func_800A6EE8(SVECTOR*, int, int, int);
 void func_800E6898(void*);
 void func_800E4C28(int, int);
 void func_800B0908(objectAnimationState* object, int unused);
-
 
 typedef struct {
     char prefix[8];

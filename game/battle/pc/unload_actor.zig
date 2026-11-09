@@ -1,4 +1,5 @@
 //! Unloading one actor (D2: 7E05C.s; oracle pc/src/actor_cleanup.c).
+const ai = @import("views_71618");
 const c = @import("c_actor_cleanup");
 const v = @import("views_actor_cleanup");
 const psx = @import("common").psx;
@@ -16,8 +17,8 @@ pub fn unloadActor(node: [*]u8) callconv(.c) void {
     const states = v.g.D_800F5878();
     var peer: ?[*]u8 = @ptrCast(v.g.vs_battle_actors()[0]);
     while (peer) |p| : (peer = @ptrFromInt(@as(usize, psx.byteAt(u32, p, 0).*))) {
-        const other = states[psx.byteAt(c_uint, p, 4).*].?;
-        if (@as(c_uint, @as([*]u8, @ptrCast(other))[0x16]) == id) @as([*]u8, @ptrCast(other))[0x16] = 0x10;
+        const other: *ai.vs_battle_aiState = @ptrCast(@alignCast(states[psx.byteAt(c_uint, p, 4).*].?));
+        if (@as(c_uint, @as(u8, @bitCast(other.target16))) == id) other.target16 = 0x10;
     }
     const grid: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F58BC().*));
     var offset: usize = 0x34;

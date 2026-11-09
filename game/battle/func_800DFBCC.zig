@@ -35,7 +35,7 @@ fn routeTile(z: c_int, x: c_int) c_uint {
 }
 
 /// orig: routeSetArea (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
-fn routeSetArea(s: *v.routeEdgeState, position: Position) c_int {
+fn routeSetArea(s: *v.vs_battle_aiState, position: Position) c_int {
     s.area = psx.conv(u8, routeTile(psx.getBits(&position.p, "z"), psx.getBits(&position.p, "x")) & 15);
     return 6;
 }
@@ -46,37 +46,37 @@ fn wallTile(z: c_int, x: c_int) u16 {
 }
 
 /// The C's `center:` tail: head for the target actor, or the candidate tile's centre.
-fn center(s: *v.routeEdgeState, candidate: Position) c_int {
-    const target = s.target;
+fn center(s: *v.vs_battle_aiState, candidate: Position) c_int {
+    const target = s.movementTargetId;
     if (target != 16 and psx.at(@as([*]const u32, @ptrFromInt(0x1F80037C)), target).* != 0) {
-        const actor = slotPtr(*v.routeEdgeActor, 0x1F80037C + 4 * @as(usize, target));
-        s.moveX = psx.at(psx.get(actor.position).?, 0).*;
-        const again = slotPtr(*v.routeEdgeActor, 0x1F80037C + 4 * @as(usize, s.target));
-        s.moveZ = psx.at(psx.get(again.position).?, 2).*;
+        const actor = slotPtr(*align(4) v.vs_battle_aiState, 0x1F80037C + 4 * @as(usize, target));
+        s.moveX = psx.at(psx.get(actor.position60.shorts).?, 0).*;
+        const again = slotPtr(*align(4) v.vs_battle_aiState, 0x1F80037C + 4 * @as(usize, s.movementTargetId));
+        s.moveZ = psx.at(psx.get(again.position60.shorts).?, 2).*;
     } else {
         s.moveX = @as(c_int, psx.getBits(&candidate.p, "x")) *% 128 +% 64;
         s.moveZ = @as(c_int, psx.getBits(&candidate.p, "z")) *% 128 +% 64;
     }
-    s.angle = psx.conv(i16, c.ratan2(@as(c_int, s.x) -% s.moveX, @as(c_int, s.z) -% s.moveZ) & 0xFFF);
-    s.cooldown = s.period;
+    s.angle18A = psx.conv(i16, c.ratan2(@as(c_int, s.position.v.vx) -% s.moveX, @as(c_int, s.position.v.vz) -% s.moveZ) & 0xFFF);
+    s.timer13A = s.duration;
     return 4;
 }
 
 /// The C's `stop:` / `accept:` tails: the next tile (on the ground for a stop).
-fn accept(s: *v.routeEdgeState, candidate: Position) c_int {
-    s.next = candidate;
+fn accept(s: *v.vs_battle_aiState, candidate: Position) c_int {
+    s.next.movementPosition = candidate;
     return 14;
 }
 
-fn stop(s: *v.routeEdgeState, candidate: *Position) c_int {
+fn stop(s: *v.vs_battle_aiState, candidate: *Position) c_int {
     psx.setBits(&candidate.p, "y", 0);
     return accept(s, candidate.*);
 }
 
 /// The C's `first:` / `second:` tail: head for that route's far tile, or to the centre if already there.
-fn headFor(s: *v.routeEdgeState, raw: c_uint, candidate: Position) c_int {
-    s.destination.raw = raw;
-    if ((s.destination.raw & 0xFF00FF) == (s.tile.raw & 0xFF00FF)) return center(s, candidate);
+fn headFor(s: *v.vs_battle_aiState, raw: c_uint, candidate: Position) c_int {
+    s.destination168.movementPosition.raw = raw;
+    if ((s.destination168.movementPosition.raw & 0xFF00FF) == (s.tile.position.raw & 0xFF00FF)) return center(s, candidate);
     return 6;
 }
 
@@ -87,9 +87,9 @@ fn addStep(candidate: *Position, amount: c_int, direction: c_int) void {
 
 /// orig: func_800DFBCC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Takes route edge `index` of `area` from the actor's tile: 14 a next tile, 5 a heading, 4 heading for a point, 6 a new destination or area.
-pub fn func_800DFBCC(state: ?*v.routeEdgeState, index: c_int, area: c_int) callconv(.c) c_int {
+pub fn func_800DFBCC(state: ?*v.vs_battle_aiState, index: c_int, area: c_int) callconv(.c) c_int {
     const s = state.?;
-    const position: Position = .{ .raw = @as(*align(4) const c_uint, @ptrCast(&s.tile)).* };
+    const position: Position = .{ .raw = @as(*align(4) const c_uint, @ptrCast(&s.tile.position)).* };
     var routes: [2]u16 align(4) = undefined;
     @as(*c_uint, @ptrCast(&routes)).* = psx.at(slotPtr([*]const c_uint, 0x1F8003F4), area *% 16 +% index).*;
     if (routeWord(&routes) & 0x1BE0 == 0) {
@@ -138,7 +138,7 @@ pub fn func_800DFBCC(state: ?*v.routeEdgeState, index: c_int, area: c_int) callc
         }
         if (route & 0x6000 != 0) {
             s.area = psx.conv(u8, routeTile(psx.getBits(&candidate.p, "z"), psx.getBits(&candidate.p, "x")) & 15);
-            s.unk5 = 0;
+            s.flags4.b[1] = 0;
             const amount: c_int = @as(c_int, @intCast((route >> 13) & 3)) + 1;
             const stepIndex = psx.at(v.g.D_800F175C(), (route >> 11) & 3);
             addStep(&candidate, amount, stepIndex.*);
@@ -193,7 +193,7 @@ pub fn func_800DFBCC(state: ?*v.routeEdgeState, index: c_int, area: c_int) callc
             s.area = psx.conv(u8, routeTile(psx.getBits(&position.p, "z"), psx.getBits(&position.p, "x")) % 16);
             return 6;
         }
-        s.destination.raw = ((route & 31) << 16) | ((route >> 5) & 31);
+        s.destination168.movementPosition.raw = ((route & 31) << 16) | ((route >> 5) & 31);
         return 6;
     }
 

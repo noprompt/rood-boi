@@ -36,7 +36,6 @@ int func_800A1B9C(int arg0, int arg1, u_short* arg2, int arg3);
 
 int func_800A1C10(int actorId, int bone, u_short* result, int endpoint);
 
-
 typedef struct {
     char prefix[0x4C];
     SVECTOR position;
@@ -49,7 +48,6 @@ void func_800B07DC(D_800F4538_t*);
 void func_80041C68(MATRIX*, MATRIX*);
 
 MATRIX* func_800A1DE8(int actorId, int bone, MATRIX* unused);
-
 
 SVECTOR* func_800A4A24(int);
 int func_800A3500(int, int);
@@ -65,13 +63,11 @@ void func_800A249C(int arg0, int arg1);
 
 void func_800A2574(int arg0, short arg1);
 
-
 int func_800A6EE8(SVECTOR*, int, int, int);
 void* func_800A8D64(SVECTOR*, int);
 void func_800AC690(int, void*);
 
 void func_800A25EC(D_800F4538_t* actor);
-
 
 void func_800AA850(int, int, int);
 

@@ -14,48 +14,48 @@ pub fn func_800DAED0() callconv(.c) void {
         // Per-actor state pointer: the scratchpad table at 0x1F80037C, indexed by actor id.
         const slot_addr: usize = 0x1F80037C +% @as(usize, @bitCast(@as(isize, @as(c_int, 4) *% a.id)));
         const slot: *const u32 = @ptrFromInt(slot_addr);
-        const state: *v.actionDispatchState = @ptrFromInt(@as(usize, slot.*));
+        const state: *v.vs_battle_aiState = @ptrFromInt(@as(usize, slot.*));
 
-        if (state.f14 == 0 or state.f1D != 0) {
+        if (state.unk14 == 0 or state.unk1D != 0) {
             const value = c.func_800E45B4();
             if (v.g.D_800F16F4().* < value) {
                 c.func_800DEEFC(@ptrCast(state), 17);
             } else {
                 @as(*c_int, @ptrFromInt(0x1F8003FC)).* = value;
-                if (state.f14 != 0 and state.f1D != 0) {
+                if (state.unk14 != 0 and state.unk1D != 0) {
                     const height: c_int = blk: {
                         if (v.g.D_800F5878()[0]) |tail_raw| {
-                            const tail: *v.actionDispatchState = @ptrCast(tail_raw);
+                            const tail: *v.vs_battle_aiState = @ptrCast(tail_raw);
                             const model: *v.actionDispatchModel = @ptrCast(v.g.D_800F4538()[0].?);
-                            if ((model.flags & 0x180000) != 0 and state.position[1] < model.position[1])
-                                break :blk -%@as(c_int, tail.depth);
+                            if ((model.flags & 0x180000) != 0 and state.position.xyz[1] < model.position[1])
+                                break :blk -%@as(c_int, tail.extent);
                             break :blk @as(c_int, tail.height);
                         }
                         break :blk -64;
                     };
-                    state.distance = psx.conv(u32, c.func_800E4624(
-                        &state.position,
+                    state.tbl.t.distances[0] = psx.conv(u32, c.func_800E4624(
+                        &state.position.xyz,
                         &psx.get(head.model).?.position,
                         @as(c_int, state.height),
                         height,
                     ));
-                    _ = c.func_800DAD9C(psx.cptr(c.actionDispatchState, state));
+                    _ = c.func_800DAD9C(@ptrCast(state));
                 } else {
-                    state.target = 16;
-                    state.target48 = -1;
-                    state.flagsC = 0;
-                    state.flags0 = 0;
-                    state.flags4 = 0;
-                    state.flags8 = 0;
+                    state.movementTargetId = 16;
+                    state.previous48.target48 = -1;
+                    state.flagsC.word = 0;
+                    state.flags0.word = 0;
+                    state.flags4.word = 0;
+                    state.flags8.word = 0;
                     const table_word: *const u32 = @ptrFromInt(0x1F8003C0);
                     // Rows of 32 cells, indexed unchecked as the C does (z * 32 + x: a tile byte past 31 reads on).
                     const cells: [*]u16 = @ptrFromInt(@as(usize, table_word.*));
-                    const terrain = psx.conv(c_int, cells[@as(usize, state.tileZ) * 32 + state.tileX] & 15);
-                    state.terrain154 = psx.conv(i8, terrain);
+                    const terrain = psx.conv(c_int, cells[@as(usize, state.tile.b[2]) * 32 + state.tile.b[0]] & 15);
+                    state.area = psx.conv(u8, terrain);
                     state.terrain132 = psx.conv(i8, terrain);
                     @as(*c_int, @ptrFromInt(0x1F8003D0)).* = 0;
-                    c.func_800DB820(psx.cptr(c.actionDispatchState, state));
-                    c.func_800DB7B4(psx.cptr(c.actionDispatchState, state));
+                    c.func_800DB820(@ptrCast(state));
+                    c.func_800DB7B4(@ptrCast(state));
                 }
             }
         }

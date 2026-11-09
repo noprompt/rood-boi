@@ -2,6 +2,7 @@
 /* pc/src/game/BATTLE/BATTLE.PRG/7E05C.s: func_800E6EAC returns immediately.
  * Its delay slot only writes caller-saved $t0 (the following function's lui). */
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
+#include "game/BATTLE/BATTLE.PRG/ai_state.h"
 extern void pc_unimplemented(const char*);
 void func_800E4288(void* destination, unsigned bytes);
 
@@ -11,7 +12,6 @@ void func_800E4288(void* destination, unsigned bytes);
 void func_800E6828(void* actor);
 
 
-extern unsigned char* vs_battle_actors[];
 extern unsigned char* D_800F5878[];
 extern unsigned char D_80069C0C[];
 /* 7E05C.s: store an actor's two stat bytes and their maximum; empty actor
@@ -28,7 +28,6 @@ extern void func_800DC210(void*, int);
 void func_800E72D0(void);
 
 
-extern unsigned char vs_battle_roomData[];
 int func_80099514(unsigned x, unsigned z, unsigned layer);
 
 
@@ -61,7 +60,6 @@ unsigned* vs_battle_setSpriteDefault(int wh, int xy);
 short func_800E6694(int id);
 
 
-extern unsigned char vs_main_actions[];
 /* 7C4F4.s: decide whether action slot (row, column) is usable and record it in
  * bit 7 of the slot's flags. Type 1 checks a signed 16-bit resource and a
  * blocking flag; type 3 compares cost plus half the high stat against the low
@@ -78,7 +76,6 @@ extern void func_800DD344(void*);
 void func_800DC810(void* context);
 
 
-extern void vs_main_memcpy(void*, void*, unsigned);
 /* 73B0C.s: copy an actor's stat words (0x18, 0x1c, 0x30, 0x948) and the
  * 0x528-byte block at 0x398 from src to dst, tail-calling vs_main_memcpy. */
 void func_800DC3E8(void* src, void* dst);

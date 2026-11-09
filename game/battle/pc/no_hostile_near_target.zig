@@ -1,4 +1,5 @@
 //! Whether no hostile actor stands near a target (D2: 73460.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const v = @import("views_battle_movement");
 const psx = @import("common").psx;
@@ -20,13 +21,13 @@ fn guestWord(address: c_uint) c_uint {
 /// (a pointer, or 0); its relation word (0x1A4 + id * 4, wrapping) and, when
 /// that reads as hostile, its model D_800F4538[id] (0x800F4538 + id * 4) and
 /// the model's tile (+0x5C) are read through guest RAM as the PS1 does.
-pub fn noHostileNearTarget(state: [*]u8, id: c_int) callconv(.c) c_int {
+pub fn noHostileNearTarget(state: *ai.vs_battle_aiState, id: c_int) callconv(.c) c_int {
     var node: ?[*]u8 = @ptrCast(v.g.vs_battle_actors());
     while (node) |n| : (node = @ptrFromInt(psx.byteAt(u32, n, 0).*)) {
         const other: c_uint = psx.byteAt(u32, n, 4).*;
         const relation_address: c_uint = psx.addr(state) +% 0x1a4 +% (other << 2);
         const relation: c_uint = if (other < 16)
-            psx.byteAt(u32, state, 0x1a4 +% @as(isize, @intCast(other * 4))).*
+            psx.byteAt(u32, &state.tbl.t.targets.bits32, @as(isize, @intCast(other * 4))).*
         else
             guestWord(relation_address);
         if (((relation >> 6) & 3) < 3) continue;

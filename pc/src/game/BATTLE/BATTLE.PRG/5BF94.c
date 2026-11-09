@@ -510,12 +510,10 @@ void func_800C518C(int arg0, void* arg1);
 
 void func_800C51B4(int mode);
 
-
 extern u_char D_800F4C90[8], D_800F4C98[8], D_800F4CA0[8], D_800F4CA8[8];
 extern u_char D_800F4CB2, D_800F4CB3;
 
 void func_800C5360(int group);
-
 
 extern u_char D_800F4CB4;
 
@@ -535,7 +533,6 @@ void vs_battle_renderTextRawColor(char const* text, int x, int color, void* next
 
 void vs_battle_renderTextRaw(char const* text, int xy, void* nextPrim);
 
-
 #pragma vsstring(start)
 
 char* vs_battle_printf(char* dest, char* src);
@@ -545,7 +542,6 @@ char* vs_battle_printf(char* dest, char* src);
 int vs_battle_setTextBox(int boxId, char* str);
 
 int vs_battle_selectTextBox(u_char boxMask);
-
 
 #ifdef ROOD_PC
 /* ui_text_layout line (pc/src/ui_text.c): each character this printer sets. */
@@ -575,7 +571,6 @@ int vs_battle_printVariableWidthFontChar(u_int glyphId, int x, int y, u_long* ot
 void vs_battle_setFontStyle(int arg0);
 
 void _printVariableWidthFont(vs_battle_textBox* arg0);
-
 
 #pragma vsstring(end)
 
@@ -711,7 +706,6 @@ extern u_short D_800EB98C[16];
 
 void func_800C7EBC(u_short* destination, u_int glyph, int stride, u_int alpha);
 
-
 #ifdef ROOD_PC
 /* _renderTextImmediate with the hardware renderer: the frame buffer read back
  * there is the PS1-resolution mirror, so compositing the text into it and
@@ -751,7 +745,6 @@ void vs_battle_initInformationTextBox(enum vs_battle_informationTextBoxHeader he
 
 vs_battle_menuItem_t* vs_battle_setMenuItem( int row, int x, int y, int w, int backgroundWidth, char* text);
 
-
 /**
  * Lerps between two colors.
  *
@@ -763,7 +756,6 @@ u_int _lerpColor(u_int color0, u_int color1, int brightness, int blendFactor);
 int vs_battle_uiGradientStop(u_int gradient, u_int colorIndex, int brightness);
 
 void vs_battle_renderMenuItem(vs_battle_menuItem_t* menuItem);
-
 
 extern int D_800F4CC0;
 extern char D_800EBA78[];
@@ -795,7 +787,6 @@ int vs_battle_renderValue(int font, int xy, int value, u_long* before);
 
 void vs_battle_renderStatBar(int colorIndex, int w, u_long* before, int xy);
 
-
 #ifdef ROOD_PC
 extern int pc_hud_label_opaque; /* project_settings.cpp: the label opaque (1) or the original's (0) */
 #endif
@@ -810,7 +801,6 @@ int vs_battle_getLimbStatus(vs_battle_uiEquipment_limb* limb);
 void func_800C9F88(void);
 
 void func_800C9F98(int arg0, int arg1);
-
 
 #ifdef ROOD_PC
 /* QoL weapon slots (pc/src/weapon_slots.c): in their mode the labels show the
@@ -866,7 +856,6 @@ void func_800CB550(void);
 
 void func_800CB560(void);
 
-
 char const D_80069998[] = "00:00:00";
 
 void _renderTimer(int* value);
@@ -885,7 +874,6 @@ void func_800CB79C(void);
 
 void func_800CB7DC(void);
 
-
 void func_800CD158(int);
 void func_800CD3E4(int);
 extern int D_8005046C;
@@ -895,7 +883,6 @@ void func_800CB83C(void);
 void func_800CBBCC(gim_t* image, int clut, u_long* ot);
 
 void func_800CC128(gim_t* arg0, int arg1, u_long* arg2);
-
 
 /* Draws a tiled image wiped in horizontally: per scanline the visible span is
    [left[y], right[y]) from the per-line widths at unk18 scaled by unkC (below ONE
@@ -943,7 +930,6 @@ void func_800CD158(int id);
 
 int func_800CD3A0(int arg0, int arg1);
 
-
 extern u_char* D_800EB588[];
 
 #define POINT_X(p) (((short*)&points[p])[0])
@@ -956,7 +942,6 @@ extern u_char* D_800EB588[];
    The original reuses its locals heavily: w/h/flip become polygon vertex 2/3 and the
    colour, i/n/k/v change roles between the passes. */
 void func_800CD3E4(int index);
-
 
 #undef POINT_X
 #undef POINT_Y
@@ -1047,10 +1032,8 @@ void func_800CF988(func_800CF988_t* arg0, int arg1, int arg2, int arg3);
 
 int vs_battle_randUniformInt(int arg0, int arg1);
 
-
 int _absMax3(int arg0, int arg1, int arg2) __attribute__((unused));
 int _absMax3(int arg0, int arg1, int arg2);
-
 
 int _absMax2(int arg0, int arg1) __attribute__((unused));
 int _absMax2(int arg0, int arg1);
@@ -1063,14 +1046,12 @@ void vs_battle_lerp2DVector(short* src, int t, int* vec);
 
 int func_800CFE1C(short* arg0, int arg1);
 
-
 void _addSVectorToVector(SVECTOR* svec, VECTOR* vec, VECTOR* out) __attribute__((unused));
 void _addSVectorToVector(SVECTOR* svec, VECTOR* vec, VECTOR* out);
 
 void func_800CFE7C(func_800CFE98_t* arg0);
 
 void func_800CFE98(SVECTOR* arg0, func_800CFE98_t* arg1);
-
 
 typedef struct {
     short rotation[3];
@@ -1086,7 +1067,6 @@ typedef struct {
 } effectTransformState;
 
 void func_800CFEF0(D_800F53B8_t* arg0);
-
 
 typedef struct {
     u_short flags;
@@ -1215,7 +1195,6 @@ void vs_battle_vecToSvec(VECTOR* arg0, SVECTOR* arg1);
 
 void func_800D2A38(func_800FA098_arg1* arg0, func_800D2904_t* arg1);
 
-
 /* Uniform integer between a and b (inclusive) using 30 random bits. */
 #define RAND_UNIFORM_WIDE(a, b)                                                    \
     ((a) == (b)  ? (a)                                                             \
@@ -1262,7 +1241,6 @@ int func_800D4B90(D_800F53B8_t* arg0);
 
 int func_800D4BD0(D_800F53B8_t* arg0);
 
-
 void func_800D52A4(func_800D2904_t*);
 void func_800D6E24(void);
 
@@ -1290,7 +1268,6 @@ int func_800D4FB4(D_800F53B8_t* arg0);
 
 int func_800D5048(D_800F53B8_t* arg0);
 
-
 int func_800D5088(D_800F53B8_t* arg0);
 int func_800D5088(D_800F53B8_t* arg0);
 
@@ -1305,7 +1282,6 @@ int func_800D51D8(D_800F53B8_t* arg0);
 void func_800D5260(D_800F5620_t* arg0);
 
 void func_800D5294(int* arg0);
-
 
 typedef struct {
     short mass;
@@ -1339,7 +1315,6 @@ int func_800D5780(func_800D5780_t* arg0);
 
 int func_800D57FC(D_800F53B8_t* arg0, func_800D5780_t* arg1);
 
-
 void func_80046578(int);
 
 int func_800D5904(D_800F53B8_t* arg0, func_800D5780_t* arg1);
@@ -1347,7 +1322,6 @@ int func_800D5904(D_800F53B8_t* arg0, func_800D5780_t* arg1);
 int func_800D5A98(D_800F53B8_t* arg0, timedSpawnState* arg1, int arg2);
 
 int func_800D5D74(D_800F53B8_t* arg0, func_800D5780_t* arg1);
-
 
 typedef struct {
     u_short unk0;

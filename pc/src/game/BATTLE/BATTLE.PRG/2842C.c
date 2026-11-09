@@ -277,7 +277,6 @@ INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/2842C", D_80068EB4);
 
 void func_80090C2C(int arg0);
 
-
 #ifdef ROOD_PC
 /* The game's room weather, including event-script overrides. A room's
  * generated moon must not shine through the overcast during rain. Keep
@@ -305,7 +304,6 @@ void func_80091378(void);
 int func_800913BC(int arg0);
 
 void func_80091468(int arg0, int arg1);
-
 
 /* The sky panorama's tiles drawn (their top-left corner, 20.12 screen X): in
  * widescreen (port) as far past the sides as the 16:9 view reaches
@@ -418,7 +416,6 @@ int func_80093FEC(int arg0, int arg1, int arg2, int arg3);
 
 int func_8009406C(int arg0, int arg1, int arg2, int arg3);
 
-
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/2842C", D_80068F04);
 
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/2842C", D_80068F64);
@@ -464,7 +461,6 @@ void func_80095258(int x, int y, D_800F1BAC_t* p);
 
 void func_800957D0(int arg0, int arg1, int arg2);
 
-
 #ifdef ROOD_PC
 /* ui_text font (pc/src/ui_text.c): the status words' packets, set as words. */
 extern void pc_text_status(const void* first, const void* end) __attribute__((weak));
@@ -486,7 +482,6 @@ void func_80095A4C(int x, int y, D_800F1BAC_t* p);
 void func_80095B70(int arg0);
 
 void func_80095B7C(int arg0, int arg1);
-
 
 #ifdef ROOD_PC
 /* PC_CLASSIC: what func_80095C18 decided, as it decides it, for the classic layer
@@ -519,7 +514,6 @@ void func_800970BC(void);
 void func_800971D4(void);
 
 void func_8009722C(void);
-
 
 #ifdef ROOD_PC
 #include "pc/src/room_callbacks.inc"

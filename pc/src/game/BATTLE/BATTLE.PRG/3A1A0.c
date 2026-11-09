@@ -71,7 +71,6 @@ void func_800A29A0(D_800F4538_t* arg0);
 
 void func_800A2C48(D_800F4538_t* arg0);
 
-
 void func_800A2FBC(D_800F4538_t*);
 void func_800A9EB4(int, short, int);
 void func_800AA620(int, SVECTOR*, int);
@@ -81,7 +80,6 @@ void func_800A2CD4(D_800F4538_t* arg0);
 void func_800A2FBC(D_800F4538_t* arg0);
 
 void func_800A3054(D_800F4538_t* arg0, func_800A3054_t* arg1);
-
 
 inline int func_800A3310(int, SVECTOR*);
 void func_800A3394(int, SVECTOR*);
@@ -103,14 +101,12 @@ void func_800A36E0(int arg0, int arg1, func_8006EBF8_t* arg2);
 
 int func_800A3760(int arg0, int arg1, int arg2);
 
-
 extern int D_800F49E8;
 int func_800A3BC4(int, int);
 int func_800A3DB4(int, int, int);
 int func_800A91DC(int, int, int);
 
 int func_800A38E0(int actorId);
-
 
 int func_800A3BC4(int arg0, int arg1);
 D_800F4538_t* func_800A3C00(D_800F45E0_t* arg0, u_int arg1);
@@ -123,7 +119,6 @@ D_800F4538_t* func_800A3C00(D_800F45E0_t* arg0, u_int arg1);
 D_800F4538_t* func_800A3C34(int arg0, int arg1, int arg2, int arg3);
 
 int func_800A3DB4(int x, int z, int minimumHeight);
-
 
 extern int D_800E90A8;
 extern u_char D_800E8FD0[];
@@ -138,11 +133,9 @@ void func_800E68A0(D_800F45E0_t*);
 
 void func_800A41D0(D_800F4538_t* actor, int mode);
 
-
 void func_800A4A88(D_800F4538_t*, int);
 int func_800A46A4(D_800F4538_t*);
 int func_800A4494(int contact, SVECTOR* point);
-
 
 void func_800A70DC(D_800F4538_t*, int);
 typedef struct {
@@ -156,7 +149,6 @@ int func_800A47C4(void);
 
 void func_800A4828(int arg0, MATRIX* arg1);
 
-
 void func_800B64A8(int, int, int);
 typedef struct {
     unsigned mode : 2;
@@ -167,7 +159,6 @@ void func_800A48CC(int index, int direction, int distance);
 
 inline func_8008D2C0_t* func_800A4A24(int arg0);
 
-
 void func_8008C49C(int, int);
 void func_800E4BD8(int);
 void func_800E4BE0(int);
@@ -175,7 +166,6 @@ void func_800E4BE0(int);
 void func_800A4A88(D_800F4538_t* actor, int mode);
 
 void func_800A4D8C(void);
-
 
 void func_800A25EC(D_800F4538_t*); /* extern */
 void func_800A2790(D_800F4538_t*); /* extern */
@@ -192,7 +182,6 @@ void func_800A4E68(int arg0);
 int func_800A51A0(int arg0, SVECTOR* arg1);
 
 void func_800A525C(D_800F4538_t* arg0);
-
 
 extern short D_800F4B0A;
 typedef struct {
@@ -222,7 +211,6 @@ int func_800A6798(D_800F4538_t* actor, SVECTOR* offset, SVECTOR* motion);
 
 int func_800A69B4(D_800F4538_t* arg0);
 
-
 extern u_char D_800E90CC[];
 extern u_char D_800E90D0[];
 int func_800AD494(void*, int, u_short**);
@@ -230,7 +218,6 @@ int func_800AD494(void*, int, u_short**);
 int func_800A6AA0(D_800F4538_t* actor, int speed, int direction);
 
 int func_800A6EE8(SVECTOR* arg0, int arg1, int arg2, int arg3);
-
 
 typedef struct {
     char prefix[0x1C];
@@ -241,14 +228,12 @@ typedef struct {
 } ActorCollisionSamples;
 void func_800A70DC(D_800F4538_t* actor, int diagonal);
 
-
 typedef struct {
     char prefix[0x2C];
     u_char contacts[8];
 } collisionResponseScratch;
 
 void func_800A7524(D_800F4538_t* actor, SVECTOR* motion);
-
 
 int func_800A8B34(SVECTOR* arg0, int arg1);
 int func_800A8FD4(D_800F4538_t* actor, SVECTOR* motion);

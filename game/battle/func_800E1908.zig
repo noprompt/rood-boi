@@ -6,23 +6,23 @@ const c = @import("c_771A8");
 
 /// orig: func_800E1908 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Faces the actor of a terrain movement toward its target and sets its mode and angle.
-pub fn func_800E1908(state: ?*v.terrainMovementState) callconv(.c) void {
+pub fn func_800E1908(state: ?*v.vs_battle_aiState) callconv(.c) void {
     const s = state.?;
 
     // TERRAIN_TILE_MASK base is the guest pointer stored at scratchpad 0x1F8003C4;
     // the row width is the byte at 0x1F8003DC. The index is never negative.
     const table: u32 = @as(*const u32, @ptrFromInt(0x1F8003C4)).*;
     const width: c_int = @as(*const u8, @ptrFromInt(0x1F8003DC)).*;
-    const index: c_int = @as(c_int, s.tile.p.z) *% width +% @as(c_int, s.tile.p.x);
+    const index: c_int = @as(c_int, s.tile.terrain.p.z) *% width +% @as(c_int, s.tile.terrain.p.x);
     const tile: *align(1) u8 = @ptrFromInt(@as(usize, table +% @as(u32, @bitCast(index))));
     const old: c_int = tile.*;
-    const actor = psx.get(s.actor);
+    const actor = psx.get(s.actor.terrainMovementActor);
 
-    tile.* = c.func_800E1850(psx.conv(u8, old), s.tile.raw, @as(c_int, s.position[1]));
+    tile.* = c.func_800E1850(psx.conv(u8, old), s.tile.terrain.raw, @as(c_int, s.position.xyz[1]));
     c.func_800E3600(@ptrCast(s),
         c.ratan2(
-            @as(c_int, s.position[0]) -% s.targetX,
-            @as(c_int, s.position[2]) -% s.targetZ,
+            @as(c_int, s.position.xyz[0]) -% s.moveX,
+            @as(c_int, s.position.xyz[2]) -% s.moveZ,
         ) & 0xFFF,
         0);
     tile.* = psx.conv(u8, old);
@@ -33,9 +33,9 @@ pub fn func_800E1908(state: ?*v.terrainMovementState) callconv(.c) void {
     if (((@as(c_int, 0xA0) >> shift) & 1) != 0) {
         actor.?.mode = 9;
         if (mode == 5) {
-            actor.?.angle = psx.conv(u16, @as(c_int, s.angle) << 9);
+            actor.?.angle = psx.conv(u16, @as(c_int, s.heading) << 9);
         } else {
-            actor.?.angle = psx.conv(u16, s.angle);
+            actor.?.angle = psx.conv(u16, s.heading);
         }
     }
 }

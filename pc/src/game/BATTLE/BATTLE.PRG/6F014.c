@@ -10,7 +10,7 @@
 #include <abs.h>
 #include <stdlib.h>
 #include "pc/src/psx_types.h"
-#include "ai_views.h"
+#include "ai_state.h"
 
 struct func_800D4910_t;
 
@@ -46,35 +46,32 @@ void _parsePfileBlock13(void*);
 void func_800D8038(int);
 void vs_battle_setPlgLoadState(int);
 void func_800D8060(p_file_t* arg0);
-void func_800D82CC(func_800E78F4_t*);
-void func_800D836C(func_800E78F4_t*);
+void func_800D82CC(vs_battle_aiState*);
+void func_800D836C(vs_battle_aiState*);
 int func_8008631C(int, int, int, int, void*);
 int func_800863A4(int, int, int, int, SVECTOR*, SVECTOR*, void*);
 int func_8008D2C0(func_8008D2C0_t*);
 short func_8008DC7C(int, int);
-int func_800DBCB4(func_800E78F4_t*, func_800E78F4_t2*);
+int func_800DBCB4(vs_battle_aiState*, func_800E78F4_t2*);
 void func_800DC810(func_800DEEA4_t*);
 struct actionStatSnapshot;
 void func_800DC888(struct actionStatSnapshot*);
-void func_800DEEFC(func_800E0850_t*, int);
-struct directionalCacheState;
-int func_800E0678(struct directionalCacheState*, int);
-struct movementCheckState;
-int func_800E0918(struct movementCheckState*, int, int);
-typedef struct movementRecoveryState movementRecoveryState;
-void func_800E2CCC(movementRecoveryState*);
-void func_800E3600(func_800E0850_t*, int, int);
+void func_800DEEFC(vs_battle_aiState*, int);
+struct vs_battle_aiState;
+int func_800E0678(struct vs_battle_aiState*, int);
+struct vs_battle_aiState;
+int func_800E0918(struct vs_battle_aiState*, int, int);
+void func_800E2CCC(vs_battle_aiState*);
+void func_800E3600(vs_battle_aiState*, int, int);
 int func_800E42EC(int, int);
-int func_800E4764(func_800E0850_t*, int*, int*);
-void func_800E4B18(func_800E0850_t*);
-void func_800E4C8C(func_800DEEA4_t2*);
-void func_800E4CE8(func_800DEEA4_t2* arg0);
+int func_800E4764(vs_battle_aiState*, int*, int*);
+void func_800E4B18(vs_battle_aiState*);
+void func_800E4C8C(vs_battle_aiState*);
+void func_800E4CE8(vs_battle_aiState* arg0);
 void func_800E5EC0(int, int, int);
-void func_800E678C(func_800E0850_t*);
-typedef struct radialMotionState radialMotionState;
-int func_800E7698(radialMotionState*);
-typedef struct trackingMotionState trackingMotionState;
-void func_800E7960(trackingMotionState*);
+void func_800E678C(vs_battle_aiState*);
+int func_800E7698(vs_battle_aiState*);
+void func_800E7960(vs_battle_aiState*);
 
 extern p_file_t D_800EC4BC;
 extern D_800F16EC_t D_800F16EC[8];
@@ -94,7 +91,7 @@ extern func_800CF0E8_t* D_800F5798;
 #endif
 extern D_800F569C_t D_800F57A0;
 extern int D_800F5874;
-extern func_800DEEA4_t2* D_800F5878[];
+extern vs_battle_aiState* D_800F5878[];
 extern u_short (*D_800F58B8)[32];
 extern D_800F58BC_t* D_800F58BC;
 extern u_short (*D_800F58D0)[32];

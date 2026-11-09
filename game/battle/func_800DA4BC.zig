@@ -7,18 +7,18 @@ const c = @import("c_71618");
 
 /// orig: func_800DA4BC (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the candidate test for an entry and, if it passes, the follow-up steps; returns 1 when one of them succeeds.
-pub fn func_800DA4BC(state: ?*v.da4bcState, entry: ?*v.da4bcEntry) callconv(.c) c_int {
+pub fn func_800DA4BC(state: ?*v.vs_battle_aiState, entry: ?*v.da4bcEntry) callconv(.c) c_int {
     const result: c_int = 0;
     if (c.func_800DB8AC(@ptrCast(state), @ptrCast(entry)) != 0) {
         const e = entry.?;
         const target: c_int = psx.conv(c_int, e.flagsC & 15);
         const distance: c_int = @bitCast(c.vs_gte_rsqrt(@bitCast(e.distance)));
         const s = state.?;
-        var radius: c_int = distance +% (@as(c_int, s.radius) << 5);
+        var radius: c_int = distance +% (@as(c_int, s.step) << 5);
         radius = radius *% radius;
         v.g.D_800F58BC().*.?.unk24 +%= 1;
-        if (s.distances[@intCast(target)] < psx.conv(c_uint, radius)) {
-            if ((s.targets[@intCast(e.flagsC & 15)] & 1) != 0) {
+        if (s.tbl.t.distances[@intCast(target)] < psx.conv(c_uint, radius)) {
+            if ((s.tbl.t.targets.bits32[@intCast(e.flagsC & 15)] & 1) != 0) {
                 c.func_800D836C(@ptrCast(state));
             }
         }

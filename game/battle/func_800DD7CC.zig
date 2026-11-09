@@ -18,7 +18,7 @@ fn nearestWaypointValue(row: [*]u16, index: c_int) c_uint {
 
 /// orig: func_800DD7CC (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Scans the eight waypoint slots and writes the cell of the nearest enabled one to destination.
-pub fn func_800DD7CC(state: ?*v.nearestWaypointState, destination: ?*v.nearestWaypointDestination) callconv(.c) void {
+pub fn func_800DD7CC(state: ?*v.vs_battle_aiState, destination: ?*v.nearestWaypointDestination) callconv(.c) void {
     var closest: c_uint = 0xFFFF_FFFF;
     const scratch: *c_int = @ptrFromInt(0x1F8003BC);
     var index: c_int = 0;
@@ -32,10 +32,10 @@ pub fn func_800DD7CC(state: ?*v.nearestWaypointState, destination: ?*v.nearestWa
             const x: c_int = ((@as(c_int, entry) & 0x1F) << 7) +% 0x40;
             const z: c_int = @bitCast(((@"packed" *% 4) & 0xF80) +% 0x40);
             const st = state.?;
-            const dx: c_int = @as(c_int, st.x) -% x;
-            const dz: c_int = @as(c_int, st.z) -% z;
+            const dx: c_int = @as(c_int, st.position.v.vx) -% x;
+            const dz: c_int = @as(c_int, st.position.v.vz) -% z;
             const groundY: c_int = c.func_800E42D4(x, z);
-            const dy: c_int = @as(c_int, st.y) -% groundY;
+            const dy: c_int = @as(c_int, st.position.v.vy) -% groundY;
             const distance: c_uint = c.func_800E4660(dx, dy, dz);
             if (distance < closest) {
                 const dst = destination.?;

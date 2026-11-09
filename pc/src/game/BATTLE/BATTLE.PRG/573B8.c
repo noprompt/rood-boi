@@ -61,7 +61,6 @@ int func_800BFE34(u_char* arg0);
 
 int func_800BFE50(u_short arg0);
 
-
 extern signed char D_800F4B28[][2];
 
 int func_800BFEBC(short mode, short frame, short duration);
@@ -69,7 +68,6 @@ int func_800BFEBC(short mode, short frame, short duration);
 void func_800C00E8(int arg0, void* arg1);
 
 void func_800C0150(void);
-
 
 #ifndef ROOD_PC
 __asm__("glabel vs_battle_copyAligned;"
@@ -240,7 +238,6 @@ void func_800C0700(D_800EB9B8_t2* arg0);
 
 void func_800C0738(void);
 
-
 typedef struct {
     short xyz[3];
     short flags;
@@ -249,7 +246,6 @@ typedef struct {
 int func_800C0758(int phase, int segments, int index);
 
 MATRIX* func_800C085C(u_char* scale, int angle);
-
 
 extern u_char D_80040A14[];
 

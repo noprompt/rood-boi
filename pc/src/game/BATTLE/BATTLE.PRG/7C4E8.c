@@ -9,9 +9,9 @@
 #include "build/src/include/lbas.h"
 #include <abs.h>
 #include <stdlib.h>
-#include "ai_views.h"
+#include "ai_state.h"
 
-void func_800E4CE8(func_800DEEA4_t2* arg0);
+void func_800E4CE8(vs_battle_aiState* arg0);
 
-void func_800E4CE8(func_800DEEA4_t2* arg0);
+void func_800E4CE8(vs_battle_aiState* arg0);
 

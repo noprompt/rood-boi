@@ -6,16 +6,16 @@ const c = @import("c_71618");
 
 /// orig: func_800DAD9C (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the action setup over each entry, then over the fallback entry once per registered actor; returns 1 when one setup reports a match.
-pub fn func_800DAD9C(state: ?*v.actionDispatchState) callconv(.c) c_int {
+pub fn func_800DAD9C(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     const st = state.?;
 
     var i: c_int = 0;
-    while (i < st.count) : (i +%= 1) {
-        const entry = psx.get(psx.at(&st.entries, i).*);
+    while (i < st.count470) : (i +%= 1) {
+        const entry = psx.get(psx.at(&st.entries.dispatch, i).*);
         if (c.func_800DAC80(@ptrCast(st), @ptrCast(entry)) != 0) return 1;
     }
 
-    const fallback: *v.actionDispatchEntry = &st.fallback;
+    const fallback: *v.actionDispatchEntry = &st.entry.fallback;
     if (((fallback.flags4 >> 5) & 255) != 0) {
         const registry: *v.actionDispatchRegistry = @ptrCast(v.g.D_800F58BC().*.?);
         var j: usize = 0;

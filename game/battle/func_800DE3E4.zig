@@ -34,26 +34,26 @@ fn restoreActorStats() void {
     c.vs_main_freeHeapR(@ptrCast(statsCopies().*));
 }
 
-/// The c module's prototypes of these take actionPlanState / actionCandidateState, which
+/// The c module's prototypes of these take vs_battle_aiState / vs_battle_aiState, which
 /// translate-c cannot lay out (an array of a bitfield struct): called by name with the C's arguments.
 fn planFn(comptime name: []const u8) *const fn (?*anyopaque) callconv(.c) void {
     return @extern(*const fn (?*anyopaque) callconv(.c) void, .{ .name = name });
 }
 
-fn entryAt(state: *v.actionPlanState, i: c_int) *v.actionCandidateEntry {
-    return psx.get(psx.at(&state.entries, i).*).?;
+fn entryAt(state: *v.vs_battle_aiState, i: c_int) *v.actionCandidateEntry {
+    return psx.get(psx.at(&state.entries.candidates, i).*).?;
 }
 
 /// orig: func_800DE3E4 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Chooses up to 16 action candidates for `state`'s actor (10, then the rest, then 3, from three delays), with a fallback list.
-pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
+pub fn func_800DE3E4(state: ?*v.vs_battle_aiState) callconv(.c) void {
     const delays = [3]c_int{ 0, 455, 2900 };
     const quotas = [3]c_int{ 10, 3, 3 };
     // Uninitialised in the original: read by the `count >= 2` test after a
     // failed snapshot (stack bytes there; 0 here).
     var selected = [3]c_int{ 0, 0, 0 };
     const s = state.?;
-    const stats = psx.get(s.stats);
+    const stats = psx.get(s.stats.actor2);
     const pass1 = psx.global(?[*][16]v.actionCandidateEntry, "D_800F58EC");
     const fallbacks = psx.global(?[*]v.actionCandidateEntry, "D_800F58F8");
     const used = psx.global(?[*][256]u8, "D_800F5904");
@@ -72,13 +72,13 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
         }
     }
 
-    s.count = 0;
+    s.count470 = 0;
     if (s.id == 0) {
         return;
     }
 
     if (snapshotActorStats() != 0) {
-        const fromStats: c_int = @divTrunc(@as(c_int, psx.get(s.stats).?.unk954), 35);
+        const fromStats: c_int = @divTrunc(@as(c_int, psx.get(s.stats.actor2).?.unk954), 35);
         const minDelay: c_int = if (@as(c_int, s.minDelay) < fromStats) fromStats else s.minDelay;
         v.g.D_800F58BC().*.?.unk18 = 0;
 
@@ -95,9 +95,9 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
                     remaining = 0;
                 }
                 selected[1] = remaining;
-                selected[pass] = if (selected[1] > s.count) s.count else selected[1];
+                selected[pass] = if (selected[1] > s.count470) s.count470 else selected[1];
             } else {
-                selected[pass] = if (s.count > quotas[pass]) quotas[pass] else s.count;
+                selected[pass] = if (s.count470 > quotas[pass]) quotas[pass] else s.count470;
             }
 
             var i: c_int = 0;
@@ -105,11 +105,11 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
                 c.func_800DC2E0(@ptrCast(psx.at(&pass1.*.?[pass], i)), @ptrCast(entryAt(s, i)));
             }
             i = selected[pass];
-            while (i < s.count) : (i += 1) {
+            while (i < s.count470) : (i += 1) {
                 const rejected = entryAt(s, i);
                 psx.at(psx.at(used.*.?, psx.getBits(rejected, "targetId")), psx.getBits(rejected, "action")).* = 0;
             }
-            s.count = 0;
+            s.count470 = 0;
         }
 
         restore: {
@@ -117,26 +117,26 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
             while (pass < 3) : (pass += 1) {
                 var j: c_int = 0;
                 while (j < selected[pass]) : (j += 1) {
-                    const index = s.count;
+                    const index = s.count470;
                     const entry = psx.at(&s.candidates, index);
                     c.func_800DC2E0(@ptrCast(entry), @ptrCast(psx.at(&pass1.*.?[pass], j)));
-                    psx.put(psx.at(&s.entries, index), entry);
-                    s.count = index +% 1;
+                    psx.put(psx.at(&s.entries.candidates, index), entry);
+                    s.count470 = index +% 1;
                     if (index +% 1 >= 16) {
                         break :restore;
                     }
                 }
             }
 
-            if (s.count == 0 and s.allowFallback != 0) {
+            if (s.count470 == 0 and s.allowFallback != 0) {
                 var i: c_int = 0;
                 while (i < psx.global(c_int, "D_800F58F0").*) : (i += 1) {
                     const fallback = psx.at(&s.candidates, i);
                     c.func_800DC2E0(@ptrCast(fallback), @ptrCast(psx.at(fallbacks.*.?, i)));
                     psx.setBits(fallback, "weight", 128);
-                    psx.put(psx.at(&s.entries, i), fallback);
+                    psx.put(psx.at(&s.entries.candidates, i), fallback);
                 }
-                s.count = psx.global(c_int, "D_800F58F0").*;
+                s.count470 = psx.global(c_int, "D_800F58F0").*;
                 planFn("func_800DC3CC")(s);
             }
         }
@@ -147,7 +147,7 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
         planFn("func_800DC3CC")(s);
     }
 
-    if (s.count >= 2) {
+    if (s.count470 >= 2) {
         var pass: usize = 0;
         while (pass < 3) : (pass += 1) {
             if (selected[pass] != 0) {
@@ -158,7 +158,7 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
     }
 
     var i: c_int = 0;
-    while (i < s.count) : (i += 1) {
+    while (i < s.count470) : (i += 1) {
         if (i > 0 and @as(c_int, psx.getBits(entryAt(s, i), "threshold")) -% @as(c_int, psx.getBits(entryAt(s, 0), "threshold")) < 80) {
             psx.setBits(entryAt(s, i), "threshold", psx.conv(u16, @as(c_int, psx.getBits(entryAt(s, 0), "threshold")) +% 80));
         }
@@ -167,20 +167,20 @@ pub fn func_800DE3E4(state: ?*v.actionPlanState) callconv(.c) void {
     }
 
     _ = @extern(*const fn (?*anyopaque) callconv(.c) c_int, .{ .name = "func_800D85D8" })(s);
-    if (s.count == 0) {
-        s.mode = 7;
+    if (s.count470 == 0) {
+        s.mode12E = 7;
     } else {
         planFn("func_800D9DD8")(s);
     }
 
     if (v.g.D_800F5920().* != null) {
-        const self = psx.get(s.actor).?;
+        const self = psx.get(s.actor.actorView).?;
         if (c.vs_battle_getStateFlag(0xA6) == 4 and self.unk9 == 24 and self.unkC == 4) {
             c.vs_battle_setStateFlag(0xA6, 5);
         }
         if (v.g.D_800F5920().*.?.unk16 != 0 and @as(c_uint, @bitCast(@as(c_int, self.subType) -% 172)) < 2) {
-            v.g.D_800F5920().*.?.unk17 = psx.conv(u8, s.count);
-            s.count = 0;
+            v.g.D_800F5920().*.?.unk17 = psx.conv(u8, s.count470);
+            s.count470 = 0;
         }
     }
 }

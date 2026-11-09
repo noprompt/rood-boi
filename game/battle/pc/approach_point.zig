@@ -1,4 +1,5 @@
 //! Approach point refresh (D2: 7BDD4.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const v = @import("views_battle_movement");
 
@@ -6,8 +7,8 @@ const v = @import("views_battle_movement");
 /// Refreshes the approach point (0xF4/0xF6, half-tile units) of the target
 /// actor 0xE5: its waypoint group when it has one (model byte 0x5D for plain
 /// models, tile byte 1 of 0x60 for flagged ones), else its position.
-pub fn refreshApproachPoint(state: [*]u8) callconv(.c) void {
-    const id = state[0xe5];
+pub fn refreshApproachPoint(state: *ai.vs_battle_aiState) callconv(.c) void {
+    const id = state.actorId;
     const model_slot = v.g.D_800F4538()[id];
     const present: *align(1) const u32 = @ptrFromInt(@as(usize, 0x1f80037c) + @as(usize, id) * 4);
     if (present.* == 0) return;
@@ -35,10 +36,10 @@ pub fn refreshApproachPoint(state: [*]u8) callconv(.c) void {
     }
     if (group != -1) {
         const waypoint = c.func_8008E2D4(group);
-        c.func_800DFA54(group, waypoint[0], waypoint[2], state + 0xf4);
-        x = @as(c_int, @as(i8, @bitCast(state[0xf4]))) << 1;
-        z = @as(c_int, @as(i8, @bitCast(state[0xf6]))) << 1;
+        c.func_800DFA54(group, waypoint[0], waypoint[2], @ptrCast(&state.targetTileX));
+        x = @as(c_int, @as(i8, @bitCast(state.targetTileX))) << 1;
+        z = @as(c_int, @as(i8, @bitCast(state.targetTileZ))) << 1;
     }
-    state[0xf4] = @truncate(@as(c_uint, @bitCast(x)));
-    state[0xf6] = @truncate(@as(c_uint, @bitCast(z)));
+    state.targetTileX = @truncate(@as(c_uint, @bitCast(x)));
+    state.targetTileZ = @truncate(@as(c_uint, @bitCast(z)));
 }

@@ -8,7 +8,7 @@ const c = @import("c_74088");
 
 /// orig: func_800DD344 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Classifies the battle actors for one reacting state and queues the targets that need it.
-pub fn func_800DD344(state: ?*v.actionReactionState) callconv(.c) void {
+pub fn func_800DD344(state: ?*v.vs_battle_aiState) callconv(.c) void {
     const st = state.?;
     var id: c_int = undefined;
     var classification: c_int = undefined;
@@ -17,43 +17,43 @@ pub fn func_800DD344(state: ?*v.actionReactionState) callconv(.c) void {
         var actor: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| {
             id = a.id;
-            const firstOther: ?*v.actionReactionState = @ptrCast(psx.at(v.g.D_800F5878(), id).*);
-            if (id == @as(c_int, st.id) or id == 0 or firstOther.?.flag2C == 3) {
+            const firstOther: ?*v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), id).*);
+            if (id == @as(c_int, st.id) or id == 0 or firstOther.?.f2C == 3) {
                 classification = 2;
             } else if (firstOther.?.flag13 == 0) {
-                if ((@as(c_int, firstOther.?.targets[0].b.flags) >> 6) == 3) {
+                if ((@as(c_int, firstOther.?.tbl.t.targets.reaction[0].b.flags) >> 6) == 3) {
                     classification = 3;
-                    psx.setBits(&psx.at(&st.targets, id).p, "counter", 0);
+                    psx.setBits(&psx.at(&st.tbl.t.targets.reaction, id).p, "counter", 0);
                 } else {
                     classification = 1;
                 }
             } else {
                 classification = 1;
             }
-            psx.setBits(&psx.at(&st.targets, id).p, "classification", psx.conv(u2, classification));
+            psx.setBits(&psx.at(&st.tbl.t.targets.reaction, id).p, "classification", psx.conv(u2, classification));
             actor = psx.get(a.next);
         }
-    } else if (st.flag21 != 0) {
+    } else if (st.f21 != 0) {
         var actor: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| {
-            const otherClass: c_uint = @intCast(@as(c_int, psx.at(&st.targets, a.id).b.flags) >> 6);
-            const other: ?*v.actionReactionState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*);
-            if (otherClass == 2 and (@as(c_int, psx.at(&other.?.targets, st.id).b.flags) >> 6) == 2) {
+            const otherClass: c_uint = @intCast(@as(c_int, psx.at(&st.tbl.t.targets.reaction, a.id).b.flags) >> 6);
+            const other: ?*v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*);
+            if (otherClass == 2 and (@as(c_int, psx.at(&other.?.tbl.t.targets.reaction, st.id).b.flags) >> 6) == 2) {
                 var candidate: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
                 while (candidate) |cand| {
                     id = cand.id;
-                    if (psx.getBits(&psx.at(&st.targets, id).p, "classification") == 1 and
-                        (psx.at(&st.targets, id).raw & 1) != 0 and
-                        (@as(c_int, psx.at(&other.?.targets, id).b.flags) >> 6) == 3)
+                    if (psx.getBits(&psx.at(&st.tbl.t.targets.reaction, id).p, "classification") == 1 and
+                        (psx.at(&st.tbl.t.targets.reaction, id).raw & 1) != 0 and
+                        (@as(c_int, psx.at(&other.?.tbl.t.targets.reaction, id).b.flags) >> 6) == 3)
                     {
                         var ally: ?*v.actionScoreActor = @ptrCast(v.g.vs_battle_actors()[0]);
                         while (ally) |al| {
-                            const allyState: ?*v.actionReactionState = @ptrCast(psx.at(v.g.D_800F5878(), al.id).*);
-                            if ((@as(c_int, psx.at(&st.targets, al.id).b.flags) >> 6) == 2 and
-                                (@as(c_int, psx.at(&allyState.?.targets, st.id).b.flags) >> 6) == 2 and
-                                (psx.getBits(&psx.at(&allyState.?.targets, id).p, "classification") == 2 or
-                                    (psx.getBits(&psx.at(&allyState.?.targets, id).p, "counter") != 0 and
-                                        psx.getBits(&psx.at(&allyState.?.targets, id).p, "previous") == 2)))
+                            const allyState: ?*v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), al.id).*);
+                            if ((@as(c_int, psx.at(&st.tbl.t.targets.reaction, al.id).b.flags) >> 6) == 2 and
+                                (@as(c_int, psx.at(&allyState.?.tbl.t.targets.reaction, st.id).b.flags) >> 6) == 2 and
+                                (psx.getBits(&psx.at(&allyState.?.tbl.t.targets.reaction, id).p, "classification") == 2 or
+                                    (psx.getBits(&psx.at(&allyState.?.tbl.t.targets.reaction, id).p, "counter") != 0 and
+                                        psx.getBits(&psx.at(&allyState.?.tbl.t.targets.reaction, id).p, "previous") == 2)))
                             {
                                 break;
                             }

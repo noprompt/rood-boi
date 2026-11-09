@@ -166,7 +166,6 @@ inline int func_8009AC24(vs_battle_objectData* arg0);
 
 int _loadShp(vs_battle_objectData* arg0);
 
-
 extern u_char D_800E8F30[];
 extern u_char D_800E8F90[];
 extern u_char* D_800F22B4;
@@ -190,7 +189,6 @@ int func_8009BE5C(vs_battle_objectData* object);
 
 inline void func_8009C378(func_8009C378_t* arg0, func_8009C378_t* arg1);
 
-
 extern u_char D_800E8F2B;
 extern u_char* D_800F22E4;
 extern void* D_800F4768;
@@ -200,7 +198,6 @@ int _loadSeq(vs_battle_objectData* object);
 void func_8009CAEC(D_800F4538_t* arg0, int arg1);
 
 int func_8009CC20(int arg0, int arg1);
-
 
 void func_800AB098(D_800F4538_t*, int, int);
 
@@ -264,13 +261,11 @@ void func_8009EC9C(int arg0, SVECTOR* arg1, int arg2, int arg3);
 
 void func_8009EE9C(int arg0, SVECTOR* arg1, int arg2);
 
-
 extern char D_800F49E4;
 
 void func_8009EFEC(int actorId, SVECTOR* target, int mode);
 
 void func_8009F298(int arg0, SVECTOR* arg1, int arg2);
-
 
 void func_800AE7D8(void*, int, int);
 

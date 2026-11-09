@@ -7,29 +7,29 @@ const c = @import("c_771A8");
 
 /// orig: func_800E1764 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Aims a movement destination along `angle`, keeping the opposite-side candidate when it is nearer the reference point.
-pub fn func_800E1764(state: ?*v.movementDestinationState, angle: c_int) callconv(.c) void {
+pub fn func_800E1764(state: ?*v.vs_battle_aiState, angle: c_int) callconv(.c) void {
     const s = state.?;
     const opposite: c_int = (angle +% 0x800) & 0xFFF;
 
-    c.func_800E1388(@ptrCast(s), s.position.raw, angle, psx.conv(c_uint, s.distance));
-    const previous: c_uint = s.destination.raw;
-    c.func_800E1388(@ptrCast(s), s.position.raw, opposite, psx.conv(c_uint, s.distance));
+    c.func_800E1388(@ptrCast(s), s.tile.position.raw, angle, psx.conv(c_uint, s.distance));
+    const previous: c_uint = s.destination168.movementPosition.raw;
+    c.func_800E1388(@ptrCast(s), s.tile.position.raw, opposite, psx.conv(c_uint, s.distance));
 
     const distance: c_uint = c.func_800E4660(
-        @as(c_int, psx.getBits(&s.destination.p, "x")) *% 128 -% s.referenceX +% 64,
+        @as(c_int, psx.getBits(&s.destination168.movementPosition.p, "x")) *% 128 -% s.moveX +% 64,
         0,
-        @as(c_int, psx.getBits(&s.destination.p, "z")) *% 128 -% s.referenceZ +% 64,
+        @as(c_int, psx.getBits(&s.destination168.movementPosition.p, "z")) *% 128 -% s.moveZ +% 64,
     );
 
     // previous's bytes 0 and 2 are its x and z fields (little-endian, as the C reads them).
     const bytes: [4]u8 = @bitCast(previous);
     const other: c_uint = c.func_800E4660(
-        @as(c_int, bytes[0]) *% 128 -% s.referenceX +% 64,
+        @as(c_int, bytes[0]) *% 128 -% s.moveX +% 64,
         0,
-        @as(c_int, bytes[2]) *% 128 -% s.referenceZ +% 64,
+        @as(c_int, bytes[2]) *% 128 -% s.moveZ +% 64,
     );
     if (distance < other) {
-        s.destination.raw = previous;
+        s.destination168.movementPosition.raw = previous;
     }
 
     c.func_800E153C(@ptrCast(s), angle);

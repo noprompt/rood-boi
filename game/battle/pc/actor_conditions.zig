@@ -1,10 +1,11 @@
 //! Condition bytes of an actor and its action slots (D2: 7C4F4.s; oracle pc/src/battle_helpers.c).
+const ai = @import("views_71618");
 const psx = @import("common").psx;
 const v = @import("views_battle_helpers");
 
 /// The stats record of an actor state: the guest pointer at 0x3C of the record the state points to at 0x54.
-fn statsOf(state: [*]u8) [*]u8 {
-    const record: [*]u8 = @ptrFromInt(@as(usize, psx.byteAt(u32, state, 0x54).*));
+fn statsOf(state: *ai.vs_battle_aiState) [*]u8 {
+    const record: [*]u8 = @ptrCast(state.actor.actorView);
     return @ptrFromInt(@as(usize, psx.byteAt(u32, record, 0x3c).*));
 }
 
@@ -15,7 +16,7 @@ fn statsOf(state: [*]u8) [*]u8 {
 /// high stat against the low stat; type 4 checks a second signed resource.
 /// A 0x2000 state allows only types 1 and 2. Rows with a count below 2 are
 /// never usable.
-pub fn slotUsable(state: [*]u8, row: c_int, column: c_int) callconv(.c) c_int {
+pub fn slotUsable(state: *ai.vs_battle_aiState, row: c_int, column: c_int) callconv(.c) c_int {
     const stats = statsOf(state);
     const slot: c_int = row *% 4 +% column;
     var usable: c_int = 0;
@@ -38,7 +39,7 @@ pub fn slotUsable(state: [*]u8, row: c_int, column: c_int) callconv(.c) c_int {
             }
         }
     }
-    const slot_flags = psx.byteAt(c_uint, state, 0x230 + @as(isize, slot *% 8));
+    const slot_flags = psx.byteAt(c_uint, &state.configs, @as(isize, slot *% 8));
     slot_flags.* = (slot_flags.* & ~@as(c_uint, 0x80)) | (@as(c_uint, @bitCast(usable)) << 7);
     return usable;
 }
@@ -49,15 +50,15 @@ pub fn slotUsable(state: [*]u8, row: c_int, column: c_int) callconv(.c) c_int {
 /// < high1; 0x11 = threshold and (low2 < threshold or low2 * 2 < high2);
 /// 0x10 = status flags. The original loads 0x90000 with lui and then
 /// overwrites it with ori $zero, so the status mask is 0xE2B0.
-pub fn setConditionBytes(state: [*]u8) callconv(.c) void {
+pub fn setConditionBytes(state: *ai.vs_battle_aiState) callconv(.c) void {
     const stats = statsOf(state);
     const first = psx.byteAt(c_uint, stats, 0x18).*;
     const second = psx.byteAt(c_uint, stats, 0x1c).*;
     const flags = psx.byteAt(c_uint, stats, 0x948).*;
-    const threshold: c_int = state[0x17];
+    const threshold: c_int = state.maxActionCost;
     const low: c_int = @intCast(second & 0xffff);
     const high: c_int = @intCast(second >> 16);
-    state[0x12] = @intFromBool(@as(c_int, @bitCast((first & 0xffff) *% 2)) < @as(c_int, @intCast(first >> 16)));
-    state[0x11] = @intFromBool(threshold != 0 and (low < threshold or low *% 2 < high));
-    state[0x10] = @intFromBool(flags & 0xe2b0 != 0 or (threshold != 0 and flags & 0x1000 != 0));
+    state.unk12 = @intFromBool(@as(c_int, @bitCast((first & 0xffff) *% 2)) < @as(c_int, @intCast(first >> 16)));
+    state.unk11 = @intFromBool(threshold != 0 and (low < threshold or low *% 2 < high));
+    state.unk10 = @intFromBool(flags & 0xe2b0 != 0 or (threshold != 0 and flags & 0x1000 != 0));
 }

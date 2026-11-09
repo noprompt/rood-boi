@@ -34,10 +34,10 @@ pub fn func_800DEC88(arg0: ?*anyopaque) callconv(.c) c_int {
 
         var actor: ?*v.actorEvaluationActor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| : (actor = psx.get(a.next)) {
-            const state: *v.actorEvaluationState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
-            state.fE8 = 0;
-            state.fE7 = 0;
-            state.f19A = 0;
+            const state: *v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
+            state.bE8 = 0;
+            state.bE7 = 0;
+            state.waitTimer = 0;
             const stats = psx.get(a.stats).?;
             c.func_800E685C(@as(c_int, state.id), @as(c_int, stats.f31), @as(c_int, stats.f33));
             choiceStateFn()(@ptrCast(state));
@@ -50,15 +50,15 @@ pub fn func_800DEC88(arg0: ?*anyopaque) callconv(.c) c_int {
 
         actor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| : (actor = psx.get(a.next)) {
-            const state: *v.actorEvaluationState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
+            const state: *v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
             state.dead = @as(u8, @intFromBool(psx.get(a.stats).?.hp == 0));
         }
 
         actor = @ptrCast(v.g.vs_battle_actors()[0]);
         while (actor) |a| : (actor = psx.get(a.next)) {
-            const state: *v.actorEvaluationState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
+            const state: *v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
             planStateFn()(@ptrCast(state));
-            if (state.f13 != 0) {
+            if (state.flag13 != 0) {
                 if ((a.flags & 32) != 0) {
                     actionEvaluatedFn()(@ptrCast(state));
                 } else {

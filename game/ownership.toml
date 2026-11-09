@@ -17,9 +17,7 @@ functions = [
 ]
 
 [subsystem.battle_146C.views]
-types = ["vs_battle_actor", "vs_battle_actor2", "vs_main_scoredata_t", "D_800F18EC_t", "DR_STP", "MATRIX",
-         "_sphericalValues", "_sphericalCamera", "_mpdRoomDoorSection_t", "_mpdRoomSection", "func_8006EBF8_t",
-         "D_800F19CC_t", "vs_battle_menuState_t", "vs_main_CdQueueSlot", "DRAWENV"]
+types = ["vs_battle_actor", "vs_battle_actor2", "vs_main_scoredata_t", "D_800F18EC_t", "DR_STP", "MATRIX", "_sphericalValues", "_sphericalCamera", "_mpdRoomDoorSection_t", "_mpdRoomSection", "func_8006EBF8_t", "D_800F19CC_t", "vs_battle_menuState_t", "vs_main_CdQueueSlot", "DRAWENV"]
 globals = ["vs_main_scoredata", "D_800F1858", "D_80055C80", "D_8005E0C0", "D_800F1870", "D_800F1970", "D_800F1988",
            "D_800F18EC", "D_800F18FC", "D_800F190C", "D_800F196C", "D_800F1868", "D_800F19CC", "D_800F1AB0",
            "D_800F1B98", "_cameraMode", "vs_battle_actors", "vs_battle_cameraCurrentSpherical",
@@ -81,8 +79,7 @@ functions = [
 ]
 
 [subsystem.battle_146C_bakeoff.views]
-types = ["vs_battle_actor", "vs_battle_actor2", "D_800F19CC_t", "vs_action_t", "_hitEntity_t", "_mpdRoomSectionA",
-         "vs_main_settings_t", "vs_battle_uiWeapon", "vs_battle_weaponIntermediate"]
+types = ["vs_battle_actor", "vs_battle_actor2", "D_800F19CC_t", "vs_action_t", "_hitEntity_t", "_mpdRoomSectionA", "vs_main_settings_t", "vs_battle_uiWeapon", "vs_battle_weaponIntermediate"]
 globals = ["vs_battle_actors", "D_800F19CC", "D_800F196C", "_cameraMode", "vs_battle_characterState", "vs_main_settings"]
 
 [subsystem.battle_5BF94_bakeoff]
@@ -880,7 +877,7 @@ functions = [
 ]
 
 [subsystem.battle_7CD68_port.views]
-types = ["D_800F16EC_t", "D_800F58BC_t", "actionMetadataAction", "actionMetadataEntry", "actionMetadataState", "actionMetadataStats", "actorInitializationActor", "actorInitializationModel", "actorInitializationState", "actorInitializationStats", "actorSettingsActor", "actorSettingsState", "actorSettingsWord", "func_800DEEA4_t2", "func_800E5568_t", "func_800E5698_t", "func_800E5698_t2", "func_800E5A74_t", "vs_action_t", "vs_battle_actor"]
+types = ["D_800F16EC_t", "D_800F58BC_t", "actionMetadataAction", "actionMetadataEntry", "vs_battle_aiState", "actionMetadataStats", "actorInitializationActor", "actorInitializationModel", "actorInitializationStats", "actorSettingsActor", "actorSettingsWord", "func_800E5568_t", "func_800E5698_t2", "func_800E5A74_t", "vs_action_t", "vs_battle_actor"]
 globals = ["D_80069C08", "D_80069C18", "D_80069C1C", "D_80069C3C", "D_800F16EC", "D_800F1790", "D_800F17B8", "D_800F17C8", "D_800F17D8", "D_800F5878", "D_800F58B8", "D_800F58BC", "D_800F58C0", "D_800F58C8", "D_800F58D0", "D_800F590C", "vs_battle_actors", "vs_main_actions"]
 
 [subsystem.battle_71618_port]
@@ -902,7 +899,7 @@ functions = [
 ]
 
 [subsystem.battle_71618_port.views]
-types = ["D_800F16EC_t", "D_800F4538_t", "D_800F45E0_t", "D_800F58BC_t", "D_800F5920_t", "actionCandidateEntry", "actionCandidateState", "actionDispatchActor", "actionDispatchEntry", "actionDispatchModel", "actionDispatchRegistry", "actionDispatchState", "actionSetupContext", "candidateMovementState", "da4bcActor", "da4bcEntry", "da4bcEntryTarget", "da4bcModel", "da4bcPoint", "da4bcState", "da4bcTargetState", "func_800D8400_t", "func_800DCAA0_t", "func_800DEEA4_t2", "stuckMovementState", "vs_battle_actor"]
+types = ["D_800F16EC_t", "D_800F4538_t", "D_800F45E0_t", "D_800F58BC_t", "D_800F5920_t", "actionCandidateEntry", "vs_battle_aiState", "actionDispatchActor", "actionDispatchEntry", "actionDispatchModel", "actionDispatchRegistry", "da4bcActor", "da4bcEntry", "da4bcEntryTarget", "da4bcModel", "da4bcPoint", "func_800DCAA0_t", "vs_battle_actor"]
 globals = ["D_800F16F4", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58BC", "D_800F58E0", "D_800F5920", "vs_battle_actors"]
 
 [subsystem.battle_573B8_port]
@@ -952,7 +949,7 @@ functions = [
 ]
 
 [subsystem.battle_6FC00_port.views]
-types = ["D_800F16EC_t", "D_800F4538_t", "D_800F4538_unk0", "D_800F45E0_t", "D_800F58BC_t", "actionCandidateEntry", "actionCandidateState", "actorObject", "actorRelation", "actorRelationState", "actorUpdateActor", "actorUpdateHp", "actorUpdatePoint", "actorUpdateState", "actorUpdateStats", "func_800D8400_t", "func_800DEEA4_t2", "func_800E78F4_t", "movementRecoveryState", "vs_battle_actor", "vs_battle_actor2", "vs_battle_movementPosition"]
+types = ["D_800F16EC_t", "D_800F4538_t", "D_800F4538_unk0", "D_800F45E0_t", "D_800F58BC_t", "actionCandidateEntry", "vs_battle_aiState", "actorObject", "actorRelation", "actorUpdateActor", "actorUpdateHp", "actorUpdatePoint", "actorUpdateStats", "vs_battle_actor", "vs_battle_actor2", "vs_battle_movementPosition"]
 globals = ["D_800F16F4", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58BC", "D_800F58C4", "D_800F58D4", "D_800F58E0", "vs_battle_actors"]
 
 [subsystem.battle_58578_port]
@@ -1039,7 +1036,7 @@ functions = [
 ]
 
 [subsystem.battle_74088_port.views]
-types = ["D_800F4538_t", "D_800F4538_unk0", "D_800F45E0_t", "D_800F58BC_t", "D_800F5920_t", "SVECTOR", "actionCandidateEntry", "actionCandidateState", "actionChoice", "actionChoiceFlags", "actionChoiceInfo", "actionChoiceState", "actionCostView", "actionPlanState", "actionReactionAction", "actionReactionMotion", "actionReactionState", "actionScoreActor", "actionScoreMetadata", "actionScoreState", "actionSlotConfig", "actionStatApplication", "actionStatDelta", "actionStatSnapshot", "actorEvaluationActor", "actorEvaluationContext", "actorEvaluationState", "actorEvaluationStats", "func_800DCAA0_t", "func_800DCAA0_t1", "func_800DEB10_t", "func_800DEB10_t2", "func_800DEEA4_t", "func_800DEEA4_t2", "nearestWaypointDestination", "nearestWaypointState", "statusEffectTable", "statusEffectTick", "vs_battle_actor", "vs_battle_actor2", "vs_battle_uiEquipment_limb"]
+types = ["D_800F4538_t", "D_800F4538_unk0", "D_800F45E0_t", "D_800F58BC_t", "D_800F5920_t", "SVECTOR", "actionCandidateEntry", "vs_battle_aiState", "actionChoice", "actionChoiceFlags", "actionChoiceInfo", "actionCostView", "actionReactionAction", "actionReactionMotion", "actionScoreActor", "actionScoreMetadata", "actionSlotConfig", "actionStatApplication", "actionStatDelta", "actionStatSnapshot", "actorEvaluationActor", "actorEvaluationContext", "actorEvaluationStats", "func_800DCAA0_t", "func_800DEB10_t2", "func_800DEEA4_t", "nearestWaypointDestination", "statusEffectTable", "statusEffectTick", "vs_battle_actor", "vs_battle_actor2", "vs_battle_uiEquipment_limb"]
 globals = ["D_80069BBC", "D_80069BD0", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58BC", "D_800F58C8", "D_800F58D0", "D_800F58E8", "D_800F58EC", "D_800F58F0", "D_800F58F4", "D_800F58F8", "D_800F5900", "D_800F5904", "D_800F5920", "vs_battle_actors", "vs_main_actions", "vs_main_statusEffectParams"]
 
 [subsystem.battle_6F014_port]
@@ -1114,7 +1111,7 @@ functions = [
 ]
 
 [subsystem.battle_771A8_port.views]
-types = ["D_800F16EC_t", "D_800F4538_t", "D_800F58BC_t", "D_800F5910_t", "directionalCacheBits", "directionalCacheState", "func_8008D2C0_t", "func_800D8400_t", "func_800DFA54_t", "func_800E0850_t", "func_800E1238_t", "movementActorPosition", "movementApproachState", "movementCheckObject", "movementCheckState", "movementDecisionContext", "movementDestinationState", "movementPathState", "movementRecoveryContext", "movementRecoveryState", "movementStepActor", "movementStepState", "obstructionCache", "obstructionModel", "obstructionState", "obstructionVector", "patrolWaypointState", "routeEdgeActor", "routeEdgeGlobals", "routeEdgeState", "targetMovementActor", "targetMovementModel", "targetMovementState", "terrainMovementActor", "terrainMovementState", "vs_battle_actor", "wanderObject", "wanderState"]
+types = ["D_800F16EC_t", "D_800F4538_t", "D_800F58BC_t", "D_800F5910_t", "directionalCacheBits", "vs_battle_aiState", "func_8008D2C0_t", "func_800DFA54_t", "func_800E1238_t", "movementActorPosition", "movementCheckObject", "movementRecoveryContext", "movementStepActor", "obstructionCache", "obstructionModel", "obstructionVector", "routeEdgeGlobals", "targetMovementActor", "targetMovementModel", "terrainMovementActor", "vs_battle_actor", "wanderObject"]
 globals = ["D_800F175C", "D_800F1760", "D_800F4538", "D_800F58BC", "D_800F58D8", "D_800F5910", "vs_battle_actors"]
 
 [subsystem.battle_6FA60_port]
@@ -1125,7 +1122,7 @@ functions = [
 ]
 
 [subsystem.battle_6FA60_port.views]
-types = ["func_800DEEA4_t2"]
+types = ["vs_battle_aiState"]
 globals = []
 
 [subsystem.battle_7C4E8_port]
@@ -1136,7 +1133,7 @@ functions = [
 ]
 
 [subsystem.battle_7C4E8_port.views]
-types = ["func_800DEEA4_t2"]
+types = ["vs_battle_aiState"]
 globals = []
 
 [subsystem.battle_49268_port]
@@ -1175,7 +1172,7 @@ functions = [
 ]
 
 [subsystem.battle_73700_port.views]
-types = ["D_800F58BC_t", "actorPhaseFlags", "actorTimerState", "func_800DEB10_t2", "func_800E78F4_t"]
+types = ["D_800F58BC_t", "actorPhaseFlags", "vs_battle_aiState", "func_800DEB10_t2"]
 globals = ["D_800F58BC"]
 
 [subsystem.battle_7EE98_port]
@@ -1189,7 +1186,7 @@ functions = [
 ]
 
 [subsystem.battle_7EE98_port.views]
-types = ["D_800F4538_t", "D_800F58BC_t", "D_800F5920_t", "func_800DEB10_t2", "func_800E78F4_t", "func_800E78F4_t2", "radialMotion", "radialMotionActor", "radialMotionContext", "radialMotionState", "trackingMotion", "trackingMotionActor", "trackingMotionState", "trackingMotionStats", "vs_battle_actor2"]
+types = ["D_800F4538_t", "D_800F58BC_t", "D_800F5920_t", "func_800DEB10_t2", "vs_battle_aiState", "func_800E78F4_t2", "radialMotion", "radialMotionActor", "radialMotionContext", "trackingMotion", "trackingMotionActor", "trackingMotionStats", "vs_battle_actor2"]
 globals = ["D_800F17DC", "D_800F4538", "D_800F58BC", "D_800F5918", "D_800F591C", "D_800F5920"]
 
 [subsystem.battle_3A1A0_port]
@@ -2119,7 +2116,7 @@ functions = [
 ]
 
 [subsystem.d2_actor_cleanup.views]
-types = []
+types = ["vs_battle_aiState"]
 globals = ["D_800F5878", "D_800F58B8", "D_800F58BC", "D_800F58C0", "D_800F58D0", "D_800F590C", "D_800F5920", "vs_battle_actors"]
 
 [subsystem.d2_actor_packets]
@@ -2157,7 +2154,7 @@ functions = [
 ]
 
 [subsystem.d2_actor_update.views]
-types = []
+types = ["vs_battle_aiState"]
 globals = ["D_800F4538", "D_800F5878", "D_800F58B8", "D_800F58BC", "vs_battle_actors"]
 
 [subsystem.d2_actor_vertices]
@@ -2224,7 +2221,7 @@ functions = [
 ]
 
 [subsystem.d2_battle_helpers.views]
-types = []
+types = ["vs_battle_aiState"]
 globals = ["D_80069C0C", "D_800F5878", "D_800F58B8", "D_800F58D4", "D_800F58F0", "D_800F58F4", "D_800F58F8", "D_800F5904", "D_800F590C", "vs_battle_actors", "vs_battle_roomData", "vs_main_actions"]
 
 [subsystem.d2_battle_motion]
@@ -2325,7 +2322,7 @@ functions = [
 ]
 
 [subsystem.d2_battle_movement.views]
-types = []
+types = ["vs_battle_aiState"]
 globals = ["D_800F1758", "D_800F4538", "D_800F45E0", "D_800F5878", "D_800F58B8", "D_800F58BC", "D_800F58D0", "D_800F58D8", "D_800F58E0", "D_800F5920", "vs_battle_actors"]
 
 [subsystem.d2_boot_sdk]
@@ -2354,8 +2351,7 @@ functions = [
 ]
 
 [subsystem.d2_effect_particles.views]
-types = ["D_800F569C_t", "D_800F53B8_t", "func_800D6E44_t", "func_800D6CF_t", "pFileBlock1Indices", "pFileBlock1Data",
-         "pFileCurveBlock", "vs_scratch_t"]
+types = ["D_800F569C_t", "D_800F53B8_t", "func_800D6E44_t", "func_800D6CF_t", "pFileBlock1Indices", "pFileBlock1Data", "pFileCurveBlock", "vs_scratch_t"]
 globals = ["D_800F53BC", "D_800F569C", "vs_main_nearClip", "vs_main_projectionDistance", "vs_scratch", "D_80040A14"]
 
 [subsystem.d2_fixed_font]

@@ -6,7 +6,7 @@ const c = @import("c_7CD68");
 
 /// orig: func_800E5710 (pc/src/game/BATTLE/BATTLE.PRG/7CD68.c)
 /// Fills the action metadata of every slot of a state from the actions in its stats.
-pub fn fillActionMetadata(state: ?*v.actionMetadataState) callconv(.c) void {
+pub fn fillActionMetadata(state: ?*v.vs_battle_aiState) callconv(.c) void {
     const st = state.?;
     if (st.id == 0) {
         st.maxActionCost = 1;
@@ -14,10 +14,10 @@ pub fn fillActionMetadata(state: ?*v.actionMetadataState) callconv(.c) void {
     }
     for (0..6) |row| {
         for (0..4) |column| {
-            const id: c_int = psx.get(st.stats).?.slots[row][column].id;
+            const id: c_int = psx.get(st.stats.actionMetadataStats).?.slots[row][column].id;
             // vs_main_actions[id]: no bound check in the C; id is a u16.
             const action: *align(1) v.actionMetadataAction = @ptrCast(psx.at(v.g.actions(), id));
-            const entry: *v.actionMetadataEntry = &st.entries[row][column];
+            const entry: *v.actionMetadataEntry = &st.configs.actionMetadataEntry[row][column];
             const mask: c_int = @as(c_int, 1) << @intCast((action.flags.raw >> 20) & 15);
 
             entry.rangeSquared = psx.conv(u32, c.func_800E5698(@ptrCast(st), id));

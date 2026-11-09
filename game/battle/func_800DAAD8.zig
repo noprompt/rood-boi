@@ -7,18 +7,18 @@ const c = @import("c_71618");
 
 /// orig: func_800DAAD8 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Runs the action's pending target checks and tests every actor's targeting category; returns 1 when one of them stops the action.
-pub fn func_800DAAD8(state: ?*v.da4bcState) callconv(.c) c_int {
+pub fn func_800DAAD8(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     const s = state.?;
-    const entry = psx.get(s.entries[0]);
+    const entry = psx.get(s.entries.da4bc[0]);
 
-    if (s.pending == 0 and c.func_800DA4BC(@ptrCast(s), @ptrCast(entry)) != 0)
+    if (s.status == 0 and c.func_800DA4BC(@ptrCast(s), @ptrCast(entry)) != 0)
         return 1;
-    const target: c_int = psx.getBits(s, "target16");
+    const target: c_int = s.target16;
     if (target < 16) {
         if (c.func_800DB370(@ptrCast(s), target, 384, 0) != 0) {
-            if (s.mode == 1 and s.action != 7) {
+            if (s.rangeMode == 1 and s.mode12E != 7) {
                 const et: *v.da4bcEntryTarget = @ptrCast(&entry.?.flagsC);
-                s.target15C = psx.getBits(et, "target");
+                s.movementTargetId = psx.getBits(et, "target");
                 c.func_800E678C(@ptrCast(s));
                 c.func_800E2CCC(@ptrCast(s));
             }
@@ -28,18 +28,18 @@ pub fn func_800DAAD8(state: ?*v.da4bcState) callconv(.c) c_int {
             return 1;
     }
 
-    const ts: *v.da4bcTargetState = @ptrCast(s);
+    const ts: *v.vs_battle_aiState = @ptrCast(s);
     var actor: ?*v.da4bcActor = @ptrCast(v.g.vs_battle_actors()[0]);
     while (actor) |a| : (actor = psx.get(a.next)) {
-        if (psx.getBits(psx.at(&ts.targets, a.id), "mode") != 3 and
-            psx.getBits(psx.at(&ts.targets, a.id), "category") != 0)
+        if (psx.getBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "mode") != 3 and
+            psx.getBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "category") != 0)
         {
-            psx.setBits(psx.at(&ts.targets, a.id), "mode", 3);
+            psx.setBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "mode", 3);
             if (c.func_800DB61C(@ptrCast(s), 0) != 0) {
-                psx.setBits(psx.at(&ts.targets, a.id), "mode", psx.getBits(psx.at(&ts.targets, a.id), "oldMode"));
+                psx.setBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "mode", psx.getBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "oldMode"));
                 return 1;
             }
-            psx.setBits(psx.at(&ts.targets, a.id), "mode", psx.getBits(psx.at(&ts.targets, a.id), "oldMode"));
+            psx.setBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "mode", psx.getBits(psx.at(&ts.tbl.t.targets.da4bc, a.id), "oldMode"));
         }
     }
     return 0;

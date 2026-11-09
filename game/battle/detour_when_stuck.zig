@@ -6,18 +6,18 @@ const c = @import("c_71618");
 
 /// orig: func_800DB0BC (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Detours a stuck movement state one step at a time; returns 1 while the detour continues, else 0.
-pub fn detourWhenStuck(state: ?*v.stuckMovementState) callconv(.c) c_int {
+pub fn detourWhenStuck(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     // Scratchpad table of direction deltas (D_800F16EC_t, one byte per entry).
     const dirTable: [*]v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
 
     if (v.g.D_800F5920().* == null) {
         const s = state.?;
-        if ((s.position.raw & 0xFF00FF) == (s.previous.raw & 0xFF00FF)) {
-            s.stuck = 1;
+        if ((s.tile.stuck.raw & 0xFF00FF) == (s.previous.stuckMovementPosition.raw & 0xFF00FF)) {
+            s.flags0.b[2] = 1;
             if (s.detourStep == 0) {
                 var angle: c_uint = psx.conv(c_uint, c.ratan2(
-                    @as(c_int, s.x) -% @as(c_int, s.destination.p.x) *% 128 -% 64,
-                    @as(c_int, s.z) -% @as(c_int, s.destination.p.z) *% 128 -% 64,
+                    @as(c_int, s.position.v.vx) -% @as(c_int, s.destination168.stuckMovementPosition.p.x) *% 128 -% 64,
+                    @as(c_int, s.position.v.vz) -% @as(c_int, s.destination168.stuckMovementPosition.p.z) *% 128 -% 64,
                 ));
                 angle &= 0xFFF;
                 const first: c_int = psx.conv(c_int, (angle >> 9) & 7);
@@ -49,9 +49,9 @@ pub fn detourWhenStuck(state: ?*v.stuckMovementState) callconv(.c) c_int {
                 while (i < 4) : (i +%= 1) {
                     const dir = directions[@intCast(i)];
                     // probe bytes 0 and 2 hold x and z; bytes 1 and 3 stay 0.
-                    const xb = psx.conv(u8, @as(c_int, s.position.p.x) +%
+                    const xb = psx.conv(u8, @as(c_int, s.tile.stuck.p.x) +%
                         @as(c_int, psx.getBits(&dirTable[dir], "dx")));
-                    const zb = psx.conv(u8, @as(c_int, s.position.p.z) +%
+                    const zb = psx.conv(u8, @as(c_int, s.tile.stuck.p.z) +%
                         @as(c_int, psx.getBits(&dirTable[dir], "dz")));
                     const probe: c_uint = @as(c_uint, xb) | (@as(c_uint, zb) << 16);
                     if (c.func_800D954C(@ptrCast(s), probe) > 0) {
@@ -71,12 +71,12 @@ pub fn detourWhenStuck(state: ?*v.stuckMovementState) callconv(.c) c_int {
             // detourStep is 1..4 here (set above or left nonzero), so the index is 0..3.
             const step: usize = @intCast(@as(c_int, s.detourStep) - 1);
             const dir = s.detourDirections[step];
-            s.destination.p.x = psx.conv(u8, @as(c_int, s.position.p.x) +%
+            s.destination168.stuckMovementPosition.p.x = psx.conv(u8, @as(c_int, s.tile.stuck.p.x) +%
                 @as(c_int, psx.getBits(&dirTable[dir], "dx")));
-            s.destination.p.z = psx.conv(u8, @as(c_int, s.position.p.z) +%
+            s.destination168.stuckMovementPosition.p.z = psx.conv(u8, @as(c_int, s.tile.stuck.p.z) +%
                 @as(c_int, psx.getBits(&dirTable[dir], "dz")));
-            s.unk15C = s.unkFB;
-            if (c.func_800D954C(@ptrCast(s), s.destination.raw) > 0) {
+            s.movementTargetId = s.unkFB;
+            if (c.func_800D954C(@ptrCast(s), s.destination168.stuckMovementPosition.raw) > 0) {
                 c.func_800E50A0(s, 0, 0);
             } else {
                 s.detourStep +%= 1;

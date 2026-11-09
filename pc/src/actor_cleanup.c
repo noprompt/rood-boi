@@ -1,7 +1,8 @@
 /* Native translations of actor-unload assembly in 7E05C.s, 7DE94.s,
  * 7BDD4.s and 6FA0C.s. Guest structure offsets retain the original ABI. */
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
-extern unsigned char *D_800F5878[], *vs_battle_actors[];
+#include "game/BATTLE/BATTLE.PRG/ai_state.h"
+extern unsigned char* D_800F5878[];
 /* Guest words at 0x800F58xx: 32-bit guest addresses. */
 extern unsigned D_800F58B8, D_800F58BC, D_800F590C, D_800F5920;
 extern void func_800E5240(unsigned);

@@ -1,4 +1,5 @@
 //! Walks over the linked actor list (D2: 73C84.s, 73C24.s, 7E05C.s; oracle pc/src/battle_helpers.c).
+const ai = @import("views_71618");
 const psx = @import("common").psx;
 const c = @import("c_battle_helpers");
 const v = @import("views_battle_helpers");
@@ -56,19 +57,19 @@ pub fn snapshotActorStats(snapshots: [*]u8) callconv(.c) void {
 /// 0x1A4 + id * 4) is set from the table D_80069C0C, or to 2 for the state's
 /// own id, and the peer is visited in turn while its reciprocal relation (read
 /// before the write) is unset.
-pub fn propagateRelations(state: [*]u8) callconv(.c) void {
+pub fn propagateRelations(state: *ai.vs_battle_aiState) callconv(.c) void {
     var node = first();
     while (node) |n| : (node = next(n)) {
         const id = psx.byteAt(c_int, n, 4).*;
-        const peer: [*]u8 = @ptrCast(psx.at(v.g.D_800F5878(), id).*.?);
-        const self: c_uint = state[0x88];
+        const peer: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), id).*.?));
+        const self: c_uint = state.id;
         var relation: c_uint = 2;
         if (self != @as(c_uint, @bitCast(id))) {
-            const column: c_int = @intFromBool(!((id < 1) or (peer[0x2c] >= 3)));
-            relation = v.g.D_80069C0C()[@intCast(@as(c_int, state[0x2c]) * 2 + column)];
+            const column: c_int = @intFromBool(!((id < 1) or (peer.f2C >= 3)));
+            relation = v.g.D_80069C0C()[@intCast(@as(c_int, state.f2C) * 2 + column)];
         }
-        const outgoing = psx.byteAt(c_uint, state, 0x1a4 + @as(isize, id *% 4));
-        const reciprocal = psx.byteAt(c_uint, peer, 0x1a4 + @as(isize, @intCast(self * 4))).*;
+        const outgoing = psx.byteAt(c_uint, &state.tbl.t.targets.bits32, @as(isize, id *% 4));
+        const reciprocal = psx.byteAt(c_uint, &peer.tbl.t.targets.bits32, @as(isize, @intCast(self * 4))).*;
         outgoing.* = (outgoing.* & ~@as(c_uint, 0xc0)) | (relation << 6);
         if (reciprocal & 0xc0 == 0) c.func_800E7370(peer);
     }
@@ -82,10 +83,10 @@ pub fn applyActorOptions() callconv(.c) void {
     var node = first();
     while (node) |n| : (node = next(n)) {
         const id = psx.byteAt(c_int, n, 4).*;
-        const entity: [*]u8 = @ptrCast(psx.at(v.g.D_800F5878(), id).*.?);
-        const options: c_int = psx.byteAt(i16, entity, 0x42).*;
+        const entity: *ai.vs_battle_aiState = @ptrCast(@alignCast(psx.at(v.g.D_800F5878(), id).*.?));
+        const options: c_int = entity.options;
         if (options < 0) continue;
-        const flags = psx.byteAt(c_uint, entity, 0x1a4);
+        const flags = &entity.tbl.targetFlags[0];
         flags.* = (flags.* & 0xc80fff30) | ((@as(c_uint, @bitCast(options >> 3)) & 3) << 28) |
             ((@as(c_uint, @bitCast(options >> 1)) & 3) << 6) | ((@as(c_uint, @bitCast(options >> 6)) & 127) << 20);
         if (options & 1 != 0) c.func_800DC210(entity, 1);

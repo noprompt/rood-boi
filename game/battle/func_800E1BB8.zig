@@ -20,7 +20,7 @@ fn wanderTile(row: c_int, col: c_int) c_int {
 
 /// orig: func_800E1BB8 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Picks the wander step's next direction from the open neighbours of the goal tile and advances the goal; returns 1 once more than maxCount steps are taken.
-pub fn func_800E1BB8(state: ?*v.wanderState, tile: c_uint, maxCount: c_uint, _: c_int) callconv(.c) c_int {
+pub fn func_800E1BB8(state: ?*v.vs_battle_aiState, tile: c_uint, maxCount: c_uint, _: c_int) callconv(.c) c_int {
     if (maxCount == 0) return -1;
     const st = state.?;
     if (st.count == 0) st.goal.raw = tile;
@@ -49,7 +49,7 @@ pub fn func_800E1BB8(state: ?*v.wanderState, tile: c_uint, maxCount: c_uint, _: 
                 if (c.func_800D96C8(@ptrCast(st), st.goal.raw, candidate.raw, i *% 2) == 0) continue;
                 psx.setBits(&candidate.p, "y", 0);
             }
-            if (st.flag2 == 0 and
+            if (st.flags0.b[2] == 0 and
                 (wanderTile(@as(c_int, psx.getBits(&candidate.p, "z")), @as(c_int, psx.getBits(&candidate.p, "x"))) & 15) !=
                     (wanderTile(@as(c_int, psx.getBits(&st.goal.p, "z")), @as(c_int, psx.getBits(&st.goal.p, "x"))) & 15))
                 continue;

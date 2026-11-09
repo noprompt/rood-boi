@@ -19,7 +19,7 @@ fn wanderRandomHeading(direction: c_int) c_int {
 
 /// orig: wanderStartWalk (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Starts a new walk: no heading yet, and the recovery step.
-fn wanderStartWalk(s: *v.wanderState) void {
+fn wanderStartWalk(s: *v.vs_battle_aiState) void {
     s.angle = -1;
     s.count = 0;
     s.cooldown = 60;
@@ -34,40 +34,40 @@ fn chanceOf(rate: c_int) c_int {
 
 /// orig: func_800E1EAC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// One wander step of `state` around `tile` within `range` (63 and up: free roaming by heading).
-pub fn func_800E1EAC(state: ?*v.wanderState, tile: c_uint, range: c_uint) callconv(.c) void {
+pub fn func_800E1EAC(state: ?*v.vs_battle_aiState, tile: c_uint, range: c_uint) callconv(.c) void {
     const s = state.?;
-    s.timer +%= 1;
+    s.timerC2 +%= 1;
     const rate: c_int = s.rate;
     const rest: u16 = s.restPeriod;
     const move: u16 = s.movePeriod;
-    const check: Check = if (psx.get(s.object).?.flags & 0x200000 != 0)
+    const check: Check = if (psx.get(s.object.wanderObject).?.flags & 0x200000 != 0)
         @ptrCast(&c.func_800E0678)
     else
         @ptrCast(&c.D_800D9B6C);
     if (s.mode12D == 1) {
-        if (s.timer < 31) return;
+        if (s.timerC2 < 31) return;
         if (@as(c_uint, @bitCast(c.func_800E45D4(128))) < 44) {
             s.mode12D = 2;
         } else {
-            s.timer = 0;
+            s.timerC2 = 0;
             return;
         }
     }
-    if (s.timer == move) {
-        if (@as(c_uint, @bitCast(c.func_800E45D4(128))) < 44) s.timer = 0;
-    } else if (@as(c_int, s.timer) >= @as(c_int, rest) +% move) {
-        s.timer = if (@as(c_uint, @bitCast(c.func_800E45D4(128))) < 44) move else 0;
+    if (s.timerC2 == move) {
+        if (@as(c_uint, @bitCast(c.func_800E45D4(128))) < 44) s.timerC2 = 0;
+    } else if (@as(c_int, s.timerC2) >= @as(c_int, rest) +% move) {
+        s.timerC2 = if (@as(c_uint, @bitCast(c.func_800E45D4(128))) < 44) move else 0;
     }
-    s.flag2 = 1;
+    s.flags0.b[2] = 1;
     @as(*u8, @ptrFromInt(0x1F8003D0)).* = 0;
     recover: {
-        if (!(s.timer < move)) break :recover;
+        if (!(s.timerC2 < move)) break :recover;
         if (range >= 63) {
             if (s.mode == 0 or c.func_800E45D4(chanceOf(rate)) == 0 or s.cooldown == 0) {
                 const value: c_uint = @as(c_uint, @bitCast(c.func_800E45D4(4096))) % range +% 128;
                 s.mode = 1;
                 s.cooldown = 60;
-                s.rangeSquared = @bitCast(value *% value);
+                s.rangeSquaredC4 = @bitCast(value *% value);
                 const heading: c_int = c.func_800E45D4(4) *% 2;
                 var i: c_int = 0;
                 while (i < 4) : (i += 1) {
@@ -79,13 +79,13 @@ pub fn func_800E1EAC(state: ?*v.wanderState, tile: c_uint, range: c_uint) callco
                 }
                 if (i == 4) s.angle = psx.conv(i16, c.func_800E45D4(4096));
             }
-            if (s.flag8 == 0) {
+            if (s.flags8.b[0] == 0) {
                 s.cooldown = 60;
             } else if (s.cooldown != 0) {
                 s.cooldown -%= 1;
             }
             if (s.flags & 8 != 0) {
-                c.func_800E1388(@ptrCast(s), s.tile.raw, s.angle, s.moveArg);
+                c.func_800E1388(@ptrCast(s), s.tile.position.raw, s.angle, @bitCast(s.distance));
             }
             const steps: [*]v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
             var boundsHeading: c_int = @as(c_int, s.angle) >> 9;
@@ -95,8 +95,8 @@ pub fn func_800E1EAC(state: ?*v.wanderState, tile: c_uint, range: c_uint) callco
                 boundsIndex += 1;
             }) {
                 const step = psx.at(steps, boundsHeading);
-                const x: c_int = @as(c_int, psx.getBits(&s.tile.p, "x")) +% psx.getBits(step, "dx");
-                const z: c_int = @as(c_int, psx.getBits(&s.tile.p, "z")) +% psx.getBits(step, "dz");
+                const x: c_int = @as(c_int, psx.getBits(&s.tile.position.p, "x")) +% psx.getBits(step, "dx");
+                const z: c_int = @as(c_int, psx.getBits(&s.tile.position.p, "z")) +% psx.getBits(step, "dz");
                 const bounds = v.g.D_800F58BC().*.?;
                 if (@as(c_int, bounds.maxZ) < z or z < bounds.minZ or @as(c_int, bounds.maxX) < x or x < bounds.minX or
                     (psx.at(psx.at(gridRows(), z), x).* & 0x800) != 0)
@@ -108,7 +108,7 @@ pub fn func_800E1EAC(state: ?*v.wanderState, tile: c_uint, range: c_uint) callco
             c.func_800E50A0(s, 1, s.angle);
             return;
         }
-        s.flag3 = 1;
+        s.flags0.b[3] = 1;
         if (c.func_800E45D4(chanceOf(rate)) == 0) s.mode = 0;
         switch (s.mode) {
             0 => {
@@ -121,26 +121,26 @@ pub fn func_800E1EAC(state: ?*v.wanderState, tile: c_uint, range: c_uint) callco
                     s.mode = 0;
                 } else if (result > 0) {
                     s.mode +%= 1;
-                    s.dest = s.goal;
+                    s.destination168.movementPosition = s.goal;
                 }
             },
             2 => {
-                s.dest = s.goal;
+                s.destination168.movementPosition = s.goal;
                 if (s.flags & 8 != 0) {
                     const heading: c_int = c.ratan2(
-                        @as(c_int, s.x) -% @as(c_int, psx.getBits(&s.dest.p, "x")) *% 128 -% 64,
-                        @as(c_int, s.z) -% @as(c_int, psx.getBits(&s.dest.p, "z")) *% 128 -% 64,
+                        @as(c_int, s.position.v.vx) -% @as(c_int, psx.getBits(&s.destination168.movementPosition.p, "x")) *% 128 -% 64,
+                        @as(c_int, s.position.v.vz) -% @as(c_int, psx.getBits(&s.destination168.movementPosition.p, "z")) *% 128 -% 64,
                     ) & 4095;
-                    s.saved = s.dest;
-                    c.func_800E1388(@ptrCast(s), s.tile.raw, heading, s.moveArg);
+                    s.previous48.movementPosition = s.destination168.movementPosition;
+                    c.func_800E1388(@ptrCast(s), s.tile.position.raw, heading, @bitCast(s.distance));
                 }
                 c.func_800E50A0(s, 0, 0);
-                if (s.flag8 == 0) {
+                if (s.flags8.b[0] == 0) {
                     s.cooldown = 60;
                 } else if (s.cooldown != 0) {
                     s.cooldown -%= 1;
                 }
-                if ((s.dest.raw & 0xFF00FF) == (s.tile.raw & 0xFF00FF) or s.cooldown == 0) s.mode = 0;
+                if ((s.destination168.movementPosition.raw & 0xFF00FF) == (s.tile.position.raw & 0xFF00FF) or s.cooldown == 0) s.mode = 0;
                 return;
             },
             else => s.mode = 0,

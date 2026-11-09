@@ -12,7 +12,7 @@ pub fn func_800DEEA4(arg0: ?*v.func_800DEEA4_t) callconv(.c) void {
             // Unchecked as in the C (unk4 past the 18 entries reads on).
             const entry = psx.at(v.g.D_800F5878(), actor.unk4).*;
             if (entry) |e| {
-                e.unk9A = 0;
+                e.timer = 0;
             }
         }
 

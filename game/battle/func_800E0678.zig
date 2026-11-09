@@ -7,7 +7,7 @@ const c = @import("c_771A8");
 
 /// orig: func_800E0678 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Whether the tile one step from `state` in `direction` can be moved to, cached per direction.
-pub fn func_800E0678(state: ?*v.directionalCacheState, direction: c_int) callconv(.c) c_int {
+pub fn func_800E0678(state: ?*v.vs_battle_aiState, direction: c_int) callconv(.c) c_int {
     const bits: *v.directionalCacheBits = @ptrFromInt(0x1F8003D0);
     // x86 masks a shift count to 5 bits; the object shifts by `direction` the same way.
     const shift: u5 = @truncate(@as(c_uint, @bitCast(direction)));
@@ -22,8 +22,8 @@ pub fn func_800E0678(state: ?*v.directionalCacheState, direction: c_int) callcon
 
         const st = state.?;
         const entry = psx.at(@as([*]v.D_800F16EC_t, @ptrFromInt(0x1F8003EC)), direction);
-        const x: c_int = @as(c_int, st.tile.p.x) +% @as(c_int, psx.getBits(entry, "dx"));
-        const z: c_int = @as(c_int, st.tile.p.z) +% @as(c_int, psx.getBits(entry, "dz"));
+        const x: c_int = @as(c_int, st.tile.cache.p.x) +% @as(c_int, psx.getBits(entry, "dx"));
+        const z: c_int = @as(c_int, st.tile.cache.p.z) +% @as(c_int, psx.getBits(entry, "dz"));
 
         const bounds = v.g.D_800F58BC().*.?;
         if (x > @as(c_int, bounds.maxX) or x < @as(c_int, bounds.minX) or
@@ -39,9 +39,9 @@ pub fn func_800E0678(state: ?*v.directionalCacheState, direction: c_int) callcon
         const tile: u16 = @as(*align(1) const u16, @ptrFromInt(tile_addr)).*;
         if ((tile & 0x40) != 0) break :check false;
 
-        if (@as(c_int, st.previous.p.x) == x and @as(c_int, st.previous.p.z) == z) break :check false;
+        if (@as(c_int, st.previous.directionalCachePoint.p.x) == x and @as(c_int, st.previous.directionalCachePoint.p.z) == z) break :check false;
 
-        if (bounds.unk14 != 0 and c.func_800E42EC(x, z) +% @as(c_int, st.minimumHeight) < bounds.unk14) {
+        if (bounds.unk14 != 0 and c.func_800E42EC(x, z) +% @as(c_int, st.heightBE) < bounds.unk14) {
             return 0;
         }
 

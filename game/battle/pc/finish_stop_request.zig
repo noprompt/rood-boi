@@ -1,4 +1,5 @@
 //! Finishing a pending stop request (D2: 72B70.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const psx = @import("common").psx;
 
@@ -6,17 +7,17 @@ const psx = @import("common").psx;
 /// Finishes a pending stop request (0x12D): request 1 with a basic command
 /// (< 9) idles (command 1); otherwise releases the tile reservation
 /// (func_800E678C), clears the request and switches to command 2.
-pub fn finishStopRequest(state: [*]u8) callconv(.c) void {
-    const request: c_int = state[0x12d];
+pub fn finishStopRequest(state: *ai.vs_battle_aiState) callconv(.c) void {
+    const request: c_int = state.mode12D;
     if (request == 0) return;
     if (request == 1) {
-        const command: [*]u8 = @ptrFromInt(psx.byteAt(u32, state, 0x54).*);
+        const command: [*]u8 = @ptrCast(state.actor.actorView);
         if (command[9] < 9) {
             c.func_800DEEFC(state, 1);
             return;
         }
     }
     c.func_800E678C(state);
-    state[0x12d] = 0;
+    state.mode12D = 0;
     c.func_800DEEFC(state, 2);
 }

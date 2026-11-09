@@ -6,13 +6,13 @@ const c = @import("c_6FC00");
 
 /// orig: func_800D8400 (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c)
 /// Tries a step from the state's position toward a direction (or the nearer of two), returning the reached position's raw bits.
-pub fn func_800D8400(state: ?*v.func_800D8400_t, first: c_int, second: c_int, dir_in: c_uint) callconv(.c) c_uint {
-    if (state.?.disabled != 0) return 0;
+pub fn func_800D8400(state: ?*v.vs_battle_aiState, first: c_int, second: c_int, dir_in: c_uint) callconv(.c) c_uint {
+    if (state.?.flags4.b[3] != 0) return 0;
 
     // dest.p.y is never written by the original (uninitialised there); 0 here.
     var dest: v.vs_battle_movementPosition = .{ .raw = 0 };
     psx.setBits(&dest.p, "status", 1);
-    const source = state.?.position;
+    const source = state.?.tile.position;
 
     var dir: c_uint = dir_in;
     var directions: c_uint = dir_in;

@@ -900,14 +900,11 @@ int func_8006C84C(int arg0);
 
 void func_8006CA20(int arg0, func_8006CE70_t* arg1);
 
-
 /* PC only: the decomp's exact-matching C for func_8006CB04 (rood-reverse
  * .work/ultracode/r12-e/cb9.c, score 0). The decomp rejected it upstream only
  * for its conditional dead store, which is harmless here. */
 extern u_char D_800E8194[];
 void func_8006CB04(int arg0, func_8006CE70_t* arg1);
-
-
 
 void func_8006CD60(u_int* arg0, int arg1, int arg2);
 
@@ -937,7 +934,6 @@ int _stepTowardTarget(SVECTOR* targetPos, int transformFlag, int maxSpeed);
 
 void _snapLookAtToPosition(VECTOR* arg0);
 
-
 #define CAMERA_INPUT_LOCKED()                                                           \
     ((D_800F196C == 3) || ((D_800F196C == 2) && ((_cameraMode == 4) || (_cameraMode == 11))))
 
@@ -948,7 +944,6 @@ void func_8006E640(int arg0);
 int func_8006E7F0(void);
 
 int func_8006EBF8(void);
-
 
 /* First-person up/down, inverted by the PC port's setting qol_fp_invert_y
  * (project_settings.cpp); the original's directions in the PS1 build. */
@@ -995,7 +990,6 @@ void func_8006FCBC(void);
 
 void func_8006FD0C(void);
 
-
 void func_800DEEA4(D_800F19CC_t2*);
 void func_80093F24(u_int);
 
@@ -1006,7 +1000,6 @@ void func_80070278(void);
 void func_800704B0(void);
 
 void func_800704D8(void);
-
 
 typedef struct {
     char reserved[0x29C0];
@@ -1030,7 +1023,6 @@ void func_800708EC(void);
 
 void func_80070B04(void);
 
-
 /* Environment targets overlay the actor-effect records with coordinates. */
 typedef struct {
     short x, y, z, radius;
@@ -1048,7 +1040,6 @@ int func_8008D2C0(func_8008D2C0_t*);
 void func_80070CAC(void);
 
 void func_80070F28(int arg0);
-
 
 typedef struct {
     u_short type;
@@ -1078,11 +1069,9 @@ void func_8007138C(void);
 
 void func_800719DC(int arg0 __attribute__((unused)));
 
-
 extern unsigned char D_800E81B4[], D_800E81D4[];
 void func_800A190C(int, int, void*, int);
 void func_800719FC(int arg0 __attribute__((unused)));
-
 
 /* 573B8.c stores the target list's guest address (arg3) in an int field. */
 void func_800C05EC(void*, void*, int, int);
@@ -1183,7 +1172,6 @@ int func_80074A20(int arg0);
 
 void func_80074B14(int arg0, func_8006EBF8_t_fields* arg1);
 
-
 int func_80074BAC(int, u_char*);
 /* PC only: the decomp's closest non-matching C for func_80074BAC
  * (rood-reverse .work/ultracode/r7-near-b/74bac/p40.full.c, score 40: a
@@ -1191,12 +1179,9 @@ int func_80074BAC(int, u_char*);
 D_800F1D08_t* func_8008BAC8(int, int, int);
 int func_80074BAC(int actorId, u_char* cell);
 
-
-
 int func_800751B8(int arg0, func_8006EBF8_t3* arg1);
 
 void func_800753F8(vs_battle_actor* arg0, SVECTOR* arg1);
-
 
 int func_80075554(void);
 #include "pc/src/actor_commands.inc"
@@ -1228,7 +1213,6 @@ vs_battle_actor_dat* func_80077240(int arg0, int arg1, int bladeWepId, int blade
 void func_800773BC( vs_battle_actor* arg0, int arg1, int arg2, int arg3, int arg4, int arg5);
 
 vs_battle_actor* func_800774FC(int arg0, int arg1, int bladeWepId, int bladeMaterial, int shieldWepId, int shieldMaterial, vs_battle_objectData_flags* arg6, int arg7);
-
 
 extern u_char D_8004FE88[];
 extern vs_battle_charInitData* D_800F188C;
@@ -1269,7 +1253,6 @@ void func_800790BC(void);
 
 int func_800792E4(int arg0, int arg1, int arg2);
 
-
 void func_800793C0(void);
 extern int D_800F19D8;
 extern int D_800F19EC;
@@ -1281,7 +1264,6 @@ void func_800797BC(void);
 void func_8007980C(void);
 
 void func_8007983C(void);
-
 
 void _finishLoadZnd(int id);
 void func_80089DC0(int arg0);
@@ -1323,7 +1305,6 @@ void vs_battle_setCameraRoll(int arg0);
 
 int vs_battle_getCameraRoll(void);
 
-
 extern MATRIX D_8005E218;
 
 void func_8007ACB0(void);
@@ -1342,10 +1323,8 @@ void func_8007B29C(int arg0, int arg1, int arg2, short arg3, short arg4, short a
 
 void func_8007B344(int arg0, int arg1, short arg2, short arg3, short arg4);
 
-
 void func_8007B378(int arg0, u_short* arg1, int arg2, int arg3) __attribute__((unused));
 void func_8007B378(int arg0, u_short* arg1, int arg2, int arg3);
-
 
 void func_8007B3D0(int arg0, int arg1, u_short* arg2, int arg3) __attribute__((unused));
 void func_8007B3D0(int arg0, int arg1, u_short* arg2, int arg3);
@@ -1567,7 +1546,6 @@ void _calculateArmorClassAffinity(vs_battle_actor2* arg0, int arg1);
 void _calculateShieldClassAffinity(vs_battle_actor2* arg0);
 
 void _calculateWeaponClassAffinity(vs_battle_actor2* arg0);
-
 
 extern u_int _itemCategorySizes[];
 
@@ -1847,7 +1825,6 @@ void func_800856F8(void* arg0);
 
 void func_80085718(_hitEntity_t* arg0);
 
-
 /**
  * Retrieves a compound value of the action type, cost, and whether
  * the actor can pay the cost.
@@ -1861,7 +1838,6 @@ int _getActionCost(u_int actionId, vs_battle_actor2* actor, int updateStat);
 void func_800859B4(u_int arg0, vs_battle_actor2* arg1, int arg2);
 
 void func_80085A34(func_80085A34_t* arg0);
-
 
 int func_800E6C34(SVECTOR*, SVECTOR*, SVECTOR*, int);
 
@@ -1906,7 +1882,6 @@ void _loadMpdLbas(void* arg0, int size);
 
 void _loadZndEnemies(psx_long* data, int arg1 __attribute__((unused)));
 
-
 static void _loadZnd(int id)
 {
     vs_main_CdFile cdFile;
@@ -1936,7 +1911,6 @@ void _finishLoadZnd(int id);
 void func_80089098(void);
 
 int func_80089104(void);
-
 
 extern int D_800F18E0;
 
@@ -1973,7 +1947,6 @@ int func_8008AB80(int arg0);
 int func_8008ABB8(int arg0);
 
 int func_8008ABF0(int arg0);
-
 
 #include "pc/src/scene_submit.inc"
 #include "pc/src/charge_skip.inc"
@@ -2034,7 +2007,6 @@ int func_8008C2C0(int arg0, int arg1, int arg2, int arg3);
 
 void func_8008C40C(void);
 
-
 #ifndef ROOD_PC
 void func_8008C458(int arg0) { func_80098B38(arg0, 0); }
 #endif
@@ -2045,7 +2017,6 @@ void func_8008C538(void);
 
 void func_8008C6B4(int arg0, int arg1);
 
-
 static short const D_80068BEC[] __attribute__((used)) = { 8, 14, 16, 11, 7, 3, 1 };
 
 typedef struct {
@@ -2055,7 +2026,6 @@ typedef struct {
 } RoomMotionVectors;
 int func_800A4494(int, SVECTOR*);
 int func_8008C8A8(void);
-
 
 #include "pc/src/room_shadows.inc"
 
@@ -2117,7 +2087,6 @@ void func_8008E480(int arg0);
 
 short func_8008E4AC(void);
 
-
 static int _getRoomTrapLevel(void)
 {
     return psx_get(vs_battle_roomData.sectionB)->trapLevel;
@@ -2132,7 +2101,6 @@ void func_8008E6DC(int arg0);
 void func_8008E8F8(void);
 
 void func_8008E938(void);
-
 
 void func_80090C2C(int);
 
@@ -2162,7 +2130,6 @@ void func_8008F440(void);
 
 void func_8008F9A4(int arg0, int arg1);
 
-
 /* The screen's X range for the weather particles drawn as 2D at projected
  * points: in widescreen (port) the 16:9 view's (pc/src/widescreen.h). */
 #ifdef ROOD_PC
@@ -2184,7 +2151,6 @@ void func_80090434(void);
 void func_80090A1C(D_800F1DD4_t* arg0);
 
 void func_80090B28(void);
-
 
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/146C", D_80068C1C);
 

@@ -12,7 +12,7 @@ fn step(direction: c_int) *v.D_800F16EC_t {
 }
 
 /// The other actor's path state in scratchpad slot `0x1F80037C + 4 * index`.
-fn blockerState(index: c_int) *v.movementPathState {
+fn blockerState(index: c_int) *v.vs_battle_aiState {
     const slot = psx.at(@as([*]const u32, @ptrFromInt(0x1F80037C)), index);
     return @ptrFromInt(@as(usize, slot.*));
 }
@@ -30,13 +30,13 @@ fn neighbour(tile: v.vs_battle_movementPosition, direction: c_int) v.vs_battle_m
 
 /// orig: func_800E2F5C (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// One wall-following step of `state`'s path with the passability `test`: 5 keep going, 14 detour to `next`, -1 stop or done.
-pub fn func_800E2F5C(state: ?*v.movementPathState, test_: c.movementPathTest, mask: c_int) callconv(.c) c_int {
+pub fn func_800E2F5C(state: ?*v.vs_battle_aiState, test_: c.movementPathTest, mask: c_int) callconv(.c) c_int {
     const s = state.?;
     const t = test_.?;
-    var path: v.movementPath = s.path;
+    var path: v.movementPath = s.movementFlags.path;
     const bits = &path.bits;
-    s.unk5 = 0;
-    s.unk1 = s.unk199;
+    s.flags4.b[1] = 0;
+    s.flags0.b[1] = s.unk199;
     done: {
         stop: {
             keep: {
@@ -54,9 +54,9 @@ pub fn func_800E2F5C(state: ?*v.movementPathState, test_: c.movementPathTest, ma
                         }
                     }
 
-                    if (s.unk4 == 0 and psx.getBits(bits, "changed") == 0 and t(@ptrCast(s), psx.getBits(bits, "direction")) == 0) {
-                        const ahead = neighbour(s.tile, psx.getBits(bits, "direction"));
-                        if (c.func_800D96C8(@ptrCast(s), s.tile.raw, ahead.raw, psx.getBits(bits, "direction")) == 0 or
+                    if (s.flags4.b[0] == 0 and psx.getBits(bits, "changed") == 0 and t(@ptrCast(s), psx.getBits(bits, "direction")) == 0) {
+                        const ahead = neighbour(s.tile.position, psx.getBits(bits, "direction"));
+                        if (c.func_800D96C8(@ptrCast(s), s.tile.position.raw, ahead.raw, psx.getBits(bits, "direction")) == 0 or
                             c.func_800D954C(@ptrCast(s), ahead.raw) <= 0)
                         {
                             psx.setBits(bits, "changed", 1);
@@ -68,36 +68,36 @@ pub fn func_800E2F5C(state: ?*v.movementPathState, test_: c.movementPathTest, ma
 
                     const boundX: c_int = @as(c_int, psx.getBits(bits, "boundX")) << 7;
                     const boundZ: c_int = @as(c_int, psx.getBits(bits, "boundZ")) << 7;
-                    if (s.unk4 == 0) {
-                        const x: c_int = @as(c_int, psx.getBits(&s.tile.p, "x")) +% psx.getBits(step(@bitCast(direction)), "dx");
-                        const z: c_int = @as(c_int, psx.getBits(&s.tile.p, "z")) +% psx.getBits(step(@bitCast(direction)), "dz");
+                    if (s.flags4.b[0] == 0) {
+                        const x: c_int = @as(c_int, psx.getBits(&s.tile.position.p, "x")) +% psx.getBits(step(@bitCast(direction)), "dx");
+                        const z: c_int = @as(c_int, psx.getBits(&s.tile.position.p, "z")) +% psx.getBits(step(@bitCast(direction)), "dz");
                         const grid: [*][32]u16 = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F8003C0)).*));
                         const bounds = v.g.D_800F58BC().*.?;
                         // mask: the C's shift is undefined outside 0-31.
                         if ((@as(c_int, psx.at(psx.at(grid, z), x).*) >> @intCast(mask)) & 1 != 0 or
                             x > bounds.maxX or z > bounds.maxZ or x < bounds.minX or z < bounds.minZ)
                         {
-                            s.unkE8 = 0;
-                            s.unkE7 = 0;
-                            s.unkE4 = 0;
+                            s.bE8 = 0;
+                            s.bE7 = 0;
+                            s.bE4 = 0;
                             break :stop;
                         }
                         if (boundZ > 0) {
-                            const center: c_int = (@as(c_int, psx.getBits(&s.destination.p, "z")) << 7) + 64;
-                            if ((center < boundZ and s.z < boundZ) or (boundZ < center and boundZ < s.z)) break :done;
+                            const center: c_int = (@as(c_int, psx.getBits(&s.destination168.movementPosition.p, "z")) << 7) + 64;
+                            if ((center < boundZ and s.position.v.vz < boundZ) or (boundZ < center and boundZ < s.position.v.vz)) break :done;
                         }
                         if (boundX > 0) {
-                            const center: c_int = (@as(c_int, psx.getBits(&s.destination.p, "x")) << 7) + 64;
-                            if ((center < boundX and s.x < boundX) or (boundX < center and boundX < s.x)) break :done;
+                            const center: c_int = (@as(c_int, psx.getBits(&s.destination168.movementPosition.p, "x")) << 7) + 64;
+                            if ((center < boundX and s.position.v.vx < boundX) or (boundX < center and boundX < s.position.v.vx)) break :done;
                         }
                     } else {
                         if (boundZ > 0) {
-                            const center: c_int = (@as(c_int, psx.getBits(&s.destination.p, "z")) << 7) + 64;
-                            if ((boundZ < center and s.z < boundZ) or (center < boundZ and boundZ < s.z)) break :done;
+                            const center: c_int = (@as(c_int, psx.getBits(&s.destination168.movementPosition.p, "z")) << 7) + 64;
+                            if ((boundZ < center and s.position.v.vz < boundZ) or (center < boundZ and boundZ < s.position.v.vz)) break :done;
                         }
                         if (boundX > 0) {
-                            const center: c_int = (@as(c_int, psx.getBits(&s.destination.p, "x")) << 7) + 64;
-                            if ((boundX < center and s.x < boundX) or (center < boundX and boundX < s.x)) break :done;
+                            const center: c_int = (@as(c_int, psx.getBits(&s.destination168.movementPosition.p, "x")) << 7) + 64;
+                            if ((boundX < center and s.position.v.vx < boundX) or (center < boundX and boundX < s.position.v.vx)) break :done;
                         }
                     }
 
@@ -127,28 +127,28 @@ pub fn func_800E2F5C(state: ?*v.movementPathState, test_: c.movementPathTest, ma
                             psx.setBits(bits, "direction", @intCast(direction));
                             break :keep;
                         }
-                        const point = neighbour(s.tile, @bitCast(direction));
-                        if (c.func_800D96C8(@ptrCast(s), s.tile.raw, point.raw, @bitCast(direction)) != 0 and
+                        const point = neighbour(s.tile.position, @bitCast(direction));
+                        if (c.func_800D96C8(@ptrCast(s), s.tile.position.raw, point.raw, @bitCast(direction)) != 0 and
                             c.func_800D954C(@ptrCast(s), point.raw) > 0)
                         {
-                            s.next = point;
+                            s.next.movementPosition = point;
                             if (psx.getBits(bits, "direction") != direction) psx.setBits(bits, "changed", 1);
                             psx.setBits(bits, "direction", @intCast(direction));
                             break :detour;
                         }
                         direction = @bitCast((@as(c_int, @bitCast(direction)) +% turn *% 2) & 7);
                     }
-                    s.path = path;
+                    s.movementFlags.path = path;
                     return -1;
                 }
-                s.path = path;
+                s.movementFlags.path = path;
                 return 14;
             }
-            s.path = path;
+            s.movementFlags.path = path;
             return 5;
         }
         psx.setBits(bits, "stop", 1);
     }
-    s.path = path;
+    s.movementFlags.path = path;
     return -1;
 }

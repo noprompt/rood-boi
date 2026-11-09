@@ -1,4 +1,5 @@
 //! The actor blocking a direction (D2: 70D4C.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const v = @import("views_battle_movement");
 const psx = @import("common").psx;
@@ -23,16 +24,16 @@ fn directionDz(packed_direction: c_int) c_int {
 /// id + 1 of the first other actor whose bounds overlap the point one
 /// radius ahead of `state` in direction `dir`, else 0; cached per direction
 /// in scratchpad 0x3D2 (valid bits) / 0x3D4 + dir.
-pub fn blockingActor(state: [*]u8, dir: c_int) callconv(.c) c_int {
+pub fn blockingActor(state: *ai.vs_battle_aiState, dir: c_int) callconv(.c) c_int {
     // Shift counts are directions 0..7; the x86 shift takes them modulo 32.
     if ((@as(c_int, scratch8(0x3d2).*) >> @truncate(@as(c_uint, @bitCast(dir)))) & 1 != 0) return scratch8(0x3d4 +% dir).*;
     const packed_direction: c_int = scratch8(0x3ec +% dir).*;
     const dx = directionDx(packed_direction);
     const dz = directionDz(packed_direction);
-    const radius: c_int = state[0xb3];
-    const x: c_uint = @bitCast(@as(c_int, psx.byteAt(u16, state, 0x4c).*) +% radius *% dx);
-    const z: c_uint = @bitCast(@as(c_int, psx.byteAt(u16, state, 0x50).*) +% radius *% dz);
-    const tile = psx.byteAt(u32, state, 0x34).*;
+    const radius: c_int = state.step;
+    const x: c_uint = @bitCast(@as(c_int, state.position.xyz[0]) +% radius *% dx);
+    const z: c_uint = @bitCast(@as(c_int, state.position.xyz[2]) +% radius *% dz);
+    const tile = state.tile.raw;
     const tile_x: c_int = @intCast(tile & 0xff);
     const tile_z: c_int = @intCast((tile >> 16) & 0xff);
     const neighbour: c_int = @bitCast(((z >> 7) -% @as(c_uint, @bitCast(tile_z)) +% 1) *% 4 +%
@@ -48,21 +49,21 @@ pub fn blockingActor(state: [*]u8, dir: c_int) callconv(.c) c_int {
             open = c.func_800E4690(tile, lookup);
         }
     }
-    const height: c_int = if (open != 0) psx.byteAt(i16, state, 0x4e).* else c.func_800E42D4(@bitCast(x), @bitCast(z));
-    const self_size: c_uint = psx.byteAt(u16, state, 0x94).*;
-    const self_height: c_uint = psx.byteAt(u16, state, 0xb8).*;
+    const height: c_int = if (open != 0) state.position.xyz[1] else c.func_800E42D4(@bitCast(x), @bitCast(z));
+    const self_size: c_uint = state.collisionRadius;
+    const self_height: c_uint = @as(u16, @bitCast(state.extent));
     var result: c_int = 0;
     var node: ?[*]u8 = if (v.g.vs_battle_actors()[0]) |first| @ptrCast(first) else null;
     while (node) |n| : (node = @ptrFromInt(psx.byteAt(u32, n, 0).*)) {
         const id = psx.byteAt(c_int, n, 4).*;
-        if (id == state[0x88]) continue;
+        if (id == state.id) continue;
         const model: [*]u8 = @ptrCast(psx.at(v.g.D_800F4538(), id).*.?);
-        const other: [*]u8 = @ptrFromInt(psx.byteAt(u32, scratch8(0x37c +% id *% 4), 0).*);
+        const other: *align(4) ai.vs_battle_aiState = @ptrFromInt(psx.byteAt(u32, scratch8(0x37c +% id *% 4), 0).*);
         var position: c_uint = undefined;
         var depth: c_uint = undefined;
         if (id != 0 and model[0xa] & 0x1f != 0) {
-            position = psx.byteAt(u32, other, 0x174).*;
-            depth = psx.byteAt(u16, other, 0x178).*;
+            position = other.unk174;
+            depth = other.unk178;
         } else {
             position = psx.byteAt(u32, model, 0x1c).*;
             depth = psx.byteAt(u16, model, 0x20).*;
@@ -74,9 +75,9 @@ pub fn blockingActor(state: [*]u8, dir: c_int) callconv(.c) c_int {
         if (ox <= 0) ox = -%ox;
         if (oy <= 0) oy = -%oy;
         if (oz <= 0) oz = -%oz;
-        const reach: c_int = @as(c_int, psx.byteAt(u16, other, 0x94).*) +% other[0xb3] +% @as(c_int, @bitCast(self_size));
+        const reach: c_int = @as(c_int, other.collisionRadius) +% other.step +% @as(c_int, @bitCast(self_size));
         if (ox -% reach > 0 or oz -% reach > 0) continue;
-        if (oy -% @as(c_int, @bitCast((self_height +% psx.byteAt(u16, other, 0xb8).*) >> 1)) > 0) continue;
+        if (oy -% @as(c_int, @bitCast((self_height +% @as(u16, @bitCast(other.extent))) >> 1)) > 0) continue;
         result = id +% 1;
         break;
     }

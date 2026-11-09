@@ -59,7 +59,6 @@ extern short D_800F4B00;
 
 _mpdRoomSection3* func_800A8D64(SVECTOR* arg0, int arg1);
 
-
 int func_800A8E84(D_800F4538_t* arg0, SVECTOR* arg1);
 typedef struct {
     char prefix[4];
@@ -75,7 +74,6 @@ int func_800A91DC(int arg0, int arg1, int arg2);
 int func_800A92B8(int arg0, int arg1);
 
 int func_800A9378(int arg0, int arg1, int arg2, int arg3);
-
 
 // Inlined copy of 3A1A0 func_800A4A24.
 // BUG: returns the address of a stack variable
@@ -109,7 +107,6 @@ static inline func_8008D2C0_t* func_800A4A24(int id)
 int func_800A9530(D_800F4538_t* actor, SVECTOR* offset);
 
 void func_800A97EC(int arg0, func_8006EBF8_t_fields* arg1, int arg2, int arg3);
-
 
 short func_8008DA24(int, int);
 
@@ -193,7 +190,6 @@ int func_800AAD4C(int actorId, int index, int value, int mode);
 
 int func_800AAE9C(D_800F4538_t* actor);
 
-
 extern u_char D_800E8F30[];
 extern u_char D_800E8F90[];
 
@@ -213,7 +209,6 @@ void func_800AB358(int index, u_char* arg);
 void func_800AB4F0(void* actor);
 
 void func_800AB788(u_char* actor, u_char* object, int arg2);
-
 
 void func_800A190C(int, int, SVECTOR*, int);
 void func_800A7524(void*, void*);
@@ -235,7 +230,6 @@ void func_800AC440(D_800F4538_t* arg0, int arg1, int arg2);
 void func_800AC500(D_800F4538_t* arg0);
 
 void func_800AC540(int arg0, D_800F4538_t* arg1);
-
 
 void func_8006F450(SVECTOR*);
 void func_8008C49C(int, int);
@@ -270,7 +264,6 @@ typedef struct {
 
 void func_800AC690(int arg0, D_800F4538_t* actor);
 
-
 typedef struct {
     int unk0;
     int unk4;
@@ -279,7 +272,6 @@ typedef struct {
 void func_800ACF54(D_800F45E0_t* arg0);
 
 inline void func_800ACFA0(SVECTOR* arg0, u_char* arg1, int arg2);
-
 
 void func_800AE47C(D_800F4538_t*);
 

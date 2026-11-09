@@ -6,11 +6,11 @@ const c = @import("c_7EE98");
 
 /// orig: func_800E7F8C (pc/src/game/BATTLE/BATTLE.PRG/7EE98.c)
 /// Runs one step of the state flag 0xA6 machine on `arg0`, then stores the flag back.
-pub fn func_800E7F8C(arg0: ?*v.func_800E78F4_t) callconv(.c) c_int {
+pub fn func_800E7F8C(arg0: ?*v.vs_battle_aiState) callconv(.c) c_int {
     const self = arg0.?;
 
-    if (c.func_800E78F4(psx.cptr(c.func_800E78F4_t, self)) != 0) {
-        c.func_800D836C(psx.cptr(c.func_800E78F4_t, self));
+    if (c.func_800E78F4(@ptrCast(self)) != 0) {
+        c.func_800D836C(@ptrCast(self));
     }
 
     var state: u8 = c.vs_battle_getStateFlag(0xA6);
@@ -24,28 +24,28 @@ pub fn func_800E7F8C(arg0: ?*v.func_800E78F4_t) callconv(.c) c_int {
         0 => {
             if (temp.unk16 != 0) {
                 temp.unk16 = 0;
-                self.unk470 = temp.unk17;
+                self.count470 = temp.unk17;
             }
 
             temp.unkA = 0;
             c.func_800E7960(@ptrCast(self));
 
-            if (temp.unkE != 0 and temp.unkC == 0 and psx.get(self.unk5C).?.limbs[4].hp >= 2) {
+            if (temp.unkE != 0 and temp.unkC == 0 and psx.get(self.stats.actor2).?.limbs[4].hp >= 2) {
                 temp.unkC = 900;
                 temp.unkE = 0;
-                temp.unk17 = psx.conv(u8, self.unk470);
+                temp.unk17 = psx.conv(u8, self.count470);
                 state = 1;
-                self.unk470 = 0;
+                self.count470 = 0;
                 temp.unk16 = 1;
             }
         },
         4 => {
             temp.unk1C = 0;
-            c.func_800D82CC(psx.cptr(c.func_800E78F4_t, self));
+            c.func_800D82CC(@ptrCast(self));
 
             if (c.func_800E7698(@ptrCast(self)) != 0) {
                 if (temp.unkA != 0) {
-                    const temp_a1 = psx.get(self.unk54).?;
+                    const temp_a1 = psx.get(self.actor.func_800DEB10_t2).?;
 
                     if (psx.get(temp_a1.unk3C).?.limbs[4].hp >= 2) {
                         temp_a1.unkC = 4;
@@ -59,8 +59,8 @@ pub fn func_800E7F8C(arg0: ?*v.func_800E78F4_t) callconv(.c) c_int {
                         temp_a1.unk8 = 0x80;
                     }
 
-                    temp.unk12 = self.unk4E;
-                    self.unk470 = temp.unk17;
+                    temp.unk12 = @bitCast(self.position.v.vy);
+                    self.count470 = temp.unk17;
                     temp.unk16 = 0;
                 } else {
                     state = 6;

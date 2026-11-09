@@ -1,7 +1,8 @@
 /* 7DDDC.s and 7C7E0.s: actor navigation frame preparation. Native C keeps
  * its own stack; scratchpad data layout and explicit missing callees remain. */
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
-extern unsigned char *D_800F5878[], *D_800F4538[], *vs_battle_actors[];
+#include "game/BATTLE/BATTLE.PRG/ai_state.h"
+extern unsigned char* D_800F5878[];
 extern unsigned D_800F58BC, D_800F58D0, D_800F58B8, D_800F58CC, D_800F58C0, D_800F58C4;
 extern unsigned D_800F16E0, D_800F16E4, D_800F16E8, D_800F16EC, D_800F16F0;
 extern void pc_unimplemented(const char*);
@@ -14,7 +15,6 @@ extern void vs_main_freeHeapR(void*);
 extern int ratan2(int, int);
 extern void func_800E19FC(void*, int);
 extern void* vs_main_allocHeapR(unsigned);
-extern void* vs_main_memcpy(void*, const void*, unsigned);
 extern void func_800E4288(void*, unsigned);
 extern void func_800D82CC(void*);
 extern void func_800D821C(void*);

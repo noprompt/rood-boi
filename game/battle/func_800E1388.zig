@@ -8,7 +8,7 @@ const c = @import("c_771A8");
 
 /// orig: func_800E1388 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Sets the state's destination to the nearest clear cell along a heading from the source, clamped to the bounds.
-pub fn func_800E1388(state: ?*v.func_800D8400_t, source: v.vs_battle_movementPosition, angle: c_int, distance: c_uint) callconv(.c) void {
+pub fn func_800E1388(state: ?*v.vs_battle_aiState, source: v.vs_battle_movementPosition, angle: c_int, distance: c_uint) callconv(.c) void {
     var dest = v.vs_battle_movementPosition{ .raw = 0 };
 
     const heading: c_int = (0 -% angle +% 0xC00) & 0xFFF;
@@ -43,5 +43,5 @@ pub fn func_800E1388(state: ?*v.func_800D8400_t, source: v.vs_battle_movementPos
         psx.setBits(&dest.p, "z", bounds.maxZ);
     }
 
-    state.?.destination = dest;
+    state.?.destination168.movementPosition = dest;
 }

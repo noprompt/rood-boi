@@ -1,4 +1,5 @@
 //! Whether a candidate action can start now (D2: 73580.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const v = @import("views_battle_movement");
 const psx = @import("common").psx;
@@ -9,19 +10,19 @@ const psx = @import("common").psx;
 /// engagement, distance and range, relation and model flags). The original
 /// calls vs_gte_rsqrt on the distance and discards the result; the call is
 /// kept for its GTE side effects.
-pub fn candidateStartable(state: [*]u8, candidate: [*]u8) callconv(.c) c_int {
+pub fn candidateStartable(state: *ai.vs_battle_aiState, candidate: [*]u8) callconv(.c) c_int {
     const weight: c_uint = psx.byteAt(u32, candidate, 12).*;
     const target: usize = weight & 0xf;
     if ((weight >> 19) & 0xff == 0) return 0;
     const room: [*]u8 = @ptrFromInt(v.g.D_800F58BC().*);
     if (psx.byteAt(u16, room, 0x18).* < (psx.byteAt(u32, candidate, 4).* >> 13) & 0xffff) return 0;
     if (c.func_800DBCB4(state, candidate) == 0) return 0;
-    const limit: c_int = psx.byteAt(c_int, state, @intCast(0x1e4 + target * 4)).*; // target < 16
+    const limit: c_int = psx.byteAt(c_int, &state.tbl.t.distances, @as(isize, @intCast(target * 4))).*; // target < 16
     if (v.g.D_800F45E0()[target] != null) {
-        if (0x19000 < limit or state[0x13] != 0 or c.func_800DBCEC(state, @intCast(target)) != 0) return 0;
+        if (0x19000 < limit or state.flag13 != 0 or c.func_800DBCEC(state, @intCast(target)) != 0) return 0;
     }
     const distance: c_int = @bitCast(psx.byteAt(u32, candidate, 8).*);
-    const relation: c_int = psx.byteAt(c_int, state, @intCast(0x1a4 + target * 4)).*;
+    const relation: c_int = psx.byteAt(c_int, &state.tbl.t.targets.bits32, @as(isize, @intCast(target * 4))).*;
     if (distance < limit) return 0;
     _ = c.vs_gte_rsqrt(distance);
     const options = psx.byteAt(u32, candidate, 16).*;

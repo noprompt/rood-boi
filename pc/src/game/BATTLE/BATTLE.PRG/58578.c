@@ -119,13 +119,11 @@ void func_800C1A40(int x0, int x1, int count);
 
 int func_800C1D84(void);
 
-
 extern u_char D_800F4CB4;
 
 void func_800C1DC4(D_800EB9B8_unk990* arg0);
 
 void func_800C20B4(void);
-
 
 typedef struct {
     short xyz[3], flags;
@@ -140,13 +138,11 @@ void* func_800C282C(void);
 
 void func_800C28AC(SVECTOR* position, int arg1);
 
-
 int _getCollisionMapDimensions(int arg0);
 int func_800FA188(int x, int z, int* offset);
 int func_800A91DC(int, int, int);
 int func_8008DDA8(int x, int z);
 
 void func_800C2B0C(u_short* position, u_int row);
-
 
 INCLUDE_RODATA("build/src/BATTLE/BATTLE.PRG/nonmatchings/58578", D_80069860);

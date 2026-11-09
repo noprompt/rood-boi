@@ -7,7 +7,7 @@ const c = @import("c_74088");
 
 /// orig: func_800DCAA0 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Runs the target check for `source` against `state` (mode 3 also tests the actor's height) and calls func_800DC888 with `arg1` on success.
-pub fn func_800DCAA0(arg0: ?*v.func_800DCAA0_t1, arg1: c_int, arg2: ?*v.func_800DCAA0_t, arg3: c_int) callconv(.c) void {
+pub fn func_800DCAA0(arg0: ?*v.vs_battle_aiState, arg1: c_int, arg2: ?*v.func_800DCAA0_t, arg3: c_int) callconv(.c) void {
     const a0 = arg0.?;
     const a2 = arg2.?;
     var sp20: v.SVECTOR = undefined;
@@ -18,7 +18,7 @@ pub fn func_800DCAA0(arg0: ?*v.func_800DCAA0_t1, arg1: c_int, arg2: ?*v.func_800
     if (arg3 != 3) {
         temp_v0 = c.func_8008631C(
             @as(c_int, psx.getBits(a2, "unk4_5")),
-            @as(c_int, a0.unk88),
+            @as(c_int, a0.id),
             temp_s0,
             @as(c_int, psx.getBits(a2, "unkC_4")),
             v.g.D_800F5900().*,
@@ -33,7 +33,7 @@ pub fn func_800DCAA0(arg0: ?*v.func_800DCAA0_t1, arg1: c_int, arg2: ?*v.func_800
         sp20.vz = psx.conv(i16, @as(c_int, sp28.vz) +% psx.conv(c_int, c.vs_gte_rsqrt(a2.unk8)));
         temp_v0 = c.func_800863A4(
             @as(c_int, psx.getBits(a2, "unk4_5")),
-            @as(c_int, a0.unk88),
+            @as(c_int, a0.id),
             temp_s0,
             @as(c_int, psx.getBits(a2, "unkC_4")),
             psx.cptr(c.SVECTOR, &sp20),

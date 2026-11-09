@@ -1,4 +1,5 @@
 //! Resolving a step onto a flagged cell (D2: 72B70.s; oracle pc/src/battle_movement.c).
+const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const psx = @import("common").psx;
 
@@ -25,12 +26,12 @@ fn directionDz(packed_direction: c_int) c_int {
 /// (func_800D96C8, then func_800D954C) in bits 24-31. Unflagged targets are
 /// returned unchanged. As in the original, the flagged-cell walk continues
 /// past the step limit while byte 0xB2 is nonzero.
-pub fn resolveFlaggedCell(state: [*]u8, tile_in: c_uint, dir: c_int, from: c_uint) callconv(.c) c_uint {
+pub fn resolveFlaggedCell(state: *ai.vs_battle_aiState, tile_in: c_uint, dir: c_int, from: c_uint) callconv(.c) c_uint {
     const cells: usize = psx.byteAt(u32, scratch8(0x3c0), 0).*;
     var tile = tile_in & 0xffffff;
     var x: c_int = @intCast(tile & 0xff);
     var z: c_int = @intCast(tile >> 16);
-    const limit: c_int = state[0xb2];
+    const limit: c_int = state.radiusB2;
     if (psx.byteAt(u16, @as([*]u8, @ptrFromInt(cells +% @as(usize, @intCast(z * 64 + x * 2)))), 0).* & 0x20 == 0) return tile; // 0 <= x, z <= 255
     const packed_direction: c_int = scratch8(0x3ec +% dir).*;
     var result: c_int = 0;

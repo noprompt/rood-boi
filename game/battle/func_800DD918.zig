@@ -14,7 +14,7 @@ fn actorLimb(stats: *v.vs_battle_actor2, limb: c_int) *align(1) v.vs_battle_uiEq
 
 /// orig: func_800DD918 (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
 /// Scores every enabled action slot against every living actor and keeps the best candidate in the state.
-pub fn func_800DD918(state: ?*v.actionChoiceState, threshold: c_int) callconv(.c) void {
+pub fn func_800DD918(state: ?*v.vs_battle_aiState, threshold: c_int) callconv(.c) void {
     const st = state.?;
     const list: *[4]v.actionCandidateEntry = @ptrFromInt(0x1F80030C);
 
@@ -32,8 +32,8 @@ pub fn func_800DD918(state: ?*v.actionChoiceState, threshold: c_int) callconv(.c
         while (col < 4) : (col += 1) {
             const r: usize = @intCast(row);
             const k: usize = @intCast(col);
-            const action: c_int = psx.conv(c_int, psx.conv(u16, psx.get(st.stats).?.armor[r][k].id));
-            const config = &st.configs[r][k];
+            const action: c_int = psx.conv(c_int, psx.conv(u16, psx.get(st.stats.actor2).?.armor[r][k].id));
+            const config = &st.configs.actionSlotConfig[r][k];
             const info = psx.at(@as([*]v.actionChoiceInfo, @ptrCast(v.g.actions())), action);
             if (action == 0 or psx.getBits(config, "enabled") == 0) continue;
 
@@ -51,7 +51,7 @@ pub fn func_800DD918(state: ?*v.actionChoiceState, threshold: c_int) callconv(.c
             while (actor != null) : (actor = psx.get(actor.?.next)) {
                 const a = actor.?;
                 const id: c_uint = psx.conv(c_uint, a.id);
-                if (@as(*v.actionChoiceState, @ptrCast(psx.at(v.g.D_800F5878(), id).*.?)).dead != 0) continue;
+                if (@as(*v.vs_battle_aiState, @ptrCast(psx.at(v.g.D_800F5878(), id).*.?)).dead != 0) continue;
 
                 psx.setBits(&list[1], "targetId", psx.conv(u4, id));
                 psx.setBits(&list[1], "flag4", psx.conv(u1, c.func_800DC484(action, psx.conv(c_int, id))));
@@ -103,13 +103,13 @@ pub fn func_800DD918(state: ?*v.actionChoiceState, threshold: c_int) callconv(.c
                         }
                     },
                     3 => {
-                        const target: *v.actionChoiceState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
+                        const target: *v.vs_battle_aiState = @ptrCast(psx.at(v.g.D_800F5878(), a.id).*.?);
                         c.func_800DC2E0(@ptrCast(&list[2]), @ptrCast(&list[0]));
                         c.func_800DC2E0(@ptrCast(&list[3]), @ptrCast(&list[0]));
                         psx.setBits(&list[1], "heading", 0);
                         var pass: c_int = 0;
                         while (pass < 1) : (pass += 1) {
-                            const h: c_int = target.heading;
+                            const h: c_int = target.height;
                             const absHeading: c_int = if (h >= 0) h else -%h;
                             psx.setBits(&list[1], "heading", psx.conv(u12, absHeading));
                             c.func_800DCC94(@ptrCast(st), @ptrCast(candidate), 3, @ptrFromInt(psx.addr(info)));

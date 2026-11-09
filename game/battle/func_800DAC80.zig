@@ -6,14 +6,14 @@ const c = @import("c_71618");
 
 /// orig: func_800DAC80 (pc/src/game/BATTLE/BATTLE.PRG/71618.c)
 /// Sets up `action` in `context` and starts its cooldown; returns 1 when the action was started.
-pub fn func_800DAC80(context: ?*v.actionSetupContext, action: ?*v.func_800DCAA0_t) callconv(.c) c_int {
+pub fn func_800DAC80(context: ?*v.vs_battle_aiState, action: ?*v.func_800DCAA0_t) callconv(.c) c_int {
     if (c.func_800DBD80(@ptrCast(context), @ptrCast(action)) == 0) return 0;
     c.func_800D836C(@ptrCast(context));
     if (c.func_800D826C(@ptrCast(context)) == 0) return 0;
 
     const ctx = context.?;
     const act = action.?;
-    psx.put(&ctx.action, act);
+    ctx.candidate = @ptrCast(act);
     v.g.D_800F58E0().* = 1;
 
     const actor = v.g.D_800F4538()[psx.getBits(act, "unkC_0")];
@@ -24,11 +24,11 @@ pub fn func_800DAC80(context: ?*v.actionSetupContext, action: ?*v.func_800DCAA0_
 
     c.func_800DEEFC(@ptrCast(ctx), 15);
     if (c.func_800DBC60(@ptrCast(ctx), @ptrCast(act)) != 0) {
-        if (ctx.kind == 0) {
+        if (ctx.flag13 == 0) {
             const bc = v.g.D_800F58BC().*.?;
-            ctx.cooldown = psx.byteAt(u8, bc, 8).*;
+            ctx.minDelay = psx.byteAt(u8, bc, 8).*;
         } else {
-            ctx.cooldown = 50;
+            ctx.minDelay = 50;
         }
     }
     return 1;

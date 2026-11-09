@@ -13,31 +13,31 @@ fn terrainTile(z: u8, x: u8) c_int {
 
 /// orig: func_800E19FC (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Steps a terrain movement toward its destination, rerouting when the terrain class changes ahead.
-pub fn func_800E19FC(state: ?*v.terrainMovementState) callconv(.c) void {
+pub fn func_800E19FC(state: ?*v.vs_battle_aiState) callconv(.c) void {
     const st = state.?;
     const active: u8 = 1;
-    st.f4 = 0;
-    st.f5 = active;
+    st.flags4.b[0] = 0;
+    st.flags4.b[1] = active;
     if (st.f1A != 0) {
         c.func_800E1908(@ptrCast(st));
         return;
     }
-    const current = terrainTile(st.tile.p.z, st.tile.p.x);
-    const next = terrainTile(st.destination.p.z, st.destination.p.x);
+    const current = terrainTile(st.tile.terrain.p.z, st.tile.terrain.p.x);
+    const next = terrainTile(st.destination168.terrainMovementPoint.p.z, st.destination168.terrainMovementPoint.p.x);
     var at_move = false;
     if (current != next) {
         if (st.f29 != 0) {
             const mode = c.func_800DFBCC(@ptrCast(st), current, next);
             if (mode == 6) {
-                st.targetX = (@as(c_int, st.destination.p.x) << 7) +% 64;
-                st.targetZ = (@as(c_int, st.destination.p.z) << 7) +% 64;
-                if (terrainTile(st.destination.p.z, st.destination.p.x) == terrainTile(st.tile.p.z, st.tile.p.x)) {
+                st.moveX = (@as(c_int, st.destination168.terrainMovementPoint.p.x) << 7) +% 64;
+                st.moveZ = (@as(c_int, st.destination168.terrainMovementPoint.p.z) << 7) +% 64;
+                if (terrainTile(st.destination168.terrainMovementPoint.p.z, st.destination168.terrainMovementPoint.p.x) == terrainTile(st.tile.terrain.p.z, st.tile.terrain.p.x)) {
                     at_move = true;
                 }
             } else {
                 c.func_800E4BB8(@ptrCast(st));
                 if (mode == 5) {
-                    c.func_800E4B70(@ptrCast(st), @as(c_int, st.angle) << 9);
+                    c.func_800E4B70(@ptrCast(st), @as(c_int, st.heading) << 9);
                 } else {
                     c.func_800DEEFC(@ptrCast(st), mode);
                 }
@@ -45,14 +45,14 @@ pub fn func_800E19FC(state: ?*v.terrainMovementState) callconv(.c) void {
             }
         }
         if (!at_move) {
-            st.f2 = active;
+            st.flags0.b[2] = active;
             @as(*u8, @ptrFromInt(0x1F8003D0)).* = 0;
         }
     }
     // move:
     const heading = c.ratan2(
-        @as(c_int, st.position[0]) -% st.targetX,
-        @as(c_int, st.position[2]) -% st.targetZ,
+        @as(c_int, st.position.xyz[0]) -% st.moveX,
+        @as(c_int, st.position.xyz[2]) -% st.moveZ,
     ) & 0xFFF;
     c.func_800E3600(@ptrCast(st), heading, 0);
 }

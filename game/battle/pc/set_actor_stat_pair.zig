@@ -1,4 +1,5 @@
 //! An enemy AI entity's two stat bytes (D2: 7E05C.s; oracle pc/src/battle_helpers.c).
+const ai = @import("views_71618");
 const v = @import("views_battle_helpers");
 
 /// orig: func_800E685C (pc/src/battle_helpers.c)
@@ -6,9 +7,9 @@ const v = @import("views_battle_helpers");
 /// together (first low, second high) as a halfword at 0x226. An empty slot is
 /// ignored. The assembly's return value is not meaningful.
 pub fn setActorStatPair(id: c_int, first: c_int, second: c_int) callconv(.c) void {
-    const entity: [*]u8 = @ptrCast(v.g.D_800F5878()[@intCast(id)] orelse return);
-    entity[0xb3] = @truncate(@as(c_uint, @bitCast(if (first < second) second else first)));
+    const entity: *ai.vs_battle_aiState = @ptrCast(@alignCast(v.g.D_800F5878()[@intCast(id)] orelse return));
+    entity.step = @truncate(@as(c_uint, @bitCast(if (first < second) second else first)));
     const packed_pair: c_uint = (@as(c_uint, @bitCast(second)) << 8) | @as(c_uint, @bitCast(first));
-    entity[0x226] = @truncate(packed_pair);
-    entity[0x227] = @truncate(packed_pair >> 8);
+    entity.field226 = @truncate(packed_pair);
+    entity.field227 = @truncate(packed_pair >> 8);
 }
