@@ -47,7 +47,12 @@ RULES = {
         r"|(?:[|?:(]|(?<![=!<>])=)\s*0[xX](?:[2-7][0-9a-fA-F]|[eE][1-6])000000\b"
         # packets built field by field (the EFFECT plugins: prim->poly.tag, prim->drawMode) and linked by hand
         # (the tag's length byte OR'd into a link)
-        r"|->(?:poly\.)?tag\s*=(?!=)|\.tag\s*=(?!=)|\bdrawMode\s*=(?!=)|\|\s*0[xX]0[0-9a-fA-F]000000\b"),
+        r"|->(?:poly\.)?tag\s*=(?!=)|\.tag\s*=(?!=)|\bdrawMode\s*=(?!=)|\|\s*0[xX]0[0-9a-fA-F]000000\b"
+        # a command or link byte shifted into a packet's top byte as a constant (the Zig printers: (96 << 24), (0xE1 << 24))
+        r"|\(\s*(?:0[xX](?:[2-7][0-9a-fA-F]|[eE][1-6])|(?:3[2-9]|[4-9][0-9]|1[01][0-9]|12[0-7]))\s*<<\s*24\s*\)"),
+    # The packet-to-item bridge (draw_items.h PC_LIFT, the claims' lifting in hud_bridge.c): it only shrinks, as the
+    # printers and the screens that need it move to items.
+    "lift_bridge": re.compile(r"\bPC_LIFT\s*\(|\bpc_lift_(?:begin|end|at)\s*\(|\bpc_frame_add_packets\s*\(|\bpc_frame_lift_words\b"),
 }
 # Rules that count only under a path (the others count in every tree).
 ONLY_UNDER = {"gte_state_machine": "pc/src/game/", "gte_sdk_calls": "pc/src/game/"}

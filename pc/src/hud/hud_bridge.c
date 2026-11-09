@@ -200,7 +200,8 @@ static unsigned full_rgb(unsigned bgr)
  * four-point polygons 0x2C-0x2F) in drawing order. */
 #define MAX_QUADS 16
 typedef struct {
-    u_int* packet;
+    u_int* packet; /* NULL: a draw item (item) */
+    int item;
     int x0, y0, x1, y1;
     unsigned rgb;
 } hud_quad;
@@ -215,6 +216,21 @@ static int quads(void* first, void* end, hud_quad* out)
     while (w + 1 < stop && count < MAX_QUADS) {
         u_int len = w[0] >> 24, code = w[1] >> 24;
         hud_quad* q = &out[count];
+        int run, run_count;
+        if (pc_frame_marker((const unsigned*)w, &run, &run_count)) { /* a printer's items, placed here by a marker */
+            int order[MAX_QUADS * 4], k, m = pc_frame_order(run, run_count, 0, order, MAX_QUADS * 4);
+            for (k = 0; k < m && count < MAX_QUADS; ++k) {
+                const pc_item* it = pc_frame_item(order[k]);
+                if (!it || it->kind != PC_ITEM_SPRITE)
+                    continue;
+                q = &out[count++];
+                q->packet = NULL, q->item = order[k];
+                q->x0 = it->x[0], q->y0 = it->y[0], q->x1 = it->x[0] + it->w, q->y1 = it->y[0] + it->h;
+                q->rgb = full_rgb((unsigned)it->rgb[0][0] | (unsigned)it->rgb[0][1] << 8 | (unsigned)it->rgb[0][2] << 16);
+            }
+            w += 1 + len;
+            continue;
+        }
         if (len == 4 && (code & 0xfc) == 0x64 && w + 5 <= stop) {
             int x = (short)(w[2] & 0xffff), y = (short)(w[2] >> 16);
             q->x0 = x, q->y0 = y, q->x1 = x + (int)(w[4] & 0xffff), q->y1 = y + (int)(w[4] >> 16);
@@ -230,7 +246,7 @@ static int quads(void* first, void* end, hud_quad* out)
             w += 1 + len;
             continue;
         }
-        q->packet = w;
+        q->packet = w, q->item = -1;
         q->rgb = full_rgb(w[1] & 0xffffff);
         ++count;
         w += 1 + len;
@@ -1223,7 +1239,7 @@ void pc_hud_element(int kind, void* record, int x, int y, void* first, void* end
     amount = classic_finish(kind, &f, first, end, &kind_slot[kind], 1, 0);
     if (amount == 1) /* the modern look: the claim draws over the picture */
         for (i = 0; i < n; ++i)
-            q[i].packet[0] &= 0x00ffffff;
+            q[i].packet ? (void)(q[i].packet[0] &= 0x00ffffff) : (void)pc_frame_suppress(q[i].item, q[i].item + 1);
 }
 
 int pc_hud_bridge_field(void) { return status_field(); }
@@ -1929,9 +1945,6 @@ static int lift_end(int depth, int placed, void* ot_in)
     }
     return 0;
 }
-/* In the frame's own table: `depth` words from vs_scratch.unk4, as the ordering-table slot the packets were linked at. */
-int pc_lift_at(int depth) { return pc_lift_end(depth, 1, (u_long*)psx_get(vs_scratch.unk4) + depth); }
-
 static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
 {
     if (!emit_items || !bridged(c->type)) {

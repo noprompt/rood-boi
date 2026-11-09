@@ -3,10 +3,11 @@
  "scratchpad": 446,
  "unnamed_symbol": 20590,
  "guest_pointer_field": 56,
- "guest_pointer_access": 267,
- "address_as_integer": 285,
+ "guest_pointer_access": 266,
+ "address_as_integer": 284,
  "zig_raw_memory": 1242,
  "gte_state_machine": 16,
  "gte_sdk_calls": 15,
- "gpu_packet_writes": 262
+ "gpu_packet_writes": 268,
+ "lift_bridge": 13
 }

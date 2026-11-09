@@ -2170,10 +2170,10 @@ void _renderPressButtonPrompt(int x, int y, int arg2, int arg3)
 
     x = (v1 - (arg2 * 6));
 
-    /* (the words go where the printer's default slot was, vs_scratch.unk8: 16 words before unk4) */
-    PC_LIFT(-16, vs_battle_renderTextRawColor("PRESS", vs_getXY_2(x + 18, y), vs_getRGB888(255, 128, 128), pc_lift_begin()));
-    PC_LIFT(-16,
-        vs_battle_renderTextRawColor("BUTTON", vs_getXY_2(x + 18, y + 10), vs_getRGB888(255, 128, 128), pc_lift_begin()));
+    vs_battle_renderTextRawColor(
+        "PRESS", vs_getXY_2(x + 18, y), vs_getRGB888(255, 128, 128), NULL);
+    vs_battle_renderTextRawColor(
+        "BUTTON", vs_getXY_2(x + 18, y + 10), vs_getRGB888(255, 128, 128), NULL);
 
     y += 22;
 

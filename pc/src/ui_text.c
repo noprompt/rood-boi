@@ -2191,6 +2191,11 @@ static void status_now(const void* first, const void* end, const pc_text_typeset
     s->tpage = 12;
     while (w + 1 < stop && s->count < STATUS_GLYPHS) {
         unsigned len = w[0] >> 24, code = w[1] >> 24;
+        int run, run_count;
+        if (pc_frame_marker(w, &run, &run_count)) { /* (a printer's items, placed here by a marker) */
+            pc_text_status_items(run, run_count, typeset);
+            return;
+        }
         if (len && code == 0xe1)
             s->tpage = w[1] & 0x7ff;
         else if (len == 4 && (code & 0xfc) == 0x64 && w + 5 <= stop) {

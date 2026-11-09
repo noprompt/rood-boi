@@ -656,6 +656,7 @@ static float anchor_left, anchor_right; /* the screen's edges in VRAM X */
  * given back and the space reused, so they are anchored nowhere. */
 int pc_hw_anchor_muted, pc_hw_anchor_muted_as = -1; /* (muted: what the range would have recorded) */
 int pc_hw_anchor_recorded(int anchor);
+extern void pc_frame_anchor_markers(const void* start, const void* end, int anchor) __attribute__((weak));
 void pc_hw_anchor_packets(const void* start, const void* end, int anchor)
 {
     if (pc_hw_anchor_muted) {
@@ -674,6 +675,8 @@ void pc_hw_anchor_packets(const void* start, const void* end, int anchor)
     }
     if ((anchor == PC_ANCHOR_SCENE || anchor == PC_ANCHOR_COVER) && !scene_enabled())
         return;
+    if (end > start && pc_frame_anchor_markers) /* (the draw items a marker in the range places are anchored as the packets were) */
+        pc_frame_anchor_markers(start, end, anchor | (exact ? 0x20 : 0));
     if (pending_anchor_count < MAX_ANCHOR_RANGES && end > start) {
         anchor_range* r = &pending_anchors[pending_anchor_count++];
         r->start = (uintptr_t)start;

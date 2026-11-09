@@ -127,19 +127,23 @@ const void* pc_frame_command(int index);
 int pc_frame_command_item(const void* command);
 /* The address of item `index`'s lowered packet (where the draw puts it; the key of anchors and interpolation). */
 const void* pc_frame_packet(int index);
-/* Lifting a packet printer's output to items (pc/src/hud/hud_bridge.c): the game's printers (shared with battle) keep
- * writing packets; PC_LIFT has a screen's calls to them add items instead, at `depth` (words from vs_scratch.unk4, the
- * ordering-table slot the packets were linked at), with ui_text's reports following the items. `statement` is the
- * printer's call with pc_lift_begin() as its `ot` (the word it links at). Packets that are not items (see
- * pc_frame_add_packets) stay packets in the slot, as before. */
+/* Lifting a packet printer's output to items (pc/src/hud/hud_bridge.c: the classic claims' commands): the game's printers keep
+ * writing packets for the claims that call them; pc_lift_begin returns the word they link at, pc_lift_end turns what they wrote
+ * into items placed at `ot` (a marker) or alone. A printer that adds items itself writes nothing to lift. */
 void* pc_lift_begin(void);
 int pc_lift_end(int depth, int placed, void* ot);
-int pc_lift_at(int depth);
-#define PC_LIFT(depth, statement) \
-    do { \
-        statement; \
-        pc_lift_at(depth); \
-    } while (0)
+/* Whether `packet` is a marker (pc_frame_place) and the run of items it places. */
+int pc_frame_marker(const unsigned* packet, int* first, int* count);
+/* A packet printer's last step: the packet's words (no tag) as items, placed at `ot_entry` by a marker taken from `cursor`.
+ * Returns the cursor past the marker, or NULL when the words are not items (pc_frame_add_packets): the printer then
+ * writes the packet as it always did. The printers (shared with battle) keep their signatures and slots. */
+unsigned* pc_frame_lift_words(const unsigned* words, int n, unsigned* ot_entry, unsigned* cursor);
+/* A printer's call: its items [first, first + count) are one group (ui_text finds a word by it), and a draw mode alone is an
+ * item too (a printer with nothing to print still set its draw mode). */
+void pc_frame_group(int first, int count);
+void pc_frame_mode_item(int depth, int mode);
+/* The runs a marker placed in [start, end) of packet memory are anchored as that range is (pc_hw_anchor_packets). */
+void pc_frame_anchor_markers(const void* start, const void* end, int anchor);
 /* Draws the frame's items in order: what DrawOTag did for a table. */
 void pc_frame_draw(void);
 /* Links a marker for items [first, first + count) at the head of `*ot_entry`

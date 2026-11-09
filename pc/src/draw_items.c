@@ -18,6 +18,13 @@ static struct {
     pc_item item[ITEMS];
 } pc_item_frame PC_SAVED_STATE = { 0 };
 
+/* The markers placed this frame (their packet, the run), for the anchors that name packet memory. */
+static struct {
+    const void* packet;
+    int first, count;
+} markers[ITEMS];
+static int marker_count;
+
 /* Developer coverage: the call sites that placed an item, by return address (dev_rpc.c effect_sites). */
 #define SITES 4096
 static int sites_on, sites_count, peak;
@@ -35,6 +42,7 @@ void pc_frame_begin(void)
         peak = pc_item_frame.count;
     pc_item_frame.count = 0;
     pc_item_frame.full = 0;
+    marker_count = 0;
 }
 
 static pc_item spare; /* where a full frame's item goes: never drawn */
@@ -105,7 +113,6 @@ int pc_frame_is_placed(int index)
 }
 
 /* Raw GP0 words as items (draw_items.h): the inverse of `lower`, with the draw mode and texture window set along the way. */
-static unsigned short group_serial;
 int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
 {
     int start = pc_item_frame.count, i = 0, mode = -1, window = -1, prims = 0, state_after = 0, last_mode = -1, last_window = -1;
@@ -195,10 +202,8 @@ int pc_frame_add_packets(int depth, const unsigned* w, int n, int* first)
         goto fail;
     if (state_after && mode != last_mode)
         last->flags |= PC_ITEM_AFTER, last->after = (uint16_t)mode;
-    if (!++group_serial)
-        ++group_serial;
     for (int a = start; a < pc_item_frame.count; a++)
-        pc_item_frame.item[a].group = group_serial;
+        pc_item_frame.item[a].group = (unsigned short)(start + 1);
     for (int a = start, b = pc_item_frame.count - 1; a < b; a++, b--) { /* (items of one depth draw last first) */
         pc_item t = pc_item_frame.item[a];
         pc_item_frame.item[a] = pc_item_frame.item[b];
@@ -256,6 +261,52 @@ const void* pc_frame_packet(int index)
     if (!arena && !(arena = malloc((size_t)ITEMS * STRIDE * sizeof *arena)))
         return NULL;
     return arena + (size_t)index * STRIDE;
+}
+
+void pc_frame_group(int first, int count)
+{
+    for (int i = first; i < first + count && i < pc_item_frame.count; i++) /* (the run's first index: the frame's state only) */
+        pc_item_frame.item[i].group = (unsigned short)(first + 1);
+}
+
+void pc_frame_mode_item(int depth, int mode)
+{
+    pc_item* it = pc_frame_add(PC_ITEM_MODE_SET, depth);
+    if (it)
+        it->mode = (uint16_t)mode;
+}
+
+void pc_frame_anchor_markers(const void* start, const void* end, int anchor)
+{
+    /* (the runs of the markers in the range, joined where they touch: an anchor range is a scarce thing) */
+    int lo = -1, hi = -1;
+    for (;;) {
+        int next = -1;
+        for (int i = 0; i < marker_count; i++) {
+            if (markers[i].packet < start || markers[i].packet >= end || markers[i].first + markers[i].count <= hi)
+                continue;
+            if (next < 0 || markers[i].first < markers[next].first)
+                next = i;
+        }
+        if (next < 0)
+            break;
+        if (lo >= 0 && markers[next].first <= hi) {
+            if (markers[next].first + markers[next].count > hi)
+                hi = markers[next].first + markers[next].count;
+        } else {
+            if (lo >= 0)
+                pc_frame_anchor(lo, hi, anchor);
+            lo = markers[next].first, hi = lo + markers[next].count;
+        }
+    }
+    if (lo >= 0)
+        pc_frame_anchor(lo, hi, anchor);
+}
+
+unsigned* pc_frame_lift_words(const unsigned* words, int n, unsigned* ot_entry, unsigned* cursor)
+{
+    int first, count = pc_frame_add_packets(0, words, n, &first);
+    return count > 0 ? pc_frame_place(first, count, ot_entry, cursor) : NULL;
 }
 
 pc_item* pc_frame_item(int index)
@@ -474,6 +525,8 @@ uint32_t* pc_frame_place(int first, int count, uint32_t* ot_entry, uint32_t* pac
 {
     for (int i = first; i < first + count && i < pc_item_frame.count; i++)
         pc_item_frame.item[i].flags |= PC_ITEM_PLACED;
+    if (marker_count < ITEMS)
+        markers[marker_count].packet = packet, markers[marker_count].first = first, markers[marker_count++].count = count;
     packet[0] = (*ot_entry & 0xffffff) | 3u << 24;
     packet[1] = MARKER;
     packet[2] = (uint32_t)first & 0xffffff;

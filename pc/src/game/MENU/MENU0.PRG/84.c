@@ -415,8 +415,8 @@ int _warlockMagicMenu(u_int initShortcutInvoked)
             if (i >= level) {
                 int v;
 
-                vs_battle_renderTextRaw(
-                    spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), NULL);
+                pc_text_raw_packets(
+                    spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), vs_getRGB888(128, 128, 128), NULL);
 
                 prim = vs_battle_setSpriteDefaultTexPage(
                     vs_battle_cursorBrightnessAnimation[D_8010694A],
@@ -434,8 +434,8 @@ int _warlockMagicMenu(u_int initShortcutInvoked)
 
             } else if (level < rowCount) {
 
-                vs_battle_renderTextRaw(
-                    spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), NULL);
+                pc_text_raw_packets(
+                    spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), vs_getRGB888(128, 128, 128), NULL);
 
                 prim = vs_battle_setSpriteDefaultTexPage(
                     64, (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16), temp_s6);
@@ -445,8 +445,8 @@ int _warlockMagicMenu(u_int initShortcutInvoked)
 
                 var_s7_2 = 1;
 
-                vs_battle_renderTextRaw(
-                    spellLevels[4], (102 + level * 32) | vs_getXY(0, 103), NULL);
+                pc_text_raw_packets(
+                    spellLevels[4], (102 + level * 32) | vs_getXY(0, 103), vs_getRGB888(128, 128, 128), NULL);
 
                 prim = vs_battle_setSpriteDefaultTexPage(
                     0, (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16), temp_s6);

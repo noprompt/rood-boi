@@ -363,7 +363,7 @@ SCENES = {"ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainme
 OWN = {"menus": own_menus}  # (routes that launch their own games, and take hashed() as wrap)
 
 
-def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan"):
+def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):
     """The routes of `names`, each in a game of its own: {route: [display hashes]}."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER=renderer, ROOD_ARCH="64",
                       ROOD_TEST_SNAPSHOTS="0")
@@ -374,7 +374,9 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     out = pathlib.Path(out)
     (out / "plugins").mkdir()
     settings = out / "settings.cfg"
-    settings.write_text(f"ui_menus 0\nui_text font\ninterpolate 0\naspect {aspect}\n")
+    lines = {"ui_menus": "0", "ui_text": "font", "interpolate": "0", "aspect": aspect}
+    lines.update(kv.split(" ", 1) for kv in settings_lines)
+    settings.write_text("".join(f"{k} {v}\n" for k, v in lines.items()))
     env = {"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(out / "plugins"), "ROOD_PLUGIN_DATA": str(out / "plugin_data"),
            "ROOD_GI": "0", "ROOD_AUDIO": "none", "ROOD_WINDOW": "1280x720" if aspect == "16:9" else "960x720", "ROOD_LIGHTS": str(out / "lights"),
            "ROOD_PREFABS": str(out / "prefabs"), "ROOD_OUT": str(out)}
@@ -421,7 +423,7 @@ def env_of(binary, args):
 def run_menus(binary, args, names):
     with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
         done = subprocess.run([sys.executable, __file__, "--play-menus", binary, "--menus", ",".join(names), "--menu-sample",
-                               str(args.menu_sample), "--claims", args.claims, "--aspect", args.aspect, "--renderer", args.renderer, "--card", args.card, "--out", out]
+                               str(args.menu_sample), "--claims", args.claims, "--aspect", args.aspect, "--renderer", args.renderer] + [a for kv in args.setting for a in ("--setting", kv)] + [ "--card", args.card, "--out", out]
                               + [a for kv in env_of(binary, args) for a in ("--env", kv)],
                               capture_output=True, text=True)
     lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
@@ -631,6 +633,7 @@ def main():
     parser.add_argument("--new-env", action="append", default=[], metavar="KEY=VALUE", help="--menus: set in NEW's game (a dev flag such as ROOD_CLASSIC_ITEMS=1)")
     parser.add_argument("--env", action="append", default=[], help=argparse.SUPPRESS)
     parser.add_argument("--renderer", choices=["vulkan", "null"], default="vulkan", help="--menus: null hashes the CPU reference frame (the original drawing, no GPU; no ui_text)")
+    parser.add_argument("--setting", action="append", default=[], metavar="'KEY VALUE'", help="--menus: a settings.cfg line (ui_text original)")
     parser.add_argument("--aspect", choices=["4:3", "16:9"], default="4:3", help="--menus: the display's aspect")
     parser.add_argument("--play-menus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
@@ -642,7 +645,7 @@ def main():
     if args.play_casts:
         return play_casts(args.old, args.card, args.out, args.casts, args.cast_limit)
     if args.play_menus:
-        return play_menus(args.old, args.card, args.out, args.menus.split(","), args.menu_sample, args.claims, args.aspect, args.env, args.renderer)
+        return play_menus(args.old, args.card, args.out, args.menus.split(","), args.menu_sample, args.claims, args.aspect, args.env, args.renderer, args.setting)
     if args.menus:
         return compare_menus(args)
     if args.casts:
