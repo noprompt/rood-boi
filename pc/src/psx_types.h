@@ -147,12 +147,12 @@ static inline __UINT32_TYPE__ psx_addr(const void* pointer) {
              = psx_to_int(__UINT32_TYPE__, pointer)))
 
 /* The k-th 4-byte guest pointer word from base, for game code that reads and
- * writes PS1 pointer slots through T** (the scratchpad's packet cursor and OT
- * base: `*(void**)0x1F800000`, `((u_long**)getScratchAddr(0))[1]`). On the
+ * writes PS1 pointer slots through T** (the AI state table in vs_pad, the
+ * ordering table's own entries). On the
  * PS1 and the 32-bit build they are exactly the original `((T*)(base))[k]`
  * (so matched code compiles the same); under LP64 the stride stays 4 bytes.
- *   poly = psx_slot_get(POLY_G4*, getScratchAddr(0), 0); // *(POLY_G4**)...
- *   psx_slot_set(void*, scratch, 0, poly + 1);            // scratch[0] = ...
+ *   state = psx_slot_get(vs_battle_aiState*, PC_PAD(0x37C), id); // *(T**)...
+ *   psx_slot_set(void*, entry, 0, poly + 1);                    // entry[0] = ...
  * base may be an integer address or any pointer. */
 #if defined(ROOD_PC_LP64) /* only the PC passes it */
 #define psx_slot_get(T, base, k)                                               \

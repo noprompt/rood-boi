@@ -1,6 +1,7 @@
 //! Free movement toward a heading (D2: 7BDD4.s; oracle pc/src/battle_movement.c).
 const ai = @import("views_71618");
 const c = @import("c_battle_movement");
+const pad = @import("common").pad;
 
 /// orig: func_800E4B70 (pc/src/battle_movement.c)
 /// Held actors (0x1A) go to func_800E1908; with a gate held (0x19B) the route
@@ -16,6 +17,6 @@ pub fn freeMovement(state: *ai.vs_battle_aiState, angle: c_int) callconv(.c) voi
         return;
     }
     state.flags0.b[2] = 1;
-    @as(*u8, @ptrFromInt(0x1f800000 + 0x3d0)).* = 0;
+    @as(*u8, @ptrFromInt(pad.addr(0) + 0x3d0)).* = 0;
     c.func_800E3600(state, angle & 0xfff, 1);
 }

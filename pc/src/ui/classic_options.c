@@ -178,7 +178,7 @@ static int fit(u_char* g, int n, int room, const char* what)
 }
 
 /* The OT slot the menu windows' labels go in (vs_battle_renderMenuItem's). */
-static u_long* label_slot(void) { return (u_long*)((char*)psx_get(vs_scratch.unk8) + 8); }
+static u_long* label_slot(void) { return (u_long*)((char*)vs_scratch.unk8 + 8); }
 
 /* Glyphs in the game's menu font (font colour c: 0 white, 1 lit, 3 grey); returns the pen. */
 static int draw_glyphs(const u_char* g, int n, int x, int y, int c)
@@ -530,7 +530,7 @@ static void draw_values(void)
             r.row.index, x, right, c, r.row.enabled ? style(PC_STYLE_OTHER) : 3, style(PC_STYLE_TOGGLE_GAP),
             style(PC_STYLE_BAR_COLOUR), style(PC_STYLE_BAR_WIDTH), 0, r.row.enabled && r.link >= 0,
             style(PC_STYLE_UPPERCASE), item->x, y, r.row.value, "On", "Off", r.row.label };
-        void* first = psx_load(void*, (u_int*)0x1F800000);
+        void* first = vs_scratch.unk0;
         if (r.row.kind == PC_UI_SET_TOGGLE) {
             pc_ui_settings_catalog_choice(r.catalog, 1, &value.on, NULL);
             pc_ui_settings_catalog_choice(r.catalog, 0, &value.off, NULL);
@@ -588,7 +588,7 @@ static void draw_values(void)
         }
         if (pc_classic_site)
             pc_classic_site(PC_CLASSIC_SITE_OPTION_VALUE, &value, value.x, y, first,
-                psx_load(void*, (u_int*)0x1F800000));
+                vs_scratch.unk0);
     }
 }
 

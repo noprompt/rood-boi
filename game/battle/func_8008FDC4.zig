@@ -41,7 +41,7 @@ fn project(drop: *v.D_800F1DD4_t, sxy: *c_int, projection: *c_int, flags: *c_int
 pub fn func_8008FDC4() callconv(.c) void {
     var projection: c_int = undefined;
     var flags: c_int = undefined;
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = v.g.vs_scratch();
     c.SetRotMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
     c.SetTransMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
     const wind = v.g.D_800F1D98();

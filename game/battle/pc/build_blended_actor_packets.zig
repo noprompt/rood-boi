@@ -1,7 +1,9 @@
 //! Semi-transparent per-vertex-colour actor packets (D2: 4B16C.s; oracle pc/src/actor_packets.c).
 const c = @import("c_actor_packets");
 const gte = @import("common").gte;
-const psx = @import("common").psx;
+const pad = @import("common").pad;
+const common = @import("common");
+const psx = common.psx;
 
 const NativeDraw = *const fn (c_int, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?[*]c_uint) callconv(.c) void;
 
@@ -45,12 +47,12 @@ fn actorLink(ot: [*]c_uint, bucket: c_int, packet: [*]c_uint, words: c_uint) voi
 /// word in `clut_hi`), or 0 when the section is finished. The counter and the
 /// running total are the scratchpad halfwords 0x39C and 0x39E.
 fn actorBlendGroup(counts: *[*]const u16, section_total: c_uint, signed_counts: bool, mask: c_uint, clut_hi: *c_uint) c_int {
-    const state: [*]u16 = @ptrFromInt(0x1f80039c);
+    const state: [*]u16 = @ptrFromInt(pad.addr(0x39C));
     while (true) {
         const counter: c_int = @as(c_int, state[0]) -% 1;
         state[0] = psx.conv(u16, counter);
         if (counter < 0) return 0;
-        var clut: c_uint = @as(*u16, @ptrFromInt(0x1f800392)).*;
+        var clut: c_uint = @as(*u16, @ptrFromInt(pad.addr(0x392))).*;
         var count: c_int = undefined;
         if (counter == 0) {
             count = @as(c_int, @bitCast(section_total)) -% state[1];
@@ -83,18 +85,18 @@ pub fn buildBlendedActorPackets(projected: [*]c_uint, object: [*]u8, color: [*]c
     const totals: [*]const u16 = @ptrCast(@alignCast(object + 2));
     var counts: [*]const u16 = @ptrCast(@alignCast(model));
     var r: [*c]const c_uint = @ptrFromInt(@intFromPtr(model) +% psx.byteAt(u32, model, 0x3c).*);
-    const scratch: *u32 = @ptrFromInt(0x1f800000);
-    var packet: [*]c_uint = @ptrFromInt(@as(usize, scratch.*));
+    const scratch = common.scratch.get();
+    var packet: [*]c_uint = @ptrFromInt(@intFromPtr(scratch.unk0));
     const start: ?[*]c_uint = packet;
-    const ot: [*]c_uint = @ptrFromInt(@as(usize, @as(*u32, @ptrFromInt(0x1f800004)).*));
-    const tpage_hi: c_uint = @as(*c_uint, @ptrFromInt(0x1f800390)).* << 16;
+    const ot: [*]c_uint = @ptrFromInt(@intFromPtr(scratch.unk4));
+    const tpage_hi: c_uint = @as(*c_uint, @ptrFromInt(pad.addr(0x390))).* << 16;
     const tint = color[0] & 0xffffff;
     const mode: c_uint = object[9] & 0xf;
     const blend: c_uint = if (mode == 0) 0 else if (mode < 7) 0x400000 else 0x200000;
     const mask: c_uint = object[0x64];
     var clut_hi: c_uint = 0;
     var count: c_int = undefined;
-    const walk: *u32 = @ptrFromInt(0x1f80039c);
+    const walk: *u32 = @ptrFromInt(pad.addr(0x39C));
 
     // Triangles, 24-byte records: o0|o1, o2|uv2, c0, c1, c2, uv0|uv1.
     walk.* = 9;
@@ -182,7 +184,7 @@ pub fn buildBlendedActorPackets(projected: [*]c_uint, object: [*]u8, color: [*]c
     // Mixed records: triangle or quad by the c0 code (0x3c), flags and bias in
     // the c2 top byte, stride in the c1 top byte when culled.
     walk.* = 9;
-    @as(*u32, @ptrFromInt(0x1f8003a0)).* = psx.addr(object);
+    @as(*u32, @ptrFromInt(pad.addr(0x3A0))).* = psx.addr(object);
     if (totals[2] != 0) {
         while (true) {
             count = actorBlendGroup(&counts, totals[2], false, mask, &clut_hi);
@@ -258,6 +260,6 @@ pub fn buildBlendedActorPackets(projected: [*]c_uint, object: [*]u8, color: [*]c
             }
         }
     }
-    scratch.* = psx.addr(packet);
+    scratch.unk0 = packet;
     if (psx.weak(NativeDraw, "pc_object_native_draw")) |draw| draw(3, projected, object, model, color, start);
 }

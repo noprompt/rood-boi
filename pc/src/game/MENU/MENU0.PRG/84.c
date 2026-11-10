@@ -408,7 +408,7 @@ int _warlockMagicMenu(u_int initShortcutInvoked)
 
         _setMPCost(selectedRow + i);
 
-        temp_s6 = psx_get(vs_scratch.unk4) - 4;
+        temp_s6 = vs_scratch.unk4 - 4;
 
         for (level = 0; level < 4; ++level) {
             int first = pc_frame_count();

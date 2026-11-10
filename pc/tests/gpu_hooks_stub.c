@@ -60,3 +60,4 @@ void pc_gte_projection_entry(int s, int sx, int sy, int* sz, float* fx, float* f
 }
 const void* pc_gte_projection_caller(int s) { return (void)s, (const void*)0; }
 const void* pc_hw_caller;
+void* vs_scratch[4]; /* the packet cursor and ordering-table base (146C.c in the game) */

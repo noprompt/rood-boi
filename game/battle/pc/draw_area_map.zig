@@ -1,7 +1,9 @@
 //! Area map drawing (D2: 2EA3C.s; oracle pc/src/room_geometry.c).
 const c = @import("c_room_geometry");
 const v = @import("views_room_geometry");
-const psx = @import("common").psx;
+const common = @import("common");
+const pad = @import("common").pad;
+const psx = common.psx;
 const gte = @import("common").gte;
 
 /// `p + n` for a word pointer with a C `unsigned`/`int` count (the address wraps like C's).
@@ -24,9 +26,10 @@ fn chain(packet: [*]c_uint, head: *c_uint, words: c_uint) [*]c_uint {
 pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
     const table = rooms;
     const count: c_uint = table[0];
-    const ot: [*]c_uint = @ptrFromInt(@as(usize, @as(*const c_uint, @ptrFromInt(0x1f800004)).*));
-    var packet: [*]c_uint = @ptrFromInt(@as(usize, @as(*const c_uint, @ptrFromInt(0x1f800000)).*));
-    const xy: [*]c_uint = @ptrFromInt(0x1f800100);
+    const scratch = common.scratch.get();
+    const ot: [*]c_uint = @ptrCast(@alignCast(scratch.unk4.?));
+    var packet: [*]c_uint = @ptrCast(@alignCast(scratch.unk0.?));
+    const xy: [*]c_uint = @ptrFromInt(pad.addr(0x100));
     var shapes: c_uint = ot[5];
     var markers: c_uint = ot[4];
     const blink: c_uint = v.g.D_800F1CDC().*;
@@ -167,5 +170,5 @@ pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
     packet += 4;
     ot[4] = markers;
     ot[5] = shapes;
-    @as(*c_uint, @ptrFromInt(0x1f800000)).* = psx.addr(packet);
+    scratch.unk0 = packet;
 }

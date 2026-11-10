@@ -9,13 +9,11 @@ const c = @import("c_40564");
 pub fn func_800AACDC() callconv(.c) void {
     var sp10: v.RECT = .{ .x = 470, .y = 384, .w = 18, .h = 36 };
 
-    // Packet slot at scratchpad 0x1F800000: a 4-byte guest address on every target.
-    const slot: *u32 = @ptrFromInt(0x1F800000);
-    const temp_s0: [*c]c.DR_MOVE = @ptrFromInt(@as(usize, slot.*));
+    const temp_s0: [*c]c.DR_MOVE = @ptrCast(@alignCast(common.scratch.get().unk0));
 
     c.SetDrawMove(temp_s0, psx.cptr(c.RECT, &sp10), 16, 400);
     c.func_8007A824(temp_s0);
 
-    // psx_addr(temp_s0 + 1): one DR_MOVE past the packet.
-    slot.* = psx.addr(temp_s0 + 1);
+    // One DR_MOVE past the packet.
+    common.scratch.get().unk0 = temp_s0 + 1;
 }

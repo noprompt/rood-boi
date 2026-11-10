@@ -2,20 +2,22 @@
 //! texture loads, bones and attachments for every battle slot, then the
 //! weapons on their bones and the room objects (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
 const Actor = v.D_800F4538_t;
 
-/// The draw depth word of the scratchpad frame block (frameScratch.depth at 0x1F800004).
-fn depth() *c_int {
-    return @ptrFromInt(0x1F80_0004);
+/// Moves the ordering table's base by `bytes` (the actor's draws link that much deeper), and back.
+fn shiftTable(bytes: c_int) void {
+    const scratch = common.scratch.get();
+    scratch.unk4 = @ptrFromInt(@intFromPtr(scratch.unk4) +% @as(usize, @bitCast(@as(isize, bytes))));
 }
 
 /// The object offset of the scratchpad transform block (actorTransformScratch.offset at 0x1F80035C).
 fn objectOffset() *v.SVECTOR {
-    return @ptrFromInt(0x1F80_035C + @offsetOf(v.actorTransformScratch, "offset"));
+    return @ptrFromInt(pad.addr(0x35C) + @offsetOf(v.actorTransformScratch, "offset"));
 }
 
 /// unk17E4's colour (unk1, unk2) stepped towards unk17E8's over unk3 frames.
@@ -127,11 +129,11 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
                                 loadTexture(entries, i, attached);
                             }
                         }
-                        depth().* +%= @as(c_int, actor.unk6F4.unk3) *% 4;
+                        shiftTable(@as(c_int, actor.unk6F4.unk3) *% 4);
                         shift(actor, 1);
                         c.func_800B002C(@ptrCast(actor), @as(c_int, actor.unk17FD));
                         c.func_800B28A8(@ptrCast(actor), @ptrCast(camera), actor.unk17FD);
-                        depth().* -%= @as(c_int, actor.unk6F4.unk3) *% 4;
+                        shiftTable(-(@as(c_int, actor.unk6F4.unk3) *% 4));
                         shift(actor, -1);
                     }
                 }
@@ -163,7 +165,7 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
 
     i = 0;
     const objects = v.g.D_800F45E0();
-    depth().* +%= 0x10;
+    shiftTable(0x10);
     while (true) {
         if (psx.at(objects, i).*) |object| {
             if (object.unk0 != 0) {
@@ -186,6 +188,6 @@ pub fn func_800AEF94(camera: [*c]v.MATRIX) callconv(.c) void {
         if (i >= 0x10) break;
     }
     v.g.D_800F4B18().* = 0;
-    depth().* -%= 0x10;
+    shiftTable(-0x10);
     v.g.D_800E9308().* +%= 1;
 }

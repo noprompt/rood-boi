@@ -3,6 +3,7 @@ const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const v = @import("views_battle_movement");
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 
 /// orig: func_800DB370 (pc/src/battle_movement.c)
 /// Approaches actor `id`. Uses the model's waypoint group when allowed,
@@ -11,7 +12,7 @@ const psx = @import("common").psx;
 /// the original's leftover $v0 (id * 4) does.
 pub fn approachActor(state: *ai.vs_battle_aiState, id: c_int, distance: c_int, option: c_int) callconv(.c) c_int {
     const model_slot = psx.at(v.g.D_800F4538(), id).*;
-    const cached = psx.at(@as([*]align(1) u32, @ptrFromInt(0x1f800000 + 0x37c)), id).*;
+    const cached = psx.at(@as([*]align(1) u32, @ptrFromInt(pad.addr(0) + 0x37c)), id).*;
     var result: c_int = undefined;
     if (cached == 0) {
         result = id *% 4;

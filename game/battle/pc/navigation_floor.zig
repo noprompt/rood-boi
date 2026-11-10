@@ -1,5 +1,6 @@
 //! Navigation cell floor tests (D2: 7B5DC.s; oracle pc/src/battle_helpers.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const c = @import("c_battle_helpers");
 
 /// orig: func_800E4478 (pc/src/battle_helpers.c)
@@ -8,7 +9,7 @@ const c = @import("c_battle_helpers");
 /// cell with bit 13 set has floor 0, else floor = sign15(sign((cell & 0x3FF)
 /// << 6) - ((cell & 0x1C00) >> 3)). Returns 1 when y < floor.
 pub fn belowFloor(x: c_int, y: c_int, z: c_int) callconv(.c) c_int {
-    const grid: [*]u8 = @ptrFromInt(@as(usize, @as(*u32, @ptrFromInt(0x1F8003BC)).*));
+    const grid: [*]u8 = @ptrFromInt(@as(usize, @as(*u32, @ptrFromInt(pad.addr(0x3BC))).*));
     const cell: c_uint = psx.byteAt(u16, grid, @as(isize, (z >> 7) *% 64) + @as(isize, (x >> 7) *% 2)).*;
     var floor: c_int = 0;
     if (cell & 0x2000 == 0) {

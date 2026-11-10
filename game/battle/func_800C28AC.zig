@@ -31,7 +31,7 @@ pub fn func_800C28AC(position: ?*v.SVECTOR, arg1: c_int) callconv(.c) void {
     pcMarker.y = xy >> 16;
     pcMarker.lock = arg1;
     pcMarker.step = @as(c_int, v.g.D_800EA6AC().*);
-    const pcMarkerFirst: u32 = @as(*const u32, @ptrFromInt(0x1F800000)).*;
+    const pcMarkerFirst = v.g.vs_scratch().unk0;
 
     if (arg1 == 0) {
         var prim: [*]align(1) c_uint = @ptrCast(psx.get(v.g.vs_scratch().unk0).?);
@@ -81,8 +81,8 @@ pub fn func_800C28AC(position: ?*v.SVECTOR, arg1: c_int) callconv(.c) void {
             &pcMarker,
             pcMarker.x,
             pcMarker.y,
-            @ptrFromInt(@as(usize, pcMarkerFirst)),
-            @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F800000)).*)),
+            pcMarkerFirst,
+            v.g.vs_scratch().unk0,
         );
     }
 }

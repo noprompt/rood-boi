@@ -38,11 +38,10 @@ pub fn func_800CCA90(index: c_int) callconv(.c) void {
         .slot = @truncate(@as(isize, @bitCast(ot_address -% @intFromPtr(psx.get(scratch.unk4).?)))),
         .gim = gim,
     };
-    const word: *const u32 = @ptrFromInt(0x1F800000);
-    const first: ?*anyopaque = @ptrFromInt(@as(usize, word.*));
+    const first: ?*anyopaque = v.g.vs_scratch().unk0;
     const drawer: ?Drawer = @ptrCast(psx.at(v.g.D_800EC25C(), psx.getBits(gim, "unk0_3")).*); // D_800EC25C[4]: the 3-bit mode is not checked
     drawer.?(gim, clut << 16, ot);
-    if (psx.weak(Site, "pc_classic_site")) |site| site(19, &record, index, 0, first, @ptrFromInt(@as(usize, word.*))); // PC_CLASSIC_SITE_IMAGE
+    if (psx.weak(Site, "pc_classic_site")) |site| site(19, &record, index, 0, first, v.g.vs_scratch().unk0); // PC_CLASSIC_SITE_IMAGE
     // ROOD_PC: the opening's first image is ready.
     if (index == 0 and gim.unk3 == 0x80) {
         c.pc_opening_image_ready(gim.id);

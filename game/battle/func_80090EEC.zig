@@ -1,13 +1,14 @@
 //! Room-driven scene effects: drifts the room's effect values and runs the scene effect selected by D_800F1DCA (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
 const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
 
-/// The scratchpad word at 0x1F800000 (the packet cursor), as a guest pointer.
+/// The packet cursor.
 fn scratchPointer() ?*const anyopaque {
-    return @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F800000)).*));
+    return common.scratch.get().unk0;
 }
 
 /// orig: func_80090EEC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)

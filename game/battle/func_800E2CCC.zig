@@ -1,6 +1,7 @@
 //! The movement recovery step: gives up after a long wait, else faces the
 //! target or the best open direction (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -56,8 +57,8 @@ pub fn func_800E2CCC(state: ?*v.vs_battle_aiState) callconv(.c) void {
             psx.conv(c_int, quadrant *% 2);
 
         var i: c_int = 0;
-        const bounds: [*]u8 = @ptrFromInt(0x1F8003DC);
-        const table: [*]v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
+        const bounds: [*]u8 = @ptrFromInt(pad.addr(0x3DC));
+        const table: [*]v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC));
         while (i < 4) : (i += 1) {
             direction = (direction +% i *% 2) & 7;
             const entry = &table[@intCast(direction)];

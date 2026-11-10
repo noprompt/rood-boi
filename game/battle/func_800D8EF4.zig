@@ -1,6 +1,7 @@
 //! Per-frame battle actor update: timers, movement history, relations, the
 //! action candidate and the alert level of each actor (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_6FC00");
 const c = @import("c_6FC00");
@@ -35,7 +36,7 @@ pub fn func_800D8EF4() callconv(.c) void {
         a.unkB &= 0xfc;
         const id: c_int = a.id;
         // The state pointer is the scratchpad slot 0x1F80037C + 4 * id, read as a 4-byte guest address.
-        const slot: u32 = 0x1F80037C +% @as(u32, @bitCast(@as(c_int, 4) *% id));
+        const slot: u32 = pad.guest(0x37C) +% @as(u32, @bitCast(@as(c_int, 4) *% id));
         const stateAddr: u32 = @as(*const u32, @ptrFromInt(@as(usize, slot))).*;
         const state: *v.vs_battle_aiState = @ptrFromInt(@as(usize, stateAddr));
         state.unk1D = 0;
@@ -68,7 +69,7 @@ pub fn func_800D8EF4() callconv(.c) void {
 
             arg = c.func_800E45B4();
             if (v.g.D_800F16F4().* < arg) break :outcome_blk .idle;
-            @as(*c_int, @ptrFromInt(0x1F8003FC)).* = arg;
+            @as(*c_int, @ptrFromInt(pad.addr(0x3FC))).* = arg;
             if (state.unk18 != 0) {
                 if (state.unk12A != 0 and state.unk138 == 6) break :outcome_blk .idle;
                 state.unk18 = 0;

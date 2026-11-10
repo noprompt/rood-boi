@@ -15,9 +15,9 @@
 static inline pc_item* _leafItem(int kind, int verts, int flags)
 {
 #if PC_LEAF_TABLE
-    unsigned* cursor = psx_get(vs_scratch.unk0);
-    pc_item* item = pc_frame_poly_at(PC_LEAF_DEPTH, kind, verts, flags, psx_get(vs_scratch.unk4), &cursor);
-    psx_set(vs_scratch.unk0, cursor);
+    unsigned* cursor = vs_scratch.unk0;
+    pc_item* item = pc_frame_poly_at(PC_LEAF_DEPTH, kind, verts, flags, vs_scratch.unk4, &cursor);
+    vs_scratch.unk0 = cursor;
 #else
     pc_item* item = pc_frame_poly_at(PC_LEAF_DEPTH, kind, verts, flags, NULL, NULL);
 #endif

@@ -1,5 +1,6 @@
 //! Sets a battle object's material and rotation matrix (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
@@ -12,7 +13,7 @@ pub fn func_800A0104(index: c_int, material: c_int) callconv(.c) c_int {
 
     obj.unk6C[8].unk2 = psx.conv(u8, material);
     const m: c_int = material *% 4;
-    const scratch: *v.D_1F80035C_t = @ptrFromInt(0x1F80035C);
+    const scratch: *v.D_1F80035C_t = @ptrFromInt(pad.addr(0x35C));
     const table = v.g.D_800E9030();
     scratch.unk84.vx = psx.conv(i16, @as(c_int, psx.at(table, m).*) *% 1024);
     scratch.unk84.vy = psx.conv(i16, @as(c_int, psx.at(table, m +% 1).*) *% 1024);

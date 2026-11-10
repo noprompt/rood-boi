@@ -1,5 +1,6 @@
 //! Wall contact response on an actor's motion: the scratchpad's collision contacts nudge its velocity (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_3A1A0");
 
@@ -8,7 +9,7 @@ const v = @import("views_3A1A0");
 pub fn func_800A7524(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) void {
     const a = actor.?;
     if (psx.getBits(a, "unk5AC_12") != 0) {
-        const scratch: *v.collisionResponseScratch = @ptrFromInt(0x1F8003BC);
+        const scratch: *v.collisionResponseScratch = @ptrFromInt(pad.addr(0x3BC));
         const contacts = &scratch.contacts;
         var x: c_int = 0;
         var z: c_int = @as(c_int, @intFromBool(contacts[0] != 0)) *% 16;

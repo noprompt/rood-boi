@@ -19,7 +19,7 @@ pub fn func_8008F440() callconv(.c) void {
     var vertices: [10]v.SVECTOR = undefined;
     var projection: c_int = undefined;
     var flags: c_int = undefined;
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = v.g.vs_scratch();
     c.SetRotMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
     c.SetTransMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
     const wind = v.g.D_800F1D98();

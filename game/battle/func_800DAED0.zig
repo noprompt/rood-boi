@@ -1,6 +1,7 @@
 //! Refreshes the action-dispatch state of each battle actor on the actor list
 //! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
@@ -12,7 +13,7 @@ pub fn func_800DAED0() callconv(.c) void {
     var actor = psx.get(head.next);
     while (actor) |a| {
         // Per-actor state pointer: the scratchpad table at 0x1F80037C, indexed by actor id.
-        const slot_addr: usize = 0x1F80037C +% @as(usize, @bitCast(@as(isize, @as(c_int, 4) *% a.id)));
+        const slot_addr: usize = pad.addr(0x37C) +% @as(usize, @bitCast(@as(isize, @as(c_int, 4) *% a.id)));
         const slot: *const u32 = @ptrFromInt(slot_addr);
         const state: *v.vs_battle_aiState = @ptrFromInt(@as(usize, slot.*));
 
@@ -21,7 +22,7 @@ pub fn func_800DAED0() callconv(.c) void {
             if (v.g.D_800F16F4().* < value) {
                 c.func_800DEEFC(@ptrCast(state), 17);
             } else {
-                @as(*c_int, @ptrFromInt(0x1F8003FC)).* = value;
+                @as(*c_int, @ptrFromInt(pad.addr(0x3FC))).* = value;
                 if (state.unk14 != 0 and state.unk1D != 0) {
                     const height: c_int = blk: {
                         if (v.g.D_800F5878()[0]) |tail_raw| {
@@ -47,13 +48,13 @@ pub fn func_800DAED0() callconv(.c) void {
                     state.flags0.word = 0;
                     state.flags4.word = 0;
                     state.flags8.word = 0;
-                    const table_word: *const u32 = @ptrFromInt(0x1F8003C0);
+                    const table_word: *const u32 = @ptrFromInt(pad.addr(0x3C0));
                     // Rows of 32 cells, indexed unchecked as the C does (z * 32 + x: a tile byte past 31 reads on).
                     const cells: [*]u16 = @ptrFromInt(@as(usize, table_word.*));
                     const terrain = psx.conv(c_int, cells[@as(usize, state.tile.b[2]) * 32 + state.tile.b[0]] & 15);
                     state.area = psx.conv(u8, terrain);
                     state.terrain132 = psx.conv(i8, terrain);
-                    @as(*c_int, @ptrFromInt(0x1F8003D0)).* = 0;
+                    @as(*c_int, @ptrFromInt(pad.addr(0x3D0))).* = 0;
                     c.func_800DB820(@ptrCast(state));
                     c.func_800DB7B4(@ptrCast(state));
                 }

@@ -310,7 +310,7 @@ static int site_empty(const void* first, const void* end)
     pc_classic_site_items(&a, &b);
     return first == end && a == b;
 }
-static u_long* packet_cursor(void) { return psx_get(vs_scratch.unk0); }
+static u_long* packet_cursor(void) { return vs_scratch.unk0; }
 static int lua_anchor;
 static int shadow_anchor(const unsigned* tag, void* user)
 {
@@ -335,7 +335,7 @@ static int unk8_offset(void)
 {
     if (emit_items && !emit_placed)
         return -64;
-    return (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
+    return (int)((char*)vs_scratch.unk8 - (char*)vs_scratch.unk4);
 }
 static int slot_offset(int kind, int layer)
 {
@@ -351,7 +351,7 @@ static u_long* slot_for(int kind, int layer)
 {
     int offset = slot_offset(kind, layer), i;
     if (!shadowing)
-        return (u_long*)((char*)psx_get(vs_scratch.unk4) + offset);
+        return (u_long*)((char*)vs_scratch.unk4 + offset);
     for (i = 0; i < shadow_count; ++i)
         if (shadows[i].offset == offset)
             return &shadows[i].head;
@@ -453,7 +453,7 @@ static void parity(int kind, int element_anchor)
             PC_CLASSIC_CAPTURE - n);
     n += pc_classic_walk_items(&walker, items, pc_frame_count(), lua + n, PC_CLASSIC_CAPTURE - n); /* (items alone) */
     pc_classic_parity_compare(kind, lua, n, pc_vsync_count ? pc_vsync_count() : 0);
-    psx_set(vs_scratch.unk0, start); /* (given back: nothing links to them) */
+    vs_scratch.unk0 = start; /* (given back: nothing links to them) */
     pc_frame_rewind(items);
 }
 
@@ -477,7 +477,7 @@ static int classic_finish(int kind, pc_hud_fields* f, void* first, void* end, co
             /* (items alone: nothing is linked into a table) */
         } else if (kind == PC_HUD_TEXT_FRAME || kind == PC_HUD_TEXT_BAND || kind == PC_HUD_BOX_TEXT) /* (the text boxes'
                                                                                                 * own table) */
-            count = box_entries(kind, D_800F51B8, f->box_id, kind == PC_HUD_TEXT_BAND ? psx_get(vs_scratch.unk8) : NULL, first,
+            count = box_entries(kind, D_800F51B8, f->box_id, kind == PC_HUD_TEXT_BAND ? vs_scratch.unk8 : NULL, first,
                 end, game, PC_CLASSIC_CAPTURE);
         else
             count = pc_classic_walk_slots(slots, nslots, kind == PC_HUD_ABILITY_ICONS, enclosing, first, end, game,
@@ -505,12 +505,12 @@ static int classic_finish(int kind, pc_hud_fields* f, void* first, void* end, co
         pc_classic_suppress(first, end); /* (emit-only: the game's call ran, its packets are no-ops) */
         pc_frame_suppress(items_first, items_end); /* (and its items not drawn) */
         if (packets) { /* (and by the slots' links: an empty stat bar's 3-word tile in 14 words ends the allocation walk) */
-            char* base = psx_get(vs_scratch.unk4);
+            char* base = vs_scratch.unk4;
             int i;
             for (i = 0; i < nslots; ++i)
                 pc_classic_suppress_linked((const unsigned*)(base + slots[i]), first, end);
             if (kind == PC_HUD_ABILITY_ICONS)
-                pc_classic_suppress_linked((const unsigned*)psx_get(vs_scratch.unk8), first, end);
+                pc_classic_suppress_linked((const unsigned*)vs_scratch.unk8, first, end);
         }
         classic_packets(cmds, count, f->anchor, kind, 0);
     }
@@ -646,7 +646,7 @@ void pc_hud_target_line(void* record, void* first, void* end)
     f.x = (float)line->x, f.y = (float)line->y;
     f.anchor = PC_HUD_ANCHOR_CENTRE;
     append(f.text, f.text + sizeof f.text, "line");
-    slot = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
+    slot = (int)((char*)vs_scratch.unk8 - (char*)vs_scratch.unk4);
     classic_finish(PC_HUD_TARGET_LINE, &f, first, end, &slot, 1, 0);
 }
 
@@ -715,7 +715,7 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
 {
     static pc_hud_fields rows[40], one[5];
     pc_hud_fields* f;
-    int slots[5], nslots = 1, unk8 = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
+    int slots[5], nslots = 1, unk8 = (int)((char*)vs_scratch.unk8 - (char*)vs_scratch.unk4);
     if (!record || site_empty(first, end))
         return;
     /* Only the screens the gate tours (MENU_TOURED_SCREENS): every other MAINMENU screen keeps the game's own
@@ -914,7 +914,7 @@ void pc_hud_menuf(void* record, void* first, void* end)
 {
     static pc_hud_fields f;
     const pc_classic_menuf* m = record;
-    int slots[2], unk8 = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4)), items_first, items_end;
+    int slots[2], unk8 = (int)((char*)vs_scratch.unk8 - (char*)vs_scratch.unk4), items_first, items_end;
     pc_classic_site_items(&items_first, &items_end);
     if (!m || (first == end && items_first == items_end)
         || ((vs_battle_menuState.currentMenu & 0x3F) != 15 && m->screen != PC_CLASSIC_MENUF_ENDING) || m->count < 0
@@ -938,7 +938,7 @@ void pc_mainmenu_render_row(vs_battle_menuItem_t* copy); /* 58EC.c */
 static void menu_row_packets(const pc_hud_classic_cmd* c, int shadowed)
 {
     vs_battle_menuItem_t item;
-    void* slot = psx_get(vs_scratch.unk8);
+    void* slot = vs_scratch.unk8;
     memcpy(&item, menu_row_item, sizeof item);
     if (c->a & 1)
         item.x = (short)c->x;
@@ -947,11 +947,11 @@ static void menu_row_packets(const pc_hud_classic_cmd* c, int shadowed)
     if (c->a & 4)
         item.w = (u_char)c->w;
     if (shadowed) {
-        psx_set(vs_scratch.unk8, &menu_shadow[2]);
+        vs_scratch.unk8 = &menu_shadow[2];
         menu_shadowed = 1;
     }
     pc_mainmenu_render_row(&item);
-    psx_set(vs_scratch.unk8, slot);
+    vs_scratch.unk8 = slot;
 }
 
 /* Our Option pages' value text and gauge by classic_options.c's own draws (the labels' slot: vs_scratch.unk8 + 8,
@@ -961,10 +961,10 @@ void pc_options_bar_draw(int colour, int fill, int x, int y);
 static void option_packets(const pc_hud_classic_cmd* c, int shadowed)
 {
     char text[128];
-    void* slot = psx_get(vs_scratch.unk8);
+    void* slot = vs_scratch.unk8;
     int n = c->length < (int)sizeof text - 1 ? c->length : (int)sizeof text - 1;
     if (shadowed) {
-        psx_set(vs_scratch.unk8, &menu_shadow[2]);
+        vs_scratch.unk8 = &menu_shadow[2];
         menu_shadowed = 1;
     }
     if (c->type == PC_HUD_CMD_OPTION_BAR) {
@@ -974,7 +974,7 @@ static void option_packets(const pc_hud_classic_cmd* c, int shadowed)
         text[n] = 0;
         pc_options_text_draw(text, c->a, c->w, c->x, c->y, (int)c->color);
     }
-    psx_set(vs_scratch.unk8, slot);
+    vs_scratch.unk8 = slot;
 }
 
 int vs_mainMenu_renderIntColor(int value, int xy, int color, u_long* before); /* MAINMENU 58EC.c (d.menu_int) */
@@ -996,7 +996,7 @@ static void button_background_packets(u_long* ot, int x, int y, int w, int h)
         ot[0] = ((psx_to_int(u_long, p) << 8) >> 8);
         p += 7;
     }
-    psx_set(vs_scratch.unk0, p);
+    vs_scratch.unk0 = p;
 }
 
 /* A text box's text (_printVariableWidthFont): the glyphs it set this frame (recorded as it set them); the box. */
@@ -1459,7 +1459,7 @@ static u_long* packet(u_long* ot, int n)
     u_long* p = packet_cursor();
     p[0] = (*ot & 0xFFFFFF) | ((u_long)n << 24);
     *ot = (psx_to_int(u_long, p) << 8) >> 8;
-    psx_set(vs_scratch.unk0, p + 1 + n);
+    vs_scratch.unk0 = p + 1 + n;
     return p + 1;
 }
 
@@ -1734,10 +1734,10 @@ void func_800C16FC(int x0, int x1, int count); /* 58578.c */
 void func_800C1A40(int x0, int x1, int count);
 static void leader_packets(u_long* ot, const pc_hud_classic_cmd* c)
 {
-    u_long* slot = psx_get(vs_scratch.unk8);
-    psx_set(vs_scratch.unk8, ot);
+    u_long* slot = vs_scratch.unk8;
+    vs_scratch.unk8 = ot;
     (c->b ? func_800C1A40 : func_800C16FC)((int)xy(c->x, c->y), (int)xy(c->c, c->d), c->a);
-    psx_set(vs_scratch.unk8, slot);
+    vs_scratch.unk8 = slot;
 }
 
 /* A text box's frame by the game's own routine (func_800CD3E4) on a copy of the box: the box's place, size, shape,
@@ -1781,7 +1781,7 @@ static void band_packets(const pc_hud_classic_cmd* c, int shadowed)
     short y = box->y, edge = box->unk2A, state = box->state;
     char lines = box->lineCount;
     u_long* table = D_800F51B8;
-    u_long* icon = psx_get(vs_scratch.unk8);
+    u_long* icon = vs_scratch.unk8;
     box->y = c->b ? 0 : 1, box->unk2A = (short)c->c, box->lineCount = (char)c->d;
     box->state = c->font ? box->unk22 + 1 : 0;
     box->unk0.unk0_8 = (u_int)c->align & 15;
@@ -1789,11 +1789,11 @@ static void band_packets(const pc_hud_classic_cmd* c, int shadowed)
         D_800F51B8 = box_shadow;
         box_shadow_id = id;
         band_icon_shadow = 0x00FFFFFF;
-        psx_set(vs_scratch.unk8, &band_icon_shadow); /* (its icon's slot: setSpriteDefault reads it there) */
+        vs_scratch.unk8 = &band_icon_shadow; /* (its icon's slot: setSpriteDefault reads it there) */
     }
     func_800CD158(id);
     D_800F51B8 = table;
-    psx_set(vs_scratch.unk8, icon);
+    vs_scratch.unk8 = icon;
     box->unk0 = fields;
     box->y = y, box->unk2A = edge, box->state = state, box->lineCount = lines;
 }
@@ -1939,7 +1939,7 @@ static int lift_end(int depth, int placed, void* ot_in)
         && (!pc_text_defer_items || pc_text_defer_items(first, count))) {
         pc_classic_items_note(1, lift_type);
         /* (given back: the items hold what the packets did; a marker takes the first words) */
-        psx_set(vs_scratch.unk0, placed ? (u_long*)pc_frame_place(first, count, (unsigned*)ot, (unsigned*)mark) : (u_long*)mark);
+        vs_scratch.unk0 = placed ? (u_long*)pc_frame_place(first, count, (unsigned*)ot, (unsigned*)mark) : (u_long*)mark;
         return 1;
     }
     if (first >= 0 && pc_frame_count() > first && count > 0) /* (the items made, their reports not: given back) */
@@ -1949,7 +1949,7 @@ static int lift_end(int depth, int placed, void* ot_in)
     pc_classic_items_note(0, lift_type);
     if (!placed) { /* (a frame of items alone has no table to link them in: left out) */
         ++claim_items_dropped;
-        psx_set(vs_scratch.unk0, (u_long*)mark);
+        vs_scratch.unk0 = (u_long*)mark;
         return 0;
     }
     if (lift_head != 0x00FFFFFF) { /* (as the packets: the chain's last links to what the slot held) */
@@ -2035,7 +2035,7 @@ static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int ki
             for (k = 0; k < n; ++k)
                 p[1 + k] = (u_long)(unsigned)words[k];
             ot[0] = (psx_to_int(u_long, p) << 8) >> 8;
-            psx_set(vs_scratch.unk0, p + 1 + n);
+            vs_scratch.unk0 = p + 1 + n;
             break;
         }
         case PC_HUD_CMD_FONT_TEXT: {
@@ -2150,7 +2150,7 @@ static int immediate_packets(const pc_hud_classic_cmd* cmds, int n, int kind, in
     const pc_hud_classic_cmd* glyph = NULL;
     int count = 0, i;
     restyle = draw;
-    psx_set(vs_scratch.unk0, (u_long*)pc_classic_immediate_arena()); /* (classic_parity.c's: not the game's) */
+    vs_scratch.unk0 = (u_long*)pc_classic_immediate_arena(); /* (classic_parity.c's: not the game's) */
     for (i = 0; i < n; ++i) {
         const pc_hud_classic_cmd* c = &cmds[i];
         u_long *from, *to, *p;
@@ -2205,7 +2205,7 @@ static int immediate_packets(const pc_hud_classic_cmd* cmds, int n, int kind, in
                 pc_draw_packet(p, 0);
         }
     }
-    psx_set(vs_scratch.unk0, start); /* (given back: nothing links to them) */
+    vs_scratch.unk0 = start; /* (given back: nothing links to them) */
     restyle = 1;
     return count;
 }
@@ -2314,7 +2314,7 @@ void pc_hud_panels_classic(void* otag)
 {
     const pc_hud_classic_cmd* cmds;
     int cursor = 0, anchor, count;
-    unsigned long scene = (unsigned long)psx_get(vs_scratch.unk4), top = (unsigned long)otag;
+    unsigned long scene = (unsigned long)vs_scratch.unk4, top = (unsigned long)otag;
     void* start = packet_cursor();
     if (!pc_hud_classic_panel || (&pc_photo_rendering && pc_photo_rendering))
         return;

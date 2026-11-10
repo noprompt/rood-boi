@@ -14,10 +14,9 @@ const site_menu_cursor: c_int = 26;
 /// classic_hook.h pc_classic_menu_cursor: the hand's step, place, colour and `battle` (this caller).
 const MenuCursor = extern struct { step: c_int, xy: c_int, color: c_int, battle: c_int };
 
-/// The scratchpad word at 0x1F800000 as a guest pointer.
+/// The packet cursor.
 fn scratchPtr() ?*anyopaque {
-    const word: *const u32 = @ptrFromInt(0x1F800000);
-    return @ptrFromInt(@as(usize, word.*));
+    return v.g.vs_scratch().unk0;
 }
 
 /// orig: vs_battle_drawCursor (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)

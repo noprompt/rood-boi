@@ -1,5 +1,6 @@
 //! The da4bc decision step: steers toward the target or falls back to the candidate search (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
@@ -15,7 +16,7 @@ pub fn func_800DA738(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
     var active: c_int = 0;
     if (@as(c_int, s.id) != target and target != 16) {
         // psx_slot_get(vs_battle_aiState*, 0x1F80037C, target): a guest pointer slot in the scratchpad.
-        const slot0: u32 = @as(*align(1) const u32, @ptrFromInt(@as(usize, psx.conv(u32, @as(c_int, 0x1F80037C) +% (4 *% target))))).*;
+        const slot0: u32 = @as(*align(1) const u32, @ptrFromInt(@as(usize, psx.conv(u32, @as(c_int, @bitCast(pad.guest(0x37C))) +% (4 *% target))))).*;
         if (slot0 != 0) {
             active = @as(c_int, @intFromBool((psx.conv(u8, psx.at(&s.tbl.t.targets.bits32, target).*) >> 6) == 2));
         }
@@ -60,7 +61,7 @@ pub fn func_800DA738(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
         }
         if (active != 0) {
             if (valid) {
-                const slotB_raw: u32 = @as(*align(1) const u32, @ptrFromInt(@as(usize, psx.conv(u32, @as(c_int, 0x1F80037C) +% (4 *% target))))).*;
+                const slotB_raw: u32 = @as(*align(1) const u32, @ptrFromInt(@as(usize, psx.conv(u32, @as(c_int, @bitCast(pad.guest(0x37C))) +% (4 *% target))))).*;
                 const slotB: *align(1) v.vs_battle_aiState = @ptrFromInt(@as(usize, slotB_raw));
                 if (psx.at(&slotB.tbl.t.distances, candidate).* <= 0x23FFF) {
                     s.movementTargetId = psx.conv(u8, target);

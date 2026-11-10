@@ -1,5 +1,6 @@
 //! Draws a text box's speech-bubble frame (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
@@ -10,7 +11,7 @@ const BubbleShadow = *const fn ([*c]c_uint, c_int, [*]const c_int) callconv(.c) 
 const BubbleFrame = *const fn (c_int, *const c_uint, *const [4]i16, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
 /// The bubble's projected points: 16-bit x, y pairs in the scratchpad, read back as words.
-const points: [*]c_int = @ptrFromInt(0x1F800088);
+const points: [*]c_int = @ptrCast(pad.ptr(c_int, 0x88));
 
 fn px(k: c_int) c_int {
     return @as(*const [2]i16, @ptrCast(psx.at(points, k))).*[0];
@@ -39,7 +40,7 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
     if (verts == null) {
         return;
     }
-    var out: [*]i16 = @ptrFromInt(0x1F800088);
+    var out: [*]i16 = @ptrFromInt(pad.addr(0x88));
     var flip: c_int = psx.getBits(&box.unk0, "unk0_6");
     const shape: [*]u8 = @ptrCast(verts.?);
     const tail: c_int = psx.getBits(&box.unk0, "unk0_12");

@@ -2,6 +2,7 @@
 //! the animation frame, applies the frame's root motion and bone poses
 //! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
@@ -37,7 +38,7 @@ fn poseAt(st: *v.D_800F4538_unkC54, off: c_int) [*c]c.SVECTOR {
 pub fn func_800AFA28(actor: ?*v.D_800F4538_t, state: ?*v.D_800F4538_unkC54, mode: c_int) callconv(.c) void {
     const a = actor.?;
     const st = state.?;
-    const scratch: *c.animationFrameScratch = @ptrFromInt(0x1F8003EC);
+    const scratch: *c.animationFrameScratch = @ptrFromInt(pad.addr(0x3EC));
 
     // The state word at unk548_0: bit 17 cleared here, set and cleared below.
     const flags = psx.fieldAt(c_uint, &st._bits_unk548_0, 0);

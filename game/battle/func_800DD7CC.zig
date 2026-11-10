@@ -1,5 +1,6 @@
 //! Finds the nearest enabled waypoint to a state's position and writes its cell to a destination (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
@@ -20,7 +21,7 @@ fn nearestWaypointValue(row: [*]u16, index: c_int) c_uint {
 /// Scans the eight waypoint slots and writes the cell of the nearest enabled one to destination.
 pub fn func_800DD7CC(state: ?*v.vs_battle_aiState, destination: ?*v.nearestWaypointDestination) callconv(.c) void {
     var closest: c_uint = 0xFFFF_FFFF;
-    const scratch: *c_int = @ptrFromInt(0x1F8003BC);
+    const scratch: *c_int = @ptrFromInt(pad.addr(0x3BC));
     var index: c_int = 0;
     const savedMap: c_int = scratch.*;
     scratch.* = @as(c_int, @bitCast(psx.addr(v.g.D_800F58D0().*)));

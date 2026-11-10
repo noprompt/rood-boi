@@ -7,10 +7,9 @@ const sprite_item = @import("common").sprite_item;
 
 const Site = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaque) callconv(.c) void;
 
-/// The scratchpad's packet cursor word as a guest pointer (PC_CLASSIC's first and end).
+/// The packet cursor (PC_CLASSIC's first and end).
 fn cursor() ?*anyopaque {
-    const word: *const u32 = @ptrFromInt(0x1F800000);
-    return @ptrFromInt(@as(usize, word.*));
+    return v.g.vs_scratch().unk0;
 }
 
 /// PC_CLASSIC_SITE_ABILITY_ICONS after a draw: the classic-site record of what it drew.

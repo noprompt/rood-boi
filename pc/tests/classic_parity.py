@@ -1064,7 +1064,7 @@ def run_new_game(out, env, check, waivers, kinds):
         # state parity (§3.4) from the mark
         symbols = rood_rpc.symbols()
         pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4
-        masks = [[0x1F800000, 4]]
+        masks = [[symbols["vs_scratch"], pointer]]
         for name, size in (("D_8005E0C0", 0x20000), ("D_80055C80", 0x822 * 4)):
             for i in range(2):
                 address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
@@ -4393,7 +4393,7 @@ def run_opening(out, env, check, waivers, kinds):
                   f"verified, {b1['mismatched'] - b0['mismatched']} mismatched")
         # state parity (§3.4) here: from one mark, rood.classic drawing, then the game
         pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4
-        masks = [[0x1F800000, 4]]
+        masks = [[symbols["vs_scratch"], pointer]]
         for name, size in (("D_8005E0C0", 0x20000), ("D_80055C80", 0x822 * 4)):
             for i in range(2):
                 address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")
@@ -4744,7 +4744,7 @@ def state_masks(g):
     clock, packet_masks'."""
     symbols = rood_rpc.symbols()
     pointer = 8 if pathlib.Path(rood_rpc.BINARY).read_bytes()[4] == 2 else 4  # (ELF class: the arrays' pointers)
-    masks = [[0x1F800000, 4]]  # vs_scratch.unk0, the packet pointer
+    masks = [[symbols["vs_scratch"], pointer]]  # vs_scratch.unk0, the packet pointer
     for name, size in (("D_8005E0C0", 0x20000), ("D_80055C80", 0x822 * 4)):  # the frame's two of each
         for i in range(2):
             address = int.from_bytes(g.read(symbols[name] + pointer * i, pointer), "little")

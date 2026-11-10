@@ -10,7 +10,7 @@ const AnchorPackets = *const fn (?*anyopaque, ?*anyopaque, c_int) callconv(.c) v
 /// orig: func_8008EC48 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws the scene: the background layout when one is loaded, else the flash quad when set, else the camera's view matrices.
 pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = v.g.vs_scratch();
 
     if (v.g.D_800F1DC9().* != 0 and v.g.D_800F1DCC().* != null) {
         const layout = v.g.D_800F1DCC().*.?;

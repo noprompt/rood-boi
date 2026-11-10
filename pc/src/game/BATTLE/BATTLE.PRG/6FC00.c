@@ -32,7 +32,7 @@ int func_800E4624(short*, short*, int, int);
 int func_800E44E8(SVECTOR*, SVECTOR*, int, int);
 int func_800E437C(SVECTOR*, SVECTOR*, int, u_int);
 
-#define RELATION_STATES(id) psx_slot_get(vs_battle_aiState*, 0x1F80037C, id)
+#define RELATION_STATES(id) psx_slot_get(vs_battle_aiState*, PC_PAD(0x37C), id)
 
 static inline int checkExtent(
     SVECTOR* from, SVECTOR* to, vs_battle_aiState* state, int id)

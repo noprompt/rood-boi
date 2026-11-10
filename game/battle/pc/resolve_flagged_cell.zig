@@ -2,9 +2,10 @@
 const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 
 fn scratch8(offset: c_int) *u8 {
-    return @ptrFromInt(@as(u32, @bitCast(0x1f800000 +% offset)));
+    return @ptrFromInt(pad.addr(@intCast(offset)));
 }
 
 /// orig: direction_dx (pc/src/battle_movement.c)

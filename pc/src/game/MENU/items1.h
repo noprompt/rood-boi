@@ -1192,11 +1192,11 @@ static int _sortItems(int initItemCategory)
  * leaves a line marker whose file name it would rewrite). Nothing in the PS1 build. */
 #define PC_DISCARD_COUNT_BEGIN(count)                                                            \
     pc_classic_discard_count pcDiscard = { (count), 66, 130 };                                   \
-    void* pcDiscardFirst = psx_load(void*, (u_int*)0x1F800000);
+    void* pcDiscardFirst = vs_scratch.unk0;
 #define PC_DISCARD_COUNT_END()                                                                   \
     if (pc_classic_site)                                                                         \
         pc_classic_site(PC_CLASSIC_SITE_DISCARD_COUNT, &pcDiscard, 0, 0, pcDiscardFirst,         \
-            psx_load(void*, (u_int*)0x1F800000));
+            vs_scratch.unk0);
 #else
 #define PC_DISCARD_COUNT_BEGIN(count)
 #define PC_DISCARD_COUNT_END()
@@ -1441,12 +1441,12 @@ static int _discardMenu(int params)
         PC_DISCARD_COUNT_BEGIN(discardCount)
         i = vs_battle_toBCD(discardCount);
         vs_battle_printVariableWidthFontChar(
-            i & 0xF, 66, 130, psx_get(vs_scratch.unk8) - 12);
+            i & 0xF, 66, 130, vs_scratch.unk8 - 12);
         i = vs_battle_toBCD(i >> 4);
         vs_battle_printVariableWidthFontChar(
-            i & 0xF, 60, 130, psx_get(vs_scratch.unk8) - 12);
+            i & 0xF, 60, 130, vs_scratch.unk8 - 12);
         vs_battle_printVariableWidthFontChar(
-            i >> 4, 54, 130, psx_get(vs_scratch.unk8) - 12);
+            i >> 4, 54, 130, vs_scratch.unk8 - 12);
         PC_DISCARD_COUNT_END()
 
         cursorBrightness = vs_mainMenu_renderCursor(

@@ -7,16 +7,15 @@ const v = @import("views_40564");
 const c = @import("c_40564");
 
 /// orig: vs_battlePacketBegin (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
-/// Reads the packet cursor from scratchpad slot 0 (a file-scope static inline).
+/// Reads the packet cursor from the cursor (a file-scope static inline).
 fn packetBegin() *v.DR_MOVE {
-    const p: u32 = @as(*const u32, @ptrFromInt(0x1F800000)).*;
-    return @ptrFromInt(@as(usize, p));
+    return @ptrCast(@alignCast(common.scratch.get().unk0));
 }
 
 /// orig: vs_battlePacketEnd (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
-/// Stores the packet cursor past `p` into scratchpad slot 0 (a file-scope static inline).
+/// Stores the packet cursor past `p` into the cursor (a file-scope static inline).
 fn packetEnd(p: *v.DR_MOVE) void {
-    @as(*u32, @ptrFromInt(0x1F800000)).* = psx.addr(psx.at(p, 1));
+    common.scratch.get().unk0 = psx.at(p, 1);
 }
 
 /// orig: func_800AB4F0 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)

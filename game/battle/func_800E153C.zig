@@ -1,5 +1,6 @@
 //! Steers a movement destination state toward its target cell, retrying nearby cells after repeated failures (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -42,7 +43,7 @@ pub fn func_800E153C(state: ?*v.vs_battle_aiState, _: c_int) callconv(.c) void {
         var i: c_int = 0;
         while (i < 4) : (i += 1) {
             const off: usize = @as(usize, @intCast(i)) * 2;
-            const entry: *v.D_800F16EC_t = @ptrFromInt(0x1F8003EC + off);
+            const entry: *v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC) + off);
             psx.setBits(&dest.p, "x", psx.conv(u8, @as(c_int, psx.getBits(&st.destination168.movementPosition.p, "x")) +% @as(c_int, psx.getBits(entry, "dx"))));
             psx.setBits(&dest.p, "z", psx.conv(u8, @as(c_int, psx.getBits(&st.destination168.movementPosition.p, "z")) +% @as(c_int, psx.getBits(entry, "dz"))));
             if (c.func_800D954C(@ptrCast(st), dest.raw) > 0) {

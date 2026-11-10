@@ -1,12 +1,13 @@
 //! Builds the curve vertices from the scratchpad basis and trig tables (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_573B8");
 
 /// orig: func_800C0758 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
 /// Writes segments + 1 curve vertices from `index` on, from the basis and trig tables in the scratchpad; returns the next index.
 pub fn func_800C0758(phase: c_int, segments: c_int, index: c_int) callconv(.c) c_int {
-    const trig: [*]i16 = @ptrFromInt(0x1F8003B0);
-    const basis: [*][4]i16 = @ptrFromInt(0x1F800398);
+    const trig: [*]i16 = @ptrFromInt(pad.addr(0x3B0));
+    const basis: [*][4]i16 = @ptrFromInt(pad.addr(0x398));
     var idx = index;
     // The C takes (char*)D_800EB9B8 + points + index * 8 with the int product wrapped first.
     const base = v.g.D_800EB9B8().*;

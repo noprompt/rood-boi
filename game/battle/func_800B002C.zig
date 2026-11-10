@@ -2,6 +2,7 @@
 //! position deltas, places it, and turns its head toward a target
 //! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
@@ -39,7 +40,7 @@ fn wrapClamp(angle0: c_int) c_int {
 /// orig: func_800B002C (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// Steps `actor`'s eased scale, rotation and movement (unless `arg1`), transforms it, and aims its head (scratch angles) at its look target.
 pub fn func_800B002C(actor: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
-    const scratch: *v.actorTransformScratch = @ptrFromInt(0x1F80035C);
+    const scratch: *v.actorTransformScratch = @ptrFromInt(pad.addr(0x35C));
     const a = actor.?;
     const body = &a.unk0;
 

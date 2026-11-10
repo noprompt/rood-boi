@@ -1,5 +1,6 @@
 //! The circular menu's vertex rings and their scratchpad basis (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
@@ -7,7 +8,7 @@ const c = @import("c_58578");
 /// orig: func_800C2368 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Writes four vertex rings of the circle from `index` into D_800EB9B8 and the basis in scratchpad, then returns the next index.
 pub fn func_800C2368(step: c_int, radius: c_int, index: c_int) callconv(.c) c_int {
-    const basis: [*]i16 = @ptrFromInt(0x1F800398);
+    const basis: [*]i16 = @ptrFromInt(pad.addr(0x398));
     var idx = index;
 
     // (char*)D_800EB9B8 + (index * 8 + points), with the original index.

@@ -112,7 +112,7 @@ static inline void vs_menu_sprite(int depth, int mode, int semi, int raw, unsign
 }
 
 /* The slot a packet linked at `ot` is, as a depth: words from vs_scratch.unk4. */
-static inline int vs_menu_depth(const void* ot) { return (int)((const unsigned*)ot - (const unsigned*)psx_get(vs_scratch.unk4)); }
+static inline int vs_menu_depth(const void* ot) { return (int)((const unsigned*)ot - (const unsigned*)vs_scratch.unk4); }
 
 /* A shaded line between two points, drawn in `mode`, with the E1 word `after` left as the draw mode (0: it is left as it was). */
 static inline void vs_menu_line_g(int depth, int mode, int after, int semi, unsigned c0, unsigned xy0, unsigned c1, unsigned xy1)

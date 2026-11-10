@@ -732,7 +732,7 @@ static void _renderStatBar(int colorIndex, int current, int max, int xy)
     current <<= 6;
 
     vs_battle_renderStatBar(colorIndex & 0xFF, ((current + max) - 1) / max,
-        psx_get(vs_scratch.unk4) - 0xC, xy);
+        vs_scratch.unk4 - 0xC, xy);
 }
 
 /**
@@ -743,7 +743,7 @@ static void _renderBasicStats(void)
     int i;
     int y;
     vs_battle_actor2* actor = vs_battle_actors[_selectedActor - 1]->unk3C;
-    u_long* insertBefore = psx_get(vs_scratch.unk4) - 0xC;
+    u_long* insertBefore = vs_scratch.unk4 - 0xC;
 
     switch (_renderBasicStatsState) {
     case 0:
@@ -907,12 +907,12 @@ static void _renderStatusIcons(vs_battle_actor2* actor, int animationStep)
 
             if (i >= new_var) {
                 // Element indicator
-                vs_battle_spriteItem(psx_get(vs_scratch.unk4) - 8, 128, ((x + 8) & 0xFFFF) | y, vs_getWH(8, 8),
+                vs_battle_spriteItem(vs_scratch.unk4 - 8, 128, ((x + 8) & 0xFFFF) | y, vs_getWH(8, 8),
                     VS_SPRITE_PAGE, ((((i & 3) * 8) + 0x3068) | (getClut(1008, 223) << 16)));
             }
 
             // 0x0F0F906A = Flags for toggling the icon palette
-            vs_battle_spriteItem(psx_get(vs_scratch.unk4) - 8, 128, (x & 0xFFFF) | y, vs_getWH(16, 16), VS_SPRITE_PAGE,
+            vs_battle_spriteItem(vs_scratch.unk4 - 8, 128, (x & 0xFFFF) | y, vs_getWH(16, 16), VS_SPRITE_PAGE,
                 (vs_battle_statusIconTexOffsets[i]
                     | (((0x0F0F906A >> i) & 1) ? (getClut(912, 223) << 16) : (getClut(896, 223) << 16))));
             // 0x37F90000 : 0x37F80000
@@ -2050,8 +2050,8 @@ static int _equipmentScreen(int element)
 static void _fadeScreenLeft(void)
 {
     int uv1Tpage;
-    u_long* prim = psx_get(vs_scratch.unk0);
-    u_long* temp_t1 = psx_get(vs_scratch.unk4);
+    u_long* prim = vs_scratch.unk0;
+    u_long* temp_t1 = vs_scratch.unk4;
 
     if (_fadeScreen == 0) {
         return;
@@ -2081,7 +2081,7 @@ static void _fadeScreenLeft(void)
 
     temp_t1[-1] = ((psx_to_int(u_long, prim) << 8) >> 8);
 
-    psx_set(vs_scratch.unk0, prim + 14);
+    vs_scratch.unk0 = prim + 14;
 }
 
 /**
@@ -2091,8 +2091,8 @@ static void _drawMenuBackground(void)
 {
     int uv1Tpage;
 
-    u_long* prim = psx_get(vs_scratch.unk0);
-    void* temp_a0 = psx_get(vs_scratch.unk4);
+    u_long* prim = vs_scratch.unk0;
+    void* temp_a0 = vs_scratch.unk4;
     u_int* var_t9 = temp_a0 + 0x1FF4;
 
     if (_drawBackgroundFirst != 0) {
@@ -2150,7 +2150,7 @@ static void _drawMenuBackground(void)
     prim[13] = vs_getUV(160, 240);
     *var_t9 = (psx_to_int(u_long, prim) << 8) >> 8;
 
-    psx_set(vs_scratch.unk0, prim + 14);
+    vs_scratch.unk0 = prim + 14;
 }
 
 /**

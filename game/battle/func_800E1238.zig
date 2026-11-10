@@ -1,5 +1,6 @@
 //! Steers a battle actor by the scratchpad mode: sets its facing vector and starts its move (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -25,13 +26,13 @@ pub fn func_800E1238(arg0: ?*v.vs_battle_aiState, arg1: c_int) callconv(.c) void
     self.flags4.b[3] = 1;
     c.func_800E3600(@ptrCast(self), value, 3);
 
-    if (@as(*const c_int, @ptrFromInt(0x1F8003C8)).* != 5 and @as(*const c_int, @ptrFromInt(0x1F8003C8)).* != 7) {
+    if (@as(*const c_int, @ptrFromInt(pad.addr(0x3C8))).* != 5 and @as(*const c_int, @ptrFromInt(pad.addr(0x3C8))).* != 7) {
         c.func_800E678C(@ptrCast(self));
         c.func_800E2CCC(@ptrCast(self));
         return;
     }
 
-    if (@as(*const c_int, @ptrFromInt(0x1F8003C8)).* == 5) {
+    if (@as(*const c_int, @ptrFromInt(pad.addr(0x3C8))).* == 5) {
         value = @as(c_int, self.heading) *% 512;
     }
 

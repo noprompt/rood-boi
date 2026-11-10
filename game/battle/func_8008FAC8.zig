@@ -11,7 +11,7 @@ fn xy(x: c_int, y: c_int) c_int {
 /// orig: func_8008FAC8 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Projects every live particle, builds its quad from two projected points and links it into the ordering table.
 pub fn func_8008FAC8() callconv(.c) void {
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = v.g.vs_scratch();
     c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
     c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
     const base: ?*v.D_800F1DD4_t = v.g.D_800F1DD4().*;

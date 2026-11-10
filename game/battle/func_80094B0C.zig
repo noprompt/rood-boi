@@ -1,5 +1,6 @@
 //! Floating number digits: bouncing textured quads (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 const sprite_item = @import("common").sprite_item;
@@ -56,7 +57,7 @@ pub fn func_80094B0C(x_in: c_int, y_in: c_int, p: ?*v.D_800F1BAC_t) callconv(.c)
     x = x +% (i -% 6);
 
     const ci: usize = @intCast(color);
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = common.scratch.get();
     // The slot 20 bytes before the table the scratchpad names.
     const ot: ?*anyopaque = @ptrFromInt(@as(usize, psx.addr(psx.get(scratch.unk4).?) -% 20));
 

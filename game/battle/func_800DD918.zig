@@ -1,6 +1,7 @@
 //! Chooses each enabled action slot's best target and writes the candidate list
 //! (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_74088");
 const c = @import("c_74088");
 
@@ -16,7 +17,7 @@ fn actorLimb(stats: *v.vs_battle_actor2, limb: c_int) *align(1) v.vs_battle_uiEq
 /// Scores every enabled action slot against every living actor and keeps the best candidate in the state.
 pub fn func_800DD918(state: ?*v.vs_battle_aiState, threshold: c_int) callconv(.c) void {
     const st = state.?;
-    const list: *[4]v.actionCandidateEntry = @ptrFromInt(0x1F80030C);
+    const list: *[4]v.actionCandidateEntry = @ptrFromInt(pad.addr(0x30C));
 
     c.func_800E4288(@ptrCast(list), @sizeOf(v.actionCandidateEntry));
     list[0].distanceSquared = 256;

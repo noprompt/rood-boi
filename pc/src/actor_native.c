@@ -783,9 +783,9 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
 void pc_object_native_draw(int kind, const void* projected, const void* object, const void* model,
     const void* color, unsigned* start)
 {
-    unsigned* end = psx_load(unsigned*, (uintptr_t)0x1f800000);
+    unsigned* end = PC_PACKET_CURSOR;
     uint32_t list = 0;
-    unsigned texture = *(const unsigned*)(uintptr_t)0x1f800390;
+    unsigned texture = *(const unsigned*)PC_PAD(0x390);
     if (kind < KIND_FLAT || kind > KIND_COLORED_GROUPS)
         kind = KIND_FLAT;
     if (&pc_photo_hide_actors && pc_photo_hide_actors && pc_dev_actor_of && pc_hw_active) {
@@ -799,7 +799,7 @@ void pc_object_native_draw(int kind, const void* projected, const void* object, 
     if (pc_native_actors && pc_hw_active && object == last_object && model == last_model && last_matrices) {
         const unsigned* xy = projected;
         const unsigned* depths = (const unsigned*)((const char*)projected + 0xc00);
-        unsigned* ot = psx_load(unsigned*, (uintptr_t)0x1f800004);
+        unsigned* ot = PC_OT_BASE;
         /* func_800B4594 takes no colour (per-vertex records). */
         unsigned rgb = color && kind != KIND_COLORED ? *(const unsigned*)color & 0xffffff : 0x808080;
         list = submit(kind, object, model, rgb, texture, xy, depths, ot);
@@ -837,7 +837,7 @@ void pc_object_native_draw(int kind, const void* projected, const void* object, 
             if (bucket > 0x7bf)
                 bucket = 0x7bf;
             end = render_list_link(list, ot + bucket, end);
-            psx_store((uintptr_t)0x1f800000, end);
+            PC_PACKET_CURSOR = end;
         }
     }
     if (pc_hw_object_packets)

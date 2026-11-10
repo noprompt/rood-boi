@@ -1228,7 +1228,7 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
     int j;
     int const* new_var;
 
-    short (*var_s1)[4] = (void*)getScratchAddr(64);
+    short (*var_s1)[4] = (void*)PC_PAD(0x100);
     int elementCount = *(int*)roomData;
 #ifdef ROOD_PC
     int pc_vertex_count = elementCount;
@@ -1509,7 +1509,7 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
                         ((var_s1[var_s3[0]][0] - 8) & 0xFFFF)
                             | ((var_s1[var_s3[0]][1] << 16) + 0xFFF80000),
                         *((_menuFramesCounter & 0xF) + (new_var = _ashleyIconBrightness)),
-                        psx_slot_get(void*, getScratchAddr(0), 1) + 32);
+                        vs_scratch.unk4 + 32);
                     break;
 
                 case 1:
@@ -1982,119 +1982,112 @@ static void _drawUIControls(void)
 
     if (vs_main_stateFlags.mapPaling[_currentScene] == 0) {
         int index = uiXOffset;
-        void** s1 = (void**)0x1F800000;
 
         vs_mainmenu_renderButton(
-            buttonIdL1, index + 8, 15, psx_slot_get(void*, s1, 1) + 24);
+            buttonIdL1, index + 8, 15, vs_scratch.unk4 + 24);
         vs_mainmenu_renderButton(
-            buttonIdR1, uiXOffset + 64, 15, psx_slot_get(void*, s1, 1) + 24);
+            buttonIdR1, uiXOffset + 64, 15, vs_scratch.unk4 + 24);
         vs_mainmenu_renderButton(
-            buttonIdL2, uiXOffset + 8, 33, psx_slot_get(void*, s1, 1) + 24);
+            buttonIdL2, uiXOffset + 8, 33, vs_scratch.unk4 + 24);
         vs_mainmenu_renderButton(
-            buttonIdR2, uiXOffset + 8, 52, psx_slot_get(void*, s1, 1) + 24);
+            buttonIdR2, uiXOffset + 8, 52, vs_scratch.unk4 + 24);
         vs_mainmenu_renderButton(
-            buttonIdCircle, uiXOffset + 8, 70, psx_slot_get(void*, s1, 1) + 24);
+            buttonIdCircle, uiXOffset + 8, 70, vs_scratch.unk4 + 24);
 
         switch (_menuCommandsState) {
         case 0: {
             int v = ((uiXOffset + 28) & 0xFFFF) | 0x120000;
-            void** s0 = (void**)0x1F800000;
 
             vs_battle_renderTextRawColor(
-                "BACK", v, vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                "BACK", v, vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("NEXT", vs_getXY(uiXOffset + 84, 18),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ROTATION", vs_getXY(uiXOffset + 28, 36),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ZOOM", vs_getXY(uiXOffset + 28, 54),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("MENU", vs_getXY(uiXOffset + 28, 72),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             break;
         }
 
         case 1: {
             int v = ((uiXOffset + 28) & 0xFFFF) | 0x120000;
-            void** s0 = (void**)0x1F800000;
 
             vs_battle_renderTextRawColor(
-                "BACK", v, vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                "BACK", v, vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("NEXT", vs_getXY(uiXOffset + 84, 18),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ROTATION", vs_getXY(uiXOffset + 28, 36),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ZOOM", vs_getXY(uiXOffset + 28, 54),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("MENU", vs_getXY(uiXOffset + 28, 72),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             break;
         }
 
         case 2: {
             int v = ((uiXOffset + 28) & 0xFFFF) | 0x120000;
-            void** s0 = (void**)0x1F800000;
 
             vs_battle_renderTextRawColor(
-                "BACK", v, vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                "BACK", v, vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("NEXT", vs_getXY(uiXOffset + 84, 18),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ROTATION", vs_getXY(uiXOffset + 28, 36),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ZOOM", vs_getXY(uiXOffset + 28, 54),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("MENU", vs_getXY(uiXOffset + 28, 72),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             break;
         }
 
         case 3: {
             int v = ((uiXOffset + 28) & 0xFFFF) | 0x120000;
-            void** s0 = (void**)0x1F800000;
 
             vs_battle_renderTextRawColor(
-                "BACK", v, vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                "BACK", v, vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("NEXT", vs_getXY(uiXOffset + 84, 18),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ROTATION", vs_getXY(uiXOffset + 28, 36),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ZOOM", vs_getXY(uiXOffset + 28, 54),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("MENU", vs_getXY(uiXOffset + 28, 72),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             break;
         }
 
         case 4: {
             int v = ((uiXOffset + 28) & 0xFFFF) | 0x120000;
-            void** s0 = (void**)0x1F800000;
 
             vs_battle_renderTextRawColor(
-                "BACK", v, vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                "BACK", v, vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("NEXT", vs_getXY(uiXOffset + 84, 18),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ROTATION", vs_getXY(uiXOffset + 28, 36),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ZOOM", vs_getXY(uiXOffset + 28, 54),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("MENU", vs_getXY(uiXOffset + 28, 72),
-                vs_getRGB888(128, 128, 128), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
             break;
         }
 
         case 5: {
             int v = ((uiXOffset + 28) & 0xFFFF) | 0x120000;
-            void** s0 = (void**)0x1F800000;
 
             vs_battle_renderTextRawColor(
-                "BACK", v, vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                "BACK", v, vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("NEXT", vs_getXY(uiXOffset + 84, 18),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ROTATION", vs_getXY(uiXOffset + 28, 36),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("ZOOM", vs_getXY(uiXOffset + 28, 54),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             vs_battle_renderTextRawColor("MENU", vs_getXY(uiXOffset + 28, 72),
-                vs_getRGB888(32, 32, 32), psx_slot_get(void*, s0, 1) + 24);
+                vs_getRGB888(32, 32, 32), vs_scratch.unk4 + 24);
             break;
         }
         }
@@ -2108,7 +2101,7 @@ static void _drawUIControls(void)
 
     } else {
         vs_battle_renderTextRawColor("JAMMING", vs_getXY(uiXOffset + 28, 18),
-            vs_getRGB888(128, 128, 128), psx_slot_get(void*, 0x1F800004, 0) + 24);
+            vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 24);
     }
 }
 

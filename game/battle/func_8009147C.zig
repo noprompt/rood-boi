@@ -8,7 +8,7 @@ const c = @import("c_2842C");
 /// orig: func_8009147C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Rotates the sky tile grid by the camera yaw, emits each visible tile as a GT4 primitive, then the backdrop as a TILE.
 pub fn func_8009147C(arg0: ?*v.vs_battle_backgroundLayout, scrollX: c_int, scrollY: c_int, tpage: c_int) callconv(.c) void {
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = common.scratch.get();
     var buffer: [*]u8 = @ptrCast(psx.get(scratch.unk0).?);
     const cosStep: c_int = c.rcos(v.g.vs_view().camera.angles.vz) *% 32;
     const sinStep: c_int = c.rsin(v.g.vs_view().camera.angles.vz) *% 32;

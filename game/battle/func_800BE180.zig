@@ -1,6 +1,7 @@
 //! Builds the camera shake vectors from the two shake entries and publishes
 //! the result in the camera block (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -8,7 +9,7 @@ const c = @import("c_4A0A8");
 /// orig: func_800BE180 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Sums the active camera shake entries into the scratchpad vectors and publishes the result in the camera block.
 pub fn func_800BE180() callconv(.c) void {
-    const shake: *v.cameraShakeScratch = @ptrFromInt(0x1F800088);
+    const shake: *v.cameraShakeScratch = @ptrFromInt(pad.addr(0x88));
     shake.b.vz = 0;
     shake.b.vy = 0;
     shake.b.vx = 0;
@@ -52,8 +53,8 @@ pub fn func_800BE180() callconv(.c) void {
 
     base.unk1A4.unk0.s16 = count;
     if (count != 0) {
-        const a: *v.SVECTOR = @ptrFromInt(0x1F8000D8);
-        const b: *v.SVECTOR = @ptrFromInt(0x1F8000E0);
+        const a: *v.SVECTOR = @ptrFromInt(pad.addr(0xD8));
+        const b: *v.SVECTOR = @ptrFromInt(pad.addr(0xE0));
         base.unk1BE = a.vx;
         base.unk1C0 = a.vy;
         base.unk1C2 = a.vz;

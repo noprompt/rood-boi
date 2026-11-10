@@ -35,8 +35,8 @@ int func_80099514(unsigned x, unsigned z, unsigned layer);
 
 /* The sprite entry points of 573B8.c are items (game/spriteItem.h). */
 /* The packet cursor, and the table's default slot, as the items' markers use them. */
-static unsigned* cursor_get(void) { return psx_get(vs_scratch.unk0); }
-static void cursor_set(unsigned* cursor) { psx_set(vs_scratch.unk0, cursor); }
+static unsigned* cursor_get(void) { return vs_scratch.unk0; }
+static void cursor_set(unsigned* cursor) { vs_scratch.unk0 = cursor; }
 
 /* The sprite as an item (game/spriteItem.h): the packet's fields, the marker where it linked. */
 int vs_battle_spriteItem(unsigned* ot, int brightness, int xy, int wh, int mode, int uv_clut)
@@ -47,7 +47,7 @@ int vs_battle_spriteItem(unsigned* ot, int brightness, int xy, int wh, int mode,
     pc_frame_sprite(0, (short)xy, (short)(xy >> 16), (short)wh, (short)(wh >> 16), uv_clut & 255, uv_clut >> 8 & 255,
         (int)(grey * 0x010101u), uv_clut >> 16 & 0xffff, mode ? mode & 0x3fff : PC_ITEM_INHERIT,
         (brightness >> 7) & 2 ? PC_ITEM_SEMI : 0);
-    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot ? ot : psx_get(vs_scratch.unk8), cursor));
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot ? ot : vs_scratch.unk8, cursor));
     return first;
 }
 /* vs_battle_addTile as an item: a flat tile (code 0x60, 0x62: wh its size) or a flat line (0x40, 0x42: wh its end), placed

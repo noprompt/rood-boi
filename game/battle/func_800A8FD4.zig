@@ -1,6 +1,7 @@
 //! Whether an actor's move is blocked by another actor near its path, with the
 //! per-slot exclusion flags kept in the scratchpad (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_40564");
 
@@ -9,7 +10,7 @@ const v = @import("views_40564");
 pub fn func_800A8FD4(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR) callconv(.c) c_int {
     const a = actor.?;
     // scratchpad exclusion bytes: one `excluded` byte per slot i at 0x1F8003BC + i + 4
-    const scratch: usize = 0x1F8003BC;
+    const scratch: usize = pad.addr(0x3BC);
 
     var k: c_int = 16;
     var clear: usize = scratch + 16;

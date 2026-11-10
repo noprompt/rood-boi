@@ -18,8 +18,8 @@ pub fn func_800957D0(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     const x: c_int = arg0 -% 8;
     // arg2 <<= 4 wraps as a 32-bit shift.
     const tex: c_int = @bitCast(@as(c_uint, @bitCast(arg2)) << 4);
-    // The slot 20 bytes before the table the scratchpad names (its word at +4).
-    const ot: ?*anyopaque = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F800004)).*) -% 20);
+    // The slot 20 bytes before the table the scratchpad names (its base).
+    const ot: ?*anyopaque = @ptrFromInt(@intFromPtr(common.scratch.get().unk4) -% 20);
 
     // A raw-textured quad (the shade bit set on it: setShadeTex(prim, 1)).
     _ = sprite_item.ft4(ot, true, false, 0x17, 0x373E, 0,

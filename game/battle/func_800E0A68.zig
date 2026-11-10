@@ -2,6 +2,7 @@
 //! onto ledges, settles on the destination, and arcs over obstacles
 //! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -12,7 +13,7 @@ fn abs(x: c_int) c_int {
 
 /// The collision grid's tile (scratchpad 0x1F8003C0, rows of 32).
 fn gridTile(z: c_int, x: c_int) u16 {
-    const rows: [*][32]u16 = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F8003C0)).*));
+    const rows: [*][32]u16 = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(pad.addr(0x3C0))).*));
     return psx.at(psx.at(rows, z), x).*;
 }
 
@@ -127,7 +128,7 @@ pub fn func_800E0A68(state: ?*v.vs_battle_aiState, action: c_int) callconv(.c) v
         return;
     }
     c.func_800E3600(@ptrCast(s), angle, 2);
-    switch (@as(*const c_int, @ptrFromInt(0x1F8003C8)).*) {
+    switch (@as(*const c_int, @ptrFromInt(pad.addr(0x3C8))).*) {
         5 => {
             angle = @as(c_int, s.heading) *% (4096 / 8);
             if (c.func_800E0850(@ptrCast(s), @bitCast(angle)) +% s.heightBE < s.position.step.p.y) {

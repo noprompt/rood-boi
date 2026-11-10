@@ -83,7 +83,7 @@ void _renderScrollableMenuItem(vs_battle_menuItem_t* menuItem)
     }
 
     xy = *(int*)&menuItem->x;
-    before = psx_get(vs_scratch.unk8) + 8;
+    before = vs_scratch.unk8 + 8;
     w = menuItem->w;
     animState = menuItem->gradientState;
     isScrollable = menuItem->isScrollable - 1;
@@ -130,7 +130,7 @@ void _renderScrollableMenuItem(vs_battle_menuItem_t* menuItem)
         return;
     }
 
-    prim = psx_get(vs_scratch.unk0);
+    prim = vs_scratch.unk0;
 
     for (i = 0, s5 = 0; i < 12; s5 += 8, ++i) {
         if (isScrollable == 0) {
@@ -154,7 +154,7 @@ void _renderScrollableMenuItem(vs_battle_menuItem_t* menuItem)
         xy += vs_getXY(0, 1);
     }
 
-    psx_set(vs_scratch.unk0, prim);
+    vs_scratch.unk0 = prim;
 
     if (isScrollable == 0) {
         vs_battle_addTile(before, vs_getRGB0(primTile, 0, 0, 0),
@@ -1623,7 +1623,6 @@ void _renderTopMenu(int animStep)
     vs_battle_geomOffset sp20;
     char sp28[128];
     MATRIX spA8;
-    void** scratch;
 
     if (animStep < 8) {
         _renderScreenEdgeFade();
@@ -1641,17 +1640,16 @@ void _renderTopMenu(int animStep)
 
     sprintf(sp28, "#%ld", _score);
 
-    scratch = (void**)getScratchAddr(0);
 
     vs_battle_renderTextRawColor("SCORE", (((animStep * 16) - 120) & 0xFFFF) | (16 << 16),
-        vs_getRGB888(128, 128, 128), psx_slot_get(void*, scratch, 1) + 0x1C);
+        vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 0x1C);
     vs_battle_renderTextRawColor(sp28, ((animStep * 16) & 0xFFFF) | (16 << 16),
-        vs_getRGB888(128, 128, 128), psx_slot_get(void*, scratch, 1) + 0x1C);
+        vs_getRGB888(128, 128, 128), vs_scratch.unk4 + 0x1C);
 
     _renderGradientQuad((animStep * 16) - 128, 16, 136, 12, 2);
     vs_battle_renderTextRawColor("RISK   BREAKER   RANK",
         (((animStep * 16) - 120) & 0xFFFF) | (184 << 16), vs_getRGB888(128, 128, 128),
-        psx_slot_get(void*, scratch, 1) + 0x1C);
+        vs_scratch.unk4 + 0x1C);
 
     _renderGradientQuad((animStep * 16) - 128, 184, 136, 12, 1);
     _renderFooterBg(236 - (animStep * 6));
@@ -2000,7 +1998,6 @@ void _renderEnemyDetailScreen(int animState, int state)
     int temp_s2;
     int temp_s4;
     int temp_s6;
-    void** scratch;
 
     if (animState < 8) {
         _renderScreenEdgeFade();
@@ -2036,27 +2033,26 @@ void _renderEnemyDetailScreen(int animState, int state)
         vs_battle_getMenuItem(0)->state = 0;
 
         temp_s4 = animState * 16;
-        scratch = (void**)getScratchAddr(0);
 
         vs_mainmenu_renderButton(
-            buttonIdL2, temp_s4 - 120, 15, psx_slot_get(void*, scratch, 1) + 24);
+            buttonIdL2, temp_s4 - 120, 15, vs_scratch.unk4 + 24);
 
         temp_s0 = (temp_s4 - 100) & 0xFFFF;
 
         vs_battle_renderTextRawColor("ROTATION", temp_s0 | (18 << 16), _rotationColor,
-            psx_slot_get(void*, scratch, 1) + 24);
+            vs_scratch.unk4 + 24);
 
         temp_s6 = temp_s4 - 112;
 
         _renderEnemyInfoBg(temp_s6, 18, 96, 12, 3);
         vs_mainmenu_renderButton(
-            buttonIdR2, temp_s4 - 120, 34, psx_slot_get(void*, scratch, 1) + 24);
+            buttonIdR2, temp_s4 - 120, 34, vs_scratch.unk4 + 24);
         vs_battle_renderTextRawColor("ZOOM", temp_s0 | (36 << 16), _zoomColor,
-            psx_slot_get(void*, scratch, 1) + 24);
+            vs_scratch.unk4 + 24);
         _renderEnemyInfoBg(temp_s6, 36, 78, 12, 3);
         sprintf(sp60, "NO.   %03d/%03d", _selectedEnemy + 1, 78);
         vs_battle_renderTextRawColor(sp60, ((temp_s4 - 120) & 0xFFFF) | 0xA00000,
-            0x808080, psx_slot_get(void*, scratch, 1) + 0x1C);
+            0x808080, vs_scratch.unk4 + 0x1C);
         _renderGradientQuad(temp_s4 - 128, 160, 100, 12, 2);
         vs_battle_renderTextRawColor(enemyClassName[_monBinData[_selectedEnemy].classId],
             ((temp_s2 + 188) & 0xFFFF) | 0x9B0000, 0x808080, NULL);
@@ -2431,9 +2427,6 @@ void _renderBossRushRecords(int selected)
     int var_s7;
     int time;
     vs_battle_menuItem_t* menuItem;
-    void** p;
-    void** r;
-    void** q;
 
     var_s1 = _gazetteRows;
     var_s7 = 0;
@@ -2483,16 +2476,15 @@ void _renderBossRushRecords(int selected)
         }
     }
 
-    p = ((void**)0x1F800000);
     vs_battle_renderTextRawColor("PLAYER TIME", vs_getXY((selected * 0x10) - 0x78, 0x20),
-        0x808080, psx_slot_get(void*, p, 1) + 0x1C);
+        0x808080, vs_scratch.unk4 + 0x1C);
     _renderGradientQuad((selected * 0x10) - 0x80, 0x20, 0x60, 0xC, 1);
     vs_battle_renderTextRawColor("1ST", vs_getXY((selected * 0x10) - 0x68, 0x32),
-        0x808080, psx_slot_get(void*, p, 1) + 0x1C);
+        0x808080, vs_scratch.unk4 + 0x1C);
     vs_battle_renderTextRawColor("2ND", vs_getXY((selected * 0x10) - 0x68, 0x50),
-        0x808080, psx_slot_get(void*, p, 1) + 0x1C);
+        0x808080, vs_scratch.unk4 + 0x1C);
     vs_battle_renderTextRawColor("3RD", vs_getXY((selected * 0x10) - 0x68, 0x6E),
-        0x808080, psx_slot_get(void*, p, 1) + 0x1C);
+        0x808080, vs_scratch.unk4 + 0x1C);
 
     for (j = 0; j < 3; ++j) {
 
@@ -2501,37 +2493,34 @@ void _renderBossRushRecords(int selected)
         if (time != 0x800000) {
             sprintf(
                 sp28, "$%02d:%02d:%02d", time >> 0x10, (time >> 8) & 0xFF, time & 0xFF);
-            q = ((void**)0x1F800000);
             vs_battle_renderTextRawColor(sp28,
                 vs_getXY_2((selected * 16) - 40, 50 + j * 30), vs_getRGB(128, 128, 128),
-                psx_slot_get(void*, q, 1) + 0x1C);
+                vs_scratch.unk4 + 0x1C);
             sprintf(sp28, "ROUND    %d",
                 vs_main_scoredata.bossTimeTrialScores[sp38][j].round + 1);
             vs_battle_renderTextRawColor(sp28,
                 vs_getXY_2((selected * 16) - 60, 62 + j * 30), vs_getRGB(128, 128, 128),
-                psx_slot_get(void*, q, 1) + 0x1C);
+                vs_scratch.unk4 + 0x1C);
         } else {
-            q = ((void**)0x1F800000);
             vs_battle_renderTextRawColor("$--:--:--",
                 vs_getXY_2((selected * 16) - 40, 50 + j * 30), vs_getRGB(80, 80, 80),
-                psx_slot_get(void*, q, 1) + 0x1C);
+                vs_scratch.unk4 + 0x1C);
         }
     }
 
     _renderGradientQuad((selected * 0x10) - 0x70, 0x32, 0x80, 0x54, 2);
-    r = ((void**)0x1F800000);
     vs_battle_renderTextRawColor("REFERENCE TIME", vs_getXY(selected * 16 - 0x78, 0x8C),
-        vs_getRGB(128, 128, 128), psx_slot_get(void*, r, 1) + 0x1C);
+        vs_getRGB(128, 128, 128), vs_scratch.unk4 + 0x1C);
     _renderGradientQuad((selected * 0x10) - 0x80, 0x8C, 0x70, 0xC, 1);
 
     if ((var_s7 == 8) && (selected == var_s7)) {
         if (sp3C->disabled != 0) {
             vs_battle_renderTextRawColor("$--:--:--", vs_getXY(88, 158),
-                vs_getRGB(80, 80, 80), psx_slot_get(void*, r, 1) + 0x1C);
+                vs_getRGB(80, 80, 80), vs_scratch.unk4 + 0x1C);
         } else {
             vs_battle_renderTextRawColor(_timeAttackReferenceTimes[sp38],
                 vs_getXY(88, 158), vs_getRGB(128, 128, 128),
-                psx_slot_get(void*, r, 1) + 0x1C);
+                vs_scratch.unk4 + 0x1C);
         }
     }
     _renderGradientQuad((selected * 0x10) - 0x70, 0x9E, 0x80, 0xC, 2);
@@ -2694,7 +2683,6 @@ void _renderEnemyNavigation(int direction)
     int x;
     int clut;
     POLY_FT4* poly;
-    void** scratch;
     int new_var;
 
     if (_hideUi == 0) {

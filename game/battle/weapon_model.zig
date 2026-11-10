@@ -1,6 +1,7 @@
 //! Weapon model transform: the weapon's bone matrices and its drawing
 //! (pc/src/game/BATTLE/BATTLE.PRG/49268.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_49268");
 const c = @import("c_49268");
 
@@ -15,11 +16,11 @@ fn matrixAt(base: anytype, off: isize) [*c]c.MATRIX {
 /// Steps a weapon's scale, rebuilds its bone matrices from its source matrix, and draws it on its actor's pass.
 pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) callconv(.c) void {
     const w = weapon.?;
-    const scratch: *v.weaponTransformScratch = @ptrFromInt(0x1F80035C);
+    const scratch: *v.weaponTransformScratch = @ptrFromInt(pad.addr(0x35C));
     const actor = v.g.D_800F4538()[psx.getBits(w, "actorId")];
 
     psx.put(&scratch.model, psx.get(w.offsets));
-    @as(*v.MATRIX, @ptrFromInt(0x1F8003C0)).* = source.?.*;
+    @as(*v.MATRIX, @ptrFromInt(pad.addr(0x3C0))).* = source.?.*;
 
     if (w.unk13 != 0) {
         const target: c_int = w.unk12;

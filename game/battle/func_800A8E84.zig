@@ -1,12 +1,13 @@
 //! Tells whether an actor may stand at a position: no other live, unexcluded actor's footprint covers it (pc/src/game/BATTLE/BATTLE.PRG/40564.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_40564");
 
 /// orig: func_800A8E84 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Returns 0 when another live, unexcluded actor's box around its position covers `position`, else 1.
 pub fn func_800A8E84(actor: ?*v.D_800F4538_t, position: ?*v.SVECTOR) callconv(.c) c_int {
-    const scratch: *v.actorCollisionExclusion = @ptrFromInt(0x1F8003BC);
+    const scratch: *v.actorCollisionExclusion = @ptrFromInt(pad.addr(0x3BC));
     const a = actor.?;
     if (a.unk0.unkF == 0) {
         if ((psx.fieldAt(c_uint, &a._bits_unk5AC_0, 0).* & 0x800) != 0) return 1;

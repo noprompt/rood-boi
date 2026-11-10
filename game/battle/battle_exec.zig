@@ -9,10 +9,9 @@ const Site = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaq
 const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
 const StickMenu = *const fn (?*anyopaque, c_int, c_int, c_int) callconv(.c) c_int;
 
-/// The scratchpad's packet cursor word as a guest pointer (PC_CLASSIC's first and end).
+/// The packet cursor (PC_CLASSIC's first and end).
 fn cursor() ?*anyopaque {
-    const word: *const u32 = @ptrFromInt(0x1F800000);
-    return @ptrFromInt(@as(usize, word.*));
+    return v.g.vs_scratch().unk0;
 }
 
 /// The playable character's stats record (`psx_get(vs_battle_characterState->unk3C)`).

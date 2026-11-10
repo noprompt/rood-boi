@@ -1,6 +1,7 @@
 //! Steps a timed interpolation and writes its scale into scratchpad 0x1F800088
 //! and its offset into the record (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -17,7 +18,7 @@ pub fn func_800BE01C(arg0: ?*v.func_800BDF6C_t) callconv(.c) c_int {
 
     if (e.unk9 < e.unk8) e.unk8 = e.unk9;
 
-    const scratch: *c_int = @ptrFromInt(0x1F800088);
+    const scratch: *c_int = @ptrFromInt(pad.addr(0x88));
     const unk8: c_int = e.unk8;
     const unk9: c_int = e.unk9;
 

@@ -1,6 +1,7 @@
 //! Candidate movement choice for one target: whether the actor moves toward it
 //! (pc/src/game/BATTLE/BATTLE.PRG/71618.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_71618");
 const c = @import("c_71618");
@@ -25,7 +26,7 @@ pub fn func_800D9E18(state: ?*v.vs_battle_aiState, entry: ?*v.actionCandidateEnt
     id = @as(c_int, psx.getBits(ent, "targetId"));
     if (id == 16) return 0;
     // Scratchpad slot table at 0x1F80037C, one u32 per target.
-    const slot: *const c_uint = @ptrFromInt(@as(usize, @as(c_uint, @bitCast(@as(c_int, 0x1F80037C) +% (id *% 4)))));
+    const slot: *const c_uint = @ptrFromInt(@as(usize, @as(c_uint, @bitCast(@as(c_int, @bitCast(pad.guest(0x37C))) +% (id *% 4)))));
     if (slot.* == 0) return 0;
 
     var label: Label = switch (st.mode12E) {

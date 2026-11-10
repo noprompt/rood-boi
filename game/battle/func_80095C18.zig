@@ -1,10 +1,10 @@
 //! Draws an actor's emote (the speech-bubble icons over its head) (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const sprite_item = @import("common").sprite_item;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
-const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
 
 /// The scratchpad's u_long* slot as a guest pointer.
 inline fn slot(field: anytype) [*c]c.u_long {
@@ -50,7 +50,7 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
         } else if (z >= 2048) {
             z = 2047;
         }
-        const ot = slot(&scratch.unk4) + @as(usize, @intCast(z)); // 64 <= z < 2048
+        const ot = slot(&common.scratch.get().unk4) + @as(usize, @intCast(z)); // 64 <= z < 2048
         side = (flagsWord.* >> @truncate(@as(c_uint, @bitCast(actor)))) & 1;
 
         record.draw = 1;
@@ -117,7 +117,7 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
             },
             else => {},
         }
-        const prim = slot(&scratch.unk0);
+        const prim = slot(&common.scratch.get().unk0);
         const corners = psx.at(v.g.D_80068F04(), side);
         const uv = psx.at(v.g.D_80068F64(), side);
         prim[0] = (ot[0] & 0xFFFFFF) | 0x9000000;
@@ -131,7 +131,7 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
         prim[8] = @bitCast(c.func_80096254(xy, corners[3]));
         prim[9] = uv[3];
         ot[0] = (psx.addr(prim) << 8) >> 8;
-        psx.put(&scratch.unk0, @as(?*anyopaque, @ptrCast(prim + 10)));
+        psx.put(&common.scratch.get().unk0, @as(?*anyopaque, @ptrCast(prim + 10)));
     } else {
         const bubbles = v.g.D_800F2260();
         if (c.func_800A190C(actor, 255, psx.cptr(c.SVECTOR, &other), 0) == 0) {
@@ -150,7 +150,7 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
             v.g.pc_gte_anchored().* +%= 1;
             _ = c.RotTransPers(psx.cptr(c.SVECTOR, &other), @ptrCast(&position), &depth, &side);
             v.g.pc_gte_anchored().* -%= 1;
-            const ot = slot(&scratch.unk4);
+            const ot = slot(&common.scratch.get().unk4);
             position.vx = psx.conv(i16, @as(c_int, position.vx) -% 8);
             position.vy = psx.conv(i16, @as(c_int, position.vy) -% 8);
             const xy = packed_xy(&position);

@@ -1,11 +1,11 @@
 //! Draws an ability's timing result word, sliding in and out (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
 const TextStatus = *const fn (?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
-const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
 
 /// The C's local tables (its string literals: not game text, 2842C has no vsstring block).
 const timing = [_][*:0]const u8{ "$TOO   FAST!", "$FAST!", "", "$SLOW!", "$TOO   SLOW!" };
@@ -31,12 +31,12 @@ pub fn func_800958A4(x_arg: c_int, y: c_int, p: *v.D_800F1BAC_t) callconv(.c) vo
     }
     // PC_TEXT_STATUS (ui_text: the status words' packets). unkC is 0..4 and displayTextLen 0..7 here
     // (the result and the praise drawn for it): past them the C reads its stack as the text.
-    const first = psx.get(scratch.unk0);
-    const prims: ?*anyopaque = @ptrFromInt(@intFromPtr(psx.get(scratch.unk4)) -% 16);
+    const first = psx.get(common.scratch.get().unk0);
+    const prims: ?*anyopaque = @ptrFromInt(@intFromPtr(psx.get(common.scratch.get().unk4)) -% 16);
     if (p.unkC != 2) {
         c.vs_battle_renderTextRawColor(timing[p.unkC], (x & 0xFFFF) | (y << 16), colors[p.unkC], prims);
     } else {
         c.vs_battle_renderTextRawColor(success[p.displayTextLen], (x & 0xFFFF) | (y << 16), 0x408040, prims);
     }
-    if (psx.weak(TextStatus, "pc_text_status")) |status| status(first, psx.get(scratch.unk0));
+    if (psx.weak(TextStatus, "pc_text_status")) |status| status(first, psx.get(common.scratch.get().unk0));
 }

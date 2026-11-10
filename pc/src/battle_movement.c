@@ -9,7 +9,7 @@ extern unsigned D_800F58D8; /* a 32-bit guest address */
 /* Scratchpad bytes and words; pointers kept there are 4-byte guest addresses
  * (SCRATCH_PTR), like every pointer stored inside the PS1-layout actor and AI
  * records read below by offset (psx_load/psx_store). */
-#define SCRATCH_AT(offset) psx_to_ptr(unsigned char*, 0x1f800000 + (offset))
+#define SCRATCH_AT(offset) PC_PAD(offset)
 #define SCRATCH8(offset) (*SCRATCH_AT(offset))
 #define SCRATCH32(offset) (*(unsigned*)SCRATCH_AT(offset))
 #define SCRATCH_PTR(T, offset) psx_load(T, SCRATCH_AT(offset))

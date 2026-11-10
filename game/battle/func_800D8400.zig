@@ -1,5 +1,6 @@
 //! Steps a movement position one tile toward a direction, or toward the nearer of two (pc/src/game/BATTLE/BATTLE.PRG/6FC00.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_6FC00");
 const c = @import("c_6FC00");
@@ -28,7 +29,7 @@ pub fn func_800D8400(state: ?*v.vs_battle_aiState, first: c_int, second: c_int, 
         count = 2;
     }
 
-    const table: [*]align(1) v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
+    const table: [*]align(1) v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC));
 
     const Exit = enum { none, blocked, done };
     const exit: Exit = blk: {

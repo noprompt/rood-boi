@@ -1,14 +1,15 @@
 //! The event camera's straight dolly step against the room's height (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
 /// The scratchpad block the step works in (cameraMotionScratch at 0x1F800088).
-const scratch: *v.cameraMotionScratch = @ptrFromInt(0x1F800088);
-const delta: *v.VECTOR = @ptrFromInt(0x1F800098); // scratch.delta
-const candidate: *v.VECTOR = @ptrFromInt(0x1F8000A8); // scratch.candidate
-const direction: *v.VECTOR = @ptrFromInt(0x1F8000B8); // scratch.direction
-const matrix: *v.MATRIX = @ptrFromInt(0x1F8000F8); // scratch.matrix
+const scratch: *v.cameraMotionScratch = pad.ptr(v.cameraMotionScratch, 0x88);
+const delta: *v.VECTOR = pad.ptr(v.VECTOR, 0x98); // scratch.delta
+const candidate: *v.VECTOR = pad.ptr(v.VECTOR, 0xA8); // scratch.candidate
+const direction: *v.VECTOR = pad.ptr(v.VECTOR, 0xB8); // scratch.direction
+const matrix: *v.MATRIX = pad.ptr(v.MATRIX, 0xF8); // scratch.matrix
 
 fn cv(p: *v.VECTOR) [*c]c.VECTOR {
     return psx.cptr(c.VECTOR, p);

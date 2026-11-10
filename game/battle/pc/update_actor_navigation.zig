@@ -3,6 +3,7 @@ const ai = @import("views_71618");
 const c = @import("c_actor_update");
 const v = @import("views_actor_update");
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 
 /// orig: route_target (pc/src/actor_update.c)
 /// Aims an actor state at its target (word 0x160): the state of an actor
@@ -33,7 +34,7 @@ fn routeTarget(state: *ai.vs_battle_aiState) void {
 /// updates it and releases its route.
 pub fn updateActorNavigation() callconv(.c) void {
     c.func_800E65DC();
-    const scratch: [*]c_uint = @ptrFromInt(0x1f800000);
+    const scratch: [*]c_uint = @ptrFromInt(pad.addr(0x0));
     var actor: ?*ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[0]));
     var visited: c_uint = 0;
     while (actor) |a| : (actor = @ptrCast(a.next)) {

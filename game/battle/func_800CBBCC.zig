@@ -1,5 +1,6 @@
 //! Draws a GIM image at its scale (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
@@ -22,7 +23,7 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
     const image_start = psx.get(scratch.unk0);
     var j: c_int = @as(c_int, image.unk8) + 160;
     // Two scratchpad tables below its end: the columns' x, then the rows' y.
-    const column_x: [*]i16 = @ptrFromInt(@as(usize, @as(u32, @bitCast(@as(c_int, 0x1F800400) - ((columns + 1) << 1)))));
+    const column_x: [*]i16 = @ptrFromInt(@as(usize, @as(u32, @bitCast(@as(c_int, @bitCast(pad.guest(0x400))) - ((columns + 1) << 1)))));
     const row_y: [*]i16 = column_x - @as(usize, @intCast(rows + 1));
     var i: c_int = 0;
     while (i <= columns) : (i += 1) {

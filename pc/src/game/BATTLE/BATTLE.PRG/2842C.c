@@ -466,10 +466,10 @@ void func_800957D0(int arg0, int arg1, int arg2);
 extern void pc_text_status(const void* first, const void* end) __attribute__((weak));
 #define PC_TEXT_STATUS(call)                                                     \
     do {                                                                         \
-        void* pc_first = psx_get(((vs_scratch_t*)0x1F800000)->unk0);             \
+        void* pc_first = vs_scratch.unk0;                                        \
         call;                                                                    \
         if (pc_text_status)                                                      \
-            pc_text_status(pc_first, psx_get(((vs_scratch_t*)0x1F800000)->unk0)); \
+            pc_text_status(pc_first, vs_scratch.unk0);                           \
     } while (0)
 #else
 #define PC_TEXT_STATUS(call) call

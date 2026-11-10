@@ -54,7 +54,7 @@ static inline u_short routeHalf(routeEdgePair* pair, int index) { return (*pair)
 
 static inline u_int routeTile(int z, int x)
 {
-    return (psx_slot_get(__typeof__(u_short(*)[32]), 0x1F8003C0, 0))[z][x];
+    return (psx_slot_get(__typeof__(u_short(*)[32]), PC_PAD(0x3C0), 0))[z][x];
 }
 
 static inline int routeSetArea(vs_battle_aiState* state, vs_battle_movementPosition position)
@@ -68,9 +68,9 @@ int func_800DFBCC(vs_battle_aiState* state, int index, int area);
 typedef struct {
     unsigned char p0, p1, tested, p3, result[8];
 } obstructionCache;
-#define OBSTRUCTION_CACHE ((obstructionCache*)0x1F8003D0)
-#define OBSTRUCTION_DIRECTIONS ((D_800F16EC_t*)0x1F8003EC)
-#define OBSTRUCTION_STATES(id) psx_slot_get(vs_battle_aiState*, 0x1F80037C, id)
+#define OBSTRUCTION_CACHE ((obstructionCache*)PC_PAD(0x3D0))
+#define OBSTRUCTION_DIRECTIONS ((D_800F16EC_t*)PC_PAD(0x3EC))
+#define OBSTRUCTION_STATES(id) psx_slot_get(vs_battle_aiState*, PC_PAD(0x37C), id)
 
 int func_800E02B4(vs_battle_aiState* state, int direction, int ahead);
 
@@ -82,9 +82,9 @@ int func_800E42EC(int, int);
 typedef struct {
     unsigned char tested, valid;
 } directionalCacheBits;
-#define MOVEMENT_CHECK_CACHE ((directionalCacheBits*)0x1F8003D0)
-#define MOVEMENT_CHECK_DIRECTIONS ((D_800F16EC_t*)0x1F8003EC)
-#define MOVEMENT_CHECK_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), 0x1F8003C0, 0))
+#define MOVEMENT_CHECK_CACHE ((directionalCacheBits*)PC_PAD(0x3D0))
+#define MOVEMENT_CHECK_DIRECTIONS ((D_800F16EC_t*)PC_PAD(0x3EC))
+#define MOVEMENT_CHECK_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), PC_PAD(0x3C0), 0))
 int func_800E0678(vs_battle_aiState* state, int direction);
 
 #undef MOVEMENT_CHECK_CACHE
@@ -111,8 +111,8 @@ typedef struct {
 int func_800E02B4(vs_battle_aiState*, int, int);
 int func_800E6A6C(int, int, int, int);
 void func_800E1238(vs_battle_aiState*, int);
-#define MOVEMENT_STEP_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), 0x1F8003C0, 0))
-#define MOVEMENT_STEP_RESULT (*(int*)0x1F8003C8)
+#define MOVEMENT_STEP_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), PC_PAD(0x3C0), 0))
+#define MOVEMENT_STEP_RESULT (*(int*)PC_PAD(0x3C8))
 void func_800E0A68(vs_battle_aiState* state, int action);
 
 #undef MOVEMENT_STEP_TILES
@@ -131,10 +131,10 @@ void func_800E1764(vs_battle_aiState* state, int angle);
 
 u_char func_800E1850(u_char arg0, u_int arg1, int arg2);
 
-#define TERRAIN_TILE_MASK (psx_slot_get(unsigned char*, 0x1F8003C4, 0))
-#define TERRAIN_MAP_WIDTH (*(unsigned char*)0x1F8003DC)
-#define TERRAIN_MOVE_RESULT (*(int*)0x1F8003C8)
-#define TERRAIN_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), 0x1F8003C0, 0))
+#define TERRAIN_TILE_MASK (psx_slot_get(unsigned char*, PC_PAD(0x3C4), 0))
+#define TERRAIN_MAP_WIDTH (*(unsigned char*)PC_PAD(0x3DC))
+#define TERRAIN_MOVE_RESULT (*(int*)PC_PAD(0x3C8))
+#define TERRAIN_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), PC_PAD(0x3C0), 0))
 struct vs_battle_aiState;
 int func_800DFBCC(struct vs_battle_aiState*, int, int);
 void func_800E4BB8(vs_battle_aiState*);
@@ -148,8 +148,8 @@ void func_800E19FC(vs_battle_aiState* state);
 #undef TERRAIN_MOVE_RESULT
 #undef TERRAIN_TILES
 
-#define WANDER_DIRECTIONS ((D_800F16EC_t*)0x1F8003EC)
-#define WANDER_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), 0x1F8003C0, 0))
+#define WANDER_DIRECTIONS ((D_800F16EC_t*)PC_PAD(0x3EC))
+#define WANDER_TILES (psx_slot_get(__typeof__(unsigned short(*)[32]), PC_PAD(0x3C0), 0))
 
 int func_800E4690(unsigned int, int);
 int D_800D9B6C(vs_battle_aiState*, int);

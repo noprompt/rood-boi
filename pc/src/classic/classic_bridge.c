@@ -82,13 +82,13 @@ int pc_classic_walk_slots(const int* offsets, int count, int with_unk8, int encl
     pc_classic_walker walker = pc_classic_guest();
     const u_long* slots[8];
     int n = 0, total = 0, i, j;
-    char* base = psx_get(vs_scratch.unk4);
+    char* base = vs_scratch.unk4;
     walker.anchor = enclosed_anchor;
     walker.user = &enclosing;
     for (i = 0; i < count && n < 7; ++i)
         slots[n++] = (const u_long*)(base + offsets[i]);
     if (with_unk8)
-        slots[n++] = (const u_long*)psx_get(vs_scratch.unk8);
+        slots[n++] = (const u_long*)vs_scratch.unk8;
     for (i = 1; i < n; ++i) /* (insertion sort: highest address first) */
         for (j = i; j > 0 && slots[j] > slots[j - 1]; --j) {
             const u_long* t = slots[j];
@@ -117,7 +117,7 @@ void pc_classic_site_items(int* first, int* end) { *first = site_first, *end = s
 /* The game's drawing of the site hidden: its packets no-ops and its items not drawn. */
 static void hide_site(void* first)
 {
-    pc_classic_suppress(first, psx_get(vs_scratch.unk0));
+    pc_classic_suppress(first, vs_scratch.unk0);
     pc_frame_suppress(site_first, site_end);
 }
 

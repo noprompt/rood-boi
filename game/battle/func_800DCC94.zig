@@ -2,6 +2,7 @@
 //! from every target's status, HP, MP and extra stats (pc/src/game/BATTLE/BATTLE.PRG/74088.c).
 const std = @import("std");
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_74088");
 const c = @import("c_74088");
@@ -66,7 +67,7 @@ pub fn func_800DCC94(state: ?*v.vs_battle_aiState, candidate: ?*v.actionCandidat
     const cand = candidate.?;
     cand.score = 0;
     psx.setBits(cand, "weight", 128);
-    const stats: *v.actionStatSnapshot = @ptrFromInt(0x1F80018C);
+    const stats: *v.actionStatSnapshot = @ptrFromInt(pad.addr(0x18C));
     c.func_800DC424(psx.cptr(c.actionStatSnapshot, stats));
     const st = state.?;
     if (st.special != 0 and (flags & 16) != 0) {

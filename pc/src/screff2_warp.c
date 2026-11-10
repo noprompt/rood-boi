@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <libgte.h>
 #include <inline_c.h>
+#include "view_state.h"
 #include "pc/src/game/GIM/SCREFF2.PRG/0.h"
 extern unsigned short D_80040C18[];
 extern void pc_unimplemented(const char*);
@@ -82,5 +83,5 @@ void pc_screff2_warp_packets(
 void pc_screff2_warp(void)
 {
     pc_screff2_warp_packets(
-        psx_load(unsigned*, 0x1f800004), D_800EB9B4->unk4, D_800EB9B4->unk6, (void*)0x1f800088);
+        (unsigned*)PC_OT_BASE, D_800EB9B4->unk4, D_800EB9B4->unk6, (void*)PC_PAD(0x88));
 }

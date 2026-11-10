@@ -88,7 +88,7 @@ static void _renderItemCategory(int animationStep, int highlightSelected)
                 (120 + i * 16) | (128 << 8) | vs_getUV0Clut(0, 0, 976, 223));
 
         } else {
-            vs_battle_spriteItem(psx_get(vs_scratch.unk4), 128, x | (animationStep << 0x10), vs_getWH(16, 16),
+            vs_battle_spriteItem(vs_scratch.unk4, 128, x | (animationStep << 0x10), vs_getWH(16, 16),
                 VS_SPRITE_PAGE,
                 (120 + i * 16) | (128 << 8)
                     | (i == selectedCategory ? vs_getUV0Clut(0, 0, 976, 223) : vs_getUV0Clut(0, 0, 992, 223)));

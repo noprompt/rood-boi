@@ -2,6 +2,7 @@
 const c = @import("c_battle_gte");
 const v = @import("views_battle_gte");
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 
 fn shortAt(base: [*]u8, offset: isize) c_int {
     return psx.byteAt(i16, base, offset).*;
@@ -17,9 +18,9 @@ fn shortAt(base: [*]u8, offset: isize) c_int {
 pub fn drawMenuTargetShape(shape: [*]u8, color_in: c_uint) callconv(.c) void {
     const block = v.g.D_800EB9B8().*.?;
     var point: usize = @intFromPtr(&block.points);
-    const scratch: [*]u32 = @ptrFromInt(0x1F800398);
-    const halves: [*]u16 = @ptrFromInt(0x1F800398);
-    const matrix: [*c]c.MATRIX = @ptrFromInt(0x1F800398);
+    const scratch: [*]u32 = @ptrFromInt(pad.addr(0x398));
+    const halves: [*]u16 = @ptrFromInt(pad.addr(0x398));
+    const matrix: [*c]c.MATRIX = @ptrFromInt(pad.addr(0x398));
     const scale = c.func_800C085C(shape + 4, shortAt(shape, 2));
     _ = c.RotMatrixYXZ_gte(@ptrFromInt(@intFromPtr(&block.unk24)), matrix);
     const factor = c.rcos(block.unk2A << 6);
@@ -46,16 +47,16 @@ pub fn drawMenuTargetShape(shape: [*]u8, color_in: c_uint) callconv(.c) void {
         const z = c.MFC2(11);
         c.MTC2((x & 0xffff) | (y << 16), 0);
         c.MTC2(z, 1);
-        const pad: c_int = psx.byteAt(i16, @as([*]u8, @ptrFromInt(point)), 6).*;
+        const flag: c_int = psx.byteAt(i16, @as([*]u8, @ptrFromInt(point)), 6).*;
         point +%= 8;
         _ = c.doCOP2(0x0180001); // gte_rtps
         scratch[0] = c.MFC2(14);
         scratch[1] = @bitCast(@as(c_int, @bitCast(c.MFC2(19))) >> 2);
-        if (pad != 0) {
+        if (flag != 0) {
             const sum: c_int = @as(c_int, @as(i16, @bitCast(halves[2]))) +% @as(c_int, @as(i16, @bitCast(halves[6]))) -% bias;
             // `div $zero` has no zero check: the R3000 then leaves LO = -1 for a non-negative dividend and 1 for a negative one.
             const depth: c_int = if (divisor != 0) @divTrunc(sum, divisor) else if (sum < 0) 1 else -1;
-            c.func_800C0990(@ptrFromInt(0x1F800398), @ptrFromInt(0x1F8003A0), color -% (@as(c_uint, @bitCast(pad)) << 25), 0x20 -% depth);
+            c.func_800C0990(@ptrFromInt(pad.addr(0x398)), @ptrFromInt(pad.addr(0x3A0)), color -% (@as(c_uint, @bitCast(flag)) << 25), 0x20 -% depth);
         }
         var j: usize = 0;
         while (j < 3) : (j += 1) halves[4 + j] = halves[j];

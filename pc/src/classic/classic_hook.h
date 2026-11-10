@@ -239,12 +239,12 @@ void pc_classic_site_items(int* first, int* end);
  * after: draw_items.h pc_frame_site). A site draws as either, or both: whichever its game code emits. */
 #define PC_CLASSIC(kind, record, x, y, statement) \
     do { \
-        void* pc_classic_first = psx_load(void*, (u_int*)0x1F800000); \
+        void* pc_classic_first = vs_scratch.unk0; \
         int pc_classic_items = pc_frame_count(); \
         statement; \
         if (pc_classic_site) { \
             pc_frame_site(pc_classic_items, pc_frame_count()); \
-            pc_classic_site(kind, record, x, y, pc_classic_first, psx_load(void*, (u_int*)0x1F800000)); \
+            pc_classic_site(kind, record, x, y, pc_classic_first, vs_scratch.unk0); \
         } \
     } while (0)
 #endif

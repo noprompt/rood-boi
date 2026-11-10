@@ -428,7 +428,7 @@ static void draw_small(const u_char* text, int xy, int max, int flags)
         }
         ++text;
         x = vs_battle_printVariableWidthFontChar(
-            c, x, (xy >> 16) - 1, (u_long*)((char*)psx_get(vs_scratch.unk8) - 12));
+            c, x, (xy >> 16) - 1, (u_long*)((char*)vs_scratch.unk8 - 12));
     }
 }
 

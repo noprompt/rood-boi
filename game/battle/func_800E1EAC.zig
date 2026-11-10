@@ -2,6 +2,7 @@
 //! free heading or a destination tile, and turns back at the map's edges
 //! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -59,7 +60,7 @@ pub fn func_800E1EAC(state: ?*v.vs_battle_aiState, tile: c_uint, range: c_uint) 
         s.timerC2 = if (@as(c_uint, @bitCast(c.func_800E45D4(128))) < 44) move else 0;
     }
     s.flags0.b[2] = 1;
-    @as(*u8, @ptrFromInt(0x1F8003D0)).* = 0;
+    @as(*u8, @ptrFromInt(pad.addr(0x3D0))).* = 0;
     recover: {
         if (!(s.timerC2 < move)) break :recover;
         if (range >= 63) {
@@ -87,7 +88,7 @@ pub fn func_800E1EAC(state: ?*v.vs_battle_aiState, tile: c_uint, range: c_uint) 
             if (s.flags & 8 != 0) {
                 c.func_800E1388(@ptrCast(s), s.tile.position.raw, s.angle, @bitCast(s.distance));
             }
-            const steps: [*]v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
+            const steps: [*]v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC));
             var boundsHeading: c_int = @as(c_int, s.angle) >> 9;
             var boundsIndex: c_int = 0;
             while (boundsIndex < 2) : ({
@@ -151,6 +152,6 @@ pub fn func_800E1EAC(state: ?*v.vs_battle_aiState, tile: c_uint, range: c_uint) 
 
 /// The collision grid: the guest pointer in scratchpad word 0x1F8003C0, rows of 32 tiles.
 fn gridRows() [*][32]u16 {
-    const word: *const u32 = @ptrFromInt(0x1F8003C0);
+    const word: *const u32 = @ptrFromInt(pad.addr(0x3C0));
     return @ptrFromInt(@as(usize, word.*));
 }

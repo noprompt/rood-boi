@@ -1,13 +1,14 @@
 //! Obstruction test for a battle actor moving in one of the four directions
 //! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
 /// Direction table in the scratchpad (OBSTRUCTION_DIRECTIONS).
 fn dirEntry(direction: c_int) *align(1) v.D_800F16EC_t {
-    const table: [*]align(1) v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
+    const table: [*]align(1) v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC));
     return psx.at(table, direction);
 }
 
@@ -15,7 +16,7 @@ fn dirEntry(direction: c_int) *align(1) v.D_800F16EC_t {
 fn scratchState(id: i32) *align(1) v.vs_battle_aiState {
     // 4 * id wraps in int, then sign-extends to the target's address width.
     const off: isize = @as(c_int, 4) *% id;
-    const addr: usize = @as(usize, 0x1F80037C) +% @as(usize, @bitCast(off));
+    const addr: usize = @as(usize, pad.addr(0x37C)) +% @as(usize, @bitCast(off));
     const word = @as(*const u32, @ptrFromInt(addr)).*;
     return @ptrFromInt(@as(usize, word));
 }
@@ -43,7 +44,7 @@ fn markTested(cache: *v.obstructionCache, direction: c_int) void {
 /// orig: func_800E02B4 (pc/src/game/BATTLE/BATTLE.PRG/771A8.c)
 /// Tests whether a move of `state` in `direction` (`ahead` steps) is blocked by a point or an actor, caching the answer per direction.
 pub fn func_800E02B4(state: ?*v.vs_battle_aiState, direction: c_int, ahead: c_int) callconv(.c) c_int {
-    const cache: *v.obstructionCache = @ptrFromInt(0x1F8003D0);
+    const cache: *v.obstructionCache = @ptrFromInt(pad.addr(0x3D0));
     // Shift count is the low 5 bits (x86 masks it); direction is not range-checked by the C.
     const shift: u5 = psx.conv(u5, direction);
     if (((@as(c_int, cache.tested) >> shift) & 1) != 0)

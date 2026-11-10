@@ -1,6 +1,7 @@
 //! Scans the directional cache around an actor for the lowest height among its
 //! directions (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
@@ -20,7 +21,7 @@ pub fn func_800E0850(arg0: ?*v.vs_battle_aiState, arg1: c_uint) callconv(.c) c_i
         if (count == -1) break;
         if (c.func_800E0678(@ptrCast(arg0), psx.conv(c_int, slot)) != 0) {
             // Scratchpad direction table: one byte per slot, dx and dz are 2-bit signed fields.
-            const entry: *v.D_800F16EC_t = @ptrFromInt(0x1F8003EC + @as(usize, slot));
+            const entry: *v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC) + @as(usize, slot));
             const h = c.func_800E42EC(
                 @as(c_int, arg0.?.tile.b[0]) +% @as(c_int, psx.getBits(entry, "dx")),
                 @as(c_int, arg0.?.tile.b[2]) +% @as(c_int, psx.getBits(entry, "dz")),

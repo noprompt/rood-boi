@@ -1,11 +1,12 @@
 //! The event camera's reset to a spherical position (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
 /// The scratchpad vector the C computes differences in (cameraScratch.v1 at 0x1F800098).
-const v1: *v.VECTOR = @ptrFromInt(0x1F800098);
+const v1: *v.VECTOR = pad.ptr(v.VECTOR, 0x98);
 
 fn cv(p: *v.VECTOR) [*c]c.VECTOR {
     return psx.cptr(c.VECTOR, p);

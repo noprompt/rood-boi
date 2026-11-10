@@ -29,6 +29,9 @@ static inline int pc_vk_on(void) { return 0; }
 #include "imgui.h"
 #include "ImGuizmo.h"
 #include "scene_capture.h"
+extern "C" {
+#include "view_state.h" /* vs_view: the game camera's angles at 0x44 (pitch, yaw, roll) */
+}
 #include "dev_state.h"
 #include "room_editor.h"
 #include "lighting_quality.h"
@@ -880,7 +883,7 @@ extern "C" int pc_live_camera(PsxVector* position, PsxVector* look_at)
     look_at->vz = (int32_t)((eye[2] + f[2] * 1024) * 4096);
     if (photo) {
         /* The roll func_8007ACB0 turns the view by next (vs_view.camera.angles.vz, 4096 a turn). */
-        *(volatile int32_t*)(uintptr_t)(0x1F800000u + 0x34 + 0x20 + 8) = (int32_t)lroundf(photo_roll * 4096.0f / 360.0f);
+        *(volatile int32_t*)(vs_view + 0x44 + 8) = (int32_t)lroundf(photo_roll * 4096.0f / 360.0f);
         /* Its yaw and pitch as vs_battle_syncCameraAnglesFromPosition derives them (the direction from the
          * target to the eye: yaw ratan2(x, z) in 0..4095, pitch ratan2(y, horizontal), y down), for what the
          * frame draws from them after this: the sky panorama's place (func_8008EC48), sprites turned to
@@ -889,8 +892,8 @@ extern "C" int pc_live_camera(PsxVector* position, PsxVector* look_at)
         double to_x = -f[0], to_y = -f[1], to_z = -f[2], tau = 2 * 3.14159265358979323846;
         int32_t game_yaw = ((int32_t)lround(atan2(to_x, to_z) / tau * 4096) + 4096) & 0xfff;
         int32_t game_pitch = (int32_t)lround(atan2(to_y, sqrt(to_x * to_x + to_z * to_z)) / tau * 4096);
-        *(volatile int32_t*)(uintptr_t)(0x1F800000u + 0x34 + 0x20) = game_pitch;
-        *(volatile int32_t*)(uintptr_t)(0x1F800000u + 0x34 + 0x20 + 4) = game_yaw;
+        *(volatile int32_t*)(vs_view + 0x44) = game_pitch;
+        *(volatile int32_t*)(vs_view + 0x44 + 4) = game_yaw;
         if (photo_fov > 0 && photo_game_h > 0 && vs_battle_setProjectionDistance) {
             float h = photo_game_h * tanf(photo_game_fov * 3.14159265f / 360.0f) / tanf(photo_fov * 3.14159265f / 360.0f);
             vs_battle_setProjectionDistance((int)lroundf(h < 16 ? 16 : h > 8192 ? 8192 : h));

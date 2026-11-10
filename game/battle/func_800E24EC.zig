@@ -1,5 +1,6 @@
 //! Target movement: advances a targeting actor's movement toward its target and returns 0 when the target cannot be reached (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
@@ -103,7 +104,7 @@ pub fn func_800E24EC(s: ?*v.vs_battle_aiState, option: c_int) callconv(.c) c_int
                 },
                 2 => {
                     st.flags0.b[3] = 1;
-                    const spad: *u8 = @ptrFromInt(0x1F8003D0);
+                    const spad: *u8 = @ptrFromInt(pad.addr(0x3D0));
                     spad.* = 0;
                     st.flags4.b[0] = 1;
                     st.moveX = model.x;

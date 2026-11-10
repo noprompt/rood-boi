@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "audio.h"
+#include "view_state.h"
 #include "pc_paths.h"
 #include "platform.h" /* pc_replace_file */
 #include "frame_cost.h" /* ROOD_PERF sections */
@@ -1051,7 +1052,7 @@ static const uint32_t *ot_scene, *ot_top;
 enum { ot_span = 0x1000 };
 static void ot_layers_begin(const void* top)
 {
-    uintptr_t scene = *(const volatile uint32_t*)(uintptr_t)0x1f800004; /* a guest address */
+    uintptr_t scene = (uintptr_t)PC_OT_BASE;
     ot_top = top;
     ot_scene = scene <= (uintptr_t)top && (uintptr_t)top - scene < ot_span * 4u ? (const uint32_t*)scene : NULL;
     ot_front = 0;

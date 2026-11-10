@@ -747,7 +747,7 @@ static void _renderStatPage(int xOffset)
     int var_s6;
     int a0;
 
-    u_long* before = psx_get(vs_scratch.unk4) - 0xC;
+    u_long* before = vs_scratch.unk4 - 0xC;
     statPage = vs_mainMenu_itemStatPage;
 
     switch (statPage) {
@@ -1082,7 +1082,7 @@ void vs_mainMenu_renderEquipStats(int animate)
 
     position = vs_getXY(248, 126);
     actor = vs_battle_actors[D_80102488[3]]->unk3C;
-    temp_s4 = psx_get(vs_scratch.unk4) - 0x18;
+    temp_s4 = vs_scratch.unk4 - 0x18;
 
     if (animate != 0) {
         if (statsAnimation != animate) {
@@ -1196,7 +1196,7 @@ void vs_mainMenu_renderDpPpBars(int flags)
     static char state = 1;
     static char target = 0;
 
-    void* before = psx_get(vs_scratch.unk4) - 0xC;
+    void* before = vs_scratch.unk4 - 0xC;
 
     if (flags != 0) {
 

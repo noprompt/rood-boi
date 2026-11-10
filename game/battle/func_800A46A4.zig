@@ -1,5 +1,6 @@
 //! Sweeps the actor's collision probe over the scratchpad contact slots (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
@@ -8,7 +9,7 @@ const c = @import("c_3A1A0");
 /// Clears the actor's contact slots at its probe position, then reports whether any of the eight slots is set.
 pub fn func_800A46A4(actor: ?*v.D_800F4538_t) callconv(.c) c_int {
     const a = actor.?;
-    const scratch: *v.collisionScratchView = @ptrFromInt(0x1F8003BC);
+    const scratch: *v.collisionScratchView = @ptrFromInt(pad.addr(0x3BC));
 
     const saved = psx.getBits(&a.unk0, "unkC_0");
     const radius: c_int = a.unk63C;

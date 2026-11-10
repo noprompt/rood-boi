@@ -25,14 +25,14 @@ const HwRoomPackets = *const fn (?*const anyopaque, ?*const anyopaque) callconv(
 
 /// orig: func_8009723C (pc/src/room_geometry.c)
 /// Submits the room's groups (a count, then 0x40-byte groups) into the
-/// packet buffer at scratchpad 0x1F800000, honouring the facing mask, the
+/// packet buffer at the cursor, honouring the facing mask, the
 /// hidden flags and the native-room, free-camera and occlusion hooks.
 pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
-    const scratch: [*]c_uint = @ptrFromInt(0x1f800000);
-    var packet: [*]c_uint = @ptrFromInt(@as(usize, scratch[0]));
+    const scratch = common.scratch.get();
+    var packet: [*]c_uint = @ptrCast(@alignCast(scratch.unk0.?));
     const limit: [*]c_uint = @ptrFromInt(@intFromPtr(packet) +% 0x10000);
     const first = packet;
-    const ot: [*]c_uint = @ptrFromInt(@as(usize, scratch[1]));
+    const ot: [*]c_uint = @ptrCast(@alignCast(scratch.unk4.?));
     const count: c_uint = @as(*align(1) const c_uint, @ptrCast(data)).*;
     var group: [*]u8 = data + 4;
     if (count > 4096) c.pc_unimplemented("room group count");
@@ -102,6 +102,6 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
     }
     if (native.* != 0) packet = @ptrCast(@alignCast(psx.weak(NativeEnd, "pc_room_native_end").?(packet, ot)));
     native.* = 0;
-    scratch[0] = psx.addr(packet);
+    scratch.unk0 = packet;
     if (psx.weak(HwRoomPackets, "pc_hw_room_packets")) |room_packets| room_packets(first, packet);
 }

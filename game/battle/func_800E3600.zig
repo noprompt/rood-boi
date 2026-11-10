@@ -1,6 +1,7 @@
 //! Approach steering for a movement state: takes the path, the next tile, or
 //! the recovery route (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
@@ -35,7 +36,7 @@ pub fn func_800E3600(approach: ?*v.vs_battle_aiState, angleArg: c_int, mode: c_i
         nearest = ((quadrant +% 1) & 3) *% 2;
     }
     var point: v.vs_battle_movementPosition = state.tile.position;
-    const dxTable: [*]align(1) v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
+    const dxTable: [*]align(1) v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC));
     point._bytes[0] = psx.conv(u8, @as(c_int, point._bytes[0]) +% @as(c_int, psx.getBits(psx.at(dxTable, nearest), "dx")));
     point._bytes[2] = psx.conv(u8, @as(c_int, point._bytes[2]) +% @as(c_int, psx.getBits(psx.at(dxTable, nearest), "dz")));
 

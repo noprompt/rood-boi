@@ -162,7 +162,7 @@ static void _renderRenameMenu(int xOffset)
      * (as the loop below reads them), the arrows' light and step (as the block below
      * steps them), the name and the game's words. The function runs as it is. */
     pc_classic_rename_grid pcGrid;
-    void* pcGridFirst = psx_load(void*, (u_int*)0x1F800000);
+    void* pcGridFirst = vs_scratch.unk0;
     int pcGridItems = pc_frame_count();
     /* (zeroed: the words' tails too; the record is kept) */
     __builtin_memset(&pcGrid, 0, sizeof pcGrid);
@@ -237,7 +237,7 @@ static void _renderRenameMenu(int xOffset)
 
         while ((j = *commandString++) != vs_char_terminator) {
             vs_battle_printVariableWidthFontChar(
-                j, x - xOffset, 84 - (i * 16), psx_get(vs_scratch.unk4) - 0x14);
+                j, x - xOffset, 84 - (i * 16), vs_scratch.unk4 - 0x14);
 
             x += 6;
         }
@@ -253,7 +253,7 @@ static void _renderRenameMenu(int xOffset)
             int new_var3 = (j * 6 + 0xA2);
 
             vs_battle_printVariableWidthFontChar(
-                counter, xOffset + new_var3, 0x30, psx_get(vs_scratch.unk8) - 8);
+                counter, xOffset + new_var3, 0x30, vs_scratch.unk8 - 8);
         }
     }
 
@@ -300,7 +300,7 @@ static void _renderRenameMenu(int xOffset)
             int temp_s8 = (xOffset + 0x82);
 
             vs_battle_printVariableWidthFontChar(commandString[i * 15 + j],
-                temp_s8 + j * 12, (i * 16) + 78, psx_get(vs_scratch.unk8) - 8);
+                temp_s8 + j * 12, (i * 16) + 78, vs_scratch.unk8 - 8);
         }
     }
 
@@ -313,7 +313,7 @@ static void _renderRenameMenu(int xOffset)
     if (pc_classic_site) {
         pc_frame_site(pcGridItems, pc_frame_count()); /* (its draw items too) */
         pc_classic_site(PC_CLASSIC_SITE_RENAME_GRID, &pcGrid, 0, 0, pcGridFirst,
-            psx_load(void*, (u_int*)0x1F800000));
+            vs_scratch.unk0);
     }
 #endif
 }
@@ -326,7 +326,7 @@ static void _highlightSelection(int x, int y, int w, int h)
 #ifdef ROOD_PC
     /* PC_CLASSIC (classic_hook.h): the box, from its place and size. */
     pc_classic_rename_box pcBox = { x, y, w, h };
-    void* pcBoxFirst = psx_load(void*, (u_int*)0x1F800000);
+    void* pcBoxFirst = vs_scratch.unk0;
     int pcBoxItems = pc_frame_count();
 #endif
 
@@ -337,7 +337,7 @@ static void _highlightSelection(int x, int y, int w, int h)
     if (pc_classic_site) {
         pc_frame_site(pcBoxItems, pc_frame_count());
         pc_classic_site(PC_CLASSIC_SITE_RENAME_BOX, &pcBox, 0, 0, pcBoxFirst,
-            psx_load(void*, (u_int*)0x1F800000));
+            vs_scratch.unk0);
     }
 #endif
 }

@@ -1,6 +1,7 @@
 //! Draws the shadow quad under a unit: a textured quad around its position,
 //! one of eight corners picked by facing (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
@@ -12,7 +13,7 @@ pub fn func_8009651C(position: ?*v.SVECTOR, direction: c_int) callconv(.c) void 
     // The C reads the position before the direction test, so a null position faults here too.
     const x: c_int = position.?.vx;
     const y: c_int = position.?.vy;
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = common.scratch.get();
 
     var index: usize = switch (direction) {
         4 => 0,

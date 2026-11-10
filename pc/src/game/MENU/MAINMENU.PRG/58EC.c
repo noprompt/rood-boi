@@ -503,7 +503,7 @@ void vs_mainmenu_renderButton(
     enum vs_mainMenu_buttonIDs buttonId, int x, int y, u_long* before)
 {
     if (before == NULL) {
-        before = psx_get(vs_scratch.unk8);
+        before = vs_scratch.unk8;
     }
 
     vs_battle_spriteItem(before, 128, vs_getXY_2(x, y), vs_getWH(16, 16), VS_SPRITE_PAGE,
@@ -517,7 +517,7 @@ int vs_mainMenu_renderCursor(u_int animStep, int xy)
 #ifdef ROOD_PC
     /* PC_CLASSIC (classic_hook.h): the hand, from its step, place and colour. */
     pc_classic_menu_cursor pcCursor = { cursorAnimStep, xy, vs_mainMenu_cursorColor };
-    void* pcCursorFirst = psx_load(void*, (u_int*)0x1F800000);
+    void* pcCursorFirst = vs_scratch.unk0;
     int pcCursorItems = pc_frame_count();
 #endif
 
@@ -534,7 +534,7 @@ int vs_mainMenu_renderCursor(u_int animStep, int xy)
     if (pc_classic_site) {
         pc_frame_site(pcCursorItems, pc_frame_count());
         pc_classic_site(PC_CLASSIC_SITE_MENU_CURSOR, &pcCursor, (short)xy, xy >> 16,
-            pcCursorFirst, psx_load(void*, (u_int*)0x1F800000));
+            pcCursorFirst, vs_scratch.unk0);
     }
 #endif
 
@@ -649,10 +649,10 @@ void vs_mainMenu_renderMenuRowIcon(int icon, int x, int y)
 
     if (fade == 0) {
         if (icon >= 23) {
-            vs_battle_spriteItem(psx_get(vs_scratch.unk8) + 4, 64 << brightness, vs_getXY_2(x, y) - 12,
+            vs_battle_spriteItem(vs_scratch.unk8 + 4, 64 << brightness, vs_getXY_2(x, y) - 12,
                 vs_getWH(16, 16), VS_SPRITE_PAGE, vs_getUV0Clut(iconUvs[icon], 0, 976, 223));
         } else {
-            vs_battle_spriteItem(psx_get(vs_scratch.unk8) + 4, 64 << brightness, vs_getXY_2(x, y),
+            vs_battle_spriteItem(vs_scratch.unk8 + 4, 64 << brightness, vs_getXY_2(x, y),
                 vs_getWH(16, 16), VS_SPRITE_PAGE, vs_getUV0Clut(iconUvs[icon], 0, 992, 223));
         }
 
@@ -662,7 +662,7 @@ void vs_mainMenu_renderMenuRowIcon(int icon, int x, int y)
         }
 
         _renderFeatheredIcon(fade, vs_getXY_2(x, y),
-            vs_getUV0Clut(iconUvs[icon], 0, 992, 223), psx_get(vs_scratch.unk8) + 4);
+            vs_getUV0Clut(iconUvs[icon], 0, 992, 223), vs_scratch.unk8 + 4);
     }
 }
 
@@ -683,7 +683,7 @@ static void _renderAbilityCost(void)
 {
     static u_char animState = 8;
 
-    u_long* scratch = psx_get(vs_scratch.unk4) - 4;
+    u_long* scratch = vs_scratch.unk4 - 4;
 
     if (vs_mainMenu_displayActionCost != 0) {
         if (animState != 0) {
@@ -1185,7 +1185,7 @@ static void _renderBackground(int brightness)
     u_long* prim;
 
     int uCoord = 0;
-    u_long* before = psx_get(vs_scratch.unk4) + _backgroundOtOffset * 4;
+    u_long* before = vs_scratch.unk4 + _backgroundOtOffset * 4;
 
     if (vs_main_frameBuf == 0) {
         uCoord = 320;
@@ -1375,7 +1375,7 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
     }
 
     xy = *(int*)&menuItem->x;
-    before = psx_get(vs_scratch.unk8) + 8;
+    before = vs_scratch.unk8 + 8;
     wh = menuItem->w;
     gradientState = menuItem->gradientState;
     scroll = menuItem->isScrollable - 1;
@@ -1690,7 +1690,7 @@ static void _renderMenuItem(vs_battle_menuItem_t* menuItem)
     {
 #endif
         j = menuItem->max;
-        before = psx_get(vs_scratch.unk8) + 8;
+        before = vs_scratch.unk8 + 8;
 
         if (j != 0) {
             int xy;

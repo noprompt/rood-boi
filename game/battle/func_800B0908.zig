@@ -1,6 +1,7 @@
 //! Object animation step: rotation, then the slide, fall, settle and tick modes
 //! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
 
@@ -31,7 +32,7 @@ fn settleAxis(pos: *i16, vel: *i16) void {
 /// Advances one object by a tick: its rotation, then the motion of its mode, and its children when it falls.
 pub fn func_800B0908(object: ?*v.objectAnimationState, _: c_int) callconv(.c) void {
     const obj = object.?;
-    const scratch: *v.actorTransformScratch = @ptrFromInt(0x1F80035C);
+    const scratch: *v.actorTransformScratch = @ptrFromInt(pad.addr(0x35C));
     // *(int*)&object->material: the four bytes from material on.
     const mat4: *align(1) c_int = psx.byteAt(c_int, obj, @offsetOf(v.objectAnimationState, "material"));
     var step: c_int = 0;

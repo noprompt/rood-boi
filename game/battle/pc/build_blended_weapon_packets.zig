@@ -1,6 +1,8 @@
 //! Weapon and shield polygon packets with blending modes (D2: 4B16C.s; oracle pc/src/weapon_packets.c).
 const c = @import("c_weapon_packets");
-const psx = @import("common").psx;
+const common = @import("common");
+const pad = @import("common").pad;
+const psx = common.psx;
 
 const NativeDraw = *const fn (c_int, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?[*]c_uint) callconv(.c) void;
 
@@ -181,15 +183,15 @@ fn word(base: anytype, offset: usize) c_uint {
 /// vertices (screen words, depths 0xC00 bytes on) and the model's polygon
 /// records at model +0x3C: triangles and quads of section 0 and 1, then the
 /// mixed records, colour from `color`'s word, the texture and CLUT from
-/// scratchpad 0x390/0x392; moves the packet cursor (word 0) on and hands the
+/// scratchpad 0x390/0x392; moves the packet cursor on and hands the
 /// new packets to the native renderer.
 pub fn buildBlendedWeaponPackets(projected: [*]u8, object: [*]u8, color: [*]u8, model: [*]u8) callconv(.c) void {
-    const scratch: *u32 = @ptrFromInt(0x1f800000);
-    const texture = @as(*c_uint, @ptrFromInt(0x1f800390)).*;
-    const clut: c_int = @as(*i16, @ptrFromInt(0x1f800392)).*;
+    const scratch = common.scratch.get();
+    const texture = @as(*c_uint, @ptrFromInt(pad.addr(0x390))).*;
+    const clut: c_int = @as(*i16, @ptrFromInt(pad.addr(0x392))).*;
     var s = BlendState{
-        .packet = @ptrFromInt(@as(usize, scratch.*)),
-        .ot = @ptrFromInt(@as(usize, @as(*u32, @ptrFromInt(0x1f800004)).*)),
+        .packet = @ptrFromInt(@intFromPtr(scratch.unk0)),
+        .ot = @ptrFromInt(@intFromPtr(scratch.unk4)),
         .color = word(color, 0) & 0xffffff,
         .tpage_hi = texture << 16,
         .blend = 0,
@@ -276,6 +278,6 @@ pub fn buildBlendedWeaponPackets(projected: [*]u8, object: [*]u8, color: [*]u8, 
             }
         }
     }
-    scratch.* = psx.addr(s.packet);
+    scratch.unk0 = s.packet;
     if (psx.weak(NativeDraw, "pc_object_native_draw")) |draw| draw(2, projected, object, model, color, start);
 }

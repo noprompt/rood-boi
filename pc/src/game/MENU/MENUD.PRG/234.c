@@ -743,7 +743,7 @@ void func_80103E24(int arg0, int arg1)
                     (0x78 + i * 0x10) | 0x8000 | 0x37FD0000);
             }
         } else {
-            vs_battle_spriteItem(psx_get(vs_scratch.unk4) - 0xC, 0x80, temp_s0 | (arg0 << 0x10), 0x100010, VS_SPRITE_PAGE,
+            vs_battle_spriteItem(vs_scratch.unk4 - 0xC, 0x80, temp_s0 | (arg0 << 0x10), 0x100010, VS_SPRITE_PAGE,
                 (0x78 + i * 0x10) | 0x8000 | (i == temp_s4 ? 0x37FD0000 : 0x37FE0000));
         }
     }
@@ -1916,12 +1916,12 @@ int _discardMenu(int arg0)
 #endif
         temp_v0_7 = vs_battle_toBCD(discardCount);
         vs_battle_printVariableWidthFontChar(
-            temp_v0_7 & 0xF, 0x42, 0x82, psx_get(vs_scratch.unk8) - 0xC);
+            temp_v0_7 & 0xF, 0x42, 0x82, vs_scratch.unk8 - 0xC);
         temp_v0_7 = vs_battle_toBCD(temp_v0_7 >> 4);
         vs_battle_printVariableWidthFontChar(
-            temp_v0_7 & 0xF, 0x3C, 0x82, psx_get(vs_scratch.unk8) - 0xC);
+            temp_v0_7 & 0xF, 0x3C, 0x82, vs_scratch.unk8 - 0xC);
         vs_battle_printVariableWidthFontChar(
-            temp_v0_7 >> 4, 0x36, 0x82, psx_get(vs_scratch.unk8) - 0xC);
+            temp_v0_7 >> 4, 0x36, 0x82, vs_scratch.unk8 - 0xC);
 #ifdef ROOD_PC
             });
         }
@@ -3167,7 +3167,7 @@ int func_801089BC(int arg0)
 #endif
         vs_battle_renderTextRawColor("OK", 0x4200C8,
             ((rsin((D_80109A2C) * 8) >> 5) + 0x40) * 0x10101,
-            psx_get(vs_scratch.unk4) - 0xC);
+            vs_scratch.unk4 - 0xC);
 #ifdef ROOD_PC
             });
         }

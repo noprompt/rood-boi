@@ -1,5 +1,6 @@
 //! Unit pc/src/game/BATTLE/BATTLE.PRG/771A8.c: clears direction bits whose scratchpad offset lies beyond a limit.
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
@@ -9,7 +10,7 @@ pub fn func_800E1850(arg0: u8, arg1: c_uint, arg2: c_int) callconv(.c) u8 {
     var mask: u8 = arg0;
     const x: c_int = psx.conv(c_int, arg1 & 0xFF);
     const z: c_int = psx.conv(c_int, (arg1 >> 16) & 0xFF);
-    const offsets: *v.D_800F16EC_t = @ptrFromInt(0x1F8003EC);
+    const offsets: *v.D_800F16EC_t = @ptrFromInt(pad.addr(0x3EC));
 
     var i: c_int = 0;
     while (i < 8) : (i += 1) {

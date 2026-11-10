@@ -10,9 +10,7 @@ const sprite_item = @import("common").sprite_item;
 pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
     const m = menuItem.?;
     var y: c_int = m.gradientState;
-    const scratchSlot: *const u32 = @ptrFromInt(0x1F800008);
-    const scratchAddr: u32 = scratchSlot.* +% 8;
-    const scratch: [*c]c_uint = @ptrFromInt(@as(usize, scratchAddr));
+    const scratch: [*c]c_uint = @ptrFromInt(@intFromPtr(v.g.vs_scratch().unk8) +% 8);
     const w: c_int = m.w;
     const bgWidth: c_int = m.backgroundWidth;
     const text: [*]u8 = &m.text;
@@ -71,8 +69,8 @@ pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
             w | 0xC0000,
         );
 
-        const primAddr: u32 = @as(*const u32, @ptrFromInt(0x1F800000)).*;
-        const prim: [*c]c_uint = @ptrFromInt(@as(usize, primAddr));
+        const prim: [*c]c_uint = @ptrCast(@alignCast(v.g.vs_scratch().unk0));
+        const primAddr: u32 = psx.addr(prim);
 
         prim[0] = (scratch[0] & 0xFFFFFF) | 0x0A000000;
         prim[1] = tpage(c.ditheringOn);
@@ -87,7 +85,7 @@ pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
         prim[10] = tpage(c.ditheringOff);
 
         scratch[0] = (primAddr << 8) >> 8;
-        @as(*u32, @ptrFromInt(0x1F800000)).* = primAddr +% 44;
+        v.g.vs_scratch().unk0 = prim + 11;
 
         if (psx.get(m.subText)) |subText| {
             c.vs_battle_renderTextRaw(

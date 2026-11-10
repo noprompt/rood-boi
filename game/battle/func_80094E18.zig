@@ -1,5 +1,6 @@
 //! Builds a text box's frame quads (a body and a tail) into the ordering table and returns the box width (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const sprite_item = @import("common").sprite_item;
 
@@ -15,7 +16,7 @@ fn uv(u: c_int, w: c_int) c_int {
 /// Lays out the two frame primitives of a text box ending at x, y and returns its width.
 pub fn func_80094E18(x0: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) c_int {
     const q = p.?;
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = common.scratch.get();
     const idx: c_int = @as(c_int, q.unkE) -% 3;
     const rect = psx.at(v.g.D_80068FAC(), psx.at(v.g.D_800E861C(), idx).*);
     var sign: c_int = q.unkC;

@@ -1,12 +1,13 @@
 //! Builds the 33-point menu circle of vertices from the scratchpad basis (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
 /// orig: func_800C2254 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Writes 33 circle vertices from the scratchpad basis at `angle` into the table from `index`; returns the index after them.
 pub fn func_800C2254(angle: c_int, index: c_int) callconv(.c) c_int {
-    const basis: *[3][3]i16 = @ptrFromInt(0x1F800398);
+    const basis: *[3][3]i16 = @ptrFromInt(pad.addr(0x398));
     const base: [*]u8 = @ptrCast(v.g.D_800EB9B8().*.?);
     var idx = index;
     var point: c_int = 0;

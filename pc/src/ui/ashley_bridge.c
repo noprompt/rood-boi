@@ -428,8 +428,8 @@ static void no_rim_copy(void)
 static int ot_model; /* this tick's ordering table holds the tile (and the model): pc_ui_ashley_ot_model */
 static void clear_behind(void)
 {
-    u_long* prim = psx_get(vs_scratch.unk0);
-    void* ot = psx_get(vs_scratch.unk4);
+    u_long* prim = vs_scratch.unk0;
+    void* ot = vs_scratch.unk4;
     u_int* back = ot + 0x1FF4;
     int r, g, b;
 
@@ -439,7 +439,7 @@ static void clear_behind(void)
     prim[2] = vs_getXY(0, 0);
     prim[3] = vs_getWH(320, 240);
     *back = (psx_to_int(u_long, prim) << 8) >> 8;
-    psx_set(vs_scratch.unk0, prim + 4);
+    vs_scratch.unk0 = prim + 4;
     ot_model = 1;
 }
 

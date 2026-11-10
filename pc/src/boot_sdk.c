@@ -13,6 +13,7 @@ extern void pc_vram_rect(int, int, int, int, int, int, int);
 extern void pc_unimplemented(const char*);
 extern void pc_tick(void);
 #include "audio.h"
+#include "view_state.h"
 #include "widescreen.h"
 #include "draw_items.h"
 /* Weak so the standalone GTE/GPU probes link without the audio objects. */
@@ -468,13 +469,13 @@ void pc_deliver_event(psx_ulong event, psx_long spec)
 
 void pc_insert_tpage(int after, int page)
 {
-    /* the draw mode (GP0 E1) for what draws after it, as an item at slot `after` of the table at 0x1f800004 */
-    unsigned int* ot = psx_load(unsigned int*, 0x1f800004);
-    unsigned int* cursor = psx_load(unsigned int*, 0x1f800000);
+    /* the draw mode (GP0 E1) for what draws after it, as an item at slot `after` of the ordering table */
+    unsigned int* ot = PC_OT_BASE;
+    unsigned int* cursor = PC_PACKET_CURSOR;
     pc_item* item = pc_frame_poly_at(after, PC_ITEM_MODE_SET, 0, 0, ot, &cursor);
     if (item)
         item->mode = (unsigned short)(0x200 | (page & 0x1ff));
-    psx_store(0x1f800000, cursor);
+    PC_PACKET_CURSOR = cursor;
 }
 
 /* Preserve the original SDK's terminating primitive and forward/reverse links. */

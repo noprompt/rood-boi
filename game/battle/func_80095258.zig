@@ -1,6 +1,7 @@
 //! Draws a combat label strip as textured quads, sliding and fading with its
 //! animation phase (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 const sprite_item = @import("common").sprite_item;
@@ -67,7 +68,7 @@ pub fn func_80095258(x_arg: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) v
         width = @as(c_int, labelDef.color);
     }
 
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = common.scratch.get();
 
     i = 0;
     while (i < @as(c_int, labelDef.count)) : (i += 1) {

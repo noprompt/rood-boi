@@ -740,6 +740,8 @@ extern short vs_battle_doorEntered;
 /* Defined here: the room and zone records hold pointers among their words, so they cannot be imports (LP64). */
 _mpdRoomSection vs_battle_roomData;
 vs_view_t vs_view;
+vs_scratch_t vs_scratch;
+unsigned char vs_pad[0x400] __attribute__((aligned(16)));
 _zoneContext_t _zoneContext;
 extern u_short D_800F1CCA;
 extern void* D_800F1CC0;

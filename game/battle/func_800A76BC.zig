@@ -2,6 +2,7 @@
 //! beside the move, accepts it, keeps one axis, or slides along a wall
 //! corner (pc/src/game/BATTLE/BATTLE.PRG/3A1A0.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_3A1A0");
 const c = @import("c_3A1A0");
@@ -351,7 +352,7 @@ fn probeAxisZ(l: *Locals) void {
 pub fn func_800A76BC(actor: ?*v.D_800F4538_t, motion: ?*v.SVECTOR, result: [*c]c_int, probeOnly: c_int) callconv(.c) c_int {
     const a = actor.?;
     const m = motion.?;
-    const scratch: *v.D_1F8003BC_t = @ptrFromInt(0x1F8003BC);
+    const scratch: *v.D_1F8003BC_t = @ptrFromInt(pad.addr(0x3BC));
     psx.put(&scratch.unk18, @as(*v.D_800F45E0_t, @ptrCast(a)));
     psx.setBits(a, "unk5AC_14", psx.getBits(a, "unk5AC_13"));
     psx.setBits(a, "unk5AC_13", 0);

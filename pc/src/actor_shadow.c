@@ -142,8 +142,8 @@ transform:;
         return; /* off: the anchor above is still recorded, as the game uses it */
     unsigned center = (unsigned)light * 0x010101;
     unsigned edge = (unsigned)(light >> 1) * 0x010101;
-    unsigned* packet = psx_load(unsigned*, scratch);
-    unsigned* ot = psx_load(unsigned*, scratch + 4);
+    unsigned* packet = vs_scratch.unk0;
+    unsigned* ot = vs_scratch.unk4;
     unsigned* start = packet;
     unsigned char kept[24];
     unsigned short kept_bucket[24];
@@ -192,5 +192,5 @@ transform:;
     if (pc_shadow_native)
         packet = pc_shadow_native(actor, &rotation, base_light, kept, kept_bucket, kept_count, start, packet, ot,
             D_800E9A68, D_800E9AD4);
-    psx_store(scratch, packet);
+    vs_scratch.unk0 = packet;
 }

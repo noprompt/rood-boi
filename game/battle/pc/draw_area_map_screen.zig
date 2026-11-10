@@ -1,13 +1,13 @@
 //! Area Map screen renderer (D2: 5A624.s; oracle pc/src/map_view.c).
 const c = @import("c_map_view");
 const v = @import("views_map_view");
-const psx = @import("common").psx;
+const common = @import("common");
+const pad = @import("common").pad;
+const psx = common.psx;
 const gte = @import("common").gte;
 
 const SpanShape = *const fn (?*const anyopaque, c_int, f32, f32, f32, f32) callconv(.c) void;
 const AnchorPackets = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
-
-const scratch_base: usize = 0x1f800000;
 
 /// orig: pc_map_partner (pc/src/map_view.c)
 /// The emitted span of row `row` overlapping [x0, x1] the most, or -1.
@@ -78,7 +78,7 @@ fn mapRtps(xy: c_uint, z: c_int) c_uint {
 /// A triangle/circle row buffer after the edge flags (the original never checks the scratchpad's end).
 fn mapRow(offset: c_int) [*]i16 {
     if (offset < 0 or 0x1bc +% offset +% 2 > 0x400) c.pc_unimplemented("map row buffer beyond scratchpad");
-    return @ptrFromInt(scratch_base +% @as(usize, @bitCast(@as(isize, 0x1bc +% offset))));
+    return @ptrFromInt(pad.addr(0) +% @as(usize, @bitCast(@as(isize, 0x1bc +% offset))));
 }
 
 /// orig: pc_map_cell (pc/src/map_view.c)
@@ -188,9 +188,9 @@ fn spanRow(spans: [*]i16, row: c_int) [*]i16 {
 /// emitted as LINE_F2 packets along its right edge.
 pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callconv(.c) void {
     const state = v.g.D_800EB9B8().*.?;
-    const grid: [*]u8 = @ptrFromInt(scratch_base + 0x88);
-    const rows: [*]u8 = @ptrFromInt(scratch_base + 0xdc);
-    const edges: [*]u8 = @ptrFromInt(scratch_base + 0x1bc);
+    const grid: [*]u8 = @ptrFromInt(pad.addr(0) + 0x88);
+    const rows: [*]u8 = @ptrFromInt(pad.addr(0) + 0xdc);
+    const edges: [*]u8 = @ptrFromInt(pad.addr(0) + 0x1bc);
     const cells: [*]c_uint = @ptrCast(&state.cellValues);
     const spans: [*]i16 = @ptrCast(@alignCast(&state.spans));
     const points: [*]c_uint = @ptrCast(@alignCast(edges));
@@ -553,7 +553,7 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
     }
 
     // Walk the right side downwards and emit the spans left of it.
-    packet = @ptrFromInt(@as(usize, @as(*const c_uint, @ptrFromInt(scratch_base)).*));
+    packet = @ptrCast(@alignCast(common.scratch.get().unk0.?));
     const first_packet = packet;
     v.g.pc_map_emitted_count().* = 0;
     index = (top_index +% 1) & 31;
@@ -587,7 +587,7 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
             const depth: c_int = z >> 16;
             if (@as(c_uint, @bitCast(depth)) < 0x800) {
                 const color: c_uint = @as(c_uint, @bitCast((t1 >> 1) << 8)) | 0x42000000;
-                const ot: [*]c_uint = @ptrFromInt(@as(usize, @as(*const c_uint, @ptrFromInt(scratch_base + 4)).*));
+                const ot: [*]c_uint = @ptrCast(@alignCast(common.scratch.get().unk4.?));
                 const ot_slot = psx.at(ot, depth);
                 const x = t2 >> 16;
                 var n: c_int = psx.at(rows, t1).*;
@@ -637,7 +637,7 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
         }
         index = (index +% 1) & 31;
     }
-    @as(*c_uint, @ptrFromInt(scratch_base)).* = psx.addr(packet);
+    common.scratch.get().unk0 = packet;
     // Widescreen: the spans are made from the narrowed projections: drawn
     // where they are (gpu_hw.c), not compressed as screen furniture.
     if (psx.weak(AnchorPackets, "pc_hw_anchor_packets")) |anchor| anchor(first_packet, packet, c.PC_ANCHOR_PROJECTED);

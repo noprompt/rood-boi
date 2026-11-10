@@ -15,7 +15,7 @@ fn grey(color: c_int) c_int {
 /// orig: func_80090434 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves each particle on the view and draws it as one or two tiles into the ordering table.
 pub fn func_80090434() callconv(.c) void {
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = v.g.vs_scratch();
 
     c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
     c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));

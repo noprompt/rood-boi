@@ -1,5 +1,6 @@
 //! Decodes the packed animation stream into an SVECTOR's deltas (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_44F14");
 const c = @import("c_44F14");
@@ -19,7 +20,7 @@ pub fn func_800AFDE8(offset: c_int, value: ?*v.SVECTOR, rotation: c_int) callcon
         }
     };
 
-    const scratch: *align(1) c.animationFrameScratch = @ptrFromInt(0x1F8003EC);
+    const scratch: *align(1) c.animationFrameScratch = @ptrFromInt(pad.addr(0x3EC));
     const val = value.?;
     const delta = psx.byteAt(v.SVECTOR, val, 0x2A0);
 

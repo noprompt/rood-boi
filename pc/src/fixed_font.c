@@ -9,7 +9,7 @@ extern void pc_ui_precise_quad(const void* packet, const float* corners) __attri
 /* ui_text_layout line (ui_text.c): which glyphs one string sets. */
 extern void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, int next_x, int advance)
     __attribute__((weak));
-int pc_fixed_font_char(unsigned** cursor, int character, unsigned x, unsigned y, unsigned width, unsigned height, unsigned scale);
+int pc_fixed_font_char(void** cursor, int character, unsigned x, unsigned y, unsigned width, unsigned height, unsigned scale);
 
 int _printFixedWidthFontChar( int character, int x, int y, int width, int height, int scale);
 

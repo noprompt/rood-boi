@@ -1,18 +1,19 @@
 //! Fixed-width glyph packets (D2: 5BF94.c's assembly; oracle pc/src/fixed_font.c).
 const c = @import("c_fixed_font");
 const v = @import("views_fixed_font");
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 
 const PreciseQuad = *const fn (?*const anyopaque, [*c]const f32) callconv(.c) void;
 const TextGlyph = *const fn (?*const ?*anyopaque, c_int, c_int, c_int, c_int, c_int, c_int) callconv(.c) void;
 
 /// orig: pc_fixed_font_char (pc/src/fixed_font.c)
 /// Emits the textured quad of `character` (the current font table) at x, y,
-/// width by height (all 16.16), into the packet at the guest word `cursor`,
+/// width by height (all 16.16), into the packet at `cursor`,
 /// links it into the ordering table, moves the cursor on and returns the next
 /// x (the glyph's width times `scale`; a space is 6 times it). The text
 /// hooks, when linked, see the quad's unrounded corners and the glyph.
-pub fn fixedFontChar(cursor: [*c][*c]c_uint, character: c_int, x: c_uint, y: c_uint, width: c_uint, height: c_uint, scale: c_uint) callconv(.c) c_int {
+pub fn fixedFontChar(cursor: *?*anyopaque, character: c_int, x: c_uint, y: c_uint, width: c_uint, height: c_uint, scale: c_uint) callconv(.c) c_int {
     // The cursor, the table and the packets are guest addresses the C uses as-is (any alignment).
     @setRuntimeSafety(false);
     if (character == 0x8f) {
@@ -22,8 +23,7 @@ pub fn fixedFontChar(cursor: [*c][*c]c_uint, character: c_int, x: c_uint, y: c_u
         return @bitCast(x +% scale *% 6);
     }
     const glyph: c_uint = @bitCast(character +% @as(c_int, v.g._fontTable().*) *% 189);
-    const word: *u32 = @ptrCast(cursor);
-    const packet: [*]c_uint = @ptrFromInt(@as(usize, word.*));
+    const packet: [*]c_uint = @ptrFromInt(@intFromPtr(cursor.*));
     const table: [*]c_uint = @ptrFromInt(@as(usize, v.g.D_800F51B8().*));
     const head: *c_uint = &table[@as(usize, v.g.D_800F4E80().*) *% 4 +% 3];
     const clut: c_uint = (((@as(c_uint, v.g.D_800F4CB8().*) *% 16 +% 0x340) >> 4) & 63) | 0x3780;
@@ -58,12 +58,12 @@ pub fn fixedFontChar(cursor: [*c][*c]c_uint, character: c_int, x: c_uint, y: c_u
         glyph_hook(&command, 1, @bitCast(glyph), @bitCast(x), @bitCast(y), @bitCast(x +% advance *% scale), @bitCast(advance));
     }
     head.* = psx.addr(packet) & 0xffffff;
-    word.* = psx.addr(packet + 10);
+    cursor.* = packet + 10;
     return @bitCast(x +% advance *% scale);
 }
 
 /// orig: _printFixedWidthFontChar (pc/src/fixed_font.c)
-/// One glyph at x, y into the packets at the scratchpad's cursor (word 0).
+/// One glyph at x, y into the packets at the cursor.
 pub fn printFixedWidthFontChar(character: c_int, x: c_int, y: c_int, width: c_int, height: c_int, scale: c_int) callconv(.c) c_int {
-    return c.pc_fixed_font_char(@ptrFromInt(0x1f800000), character, @bitCast(x), @bitCast(y), @bitCast(width), @bitCast(height), @bitCast(scale));
+    return c.pc_fixed_font_char(&common.scratch.get().unk0, character, @bitCast(x), @bitCast(y), @bitCast(width), @bitCast(height), @bitCast(scale));
 }

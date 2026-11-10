@@ -260,7 +260,6 @@ static int _showMenu(void)
     int lastPage;
     int selectedRow;
     int currentPage;
-    u_long** s0;
     int cdState;
 
     switch (_showMenuState) {
@@ -383,23 +382,22 @@ static int _showMenu(void)
                 vs_main_playSfxDefault(0x7E, VS_SFX_MENUCHANGE);
             }
         }
-        s0 = (u_long**)getScratchAddr(0);
-        vs_mainmenu_renderButton(buttonIdSquare, 8, 16, psx_slot_get(u_long*, s0, 1) + 6);
+        vs_mainmenu_renderButton(buttonIdSquare, 8, 16, (u_long*)vs_scratch.unk4 + 6);
         vs_battle_renderTextRawColor(
-            "TURN    PAGE", 0x12001C, 0x808080, psx_slot_get(u_long*, s0, 1) + 6);
+            "TURN    PAGE", 0x12001C, 0x808080, (u_long*)vs_scratch.unk4 + 6);
         _drawControlsBg(0x10, 0x12, 0x60, 0xC);
-        vs_mainmenu_renderButton(buttonIdCircle, 8, 34, psx_slot_get(u_long*, s0, 1) + 6);
+        vs_mainmenu_renderButton(buttonIdCircle, 8, 34, (u_long*)vs_scratch.unk4 + 6);
         vs_battle_renderTextRawColor(
-            "MENU", 0x24001C, 0x808080, psx_slot_get(u_long*, s0, 1) + 6);
+            "MENU", 0x24001C, 0x808080, (u_long*)vs_scratch.unk4 + 6);
         _drawControlsBg(0x10, 0x24, 0x40, 0xC);
         vs_battle_renderTextRawColor(
-            "PAGE", 0xC400D8, 0x808080, psx_slot_get(u_long*, s0, 1) + 7);
+            "PAGE", 0xC400D8, 0x808080, (u_long*)vs_scratch.unk4 + 7);
         sprintf(charBuf, "#%d/", currentPage + 1);
         vs_battle_renderTextRawColor(
-            charBuf, 0xC40118, 0x808080, psx_slot_get(u_long*, s0, 1) + 7);
+            charBuf, 0xC40118, 0x808080, (u_long*)vs_scratch.unk4 + 7);
         sprintf(charBuf, "#%d", lastPage + 1);
         vs_battle_renderTextRawColor(
-            charBuf, 0xC40130, 0x808080, psx_slot_get(u_long*, s0, 1) + 7);
+            charBuf, 0xC40130, 0x808080, (u_long*)vs_scratch.unk4 + 7);
         vs_battle_manualDisplayState
             .scrollPositions[vs_battle_manualDisplayState.currentManual] =
             _scrollPosition;

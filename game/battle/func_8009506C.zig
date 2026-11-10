@@ -1,6 +1,7 @@
 //! Appends the four textured quads of a bar, sized by a step from `data.unkB`, to the
 //! ordering table (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_2842C");
 const sprite_item = @import("common").sprite_item;
 
@@ -19,7 +20,7 @@ pub fn func_8009506C(left: c_int, centerY: c_int, arg2: ?*v.D_800F1BAC_t) callco
     const unkB: c_int = data.unkB;
     const step: c_int = if (unkB < 4) unkB else if (unkB >= 27) 30 -% unkB else 4;
 
-    const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
+    const scratch = common.scratch.get();
     const heights = v.g.D_800E8634();
     const rects = v.g.D_800E8640();
 

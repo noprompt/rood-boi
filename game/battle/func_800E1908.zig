@@ -1,6 +1,7 @@
 //! Marks a terrain tile while the movement state's facing is computed, then
 //! restores it (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
@@ -11,8 +12,8 @@ pub fn func_800E1908(state: ?*v.vs_battle_aiState) callconv(.c) void {
 
     // TERRAIN_TILE_MASK base is the guest pointer stored at scratchpad 0x1F8003C4;
     // the row width is the byte at 0x1F8003DC. The index is never negative.
-    const table: u32 = @as(*const u32, @ptrFromInt(0x1F8003C4)).*;
-    const width: c_int = @as(*const u8, @ptrFromInt(0x1F8003DC)).*;
+    const table: u32 = @as(*const u32, @ptrFromInt(pad.addr(0x3C4))).*;
+    const width: c_int = @as(*const u8, @ptrFromInt(pad.addr(0x3DC))).*;
     const index: c_int = @as(c_int, s.tile.terrain.p.z) *% width +% @as(c_int, s.tile.terrain.p.x);
     const tile: *align(1) u8 = @ptrFromInt(@as(usize, table +% @as(u32, @bitCast(index))));
     const old: c_int = tile.*;
@@ -27,7 +28,7 @@ pub fn func_800E1908(state: ?*v.vs_battle_aiState) callconv(.c) void {
         0);
     tile.* = psx.conv(u8, old);
 
-    const mode: c_int = @as(*const c_int, @ptrFromInt(0x1F8003C8)).*;
+    const mode: c_int = @as(*const c_int, @ptrFromInt(pad.addr(0x3C8))).*;
     // x86 masks a variable shift count to 5 bits; the C relies on that.
     const shift: u5 = @truncate(@as(u32, @bitCast(mode)));
     if (((@as(c_int, 0xA0) >> shift) & 1) != 0) {

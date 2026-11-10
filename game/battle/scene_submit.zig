@@ -5,13 +5,13 @@ const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = @import("common").sprite_item;
 
-/// The scratchpad block, addressed by number as the C does.
+/// The scene's view.
 fn view() *v.vs_view_t {
     return v.g.vs_view();
 }
 
 fn scratch() *v.vs_scratch_t {
-    return @ptrFromInt(0x1F800000);
+    return v.g.vs_scratch();
 }
 
 const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;

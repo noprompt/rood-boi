@@ -1,14 +1,15 @@
 //! The event camera's state handed to the renderer (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
+const pad = @import("common").pad;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
 /// The scratchpad block the shake offsets are built in (cameraScratch at 0x1F800088).
-const v1: *v.VECTOR = @ptrFromInt(0x1F800098); // scratch.v1
-const v2: *v.VECTOR = @ptrFromInt(0x1F8000A8); // scratch.v2
-const rotation: *v.SVECTOR = @ptrFromInt(0x1F8000D8); // ((SVECTOR*)0x1F800088)[10]
-const matrix: *v.MATRIX = @ptrFromInt(0x1F8000F8); // scratch.matrix
+const v1: *v.VECTOR = pad.ptr(v.VECTOR, 0x98); // scratch.v1
+const v2: *v.VECTOR = pad.ptr(v.VECTOR, 0xA8); // scratch.v2
+const rotation: *v.SVECTOR = pad.ptr(v.SVECTOR, 0xD8); // ((SVECTOR*)0x1F800088)[10]
+const matrix: *v.MATRIX = pad.ptr(v.MATRIX, 0xF8); // scratch.matrix
 
 fn cv(p: *v.VECTOR) [*c]c.VECTOR {
     return psx.cptr(c.VECTOR, p);

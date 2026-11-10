@@ -61,11 +61,11 @@ extern int pc_gte_widescreen;
  * pointer (0x1F800000), and the draw items it adds. */
 #define PC_ANCHOR_PACKETS(anchor, statement) \
     do { \
-        void* pc_anchor_start = psx_load(void*, (u_int*)0x1F800000); \
+        void* pc_anchor_start = vs_scratch.unk0; \
         int pc_anchor_items = pc_frame_count(); \
         statement; \
         if (pc_hw_anchor_packets) { \
-            pc_hw_anchor_packets(pc_anchor_start, psx_load(void*, (u_int*)0x1F800000), anchor); \
+            pc_hw_anchor_packets(pc_anchor_start, vs_scratch.unk0, anchor); \
             pc_frame_anchor(pc_anchor_items, pc_frame_count(), anchor); \
         } \
     } while (0)

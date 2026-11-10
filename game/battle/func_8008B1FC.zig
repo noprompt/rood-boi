@@ -17,16 +17,11 @@ pub fn func_8008B1FC(arg0: ?*anyopaque) callconv(.c) void {
     c.SetTransMatrix(psx.cptr(c.MATRIX, camera));
     c.func_800983F8(arg0);
 
-    // _camera.unk0: a 4-byte guest address in the scratchpad, widened to the native pointer.
-    const word_a: usize = @as(usize, @as(*const u32, @ptrFromInt(0x1F800000)).*);
-    const frame_a: ?*anyopaque = @ptrFromInt(word_a);
-    v.g.D_800F1CC0().* = frame_a;
+    v.g.D_800F1CC0().* = v.g.vs_scratch().unk0;
 
     c.func_8009723C(arg0, v.g.D_800F19C8().*);
 
-    const word_b: usize = @as(usize, @as(*const u32, @ptrFromInt(0x1F800000)).*);
-    const frame_b: ?*anyopaque = @ptrFromInt(word_b);
-    v.g.D_800F1BB8().* = frame_b;
+    v.g.D_800F1BB8().* = v.g.vs_scratch().unk0;
 
     if (v.g.D_800F1BB0().unk6 != 0) {
         c.func_80098D6C(v.g.D_800F1CC0().*, v.g.D_800F1BB8().*, psx.cptr(c.D_800F1BB0_t, v.g.D_800F1BB0()), 0);

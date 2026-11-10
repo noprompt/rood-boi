@@ -8,9 +8,8 @@ const c = @import("c_2842C");
 /// orig: func_800970BC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Builds the quad's FT4 primitive at the scratchpad's next-primitive slot and links it into the ordering table.
 pub fn func_800970BC() callconv(.c) void {
-    const head: *u32 = @ptrFromInt(0x1F800000);
-    const link: *u32 = @ptrFromInt(0x1F800004);
-    var prim: *align(1) v.POLY_FT4 = @ptrFromInt(@as(usize, head.*));
+    const scratch = common.scratch.get();
+    var prim: *align(1) v.POLY_FT4 = @ptrCast(scratch.unk0.?);
 
     // setPolyFT4: length in the tag word's top byte, code in the last byte of the header.
     psx.setBits(@as(*align(1) v.P_TAG, @ptrCast(prim)), "len", 9);
@@ -48,9 +47,9 @@ pub fn func_800970BC() callconv(.c) void {
     prim.clut = (221 << 6) | ((960 >> 4) & 0x3f);
 
     // AddPrim(ot - 5, prim++): the link word is the ordering table's entry, 5 u_long (4 bytes each) back.
-    const ot: ?*anyopaque = @ptrFromInt(@as(usize, link.* -% 20));
+    const ot: ?*anyopaque = @ptrFromInt(@intFromPtr(scratch.unk4) -% 20);
     c.AddPrim(ot, prim);
     prim = psx.at(prim, 1);
 
-    head.* = psx.addr(prim);
+    scratch.unk0 = prim;
 }

@@ -9,10 +9,9 @@ const c = @import("c_2842C");
 const SiteFn = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaque) callconv(.c) void;
 const AnchorFn = *const fn (?*anyopaque, ?*anyopaque, c_int) callconv(.c) void;
 
-/// The scratchpad word at 0x1F800000 as a guest pointer.
+/// The packet cursor.
 fn scratchPtr() ?*anyopaque {
-    const word: *const u32 = @ptrFromInt(0x1F800000);
-    return @ptrFromInt(@as(usize, word.*));
+    return common.scratch.get().unk0;
 }
 
 /// `*D_800F1BAC`: the label array's base.

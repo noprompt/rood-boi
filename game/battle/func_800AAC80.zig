@@ -7,11 +7,8 @@ const c = @import("c_40564");
 /// orig: func_800AAC80 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)
 /// Sets up a draw-move packet for `rect` at (x, y) and advances the packet cursor past it.
 pub fn func_800AAC80(arg0: ?*v.RECT, arg1: c_int, arg2: c_int) callconv(.c) void {
-    // Scratchpad slot 0 holds the packet cursor as a 4-byte guest address.
-    const cursor: *u32 = @ptrFromInt(0x1F800000);
-    const drMove: *v.DR_MOVE = @ptrFromInt(@as(usize, cursor.*));
+    const drMove: *v.DR_MOVE = @ptrCast(@alignCast(common.scratch.get().unk0));
     c.SetDrawMove(psx.cptr(c.DR_MOVE, drMove), @ptrCast(arg0), arg1, arg2);
     c.func_8007A824(psx.cptr(c.DR_MOVE, drMove));
-    const next: *v.DR_MOVE = @ptrFromInt(@intFromPtr(drMove) +% @sizeOf(v.DR_MOVE));
-    cursor.* = psx.addr(next);
+    common.scratch.get().unk0 = psx.at(drMove, 1);
 }

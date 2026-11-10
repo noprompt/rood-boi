@@ -28,7 +28,7 @@ static void _drawOk(int row, int brightness)
 #endif
     vs_battle_renderTextRawColor("OK", vs_getXY(175, row * 16 + 32),
         ((rsin(brightness * 8) >> 5) + 64) * vs_getRGB888(1, 1, 1),
-        psx_get(vs_scratch.unk4) - 0xC);
+        vs_scratch.unk4 - 0xC);
 #ifdef ROOD_PC
     });
 #endif

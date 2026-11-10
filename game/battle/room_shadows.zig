@@ -5,13 +5,13 @@ const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
-/// The scratchpad block, addressed by number as the C does.
+/// The scene's view.
 fn view() *v.vs_view_t {
     return v.g.vs_view();
 }
 
 fn scratch() *v.vs_scratch_t {
-    return @ptrFromInt(0x1F800000);
+    return v.g.vs_scratch();
 }
 
 const ShadowNative = *const fn (c_int, [*]const c_int, c_int, ?[*]c_uint, ?[*]c_uint) callconv(.c) ?[*]c_uint;

@@ -46,8 +46,8 @@ void func_800F9FB8(void)
     int i;
     void** temp_s4;
 
-    temp_s4 = psx_get(vs_scratch.unk8);
-    var_s2 = func_800F9EBC(0xE00140, 6, psx_get(vs_scratch.unk0), temp_s4);
+    temp_s4 = vs_scratch.unk8;
+    var_s2 = func_800F9EBC(0xE00140, 6, vs_scratch.unk0, temp_s4);
     var_s2 = func_800F9EBC(0xE00000, 0x16, var_s2, temp_s4);
     var_s2 = func_800F9EBC(0, 0x26, var_s2, temp_s4);
     var_s2 = func_800F9EBC(0x140, 0x36, var_s2, temp_s4);
@@ -68,5 +68,5 @@ void func_800F9FB8(void)
             void*, temp_s4, 0, psx_to_ptr(void*, (psx_to_int(u_long, var_s2) << 8) >> 8));
         var_s2 += 10;
     }
-    psx_set(vs_scratch.unk0, var_s2);
+    vs_scratch.unk0 = var_s2;
 }

@@ -63,7 +63,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
     pcRow.fade = @as(c_int, row.unk2);
     pcRow.bank = @as(c_int, row.unk7);
     pcRow.slot = psx.conv(c_int, nextPrim -% psx.addr(psx.get(v.g.vs_scratch().unk4).?));
-    pcRowFirst = @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*));
+    pcRowFirst = v.g.vs_scratch().unk0;
 
     c.vs_battle_renderTextRawColor(row.limbName, textXy, color, @ptrCast(np));
 
@@ -84,7 +84,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
     sprite_item.tileFlat(@ptrCast(np), false, 0, ((x +% 2 -% gradient) & 0xFFFF) | ((y +% 2) << 16), (gradient +% 0x48) | 0x80000);
 
     if (psx.weak(SiteFn, "pc_classic_site")) |site| {
-        site(20, &pcRow, pcRow.x, pcRow.y, pcRowFirst, @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*)));
+        site(20, &pcRow, pcRow.x, pcRow.y, pcRowFirst, v.g.vs_scratch().unk0);
     }
 
     if (row.unk1 != 0) {
@@ -110,7 +110,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
         pcLine.row_x = @as(c_int, row.unk4);
         pcLine.row_y = y -% 4;
         pcLine.age = @as(c_int, row.unk3);
-        pcRowFirst = @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*));
+        pcRowFirst = v.g.vs_scratch().unk0;
 
         if (@as(c_int, row.unk4) < 160) {
             x = (x +% 0x47) & 0xFFFF;
@@ -128,7 +128,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
         }
 
         if (psx.weak(SiteFn, "pc_classic_site")) |site| {
-            site(21, &pcLine, pcLine.x, pcLine.y, pcRowFirst, @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*)));
+            site(21, &pcLine, pcLine.x, pcLine.y, pcRowFirst, v.g.vs_scratch().unk0);
         }
     }
 }

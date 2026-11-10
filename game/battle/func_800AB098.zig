@@ -50,9 +50,8 @@ pub fn func_800AB098(actor: ?*v.D_800F4538_t, index: c_int, frame: c_int) callco
     srcY +%= @divTrunc(frame, cols) *% height;
     srcY +%= @as(c_int, psx.at(&a.unk183E, sel).*);
 
-    // vs_battlePacketBegin: the packet cursor is a 4-byte guest address in the scratchpad.
-    const cursor: u32 = @as(*const u32, @ptrFromInt(0x1F800000)).*;
-    const packet: *v.DR_MOVE = @ptrFromInt(cursor);
+    // vs_battlePacketBegin
+    const packet: *v.DR_MOVE = @ptrCast(@alignCast(common.scratch.get().unk0));
 
     const slot: c_int = a.unk5BB;
     const x: c_int = psx.byteAt(i16, v.g.D_800E8F30(), slot * 4).*;
@@ -72,5 +71,5 @@ pub fn func_800AB098(actor: ?*v.D_800F4538_t, index: c_int, frame: c_int) callco
     c.func_8007A824(psx.cptr(c.DR_MOVE, packet));
 
     // vs_battlePacketEnd: the cursor advances by one DR_MOVE.
-    @as(*u32, @ptrFromInt(0x1F800000)).* = psx.addr(packet) +% @sizeOf(v.DR_MOVE);
+    common.scratch.get().unk0 = psx.at(packet, 1);
 }

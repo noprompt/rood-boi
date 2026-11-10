@@ -4,15 +4,14 @@ const psx = common.psx;
 const v = @import("views_40564");
 const c = @import("c_40564");
 
-/// Reads the packet cursor from scratchpad slot 0 (vs_battlePacketBegin).
+/// Reads the packet cursor from the cursor (vs_battlePacketBegin).
 fn packetBegin() *v.DR_MOVE {
-    const p: u32 = @as(*const u32, @ptrFromInt(0x1F800000)).*;
-    return @ptrFromInt(@as(usize, p));
+    return @ptrCast(@alignCast(common.scratch.get().unk0));
 }
 
-/// Stores the packet cursor past `p` into scratchpad slot 0 (vs_battlePacketEnd).
+/// Stores the packet cursor past `p` into the cursor (vs_battlePacketEnd).
 fn packetEnd(p: *v.DR_MOVE) void {
-    @as(*u32, @ptrFromInt(0x1F800000)).* = psx.addr(psx.at(p, 1));
+    common.scratch.get().unk0 = psx.at(p, 1);
 }
 
 /// orig: func_800AB358 (pc/src/game/BATTLE/BATTLE.PRG/40564.c)

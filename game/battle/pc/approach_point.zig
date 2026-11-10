@@ -2,6 +2,7 @@
 const ai = @import("views_71618");
 const c = @import("c_battle_movement");
 const v = @import("views_battle_movement");
+const pad = @import("common").pad;
 
 /// orig: func_800E4904 (pc/src/battle_movement.c)
 /// Refreshes the approach point (0xF4/0xF6, half-tile units) of the target
@@ -10,7 +11,7 @@ const v = @import("views_battle_movement");
 pub fn refreshApproachPoint(state: *ai.vs_battle_aiState) callconv(.c) void {
     const id = state.actorId;
     const model_slot = v.g.D_800F4538()[id];
-    const present: *align(1) const u32 = @ptrFromInt(@as(usize, 0x1f80037c) + @as(usize, id) * 4);
+    const present: *align(1) const u32 = @ptrFromInt(@as(usize, pad.addr(0x37C)) + @as(usize, id) * 4);
     if (present.* == 0) return;
     const model: [*]u8 = @ptrCast(model_slot.?);
     var group: c_int = -1;

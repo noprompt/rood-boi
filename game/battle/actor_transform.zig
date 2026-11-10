@@ -1,6 +1,7 @@
 //! Actor transforms through the scratchpad and the GTE
 //! (pc/src/game/BATTLE/BATTLE.PRG/44F14.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const gte = common.gte;
 const v = @import("views_44F14");
@@ -9,7 +10,7 @@ const c = @import("c_44F14");
 /// orig: func_800B07DC (pc/src/game/BATTLE/BATTLE.PRG/44F14.c)
 /// The scratchpad offset rotated by the actor's pitch, facing and roll, plus its position.
 pub fn offsetToWorld(actor: ?psx.GuestPtr(v.D_800F4538_t)) callconv(.c) void {
-    const scratch: *v.actorTransformScratch = @ptrFromInt(0x1F80035C);
+    const scratch: *v.actorTransformScratch = @ptrFromInt(pad.addr(0x35C));
     scratch.rotation.vx = actor.?.unk0.pitch;
     scratch.rotation.vy = actor.?.unk0.facing;
     scratch.rotation.vz = actor.?.unk0.roll;

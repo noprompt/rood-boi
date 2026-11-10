@@ -3373,7 +3373,7 @@ static int _displayGameOverScreen(int init)
     static int selectedOption;
     static char _[8];
 
-    u_long* nextPrim = psx_get(vs_scratch.unk8);
+    u_long* nextPrim = vs_scratch.unk8;
 
     if (init != 0) {
         color1 = 0;
@@ -4054,7 +4054,7 @@ static void _drawPlayTime(void)
     if (time[3] >= 100) {
         *(int*)&time = 0;
         time[3] = 0;
-        vs_battle_renderTextRaw("1", 0xC800D8, psx_get(vs_scratch.unk4) - 0x14);
+        vs_battle_renderTextRaw("1", 0xC800D8, vs_scratch.unk4 - 0x14);
     } else {
         time[0] = ((((time[0] << 14) + vs_battle_keystreamBits(15)) * 5u) >> 14) / 3;
     }
@@ -4064,8 +4064,8 @@ static void _drawPlayTime(void)
         _playTime[9 - i * 3] = (digits >> 4) + 48;
         _playTime[10 - i * 3] = (digits & 0xF) + 48;
     }
-    vs_battle_renderTextRaw(_playTime, 0xC800E0, psx_get(vs_scratch.unk4) - 0x14);
-    vs_battle_renderTextRaw("PLAY    TIME", 0xBC00E0, psx_get(vs_scratch.unk4) - 0x14);
+    vs_battle_renderTextRaw(_playTime, 0xC800E0, vs_scratch.unk4 - 0x14);
+    vs_battle_renderTextRaw("PLAY    TIME", 0xBC00E0, vs_scratch.unk4 - 0x14);
 }
 
 #ifdef ROOD_PC

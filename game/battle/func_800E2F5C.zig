@@ -2,18 +2,19 @@
 //! stops at the map's edges or the path's bounds, and finds a detour tile
 //! (pc/src/game/BATTLE/BATTLE.PRG/771A8.c).
 const common = @import("common");
+const pad = @import("common").pad;
 const psx = common.psx;
 const v = @import("views_771A8");
 const c = @import("c_771A8");
 
 /// `((D_800F16EC_t*)0x1F8003EC)[direction]`: a heading's tile step.
 fn step(direction: c_int) *v.D_800F16EC_t {
-    return psx.at(@as([*]v.D_800F16EC_t, @ptrFromInt(0x1F8003EC)), direction);
+    return psx.at(@as([*]v.D_800F16EC_t, @ptrFromInt(pad.addr(0x3EC))), direction);
 }
 
 /// The other actor's path state in scratchpad slot `0x1F80037C + 4 * index`.
 fn blockerState(index: c_int) *v.vs_battle_aiState {
-    const slot = psx.at(@as([*]const u32, @ptrFromInt(0x1F80037C)), index);
+    const slot = psx.at(@as([*]const u32, @ptrFromInt(pad.addr(0x37C))), index);
     return @ptrFromInt(@as(usize, slot.*));
 }
 
@@ -71,7 +72,7 @@ pub fn func_800E2F5C(state: ?*v.vs_battle_aiState, test_: c.movementPathTest, ma
                     if (s.flags4.b[0] == 0) {
                         const x: c_int = @as(c_int, psx.getBits(&s.tile.position.p, "x")) +% psx.getBits(step(@bitCast(direction)), "dx");
                         const z: c_int = @as(c_int, psx.getBits(&s.tile.position.p, "z")) +% psx.getBits(step(@bitCast(direction)), "dz");
-                        const grid: [*][32]u16 = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F8003C0)).*));
+                        const grid: [*][32]u16 = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(pad.addr(0x3C0))).*));
                         const bounds = v.g.D_800F58BC().*.?;
                         // mask: the C's shift is undefined outside 0-31.
                         if ((@as(c_int, psx.at(psx.at(grid, z), x).*) >> @intCast(mask)) & 1 != 0 or

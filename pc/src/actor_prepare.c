@@ -84,8 +84,8 @@ typedef struct {
 static inline void func_800B26B8(void* actorData, MATRIX* parent, int bone, int saved)
 {
     D_800F4538_t* actor = actorData;
-    boneTransformScratch* scratch = (void*)0x1F80035C;
-    MATRIX* matrix = (void*)0x1F8003C0;
+    boneTransformScratch* scratch = (void*)PC_PAD(0x35C);
+    MATRIX* matrix = (void*)PC_PAD(0x3C0);
     MATRIX* savedMatrix = (MATRIX*)actor->unk1890[saved - 1]; /* the saved bone matrices follow unk1890 */
     vs_gte_view view;
     vs_gte_result transformed;
@@ -106,7 +106,7 @@ static inline void func_800B26B8(void* actorData, MATRIX* parent, int bone, int 
 void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
 {
     D_800F4538_t* actor = actorData;
-    actorTransformScratch* scratch = (void*)0x1F80035C;
+    actorTransformScratch* scratch = (void*)PC_PAD(0x35C);
     D_800F4538_t* source;
     int _[2] __attribute__((unused));
     actorIdentity savedIdentity;

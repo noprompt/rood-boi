@@ -214,9 +214,8 @@ int func_800F9EB8(MATRIX* arg0)
     }
 
     if (temp_s1->unk17FD != 0) {
-        int* p = (int*)0x1F800000;
         new_var2 = (temp_s1->unk6F4.unk3 * 4) + 0xC0;
-        p[1] += new_var2;
+        vs_scratch.unk4 += new_var2;
 
         applyVector(&temp_s1->unk0.position, temp_s1->unk6F4.unk0, temp_s1->unk6F4.unk1,
             temp_s1->unk6F4.unk2, +=);
@@ -224,9 +223,8 @@ int func_800F9EB8(MATRIX* arg0)
         func_800B002C(temp_s1, temp_s1->unk17FD);
         func_800B28A8(temp_s1, arg0, temp_s1->unk17FD);
 
-        p = (int*)0x1F800000;
         new_var3 = (temp_s1->unk6F4.unk3 * 4) + 0xC0;
-        p[1] -= new_var3;
+        vs_scratch.unk4 -= new_var3;
 
         applyVector(&temp_s1->unk0.position, temp_s1->unk6F4.unk0, temp_s1->unk6F4.unk1,
             temp_s1->unk6F4.unk2, -=);
