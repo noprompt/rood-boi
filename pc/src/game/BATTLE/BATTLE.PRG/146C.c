@@ -628,6 +628,7 @@ void func_8008E8F8(void);
 void func_8008E938(void);
 int func_8008EA90(int arg0);
 int func_8008F234(void);
+void func_8008FA14(D_800F1DD4_t*);
 void func_80090A1C(D_800F1DD4_t*);
 void func_80091378(void);
 int* func_8009195C(int);
@@ -2109,6 +2110,7 @@ void func_8008F30C(int arg0, int arg1);
 
 void func_8008F440(void);
 
+void func_8008F9A4(int arg0, int arg1);
 
 /* The screen's X range for the weather particles drawn as 2D at projected
  * points: in widescreen (port) the 16:9 view's (pc/src/widescreen.h). */
@@ -2120,8 +2122,11 @@ void func_8008F440(void);
 #define WEATHER_RIGHT 320
 #endif
 
+void func_8008FA14(D_800F1DD4_t* arg0);
 
+void func_8008FAC8(void);
 
+void func_8008FDC4(void);
 
 void func_80090434(void);
 
