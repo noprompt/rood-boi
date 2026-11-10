@@ -35,6 +35,7 @@
  * battle's status words (SLOW!, 3 CHAINS) as whole words in the status style
  * ("status words"). Every style field is a setting ("settings" below). */
 #define _POSIX_C_SOURCE 200809L
+#include "psx_types.h"
 #include "ui_text.h"
 #include "draw_items.h"
 #include "ui_labels.h"
@@ -2465,8 +2466,8 @@ int pc_ui_text_status_quad(const uint16_t* vram, const void* command, int u, int
  * row), each linked to the next; the last links to what the ordering table
  * held. Anything else (another printer's glyphs, a packet reused since)
  * finds no word: drawn glyph by glyph, as before. */
-#define GUEST_RAM 0x80000000u
-#define GUEST_RAM_END 0x80200000u
+#define GUEST_RAM ROOD_GUEST_RAM_BASE
+#define GUEST_RAM_END (ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE)
 static int in_guest_ram(const uint32_t* p, int count)
 {
     uintptr_t a = (uintptr_t)p;

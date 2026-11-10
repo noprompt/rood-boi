@@ -1,4 +1,5 @@
 //! Walks over the linked actor list (D2: 73C84.s, 73C24.s, 7E05C.s; oracle pc/src/battle_helpers.c).
+const std = @import("std");
 const ai = @import("views_71618");
 const psx = @import("common").psx;
 const c = @import("c_battle_helpers");
@@ -30,6 +31,21 @@ pub fn evaluateActors(context: [*]u8) callconv(.c) void {
     }
 }
 
+comptime {
+    // The words the original copied: 0x18, 0x1C (HP and MP pairs), 0x948, 0x150 (weapon DP pair), 0x2B4 (shield DP pair).
+    std.debug.assert(@offsetOf(ai.vs_battle_actor2, "currentHP") == 0x18 and @offsetOf(ai.vs_battle_actor2, "currentMP") == 0x1c);
+    std.debug.assert(@offsetOf(ai.vs_battle_actor2, "statuses") == 0x948);
+    std.debug.assert(@offsetOf(ai.vs_battle_actor2, "weapon") + @offsetOf(ai.vs_battle_uiWeapon, "currentDp") == 0x150);
+    std.debug.assert(@offsetOf(ai.vs_battle_actor2, "shield") + @offsetOf(ai.vs_battle_uiShield, "currentDp") == 0x2b4);
+}
+
+/// A word of two 16-bit stats as the original loaded it: the first in the low half, the second in the high.
+fn halves(low: anytype, high: anytype) c_uint {
+    const L = @Int(.unsigned, @bitSizeOf(@TypeOf(low)));
+    const H = @Int(.unsigned, @bitSizeOf(@TypeOf(high)));
+    return @as(c_uint, @as(L, @bitCast(low))) | (@as(c_uint, @as(H, @bitCast(high))) << 16);
+}
+
 /// orig: func_800DC424 (pc/src/battle_helpers.c)
 /// Snapshots each listed actor's id and stat words (0x18, 0x1C, 0x948 of its
 /// stats at +0x3C, then 0x150, 0x2B4) into the 0x18-byte record at
@@ -40,14 +56,14 @@ pub fn snapshotActorStats(snapshots: [*]u8) callconv(.c) void {
     var node = first();
     while (node) |n| : (node = next(n)) {
         const id = n.id;
-        const stats: [*]u8 = @ptrCast(n.stats);
+        const stats = n.stats.?;
         const record = psx.byteAt(u8, snapshots, @as(isize, id *% 0x18));
         psx.byteAt(c_int, record, 0).* = id;
-        psx.byteAt(c_uint, record, 4).* = psx.byteAt(c_uint, stats, 0x18).*;
-        psx.byteAt(c_uint, record, 8).* = psx.byteAt(c_uint, stats, 0x1c).*;
-        psx.byteAt(c_uint, record, 12).* = psx.byteAt(c_uint, stats, 0x948).*;
-        psx.byteAt(c_uint, record, 16).* = psx.byteAt(c_uint, stats, 0x150).*;
-        psx.byteAt(c_uint, record, 20).* = psx.byteAt(c_uint, stats, 0x2b4).*;
+        psx.byteAt(c_uint, record, 4).* = halves(stats.currentHP, stats.maxHP);
+        psx.byteAt(c_uint, record, 8).* = halves(stats.currentMP, stats.maxMP);
+        psx.byteAt(c_uint, record, 12).* = @bitCast(stats.statuses);
+        psx.byteAt(c_uint, record, 16).* = halves(stats.weapon.currentDp, stats.weapon.maxDp);
+        psx.byteAt(c_uint, record, 20).* = halves(stats.shield.currentDp, stats.shield.maxDp);
     }
 }
 

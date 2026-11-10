@@ -19,7 +19,7 @@ int _SpuIsInAllocateArea(u_long addr)
         return 0;
     }
     for (i = 0;; i++) {
-        if (list[i].addr & 0x80000000) {
+        if (list[i].addr & (1u << 31)) {
             continue;
         }
         if (list[i].addr & 0x40000000) {
@@ -48,7 +48,7 @@ int _SpuIsInAllocateArea_(u_long addr)
         return 0;
     }
     for (i = 0;; i++) {
-        if (list[i].addr & 0x80000000) {
+        if (list[i].addr & (1u << 31)) {
             continue;
         }
         if (list[i].addr & 0x40000000) {

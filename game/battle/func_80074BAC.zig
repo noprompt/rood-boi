@@ -122,7 +122,7 @@ pub fn func_80074BAC(actorId: c_int, cell: [*c]u8) callconv(.c) c_int {
         const stats = psx.get(actor.stats).?;
         if (stats.currentHP < 21) {
             if (stats.currentHP != 0) {
-                c.func_80093B68(stats.unk957, 0, @bitCast(@as(c_uint, 0x80000014)), 0);
+                c.func_80093B68(stats.unk957, 0, std.math.minInt(c_int) | 0x14, 0);
             }
             psx.get(actor.stats).?.currentHP = 0;
             _ = c.func_80074A20(psx.get(actor.stats).?.unk957);
@@ -131,7 +131,7 @@ pub fn func_80074BAC(actorId: c_int, cell: [*c]u8) callconv(.c) c_int {
         stats.currentHP = psx.conv(i16, @as(c_int, stats.currentHP) - 20); // at least 21
         c.vs_battle_setDoorEntered();
         _ = c.func_8007C4E0(@ptrCast(v.g.D_800F1AB0()), 0, 8);
-        c.func_80093B68(psx.get(actor.stats).?.unk957, 0, @bitCast(@as(c_uint, 0x80000014)), 0);
+        c.func_80093B68(psx.get(actor.stats).?.unk957, 0, std.math.minInt(c_int) | 0x14, 0);
         c.func_800A0ABC(actorId);
         c.func_8008B8F8(@ptrCast(v.g.D_800F1AB0()));
         return 1;

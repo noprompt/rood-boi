@@ -382,8 +382,6 @@ what content the game can hold.
   (`GAME_STACK_BASE`), `run_game_on_low_stack`.
 - `pc/src/game/SLUS_010.40/main.c` line near `vs_main_initHeap((vs_main_HeapHeader*)0x8010C000,
   0xF2000)` and the same call in `BATTLE/INITBTL.PRG/18.c` and `ENDING/ENDING.PRG/D4.c`.
-- `pc/src/memory.c` / `memory.h` (`rood_memory_span`) is **not** the running memory model. Only a unit
-  test (`pc/tests/memory_probe.c`) uses it.
 
 **Status.** Fully PS1-shaped.
 
@@ -445,7 +443,7 @@ the biggest and the one tied to behaviour.
 
 **What it is.** A large part of the game's data is defined by address: the build gives each global the
 address it had on the PS1 (`imports.ld`), so tables and structs the original data refers to line up.
-About 100 hard-coded PS1 addresses remain in code. Most functions and globals still carry their address as
+About a dozen hard-coded PS1 addresses remain in code (`ps1_address` counts them). Most functions and globals still carry their address as
 their name (`func_800B3CF0`, `D_800F45E0`), a naming fact, not a runtime tie, but it makes the map from
 code to behaviour hard to read. Battle's logic is in Zig (1811 `.zig` files under `game/`, 51 subsystems
 in `game/ownership.toml`, each function keyed by its PS1 address) and reaches game memory through raw
@@ -454,16 +452,76 @@ accessors.
 **Player feels.** Nothing directly.
 
 **Evidence.**
-- Baseline counts (`pc/tools/ps1_address_baseline.json`): `ps1_address` 100, `scratchpad` 1020,
-  `unnamed_symbol` 28365, `zig_raw_memory` 1433 (1309 of them in `game/battle`).
+- Counts (`pc/tools/ps1_address_baseline.json`, 2026-11-10): `ps1_address` 12, `scratchpad` 52,
+  `unnamed_symbol` 20594, `zig_raw_memory` 1036 (mostly in `game/battle`), `address_as_integer` 230.
 - `pc/tools/build_boot.py` (`imports.ld`); `game/ownership.toml`; `game/common/psx.zig`.
-- The LP64 audit counted 941 data imports at its date (2026-10-09); the current figure is
-  **unconfirmed** (needs a build).
+- 960 data imports in the 64-bit build (`lp64_imports.json`): 198 native, 762 pinned (see below).
 
-**Status.** Fully PS1-shaped in addressing; native in logic.
+**Status.** Fully PS1-shaped in addressing; native in logic. Since 2026-11-10 `ps1_address` is 12 (from
+60): what is left is the RAM base (`ROOD_GUEST_RAM_BASE`, `psx.guest_ram_base`), the heap
+(`VS_MAIN_HEAP_ADDRESS`), the overlay slot table (`overlay.c`, T10), the ordering-table link walk in Zig
+(`func_800C64D0`), and the actor-engagement reads through guest RAM (`no_hostile_near_target.zig`).
 
 **To replace.** Very large, mostly mechanical per unit: rename by meaning, replace the address with a
 typed global, and remove the raw access.
+
+**Which globals stay at their PS1 address (survey of the 64-bit build, 2026-11-10).**
+The build gives a data import (a global the C only declares) one of two homes: native (defined in
+`native_imports.c`, no PS1 address) or pinned (`imports.ld`: the address the original had, inside the
+fixed RAM). `pc/build/boot64/lp64_imports.json` (written by `build_boot.py --arch 64`) lists each
+import's address, users, declared types and, for a pinned one, `pinned`: the first reason it stays.
+960 data imports: 198 native (117 hold pointers, which the LP64 mover widens; 81 are plain data the
+mover now moves too), 762 pinned.
+
+| Where (PS1 address range) | Pinned | Native |
+|---|---|---|
+| main program (`0x80010000-0x80068800`) | 102 | 51 |
+| BATTLE and ENDING slot (`0x80068800-0x800F9800`) | 501 | 147 |
+| main menu and effect plug-in slot (`0x800F9800-0x80102800`) | 157 | 0 |
+| submenu slot (`0x80102800-0x8010C000`) | 2 | 0 |
+
+Why the 762 are pinned (each counted once, in this order):
+- 334 hold pointers or a type whose layout differs (psx_ptr structs, tables of function or data
+  pointers that are not moved natively): T13 has to widen them first.
+- 160 have their address taken: an `lea` or a data relocation in an object, or owned Zig using the
+  accessor other than as `X().*`. A native copy is fine for most (a pointer argument), but two kinds of
+  user need guest RAM: GPU packets and ordering-table entries (links are 24 bits of a RAM address, see
+  `next_packet` in `boot_runtime.c`) and DMA/CD destinations. D_800F4CD0 is declared `u_long` and is the
+  start of the ordering-table pages; declared sizes cannot be trusted for these.
+- 103 have an incomplete type (`[]`) or are over 256 bytes: the extent is a guess (the next import).
+- 66 are in a slot whose restart is not wired (effect plug-in and main menu data, ENDING), or are
+  shared between the main program and an overlay.
+- 49 follow an array of unknown length (it may run into them); 44 overlap or sit inside another import;
+  4 share an address with another name; 2 are pointed at by a word of a game file.
+
+What the original data really points into (a scan of every PRG, BIN and the main program for words
+that fall in an import's range): 116 imports are pointed at by game data and must stay at their
+address while the file's bytes are loaded as they are: 6 in the main program (`_trig_table`,
+`vs_main_inventoryIndices`, `StCdIntrFlag`, ...), 27 in the BATTLE/ENDING slot (tables in the BATTLE and
+ENDING files: `_saveMenuBg_clut`, `_uiTable`, `_menuCopyright`, `D_800F591C` with 114 pointers, ...), 83 in the effect plug-in slot (each plug-in's tables, the highest counts in PLG045,
+PLG049 and PLG057). The scan covers the program and every overlay file, not other data files. No test or tool reads a
+moved global by a literal address (a grep of `pc/`, `game/` and the tests for each moved address found
+none; `ending_smoke.py` reads ENDING's globals by address, and those stay).
+
+What the slots still do:
+- `vs_overlay_slots` (`overlay.c`, T10) is where a loaded file's bytes land: 0x80068800 (BATTLE,
+  INITBTL, ENDING), 0x800F9800 (main menu, effect plug-ins, EFFPURGE), 0x80102800 (the submenus). The
+  code of every file is native already; the bytes matter only as the initial values of the pinned
+  globals above, and as a scratch destination: `load_eff_purge.zig` and `load_menu_prg.zig` load
+  into slots 1-3 directly, `MAINMENU.PRG/58EC.c` reads slot 2.
+- A slot becomes optional only when every pinned global in it is native or its file no longer
+  carries data (the main menu and plug-in slot has 157 pinned, 83 pointed at by data, so it is the
+  last).
+
+What moved (`build_boot.py`, the plain-data rule of `lp64_native_imports`): imports that are plain data (no pointers), have a complete
+type of at most 256 bytes, nothing else at or inside their address, no word of any game file pointing
+into them, an object that does not take their address, and that are in the main program or in
+BATTLE's own file image (BATTLE and ENDING data restart with their overlay through
+`pc_overlay_statics`; data beyond the file persists as it did). 81 imports: mostly counters and flags
+of the sound driver and the battle (`D_8002F544`, `vs_main_*` scalars, `D_800F16E0`..).
+
+To take the rest: widen the 334 (T13), review the 160 by use (packet and DMA destinations are
+guest, everything else can move), and wire restart for the plug-in and menu slots.
 
 **Depends on.** T13.
 
@@ -689,8 +747,6 @@ What this says in plain order:
   yet). The 64-bit build links and runs; use `ps1_address_baseline.json` for current counts.
 - `pc/ASSEMBLY_INVENTORY.md`: paths are to the old top-level `src/` tree, and the count (95) differs from
   a current grep (97 `INCLUDE_ASM` lines in `pc/src/game`, including conditional ones).
-- `pc/src/memory.c` and `memory.h` look like the memory model but only a unit test uses them; the real
-  mapping is in `boot_runtime.c`.
 - `pc/src/boot_runtime.c`'s `next_packet` and a few comments keep 32-bit branches (`sizeof(void*) == 4`)
   that cannot run now.
 - `pc/docs/Modern_Menus.md` says the default is `original` "until the first screens are verified". The

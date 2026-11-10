@@ -2,6 +2,7 @@
 #include "audio.h"
 #include "view_state.h"
 #include "pc_paths.h"
+#include "psx_types.h"
 #include "platform.h" /* pc_replace_file */
 #include "frame_cost.h" /* ROOD_PERF sections */
 #include <stdio.h>
@@ -400,7 +401,7 @@ static LONG WINAPI pc_exception(EXCEPTION_POINTERS* info)
         && code != EXCEPTION_INT_DIVIDE_BY_ZERO && code != EXCEPTION_PRIV_INSTRUCTION
         && code != EXCEPTION_STACK_OVERFLOW)
         return EXCEPTION_CONTINUE_SEARCH;
-    if (at < (uintptr_t)__ImageBase || at >= 0x80000000u)
+    if (at < (uintptr_t)__ImageBase || at >= ROOD_GUEST_RAM_BASE)
         return EXCEPTION_CONTINUE_SEARCH;
     char line[160];
     int len = snprintf(line, sizeof line,
@@ -495,7 +496,7 @@ static void reserve_game_stack(void)
         fclose(maps);
     p = mmap(NULL, GAME_STACK_SIZE, PROT_READ | PROT_WRITE,
         MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | (sizeof(void*) == 8 ? MAP_32BIT : 0), -1, 0);
-    if (p == MAP_FAILED || (uintptr_t)p + GAME_STACK_SIZE > 0x80000000u) {
+    if (p == MAP_FAILED || (uintptr_t)p + GAME_STACK_SIZE > ROOD_GUEST_RAM_BASE) {
         perror("game stack below 2 GB");
         exit(1);
     }
@@ -520,6 +521,9 @@ static void run_game_on_low_stack(void)
 #endif
 /* Guest memory at its PS1 addresses (RAM, scratchpad, the I/O page); NULL
  * when a range is taken. */
+/* See psx_types.h: where the game's reads through the original's NULLs land. */
+unsigned char rood_null_page[0x10000] __attribute__((aligned(16)));
+
 static void* map_guest(uintptr_t address, size_t size)
 {
 #ifdef _WIN32
@@ -593,7 +597,7 @@ int main(int argc, char** argv)
     /* Guest memory first: the window's graphics driver (Vulkan and its
      * layers especially) maps memory of its own, which must not land in the
      * guest's fixed ranges. */
-    void* ram = map_guest(0x80000000, 0x200000);
+    void* ram = map_guest(ROOD_GUEST_RAM_BASE, ROOD_GUEST_RAM_SIZE);
 #ifdef _WIN32
     /* Windows reserves in 64 KB granules: the scratchpad and the I/O page
      * (below) are one allocation. */
@@ -645,7 +649,7 @@ int main(int argc, char** argv)
     uint32_t address, size;
     memcpy(&address, header + 0x18, 4);
     memcpy(&size, header + 0x1c, 4);
-    if (address < 0x80000000u || address >= 0x80200000u || size > 0x80200000u - address)
+    if (address < ROOD_GUEST_RAM_BASE || address >= (ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE) || size > (ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE) - address)
         return 1;
     if (fread((void*)(uintptr_t)address, 1, size, f) != size)
         return 1;
@@ -793,7 +797,7 @@ static const uint32_t* next_packet(const uint32_t* tag)
     if (next == 0xffffff)
         return NULL;
     if (next < 0x200000)
-        return (const uint32_t*)(uintptr_t)(next | 0x80000000u);
+        return (const uint32_t*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
     if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
         return (const uint32_t*)(uintptr_t)next;
     return NULL;
@@ -1025,7 +1029,7 @@ static int ot_has_native(const uint32_t* p)
         if (next == 0xffffff)
             return 0;
         if (next < 0x200000)
-            p = (const uint32_t*)(uintptr_t)(next | 0x80000000u);
+            p = (const uint32_t*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
         else if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
             p = (const uint32_t*)(uintptr_t)next;
         else
@@ -1165,7 +1169,7 @@ static void draw_packet(void* data, int chain)
             if (next == 0xffffff)
                 return;
             if (next < 0x200000)
-                p = (void*)(uintptr_t)(next | 0x80000000u);
+                p = (void*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
             else if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
                 p = (void*)(uintptr_t)next;
             else
@@ -1207,7 +1211,7 @@ static void draw_packet(void* data, int chain)
          * 32-bit build also follows native addresses below 16 MB; the 64-bit
          * build links only guest memory (its native code is not placed). */
         if (next < 0x200000)
-            p = (void*)(uintptr_t)(next | 0x80000000u);
+            p = (void*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
         else if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
             p = (void*)(uintptr_t)next;
         else

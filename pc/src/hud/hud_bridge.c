@@ -31,6 +31,7 @@
  *     Its show opens it (the battle's own closes it when its action ends; the
  *     field nothing: the hold keeps it, a show without hold is closed after its
  *     life, both only if it is still the one shown). */
+#include <limits.h>
 #include "common.h"
 #include <string.h>
 #include "../../../pc/src/game/spriteItem.h"
@@ -1351,7 +1352,7 @@ int pc_hud_bridge_spawn(int kind, const pc_hud_spawn* s)
         int weapon = vs_main_settings.weaponStatChange, armor = vs_main_settings.armorStatChange;
         vs_main_settings.weaponStatChange = 1;
         vs_main_settings.armorStatChange = 1;
-        func_80096768(slot_codes[s->slot], s->stat, (s->value & 0x7FFF) | (s->sign < 0 ? (int)0x80000000 : 0));
+        func_80096768(slot_codes[s->slot], s->stat, (s->value & 0x7FFF) | (s->sign < 0 ? INT_MIN : 0));
         vs_main_settings.weaponStatChange = weapon;
         vs_main_settings.armorStatChange = armor;
         func_800971D4(); /* (as when the equipment menu closes) */
@@ -1362,7 +1363,7 @@ int pc_hud_bridge_spawn(int kind, const pc_hud_spawn* s)
         return 1;
     }
     case PC_HUD_DAMAGE: {
-        int amount = (s->value & 0x7FFF) | (s->sign < 0 ? (int)0x80000000 : 0);
+        int amount = (s->value & 0x7FFF) | (s->sign < 0 ? INT_MIN : 0);
         int type = s->pool == 2 ? 3 + s->stat : s->pool;
         /* on Ashley: her body's first part, else her centre */
         if (func_80093B68(0, 0, amount, type) != 0 && func_80093B68(0, -1, amount, type) != 0)

@@ -37,7 +37,7 @@ long VSync(long mode)
     func_8001F83C(D_80032114 + 1, 1);
 
     if (status & 0x400000) {
-        while (!((status ^ *D_80030FDC) & 0x80000000)) { }
+        while (!((status ^ *D_80030FDC) & (1u << 31))) { }
     }
 
     D_80030FE8 = D_80032114;

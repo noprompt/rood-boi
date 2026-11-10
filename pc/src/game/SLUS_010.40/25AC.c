@@ -173,7 +173,7 @@ extern FSoundChannelConfig* g_pSavedMousicConfig;
 /* With no saved music config the original reads (and clears) fields through
  * NULL, i.e. PS1 physical RAM at 0, which the host maps at 0x80000000. */
 #define SAVED_MUSIC_CONFIG                                                       \
-    (g_pSavedMousicConfig ? g_pSavedMousicConfig : (FSoundChannelConfig*)0x80000000)
+    (g_pSavedMousicConfig ? g_pSavedMousicConfig : (FSoundChannelConfig*)rood_null_page)
 #else
 #define SAVED_MUSIC_CONFIG g_pSavedMousicConfig
 #endif
@@ -182,7 +182,7 @@ extern FSoundChannelConfig* g_pSavedMousicConfig;
  * reads a NULL wave: PS1 physical RAM at 0, as above. Zone 15 room
  * 0's and zone 48 room 3's entry sound effects slide the auto-pan depth. */
 #define LFO_WAVE(field)                                                         \
-    ((field) ? (field) : (short*)0x80000000)
+    ((field) ? (field) : (short*)rood_null_page)
 #else
 #define LFO_WAVE(field) (field)
 #endif
@@ -468,7 +468,7 @@ int func_80012358(int arg0)
 int func_800123C8(vs_main_sfxContext* arg0)
 {
     int ret = 0;
-    if (psx_to_int(psx_long, arg0) >= 0x80000000) {
+    if ((unsigned)psx_to_int(psx_long, arg0) >= ROOD_GUEST_RAM_BASE) {
         ret = arg0->unk9 >> 7;
     } else if (g_Sound_SfxMetadataTable[psx_to_int(psx_long, arg0)] & 0x8000) {
         ret = 1;

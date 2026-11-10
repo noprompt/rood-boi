@@ -1407,7 +1407,7 @@ static void _do_updateClearGameStats(void)
 static void func_8006B884(void)
 {
     func_8006B450(0x140, 0xF0, 0x200, 0, 0, 0);
-    vs_main_initHeap((vs_main_HeapHeader*)0x8010C000, 0xF2000);
+    vs_main_initHeap((vs_main_HeapHeader*)VS_MAIN_HEAP_ADDRESS, VS_MAIN_HEAP_SIZE);
 }
 
 static void _updateClearGameStats(void) { _do_updateClearGameStats(); }

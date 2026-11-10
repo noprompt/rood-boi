@@ -37,9 +37,9 @@ pub fn tileEnterable(state: *ai.vs_battle_aiState, tile: c_uint) callconv(.c) c_
         if (id == state.id) continue;
         const model: [*]u8 = @ptrCast(psx.at(v.g.D_800F4538(), id).*.?);
         // An actor without an AI state has a null slot: the PC C then reads
-        // PS1 address 0 (RAM start), mapped at 0x80000000.
+        // the null page (the original read PS1 address 0).
         const word = psx.byteAt(u32, scratch8(0x37c +% id *% 4), 0).*;
-        const other: *align(4) ai.vs_battle_aiState = if (word != 0) @ptrFromInt(word) else @ptrFromInt(0x80000000);
+        const other: *align(4) ai.vs_battle_aiState = if (word != 0) @ptrFromInt(word) else @alignCast(@ptrCast(psx.lowRam(ai.vs_battle_aiState)));
         var position: c_uint = undefined;
         var depth: c_uint = undefined;
         if (id != 0 and model[0xa] & 0x1f != 0) {

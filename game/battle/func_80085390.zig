@@ -34,7 +34,7 @@ pub fn func_80085390(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v.
         e2.unk0.hp = psx.conv(i16, @as(c_int, e2.unk0.hp) +% 999);
         psx.setBits(e2, "hpEffect", 1);
     } else if (actionKind(action) == c.actionTypeSpell) {
-        if (e2.unk40 == 0 and (psx.conv(u32, targetStats(actors, e2.unk0.targetActor).statuses) & 0x80040000) != 0) {
+        if (e2.unk40 == 0 and (psx.conv(u32, targetStats(actors, e2.unk0.targetActor).statuses) & ((@as(u32, 1) << 31) | 0x40000)) != 0) {
             v.g._lastValue().* = 0;
         } else {
             callMediator(action, arg1, arg2, hit, arg3);

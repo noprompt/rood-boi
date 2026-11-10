@@ -827,7 +827,7 @@ int MoveImage(RECT* rect, int x, int y)
 {
     if (rect->w <= 0 || rect->h <= 0)
         return -1;
-    unsigned packet[5] = { 0x04ffffff, 0x80000000,
+    unsigned packet[5] = { 0x04ffffff, 0x80u << 24, /* GPU command 0x80: copy rectangle VRAM to VRAM */
         (unsigned short)rect->x | ((unsigned)(unsigned short)rect->y << 16),
         (unsigned short)x | ((unsigned)(unsigned short)y << 16),
         (unsigned short)rect->w | ((unsigned)(unsigned short)rect->h << 16) };

@@ -146,7 +146,7 @@ int ClearImage2(RECT* rect, u_char r, u_char g, u_char b)
 {
     func_800286B8("ClearImage2", rect);
     return D_8003343C->addque2(
-        D_8003343C->clr, rect, 8, 0x80000000 | (b << 16) | (g << 8) | r);
+        D_8003343C->clr, rect, 8, (1u << 31) | (b << 16) | (g << 8) | r);
 }
 
 int LoadImage(RECT* rect, u_long* p)

@@ -1439,7 +1439,7 @@ static void _sortShieldsByStat(int arg0)
     vs_battle_rMemzero(&sp178, sizeof sp178);
 
     while (1) {
-        var_s3 = 0x80000000;
+        var_s3 = INT_MIN;
 
         for (i = 0; i < 32; ++i) {
             temp_s0 = temp_s6[i];
@@ -1453,7 +1453,7 @@ static void _sortShieldsByStat(int arg0)
             }
         }
 
-        if (var_s3 == 0x80000000) {
+        if (var_s3 == INT_MIN) {
             break;
         }
 
@@ -1497,7 +1497,7 @@ static void _sortItemsByStat(int arg0)
     var_s5 = 0;
 
     while (1) {
-        var_s4 = 0x80000000;
+        var_s4 = INT_MIN;
 
         for (i = 0; i < 256; ++i) {
             temp_s0 = temp_s7[i];
@@ -1509,7 +1509,7 @@ static void _sortItemsByStat(int arg0)
             }
         }
 
-        if (var_s4 == 0x80000000) {
+        if (var_s4 == INT_MIN) {
             break;
         }
 
@@ -1604,7 +1604,7 @@ static void _copyEquipmentByStat(int arg0, int arg1)
         vs_battle_rMemzero(sp40, temp_s5 * 2);
 
         while (1) {
-            var_s4 = 0x80000000;
+            var_s4 = INT_MIN;
 
             for (i = 0; i < temp_s5; ++i) {
                 temp_s0 = temp_s7[i];
@@ -1617,7 +1617,7 @@ static void _copyEquipmentByStat(int arg0, int arg1)
                 }
             }
 
-            if (var_s4 == 0x80000000) {
+            if (var_s4 == INT_MIN) {
                 break;
             }
 

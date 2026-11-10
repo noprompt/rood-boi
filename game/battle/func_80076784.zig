@@ -115,7 +115,7 @@ pub fn func_80076784(slot: c_int, actor: ?*v.vs_battle_actor2, init: ?*v.vs_batt
     a.unk944 = d.unk28;
     a.statuses = 0;
     if (a.unk944 < 0) {
-        a.statuses = @bitCast(@as(c_uint, 0x80000000));
+        a.statuses = @bitCast(@as(c_uint, 1) << 31);
     }
     for (0..5) |k| {
         a.statusTimers[k] = 0;

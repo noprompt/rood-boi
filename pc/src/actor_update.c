@@ -39,7 +39,7 @@ void pc_actor_scratch(unsigned* scratch)
     /* Without a navigation record (func_800E5308 does not test it, unlike
      * func_800E511C) the original reads word 4 of address 0: PS1 RAM, the
      * kernel area, read here through guest RAM. */
-    scratch[0x3dc / 4] = D_800F58BC ? *(unsigned*)&D_800F58BC->unk4 : *psx_to_ptr(unsigned*, 0x80000004u);
+    scratch[0x3dc / 4] = D_800F58BC ? *(unsigned*)&D_800F58BC->unk4 : *(unsigned*)(rood_null_page + 4);
 }
 void func_800E65DC(void);
 

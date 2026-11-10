@@ -203,10 +203,16 @@ pub fn rawOf(field: anytype) u32 {
     };
 }
 
-/// PS1 address 0, which the host maps at 0x80000000: where the PC C's
-/// safety guards read instead of NULL (PORTING.md §5.3).
+/// Where the host maps the PS1's 2 MB of main RAM (T12; psx_types.h ROOD_GUEST_RAM_BASE).
+pub const guest_ram_base: u32 = 0x80000000;
+
+/// The 64 KiB of zeroes (rood_null_page, boot_runtime.c) where the PC C's
+/// safety guards read instead of NULL: the original read PS1 address 0
+/// (PORTING.md §5.3). One page, shared with the C.
+extern var rood_null_page: [0x10000]u8 align(16);
+var test_null_page: [0x10000]u8 align(16) = std.mem.zeroes([0x10000]u8);
 pub inline fn lowRam(comptime T: type) *align(1) T {
-    return @ptrFromInt(0x8000_0000);
+    return @ptrCast(if (builtin.is_test) &test_null_page else &rood_null_page);
 }
 
 /// Struct names, one per line (or `raw`: base types of one byte, void, integers), that `byteAt` rejects at
@@ -421,7 +427,7 @@ test "put and rawOf store a pointer field the C way" {
 test "byteAt and lowRam are unaligned views" {
     var bytes = [_]u8{ 0, 0x34, 0x12, 0 };
     try std.testing.expectEqual(@as(u16, 0x1234), byteAt(u16, &bytes, 1).*);
-    try std.testing.expectEqual(@as(usize, 0x8000_0000), @intFromPtr(lowRam(u32)));
+    try std.testing.expectEqual(@as(u32, 0), lowRam(u32).*);
 }
 
 test "weak: an absent hook is null at run time" {

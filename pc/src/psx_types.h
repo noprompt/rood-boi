@@ -45,6 +45,12 @@
 #ifndef ROOD_PSX_TYPES_H
 #define ROOD_PSX_TYPES_H
 
+/* The PS1's 2 MB of main RAM as the host maps it (T12): the one place the
+ * address is written. A guest pointer's 32-bit word is an address in it (or
+ * in the first 4 GB of the host for natively placed objects). */
+#define ROOD_GUEST_RAM_BASE 0x80000000
+#define ROOD_GUEST_RAM_SIZE 0x200000
+
 #if defined(ROOD_PC_LP64) /* only the PC passes it */
 
 /* A 4-byte, 4-aligned guest address that remembers its target type T. The
@@ -54,6 +60,11 @@
         __UINT32_TYPE__ raw;                                                   \
         T* psx_type_[0];                                                       \
     }
+
+/* Where the PC C reads (and clears) fields through what the original left NULL
+ * (the PS1's physical address 0): 64 KiB of zeroes, defined in boot_runtime.c,
+ * the same page the Zig side's psx.lowRam hands out. */
+extern unsigned char rood_null_page[0x10000];
 
 /* Called when native code stores a host pointer that has no guest address
  * (above 4 GB); provided by the runtime. */

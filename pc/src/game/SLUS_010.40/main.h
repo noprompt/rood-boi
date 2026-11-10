@@ -586,6 +586,9 @@ int vs_main_getCurrentMusicId(void);
 void func_80045D64(int arg0, int arg1);
 void vs_main_wait(void);
 void vs_main_initHeap(vs_main_HeapHeader* node, u_int value);
+/* The game's heap: a free list in fixed RAM after the overlay slots (T12). */
+#define VS_MAIN_HEAP_ADDRESS 0x8010C000
+#define VS_MAIN_HEAP_SIZE 0xF2000
 void vs_main_resetGame(void);
 int vs_main_processSoundQueue(void);
 int vs_main_setCurrentSfx(int id);

@@ -4,12 +4,6 @@
 int __initialised = 0;
 u_long* __heapbase = NULL;
 int __heapsize = 0;
-static int __text = 0x80010AA4;
-static int __textlen = 0x0001EA90;
-static int __data = 0x8002F534;
-static int __datalen = 0x00004140;
-static int __bss = 0x80033680;
-static int __bsslen = 0x0000CB28;
 static int _[] = {
     0x00067350, 0x00450000 //  ??
 };

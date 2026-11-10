@@ -10,7 +10,7 @@ void SetDrawMove(DR_MOVE* p, RECT* rect, int x, int y)
     }
     setlen(p, length);
     p->code[0] = 0x01000000;
-    p->code[1] = 0x80000000;
+    p->code[1] = 1u << 31;
     p->code[2] = *(u_long*)&rect->x;
     p->code[3] = (y << 16) | (x & 0xFFFF);
     p->code[4] = *(u_long*)&rect->w;

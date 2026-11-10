@@ -98,7 +98,7 @@ static inline func_8008D2C0_t* func_800A4A24(int id)
     }
 #ifdef ROOD_PC
     /* No matching platform: see 3A1A0.c (reads of PS1 address 0). */
-    return (func_8008D2C0_t*)0x80000000;
+    return (func_8008D2C0_t*)rood_null_page;
 #else
     return NULL;
 #endif

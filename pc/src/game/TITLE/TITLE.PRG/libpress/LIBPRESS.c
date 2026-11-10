@@ -210,7 +210,7 @@ static u_int volatile* D_80075C68[] = { (u_int volatile*)0x1F801098,
 void func_80072050(int arg0) {
     switch (arg0) {
     case 0:
-        *D_80075C88 = 0x80000000;
+        *D_80075C88 = 1u << 31;
         *D_80075C5C = 0;
         *D_80075C68 = 0;
         *D_80075C88 = 0x60000000;
@@ -218,7 +218,7 @@ void func_80072050(int arg0) {
         func_80072140(D_80075BC8, 32);
         return;
     case 1:
-        *D_80075C88 = 0x80000000;
+        *D_80075C88 = 1u << 31;
         *D_80075C5C = 0;
         *D_80075C68 = 0;
         *D_80075C68;
@@ -549,7 +549,7 @@ u_int func_80072384(void) { return *D_80075C88; }
 int func_8007239C(char* arg0)
 {
     printf("%s timeout:\n", arg0);
-    *D_80075C88 = 0x80000000;
+    *D_80075C88 = 1u << 31;
     *D_80075C5C = 0;
     *D_80075C68[0] = 0;
     *D_80075C68[0];

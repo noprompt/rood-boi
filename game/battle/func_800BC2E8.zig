@@ -1,4 +1,5 @@
 //! The event camera's command (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c): one move of the look-at point or the eye.
+const std = @import("std");
 const psx = @import("common").psx;
 const pad = @import("common").pad;
 const v = @import("views_4A0A8");
@@ -210,7 +211,7 @@ pub fn func_800BC2E8(script: [*c]u8, _: c_short) callconv(.c) c_int {
             _ = copyVector(&cur.computed, &cur.current);
             cur.delta = vectorMagnitude(vv(c._vectorSubtract(cv(v1), cv(&cur.position), cv(&cur.computed))));
             cur.value = @divTrunc(cur.delta, @as(c_int, script[2]));
-            const far: i32 = @bitCast(@as(u32, 0x80000000));
+            const far: i32 = std.math.minInt(i32);
             camera().unk27C.vz = far;
             camera().unk27C.vy = far;
             camera().unk27C.vx = far;

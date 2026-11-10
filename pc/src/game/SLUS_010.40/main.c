@@ -8330,7 +8330,7 @@ static void _sysReinit(void)
     InitGeom();
     DrawSyncCallback(_gpuSyncVoidCallback);
     VSyncCallback(_vSyncVoidCallback);
-    vs_main_initHeap((vs_main_HeapHeader*)0x8010C000, 0xF2000);
+    vs_main_initHeap((vs_main_HeapHeader*)VS_MAIN_HEAP_ADDRESS, VS_MAIN_HEAP_SIZE);
     _initCdQueue();
     _diskReset();
     _loadMenuSound();

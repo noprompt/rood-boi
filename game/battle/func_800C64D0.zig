@@ -14,7 +14,7 @@ pub fn func_800C64D0(arg0: [*c]c_uint, arg1: [*c]c_int) callconv(.c) void {
     var cur: u32 = arg0_addr;
     while ((@as(*align(1) const u32, @ptrFromInt(@as(usize, cur))).* & mask) != temp_t0) {
         // The link is a 24-bit guest address; 0x80000000 makes it a kseg0 address (wraps as in C).
-        cur = (@as(*align(1) const u32, @ptrFromInt(@as(usize, cur))).* & mask) | 0x80000000;
+        cur = (@as(*align(1) const u32, @ptrFromInt(@as(usize, cur))).* & mask) | common.psx.guest_ram_base;
     }
 
     const arg1_addr: u32 = psx.addr(arg1);

@@ -2187,6 +2187,143 @@ def lp64_native_imports():
             offset = 2 * (addresses[name] - start)
             definitions.append(f'__asm__(".globl {name}\\n.type {name}, @object\\n'
                                f'.set {name}, {region} + {offset}");')
+    # Plain data (no pointers, a complete type of at most PLAIN_MAX bytes) the guest image does not point
+    # into moves too: defined natively with the image's bytes, so it no longer needs its PS1 address. It
+    # stays pinned when anything could still reach it by address: another import inside, at or around it
+    # (an incomplete array before it may run into it), a pointer word in any overlay file, a user that
+    # would see it from the wrong overlay. T10/T15 (pc/docs/PS1_Ties.md).
+    PLAIN_MAX = 0x100
+    def address_taken(obj):
+        """Imports an object uses other than by a PC-relative load or store: its address is taken (lea, an
+        absolute or GOT reference, a relocation in data). Declared types lie about size (D_800F4CD0 is a u_long
+        and the start of the ordering table), and GPU packets and DMA buffers must stay in guest RAM, so an
+        import whose address any object takes stays where it is. Owned Zig reaches every import through an
+        accessor that returns its address (its object cannot tell a read from a pointer use), so its source
+        is read instead: only X().* not under & is a plain load or store. The C's pc_views_keep references
+        do not count."""
+        zig = obj.stem.endswith("_zig")  # owned Zig: read from its source below
+        taken = set()
+        function = ""
+        instruction = ""
+        for line in query(["objdump", "-dr", "--no-show-raw-insn", str(aobj(obj))]).splitlines():
+            label = re.match(r"[0-9a-f]+ <(.+)>:", line)
+            if label:
+                function = label.group(1)
+                continue
+            relocation = re.match(r"\s+[0-9a-f]+:\s+(R_X86_64_\w+)\s+([\w.]+)", line)
+            if relocation:
+                if function != "pc_views_keep" and not zig and (relocation.group(1) != "R_X86_64_PC32"
+                                                                or instruction.startswith("lea")):
+                    taken.add(relocation.group(2))
+                continue
+            instruction = line.split("\t", 1)[1].strip() if "\t" in line else ""
+        section = ""
+        for line in query(["objdump", "-r", str(aobj(obj))]).splitlines():
+            header = re.match(r"RELOCATION RECORDS FOR \[(.+)\]", line)
+            if header:
+                section = header.group(1)
+                continue
+            relocation = re.match(r"[0-9a-f]+\s+R_X86_64_\w+\s+([\w.]+)", line)
+            if relocation and not zig and not section.startswith(".text"):
+                taken.add(relocation.group(1))
+        return taken
+    taken_names = set()
+    with concurrent.futures.ThreadPoolExecutor(8) as pool:
+        for found in pool.map(address_taken, [*objects, *library_objects]):
+            taken_names |= found
+    for path in sorted((root / "game").rglob("*.zig")):
+        text = path.read_text()
+        for match in re.finditer(r"(&?)[\w.]*\b((?:D|func)_80[0-9A-Fa-f]{6}|[A-Za-z_]\w*)\b(\(\)\.\*)?", text):
+            name = match.group(2)
+            if name in data and (match.group(1) or not match.group(3)):
+                taken_names.add(name)
+    seen_words = []
+    for path in [root / "data/SLUS_010.40", *sorted((root / "data").rglob("*.PRG")),
+                 *sorted((root / "data/EFFECT").glob("*.BIN"))]:
+        if path.is_file():
+            blob = path.read_bytes()
+            blob = blob[: len(blob) // 4 * 4]
+            seen_words += [w for w in struct.unpack(f"<{len(blob) // 4}I", blob) if 0x80010000 <= w < 0x80200000]
+    seen_words = sorted(set(seen_words))
+    def pointed_into(start, end):
+        i = bisect.bisect_left(seen_words, start)
+        return i < len(seen_words) and seen_words[i] < end
+    def complete_size(name):
+        infos = declarations.get(declared_name(name), [])
+        sizes = [info["ps1_size"] for _, info in infos if info.get("size")]
+        return max(sizes) if sizes else 0
+    def plain_data(name):
+        infos = [info for _, info in declarations.get(declared_name(name), [])]
+        def holds_pointers(info):
+            return (info.get("pointer") or info.get("pointer_words") or info.get("size") != info.get("ps1_size")
+                    or (info.get("element") or {}).get("pointer"))
+        return bool(infos) and not any(holds_pointers(info) for info in infos)
+    covers = [(addresses[n], addresses[n] + max(complete_size(n), 4), n) for n in data]
+    covers += [(start, end, names[0]) for start, end, names, _ in regions]
+    covers.sort()
+    incomplete_before = set()  # addresses whose nearest import before is an incomplete array (its extent is unknown)
+    previous = None
+    for n in sorted(data, key=lambda n: addresses[n]):
+        if previous is not None and addresses[previous] != addresses[n] and declarations.get(declared_name(previous)) \
+                and complete_size(previous) == 0:
+            incomplete_before.add(addresses[n])
+        previous = n
+    by_address = {}
+    for n in data:
+        by_address[addresses[n]] = by_address.get(addresses[n], 0) + 1
+    plain = []
+    pinned = {}  # import -> why it keeps its PS1 address (lp64_imports.json, PS1_Ties.md T15)
+    for name in sorted(data - moved):
+        start, size = addresses[name], complete_size(name)
+        end = start + size
+        group_name = groups[name] or ""
+        keys = users.get(name, set())
+        if not plain_data(name):
+            pinned[name] = "holds pointers or an LP64-sized type"
+        elif not 0 < size <= PLAIN_MAX or start % 4:
+            pinned[name] = "type incomplete or larger than %#x bytes" % PLAIN_MAX
+        elif by_address[start] != 1:
+            pinned[name] = "another name at its address"
+        else:
+            in_exe = end <= 0x80068800
+            in_battle = 0x80068800 <= start and end <= battle_end and not group_name and not keys & {"ending", "init", "main"}
+            in_ending = group_name == "ending" and end <= 0x80068800 + len(ending_image)
+            in_battle_bss = battle_end <= start and end <= 0x800F9800 and not group_name and not keys & {"ending", "init", "main"}
+            if not (in_exe or in_battle or in_ending or in_battle_bss):
+                pinned[name] = "in an overlay slot the restart does not cover (effect plug-ins, menus, ENDING), or shared across overlays"
+            elif pointed_into(start, end):
+                pinned[name] = "a pointer word in a game file points into it"
+            elif start in incomplete_before:
+                pinned[name] = "follows an array of unknown length"
+            elif name in taken_names:
+                pinned[name] = "its address is taken (lea, data relocation, owned Zig other than X().*)"
+            elif any(a < end and b > start and who != name for a, b, who in covers):
+                pinned[name] = "overlaps another import"
+            else:
+                plain.append((name, start, size, group_name, in_battle, in_ending))
+    for name, start, size, group_name, in_battle, in_ending in plain:
+        attributes = "__attribute__((used, aligned(8)"
+        if in_ending:
+            attributes += ', section("rood_ovl_ending_ending_prg_data")'
+            overlay_statics.setdefault("ENDING/ENDING.PRG", set()).add("data")
+            win_overlay_statics.setdefault("ENDING/ENDING.PRG", set()).add("data")
+        elif in_battle:
+            attributes += ', section("rood_ovl_battle_battle_prg_data")'
+            overlay_statics.setdefault("BATTLE/BATTLE.PRG", set()).add("data")
+            win_overlay_statics.setdefault("BATTLE/BATTLE.PRG", set()).add("data")
+        attributes += "))"
+        region = f"rood_lp64_plain_{start:08x}" + (f"_{group_name}" if group_name else "")
+        content = image_bytes(start, size, group_name)
+        if content is None or not any(content):
+            definitions.append(f"{attributes} unsigned char {region}[{size}];")
+        else:
+            definitions.append(f"{attributes} unsigned char {region}[{size}] = {{ "
+                               + ", ".join(f"{b:#x}" for b in content) + " };")
+        definitions.append(f'__asm__(".globl {name}\\n.type {name}, @object\\n.set {name}, {region}");')
+        moved.add(name)
+        regions.append([start, start + size, [name], group_name])
+    if plain:
+        print(f"LP64: {len(plain)} plain data imports defined natively")
     # The mover's view of every data import, for pc/tools/lp64_alias_scan.py
     # (an import that is a field of another import must live where it does).
     (out / "lp64_imports.json").write_text(json.dumps({
@@ -2194,6 +2331,7 @@ def lp64_native_imports():
             "address": addresses[name],
             "group": groups[name] or "",
             "moved": name in moved,
+            "pinned": pinned.get(name, ""),
             "users": sorted(k or "main" for k in users.get(name, ())),
             "declarations": [dict(info, object=obj.stem) for obj, info in declarations.get(declared_name(name), [])],
         } for name in sorted(data)}, indent=1, sort_keys=True) + "\n")
@@ -2223,7 +2361,7 @@ def lp64_native_imports():
         run(win_command(["gcc", *flags, "-c", str(win_source), "-o", str(obj)]))
         state_sections_coff(obj)
     objects.append(obj)
-    print(f"LP64: {len(moved)} pointer-bearing data imports defined natively in {len(regions)} regions")
+    print(f"LP64: {len(moved)} data imports defined natively in {len(regions)} regions")
     return moved
 
 

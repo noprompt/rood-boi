@@ -440,6 +440,7 @@
  * pc/tools/rood_rpc.py is the client (CLI, Python API and a stdin/stdout
  * JSON-RPC bridge); it resolves symbol names to addresses with nm. */
 #define _GNU_SOURCE
+#include "psx_types.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -1169,7 +1170,7 @@ static int readable(uintptr_t address, uintptr_t length)
     uintptr_t end = address + length;
     if (length > 65536 || end < address)
         return 0;
-    if (address >= 0x80000000ul && end <= 0x80200000ul)
+    if (address >= ROOD_GUEST_RAM_BASE && end <= (ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE))
         return 1;
     if (address >= 0x1F800000ul && end <= 0x1F800400ul)
         return 1;
@@ -1179,7 +1180,7 @@ static int writable(uintptr_t address, uintptr_t length)
 {
     uintptr_t end = address + length;
     return length <= 65536 && end >= address
-        && ((address >= 0x80000000ul && end <= 0x80200000ul)
+        && ((address >= ROOD_GUEST_RAM_BASE && end <= (ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE))
             || (address >= 0x1F800000ul && end <= 0x1F800400ul)
             /* host data: the game state that holds pointers (the battle menu's records) is defined natively */
             || (address >= (uintptr_t)__data_start && end <= (uintptr_t)_end));
@@ -3435,8 +3436,8 @@ static void handle_method(int fd, const char* request)
         long long lo, hi;
         if (params && number_value(member(params, "start"), &lo) && number_value(member(params, "end"), &hi)) {
             static pc_classic_packet packets[1024];
-            if (lo < 0x80000000LL || hi > 0x80200000LL || hi <= lo || hi - lo > 65536 || (lo & 3)) {
-                fail(fd, id, -32602, "start, end: a word-aligned range of main RAM (0x80000000..0x80200000), "
+            if (lo < (long long)ROOD_GUEST_RAM_BASE || hi > (long long)ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE || hi <= lo || hi - lo > 65536 || (lo & 3)) {
+                fail(fd, id, -32602, "start, end: a word-aligned range of main RAM (guest RAM, 2 MB at 0x80000000), "
                                      "at most 64 KB");
                 return;
             }

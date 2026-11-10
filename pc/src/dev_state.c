@@ -1,5 +1,6 @@
 /* Vagrant Story snapshot for the developer RPC `state` method (dev_rpc.c).
  * Compiled with the game headers so field offsets follow the decompilation. */
+#include "psx_types.h"
 #include "common.h"
 #include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
@@ -23,7 +24,7 @@ extern int sprintf(char*, const char*, ...);
 static int guest_pointer(const void* p, unsigned size)
 {
     __UINTPTR_TYPE__ a = (__UINTPTR_TYPE__)p;
-    return a >= 0x80010000ul && a + size <= 0x80200000ul && !(a & 3);
+    return a >= ROOD_GUEST_RAM_BASE + 0x10000ul && a + size <= (ROOD_GUEST_RAM_BASE + ROOD_GUEST_RAM_SIZE) && !(a & 3);
 }
 void pc_dev_state(struct pc_dev_state* out)
 {

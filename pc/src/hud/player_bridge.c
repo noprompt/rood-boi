@@ -67,8 +67,8 @@ static u_short menu12_text[] = {
 #include "build/assets/MENU/MENU12.BIN.vsString"
 };
 
-#define HEAP_START 0x8010C000u
-#define HEAP_SIZE 0xF2000u
+#define HEAP_START ((u_int)VS_MAIN_HEAP_ADDRESS)
+#define HEAP_SIZE ((u_int)VS_MAIN_HEAP_SIZE)
 #define ACCESSORY_LIMB 7
 
 /* MAINMENU vs_mainMenu_inventoryItemCapacities (2D10.c:1595) */

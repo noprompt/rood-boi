@@ -1,5 +1,6 @@
 //! Clears the statuses in a mask on a battle actor and undoes what they changed
 //! (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
+const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -165,7 +166,7 @@ pub fn func_80086754(mask: c_int, actor_ptr: ?*v.vs_battle_actor2) callconv(.c) 
                     actor.weapon.blade.affinities[dec] -%= 1;
 
                     if (actor.unk957 == 0) {
-                        c.func_80096768(240, statDecrease +% 6, @as(c_int, @bitCast(@as(c_uint, 0x80000001))));
+                        c.func_80096768(240, statDecrease +% 6, (std.math.minInt(c_int) | 1));
                     }
                 }
             }
@@ -223,7 +224,7 @@ pub fn func_80086754(mask: c_int, actor_ptr: ?*v.vs_battle_actor2) callconv(.c) 
                     actor.shield.base.affinities[dec] -%= 1;
 
                     if (actor.unk957 == 0) {
-                        c.func_80096768(241, statDecrease +% 6, @as(c_int, @bitCast(@as(c_uint, 0x80000001))));
+                        c.func_80096768(241, statDecrease +% 6, (std.math.minInt(c_int) | 1));
                     }
                 }
             }
@@ -248,7 +249,7 @@ pub fn func_80086754(mask: c_int, actor_ptr: ?*v.vs_battle_actor2) callconv(.c) 
                         limb.armor.armor.affinities[dec] -%= 1;
 
                         if (actor.unk957 == 0) {
-                            c.func_80096768(@as(c_int, limb.nameIndex), statDecrease +% 6, @as(c_int, @bitCast(@as(c_uint, 0x80000001))));
+                            c.func_80096768(@as(c_int, limb.nameIndex), statDecrease +% 6, (std.math.minInt(c_int) | 1));
                         }
                     }
                 }

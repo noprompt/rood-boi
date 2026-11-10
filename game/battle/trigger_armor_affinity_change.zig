@@ -1,5 +1,6 @@
 //! Armor affinity drift when an action hits: raises the affinity the action's
 //! element targets and lowers the opposing affinities (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
+const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
@@ -82,7 +83,7 @@ pub fn triggerArmorAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_bat
                     if ((@divTrunc(ai + 100, 4) + 20) >= draw) {
                         eq.affinities[iIdx] -%= 1;
                         if (actorId == 0) {
-                            c.func_80096768(arg3, i +% 6, @as(c_int, @bitCast(@as(c_uint, 0x80000001))));
+                            c.func_80096768(arg3, i +% 6, (std.math.minInt(c_int) | 1));
                         }
                     }
                 }
@@ -96,7 +97,7 @@ pub fn triggerArmorAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_bat
             if ((@divTrunc(@as(c_int, eq.affinities[pIdx]) + 100, 4) + 20) >= roll) {
                 eq.affinities[pIdx] -%= 1;
                 if (actorId == 0) {
-                    c.func_80096768(arg3, physical +% 6, @as(c_int, @bitCast(@as(c_uint, 0x80000001))));
+                    c.func_80096768(arg3, physical +% 6, (std.math.minInt(c_int) | 1));
                 }
             }
         }
@@ -107,7 +108,7 @@ pub fn triggerArmorAffinityChange(action: ?*v.vs_action_t, equipment: ?*v.vs_bat
             if ((@divTrunc(@as(c_int, eq.affinities[oIdx]) + 100, 4) + 0x14) >= roll) {
                 eq.affinities[oIdx] -%= 1;
                 if (actorId == 0) {
-                    c.func_80096768(arg3, opposingAffinity +% 6, @as(c_int, @bitCast(@as(c_uint, 0x80000001))));
+                    c.func_80096768(arg3, opposingAffinity +% 6, (std.math.minInt(c_int) | 1));
                 }
             }
         }

@@ -486,7 +486,7 @@ void func_800FA35C(int startState __attribute__((unused)))
     DrawSync(0);
     DrawSync(0);
     vs_main_resetSound();
-    vs_main_initHeap((vs_main_HeapHeader*)0x8010C000, 0xF2000);
+    vs_main_initHeap((vs_main_HeapHeader*)VS_MAIN_HEAP_ADDRESS, VS_MAIN_HEAP_SIZE);
     D_8005E0C0[1] = 0;
     D_8005E0C0[0] = NULL;
     D_80055C80[0] = vs_main_allocHeap(0x2088);

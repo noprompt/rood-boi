@@ -2162,8 +2162,8 @@ static void _drawScreen(void)
     int xOffset = (128 - _animationStep);
 #ifdef ROOD_PC
     /* Until the preview model loads, the original reads through the empty
-     * slot (PS1 physical address 0, mapped on the host at 0x80000000). */
-    D_800F4538_t* preview = D_800F4538[1] ? D_800F4538[1] : (D_800F4538_t*)0x80000000;
+     * slot (PS1 physical address 0; rood_null_page here). */
+    D_800F4538_t* preview = D_800F4538[1] ? D_800F4538[1] : (D_800F4538_t*)rood_null_page;
     int z = preview->menuCameraDistance;
     int x = preview->menuCameraHeightOffset;
 #else

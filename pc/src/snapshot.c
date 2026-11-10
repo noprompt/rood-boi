@@ -56,6 +56,7 @@
  * written on a clean quit when ROOD_AUTOSNAP is set, and by RPC snapshot
  * {action:"autosave"} and RPC restart (dev_rpc.c). */
 #define _GNU_SOURCE
+#include "psx_types.h"
 #include "platform.h" /* pc_replace_file */
 #include "snapshot_context.h"
 #include "state_diff.h"
@@ -349,7 +350,7 @@ typedef struct {
 static int ranges(range* out)
 {
     int n = 0;
-    out[n++] = (range) { (char*)(uintptr_t)0x80000000u, 0x200000, "ram" };
+    out[n++] = (range) { (char*)(uintptr_t)ROOD_GUEST_RAM_BASE, ROOD_GUEST_RAM_SIZE, "ram" };
     out[n++] = (range) { (char*)(uintptr_t)0x1f800000u, 0x1000, "scratch" };
     out[n++] = (range) { (char*)(uintptr_t)0x1f801000u, 0x1000, "io" };
     if (__start_rood_state_data)

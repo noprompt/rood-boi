@@ -3,6 +3,7 @@
  * and expressions, in its order; line numbers are 234.c's. The game's
  * vs_battle_rMemzero / vs_battle_memcpy / vs_battle_copyAligned are byte
  * copies: zero() and copy() here. */
+#include <limits.h>
 #ifdef PC_CONTAINER_OPS_PROBE
 #include <sys/types.h>
 #include "../../../pc/src/game/BATTLE/BATTLE.PRG/func_8006B57C_t.h"
@@ -1026,7 +1027,7 @@ static void sort_shields_by(const pc_ctr* c, int arg0) /* _sortShieldsByStat 139
     zero(&sp178, sizeof sp178);
 
     while (1) {
-        var_s3 = (int)0x80000000;
+        var_s3 = INT_MIN;
 
         for (i = 0; i < 32; ++i) {
             temp_s0 = temp_s6[i];
@@ -1038,7 +1039,7 @@ static void sort_shields_by(const pc_ctr* c, int arg0) /* _sortShieldsByStat 139
             }
         }
 
-        if (var_s3 == (int)0x80000000) {
+        if (var_s3 == INT_MIN) {
             break;
         }
 
@@ -1080,7 +1081,7 @@ static void sort_items_by(const pc_ctr* c, int arg0) /* _sortItemsByStat 1451 */
     var_s5 = 0;
 
     while (1) {
-        var_s4 = (int)0x80000000;
+        var_s4 = INT_MIN;
 
         for (i = 0; i < 256; ++i) {
             temp_s0 = temp_s7[i];
@@ -1092,7 +1093,7 @@ static void sort_items_by(const pc_ctr* c, int arg0) /* _sortItemsByStat 1451 */
             }
         }
 
-        if (var_s4 == (int)0x80000000) {
+        if (var_s4 == INT_MIN) {
             break;
         }
 
@@ -1126,7 +1127,7 @@ static void sort_equipment_by(const pc_ctr* c, int arg0, int arg1) /* _copyEquip
         zero(sp40, temp_s5 * 2);
 
         while (1) {
-            var_s4 = (int)0x80000000;
+            var_s4 = INT_MIN;
 
             for (i = 0; i < temp_s5; ++i) {
                 temp_s0 = temp_s7[i];
@@ -1138,7 +1139,7 @@ static void sort_equipment_by(const pc_ctr* c, int arg0, int arg1) /* _copyEquip
                 }
             }
 
-            if (var_s4 == (int)0x80000000) {
+            if (var_s4 == INT_MIN) {
                 break;
             }
 

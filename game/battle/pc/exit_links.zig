@@ -30,7 +30,7 @@ pub fn enableExitLinks() callconv(.c) void {
         const entry: *align(1) c_uint = @ptrFromInt(@as(usize, v.g.D_800F58C0().* +% offset));
         var value = entry.*;
         if (value & 0x04000400 != 0) {
-            value |= 0x80008000;
+            value |= (@as(c_uint, 1) << 31) | (1 << 15);
             const x0 = (value >> 5) & 31;
             const z0 = value & 31;
             const x1 = (value >> 21) & 31;
