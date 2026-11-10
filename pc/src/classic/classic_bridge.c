@@ -121,11 +121,13 @@ static void hide_site(void* first)
     pc_frame_suppress(site_first, site_end);
 }
 
-void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end)
+static void site(int kind, void* record, int x, int y, void* first, void* end)
 {
     static pc_classic_packet captured[PC_CLASSIC_CAPTURE];
     pc_frame_site_range(&site_first, &site_end);
     pc_frame_site(0, 0);
+    if (site_first == site_end && first != end) /* (a site reported without its items: those the printers placed in its range) */
+        pc_frame_marker_range(first, end, &site_first, &site_end);
     /* (the HUD's sites, the words over the actors and the timer with them (photo_ui.cpp hud_words, hud_timer);
      * the emotes, the text boxes and the images were never the HUD's to hide; the dialogue has its own, GAME2D) */
     int hide = pc_photo_hide_hud && pc_photo_hide_hud()
@@ -242,4 +244,11 @@ void pc_classic_site(int kind, void* record, int x, int y, void* first, void* en
         pc_classic_walker guest = pc_classic_guest();
         pc_classic_capture_allocated(kind, pc_classic_scan(&guest, first, end, scanned, PC_CLASSIC_CAPTURE));
     }
+}
+
+/* (the site's items are its call's: none are left to the next, or to the saved state) */
+void pc_classic_site(int kind, void* record, int x, int y, void* first, void* end)
+{
+    site(kind, record, x, y, first, end);
+    site_first = site_end = 0;
 }

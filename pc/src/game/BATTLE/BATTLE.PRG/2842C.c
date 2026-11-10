@@ -219,7 +219,6 @@ extern int D_80068F94[];
 extern int D_800F2274;
 int func_80096254(int, int);
 int func_8009F858(int);
-u_long* vs_battle_setSprite(int, int, int, u_long*);
 void func_8009651C(SVECTOR*, int);
 extern char D_800691E4[];
 extern RECT D_80068FAC[];

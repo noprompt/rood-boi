@@ -158,9 +158,9 @@ void pc_text_status(const void* first, const void* end);
  * table decides; NULL or fields not set: the defaults, ui_text_edge_margin, ui_text_word_space). */
 void pc_text_status_typeset(const void* first, const void* end, const pc_text_typeset* typeset);
 /* A claim's packets turned into draw items (pc/src/hud/hud_bridge.c emit_command): the reports the printers make while
- * their packets are written (pc_text_glyph, pc_text_status) are held (pc_text_defer), then made by the items
- * [first, first + count) (pc_text_defer_items: 1 when done, 0 when a glyph's packet is none of the items') or by the
- * packets when they stay packets (pc_text_defer_packets). */
+ * their packets are written (pc_text_status) are held (pc_text_defer), then made by the items [first, first + count)
+ * (pc_text_defer_items) or by the packets when they stay packets (pc_text_defer_packets). Glyphs are reported at once,
+ * by their items' command words (pc_text_glyph). */
 void pc_text_defer(void);
 int pc_text_defer_items(int first, int count);
 void pc_text_defer_packets(void);

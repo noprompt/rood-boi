@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 /// getTPage(tp, abr, x, y) (libgpu's macro): a draw-mode word.
 fn tpage(tp: c_int, abr: c_int, x: c_int, y: c_int) c_uint {
@@ -35,20 +36,15 @@ pub fn func_800CC600(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
     const top: c_int = @as(c_int, image.unkA) - ((height >> 1) - 120);
     var column: c_int = 0;
     while (column < columns) : (column += 1) {
-        var prim = c.vs_battle_setSprite(384, (column * 64) | (top << 16), 64 | (height << 16), ot);
-        prim[1] = tpage(2, 1, page, 256);
+        _ = sprite_item.sprite(ot, 384, (column * 64) | (top << 16), 64 | (height << 16), @bitCast(tpage(2, 1, page, 256)), 0);
         c.func_800CC5C0(ot, fb);
         var y: c_int = height - 15;
         while (y >= 0) : (y -= 15) {
             var x: c_int = 32;
             while (x >= 0) : (x -= 32) {
-                prim = c.vs_battle_setSprite(384, x | (y << 16), 0xF0020, ot);
-                prim[1] = tpage(2, 2, page, 256);
-                prim[4] = @bitCast(x | (y << 8));
+                _ = sprite_item.sprite(ot, 384, x | (y << 16), 0xF0020, @bitCast(tpage(2, 2, page, 256)), @bitCast(x | (y << 8)));
                 c.func_800CC580(ot, page);
-                prim = c.vs_battle_setSprite(alpha, (x + (column * 64)) | ((top + y) << 16), 0xF0020, ot);
-                prim[1] = tpage(2, 1, page, 256);
-                prim[4] = @bitCast(x | (y << 8));
+                _ = sprite_item.sprite(ot, alpha, (x + (column * 64)) | ((top + y) << 16), 0xF0020, @bitCast(tpage(2, 1, page, 256)), @bitCast(x | (y << 8)));
                 c.func_800CC5C0(ot, fb);
             }
         }
@@ -57,12 +53,10 @@ pub fn func_800CC600(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
         while (y < dims[1]) : (y += 1) {
             const tile: c_int = tiles[@intCast(y * columns + column)];
             if (tile != 0) {
-                prim = c.vs_battle_setSprite(128, (((y * 30 - height) >> 1) + x - top) << 16, 0xF0040, ot);
                 const atlas = tile >> 2;
                 const uv = ((tile << 6) & 192) | (((atlas & 31) * 15) << 8) | clut;
                 const tx = ((@as(c_int, image.unk2) - 18) << 6) + (atlas & 448);
-                prim[4] = @bitCast(uv);
-                prim[1] = tpage(mode, 0, tx, 256);
+                _ = sprite_item.sprite(ot, 128, (((y * 30 - height) >> 1) + x - top) << 16, 0xF0040, @bitCast(tpage(mode, 0, tx, 256)), uv);
             }
         }
         c.func_800CC580(ot, page);
@@ -70,13 +64,9 @@ pub fn func_800CC600(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
         while (y < height) : (y += 15) {
             x = 0;
             while (x < 64) : (x += 32) {
-                prim = c.vs_battle_setSprite(inverse, (x + (column * 64)) | ((top + y) << 16), 0xF0020, ot);
-                prim[1] = tpage(2, 0, fb + column * 64, 0);
-                prim[4] = @bitCast(x | ((top + y) << 8));
+                _ = sprite_item.sprite(ot, inverse, (x + (column * 64)) | ((top + y) << 16), 0xF0020, @bitCast(tpage(2, 0, fb + column * 64, 0)), @bitCast(x | ((top + y) << 8)));
                 c.func_800CC5C0(ot, fb);
-                prim = c.vs_battle_setSprite(128, x | (y << 16), 0xF0020, ot);
-                prim[1] = tpage(2, 0, fb + column * 64, 0);
-                prim[4] = @bitCast(x | ((top + y) << 8));
+                _ = sprite_item.sprite(ot, 128, x | (y << 16), 0xF0020, @bitCast(tpage(2, 0, fb + column * 64, 0)), @bitCast(x | ((top + y) << 8)));
                 c.func_800CC580(ot, page);
             }
         }

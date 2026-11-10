@@ -4,6 +4,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = common.sprite_item;
 
 const GlyphHook = *const fn (?*const anyopaque, c_int, c_int, c_int, c_int, c_int, c_int) callconv(.c) void;
 const ClassicCharHook = *const fn (c_int, c_int, c_int) callconv(.c) void;
@@ -38,18 +39,16 @@ pub fn printVariableWidthFontChar(glyph_id: c_uint, x: c_int, y: c_int, ot: [*c]
     const glyphId: c_uint = glyph_id +% psx.conv(c_uint, @as(c_int, v.g._fontTable().*) *% 0xBD);
 
     const xy: c_uint = (@as(c_uint, @bitCast(x)) & 0xFFFF) | (@as(c_uint, @bitCast(y)) << 16);
-    const sprite = c.vs_battle_setSprite(v.g._fontBrightness().*, @bitCast(xy), 0xC000C, psx.at(ot, 3));
-    sprite[1] = 0xE100002D;
-
     const glyphRow: c_int = psx.conv(c_int, glyphId / 21);
     const glyphCol: c_uint = glyphId % 21;
     const fontBits: c_uint = ((((@as(c_uint, v.g.D_800F4CB8().*) *% 0x10) +% 0x340) >> 4) & 0x3F) | 0x3780;
-    sprite[4] = (glyphCol *% 0xC) |
+    const sprite = sprite_item.sprite(psx.at(ot, 3), v.g._fontBrightness().*, @bitCast(xy), 0xC000C, @bitCast(@as(c_uint, 0xE100002D)), @bitCast((glyphCol *% 0xC) |
         @as(c_uint, @bitCast(glyphRow *% 0xC00)) |
-        (fontBits << 16);
+        (fontBits << 16)));
 
     const width: c_int = @as(c_int, v.g.vs_battle_characterWidths()[@as(usize, glyphId)]);
-    var commands = [1]?*anyopaque{@ptrCast(psx.at(sprite, 2))};
+    // ui_text keys the glyph on its sprite's command word (an item's: draw_items.h).
+    var commands = [1]?*anyopaque{@constCast(sprite_item.command(sprite))};
     pcTextChar(@ptrCast(&commands), 1, psx.conv(c_int, glyphId), x, y, width);
 
     return x +% width;

@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ui_bubbles.h"
+#include "draw_items.h"
 
 extern int pc_hw_scale, pc_hw_active, pc_ui_subpixel;
 extern void pc_hw_set_2d(int is_2d);
@@ -56,6 +57,7 @@ const char* const pc_ui_bubbles_names[2] = { "original", "vector" };
 
 typedef struct {
     uintptr_t start, end; /* the frame's packets */
+    uintptr_t item_start, item_end; /* the lowered packets of the draw items its markers place */
     int id, shape, flip, tail, valid;
     int fresh; /* its box's unrounded rectangle was set (pc_bubble_rect) */
     unsigned shadow_drawn, main_drawn; /* ordering table serial last drawn */
@@ -214,17 +216,23 @@ static int build(bubble* B, const unsigned char* shape, int x, int y, int w, int
 /* The routine's packets (the order it allocates them): its outline lines
  * (GP0 0x40), fill polygons (0x24 / 0x2C) and shadow packets (polygon 0x20
  * / 0x28 and black polyline 0x48) must be the geometry's. */
+#define FLAT_WORDS 8192
+static int flatten(const bubble* B, uint32_t* out, int max);
 static int check_packets(bubble* B, const segments* seg, const polygons* poly)
 {
-    const uint32_t* p = (const uint32_t*)B->start;
-    const uint32_t* end = (const uint32_t*)B->end;
+    static uint32_t flat[FLAT_WORDS];
+    int flat_n = flatten(B, flat, FLAT_WORDS);
+    if (flat_n < 0)
+        return 0;
+    const uint32_t* p = flat;
+    const uint32_t* end = flat + flat_n;
     int lines = 0, fills = 0, shadows = 0;
     int debug = debug_level() == 5;
 #define MISMATCH(what)                                                                                               \
     do {                                                                                                             \
         if (debug)                                                                                                   \
-            fprintf(stderr, "[ui]   packet word %d of %d: %s (%08x)\n", (int)(p - (const uint32_t*)B->start),      \
-                (int)(end - (const uint32_t*)B->start), what, p[0]);                                                 \
+            fprintf(stderr, "[ui]   packet word %d of %d: %s (%08x)\n", (int)(p - flat),      \
+                (int)(end - flat), what, p[0]);                                                 \
         return 0;                                                                                                    \
     } while (0)
     while (p < end) {
@@ -269,6 +277,36 @@ static int check_packets(bubble* B, const segments* seg, const polygons* poly)
         fprintf(stderr, "[ui]   packets: %d lines (%d), %d fills (%d), %d shadows\n", lines, seg->count, fills,
             poly->count, shadows);
     return lines == seg->count && fills == poly->count && shadows == poly->count && lines > 2;
+}
+
+/* The frame's packets as one list: each marker's items lowered to the packets they stand for (draw items a printer placed:
+ * the outline's lines), the rest as they are. -1 when it does not fit. */
+static int flatten(const bubble* B, uint32_t* out, int max)
+{
+    const uint32_t* p = (const uint32_t*)B->start;
+    const uint32_t* end = (const uint32_t*)B->end;
+    int n = 0;
+    while (p < end) {
+        unsigned len = p[0] >> 24;
+        int first, count;
+        if (p + 1 + len > end)
+            return -1;
+        int step = len && (p[1] >> 24) == 0xE2 && p[1] == 0xE2000000 ? 2 : 1 + (int)len;
+        if (pc_frame_marker(p, &first, &count)) {
+            for (int k = first; k < first + count; k++) { /* (in the order they were added: as the packets were allocated) */
+                n += pc_frame_packet_words(k, out + n, max - n);
+                if (n >= max)
+                    return -1;
+            }
+        } else {
+            if (n + step > max)
+                return -1;
+            memcpy(out + n, p, (size_t)step * sizeof *p);
+            n += step;
+        }
+        p += step;
+    }
+    return n;
 }
 
 /* The outline's segments as one closed path of point indices. */
@@ -323,6 +361,11 @@ void pc_bubble_frame(int id, const void* box, const void* shape, const void* sta
     memset(B, 0, sizeof *B);
     B->fresh = fresh;
     B->start = (uintptr_t)start, B->end = (uintptr_t)end;
+    {
+        const void *lo, *hi;
+        if (pc_frame_marker_span(start, end, &lo, &hi))
+            B->item_start = (uintptr_t)lo, B->item_end = (uintptr_t)hi;
+    }
     B->id = id;
     B->shape = (flags >> 8) & 15, B->flip = (flags >> 6) & 3, B->tail = (flags >> 12) & 15;
     int x = s16_at(b + 0x24), y = s16_at(b + 0x26), w = s16_at(b + 0x28), h = s16_at(b + 0x2A);
@@ -585,7 +628,7 @@ void pc_ui_bubble_packet(const void* packet, int draw_x, int draw_y, const int* 
     uintptr_t at = (uintptr_t)packet;
     for (int i = 0; i < active_count; i++) {
         bubble* B = &active[i];
-        if (!B->valid || at < B->start || at >= B->end)
+        if (!B->valid || ((at < B->start || at >= B->end) && (at < B->item_start || at >= B->item_end)))
             continue;
         const uint32_t* p = packet;
         unsigned len = p[0] >> 24, code = len ? p[1] >> 24 : 0;

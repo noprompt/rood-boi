@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 const Site = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaque) callconv(.c) void;
 
@@ -45,9 +46,7 @@ pub fn func_800C9FE8() callconv(.c) void {
             const first = cursor();
             if (label != 0) {
                 c.func_800C9F98(((offset +% v.g.D_800EBC98()[i]) & 0xFFFF) | (@as(c_int, v.g.D_800EBC98()[i + 4]) << 0x10), label);
-                const prim = c.vs_battle_setSpriteDefaultTexPage(label, ((offset +% v.g.D_800EBCA0()[i]) & 0xFFFF) | (@as(c_int, v.g.D_800EBCA0()[i + 4]) << 0x10), v.g.D_800EBCA8()[i], menuOt());
-                prim[1] = 0xE1000017;
-                prim[4] = @as(c_uint, v.g.D_800EBCB8()[i]) | 0x373D0000;
+                _ = sprite_item.sprite(menuOt(), label, ((offset +% v.g.D_800EBCA0()[i]) & 0xFFFF) | (@as(c_int, v.g.D_800EBCA0()[i + 4]) << 0x10), v.g.D_800EBCA8()[i], @bitCast(@as(c_uint, 0xE1000017)), @bitCast(@as(c_uint, v.g.D_800EBCB8()[i]) | 0x373D0000));
             }
             classic(&icons, first);
         }
@@ -55,7 +54,7 @@ pub fn func_800C9FE8() callconv(.c) void {
         icons.availability = 0;
         {
             const first = cursor();
-            c.vs_battle_setSpriteDefaultTexPage(0x180, ((offset +% 0x48) & 0xFFFF) | 0x660000, 0x1E001E, menuOt())[4] = 0x37FBA0B8;
+            _ = sprite_item.sprite(menuOt(), 0x180, ((offset +% 0x48) & 0xFFFF) | 0x660000, 0x1E001E, sprite_item.page, 0x37FBA0B8);
             classic(&icons, first);
         }
         offset = 0xA0 -% offset;
@@ -67,11 +66,9 @@ pub fn func_800C9FE8() callconv(.c) void {
             const first = cursor();
             if (label != 0) {
                 c.func_800C9F98(((offset +% v.g.D_800EBCC0()[i]) & 0xFFFF) | (@as(c_int, v.g.D_800EBCC0()[i + 4]) << 0x10), label);
-                const prim = c.vs_battle_setSpriteDefaultTexPage(label, (((offset +% v.g.D_800EBCC8()[i]) -% 2) & 0xFFFF) | (@as(c_int, v.g.D_800EBCC8()[i + 4]) << 0x10), v.g.D_800EBCD0()[i], menuOt());
-                prim[1] = 0xE1000017;
-                prim[4] = @as(c_uint, v.g.D_800EBCE0()[i]) | 0x373D0000;
+                _ = sprite_item.sprite(menuOt(), label, (((offset +% v.g.D_800EBCC8()[i]) -% 2) & 0xFFFF) | (@as(c_int, v.g.D_800EBCC8()[i + 4]) << 0x10), v.g.D_800EBCD0()[i], @bitCast(@as(c_uint, 0xE1000017)), @bitCast(@as(c_uint, v.g.D_800EBCE0()[i]) | 0x373D0000));
             }
-            c.vs_battle_setSpriteDefaultTexPage(0x80, offset +% v.g.D_800EBC88()[3 - i], 0x100010, menuOt())[4] = @as(c_uint, @intCast((3 - i) * 0x10)) | 0x37FB8000;
+            _ = sprite_item.sprite(menuOt(), 0x80, offset +% v.g.D_800EBC88()[3 - i], 0x100010, sprite_item.page, @bitCast(@as(c_uint, @intCast((3 - i) * 0x10)) | 0x37FB8000));
             classic(&icons, first);
         }
     }

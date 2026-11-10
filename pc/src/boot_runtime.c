@@ -1005,6 +1005,7 @@ extern int pc_hw_suppress __attribute__((weak)); /* gpu_hw.c: the packet is left
 /* Typed draw items (draw_items.c) placed in the ordering table by marker packets: drawn where the marker is. */
 extern int pc_frame_marker(const uint32_t*, int*, int*) __attribute__((weak));
 extern void pc_frame_draw_run(int, int) __attribute__((weak));
+extern int pc_frame_run_pages(int, int, unsigned, int (*)(unsigned)) __attribute__((weak));
 /* gpu_hw.c: the ordering table about to be drawn holds native draws, and
  * starts in drawing area `clip` (x, y, w, h). */
 extern void pc_hw_ot_native_area(const int*) __attribute__((weak));
@@ -1151,10 +1152,13 @@ static void draw_packet(void* data, int chain)
             ot_layers_note(p);
         uint32_t t_list;
         int t_first, t_count;
-        if (hide2d && !game2d_entry(p, &hidden) && (hidden || world2d_packet(p))
+        int run_first, run_count;
+        int world2d_run = hide2d && pc_frame_marker && pc_frame_marker(p, &run_first, &run_count)
+            && pc_frame_run_pages(run_first, run_count, (unsigned)tpage, battle_page);
+        if (hide2d && !game2d_entry(p, &hidden) && (world2d_run || ((hidden || world2d_packet(p))
             && !(render_is_marker && render_is_marker(p))
             && !(render_translucent_marker && render_translucent_marker(p, &t_list, &t_first, &t_count))
-            && !mode_packet(p)) {
+            && !mode_packet(p)))) {
             unsigned next = tag & 0xffffff;
             if (next == 0xffffff)
                 return;

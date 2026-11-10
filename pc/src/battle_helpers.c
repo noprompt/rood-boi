@@ -3,6 +3,8 @@
  * Its delay slot only writes caller-saved $t0 (the following function's lui). */
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
 #include "game/BATTLE/BATTLE.PRG/ai_state.h"
+#include "draw_items.h"
+#include "scratch.h"
 extern void pc_unimplemented(const char*);
 void func_800E4288(void* destination, unsigned bytes);
 
@@ -31,31 +33,55 @@ void func_800E72D0(void);
 int func_80099514(unsigned x, unsigned z, unsigned layer);
 
 
-/* 573B8.c inline-assembly sprite entry points. */
-unsigned* pc_sprite_packet(unsigned* packet, unsigned* next, int brightness, unsigned xy,
-    unsigned wh, unsigned page)
-{
-    unsigned color = brightness & 255;
-    packet[0] = (*next & 0xffffff) | 0x05000000;
-    packet[1] = page;
-    packet[2] =
-        color | (color << 8) | (color << 16) | ((100u + ((brightness >> 7) & 2)) << 24);
-    packet[3] = xy;
-    packet[4] = 0;
-    packet[5] = wh;
-    *next = psx_to_int(unsigned, packet) & 0xffffff;
-    return packet;
-}
-unsigned* vs_battle_setSprite(int brightness, int xy, int wh, unsigned* next);
+/* The sprite entry points of 573B8.c are items (game/spriteItem.h). */
+/* The packet cursor, and the table's default slot, as the items' markers use them. */
+static unsigned* cursor_get(void) { return psx_get(vs_scratch.unk0); }
+static void cursor_set(unsigned* cursor) { psx_set(vs_scratch.unk0, cursor); }
 
-unsigned* vs_battle_setSpriteDefaultTexPage(
-    int brightness, int xy, int wh, unsigned* next)
+/* The sprite as an item (game/spriteItem.h): the packet's fields, the marker where it linked. */
+int vs_battle_spriteItem(unsigned* ot, int brightness, int xy, int wh, int mode, int uv_clut)
 {
-    unsigned* packet = vs_battle_setSprite(brightness, xy, wh, next);
-    packet[1] = 0xe100000c;
-    return packet;
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    unsigned grey = (unsigned)brightness & 255;
+    pc_frame_sprite(0, (short)xy, (short)(xy >> 16), (short)wh, (short)(wh >> 16), uv_clut & 255, uv_clut >> 8 & 255,
+        (int)(grey * 0x010101u), uv_clut >> 16 & 0xffff, mode ? mode & 0x3fff : PC_ITEM_INHERIT,
+        (brightness >> 7) & 2 ? PC_ITEM_SEMI : 0);
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot ? ot : psx_get(vs_scratch.unk8), cursor));
+    return first;
 }
-unsigned* vs_battle_setSpriteDefault(int wh, int xy);
+/* vs_battle_addTile as an item: a flat tile (code 0x60, 0x62: wh its size) or a flat line (0x40, 0x42: wh its end), placed
+ * where the packet linked; 0 when the words are anything else (a draw mode and window pair: they stay the packet). */
+int vs_battle_tileItem(unsigned* ot, unsigned rgb0, unsigned xy, unsigned wh)
+{
+    unsigned code = rgb0 >> 24;
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    if ((code & 0xfc) == 0x60)
+        pc_frame_tile(0, (short)xy, (short)(xy >> 16), (short)wh, (short)(wh >> 16), (int)(rgb0 & 0xffffff), PC_ITEM_INHERIT,
+            code & 2 ? PC_ITEM_SEMI : 0);
+    else if (code == 0x40 || code == 0x42) {
+        pc_item* it = pc_frame_add(PC_ITEM_LINE, 0);
+        if (it) {
+            it->mode = PC_ITEM_INHERIT, it->flags = code & 2 ? PC_ITEM_SEMI : 0;
+            it->x[0] = (short)xy, it->y[0] = (short)(xy >> 16), it->x[1] = (short)wh, it->y[1] = (short)(wh >> 16);
+            it->rgb[0][0] = (unsigned char)rgb0, it->rgb[0][1] = (unsigned char)(rgb0 >> 8), it->rgb[0][2] = (unsigned char)(rgb0 >> 16);
+        }
+    } else
+        return 0;
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot, cursor));
+    return 1;
+}
+const void* vs_battle_spriteCommand(int item) { return pc_frame_command(item); }
+/* The sprite's colour as a full colour word (0xBBGGRR; its top byte, a packet's code, only says semi-transparent: bit 1). */
+int vs_battle_spriteColor(int item, int colour)
+{
+    pc_item* it = pc_frame_item(item);
+    if (it)
+        it->rgb[0][0] = (unsigned char)colour, it->rgb[0][1] = (unsigned char)(colour >> 8), it->rgb[0][2] = (unsigned char)(colour >> 16),
+        it->flags = (unsigned short)((colour >> 24) & 2 ? it->flags | PC_ITEM_SEMI : it->flags & ~PC_ITEM_SEMI);
+    return item;
+}
 
 short func_800E6694(int id);
 

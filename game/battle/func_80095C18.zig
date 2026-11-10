@@ -1,5 +1,6 @@
 //! Draws an actor's emote (the speech-bubble icons over its head) (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const psx = @import("common").psx;
+const sprite_item = @import("common").sprite_item;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
@@ -65,7 +66,7 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
             1, 2, 3 => {
                 while (kind != 0) {
                     kind -%= 1;
-                    c.vs_battle_setSprite(128, xy +% kind *% 6 +% psx.at(offsets, side).*, 0x50005, ot)[4] = 0x373E125A;
+                    _ = sprite_item.sprite(ot, 128, xy +% kind *% 6 +% psx.at(offsets, side).*, 0x50005, 0, 0x373E125A);
                 }
             },
             4 => {
@@ -101,19 +102,17 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
                 }
                 side +%= 2;
                 record.side = side;
-                c.vs_battle_setSprite(128, xy +% psx.at(offsets, side).*, 0xC0007, ot)[4] = 0x373E1198;
+                _ = sprite_item.sprite(ot, 128, xy +% psx.at(offsets, side).*, 0xC0007, 0, 0x373E1198);
             },
             5 => {
-                c.vs_battle_setSprite(128, @bitCast(@as(c_uint, @bitCast(xy +% psx.at(offsets, side).*)) +% 0xFFFD0002), 0x100010, ot)[4] = 0x373E2098;
+                _ = sprite_item.sprite(ot, 128, @bitCast(@as(c_uint, @bitCast(xy +% psx.at(offsets, side).*)) +% 0xFFFD0002), 0x100010, 0, 0x373E2098);
             },
             6 => {
                 side +%= 4;
                 record.side = side;
             },
             7 => {
-                const prim = c.vs_battle_setSprite(128, @bitCast(@as(c_uint, @bitCast(xy)) +% 0xFFEA0000), 0xC0007, ot);
-                prim[1] = 0xE1000017;
-                prim[4] = 0x373E11B7;
+                _ = sprite_item.sprite(ot, 128, @bitCast(@as(c_uint, @bitCast(xy)) +% 0xFFEA0000), 0xC0007, @bitCast(@as(c_uint, 0xE1000017)), 0x373E11B7);
                 return;
             },
             else => {},
@@ -167,9 +166,7 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
                 record.frame = depth;
                 record.x = position.vx;
                 record.y = position.vy;
-                const prim = c.vs_battle_setSprite(128, xy, 0x100010, ot);
-                prim[1] = 0xE100000C;
-                prim[4] = @bitCast(((depth << 4) +% 96) | 0x37FD2000);
+                _ = sprite_item.sprite(ot, 128, xy, 0x100010, sprite_item.page, ((depth << 4) +% 96) | 0x37FD2000);
                 return;
             }
         }

@@ -21,6 +21,7 @@
 #include "build/src/include/lbas.h"
 #include "gpu.h"
 #include "pc/src/game/menuItem.h"
+#include "pc/src/game/spriteItem.h"
 #include "insertTPage.h"
 #include <libetc.h>
 #include <abs.h>
@@ -142,14 +143,10 @@ static void _setNextAction(int display)
  */
 static void _renderDefaultIcon(int id, int xy, int brightness, u_long* nextPrim)
 {
-    if (nextPrim == 0) {
-        nextPrim = psx_get(vs_scratch.unk8);
-    }
-
-    vs_battle_setSpriteDefaultTexPage(128, xy, vs_getWH(16, 16), nextPrim)[4] =
-        ((id + 4) << 4) | (getClut(976, 223) << 16) | 0x8000;
-
-    ((u_long*)psx_get(vs_scratch.unk0))[-4] = (int)(brightness | 0x64000000);
+    /* (its colour: the brightness word, a full colour as the map's icon sets it) */
+    vs_battle_spriteColor(vs_battle_spriteItem(nextPrim, 128, xy, vs_getWH(16, 16), VS_SPRITE_PAGE,
+                              ((id + 4) << 4) | (getClut(976, 223) << 16) | 0x8000),
+        (int)(brightness | 0x64000000));
 }
 
 static int _currentMapRow = -1;

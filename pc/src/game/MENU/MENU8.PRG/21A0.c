@@ -10,6 +10,7 @@
 #include "vs_string.h"
 #include "gpu.h"
 #include "pc/src/game/menuItem.h"
+#include "pc/src/game/spriteItem.h"
 #include <libetc.h>
 #ifdef ROOD_PC
 #include "pc/src/classic/classic_hook.h"
@@ -162,6 +163,7 @@ static void _renderRenameMenu(int xOffset)
      * steps them), the name and the game's words. The function runs as it is. */
     pc_classic_rename_grid pcGrid;
     void* pcGridFirst = psx_load(void*, (u_int*)0x1F800000);
+    int pcGridItems = pc_frame_count();
     /* (zeroed: the words' tails too; the record is kept) */
     __builtin_memset(&pcGrid, 0, sizeof pcGrid);
     {
@@ -199,9 +201,8 @@ static void _renderRenameMenu(int xOffset)
     vs_mainmenu_renderButton(buttonIdCross, (-xOffset + 16), 50, 0);
     vs_mainmenu_renderButton(buttonIdSquare, (-xOffset + 16), 66, 0);
     vs_mainmenu_renderButton(buttonIdTriangle, (-xOffset + 16), 82, 0);
-    prim = vs_battle_setSpriteDefault(
-        vs_getWH(16, 16), ((-xOffset + 16) & 0xFFFF) | (34 << 16));
-    prim[4] = vs_getUV0Clut(176, 112, 944, 223);
+    vs_battle_spriteItem(NULL, 128, ((-xOffset + 16) & 0xFFFF) | (34 << 16), vs_getWH(16, 16), VS_SPRITE_PAGE,
+        vs_getUV0Clut(176, 112, 944, 223));
 
     _controllerActionAnimationCounters[_selectedControllerAction] = 8;
     _selectedControllerAction = 0;
@@ -276,12 +277,12 @@ static void _renderRenameMenu(int xOffset)
 
         vs_battle_renderTextRawColor("1", vs_getXY(152, 51), color, 0);
         vs_battle_renderTextRawColor("L", vs_getXY(146, 51), color, 0);
-        vs_battle_setSpriteDefault(vs_getWH(16, 16), (136 - j) | (48 << 16))[4] =
-            (x << 0x10) | vs_getUV(0, 48);
+        vs_battle_spriteItem(NULL, 128, (136 - j) | (48 << 16), vs_getWH(16, 16), VS_SPRITE_PAGE,
+            (x << 0x10) | vs_getUV(0, 48));
         vs_battle_renderTextRawColor("1", vs_getXY(292, 51), color, 0);
         vs_battle_renderTextRawColor("R", vs_getXY(286, 51), color, 0);
-        vs_battle_setSpriteDefault(vs_getWH(16, 16), (j + 296) | (48 << 16))[4] =
-            (x << 0x10) | vs_getUV(16, 48);
+        vs_battle_spriteItem(NULL, 128, (j + 296) | (48 << 16), vs_getWH(16, 16), VS_SPRITE_PAGE,
+            (x << 0x10) | vs_getUV(16, 48));
 
         vs_menu_g4(-16, vs_getTpage(0, 0, 0, 0, 1), 0, vs_getRGB0(primPolyG4, 0, 0, 0), vs_getRGB888(208, 0, 30), 0,
             vs_getRGB888(232, 0, 32), 0xC0A080, vs_getRGB888(232, 0, 46), 0, vs_getRGB888(0, 1, 30));
@@ -309,9 +310,11 @@ static void _renderRenameMenu(int xOffset)
             xOffset + _backgroundHexCoords[j + 2], vs_getRGB888(0, 5, 51), xOffset + _backgroundHexCoords[j + 3]);
     }
 #ifdef ROOD_PC
-    if (pc_classic_site)
+    if (pc_classic_site) {
+        pc_frame_site(pcGridItems, pc_frame_count()); /* (its draw items too) */
         pc_classic_site(PC_CLASSIC_SITE_RENAME_GRID, &pcGrid, 0, 0, pcGridFirst,
             psx_load(void*, (u_int*)0x1F800000));
+    }
 #endif
 }
 
@@ -324,15 +327,18 @@ static void _highlightSelection(int x, int y, int w, int h)
     /* PC_CLASSIC (classic_hook.h): the box, from its place and size. */
     pc_classic_rename_box pcBox = { x, y, w, h };
     void* pcBoxFirst = psx_load(void*, (u_int*)0x1F800000);
+    int pcBoxItems = pc_frame_count();
 #endif
 
     vs_menu_g4(-16, vs_getTpage(0, 0, 0, semiTransparencyFull, ditheringOn), 1,
         vs_getRGB0(primPolyG4SemiTrans, 128, 160, 192), (x | (y << 16)), 0, (x + w) | (y << 16), 0, x | ((y + h) << 16),
         vs_getRGB888(128, 160, 192), (x + w) | ((y + h) << 16));
 #ifdef ROOD_PC
-    if (pc_classic_site)
+    if (pc_classic_site) {
+        pc_frame_site(pcBoxItems, pc_frame_count());
         pc_classic_site(PC_CLASSIC_SITE_RENAME_BOX, &pcBox, 0, 0, pcBoxFirst,
             psx_load(void*, (u_int*)0x1F800000));
+    }
 #endif
 }
 

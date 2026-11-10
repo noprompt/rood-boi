@@ -3,6 +3,7 @@
 #include "pc/src/game/SLUS_010.40/31724.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/573B8.h"
+#include "pc/src/game/spriteItem.h"
 #include <libgte.h>
 
 void func_800F9800(int arg0)
@@ -34,21 +35,15 @@ void func_800F986C(void)
     for (y = 192; y >= 0; y -= 32) {
         for (var_s2 = 0x100; var_s2 >= 0; var_s2 -= 64) {
             for (x = 0x40; x >= 0; x -= 0x20) {
-                int s5;
+                int s5 = (((var_s2 + 0x2C0) & 0x3FF) >> 6) | 0x170;
+
                 if (x == 0x40) {
-                    var_t2 = vs_battle_setSprite(
-                        0x160, (var_s2 + 2) | ((y + 30) << 16), 0x40000 | 0x40, temp_s4);
-                    var_s0 = (y + 0x1C) << 8;
+                    vs_battle_spriteItem(temp_s4, 0x160, (var_s2 + 2) | ((y + 30) << 16),
+                        0x40000 | 0x40, s5 | 0xE1000200, (y + 0x1C) << 8);
                 } else {
-                    var_t2 = vs_battle_setSprite(
-                        0x160, (var_s2 + x + 0x1E) | ((y + 2) << 16), 0x1C0004, temp_s4);
-                    var_s0 = (x + 0x1C) | (y << 8);
+                    vs_battle_spriteItem(temp_s4, 0x160, (var_s2 + x + 0x1E) | ((y + 2) << 16),
+                        0x1C0004, s5 | 0xE1000200, (x + 0x1C) | (y << 8));
                 }
-
-                s5 = (((var_s2 + 0x2C0) & 0x3FF) >> 6) | 0x170;
-
-                var_t2[1] = s5 | 0xE1000200;
-                var_t2[4] = var_s0;
             }
         }
     }
@@ -56,32 +51,31 @@ void func_800F986C(void)
     for (y = 192; y >= 0; y -= 32) {
         for (x = 0x120; x >= 0; x -= 32) {
             for (var_s0 = 0; var_s0 < 3; ++var_s0) {
+                int brightness, xy, wh;
+
                 switch (var_s0) {
                 case 0:
-                    var_t2 = vs_battle_setSprite(
-                        0x160, (x + 2) | ((y + 2) << 16), 0x1C001C, temp_s4);
+                    brightness = 0x160;
+                    xy = (x + 2) | ((y + 2) << 16);
+                    wh = 0x1C001C;
                     break;
                 case 1:
-                    var_t2 = vs_battle_setSprite(
-                        0x160, ((x - 2) & 0xFFFF) | ((y - 2) << 16), 0x200020, temp_s4);
+                    brightness = 0x160;
+                    xy = ((x - 2) & 0xFFFF) | ((y - 2) << 16);
+                    wh = 0x200020;
                     break;
-                case 2:
-                    var_t2 =
-                        vs_battle_setSprite(0x60, x | (y << 0x10), 0x200020, temp_s4);
+                default:
+                    brightness = 0x60;
+                    xy = x | (y << 0x10);
+                    wh = 0x200020;
                     break;
                 }
 
                 temp_v0 = (((x & 0x1C0) + 0x2C0) & 0x3FF) >> 6;
+                temp_v0 |= var_s0 == 0 ? 0x170 : 0x110;
 
-                if (var_s0 == 0) {
-                    temp_v0 |= 0x170;
-                    var_t2[1] = temp_v0 | 0xE1000200;
-                } else {
-                    temp_v0 |= 0x110;
-                    var_t2[1] = temp_v0 | 0xE1000200;
-                }
-
-                var_t2[4] = (x & 0x20) | (y << 8);
+                vs_battle_spriteItem(
+                    temp_s4, brightness, xy, wh, temp_v0 | 0xE1000200, (x & 0x20) | (y << 8));
             }
         }
     }

@@ -1,5 +1,5 @@
 //! Lays out a line of text as draw items (pc/src/draw_items.h), one run placed in the ordering table where the packets
-//! were linked, or as the packets themselves for the caller that patches them (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
+//! were linked (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 
@@ -19,17 +19,10 @@ const clut: c_int = 0x37F6;
 /// (the slot they link at; null: vs_scratch.unk8), and moves the packet cursor past their marker. The draw mode (the info
 /// style's page) is set by the first of them, or alone when the text has none, as the packets' first one did.
 pub fn renderTextRawColor(text: [*c]const u8, x: c_int, color: c_int, nextPrim: ?*anyopaque) callconv(.c) void {
-    layout(true, text, x, color, nextPrim);
+    layout(text, x, color, nextPrim);
 }
 
-/// orig: pc_text_raw_packets (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
-/// (host) The printer as it was: packets, for the callers that patch what it wrote (MENU0's level picker reaches back into
-/// them by their words). Everything else adds draw items: renderTextRawColor.
-pub fn renderTextRawPackets(text: [*c]const u8, x: c_int, color: c_int, nextPrim: ?*anyopaque) callconv(.c) void {
-    layout(false, text, x, color, nextPrim);
-}
-
-fn layout(comptime items: bool, text: [*c]const u8, x: c_int, color: c_int, nextPrim: ?*anyopaque) void {
+fn layout(text: [*c]const u8, x: c_int, color: c_int, nextPrim: ?*anyopaque) void {
     const scratch = v.g.vs_scratch();
     const widths = v.g.D_800EB7B4();
     const kern = v.g.D_800EB708();
@@ -40,16 +33,9 @@ fn layout(comptime items: bool, text: [*c]const u8, x: c_int, color: c_int, next
     var next: ?*anyopaque = nextPrim;
     if (next == null) next = psx.get(scratch.unk8);
 
-    // The items: the glyphs in the order the string sets them, added last first (items of one depth draw the later one first).
+    // The glyphs in the order the string sets them, added last first (items of one depth draw the later one first).
     var glyphs: [256][6]c_int = undefined;
     var n: usize = 0;
-    // The packets: the header and a sprite each.
-    var prim: [*]align(1) u32 = @ptrCast(psx.get(scratch.unk0).?);
-    if (!items) {
-        prim[0] = ((psx.addr(&prim[2]) << 8) >> 8) | 0x01000000;
-        prim[1] = 0xE100000C;
-        prim += 2;
-    }
 
     var tp: [*]const u8 = text;
     while (true) {
@@ -90,28 +76,14 @@ fn layout(comptime items: bool, text: [*c]const u8, x: c_int, color: c_int, next
             const w: c_uint = psx.conv(c_uint, (@as(c_int, widths[@as(usize, c >> 1)]) >> sh) & 0xF);
             if (w != 0) {
                 const index: c_uint = @as(c_uint, glyph[@as(usize, c)]);
-                if (items) {
-                    if (n < glyphs.len) {
-                        const iw: c_int = @intCast(w);
-                        if (c == 10) {
-                            glyphs[n] = .{ cx -% 1, y -% 1, iw, 11, 0xE8, 0x4B };
-                        } else {
-                            glyphs[n] = .{ cx, y, iw, 10, @intCast(index & 0xFE), @intCast(((index & 1) *% 10) +% 0x4C) };
-                        }
-                        n += 1;
-                    }
-                } else {
-                    prim[0] = ((psx.addr(&prim[5]) << 8) >> 8) | 0x04000000;
-                    prim[1] = psx.conv(u32, color) | 0x64000000;
-                    prim[2] = (psx.conv(u32, cx) & 0xFFFF) | (psx.conv(u32, y) << 16);
-                    prim[3] = (index & 0xFE) | ((((index & 1) *% 10) +% 0x4C) << 8) | 0x37F60000;
-                    prim[4] = w | 0xA0000;
+                if (n < glyphs.len) {
+                    const iw: c_int = @intCast(w);
                     if (c == 10) {
-                        prim[2] = (psx.conv(u32, cx -% 1) & 0xFFFF) | (psx.conv(u32, y -% 1) << 16);
-                        prim[3] = 0x37F64BE8;
-                        prim[4] = w | 0xB0000;
+                        glyphs[n] = .{ cx -% 1, y -% 1, iw, 11, 0xE8, 0x4B };
+                    } else {
+                        glyphs[n] = .{ cx, y, iw, 10, @intCast(index & 0xFE), @intCast(((index & 1) *% 10) +% 0x4C) };
                     }
-                    prim += 5;
+                    n += 1;
                 }
                 cx +%= psx.conv(c_int, w);
                 c -%= 0x21;
@@ -125,14 +97,6 @@ fn layout(comptime items: bool, text: [*c]const u8, x: c_int, color: c_int, next
                 }
             }
         }
-    }
-
-    if (!items) {
-        const next_word: *align(1) u32 = @ptrCast(next.?);
-        prim[0] = next_word.* & 0xFFFFFF;
-        next_word.* = (psx.rawOf(scratch.unk0) << 8) >> 8;
-        psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(&prim[1])));
-        return;
     }
 
     const count_fn = psx.weak(Count, "pc_frame_count").?;

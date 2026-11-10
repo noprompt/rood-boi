@@ -1458,15 +1458,12 @@ static void glyph_now(void* const* commands, int count, int glyph, int x, int y,
     }
 }
 
-/* ---- reports held back while a claim's packets are being turned into draw items ----
- * The printers report their glyphs and words as they set them, by the packets' command words. When the packets become
- * items the reports are made again by the items' (pc_text_defer_items), or by the packets' own if they stay packets
- * (pc_text_defer_packets). */
+/* ---- status words held back while a claim's packets are being turned into draw items ----
+ * Glyphs are reported as the printers set them (by their items' command words). A status word is reported by its
+ * packets; when they become items it is made again by the items' (pc_text_defer_items), or by the packets' own if they
+ * stay packets (pc_text_defer_packets). */
 #define DEFERRED 512
 static struct {
-    int kind; /* 0 glyph, 1 status */
-    void* command[4];
-    int count, glyph, x, y, next_x, advance;
     const void *first, *end;
     int typeset_set;
     pc_text_typeset typeset;
@@ -1476,59 +1473,19 @@ static void status_now(const void* first, const void* end, const pc_text_typeset
 
 void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, int next_x, int advance)
 {
-    if (defer_on) {
-        if (defer_count < DEFERRED && count <= 4) {
-            deferred[defer_count].kind = 0;
-            for (int i = 0; i < count; i++)
-                deferred[defer_count].command[i] = commands[i];
-            deferred[defer_count].count = count, deferred[defer_count].glyph = glyph, deferred[defer_count].x = x;
-            deferred[defer_count].y = y, deferred[defer_count].next_x = next_x, deferred[defer_count].advance = advance;
-            ++defer_count;
-        } else
-            defer_overflow = 1;
-        return;
-    }
     glyph_now(commands, count, glyph, x, y, next_x, advance);
 }
 
 void pc_text_defer(void) { defer_on = 1, defer_count = 0, defer_overflow = 0; }
 
-/* The item a packet's command word is: the sprite or polygon of the items [first, first + count) at its place and texels. */
-static int item_of_packet(const uint32_t* w, int first, int count)
-{
-    for (int i = first; i < first + count; i++) {
-        const pc_item* it = pc_frame_item(i);
-        if (it && (it->kind == PC_ITEM_SPRITE || it->kind == PC_ITEM_POLY) && it->x[0] == (int16_t)w[1] && it->y[0] == (int16_t)(w[1] >> 16)
-            && it->u[0] == (w[2] & 255) && it->v[0] == (w[2] >> 8 & 255))
-            return i;
-    }
-    return -1;
-}
-
-/* The held reports made by the items [first, first + count): 1 when they all map (done), else 0 and none made. */
+/* The held reports made by the items [first, first + count): 1 when done. */
 int pc_text_defer_items(int first, int count)
 {
-    void* mapped[DEFERRED][4];
-    for (int k = 0; k < defer_count && !defer_overflow; k++) {
-        if (deferred[k].kind)
-            continue;
-        for (int i = 0; i < deferred[k].count; i++) {
-            int item = item_of_packet(deferred[k].command[i], first, count);
-            if (item < 0)
-                return 0;
-            mapped[k][i] = (void*)pc_frame_command(item);
-        }
-    }
     if (defer_overflow)
         return 0;
     defer_on = 0;
-    for (int k = 0; k < defer_count; k++) {
-        if (deferred[k].kind)
-            pc_text_status_items(first, count, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
-        else
-            glyph_now(deferred[k].count ? mapped[k] : NULL, deferred[k].count, deferred[k].glyph, deferred[k].x, deferred[k].y,
-                deferred[k].next_x, deferred[k].advance);
-    }
+    for (int k = 0; k < defer_count; k++)
+        pc_text_status_items(first, count, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
     memset(deferred, 0, (size_t)defer_count * sizeof deferred[0]); /* (scratch: the state proofs see none of it) */
     defer_count = 0;
     return 1;
@@ -1538,13 +1495,8 @@ int pc_text_defer_items(int first, int count)
 void pc_text_defer_packets(void)
 {
     defer_on = 0;
-    for (int k = 0; k < defer_count && !defer_overflow; k++) {
-        if (deferred[k].kind)
-            status_now(deferred[k].first, deferred[k].end, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
-        else
-            glyph_now(deferred[k].count ? deferred[k].command : NULL, deferred[k].count, deferred[k].glyph, deferred[k].x,
-                deferred[k].y, deferred[k].next_x, deferred[k].advance);
-    }
+    for (int k = 0; k < defer_count && !defer_overflow; k++)
+        status_now(deferred[k].first, deferred[k].end, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
     memset(deferred, 0, (size_t)defer_count * sizeof deferred[0]);
     defer_count = 0;
 }
@@ -2168,7 +2120,7 @@ void pc_text_status_typeset(const void* first, const void* end, const pc_text_ty
     if (defer_on) {
         if (defer_count < DEFERRED) {
             memset(&deferred[defer_count], 0, sizeof deferred[0]);
-            deferred[defer_count].kind = 1, deferred[defer_count].first = first, deferred[defer_count].end = end;
+            deferred[defer_count].first = first, deferred[defer_count].end = end;
             if (typeset)
                 deferred[defer_count].typeset = *typeset, deferred[defer_count].typeset_set = 1;
             ++defer_count;

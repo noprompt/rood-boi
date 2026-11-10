@@ -44,7 +44,6 @@ pub const squared_distance = @import("squared_distance.zig");
 pub const merge_actor_flags = @import("merge_actor_flags.zig");
 pub const set_actor_stat_pair = @import("set_actor_stat_pair.zig");
 pub const room_height_tile = @import("room_height_tile.zig");
-pub const sprite_packet = @import("sprite_packet.zig");
 pub const choose_movement_mode = @import("choose_movement_mode.zig");
 pub const copy_candidate = @import("copy_candidate.zig");
 pub const candidate_record = @import("candidate_record.zig");

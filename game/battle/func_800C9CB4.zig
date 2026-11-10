@@ -2,6 +2,7 @@
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 /// orig: func_800C9CB4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Writes the sprite for status icon `icon` at offset `dx` on row `row`, splitting it across a second sprite when it wraps.
@@ -20,13 +21,7 @@ pub fn func_800C9CB4(icon: c_int, dx: c_int, row: c_int) callconv(.c) void {
 
         // The shift count is the low 5 bits of icon, as the x86 shift masks it.
         const sh: u5 = @truncate(psx.conv(c_uint, icon));
-        const first = c.vs_battle_setSpriteDefaultTexPage(
-            0x80,
-            y | 0x80000,
-            s1 | 0x100000,
-            @ptrFromInt(@intFromPtr(psx.get(v.g.vs_scratch().unk4)) -% 4),
-        );
-        first[4] = psx.conv(c.u_long, s2 | (if ((((@as(c_int, 0x0F0F906A) >> sh) & 1)) != 0) @as(c_int, 0x37F90000) else 0x37F80000));
+        _ = sprite_item.sprite(@ptrFromInt(@intFromPtr(psx.get(v.g.vs_scratch().unk4)) -% 4), 0x80, y | 0x80000, s1 | 0x100000, sprite_item.page, s2 | (if ((((@as(c_int, 0x0F0F906A) >> sh) & 1)) != 0) @as(c_int, 0x37F90000) else 0x37F80000));
 
         if ((icon & 0x10) != 0 and (y & 8) == 0) {
             s2 = ((icon & 3) *% 8) +% 0x3068;
@@ -42,13 +37,7 @@ pub fn func_800C9CB4(icon: c_int, dx: c_int, row: c_int) callconv(.c) void {
                 s2 = (((icon & 3) *% 8) +% 0x3070) -% s1;
             }
 
-            const second = c.vs_battle_setSpriteDefaultTexPage(
-                0x80,
-                y | 0x80000,
-                s1 | 0x80000,
-                @ptrFromInt(@intFromPtr(psx.get(v.g.vs_scratch().unk4)) -% 4),
-            );
-            second[4] = psx.conv(c.u_long, s2 | 0x37FF0000);
+            _ = sprite_item.sprite(@ptrFromInt(@intFromPtr(psx.get(v.g.vs_scratch().unk4)) -% 4), 0x80, y | 0x80000, s1 | 0x80000, sprite_item.page, s2 | 0x37FF0000);
         }
     }
 }

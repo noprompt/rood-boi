@@ -8,6 +8,7 @@
 #include <libetc.h>
 #ifdef ROOD_PC
 #include "pc/src/classic/classic_hook.h"
+#include "pc/src/game/spriteItem.h"
 #endif
 
 /**
@@ -83,16 +84,15 @@ static void _renderItemCategory(int animationStep, int highlightSelected)
                 continue;
             }
 
-            texPage = vs_battle_setSpriteDefault(vs_getWH(16, 16), x | (16 << 16));
+            vs_battle_spriteItem(NULL, 128, x | (16 << 16), vs_getWH(16, 16), VS_SPRITE_PAGE,
+                (120 + i * 16) | (128 << 8) | vs_getUV0Clut(0, 0, 976, 223));
 
         } else {
-            texPage = vs_battle_setSpriteDefaultTexPage(128, x | (animationStep << 0x10),
-                vs_getWH(16, 16), psx_get(vs_scratch.unk4));
+            vs_battle_spriteItem(psx_get(vs_scratch.unk4), 128, x | (animationStep << 0x10), vs_getWH(16, 16),
+                VS_SPRITE_PAGE,
+                (120 + i * 16) | (128 << 8)
+                    | (i == selectedCategory ? vs_getUV0Clut(0, 0, 976, 223) : vs_getUV0Clut(0, 0, 992, 223)));
         }
-
-        texPage[4] = (120 + i * 16) | (128 << 8)
-                   | (i == selectedCategory ? vs_getUV0Clut(0, 0, 976, 223)
-                                            : vs_getUV0Clut(0, 0, 992, 223));
     }
 #ifdef ROOD_PC
         });

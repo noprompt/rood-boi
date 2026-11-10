@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = common.sprite_item;
 
 /// orig: func_800CBBCC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The image's tile grid at its position and scale (sprites at 4096, else textured quads), its ground colour around and under empty tiles; ROOD_PC: a full-screen image is anchored as the scene (pc_hw_anchor_packets).
@@ -82,17 +83,19 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                 const u: c_int = vv & 0xC0;
                 vv = (vv & 0x1F00) * 15;
                 const tpage: c_int = ((@as(c_int, psx.getBits(image, "unk0_2")) & 3) << 7) | (1 << 5) | (0x100 >> 4) | (((((@as(c_int, image.unk2) - 18) << 6) + ((tile >> 2) & 0x1C0)) & 0x3FF) >> 6);
-                var prim: [*c]c_uint = undefined;
+                const tpage_word: c_int = tpage | @as(c_int, @bitCast(@as(c_uint, 0xE1000000)));
                 if (scale == 4096) {
-                    prim = c.vs_battle_setSprite(alpha, left | (top << 16), 0xF0040, ot);
+                    _ = sprite_item.sprite(ot, alpha, left | (top << 16), 0xF0040, tpage_word, u | vv | clut);
                 } else {
                     const x0 = left & 0xFFFF;
                     var u_right = u + 64;
                     u_right -= u_right >> 8;
                     const packed_bottom = bottom << 16;
-                    prim = @ptrCast(@alignCast(psx.get(scratch.unk0).?));
+                    const prim: [*c]c_uint = @ptrCast(@alignCast(psx.get(scratch.unk0).?));
                     prim[0] = (ot.* & 0xFFFFFF) | 0xA000000;
+                    prim[1] = @bitCast(tpage_word);
                     prim[2] = @bitCast(quad_color);
+                    prim[4] = @bitCast(u | vv | clut);
                     prim[3] = @bitCast(x0 | (top << 16));
                     prim[5] = @bitCast(right | (top << 16));
                     prim[6] = @bitCast(u_right | vv | (tpage << 16));
@@ -103,8 +106,6 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                     ot.* = (psx.addr(prim) << 8) >> 8;
                     psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(prim + 11)));
                 }
-                prim[1] = @bitCast(tpage | @as(c_int, @bitCast(@as(c_uint, 0xE1000000))));
-                prim[4] = @bitCast(u | vv | clut);
             } else if (color != 0 and (color != 0x8000 or v.g.D_800F51C8().* == 0)) {
                 c.vs_battle_addTile(ot, background, (left & 0xFFFF) | (top << 16), (right -% left) | ((bottom -% top) << 16));
             }

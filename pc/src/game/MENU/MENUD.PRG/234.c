@@ -9,6 +9,7 @@
 #include "build/assets/MENU/MENUD.PRG/menuText.h"
 #include "vs_string.h"
 #include "gpu.h"
+#include "pc/src/game/spriteItem.h"
 #include <libetc.h>
 #include <memory.h>
 #include <libetc.h>
@@ -738,14 +739,13 @@ void func_80103E24(int arg0, int arg1)
                 temp_v0->rowIcon = i + 0x18;
                 continue;
             } else {
-                var_v1 = vs_battle_setSpriteDefault(0x100010, temp_s0 | 0x100000);
+                vs_battle_spriteItem(NULL, 128, temp_s0 | 0x100000, 0x100010, VS_SPRITE_PAGE,
+                    (0x78 + i * 0x10) | 0x8000 | 0x37FD0000);
             }
         } else {
-            var_v1 = vs_battle_setSpriteDefaultTexPage(
-                0x80, temp_s0 | (arg0 << 0x10), 0x100010, psx_get(vs_scratch.unk4) - 0xC);
+            vs_battle_spriteItem(psx_get(vs_scratch.unk4) - 0xC, 0x80, temp_s0 | (arg0 << 0x10), 0x100010, VS_SPRITE_PAGE,
+                (0x78 + i * 0x10) | 0x8000 | (i == temp_s4 ? 0x37FD0000 : 0x37FE0000));
         }
-
-        var_v1[4] = (0x78 + i * 0x10) | 0x8000 | (i == temp_s4 ? 0x37FD0000 : 0x37FE0000);
     }
 #ifdef ROOD_PC
         });

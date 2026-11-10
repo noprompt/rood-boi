@@ -29,6 +29,7 @@
 #include "vs_string.h"
 #include "gpu.h"
 #include "pc/src/game/menuItem.h"
+#include "pc/src/game/spriteItem.h"
 #include <libetc.h>
 #include <stdio.h>
 #include <strings.h>
@@ -110,9 +111,8 @@ void _renderScrollableMenuItem(vs_battle_menuItem_t* menuItem)
             var_s0 = state - var_s0;
         }
 
-        vs_battle_setSpriteDefaultTexPage(128,
-            (menuItem->x - 14) | ((menuItem->y + var_s0) << 0x10), vs_getWH(16, 16),
-            before - 1)[4] = (isScrollable << 4) | vs_getUV0Clut(0, 48, 912, 223);
+        vs_battle_spriteItem(before - 1, 128, (menuItem->x - 14) | ((menuItem->y + var_s0) << 0x10), vs_getWH(16, 16),
+            VS_SPRITE_PAGE, (isScrollable << 4) | vs_getUV0Clut(0, 48, 912, 223));
     }
 
     i = menuItem->x + 6;
@@ -177,16 +177,14 @@ void _renderScrollableMenuItem(vs_battle_menuItem_t* menuItem)
             brightness = i * 8 + 32;
         }
 
-        prim = vs_battle_setSprite(brightness, xy, w, before);
-
         temp_v1_2 = xy - var_s0;
         temp_a0 = xy >> 0x10;
-        xy += 1 << 16;
 
-        prim[1] = ((u_int)(frameBuf + var_s0) >> 6)
-                | vs_getTpage(
-                    0, 0, semiTransparencySubtract, semiTransparencyFull, ditheringOff);
-        prim[4] = temp_v1_2 | (temp_a0 << 8);
+        vs_battle_spriteItem(before, brightness, xy, w,
+            ((u_int)(frameBuf + var_s0) >> 6)
+                | vs_getTpage(0, 0, semiTransparencySubtract, semiTransparencyFull, ditheringOff),
+            temp_v1_2 | (temp_a0 << 8));
+        xy += 1 << 16;
     }
 }
 

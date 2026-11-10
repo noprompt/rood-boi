@@ -8,6 +8,8 @@ const c = @import("c_5BF94");
 
 const OpacityOn = *const fn () callconv(.c) c_int;
 const OpacityPackets = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
+const ItemCount = *const fn () callconv(.c) c_int;
+const ItemOpacity = *const fn (c_int, c_int, c_int) callconv(.c) void;
 
 /// The C's `NULL + slot` on u_long elements.
 fn nullPlus(slot: c_int) ?[*]u32 {
@@ -46,9 +48,13 @@ fn fadeGlyph(character: c_uint, x: c_int, y: c_int) void {
 
 /// orig: _pcFadeEnd (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The glyphs drawn since fadeBegin at `alpha` (16.16); the colour and brightness restored.
-fn fadeEnd(alpha: c_int) void {
+fn fadeEnd(alpha: c_int, first_item: c_int) void {
     if (psx.weak(OpacityPackets, "pc_hw_opacity_packets")) |packets| {
         packets(v.g._pcFadeStart().*, psx.get(v.g.vs_scratch().unk0), alpha);
+    }
+    // The glyphs are draw items: faded as the packets are.
+    if (psx.weak(ItemCount, "pc_frame_count")) |count| {
+        if (psx.weak(ItemOpacity, "pc_frame_opacity")) |opacity| opacity(first_item, count(), alpha);
     }
     v.g.D_800F4CB8().* = psx.conv(u8, v.g._pcFadeColor().*);
     v.g._fontBrightness().* = v.g._pcFadeBrightness().*;
@@ -77,6 +83,7 @@ pub fn renderTextImmediate(arg0: ?*v.vs_battle_textBox, arg1_in: c_int) callconv
 
     if (x < 0 or y < 0 or x +% width >= 320 or y +% height >= 224) return;
 
+    const first_item: c_int = if (psx.weak(ItemCount, "pc_frame_count")) |count| count() else 0;
     const buf: ?[*]u16 = if (fadeBegin(box)) null else @ptrCast(@alignCast(c.vs_main_allocHeapR(@bitCast(width *% height *% 2))));
 
     if ((arg1 >> 0x10) != 0) arg1 = 0x10000;
@@ -163,7 +170,7 @@ pub fn renderTextImmediate(arg0: ?*v.vs_battle_textBox, arg1_in: c_int) callconv
     }
 
     const b = buf orelse {
-        fadeEnd(arg1);
+        fadeEnd(arg1, first_item);
         return;
     };
     c.vs_battle_renderImage((x +% v.g.vs_main_frameBuf().* *% 320) | (_y << 0x10), @ptrCast(b), width | (height << 0x10));

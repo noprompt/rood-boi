@@ -4,6 +4,7 @@ const psx = common.psx;
 const gte = common.gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
+const sprite_item = common.sprite_item;
 
 /// orig: func_800C28AC (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Projects `position` to the screen and links the target marker's sprites into the ordering table; `arg1` selects the marker half (0 links the frame primitives too).
@@ -69,13 +70,7 @@ pub fn func_800C28AC(position: ?*v.SVECTOR, arg1: c_int) callconv(.c) void {
         else
             0x80;
         const otPtr: [*c]c_uint = @ptrFromInt(@as(usize, psx.addr(ot)));
-        const prim: [*c]c_uint = c.vs_battle_setSpriteDefaultTexPage(
-            brightness,
-            xy +% psx.at(v.g.D_800EA670(), index).*,
-            psx.at(v.g.D_800EA684(), index).*,
-            otPtr,
-        );
-        prim[4] = psx.conv(c_uint, psx.at(v.g.D_800EA698(), index).*);
+        _ = sprite_item.sprite(otPtr, brightness, xy +% psx.at(v.g.D_800EA670(), index).*, psx.at(v.g.D_800EA684(), index).*, sprite_item.page, @bitCast(psx.conv(c_uint, psx.at(v.g.D_800EA698(), index).*)));
     }
 
     // ROOD_PC: PC_CLASSIC target marker site (classic_hook.h); weak, tested for presence.

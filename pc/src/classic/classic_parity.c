@@ -133,7 +133,7 @@ void pc_classic_items_note(int converted, int type)
 
 /* Items in drawing order as the packets they lower to (the draw mode before a flat one, the primitive), after
  * `tag` (the marker that places them: their place and anchor), or at no tag (unplaced items of a site's range). */
-#define ITEM_RUN 2048
+#define ITEM_RUN 8192
 static int item_packets(const pc_classic_walker* walker, const unsigned* tag, const void* lo, int first, int count,
     int unplaced, pc_classic_packet* out, int max)
 {
@@ -659,6 +659,7 @@ static int canonicalise(const pc_classic_packet* in, int n, pc_classic_packet* o
                 q->anchor = p->anchor;
                 q->at = p->at;
                 memcpy(q->w, p->w + i, (size_t)len * sizeof q->w[0]);
+                normalise(q); /* (a claim's and the game's pads alike: the GPU reads neither) */
             }
             i += len;
         }

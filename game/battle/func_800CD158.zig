@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 /// orig: func_800CD158 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// The 4..16 lines above a top box (below a bottom one) as two sprites each, fading out line by line; the rest of the screen past them a dark tile; a bottom box at its last state also draws its arrow (func_800CD0FC).
@@ -26,14 +27,11 @@ pub fn func_800CD158(id: c_int) callconv(.c) void {
     var i: c_uint = 0;
     while (i < count) : (i += 1) { // i < count <= 16
         var brightness: c_uint = ((count - i) * 128) / (count + 1);
-        var prim = c.vs_battle_setSprite(@bitCast(brightness), (y << 16) | 256, 0x10040, ot);
         const page: c_uint = (@as(c_uint, @bitCast(offset + 256)) >> 6) | 0x100;
-        prim[1] = page | 0xE1000000;
-        prim[4] = @bitCast(y << 8);
-        prim = c.vs_battle_setSprite(@bitCast(brightness), y << 16, 0x10100, ot);
-        brightness = (@as(c_uint, @bitCast(offset)) >> 6) | 0x100;
-        prim[1] = brightness | 0xE1000000;
-        prim[4] = @bitCast(y << 8);
+        _ = sprite_item.sprite(ot, @bitCast(brightness), (y << 16) | 256, 0x10040, @bitCast(page | 0xE1000000), y << 8);
+        const page2: c_uint = (@as(c_uint, @bitCast(offset)) >> 6) | 0x100;
+        _ = sprite_item.sprite(ot, @bitCast(brightness), y << 16, 0x10100, @bitCast(page2 | 0xE1000000), y << 8);
+        brightness = page2;
         if (y < 128) {
             y -%= 1;
             if (y < 0) {

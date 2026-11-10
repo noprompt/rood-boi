@@ -9,6 +9,7 @@
 #include "pc/src/game/MENU/MAINMENU.PRG/224.h"
 #include "pc/src/game/MENU/MAINMENU.PRG/2D10.h"
 #include "pc/src/game/menuItem.h"
+#include "pc/src/game/spriteItem.h"
 #include "pc/src/game/MENU/MAINMENU.PRG/58EC.h"
 #include "build/assets/MENU/MENU4.PRG/status.h"
 #include "build/assets/MENU/MENU4.PRG/status.h"
@@ -701,8 +702,7 @@ static void _renderUnknownValue(int xy, int withMax, u_long* before)
 
     if (withMax != 0) {
         for (i = 0; i < 3; ++i) {
-            vs_battle_setSprite(128, xy, vs_getWH(6, 9), before)[4] =
-                vs_getUV0Clut(228, 0, 832, 223);
+            vs_battle_spriteItem(before, 128, xy, vs_getWH(6, 9), 0, vs_getUV0Clut(228, 0, 832, 223));
             xy -= 5;
         }
         vs_battle_renderValue(2, xy, 0, before);
@@ -712,8 +712,7 @@ static void _renderUnknownValue(int xy, int withMax, u_long* before)
     xy += -1 << 16;
 
     for (i = 0; i < 3; ++i) {
-        vs_battle_setSprite(128, xy, vs_getWH(7, 10), before)[4] =
-            vs_getUV0Clut(234, 0, 832, 223);
+        vs_battle_spriteItem(before, 128, xy, vs_getWH(7, 10), 0, vs_getUV0Clut(234, 0, 832, 223));
         xy -= 6;
     }
 }
@@ -829,9 +828,8 @@ static void _renderBasicStats(void)
     }
 
     for (i = 0; i < 3; ++i) {
-        vs_battle_setSpriteDefaultTexPage(384,
-            D_800EBBEC[i] + ((_basicStatsAnimState - 4) << 0x13), D_800EBBFC[i] | 0x90000,
-            insertBefore)[4] = D_800EBC00[i] | 0x37F60000;
+        vs_battle_spriteItem(insertBefore, 384, D_800EBBEC[i] + ((_basicStatsAnimState - 4) << 0x13),
+            D_800EBBFC[i] | 0x90000, VS_SPRITE_PAGE, D_800EBC00[i] | 0x37F60000);
     }
 
     y += -8 << 16;
@@ -914,20 +912,14 @@ static void _renderStatusIcons(vs_battle_actor2* actor, int animationStep)
 
             if (i >= new_var) {
                 // Element indicator
-                vs_battle_setSpriteDefaultTexPage(128, ((x + 8) & 0xFFFF) | y,
-                    vs_getWH(8, 8), psx_get(vs_scratch.unk4) - 8)[4] =
-                    ((((i & 3) * 8) + 0x3068) | (getClut(1008, 223) << 16));
+                vs_battle_spriteItem(psx_get(vs_scratch.unk4) - 8, 128, ((x + 8) & 0xFFFF) | y, vs_getWH(8, 8),
+                    VS_SPRITE_PAGE, ((((i & 3) * 8) + 0x3068) | (getClut(1008, 223) << 16)));
             }
 
-            // Nasty match hack
-            actor = (vs_battle_actor2*)vs_battle_setSpriteDefaultTexPage(
-                128, (x & 0xFFFF) | y, vs_getWH(16, 16), psx_get(vs_scratch.unk4) - 8);
-
             // 0x0F0F906A = Flags for toggling the icon palette
-            ((u_long*)actor)[4] =
+            vs_battle_spriteItem(psx_get(vs_scratch.unk4) - 8, 128, (x & 0xFFFF) | y, vs_getWH(16, 16), VS_SPRITE_PAGE,
                 (vs_battle_statusIconTexOffsets[i]
-                    | (((0x0F0F906A >> i) & 1) ? (getClut(912, 223) << 16)
-                                               : (getClut(896, 223) << 16)));
+                    | (((0x0F0F906A >> i) & 1) ? (getClut(912, 223) << 16) : (getClut(896, 223) << 16))));
             // 0x37F90000 : 0x37F80000
         }
     }

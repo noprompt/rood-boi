@@ -281,6 +281,10 @@ def hashed(g, out, sample, hashes):
             if state["t"] % sample == 0:
                 g.screenshot(str(shot))
                 hashes.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:12])
+                keep = os.environ.get("BUILD_COMPARE_KEEP")  # (a directory: every sampled frame kept, for looking at a difference)
+                if keep:
+                    pathlib.Path(keep).mkdir(parents=True, exist_ok=True)
+                    (pathlib.Path(keep) / f"{os.getpid()}-{len(hashes) - 1:04d}.ppm").write_bytes(shot.read_bytes())
     g.run = stepping
 
 
@@ -325,6 +329,41 @@ def scene_manual(g, cp, symbols):
         g.press("cross", vsyncs=3, settle=40)
 
 
+def scene_levelled(g, cp, symbols):
+    """The original Magic menu's LV picker (MENU0 84.c), a levelled Warlock spell with LV1 and LV2 learned: to LV1, to LV2,
+    then LV1 again (menu0_levelled_smoke.py's route: its setup and its walk to the picker, the pad sequence the same)."""
+    import struct
+    import menu0_levelled_smoke as m
+    s = m.Session.__new__(m.Session)
+    s.g, s.sym, s.out, s.shots = g, symbols, pathlib.Path("."), False
+    g.call("ui_menu", modern=False)
+    f = symbols["vs_main_settings"] + m.MENU_FLAGS
+    g.write(f, struct.pack("<H", struct.unpack("<H", g.read(f, 2))[0] | 1))
+    for level in range(4):
+        s.set_learned(m.EXPLOSION + level, level < 2)
+    g.run(2)
+    spells = [i for i in g.read(symbols["vs_battle_warlockSpellIds"], 18) if s.learned(i)]
+    s.fill_mp(s.cost(m.EXPLOSION) + 10)
+    for _ in range(4):
+        g.press("triangle", vsyncs=3, settle=10)
+        if s.wait(lambda: m.MAGIC_ITEM in s.menu_items(), 60, "", step=4, quiet=True) is not None:
+            break
+    s.wait_ready(m.MAGIC_ITEM)
+    s.nav(range(0, 10), m.MAGIC_ITEM)
+    g.press("circle", vsyncs=3, settle=10)
+    s.wait_ready(m.WARLOCK_ITEM)
+    s.nav(range(10, 15), m.WARLOCK_ITEM)
+    g.press("circle", vsyncs=3, settle=10)
+    s.wait_ready(m.SPELL_ITEM)
+    g.run(10)
+    s.nav(range(m.SPELL_ITEM, m.SPELL_ITEM + len(spells)), m.SPELL_ITEM + spells.index(m.EXPLOSION))
+    g.press("circle", vsyncs=3, settle=4)
+    s.wait(lambda: s.levels()[1] == 2, 60, "the LV picker")
+    for button in ("right", "left", "right", "right", "left"):
+        g.press(button, vsyncs=3, settle=20)
+    g.run(40)
+
+
 def scene_menuf(g, cp, symbols):
     """MENUF's screens, each played through and again skipped (classic_parity.py tour_menuf)."""
     cp.tour_menuf(g, symbols, lambda *args, **kwargs: None, lambda: None)
@@ -358,8 +397,9 @@ def tour(name):
     return scene
 
 
-SCENES = {"ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu, "manual": scene_manual,
-          "score": tour("score"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items")}
+SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu, "manual": scene_manual,
+          "score": tour("score"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items"),
+          "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data")}
 OWN = {"menus": own_menus}  # (routes that launch their own games, and take hashed() as wrap)
 
 

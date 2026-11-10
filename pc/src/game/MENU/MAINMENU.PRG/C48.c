@@ -2,6 +2,7 @@
 #include "2D10.h"
 #include "58EC.h"
 #include "pc/src/game/SLUS_010.40/main.h"
+#include "pc/src/game/menuItem.h"
 #include "pc/src/game/MENU/MENUD.PRG/234.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/2842C.h"
@@ -744,7 +745,6 @@ static void _renderStatPage(int xOffset)
     int temp_v0_3;
     int temp_v1_3;
     int var_s6;
-    u_long* prim;
     int a0;
 
     u_long* before = psx_get(vs_scratch.unk4) - 0xC;
@@ -894,22 +894,13 @@ static void _renderStatPage(int xOffset)
         vs_battle_insertTpage(
             vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff), before);
 
-        prim = psx_get(vs_scratch.unk0);
-
         for (j = 0; j < 11; ++j) {
             temp_a0 = var_s6 + j;
             temp_v1_3 = j - 0x60;
             temp_a0_2 = (temp_a0 + 0x40) << 0x10;
-            prim[0] = (*before & 0xFFFFFF) | 0x04000000;
-            prim[1] = 0x50330500;
-            prim[2] = ((xOffset & 0xFFFF) | temp_a0_2);
-            prim[3] = 0x5D3200;
-            prim[4] = (((xOffset - temp_v1_3) & 0xFFFF) | temp_a0_2);
-            *before = (psx_to_int(u_long, prim) << 8) >> 8;
-            prim += 5;
+            vs_menu_line_g(vs_menu_depth(before), 0, 0, 0, 0x330500, ((xOffset & 0xFFFF) | temp_a0_2),
+                0x5D3200, (((xOffset - temp_v1_3) & 0xFFFF) | temp_a0_2));
         }
-
-        psx_set(vs_scratch.unk0, prim);
 
         vs_battle_insertTpage(
             vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn), before);

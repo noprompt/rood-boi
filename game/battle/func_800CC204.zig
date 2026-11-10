@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 /// orig: func_800CC204 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws the image's 15-line tile rows clipped per line to a span that grows (unkC below 4096) or shrinks
@@ -95,9 +96,7 @@ pub fn func_800CC204(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                 const tpage: c_int = ((mode & 3) << 7) | (1 << 5) | (0x100 >> 4) | ((((page + (tile >> 8)) << 6) & 0x3FF) >> 6);
                 // draw: once, and again for the next pixel when x is odd (the C's goto).
                 while (true) {
-                    const prim = c.vs_battle_setSprite(0x80, x | (y << 16), if ((x & 1) != 0) 0x10001 else ((end - x) | 0x10000), ot);
-                    prim[1] = @bitCast(tpage | @as(c_int, @bitCast(@as(c_uint, 0xE1000000))));
-                    prim[4] = @bitCast((((tile & 3) << 6) + (x & 0x3F)) | (((((tile >> 2) & 0x1F) * 15) + @rem(y, 15)) << 8) | clut);
+                    _ = sprite_item.sprite(ot, 0x80, x | (y << 16), if ((x & 1) != 0) 0x10001 else ((end - x) | 0x10000), @bitCast(tpage | @as(c_int, @bitCast(@as(c_uint, 0xE1000000)))), @bitCast((((tile & 3) << 6) + (x & 0x3F)) | (((((tile >> 2) & 0x1F) * 15) + @rem(y, 15)) << 8) | clut));
                     if ((x & 1) != 0) {
                         x += 1;
                         continue;

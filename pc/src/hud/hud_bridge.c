@@ -33,6 +33,7 @@
  *     life, both only if it is still the one shown). */
 #include "common.h"
 #include <string.h>
+#include "../../../pc/src/game/spriteItem.h"
 #include "../../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "../../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "../widescreen.h"
@@ -292,6 +293,13 @@ static const signed char bounce[] = { 0, -6, -12, -14, -16, -10, -5, -1, 0, -3, 
 /* The parity gate (classic_parity.h): the game's drawing of the element just recorded stays live; its
  * classic claim draws into a shadow slot (packets after the game's, never linked into the ordering
  * table, then given back), normalised and compared with the game's capture. */
+/* A site that drew nothing: no packets between its cursor values, and no draw items. */
+static int site_empty(const void* first, const void* end)
+{
+    int a, b;
+    pc_classic_site_items(&a, &b);
+    return first == end && a == b;
+}
 static u_long* packet_cursor(void) { return psx_get(vs_scratch.unk0); }
 static int lua_anchor;
 static int shadow_anchor(const unsigned* tag, void* user)
@@ -507,7 +515,7 @@ void pc_hud_gauges(void* record, void* first, void* end)
 {
     static pc_hud_fields f;
     vs_battle_actor2* actor = record;
-    if (!actor || first == end)
+    if (!actor || site_empty(first, end))
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_GAUGES;
@@ -550,7 +558,7 @@ void pc_hud_actor_word(void* record, int x, int y, void* first, void* end)
     static pc_hud_fields f;
     static const int slots[] = { -20 };
     const pc_classic_actor_word* word = record;
-    if (!word || first == end)
+    if (!word || site_empty(first, end))
         return; /* nothing drawn (no pieces, off the screen) */
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_ACTOR_WORD;
@@ -577,7 +585,7 @@ void pc_hud_image(void* record, void* first, void* end)
     static pc_hud_fields f;
     static char keys[3];
     const pc_classic_image* image = record;
-    if (!image || first == end || image->image < 0 || image->image > 2 || image->mode != 0)
+    if (!image || site_empty(first, end) || image->image < 0 || image->image > 2 || image->mode != 0)
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_IMAGE;
@@ -596,7 +604,7 @@ void pc_hud_target_row(void* record, void* first, void* end)
 {
     static pc_hud_fields f;
     const pc_classic_target_row* row = record;
-    if (!row || first == end)
+    if (!row || site_empty(first, end))
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_TARGET_ROW;
@@ -617,7 +625,7 @@ void pc_hud_target_line(void* record, void* first, void* end)
     static pc_hud_fields f;
     const pc_classic_target_line* line = record;
     int slot;
-    if (!line || first == end)
+    if (!line || site_empty(first, end))
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_TARGET_LINE;
@@ -638,7 +646,7 @@ void pc_hud_target_marker(void* record, void* first, void* end)
     static pc_hud_fields f;
     static const int slots[] = { -4 };
     const pc_classic_target_marker* marker = record;
-    if (!marker || first == end)
+    if (!marker || site_empty(first, end))
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_TARGET_MARKER;
@@ -696,7 +704,7 @@ void pc_hud_menu(int kind, void* record, void* first, void* end)
     static pc_hud_fields rows[40], one[5];
     pc_hud_fields* f;
     int slots[5], nslots = 1, unk8 = (int)((char*)psx_get(vs_scratch.unk8) - (char*)psx_get(vs_scratch.unk4));
-    if (!record || first == end)
+    if (!record || site_empty(first, end))
         return;
     /* Only the screens the gate tours (MENU_TOURED_SCREENS): every other MAINMENU screen keeps the game's own
      * drawing (no element, no claim) until its tour is green (the Quick Manual crashed with Lua's rows). */
@@ -985,7 +993,7 @@ void pc_hud_box_text(void* record, int id, void* first, void* end)
     static pc_hud_fields f;
     static char keys[8];
     text_recording = 0;
-    if (!record || first == end || id < 0 || id > 7)
+    if (!record || site_empty(first, end) || id < 0 || id > 7)
         return; /* (nothing set: no glyph yet, spaces only) */
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_BOX_TEXT;
@@ -1005,7 +1013,7 @@ void pc_hud_text_band(void* record, int id, void* first, void* end)
     static pc_hud_fields f;
     static char keys[8];
     const vs_battle_textBox* box = record;
-    if (!box || first == end || id < 0 || id > 7)
+    if (!box || site_empty(first, end) || id < 0 || id > 7)
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_TEXT_BAND;
@@ -1027,7 +1035,7 @@ void pc_hud_text_frame(void* record, int id, void* first, void* end)
     static pc_hud_fields f;
     static char keys[8];
     const vs_battle_textBox* box = record;
-    if (!box || first == end || id < 0 || id > 7)
+    if (!box || site_empty(first, end) || id < 0 || id > 7)
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_TEXT_FRAME;
@@ -1054,7 +1062,7 @@ void pc_hud_emote(void* record, int actor, void* first, void* end)
     static char keys[16];
     const pc_classic_emote* emote = record;
     int slot;
-    if (!emote || !emote->draw || first == end || actor < 0 || actor >= 16)
+    if (!emote || !emote->draw || site_empty(first, end) || actor < 0 || actor >= 16)
         return;
     if (emote->draw == 3)
         return; /* a far actor's sprite stays the game's: no scene the gate plays shows one (func_8009F858) */
@@ -1085,7 +1093,7 @@ void pc_hud_timer(void* record, int x, int y, void* first, void* end)
     static const int slots[] = { -4 };
     const char* text = record;
     int i;
-    if (!text || first == end)
+    if (!text || site_empty(first, end))
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_TIMER;
@@ -1144,7 +1152,7 @@ void pc_hud_figure(void* record, int stance, void* first, void* end)
     static pc_hud_fields f;
     static const int slots[] = { -4 };
     vs_battle_actor2* actor = record;
-    if (!actor || first == end)
+    if (!actor || site_empty(first, end))
         return;
     f = (pc_hud_fields) { 0 };
     f.kind = PC_HUD_FIGURE;
@@ -1506,17 +1514,13 @@ static const signed char button_cells[8][2] = { { 32, 16 }, { 48, 16 }, { 0, 16 
     { 48, 0 }, { 16, 0 } };
 int pc_hud_classic_glyph(int button) { return button >= 0 && button < 8 ? 16 : 0; }
 
-/* A sprite as the game's (pc_sprite_packet): its page word (semi-transparent: the page's blending), its
- * colour and command word (returned), place, texels and CLUT, size. */
-extern u_long* vs_battle_setSprite(int brightness, int xy, int wh, u_long* ot);
-static u_long* sprite(u_long* ot, int x, int y, int w, int h, u_long page, u_long uv_clut, unsigned rgb, float alpha)
+/* A sprite as the game's (vs_battle_spriteItem): its page word (semi-transparent: the page's blending; 0 inherits
+ * the page), its place and size, texels and CLUT, colour. Returns the item. */
+static int sprite(u_long* ot, int x, int y, int w, int h, u_long page, u_long uv_clut, unsigned rgb, float alpha)
 {
-    /* Allocate and link through the game's sprite routine, not a parallel packet writer. */
-    u_long* p = vs_battle_setSprite(semi(alpha) ? 0x180 : 0x80, xy(x, y), xy(w, h), ot);
-    p[1] = 0xE1000000 | page;
-    p[2] = modulate(rgb) | (p[2] & 0xFF000000);
-    p[4] = uv_clut;
-    return p + 2;
+    int item = vs_battle_spriteItem(ot, semi(alpha) ? 0x180 : 0x80, xy(x, y), xy(w, h), page ? (int)(0xE1000000 | page) : 0,
+        (int)uv_clut);
+    return vs_battle_spriteColor(item, (int)(modulate(rgb) | (semi(alpha) ? 0x2000000 : 0)));
 }
 
 static void text_packets(u_long* ot, const pc_hud_classic_cmd* c)
@@ -1531,7 +1535,7 @@ static void text_packets(u_long* ot, const pc_hud_classic_cmd* c)
     }
     if (menu_font(c->font)) {
         u_char glyphs[260];
-        u_long* command[260];
+        const void* command[260];
         int n = encode(c->text, c->length, glyphs, sizeof glyphs), i, pen;
         if (n <= 0)
             return;
@@ -1541,8 +1545,8 @@ static void text_packets(u_long* ot, const pc_hud_classic_cmd* c)
             u_int glyph = glyphs[i];
             pen -= glyph == MENU_SPACE ? 6 : glyph < 0xE7 ? vs_battle_characterWidths[glyph] : 0;
             command[i] = glyph < 0xE7 && glyph != MENU_SPACE
-                ? sprite(ot, pen, y, 12, 12, 0x2D, /* font style 4: CLUT (896, 222) */
-                      ((glyph % 21) * 12) | ((glyph / 21) * 12 << 8) | 0x37B80000u, c->color, 0.5f)
+                ? vs_battle_spriteCommand(sprite(ot, pen, y, 12, 12, 0x2D, /* font style 4: CLUT (896, 222) */
+                      ((glyph % 21) * 12) | ((glyph / 21) * 12 << 8) | 0x37B80000u, c->color, 0.5f))
                 : NULL;
         }
         for (i = 0, pen = x; i < n && pc_text_glyph && restyle; ++i) {
@@ -1859,10 +1863,9 @@ static const void* image_source(const pc_hud_classic_cmd* c, int* x, int* y, int
     *x = c->x, *y = c->y, *w = c->w, *h = c->h;
     return c->text;
 }
-/* The commands whose packets can be turned into items after the game's own routine wrote them. The text printers
- * report their glyphs to ui_text by packet; those reports are held and made again by the items (pc_text_defer).
- * Digits (vs_battle_renderValue, _renderDigit, vs_mainMenu_renderIntColor), the box tables' commands and the
- * menu rows keep their packets: other readers (ui_labels, the text boxes) key on them. */
+/* The commands whose packets can be turned into items after the game's own routine wrote them. The glyph and digit
+ * printers add items themselves (and report their glyphs by the items' command words); the status words' reports are
+ * held and made again by the items (pc_text_defer). The text boxes' frames keep their packets. */
 extern void pc_text_defer(void) __attribute__((weak));
 extern int pc_text_defer_items(int first, int count) __attribute__((weak));
 extern void pc_text_defer_packets(void) __attribute__((weak));
@@ -1987,13 +1990,12 @@ static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int ki
                     c->alpha);
             break;
         case PC_HUD_CMD_SPRITE: {
-            u_long* color = sprite(ot, c->x, c->y, c->w, c->h, (u_long)c->a,
+            /* descriptor.set_page=false (align): the sprite inherits the page */
+            int item = sprite(ot, c->x, c->y, c->w, c->h, c->align ? 0 : (u_long)c->a,
                 (u_long)(c->c & 255) | ((u_long)(c->d & 255) << 8)
                 | ((u_long)(c->b & 0xFFFF) << 16), c->color, c->alpha);
-            if (c->align) /* descriptor.set_page=false: game's setSprite leaves a NOP, inheriting the page */
-                color[-1] = 0;
             if (c->font) /* descriptor.bgr: exact GPU modulation, not RGB UI colour */
-                *color = (*color & 0xFF000000) | c->color;
+                vs_battle_spriteColor(item, (int)((semi(c->alpha) ? 0x2000000 : 0) | (c->color & 0xFFFFFF)));
             break;
         }
         case PC_HUD_CMD_QUAD:
@@ -2062,7 +2064,8 @@ static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int ki
         case PC_HUD_CMD_CURSOR: {
             int step = c->a >= 0 ? c->a : pc_vsync_count ? (int)(pc_vsync_count() >> 1) & 15 : 0;
             u_long brightness = (u_char)vs_battle_cursorBrightnessAnimation[step];
-            *sprite(ot, c->x, c->y, 16, 16, 0x0C, 0x37F83020u, 0xFFFFFF, 1) = brightness * 0x010101u | 0x64000000u;
+            vs_battle_spriteColor(
+                sprite(ot, c->x, c->y, 16, 16, 0x0C, 0x37F83020u, 0xFFFFFF, 1), (int)(brightness * 0x010101u));
             break;
         }
         case PC_HUD_CMD_BAR: {

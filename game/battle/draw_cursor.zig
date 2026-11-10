@@ -4,6 +4,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 const SiteFn = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaque) callconv(.c) void;
 
@@ -29,15 +30,7 @@ pub fn drawCursor(animStep: c_int, position: c_int) callconv(.c) c_int {
     var record = MenuCursor{ .step = animStep, .xy = @bitCast(xy), .color = 0, .battle = 1 };
     const first = scratchPtr();
     // The scratchpad slot holds a guest primitive pointer, 4-aligned on every target.
-    const next: ?*align(4) anyopaque = @alignCast(psx.get(v.g.vs_scratch().unk8));
-    const prim = c.vs_battle_setSpriteDefaultTexPage(
-        brightness,
-        @bitCast(xy),
-        0x100010,
-        @ptrCast(next),
-    );
-    // Writes the terminator word at element 4 of the returned primitive pointer.
-    psx.at(prim, 4).* = 0x37F83020;
+    _ = sprite_item.sprite(null, brightness, @bitCast(xy), 0x100010, sprite_item.page, 0x37F83020);
     if (psx.weak(SiteFn, "pc_classic_site")) |site| site(site_menu_cursor, &record, 0, 0, first, scratchPtr());
     return (animStep +% 1) & 0xF;
 }

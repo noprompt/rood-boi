@@ -7,6 +7,8 @@
 #include "build/assets/MENU/MENU0.PRG/magic.h"
 #include "build/assets/MENU/MENU0.PRG/teleportation.h"
 #include "gpu.h"
+#include "pc/src/game/menuItem.h"
+#include "pc/src/game/spriteItem.h"
 #include <libetc.h>
 
 static signed char _MPCostTextBuffer[16];
@@ -409,19 +411,18 @@ int _warlockMagicMenu(u_int initShortcutInvoked)
         temp_s6 = psx_get(vs_scratch.unk4) - 4;
 
         for (level = 0; level < 4; ++level) {
-
-            var_s7_2 = 0;
+            int first = pc_frame_count();
+            int glyphs;
 
             if (i >= level) {
                 int v;
 
-                pc_text_raw_packets(
-                    spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), vs_getRGB888(128, 128, 128), NULL);
+                vs_battle_renderTextRaw(spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), NULL);
+                glyphs = pc_frame_count() - first;
 
-                prim = vs_battle_setSpriteDefaultTexPage(
-                    vs_battle_cursorBrightnessAnimation[D_8010694A],
-                    (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16), temp_s6);
-                prim[4] = vs_getUV0Clut(192, 112, 976, 223);
+                vs_battle_spriteItem(temp_s6, vs_battle_cursorBrightnessAnimation[D_8010694A],
+                    (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16), VS_SPRITE_PAGE,
+                    vs_getUV0Clut(192, 112, 976, 223));
 
                 v = D_8010694A;
 
@@ -434,62 +435,29 @@ int _warlockMagicMenu(u_int initShortcutInvoked)
 
             } else if (level < rowCount) {
 
-                pc_text_raw_packets(
-                    spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), vs_getRGB888(128, 128, 128), NULL);
+                vs_battle_renderTextRaw(spellLevels[level], (99 + level * 32) | vs_getXY(0, 103), NULL);
+                glyphs = pc_frame_count() - first;
 
-                prim = vs_battle_setSpriteDefaultTexPage(
-                    64, (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16), temp_s6);
-                prim[4] = vs_getUV0Clut(192, 112, 992, 223);
+                vs_battle_spriteItem(temp_s6, 64, (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16),
+                    VS_SPRITE_PAGE, vs_getUV0Clut(192, 112, 992, 223));
 
             } else {
-
-                var_s7_2 = 1;
-
-                pc_text_raw_packets(
-                    spellLevels[4], (102 + level * 32) | vs_getXY(0, 103), vs_getRGB888(128, 128, 128), NULL);
-
-                prim = vs_battle_setSpriteDefaultTexPage(
-                    0, (96 + level * 32) | vs_getXY(0, 100), vs_getWH(32, 16), temp_s6);
-                prim[1] = 0x64602000;
-                prim[4] = vs_getUV0Clut(192, 112, 992, 223);
+                /* (a level the spell lacks: its "--"; the sprite the picker once set up there drew off the screen) */
+                vs_battle_renderTextRaw(spellLevels[4], (102 + level * 32) | vs_getXY(0, 103), NULL);
+                glyphs = pc_frame_count() - first;
             }
 
-            prim[-3] = (u_short)prim[-3] | (getClut(848, 223) << 16);
-            prim[-5] = prim[-5] | 0x02000000;
-            prim[-8] = (u_short)prim[-8] | (getClut(848, 223) << 16);
-            prim[-10] |= 0x02000000;
-
-            if (var_s7_2 != 0) {
-                prim[-12] =
-                    vs_getTpage(768, 0, clut4Bit, semiTransparencyFull, ditheringOff);
-            } else {
-                prim[-17] =
-                    vs_getTpage(768, 0, clut4Bit, semiTransparencyFull, ditheringOff);
-                prim[-13] = (u_short)prim[-13] | (getClut(848, 223) << 16);
-                prim[-15] |= 0x02000000;
-            }
+            /* the text is drawn semi-transparent in the buttons' CLUT and page */
+            pc_frame_restyle(first, glyphs, vs_getTpage(768, 0, clut4Bit, semiTransparencyFull, ditheringOff),
+                getClut(848, 223), 1);
         }
 
-        prim = vs_battle_setSpriteDefaultTexPage(
-            128, vs_getXY(80, 100), vs_getWH(16, 16), temp_s6);
-        prim[4] = vs_getUV0Clut(80, 48, 976, 223);
+        vs_battle_spriteItem(temp_s6, 128, vs_getXY(80, 100), vs_getWH(16, 16), VS_SPRITE_PAGE,
+            vs_getUV0Clut(80, 48, 976, 223));
 
-        prim += 6;
-
-        prim[0] = vs_getTag(u_long[9], *temp_s6);
-        prim[1] = vs_getRGB0(primPolyFT4, 128, 128, 128);
-        prim[2] = vs_getXY(224, 100);
-        prim[3] = vs_getUV0Clut(95, 48, 976, 223);
-        prim[4] = vs_getXY(240, 100);
-        prim[5] =
-            vs_getUV1Tpage(79, 48, 768, clut4Bit, semiTransparencyHalf, ditheringOff);
-        prim[6] = vs_getXY(224, 116);
-        prim[7] = vs_getUV(95, 64);
-        prim[8] = vs_getXY(240, 116);
-        prim[9] = vs_getUV(79, 64);
-
-        *temp_s6 = (psx_to_int(u_int, prim) << 8) >> 8;
-        psx_set(vs_scratch.unk0, prim + 10);
+        vs_menu_ft4(vs_menu_depth(temp_s6), 0, getTPage(clut4Bit, semiTransparencyHalf, 768, 0), getClut(976, 223), 0, 0,
+            vs_getRGB888(128, 128, 128), vs_getXY(224, 100), vs_getXY(240, 100), vs_getXY(224, 116), vs_getXY(240, 116),
+            vs_getUV(95, 48), vs_getUV(79, 48), vs_getUV(95, 64), vs_getUV(79, 64));
 
         break;
     }

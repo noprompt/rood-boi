@@ -1,3 +1,5 @@
+#include "pc/src/game/menuItem.h"
+#include "pc/src/game/immediateItem.h"
 #include "260.h"
 #include "pc/src/game/SLUS_010.40/sfx.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
@@ -23,6 +25,7 @@
 /* Modern menus, the native Data screen (pc/src/ui/data_menu7.h,
  * data_bridge.c): framed, this screen runs unchanged with its drawing gated. */
 #include "pc/src/ui/data_menu7.h"
+#include "pc/src/game/spriteItem.h"
 static int _pcNoDraw;
 static int _pcFramed;
 static unsigned _pcGated;
@@ -151,22 +154,6 @@ typedef struct {
     short h;
     char text[32];
 } fileMenuElements_t;
-
-typedef struct {
-    u_long tag;
-    union {
-        VS_SPRT sprt;
-        VS_TILE_TPAGE tile_tpage;
-        VS_TILE tile;
-        VS_POLY_G4_TPAGE polyG4_tpage;
-        VS_POLY_G4 polyG4;
-        struct {
-            VS_TILE_TPAGE tile;
-            VS_POLY_G4 polyG4;
-        } tilePoly;
-        u_long raw[15];
-    } prim;
-} primBuf_t;
 
 typedef struct {
     u_short locationCluts[2][256];
@@ -1088,19 +1075,13 @@ static void _shutdownMemcard(void)
 
 static fileMenuElements_t _fileMenuElements[10];
 static char _2[8] __attribute__((unused));
-static primBuf_t _primBuf;
 
 static void _drawSprt(int xy, int uvClut, int wh, int tpage)
 {
+    int first = vs_now_begin();
     DrawSync(0);
-    _primBuf.tag = vs_getTag(_primBuf.prim.sprt, primAddrNull);
-    _primBuf.prim.sprt.tpage = vs_getTpageRaw(tpage & 0x9FF);
-    _primBuf.prim.sprt.r0g0b0code =
-        vs_getRGB0Raw(primSprt, ((0x80 - (tpage >> 16)) * 0x010101));
-    _primBuf.prim.sprt.x0y0 = xy;
-    _primBuf.prim.sprt.u0v0clut = uvClut;
-    _primBuf.prim.sprt.wh = wh;
-    DrawPrim(&_primBuf);
+    vs_now_sprite(tpage & 0x9FF, 0, (0x80 - (tpage >> 16)) * 0x010101, xy, uvClut, wh);
+    vs_now_end(first);
 }
 
 static char _menuElementStops[] = { 0, 1, 2, 4, 8, 16, 32, 56, 80, 104, 128, 152, 176,
@@ -1196,26 +1177,17 @@ void _drawHPMP(int xy, enum statType_e stat, u_int currentValue, u_int maxValue)
         | ((((2 * (currentValueDigits * 79)) + ((rgb0 >> 16) * currentValueFactor)) >> 6)
             << 16);
 
-    DrawSync(0);
-    _primBuf.tag = vs_getTag(_primBuf.prim.tilePoly, primAddrNull);
-    _primBuf.prim.tilePoly.tile.tpage =
-        vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn);
-    _primBuf.prim.tilePoly.tile.r0g0b0code = vs_getRGB0(primTile, 0, 40, 64);
-    wh = vs_getWH(66, 5);
-    x1y1 = (currentValueDigits + vs_getXY(0, 9));
-    _primBuf.prim.tilePoly.tile.x0y0 = xy++ + vs_getXY(0, 8);
-    _primBuf.prim.tilePoly.tile.wh = wh;
-    _primBuf.prim.tilePoly.polyG4.r0g0b0code = vs_getRGB0Raw(primPolyG4, rgb1);
-    _primBuf.prim.tilePoly.polyG4.x0y0 = xy + vs_getXY(0, 9);
-    _primBuf.prim.tilePoly.polyG4.r1g1b1 = rgb0;
-    _primBuf.prim.tilePoly.polyG4.x1y1 = xy + x1y1;
-    _primBuf.prim.tilePoly.polyG4.r2g2b2 = rgb1;
-    _primBuf.prim.tilePoly.polyG4.x2y2 = xy + vs_getXY(0, 12);
-    _primBuf.prim.tilePoly.polyG4.r3g3b3 = rgb0;
-    _primBuf.prim.tilePoly.polyG4.x3y3 = vs_getXY(0, 12);
-    _primBuf.prim.tilePoly.polyG4.x3y3 =
-        xy + (currentValueDigits + _primBuf.prim.tilePoly.polyG4.x3y3);
-    DrawPrim(&_primBuf);
+    {
+        int first = vs_now_begin();
+        DrawSync(0);
+        wh = vs_getWH(66, 5);
+        x1y1 = (currentValueDigits + vs_getXY(0, 9));
+        vs_now_tile(vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn), 0,
+            vs_getRGB0(primTile, 0, 40, 64), xy++ + vs_getXY(0, 8), wh);
+        vs_now_g4(PC_ITEM_INHERIT, 0, rgb1, xy + vs_getXY(0, 9), rgb0, xy + x1y1, rgb1,
+            xy + vs_getXY(0, 12), rgb0, xy + (currentValueDigits + vs_getXY(0, 12)));
+        vs_now_end(first);
+    }
 
     currentValueDigits = _countDigits(currentValue);
     maxValueDigits = _countDigits(maxValue);
@@ -1263,20 +1235,12 @@ static void _fileProcessingAnim(int x, int y)
     }
 
     for (i = 0; i < 2; ++i) {
+        int first = vs_now_begin();
         DrawSync(0);
-        _primBuf.tag = vs_getTag(_primBuf.prim.polyG4_tpage, primAddrNull);
-        _primBuf.prim.polyG4_tpage.r0g0b0code =
-            vs_getRGB0Raw(primPolyG4SemiTrans, gradientColor1);
-        _primBuf.prim.polyG4_tpage.x0y0 = leftEdge | y;
-        _primBuf.prim.polyG4_tpage.x1y1 = x | y;
-        _primBuf.prim.polyG4_tpage.x2y2 = leftEdge | (y + vs_getXY(0, 32));
-        _primBuf.prim.polyG4_tpage.tpage =
-            vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn);
-        _primBuf.prim.polyG4_tpage.r1g1b1 = gradientColor2;
-        _primBuf.prim.polyG4_tpage.r2g2b2 = gradientColor1;
-        _primBuf.prim.polyG4_tpage.r3g3b3 = gradientColor2;
-        _primBuf.prim.polyG4_tpage.x3y3 = x | (y + vs_getXY(0, 32));
-        DrawPrim(&_primBuf);
+        vs_now_g4(vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn), 1, gradientColor1,
+            leftEdge | y, gradientColor2, x | y, gradientColor1, leftEdge | (y + vs_getXY(0, 32)),
+            gradientColor2, x | (y + vs_getXY(0, 32)));
+        vs_now_end(first);
         leftEdge = x;
         x += 16;
         gradientColor1 = gradientColor2;
@@ -1297,28 +1261,34 @@ static void _fileProcessingCompleteAnim(int colour, int y)
         colour0 = (colour - (colour >> 3)) + (colour << 8);
     }
 
-    DrawSync(0);
-    _primBuf.tag = vs_getTag(_primBuf.prim.tile_tpage, primAddrNull);
-    _primBuf.prim.tile_tpage.tpage =
-        vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn);
-    _primBuf.prim.tile_tpage.r0g0b0code = vs_getRGB0Raw(primTileSemiTrans, colour0);
-    _primBuf.prim.tile_tpage.x0y0 = y | 64;
-    _primBuf.prim.tile_tpage.wh = vs_getWH(256, 32);
-    DrawPrim(&_primBuf);
+    {
+        int first = vs_now_begin();
+        DrawSync(0);
+        /* (a colour past 24 bits made the packet's code another one: those words stay as they were) */
+        if ((colour0 >> 24) == 0) {
+            vs_now_tile(vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn), 1, colour0,
+                y | 64, vs_getWH(256, 32));
+        } else {
+            unsigned words[4] = { vs_getTpage(0, 0, clut4Bit, semiTransparencyFull, ditheringOn),
+                vs_getRGB0Raw(primTileSemiTrans, colour0), y | 64, vs_getWH(256, 32) };
+            vs_now_words(words, 4);
+        }
+        vs_now_end(first);
+    }
 
     for (i = 0; i < 2; ++i) {
+        int first = vs_now_begin();
         DrawSync(0);
-        _primBuf.tag = vs_getTag(_primBuf.prim.polyG4, primAddrNull);
         yOfst = y + vs_getXY(0, -8);
-        _primBuf.prim.polyG4.r0g0b0code = vs_getRGB0Raw(primPolyG4SemiTrans, colour1);
-        _primBuf.prim.polyG4.x0y0 = yOfst | 64;
-        _primBuf.prim.polyG4.r1g1b1 = colour1;
-        _primBuf.prim.polyG4.x1y1 = yOfst | 320;
-        _primBuf.prim.polyG4.r2g2b2 = colour0;
-        _primBuf.prim.polyG4.x2y2 = y | 64;
-        _primBuf.prim.polyG4.r3g3b3 = colour0;
-        _primBuf.prim.polyG4.x3y3 = y | 320;
-        DrawPrim(&_primBuf);
+        if ((colour1 >> 24) == 0) {
+            vs_now_g4(PC_ITEM_INHERIT, 1, colour1, yOfst | 64, colour1, yOfst | 320, colour0, y | 64, colour0,
+                y | 320);
+        } else { /* (a colour past 24 bits made the packet's code another one: those words stay as they were) */
+            unsigned words[8] = { vs_getRGB0Raw(primPolyG4SemiTrans, colour1), yOfst | 64, colour1, yOfst | 320,
+                colour0, y | 64, colour0, y | 320 };
+            vs_now_words(words, 8);
+        }
+        vs_now_end(first);
         y += vs_getXY(0, 40);
         colour1 = colour0;
         colour0 = 0;
@@ -1436,20 +1406,15 @@ static int _printCharacter(u_int c, int x, int y, int clut)
         pc_text_char(NULL, 0, -1, x, y, glyphWidths[c]);
 #endif
     if (c != vs_char_space) {
+        int first = vs_now_begin();
         DrawSync(0);
-        _primBuf.tag = vs_getTag(_primBuf.prim.sprt, primAddrNull);
-        _primBuf.prim.sprt.tpage =
-            vs_getTpage(832, 0, clut4Bit, semiTransparencyFull, ditheringOff);
-        _primBuf.prim.sprt.r0g0b0code = vs_getRGB0(primSprtSemtTrans, 128, 128, 128);
-        _primBuf.prim.sprt.x0y0 = (u_short)x | y << 16;
-        _primBuf.prim.sprt.wh = vs_getWH(12, 12);
-        _primBuf.prim.sprt.u0v0clut =
-            vs_getUV0Clut((c % 21) * 12, (c / 21) * 12, clut * 16 + 896, 222);
+        vs_now_sprite(vs_getTpage(832, 0, clut4Bit, semiTransparencyFull, ditheringOff), 1,
+            vs_getRGB0(primSprtSemtTrans, 128, 128, 128), (u_short)x | y << 16,
+            vs_getUV0Clut((c % 21) * 12, (c / 21) * 12, clut * 16 + 896, 222), vs_getWH(12, 12));
 #ifdef ROOD_PC
-        pc_text_char((void* const[]) { &_primBuf.prim.sprt.r0g0b0code }, 1, c, x, y,
-            glyphWidths[c]);
+        pc_text_char((void* const[]) { vs_now_command(first) }, 1, c, x, y, glyphWidths[c]);
 #endif
-        DrawPrim(&_primBuf);
+        vs_now_end(first);
     }
     return x + glyphWidths[c];
 }
@@ -1677,25 +1642,18 @@ static void _drawFileMenuElement(fileMenuElements_t* element)
         }
         y = element->y << 16;
 
-        DrawSync(0);
-        _primBuf.tag = vs_getTag(_primBuf.prim.tilePoly, primAddrNull);
-        _primBuf.prim.tilePoly.tile.tpage =
-            vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn);
-        _primBuf.prim.tilePoly.tile.r0g0b0code = vs_getRGB0(primTile, 0, 0, 0);
-        _primBuf.prim.tilePoly.tile.x0y0 =
-            ((element->x + 2) & 0xFFFF) | (element->y + 2) << 16;
-        _primBuf.prim.tilePoly.tile.wh = element->w | (element->h << 0x10);
-        _primBuf.prim.tilePoly.polyG4.r0g0b0code = vs_getRGB0Raw(primPolyG4, var1);
-        _primBuf.prim.tilePoly.polyG4.x0y0 = (u_short)element->x | y;
-        _primBuf.prim.tilePoly.polyG4.r1g1b1 = var2;
-        _primBuf.prim.tilePoly.polyG4.x1y1 = ((element->x + element->w) & 0xFFFF) | y;
-        _primBuf.prim.tilePoly.polyG4.r2g2b2 = var1;
-        _primBuf.prim.tilePoly.polyG4.x2y2 =
-            (u_short)element->x | ((element->y + element->h) << 0x10);
-        _primBuf.prim.tilePoly.polyG4.r3g3b3 = var2;
-        _primBuf.prim.tilePoly.polyG4.x3y3 =
-            ((element->x + element->w) & 0xFFFF) | ((element->y + element->h) << 0x10);
-        DrawPrim(&_primBuf);
+        {
+            int first = vs_now_begin();
+            DrawSync(0);
+            vs_now_tile(vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn), 0,
+                vs_getRGB0(primTile, 0, 0, 0), ((element->x + 2) & 0xFFFF) | (element->y + 2) << 16,
+                element->w | (element->h << 0x10));
+            vs_now_g4(PC_ITEM_INHERIT, 0, var1, (u_short)element->x | y, var2,
+                ((element->x + element->w) & 0xFFFF) | y, var1,
+                (u_short)element->x | ((element->y + element->h) << 0x10), var2,
+                ((element->x + element->w) & 0xFFFF) | ((element->y + element->h) << 0x10));
+            vs_now_end(first);
+        }
 
         x = element->x + 6;
         for (var1 = 0; var1 < 32; ++var1) {
@@ -2043,12 +2001,12 @@ static void _drawFileMenu(int framebuf)
     }
     _drawSprt(vs_getXY(10, 181), vs_getUV0Clut(64, 145, 848, 223), vs_getWH(33, 7),
         getTPage(clut4Bit, semiTransparencyHalf, 768, 0)); // "Caution"
-    DrawSync(0);
-    _primBuf.tag = vs_getTag(_primBuf.prim.tile, primAddrNull);
-    _primBuf.prim.tile.r0g0b0code = vs_getRGB0(primTile, 0, 0, 0);
-    _primBuf.prim.tile.x0y0 = vs_getXY(0, 187);
-    _primBuf.prim.tile.wh = vs_getWH(320, 52);
-    DrawPrim(&_primBuf); // Message dialog background
+    {
+        int first = vs_now_begin();
+        DrawSync(0);
+        vs_now_tile(PC_ITEM_INHERIT, 0, vs_getRGB0(primTile, 0, 0, 0), vs_getXY(0, 187), vs_getWH(320, 52));
+        vs_now_end(first); // Message dialog background
+    }
     if (_selectCursorXy != 0) {
         _drawSprt(_selectCursorXy, vs_getUV0Clut(32, 48, 896, 223), vs_getWH(16, 16),
             (_cursorFileOpSaturation[_selectCursorColor] << 16)
@@ -2064,15 +2022,11 @@ static void _drawFileMenu(int framebuf)
         _printString(_memoryCardMessage, 16, 192, 0);
     }
     if (_fileMenuScreenFade != 0) {
+        int first = vs_now_begin();
         DrawSync(0);
-        _primBuf.tag = vs_getTag(_primBuf.prim.tile_tpage, primAddrNull);
-        _primBuf.prim.tile_tpage.tpage =
-            vs_getTpage(0, 0, direct16Bit, semiTransparencySubtract, ditheringOff);
-        _primBuf.prim.tile_tpage.x0y0 = vs_getXY(0, 0);
-        _primBuf.prim.tile_tpage.wh = vs_getWH(320, 224);
-        _primBuf.prim.tile_tpage.r0g0b0code =
-            vs_getRGB0Raw(primTileSemiTrans, _fileMenuScreenFade * vs_getRGB888(8, 8, 8));
-        DrawPrim(&_primBuf);
+        vs_now_tile(vs_getTpage(0, 0, direct16Bit, semiTransparencySubtract, ditheringOff), 1,
+            _fileMenuScreenFade * vs_getRGB888(8, 8, 8), vs_getXY(0, 0), vs_getWH(320, 224));
+        vs_now_end(first);
     }
 #ifdef ROOD_PC
     _pcFileMenuEnd(framebuf);
@@ -3419,7 +3373,6 @@ static int _displayGameOverScreen(int init)
     static int selectedOption;
     static char _[8];
 
-    u_long* prim;
     u_long* nextPrim = psx_get(vs_scratch.unk8);
 
     if (init != 0) {
@@ -3432,14 +3385,8 @@ static int _displayGameOverScreen(int init)
         return 0;
     }
     if (color1 < 0) {
-        prim = psx_get(vs_scratch.unk0);
-        prim[0] = (*nextPrim & 0xFFFFFF) | 0x04000000;
-        prim[1] = vs_getTpage(0, 0, direct16Bit, semiTransparencySubtract, ditheringOff);
-        prim[3] = vs_getXY(0, 0);
-        prim[4] = vs_getWH(320, 240);
-        prim[2] = vs_getRGB0Raw(primTileSemiTrans, (color1 + 128) * 0x020202);
-        *nextPrim = (psx_to_int(u_long, prim) << 8) >> 8;
-        psx_set(vs_scratch.unk0, prim + 5);
+        vs_menu_tile(vs_menu_depth(nextPrim), vs_getTpage(0, 0, direct16Bit, semiTransparencySubtract, ditheringOff), 1,
+            (color1 + 128) * 0x020202, vs_getXY(0, 0), vs_getWH(320, 240));
         color1 += 8;
         if (color1 == 0) {
             SetDispMask(0);
@@ -3511,23 +3458,17 @@ static int _displayGameOverScreen(int init)
     _setMenuItemClut(clut[1], blendFactor2, _menuItemTextClut[0], _menuItemTextClut[3]);
     vs_battle_renderImage(vs_getXY(832, 384), &clut, vs_getWH(32, 1));
 
-    prim = vs_battle_setSprite(color1, vs_getXY(112, 128), vs_getWH(96, 32), nextPrim);
-    prim[1] = vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff);
-    prim[4] = vs_getRGB0(primTile, 0, 0, 52);
+    vs_battle_spriteItem(nextPrim, color1, vs_getXY(112, 128), vs_getWH(96, 32),
+        vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff), vs_getRGB0(primTile, 0, 0, 52));
 
-    prim = vs_battle_setSprite(color1, vs_getXY(112, 160), vs_getWH(96, 32), nextPrim);
-    prim[1] = vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff);
-    prim[4] = vs_getRGB0(primTile, 0, 32, 53);
+    vs_battle_spriteItem(nextPrim, color1, vs_getXY(112, 160), vs_getWH(96, 32),
+        vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff), vs_getRGB0(primTile, 0, 32, 53));
 
-    prim =
-        vs_battle_setSprite(color2 | 256, vs_getXY(112, 128), vs_getWH(96, 32), nextPrim);
-    prim[1] = vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff);
-    prim[4] = vs_getRGB0(primTile, 0, 64, 54);
+    vs_battle_spriteItem(nextPrim, color2 | 256, vs_getXY(112, 128), vs_getWH(96, 32),
+        vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff), vs_getRGB0(primTile, 0, 64, 54));
 
-    prim =
-        vs_battle_setSprite(color3 | 256, vs_getXY(112, 160), vs_getWH(96, 32), nextPrim);
-    prim[1] = vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff);
-    prim[4] = vs_getRGB0(primTile, 0, 96, 54);
+    vs_battle_spriteItem(nextPrim, color3 | 256, vs_getXY(112, 160), vs_getWH(96, 32),
+        vs_getTpage(832, 256, clut4Bit, semiTransparencyHalf, ditheringOff), vs_getRGB0(primTile, 0, 96, 54));
 
     return 0;
 }

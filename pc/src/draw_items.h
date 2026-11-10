@@ -121,6 +121,12 @@ int pc_frame_lower(int index, unsigned words[3][16], int lengths[3]);
 void pc_frame_anchor(int first, int end, int anchor);
 /* Item `index`, to read or change before the frame is drawn; NULL out of range. */
 pc_item* pc_frame_item(int index);
+/* The items from `first` on drawn at once, as one packet through DrawPrim, then dropped (a screen that drew with DrawPrim). */
+void pc_frame_immediate(int first);
+/* Words the game wrote that are no item (a code the colour overflowed into): drawn as they are, as one packet. */
+void pc_frame_immediate_words(const unsigned* words, int n);
+/* The packet's last primitive's first word (the command word ui_text keys on), the packet built as pc_frame_immediate draws it. */
+const void* pc_frame_immediate_command(int first);
 /* The command word of item `index`'s lowered packet: ui_text keys its words on it, as it did on a packet's. The index
  * of the item a command word belongs to, -1 when it is none's. */
 const void* pc_frame_command(int index);
@@ -134,16 +140,31 @@ void* pc_lift_begin(void);
 int pc_lift_end(int depth, int placed, void* ot);
 /* Whether `packet` is a marker (pc_frame_place) and the run of items it places. */
 int pc_frame_marker(const unsigned* packet, int* first, int* count);
+int pc_frame_run_pages(int first, int count, unsigned current, int (*wanted)(unsigned page));
 /* A packet printer's last step: the packet's words (no tag) as items, placed at `ot_entry` by a marker taken from `cursor`.
  * Returns the cursor past the marker, or NULL when the words are not items (pc_frame_add_packets): the printer then
  * writes the packet as it always did. The printers (shared with battle) keep their signatures and slots. */
 unsigned* pc_frame_lift_words(const unsigned* words, int n, unsigned* ot_entry, unsigned* cursor);
+/* The item indices [*first, *end) of the markers that lie in [start, end) of packet memory (a site whose statement
+ * added items by printers that place them with markers: its item range, whoever called it); 0 when none. */
+int pc_frame_marker_range(const void* start, const void* end, int* first, int* last);
+/* The lowered packets (their arena addresses) of the items whose marker lies in [start, end) of packet memory: [*lo, *hi);
+ * both NULL when none does. For readers that know a range of packets by address (the vector bubbles). */
+int pc_frame_marker_span(const void* start, const void* end, const void** lo, const void** hi);
+/* The packets item `index` is, as the tagged words a packet list holds (a tag word with the length, then the words), appended
+ * to out (at most max words); returns how many words. */
+int pc_frame_packet_words(int index, unsigned* out, int max);
+/* The sprite items [first, first + count) drawn in the E1 word `mode`, with the CLUT word `clut`, semi-transparent when `semi`:
+ * a caller restyling the text it just printed (it used to patch the printer's packets by their words). */
+void pc_frame_restyle(int first, int count, int mode, int clut, int semi);
 /* A printer's call: its items [first, first + count) are one group (ui_text finds a word by it), and a draw mode alone is an
  * item too (a printer with nothing to print still set its draw mode). */
 void pc_frame_group(int first, int count);
 void pc_frame_mode_item(int depth, int mode);
 /* The runs a marker placed in [start, end) of packet memory are anchored as that range is (pc_hw_anchor_packets). */
 void pc_frame_anchor_markers(const void* start, const void* end, int anchor);
+/* Items [first, end) drawn at `opacity` (16.16, 0x10000 opaque): a faded text box's glyphs. */
+void pc_frame_opacity(int first, int end, int opacity);
 /* Draws the frame's items in order: what DrawOTag did for a table. */
 void pc_frame_draw(void);
 /* Links a marker for items [first, first + count) at the head of `*ot_entry`

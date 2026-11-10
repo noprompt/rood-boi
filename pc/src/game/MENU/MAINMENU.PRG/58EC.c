@@ -6,6 +6,7 @@
 #include "pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
 #include "gpu.h"
 #include "pc/src/game/menuItem.h"
+#include "pc/src/game/spriteItem.h"
 #include "vs_string.h"
 #include <libetc.h>
 #ifdef ROOD_PC
@@ -447,12 +448,11 @@ static void _renderMenuCommand(void)
         PC_CLASSIC(PC_CLASSIC_SITE_MENU_COMMAND, &pcCommand, 0, 0, {
 #endif
     if (action != 0) {
-        prim = vs_battle_setSprite((1 << 8) | 128,
-            (312 - (menuActionRenderPostitions[action] & 0xFF))
-                | ((actionYPos - 4) << 16),
-            menuActionRenderPostitions[action], psx_get(vs_scratch.unk8));
-        prim[1] = vs_getTpage(768, 0, clut4Bit, semiTransparencyFull, ditheringOff);
-        prim[4] = menuActionUvs[action] | vs_getUV0Clut(0, 0, 848, 223);
+        vs_battle_spriteItem(NULL, (1 << 8) | 128,
+            (312 - (menuActionRenderPostitions[action] & 0xFF)) | ((actionYPos - 4) << 16),
+            menuActionRenderPostitions[action],
+            vs_getTpage(768, 0, clut4Bit, semiTransparencyFull, ditheringOff),
+            menuActionUvs[action] | vs_getUV0Clut(0, 0, 848, 223));
     }
 #ifdef ROOD_PC
         });
@@ -506,9 +506,8 @@ void vs_mainmenu_renderButton(
         before = psx_get(vs_scratch.unk8);
     }
 
-    vs_battle_setSpriteDefaultTexPage(
-        128, vs_getXY_2(x, y), vs_getWH(16, 16), before)[4] =
-        vs_getUV0Clut((buttonId & 3) * 16, ((buttonId & 4) * 4) + 128, 944, 223);
+    vs_battle_spriteItem(before, 128, vs_getXY_2(x, y), vs_getWH(16, 16), VS_SPRITE_PAGE,
+        vs_getUV0Clut((buttonId & 3) * 16, ((buttonId & 4) * 4) + 128, 944, 223));
 }
 
 int vs_mainMenu_renderCursor(u_int animStep, int xy)
@@ -519,11 +518,8 @@ int vs_mainMenu_renderCursor(u_int animStep, int xy)
     /* PC_CLASSIC (classic_hook.h): the hand, from its step, place and colour. */
     pc_classic_menu_cursor pcCursor = { cursorAnimStep, xy, vs_mainMenu_cursorColor };
     void* pcCursorFirst = psx_load(void*, (u_int*)0x1F800000);
+    int pcCursorItems = pc_frame_count();
 #endif
-
-    u_long* prim = vs_battle_setSpriteDefaultTexPage(
-        vs_battle_cursorBrightnessAnimation[cursorAnimStep], xy, vs_getWH(16, 16),
-        psx_get(vs_scratch.unk8));
 
     if (vs_mainMenu_cursorColor == 0) {
         clut = vs_getUV0Clut(32, 48, 896, 223);
@@ -531,12 +527,15 @@ int vs_mainMenu_renderCursor(u_int animStep, int xy)
         clut = vs_getUV0Clut(32, 48, 928, 223);
     }
 
-    prim[4] = clut;
+    vs_battle_spriteItem(NULL, vs_battle_cursorBrightnessAnimation[cursorAnimStep], xy,
+        vs_getWH(16, 16), VS_SPRITE_PAGE, clut);
     vs_mainMenu_cursorColor = 0;
 #ifdef ROOD_PC
-    if (pc_classic_site)
+    if (pc_classic_site) {
+        pc_frame_site(pcCursorItems, pc_frame_count());
         pc_classic_site(PC_CLASSIC_SITE_MENU_CURSOR, &pcCursor, (short)xy, xy >> 16,
             pcCursorFirst, psx_load(void*, (u_int*)0x1F800000));
+    }
 #endif
 
     return (cursorAnimStep + 1) & 0xF;
@@ -605,8 +604,7 @@ static void _renderFeatheredIcon(int direction, int xy, int uvClut, u_long* befo
     do {
         ++i;
 
-        vs_battle_setSpriteDefaultTexPage(
-            (i * 8) | (1 << 8), xy, vs_getWH(16, 1), before)[4] = uvClut;
+        vs_battle_spriteItem(before, (i * 8) | (1 << 8), xy, vs_getWH(16, 1), VS_SPRITE_PAGE, uvClut);
 
         xy += vs_getXY(0, direction);
         uvClut += vs_getUV0Clut(0, direction, 0, 0);
@@ -618,14 +616,10 @@ static void _renderFeatheredIcon(int direction, int xy, int uvClut, u_long* befo
  */
 static void _renderItemMaterial(int materialId, int xy)
 {
-    u_long* prim = vs_battle_setSpriteDefault(vs_getWH(7, 7), xy);
     int uv = (((materialId / 3) * 8) + 216) | ((((materialId % 3) * 8) + 200) << 8);
 
-    if (materialId == 2) {
-        prim[4] = uv | (getClut(928, 223) << 16);
-    } else {
-        prim[4] = uv | (getClut(912, 223) << 16);
-    }
+    vs_battle_spriteItem(NULL, 128, xy, vs_getWH(7, 7), VS_SPRITE_PAGE,
+        uv | (getClut(materialId == 2 ? 928 : 912, 223) << 16));
 }
 
 /**
@@ -633,8 +627,8 @@ static void _renderItemMaterial(int materialId, int xy)
  */
 static void _renderOutsetIcon(int icon, int xy)
 {
-    vs_battle_setSpriteDefault(vs_getWH(16, 16), xy)[4] =
-        vs_getUV0Clut(96 - (icon * 16), 128, 976, 223);
+    vs_battle_spriteItem(NULL, 128, xy, vs_getWH(16, 16), VS_SPRITE_PAGE,
+        vs_getUV0Clut(96 - (icon * 16), 128, 976, 223));
 }
 
 void vs_mainMenu_renderMenuRowIcon(int icon, int x, int y)
@@ -654,14 +648,12 @@ void vs_mainMenu_renderMenuRowIcon(int icon, int x, int y)
     icon = (icon - 1) & 0xFF;
 
     if (fade == 0) {
-        u_long* prim = vs_battle_setSpriteDefaultTexPage(64 << brightness,
-            vs_getXY_2(x, y), vs_getWH(16, 16), psx_get(vs_scratch.unk8) + 4);
-
-        prim[4] = vs_getUV0Clut(iconUvs[icon], 0, 992, 223);
-
         if (icon >= 23) {
-            prim[3] -= 12;
-            prim[4] = vs_getUV0Clut(iconUvs[icon], 0, 976, 223);
+            vs_battle_spriteItem(psx_get(vs_scratch.unk8) + 4, 64 << brightness, vs_getXY_2(x, y) - 12,
+                vs_getWH(16, 16), VS_SPRITE_PAGE, vs_getUV0Clut(iconUvs[icon], 0, 976, 223));
+        } else {
+            vs_battle_spriteItem(psx_get(vs_scratch.unk8) + 4, 64 << brightness, vs_getXY_2(x, y),
+                vs_getWH(16, 16), VS_SPRITE_PAGE, vs_getUV0Clut(iconUvs[icon], 0, 992, 223));
         }
 
     } else {
@@ -1208,24 +1200,23 @@ static void _renderBackground(int brightness)
         brightness |= 256;
     }
 
-    prim = vs_battle_setSprite(brightness, 256, vs_getWH(64, 240), before);
-    prim[1] = vs_getTpage(768, 256, clut8Bit, semiTransparencyFull, ditheringOff);
-    prim[4] = vs_getUV0Clut(0, 0, 768, 227);
+    vs_battle_spriteItem(before, brightness, 256, vs_getWH(64, 240),
+        vs_getTpage(768, 256, clut8Bit, semiTransparencyFull, ditheringOff), vs_getUV0Clut(0, 0, 768, 227));
 
-    prim = vs_battle_setSprite(brightness, 0, vs_getWH(256, 240), before);
-    prim[1] = vs_getTpage(640, 256, clut8Bit, semiTransparencyFull, ditheringOff);
-    prim[4] = vs_getUV0Clut(0, 0, 768, 227);
+    vs_battle_spriteItem(before, brightness, 0, vs_getWH(256, 240),
+        vs_getTpage(640, 256, clut8Bit, semiTransparencyFull, ditheringOff), vs_getUV0Clut(0, 0, 768, 227));
 
     if (!opaque) {
         int new_var = 288;
         brightness = (256 | 128) - brightness;
 
-        vs_battle_setSprite(brightness, 0, vs_getWH(256, 240), before)[1] =
+        /* (no texel word: the packet's was whatever the buffer held; these sprites copy the frame buffer, whose CLUT is unused) */
+        vs_battle_spriteItem(before, brightness, 0, vs_getWH(256, 240),
             (((u_int)uCoord >> 6) | new_var
-                | vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff));
-        vs_battle_setSprite(brightness, 256, vs_getWH(64, 240), before)[1] =
+                | vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff)), 0);
+        vs_battle_spriteItem(before, brightness, 256, vs_getWH(64, 240),
             (((uCoord + 256) >> 6) | new_var
-                | vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff));
+                | vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff)), 0);
     }
 }
 
@@ -1280,14 +1271,10 @@ int vs_mainMenu_renderRowLabel(
 
     for (i = 0; i < 12; ++i) {
 
-        prim = vs_battle_setSprite(s7 == 0 ? (i * 8) + 264 : 352 - (i * 8),
-            vs_getXY_2(x, menuItem->y + i), vs_getWH(12, 1), before);
-        prim[4] = uvClut;
-        prim[1] = vs_getTpage(832, 0, clut4Bit, semiTransparencyFull, 0);
+        strips[i] = (void*)vs_battle_spriteCommand(vs_battle_spriteItem(before,
+            s7 == 0 ? (i * 8) + 264 : 352 - (i * 8), vs_getXY_2(x, menuItem->y + i), vs_getWH(12, 1),
+            vs_getTpage(832, 0, clut4Bit, semiTransparencyFull, 0), uvClut));
         uvClut += 256;
-#ifdef ROOD_PC
-        strips[i] = prim + 2;
-#endif
     }
 
 #ifdef ROOD_PC
@@ -1344,7 +1331,7 @@ void vs_mainMenu_renderTabNavigation(int mode)
         i = vs_getXY(16, 16);
     }
 
-    vs_battle_setSpriteDefault(vs_getWH(16, 16), i - xy)[4] = clut | vs_getUV(0, 48);
+    vs_battle_spriteItem(NULL, 128, i - xy, vs_getWH(16, 16), VS_SPRITE_PAGE, clut | vs_getUV(0, 48));
 
     i = vs_getXY(162, 17);
 
@@ -1352,7 +1339,7 @@ void vs_mainMenu_renderTabNavigation(int mode)
         i = vs_getXY(292, 6);
     }
 
-    vs_battle_setSpriteDefault(vs_getWH(16, 16), i + xy)[4] = clut | vs_getUV(16, 48);
+    vs_battle_spriteItem(NULL, 128, i + xy, vs_getWH(16, 16), VS_SPRITE_PAGE, clut | vs_getUV(16, 48));
 #ifdef ROOD_PC
         });
     }
@@ -1417,8 +1404,8 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
 
         if (i == 40) {
             prim = before - 2;
-            vs_battle_setSpriteDefaultTexPage(128, vs_getXY_2(126, menuItem->y + var_s3),
-                vs_getWH(16, 16), prim)[4] = vs_getUV0Clut(scroll * 16, 48, 912, 223);
+            vs_battle_spriteItem(prim, 128, vs_getXY_2(126, menuItem->y + var_s3), vs_getWH(16, 16), VS_SPRITE_PAGE,
+                vs_getUV0Clut(scroll * 16, 48, 912, 223));
         }
 
     } else {
@@ -1430,9 +1417,8 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
         }
 
         if (i == 32) {
-            vs_battle_setSpriteDefaultTexPage(128,
-                vs_getXY_2(menuItem->x - 14, menuItem->y + var_s3), vs_getWH(16, 16),
-                before - 2)[4] = vs_getUV0Clut(scroll * 16, 48, 912, 223);
+            vs_battle_spriteItem(before - 2, 128, vs_getXY_2(menuItem->x - 14, menuItem->y + var_s3),
+                vs_getWH(16, 16), VS_SPRITE_PAGE, vs_getUV0Clut(scroll * 16, 48, 912, 223));
         }
     }
 
@@ -1483,16 +1469,13 @@ static void _renderScrollableRow(vs_battle_menuItem_t* menuItem)
         var_s3 = ((menuItem->x < 0x80) ^ 1) << 7;
 
         for (i = 0; i < 12; ++i) {
-            prim = vs_battle_setSprite(
-                scroll == 0 ? 120 - i * 8 : i * 8 + 32, xy, wh, before);
             temp_v1_2 = (xy - var_s3);
             temp_a0 = xy >> 0x10;
+            vs_battle_spriteItem(before, scroll == 0 ? 120 - i * 8 : i * 8 + 32, xy, wh,
+                ((sp14 + var_s3) >> 6)
+                    | vs_getTpage(0, 0, semiTransparencySubtract, semiTransparencyFull, ditheringOff),
+                (temp_v1_2 & 0xFF) | (temp_a0 << 8));
             xy += vs_getXY(0, 1);
-            prim[1] = ((sp14 + var_s3) >> 6)
-                    | vs_getTpage(0, 0, semiTransparencySubtract, semiTransparencyFull,
-                        ditheringOff);
-            prim[4] = temp_v1_2 & 0xFF;
-            prim[4] = prim[4] | (temp_a0 << 8);
         }
     }
 }

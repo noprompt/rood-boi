@@ -1544,7 +1544,6 @@ functions = [
     { addr = 0x800C58F8, name = "func_800C58F8", zig = "func_800C58F8.func_800C58F8" },
     { addr = 0x800C64D0, name = "func_800C64D0", zig = "func_800C64D0.func_800C64D0" },
     { addr = 0x800C6540, name = "vs_battle_renderTextRawColor", zig = "render_text_raw_color.renderTextRawColor" },
-    { name = "pc_text_raw_packets", host = true, zig = "render_text_raw_color.renderTextRawPackets" },
     { addr = 0x800C6828, name = "vs_battle_renderTextRaw", zig = "render_text_raw.renderTextRaw" },
     { addr = 0x800C6850, name = "_writeStringTerminator", zig = "write_string_terminator.writeStringTerminator" },
     { addr = 0x800C685C, name = "vs_battle_printf", zig = "printf.printf" },
@@ -2186,8 +2185,6 @@ overlay = "battle"
 unit = "pc/src/battle_helpers.c"
 functions = [
     { addr = 0x80099514, name = "func_80099514", zig = "pc.room_height_tile.heightTileValue" },
-    { addr = 0x800C0214, name = "vs_battle_setSpriteDefault", zig = "pc.sprite_packet.setSpriteDefault" },
-    { addr = 0x800C0230, name = "vs_battle_setSprite", zig = "pc.sprite_packet.setSprite" },
     { addr = 0x800D820C, name = "func_800D820C", zig = "pc.send_actor_value.sendActorValue" },
     { addr = 0x800D826C, name = "func_800D826C", zig = "pc.unk8e_at_least_20.unk8eAtLeast20" },
     { addr = 0x800D8280, name = "func_800D8280", zig = "pc.tick_action_timer.tickActionTimer" },

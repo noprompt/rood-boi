@@ -10,7 +10,7 @@
 #include <string.h>
 
 /* Items one frame can hold. The credits' busiest frame has about 600; a battle frame's effects have more. */
-#define ITEMS 2048
+#define ITEMS 8192
 #define MARKER 0x00495449u /* "ITI": a GP0 no-op word, as render.c's markers are */
 
 static struct {
@@ -303,10 +303,69 @@ void pc_frame_anchor_markers(const void* start, const void* end, int anchor)
         pc_frame_anchor(lo, hi, anchor);
 }
 
+int pc_frame_marker_range(const void* start, const void* end, int* first, int* last)
+{
+    int lo = -1, hi = -1;
+    for (int i = 0; i < marker_count; i++)
+        if (markers[i].packet >= start && markers[i].packet < end && markers[i].count > 0) {
+            if (lo < 0 || markers[i].first < lo)
+                lo = markers[i].first;
+            if (markers[i].first + markers[i].count > hi)
+                hi = markers[i].first + markers[i].count;
+        }
+    if (lo < 0)
+        return 0;
+    *first = lo, *last = hi;
+    return 1;
+}
+
+int pc_frame_marker_span(const void* start, const void* end, const void** lo, const void** hi)
+{
+    int first = -1, last = -1;
+    for (int i = 0; i < marker_count; i++)
+        if (markers[i].packet >= start && markers[i].packet < end && markers[i].count > 0) {
+            if (first < 0 || markers[i].first < first)
+                first = markers[i].first;
+            if (markers[i].first + markers[i].count > last)
+                last = markers[i].first + markers[i].count;
+        }
+    *lo = *hi = NULL;
+    if (first < 0 || !pc_frame_packet(first))
+        return 0;
+    *lo = pc_frame_packet(first);
+    *hi = (const char*)pc_frame_packet(last - 1) + STRIDE * sizeof *arena;
+    return 1;
+}
+
+int pc_frame_packet_words(int index, unsigned* out, int max)
+{
+    unsigned words[3][16];
+    int lengths[3], n = 0, packets = pc_frame_lower(index, words, lengths);
+    for (int k = 0; k < packets; k++) {
+        if (n + 1 + lengths[k] > max)
+            break;
+        out[n++] = (unsigned)lengths[k] << 24;
+        memcpy(out + n, words[k], (size_t)lengths[k] * sizeof words[k][0]);
+        n += lengths[k];
+    }
+    return n;
+}
+
 unsigned* pc_frame_lift_words(const unsigned* words, int n, unsigned* ot_entry, unsigned* cursor)
 {
     int first, count = pc_frame_add_packets(0, words, n, &first);
     return count > 0 ? pc_frame_place(first, count, ot_entry, cursor) : NULL;
+}
+
+void pc_frame_restyle(int first, int count, int mode, int clut, int semi)
+{
+    for (int i = first; i < first + count && i < pc_item_frame.count; i++) {
+        pc_item* it = &pc_item_frame.item[i];
+        if (it->kind != PC_ITEM_SPRITE)
+            continue;
+        it->mode = (uint16_t)(mode & 0x3fff), it->clut = (uint16_t)clut;
+        it->flags = (uint16_t)(semi ? it->flags | PC_ITEM_SEMI : it->flags & ~PC_ITEM_SEMI);
+    }
 }
 
 pc_item* pc_frame_item(int index)
@@ -331,6 +390,14 @@ void pc_frame_anchor(int first, int end, int anchor)
 {
     if (pc_hw_anchor_packets && end > first && pc_frame_packet(first))
         pc_hw_anchor_packets(pc_frame_packet(first), (const char*)pc_frame_packet(end - 1) + STRIDE * sizeof *arena, anchor);
+}
+
+/* Items [first, end) drawn at `opacity` (16.16: 0x10000 opaque), as the packets of a range were (gpu_hw.c pc_hw_opacity_packets). */
+extern void pc_hw_opacity_packets(const void* start, const void* end, int opacity) __attribute__((weak));
+void pc_frame_opacity(int first, int end, int opacity)
+{
+    if (pc_hw_opacity_packets && end > first && pc_frame_packet(first))
+        pc_hw_opacity_packets(pc_frame_packet(first), (const char*)pc_frame_packet(end - 1) + STRIDE * sizeof *arena, opacity);
 }
 
 static uint32_t rgb_word(const pc_item* it, int i)
@@ -450,14 +517,50 @@ int pc_frame_lower(int index, unsigned words[3][16], int lengths[3])
     if (it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED) && (it->flags & PC_ITEM_BEFORE)) {
         words[packets][0] = 0xe1000000u | it->before;
         lengths[packets++] = 1;
-    } else if (it->kind != PC_ITEM_AREA && it->mode != PC_ITEM_INHERIT && !(it->flags & PC_ITEM_BRACKET)
+    } else if (it->kind != PC_ITEM_AREA && it->kind != PC_ITEM_MODE_SET && it->kind != PC_ITEM_MASK && it->mode != PC_ITEM_INHERIT && !(it->flags & PC_ITEM_BRACKET)
         && !(it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED))) {
-        words[0][0] = 0xe1000000u | it->mode;
+        words[packets][0] = 0xe1000000u | it->mode;
         lengths[packets++] = 1;
     }
     memcpy(words[packets], tmp, n * sizeof tmp[0]);
     lengths[packets++] = (int)n;
     return (int)packets;
+}
+
+/* The items from `first` drawn at once, as one packet, by DrawPrim (the classic layer's recorder sees it, as it did
+ * the packet a screen built by hand), then given back. */
+extern void DrawPrim(void* packet);
+static unsigned immediate_packet[1 + 8 * 48];
+static const unsigned* immediate_build(int first)
+{
+    unsigned words[3][16];
+    int lengths[3], n = 0, last = 0;
+    for (int i = first; i < pc_item_frame.count; i++) {
+        int packets = pc_frame_lower(i, words, lengths);
+        for (int k = 0; k < packets && n + lengths[k] <= 8 * 48; k++) {
+            memcpy(immediate_packet + 1 + n, words[k], (size_t)lengths[k] * sizeof words[k][0]);
+            last = n;
+            n += lengths[k];
+        }
+    }
+    immediate_packet[0] = (unsigned)n << 24 | 0x00ffffffu;
+    return n ? immediate_packet + 1 + last : NULL;
+}
+const void* pc_frame_immediate_command(int first) { return immediate_build(first); }
+void pc_frame_immediate_words(const unsigned* words, int n)
+{
+    static unsigned packet[1 + 16];
+    if (n > 16)
+        n = 16;
+    memcpy(packet + 1, words, (size_t)n * sizeof *words);
+    packet[0] = (unsigned)n << 24 | 0x00ffffffu;
+    DrawPrim(packet);
+}
+void pc_frame_immediate(int first)
+{
+    if (immediate_build(first))
+        DrawPrim(immediate_packet);
+    pc_frame_rewind(first);
 }
 
 /* Draws a run. `mode` is the draw mode the GPU is in; a packet sets it only when an item needs another
@@ -545,3 +648,14 @@ int pc_frame_marker(const uint32_t* packet, int* first, int* count)
     return 1;
 }
 void pc_frame_draw_run(int first, int count) { draw_run(first, count); }
+/* Whether a run has a textured item drawn from a page `wanted` takes (an item that inherits the mode: `current`). */
+int pc_frame_run_pages(int first, int count, unsigned current, int (*wanted)(unsigned page))
+{
+    for (int i = first; i < first + count && i < pc_item_frame.count; i++) {
+        const pc_item* it = &pc_item_frame.item[i];
+        int textured = it->kind == PC_ITEM_SPRITE || (it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED));
+        if (textured && it->kind != PC_ITEM_NONE && wanted(it->mode == PC_ITEM_INHERIT ? current : it->mode & 0x7ff))
+            return 1;
+    }
+    return 0;
+}
