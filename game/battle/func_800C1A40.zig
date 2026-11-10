@@ -49,25 +49,27 @@ pub fn func_800C1A40(x0_arg: c_int, x1_arg: c_int, count: c_int) callconv(.c) vo
         if (start < dx) {
             const end: c_int = segmentEnd >> 4;
             if (end < dx) {
-                sprite_item.tile(
+                sprite_item.lineFlat(
                     @ptrFromInt(@as(usize, psx.rawOf(v.g.vs_scratch().unk8))),
-                    color | 0x42000000,
+                    true,
+                    color,
                     ((x1 +% start *% signX) & 0xFFFF) | y1Bits,
                     ((x1 +% (end -% 1) *% signX) & 0xFFFF) | y1Bits,
                 );
             } else {
-                const lineColor: c_int = color | 0x42000000;
-                sprite_item.tile(
+                sprite_item.lineFlat(
                     @ptrFromInt(@as(usize, psx.rawOf(v.g.vs_scratch().unk8))),
-                    lineColor,
+                    true,
+                    color,
                     ((x1 +% start *% signX) & 0xFFFF) | y1Bits,
                     ((midX -% signX) & 0xFFFF) | y1Bits,
                 );
                 const tail: c_int = length *% (15 -% i);
                 if (y1 != y0 -% ((tail >> 4) *% signY)) {
-                    sprite_item.tile(
+                    sprite_item.lineFlat(
                         @ptrFromInt(@as(usize, psx.rawOf(v.g.vs_scratch().unk8))),
-                        lineColor,
+                        true,
+                        color,
                         (midX & 0xFFFF) | y1Bits,
                         ((x0 -% (tail >> 5)) & 0xFFFF) | ((y0 -% (((tail +% 16) >> 4) *% signY)) << 16),
                     );
@@ -76,9 +78,10 @@ pub fn func_800C1A40(x0_arg: c_int, x1_arg: c_int, count: c_int) callconv(.c) vo
         } else {
             const far2: c_int = length *% (16 -% i);
             const near2: c_int = length *% (15 -% i);
-            sprite_item.tile(
+            sprite_item.lineFlat(
                 @ptrFromInt(@as(usize, psx.rawOf(v.g.vs_scratch().unk8))),
-                color | 0x42000000,
+                true,
+                color,
                 ((x0 -% (far2 >> 5)) & 0xFFFF) | ((y0 -% ((far2 >> 4) *% signY)) << 16),
                 ((x0 -% (near2 >> 5)) & 0xFFFF) | ((y0 -% (((near2 +% 16) >> 4) *% signY)) << 16),
             );

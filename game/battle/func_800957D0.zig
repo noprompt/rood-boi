@@ -22,7 +22,7 @@ pub fn func_800957D0(arg0: c_int, arg1: c_int, arg2: c_int) callconv(.c) void {
     const ot: ?*anyopaque = @ptrFromInt(@as(usize, @as(*const u32, @ptrFromInt(0x1F800004)).*) -% 20);
 
     // A raw-textured quad (the shade bit set on it: setShadeTex(prim, 1)).
-    sprite_item.ft4(ot, true, false, 0x17, 0x373E, 0,
+    _ = sprite_item.ft4(ot, true, false, 0x17, 0x373E, 0,
         &[4]c_int{ xy(x, arg1 -% 5), xy(x +% 16, arg1 -% 5), xy(x, arg1 +% 5), xy(x +% 16, arg1 +% 5) },
         &[4]c_int{ uv(tex +% 0x40, 0x30), uv(tex +% 0x50, 0x30), uv(tex +% 0x40, 0x3A), uv(tex +% 0x50, 0x3A) });
 }

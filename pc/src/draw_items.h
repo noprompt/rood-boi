@@ -46,6 +46,7 @@ enum {
     PC_ITEM_PLACED = 32,  /* a marker in an ordering table draws it (set by pc_frame_place) */
     PC_ITEM_WINDOW = 64,  /* `tw` is the texture window it draws with (GP0 E2); without the flag the window is left as it is */
     PC_ITEM_AFTER = 128,  /* `after` is the draw mode (GP0 E1) left set after it; without the flag the mode it drew with stays */
+    PC_ITEM_HW_HIDDEN = 1024, /* drawn into the game's own picture (VRAM) but left out of the hardware one (a rain drop solid room geometry hides) */
     PC_ITEM_OFFSET = 512, /* drawing area: x[1], y[1] is also the draw offset (GP0 E5) it sets */
     PC_ITEM_BEFORE = 256  /* textured polygon: `before` is the draw mode (GP0 E1) set before it, whose dither and display bits it
                            * draws with (its own page word sets the rest) */
@@ -105,6 +106,9 @@ int pc_frame_suppress(int first, int end);
 void pc_frame_rewind(int count);
 /* Whether item `index` is placed in an ordering table, and its kind. */
 int pc_frame_is_placed(int index);
+/* Reads (pc_frame_order, pc_frame_lower) see the last finished frame's items while on, not the frame being built: the
+ * guest's packets at a vsync are the last frame's (the dev RPC's scan). */
+void pc_frame_view_last(int on);
 /* Raw GP0 words in draw order (one packet's payload, or several joined) as items at `depth`: polygons, tiles, sprites,
  * flat lines and drawing areas, each with the draw mode (E1) and texture window (E2) the words had set before it.
  * The items are added so that they draw in the order of the words. Returns how many items were added (from index *first); 0 when the words are anything else (a primitive with no

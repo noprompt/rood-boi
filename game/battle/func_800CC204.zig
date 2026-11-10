@@ -104,7 +104,7 @@ pub fn func_800CC204(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                     break;
                 }
             } else if (color != 0) {
-                sprite_item.tile(ot, ((color & 0x1F) << 3) | ((color & 0x3E0) << 6) | ((color & 0x7C00) << 9) | 0x40000000, (x & 0xFFFF) | (y << 16), (end - 1) | (y << 16));
+                sprite_item.lineFlat(ot, false, ((color & 0x1F) << 3) | ((color & 0x3E0) << 6) | ((color & 0x7C00) << 9), (x & 0xFFFF) | (y << 16), (end - 1) | (y << 16));
             }
         }
         column = 0;
@@ -114,7 +114,7 @@ pub fn func_800CC204(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
             x = if (left[@intCast(y)] > x) left[@intCast(y)] else x;
             end = if (right[@intCast(y)] < end) right[@intCast(y)] else end;
             if (end > x) {
-                sprite_item.tile(ot, ((color & 0x1F) << 3) | ((color & 0x3E0) << 6) | ((color & 0x7C00) << 9) | 0x40000000, (x & 0xFFFF) | (y << 16), ((end - 1) & 0xFFFF) | (y << 16));
+                sprite_item.lineFlat(ot, false, ((color & 0x1F) << 3) | ((color & 0x3E0) << 6) | ((color & 0x7C00) << 9), (x & 0xFFFF) | (y << 16), ((end - 1) & 0xFFFF) | (y << 16));
             }
         }
     }

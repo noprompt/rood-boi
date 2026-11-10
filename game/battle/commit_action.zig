@@ -15,6 +15,8 @@ fn state() *v.D_800F19CC_t {
 /// setup, the hits (func_80085B10), the weapon's attack count and the heal count scored, the zoom kind from the
 /// action, phase 4, every other actor told, and the screen and sound state for the action.
 pub fn commitAction(kind: c_int) callconv(.c) void {
+    // ROOD_PC: the dev RPC action captures the state the menus leave here (pc/src/action_driver.c).
+    c.pc_action_capture(@ptrCast(state()), kind, @bitCast(v.g.D_800F196C().*), @as(c_int, @as(*const u8, @ptrCast(v.g.vs_battle_menuState())).*));
     c.func_8006EF10();
     const pending = state().unk298C;
     c.func_800C16DC();

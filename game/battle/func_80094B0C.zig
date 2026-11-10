@@ -72,7 +72,7 @@ pub fn func_80094B0C(x_in: c_int, y_in: c_int, p: ?*v.D_800F1BAC_t) callconv(.c)
             const glyph: c_int = @as(c_int, psx.byteAt(i8, q, @as(isize, i) + 20).*) -% '0';
             const base: c_int = glyph *% 8;
             const rgb: c_int = @as(c_int, colors[ci].r) | (@as(c_int, colors[ci].@"g") << 8) | (@as(c_int, colors[ci].b) << 16);
-            sprite_item.ft4(ot, false, false, (768 & 0x3ff) >> 6, (223 << 6) | ((832 >> 4) & 0x3f), rgb,
+            _ = sprite_item.ft4(ot, false, false, (768 & 0x3ff) >> 6, (223 << 6) | ((832 >> 4) & 0x3f), rgb,
                 &[4]c_int{ xy(x, digitY -% 6), xy(x +% 8, digitY -% 6), xy(x, digitY +% 6), xy(x +% 8, digitY +% 6) },
                 &[4]c_int{ uv(base +% 64, 0), uv(base +% 72, 0), uv(base +% 64, 12), uv(base +% 72, 12) });
         }

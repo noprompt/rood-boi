@@ -28,13 +28,13 @@ pub fn func_80094E18(x0: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) c_in
     const rx: c_int = rect.x;
     const ry: c_int = rect.y;
     const rw: c_int = rect.w;
-    sprite_item.ft4(ot, true, false, ((256 & 0x100) >> 4) | ((448 & 0x3ff) >> 6), (220 << 6) | ((976 >> 4) & 0x3f), 0,
+    _ = sprite_item.ft4(ot, true, false, ((256 & 0x100) >> 4) | ((448 & 0x3ff) >> 6), (220 << 6) | ((976 >> 4) & 0x3f), 0,
         &[4]c_int{ xy(x, y -% 6), xy(x +% rw, y -% 6), xy(x, y +% 6), xy(x +% rw, y +% 6) },
         &[4]c_int{ uv(rx, ry), uv(rx +% rw, ry), uv(rx, ry +% 12), uv(rx +% rw, ry +% 12) });
     sign = if ((sign & 0x8000) != 0) 0 else 8;
 
     x = x +% (rw +% 4);
-    sprite_item.ft4(ot, true, false, (768 & 0x3ff) >> 6, (223 << 6) | ((864 >> 4) & 0x3f), 0,
+    _ = sprite_item.ft4(ot, true, false, (768 & 0x3ff) >> 6, (223 << 6) | ((864 >> 4) & 0x3f), 0,
         &[4]c_int{ xy(x, y -% 5), xy(x +% 8, y -% 5), xy(x, y +% 5), xy(x +% 8, y +% 5) },
         &[4]c_int{ uv(sign +% 154, 76), uv(sign +% 162, 76), uv(sign +% 154, 86), uv(sign +% 162, 86) });
 

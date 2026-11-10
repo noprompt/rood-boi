@@ -4,6 +4,7 @@
 #include "pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
+#include "draw_items.h"
 #include <sys/types.h>
 #include <libgte.h>
 #include <inline_c.h>
@@ -139,7 +140,7 @@ transform:;
         light >>= 1;
     if (mode == 3)
         return; /* off: the anchor above is still recorded, as the game uses it */
-    unsigned center = 0x32000000 | (unsigned)light * 0x010101;
+    unsigned center = (unsigned)light * 0x010101;
     unsigned edge = (unsigned)(light >> 1) * 0x010101;
     unsigned* packet = psx_load(unsigned*, scratch);
     unsigned* ot = psx_load(unsigned*, scratch + 4);
@@ -150,12 +151,12 @@ transform:;
     int base_light = light;
     for (unsigned i = 0; i < 24; ++i) {
         if (i == 8) {
-            center = 0x32000000 | edge;
+            center = edge;
             edge = 0;
         }
         if (i == 16) {
             edge = center;
-            center = 0x32000000;
+            center = 0;
         }
         unsigned face = D_800E9AD4[i], indices[3];
         unsigned nearest = 65535;
@@ -172,16 +173,19 @@ transform:;
         unsigned bucket = (nearest >> 2) - 2;
         if ((int)MFC2(24) > 0 || bucket >= 0x7c0)
             continue;
-        packet[0] = 0x07000000 | (ot[bucket] & 0xffffff);
-        packet[1] = 0xe1000640;
-        packet[2] = center;
-        packet[3] = xy[indices[0]];
-        packet[4] = edge;
-        packet[5] = xy[indices[1]];
-        packet[6] = edge;
-        packet[7] = xy[indices[2]];
-        ot[bucket] = (ot[bucket] & 0xff000000) | (psx_to_int(unsigned, packet) & 0xffffff);
-        packet += 8;
+        /* The triangle as a draw item (a semi-transparent Gouraud one in the mode B-F), placed in its bucket by a marker. */
+        int first_item = pc_frame_count();
+        pc_item* item = pc_frame_add(PC_ITEM_POLY, 0);
+        if (item) {
+            item->verts = 3, item->flags = PC_ITEM_SHADED | PC_ITEM_SEMI, item->mode = 0x640;
+            unsigned colours[3] = { center, edge, edge };
+            for (int j = 0; j < 3; ++j) {
+                item->x[j] = (short)xy[indices[j]], item->y[j] = (short)(xy[indices[j]] >> 16);
+                item->rgb[j][0] = (unsigned char)colours[j], item->rgb[j][1] = (unsigned char)(colours[j] >> 8),
+                item->rgb[j][2] = (unsigned char)(colours[j] >> 16);
+            }
+        }
+        packet = pc_frame_place(first_item, pc_frame_count() - first_item, ot + bucket, packet);
         kept[kept_count] = (unsigned char)i;
         kept_bucket[kept_count++] = (unsigned short)bucket;
     }

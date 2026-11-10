@@ -28,6 +28,7 @@
  *   node's bucket. Nodes the game puts on fixed layers (depth modes 5-8:
  *   the far end or in front of the whole table) stay packets. */
 #define _POSIX_C_SOURCE 200809L
+#include "draw_items.h"
 #include "psx_types.h"
 #include "render.h"
 #include <math.h>
@@ -187,8 +188,12 @@ unsigned* pc_shadow_native(const void* actor, const void* matrix, int light, con
                 }
         }
     }
-    if (pc_hw_effect_packets)
+    if (pc_hw_effect_packets) {
+        const void *lo, *hi;
         pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SHADOWS);
+        if (pc_frame_marker_span(start, end, &lo, &hi)) /* (the triangles are draw items: their lowered packets) */
+            pc_hw_effect_packets(lo, hi, list, RENDER_EFFECTS_SHADOWS);
+    }
     return end;
 }
 
@@ -359,6 +364,17 @@ static int collecting;
 static uint32_t camera_serial = ~0u;
 static int camera_ok;
 
+/* The markers in [start, end) and the lowered packets of their items covered by `list` (0: drawn as they are). */
+static void effect_items(const void* start, const void* end, uint32_t list)
+{
+    const void *lo, *hi;
+    if (!pc_hw_effect_packets)
+        return;
+    pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SPRITES);
+    if (pc_frame_marker_span(start, end, &lo, &hi))
+        pc_hw_effect_packets(lo, hi, list, RENDER_EFFECTS_SPRITES);
+}
+
 /* func_800D6E44 starts its walk. */
 void pc_particles_native_begin(void)
 {
@@ -376,11 +392,11 @@ void pc_particles_native_begin(void)
         places_serial = serial;
     }
 }
-/* One node's packets [start, end): an E1 draw mode, `tiles` POLY_FT4 quads,
- * an E1; its centre at view-space `view` (GTE units, depth `sz`), projected
- * to screen position `xy` (packed); linked at ordering-table index
- * `bucket` (`layered`: one of the fixed layers, which stays packets). */
-void pc_particles_native_node(unsigned* start, unsigned* end, int tiles, const int view[3], int sz, unsigned xy,
+/* One node's tiles: `tiles` draw items from index `first` (textured quads, each placed by a marker at its bucket's head:
+ * the markers are the packets [start, end)); its centre at view-space `view` (GTE units, depth `sz`), projected
+ * to screen position `xy` (packed); linked at ordering-table index `bucket` (`layered`: one of the fixed layers,
+ * which stays drawn as the items). */
+void pc_particles_native_node(unsigned* start, unsigned* end, int first, int tiles, const int view[3], int sz, unsigned xy,
     int bucket, int layered, const void* node, int age, unsigned source)
 {
     int native = collecting && !layered && bucket >= 0 && bucket < 0x800 && sz > 0 && tiles > 0
@@ -392,8 +408,7 @@ void pc_particles_native_node(unsigned* start, unsigned* end, int tiles, const i
         camera_serial = render_frame_serial();
     }
     if (!native || !camera_ok) {
-        if (pc_hw_effect_packets)
-            pc_hw_effect_packets(start, end, 0, RENDER_EFFECTS_SPRITES);
+        effect_items(start, end, 0);
         return;
     }
     double centre[3] = { view[0] + 0.5, view[1] + 0.5, view[2] + 0.5 };
@@ -434,27 +449,25 @@ void pc_particles_native_node(unsigned* start, unsigned* end, int tiles, const i
     nodes[node_count].first = sprite_count;
     nodes[node_count].count = tiles;
     nodes[node_count++].bucket = bucket;
-    const unsigned* q = start + 3; /* after the E1 packet */
-    for (int t = 0; t < tiles; t++, q += 10) {
+    for (int t = 0; t < tiles; t++) {
+        const pc_item* q = pc_frame_item(first + t);
         render_polygon* p = &sprites[sprite_count++];
         memset(p, 0, sizeof *p);
-        static const int xy_word[4] = { 2, 4, 6, 8 }, uv_word[4] = { 3, 5, 7, 9 };
         for (int k = 0; k < 4; k++) {
-            unsigned c = q[xy_word[k]], uv = q[uv_word[k]];
             /* at the node's palette entry (its centre) */
             p->bone[k] = (uint8_t)bone;
-            p->offset[k][0] = (int16_t)((short)(c & 0xffff) - cx);
-            p->offset[k][1] = (int16_t)((short)(c >> 16) - cy);
-            p->uv[k][0] = uv & 0xff;
-            p->uv[k][1] = (uv >> 8) & 0xff;
-            p->rgb[k][0] = q[1] & 0xff;
-            p->rgb[k][1] = (q[1] >> 8) & 0xff;
-            p->rgb[k][2] = (q[1] >> 16) & 0xff;
+            p->offset[k][0] = (int16_t)(q->x[k] - cx);
+            p->offset[k][1] = (int16_t)(q->y[k] - cy);
+            p->uv[k][0] = q->u[k];
+            p->uv[k][1] = q->v[k];
+            p->rgb[k][0] = q->rgb[0][0];
+            p->rgb[k][1] = q->rgb[0][1];
+            p->rgb[k][2] = q->rgb[0][2];
         }
         p->offset_depth = (uint16_t)(sz > 65535 ? 65535 : sz);
-        p->code = (uint8_t)(q[1] >> 24);
-        p->clut = (uint16_t)(q[3] >> 16);
-        p->tpage = (uint16_t)(q[5] >> 16);
+        p->code = (uint8_t)(0x2c | (q->flags & PC_ITEM_SEMI ? 2 : 0));
+        p->clut = q->clut;
+        p->tpage = q->mode;
         p->flags = RENDER_POLY_QUAD | RENDER_POLY_SPRITE | RENDER_POLY_DOUBLE_SIDED;
         p->source = source; /* its particle system (glows.c) */
     }
@@ -527,8 +540,7 @@ unsigned* pc_particles_native_end(unsigned* packet, unsigned* ot)
         }
     }
     for (int r = 0; r < range_count; r++)
-        if (pc_hw_effect_packets)
-            pc_hw_effect_packets(ranges[r][0], ranges[r][1], list, RENDER_EFFECTS_SPRITES);
+        effect_items(ranges[r][0], ranges[r][1], list);
     collecting = 0;
     return packet;
 }

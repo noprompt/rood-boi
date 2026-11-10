@@ -381,7 +381,8 @@ STATE_HOST_UNITS = {"runtime", "cd_drive", "mdec", "xa_audio", "audio_libspu", "
 # runs library code), and the library's loader. Every other unit is the
 # engine library's (pc/docs/plans/2026-10-19-engine-reload.md).
 HOST_UNITS = STATE_HOST_UNITS | {"snapshot", "state_diff", "state_rewind", "savestate_slots", "overlay_statics", "ownership", "routing",
-                                 "memory_card", "input_record", "charge_skip", "audio_output", "engine_host", "render_state", "draw_items"}
+                                 "memory_card", "input_record", "charge_skip", "audio_output", "engine_host", "render_state", "draw_items",
+                                 "action_driver"}
 engine_units = {}  # --engine-library: object -> its compile command (position-independent)
 host_units = {}  # --engine-library: the host's other compiled units -> command (engine_lib.py reads their headers)
 
@@ -927,6 +928,7 @@ if battle:
         ("pc/src/map_view.c", "map_view"),
         ("pc/src/dev_state.c", "dev_state"),
         ("pc/src/room_warp.c", "room_warp"),
+        ("pc/src/action_driver.c", "action_driver"),
         ("pc/src/story_boot.c", "story_boot"),
         ("pc/src/fast_travel.c", "fast_travel"),
         ("pc/src/hud/hud_bridge.c", "hud_bridge"),

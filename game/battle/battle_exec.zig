@@ -100,6 +100,10 @@ pub fn battleExec() callconv(.c) void {
                                 if (c.pc_room_warp_poll() != 0) {
                                     break :mode;
                                 }
+                                // ROOD_PC: the dev RPC action starts a player's action here (pc/src/action_driver.c).
+                                if (c.pc_action_poll() != 0) {
+                                    break :mode;
+                                }
                                 if (c.func_80074BAC(0, @ptrCast(&position)) != 0) {
                                     break :mode;
                                 }

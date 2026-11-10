@@ -81,7 +81,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
         ((x +% 0x48) & 0xFFFF) | ((y +% 8) << 16),
     });
     sprite_item.drawMode(@ptrCast(np), @bitCast(@as(c_uint, 0xE1000200)));
-    sprite_item.tile(@ptrCast(np), 0x60000000, ((x +% 2 -% gradient) & 0xFFFF) | ((y +% 2) << 16), (gradient +% 0x48) | 0x80000);
+    sprite_item.tileFlat(@ptrCast(np), false, 0, ((x +% 2 -% gradient) & 0xFFFF) | ((y +% 2) << 16), (gradient +% 0x48) | 0x80000);
 
     if (psx.weak(SiteFn, "pc_classic_site")) |site| {
         site(20, &pcRow, pcRow.x, pcRow.y, pcRowFirst, @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*)));

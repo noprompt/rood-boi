@@ -105,14 +105,14 @@ pub fn func_80090434() callconv(.c) void {
         const size: c_int = if ((flags & 1) != 0) 0x20002 else 0x10001;
         // Each sparkle is one semi-transparent tile, or three when it has a previous place (a trail halving in brightness).
         if (psx.conv(c_uint, x) < 320 and psx.conv(c_uint, y) < 240) {
-            sprite_item.tile(ot, 0x62000000 | grey(color), xy(x, y), size);
+            sprite_item.tileFlat(ot, true, grey(color), xy(x, y), size);
         }
 
         if (psx.conv(u16, particle.unk8) < 320 and psx.conv(u16, particle.unkA) < 240) {
             color >>= 1;
-            sprite_item.tile(ot, 0x62000000 | grey(color), xy(@as(c_int, particle.unk8), @as(c_int, particle.unkA)), size);
+            sprite_item.tileFlat(ot, true, grey(color), xy(@as(c_int, particle.unk8), @as(c_int, particle.unkA)), size);
             color >>= 1;
-            sprite_item.tile(ot, 0x62000000 | grey(color), xy(x -% ((x -% @as(c_int, particle.unk8)) *% 2), y -% ((y -% @as(c_int, particle.unkA)) *% 2)), size);
+            sprite_item.tileFlat(ot, true, grey(color), xy(x -% ((x -% @as(c_int, particle.unk8)) *% 2), y -% ((y -% @as(c_int, particle.unkA)) *% 2)), size);
         }
 
         if (v.g.D_800F1BA4().* == 0) {

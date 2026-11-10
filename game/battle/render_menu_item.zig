@@ -63,9 +63,10 @@ pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
         const x: c_int = @as(u16, @bitCast(m.x));
         y = m.y;
 
-        sprite_item.tile(
+        sprite_item.tileFlat(
             scratch + 1,
-            0x60000000,
+            false,
+            0,
             @bitCast((bits(x +% 2) & 0xFFFF) | (bits(y +% 2) << 16)),
             w | 0xC0000,
         );

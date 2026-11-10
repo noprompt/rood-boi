@@ -13,10 +13,19 @@
 #define ITEMS 8192
 #define MARKER 0x00495449u /* "ITI": a GP0 no-op word, as render.c's markers are */
 
-static struct {
+typedef struct {
     int count, full;
     pc_item item[ITEMS];
-} pc_item_frame PC_SAVED_STATE = { 0 };
+} frame_list;
+static frame_list pc_item_frame PC_SAVED_STATE = { 0 };
+
+/* The last finished frame's items (kept at pc_frame_begin; host scratch, not state): the game waits for the vsync after
+ * a frame's packets are written and before the next frame's items start, so a reader of the guest's packets then (the
+ * dev RPC) finds their items here, the list at that moment being the new frame's. */
+static frame_list* last_frame;
+static int viewing_last;
+static const frame_list* view(void) { return viewing_last && last_frame ? last_frame : &pc_item_frame; }
+void pc_frame_view_last(int on) { viewing_last = on; }
 
 /* The markers placed this frame (their packet, the run), for the anchors that name packet memory. */
 static struct {
@@ -40,6 +49,12 @@ void pc_frame_begin(void)
 {
     if (pc_item_frame.count > peak)
         peak = pc_item_frame.count;
+    if (!last_frame)
+        last_frame = calloc(1, sizeof *last_frame);
+    if (last_frame) {
+        last_frame->count = pc_item_frame.count;
+        memcpy(last_frame->item, pc_item_frame.item, (size_t)pc_item_frame.count * sizeof pc_item_frame.item[0]);
+    }
     pc_item_frame.count = 0;
     pc_item_frame.full = 0;
     marker_count = 0;
@@ -394,6 +409,7 @@ void pc_frame_anchor(int first, int end, int anchor)
 
 /* Items [first, end) drawn at `opacity` (16.16: 0x10000 opaque), as the packets of a range were (gpu_hw.c pc_hw_opacity_packets). */
 extern void pc_hw_opacity_packets(const void* start, const void* end, int opacity) __attribute__((weak));
+int pc_frame_drawing_hidden; /* the item being drawn is PC_ITEM_HW_HIDDEN (boot_runtime.c) */
 void pc_frame_opacity(int first, int end, int opacity)
 {
     if (pc_hw_opacity_packets && end > first && pc_frame_packet(first))
@@ -477,10 +493,11 @@ static unsigned lower(const pc_item* it, uint32_t* p)
 /* Items [first, first + count) in draw order: larger depth first, then the later submission first. */
 static int ordered(int first, int count, uint64_t* keys)
 {
+    const frame_list* f = view();
     int n = 0;
-    for (int i = first; i < first + count && i < pc_item_frame.count; i++)
-        if (pc_item_frame.item[i].kind != PC_ITEM_NONE)
-            keys[n++] = (uint64_t)((int64_t)INT32_MAX - pc_item_frame.item[i].depth) << 32 | (uint32_t)(0xffffffffu - (uint32_t)i);
+    for (int i = first; i < first + count && i < f->count; i++)
+        if (f->item[i].kind != PC_ITEM_NONE)
+            keys[n++] = (uint64_t)((int64_t)INT32_MAX - f->item[i].depth) << 32 | (uint32_t)(0xffffffffu - (uint32_t)i);
     for (int a = 1; a < n; a++) { /* (insertion sort: the list is nearly in order, a few depths) */
         uint64_t k = keys[a];
         int b = a;
@@ -493,11 +510,12 @@ static int ordered(int first, int count, uint64_t* keys)
 
 int pc_frame_order(int first, int count, int unplaced, int* out, int max)
 {
+    const frame_list* f = view();
     uint64_t keys[ITEMS];
     int n = ordered(first, count, keys), m = 0;
     for (int k = 0; k < n && m < max; k++) {
         int index = (int)(0xffffffffu - (uint32_t)keys[k]);
-        if (!unplaced || !(pc_item_frame.item[index].flags & PC_ITEM_PLACED))
+        if (!unplaced || !(f->item[index].flags & PC_ITEM_PLACED))
             out[m++] = index;
     }
     return m;
@@ -505,12 +523,13 @@ int pc_frame_order(int first, int count, int unplaced, int* out, int max)
 
 int pc_frame_lower(int index, unsigned words[3][16], int lengths[3])
 {
+    const frame_list* f = view();
     const pc_item* it;
     uint32_t tmp[16];
     unsigned n, packets = 0;
-    if (index < 0 || index >= pc_item_frame.count || pc_item_frame.item[index].kind == PC_ITEM_NONE)
+    if (index < 0 || index >= f->count || f->item[index].kind == PC_ITEM_NONE)
         return 0;
-    it = &pc_item_frame.item[index];
+    it = &f->item[index];
     n = lower(it, tmp);
     if (it->flags & PC_ITEM_WINDOW) {
         words[packets][0] = 0xe2000000u | (it->tw & 0xfffffu);
@@ -606,7 +625,9 @@ static void draw_run(int first, int count)
             mode = (mode & ~0x1ff) | (it->mode & 0x1ff);
         unsigned words = lower(it, at + 3);
         at[2] = (words << 24) | 0xffffffu;
+        pc_frame_drawing_hidden = (it->flags & PC_ITEM_HW_HIDDEN) != 0; /* (boot_runtime.c draw_packet leaves it out of the hardware picture) */
         pc_draw_item_packet(at + 2);
+        pc_frame_drawing_hidden = 0;
         if (it->flags & PC_ITEM_AFTER)
             mode = it->after; /* (left set after it) */
     }

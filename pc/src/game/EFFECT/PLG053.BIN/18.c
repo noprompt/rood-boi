@@ -216,8 +216,12 @@ int func_800FA368(func_800D4910_t* arg0, u_int arg1, int arg2)
         }
 
         func_800D6D24(&state->texture);
-        texture =
-            &D_800F569C->block1Data[state->texture.unk1C->dataIndex];
+        pFileBlock1Indices* frame = state->texture.unk1C;
+        if (!frame) { /* ROOD_PC guard: the sprite script names no frame (the action's effect data was not loaded in this room: another's, the dev RPC action's start); the PS1 reads low RAM here */
+            alive = 0;
+            break;
+        }
+        texture = &D_800F569C->block1Data[frame->dataIndex];
         for (column = 0; column < 17; ++column)
             u[column] = texture->u0 + ((texture->u1 * column) / 16);
 

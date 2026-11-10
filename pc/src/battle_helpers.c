@@ -72,6 +72,15 @@ int vs_battle_tileItem(unsigned* ot, unsigned rgb0, unsigned xy, unsigned wh)
     cursor_set(pc_frame_place(first, pc_frame_count() - first, ot, cursor));
     return 1;
 }
+/* A flat tile (`wh` its size, the colour 0xBBGGRR) or a flat line (`wh` its end), semi-transparent when `semi`, placed at `ot`. */
+void vs_battle_tileFlatItem(unsigned* ot, int semi, int rgb, int xy, int wh)
+{
+    vs_battle_tileItem(ot, ((unsigned)rgb & 0xffffff) | (semi ? 0x62000000u : 0x60000000u), (unsigned)xy, (unsigned)wh);
+}
+void vs_battle_lineFlatItem(unsigned* ot, int semi, int rgb, int xy0, int xy1)
+{
+    vs_battle_tileItem(ot, ((unsigned)rgb & 0xffffff) | (semi ? 0x42000000u : 0x40000000u), (unsigned)xy0, (unsigned)xy1);
+}
 const void* vs_battle_spriteCommand(int item) { return pc_frame_command(item); }
 /* The sprite's colour as a full colour word (0xBBGGRR; its top byte, a packet's code, only says semi-transparent: bit 1). */
 int vs_battle_spriteColor(int item, int colour)
@@ -131,7 +140,7 @@ void vs_battle_shadedItem(unsigned* ot, int verts, int semi, const int* rgb, con
 }
 /* A textured quad (FT4): the page word and CLUT it names, `rgb` the colour its texels are scaled by (a raw one is drawn as the texels
  * are), corners as x low, y high words and texels as u low, v high. */
-void vs_battle_ft4Item(unsigned* ot, int raw, int semi, int tpage, int clut, int rgb, const int* xy, const int* uv)
+int vs_battle_ft4Item(unsigned* ot, int raw, int semi, int tpage, int clut, int rgb, const int* xy, const int* uv)
 {
     unsigned* cursor = cursor_get();
     int first = pc_frame_count();
@@ -145,7 +154,35 @@ void vs_battle_ft4Item(unsigned* ot, int raw, int semi, int tpage, int clut, int
             it->u[i] = (unsigned char)uv[i], it->v[i] = (unsigned char)(uv[i] >> 8);
         }
     }
-    place(ot, cursor, first);
+    return place(ot, cursor, first);
+}
+/* A shaded line (LINE_G2) between two points, semi-transparent when `semi`; returns the item. */
+int vs_battle_lineItem(unsigned* ot, int semi, int rgb0, int xy0, int rgb1, int xy1)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_LINE, 0);
+    if (it) {
+        it->flags = PC_ITEM_SHADED | (semi ? PC_ITEM_SEMI : 0), it->mode = PC_ITEM_INHERIT;
+        it->x[0] = (short)xy0, it->y[0] = (short)(xy0 >> 16), it->x[1] = (short)xy1, it->y[1] = (short)(xy1 >> 16);
+        it->rgb[0][0] = (unsigned char)rgb0, it->rgb[0][1] = (unsigned char)(rgb0 >> 8), it->rgb[0][2] = (unsigned char)(rgb0 >> 16);
+        it->rgb[1][0] = (unsigned char)rgb1, it->rgb[1][1] = (unsigned char)(rgb1 >> 8), it->rgb[1][2] = (unsigned char)(rgb1 >> 16);
+    }
+    return place(ot, cursor, first);
+}
+/* The item (from vs_battle_lineItem, vs_battle_ft4Item) left out of the hardware picture, still in the game's own. */
+void vs_battle_itemHardwareHidden(int item)
+{
+    pc_item* it = pc_frame_item(item);
+    if (it)
+        it->flags |= PC_ITEM_HW_HIDDEN;
+}
+/* The item bracketed as the effects' packets were: the default draw mode set before it, the dithering one after (PC_ITEM_BRACKET). */
+void vs_battle_itemBracket(int item)
+{
+    pc_item* it = pc_frame_item(item);
+    if (it)
+        it->flags |= PC_ITEM_BRACKET;
 }
 /* SetDrawMode's DR_MODE: the draw mode (E1 bits) and, when `window` is not -1, the texture window (E2's 20 bits). */
 void vs_battle_drawModeItem(unsigned* ot, int e1, int window)

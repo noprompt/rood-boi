@@ -44,6 +44,7 @@ import json
 import os
 import pathlib
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -84,6 +85,10 @@ def loot(g, width):
 def cover(binary):
     """BUILD_COMPARE_COVER=<log>: this tree's own build runs under gdb (pc/tools/line_coverage.py), the lines it reaches
     appended to the log; ROOD_BINARY is the wrapper, ROOD_SYMBOLS stays the binary."""
+    wrapper = os.environ.get("BUILD_COMPARE_WRAPPER")  # a script that runs COV_REAL (e.g. under gdb with a probe of its own)
+    if wrapper and pathlib.Path(binary).resolve() == pathlib.Path(os.environ.get("BUILD_COMPARE_COVER_BINARY") or ROOT / "pc/build/boot64/rood_battle_probe").resolve():
+        os.environ.update(ROOD_BINARY=wrapper, COV_REAL=str(pathlib.Path(binary).resolve()))
+        return
     log = os.environ.get("BUILD_COMPARE_COVER")
     work = ROOT / "pc/build/line_coverage"
     if log and pathlib.Path(binary).resolve() == pathlib.Path(os.environ.get("BUILD_COMPARE_COVER_BINARY") or ROOT / "pc/build/boot64/rood_battle_probe").resolve() and (work / "wrap").exists():
@@ -114,7 +119,12 @@ def play(binary, seconds, card, out, width):
     out = pathlib.Path(out)
     (out / "settings.cfg").write_text("qol_skip_charging 0\nui_menus 0\n")
     g = start(card, out, "fight")
+    sites = []
     try:
+        try:
+            g.call("effect_sites", on=True, reset=True)
+        except Exception:
+            pass
         g.call("skip_charging", reset=True)
         frames, states = [], []
         for _ in range(seconds * 4):
@@ -127,6 +137,10 @@ def play(binary, seconds, card, out, width):
             except Exception:
                 states.append(None)
         ended = g.call("skip_charging").get("ended", "")
+        try:
+            sites = g.call("effect_sites")["sites"]
+        except Exception:
+            pass
     finally:
         g.close()
     # A second game: the enemies defeated while idle (one mid-cast does not die at once).
@@ -136,9 +150,15 @@ def play(binary, seconds, card, out, width):
     finally:
         g.close()
     casts = [e for e in (entry.split(":") for entry in ended.split()) if len(e) >= 4 and int(e[0]) != 0 and e[2] == "1"]
-    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops, "states": states}))
+    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops, "states": states, "sites": sites}))
 
 
+DRIVE_CRASHES = {}  # action id -> why the driver skips it (none: a valid id does not crash)
+# The rooms whose enemies have, together, every ability the 182 rooms with enemies give them (a scan of stats + 0x8C0 of the first 59 zones'
+# rooms, greedily): the lane `--casts enemies` drives each ability once.
+ENEMY_ROOMS = ("56,22;24,1;48,25;48,18;52,5;29,0;40,24;50,14;55,1;22,0;24,0;24,4;24,15;49,1;51,16;56,6;13,9;25,1;40,11;48,20;50,6;51,1;51,9;"
+               "51,21;55,21;56,10;12,1;13,2;16,0;24,11;40,22;48,26;49,0;50,0;51,6;51,12;52,6;53,23;53,29;54,4;55,14;56,1;56,5")
+ENEMY_SKIPS = {147: "an enemy of zone 13 room 9 casting it reads a sector far past the disc's end (the effect's file is named by data that room lacks): the disc read fails"}  # action id -> why the enemies lane leaves it out
 SCHOOLS = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))
 SAMPLE = int(os.environ.get("ROOD_CAST_SAMPLE", 6))  # vsyncs between display hashes in an action (to narrow a difference: 1)
 CAST_ONLY = [int(i) for i in os.environ.get("ROOD_CAST_ONLY", "").split(",") if i]  # --casts: only these spell ids
@@ -199,6 +219,11 @@ def play_casts(binary, card, out, kinds, limit):
                     if self.mode_now()[0] != 2:
                         break
                 return None
+            return self.watch(what)
+
+        def watch(self, what):
+            """The display hashed every SAMPLE vsyncs through the action, until the player is free again."""
+            g = self.g
             hashes = []
             self.last_states = []
             for i in range(soak.WATCHDOG // SAMPLE):
@@ -223,6 +248,24 @@ def play_casts(binary, card, out, kinds, limit):
             g.run(4)
             return hashes
 
+    def drive(self, action_id, what, actor=None):
+        """The action driver (pc/src/action_driver.c): action `action_id` started through the game's own entry with the state a
+        menu-driven cast left, the display hashed through it. None when it could not start (and why, printed)."""
+        g = self.g
+        g.call("skip_charging", reset=True)
+        before = g.call("action")["started"]
+        reply = g.call("action", id=action_id) if actor is None else g.call("action", id=action_id, actor=actor)
+        if not reply["accepted"]:
+            print(f"build_compare: action {action_id} not started: no captured state", file=sys.stderr)
+            return None
+        for _ in range(60):
+            g.run(2)
+            if g.call("action")["started"] > before:
+                return self.watch(what)
+        print(f"build_compare: action {action_id} not started: the game was not free to act", file=sys.stderr)
+        return None
+
+    Cast.drive = drive
     r = Cast("casts", snap, card_copy, env, out, socket, fast=True)
     g, sym = r.g, r.sym
     actions, sites, peak, states = {}, [], 0, {}
@@ -242,7 +285,44 @@ def play_casts(binary, card, out, kinds, limit):
         except Exception:
             pass
         count = 0
-        for name, size in (SCHOOLS if "spells" in kinds else ()):
+        by_actor = set()
+        record = lambda i: g.read(sym["vs_main_actions"] + i * smoke.ACTION, smoke.ACTION)
+        def drive_actors(tag, attack):
+            """The game's own entry for an actor's action (func_80072EC4: the base attack's, and what the actor commands run for the
+            enemies, which choose from their own list of abilities, stats + 0x8C0: armor[6][4] of 4 bytes, the id first): Ashley's
+            attack with her weapon drawn, then each ability of each enemy of the room (its effect data is the room's)."""
+            nonlocal count
+            pointers = g.read(sym["vs_battle_actors"], 16 * 8)
+            todo = [(0, 1)] if attack else []
+            for slot in ROOM_ENEMIES:
+                actor = int.from_bytes(pointers[slot * 8:slot * 8 + 8], "little")
+                stats = g.actor_stats(actor) if actor else 0
+                if stats:
+                    todo += [(slot, i) for i in sorted({struct.unpack_from("<h", g.read(stats + 0x8C0 + 4 * k, 4))[0] for k in range(24)}) if 0 < i < 256]
+            for slot, action_id in todo:
+                raw = record(action_id)
+                if raw[smoke.ACTION_NAME] == 0xE7 or raw[smoke.ACTION_NAME] == 0 or action_id in by_actor or action_id in ENEMY_SKIPS or (limit and count >= limit):
+                    continue
+                by_actor.add(action_id)  # (one actor's run of an action: the effect is the same for any other)
+                g.rewind()
+                g.run(20)
+                r.refill()
+                if slot == 0:
+                    g.press("circle", vsyncs=3, settle=60)  # (the weapon drawn)
+                print(f"build_compare: driving action {action_id} by {'Ashley' if slot == 0 else f'enemy {slot} of {tag}'}", file=sys.stderr, flush=True)
+                hashes = r.drive(action_id, f"actor {action_id}", actor=slot)
+                actions[f"actor {action_id}"] = hashes
+                states[f"actor {action_id}"] = r.last_states if hashes else None
+                count += hashes is not None
+        if "drive" in kinds:
+            g.pause()
+            g.mark()  # (the room as it is, for after the menus' casts)
+            g.call("action", capture=True)  # (every menu-driven cast below leaves its state for the driver, one per kind of target)
+            saved = os.environ.get("BUILD_COMPARE_STATES")  # (a file: the captured states of an earlier run, loaded instead of the menus' casts)
+            if saved and pathlib.Path(saved).exists():
+                g.call("action", load=saved)
+                kinds = kinds.replace("drive", "driven")
+        for name, size in (SCHOOLS if "spells" in kinds or ("drive" in kinds and "driven" not in kinds) else ()):
             r.refill()
             r.shell("magick")
             for _ in range(6):
@@ -270,7 +350,48 @@ def play_casts(binary, card, out, kinds, limit):
                 actions[f"spell {name} {spell['id']}"] = hashes
                 states[f"spell {name} {spell['id']}"] = r.last_states if hashes else None
                 count += hashes is not None
-        if "arts" in kinds:
+        if "drive" in kinds and "driven" not in kinds:
+            # The items: a misc item of each kind of target (the action each names: its type and shape of target), used from the Items screen.
+            misc = b"".join(struct.pack("<HBB", soak.FIRST_MISC + k, 2, k + 1) for k in range(64))
+            g.write(sym["vs_main_inventory"] + smoke.MISC, misc)
+            g.run(4)
+            seen = set()
+            for row in range(64):
+                r.refill()
+                r.shell("items")
+                for _ in range(8):
+                    if r.ui().get("items", {}).get("category") == "misc":
+                        break
+                    g.press("r2", vsyncs=3, settle=4)
+                lst = r.ui()["items"]["list"]
+                if row < len(lst) and lst[row]["use_reason"].startswith("Loading"):
+                    try:  # (MAINMENU is loaded again after an action)
+                        r.wait(lambda: not r.ui()["items"]["list"][row]["use_reason"].startswith("Loading"), 240, "", step=4)
+                    except TimeoutError:
+                        pass
+                    lst = r.ui()["items"]["list"]
+                if row >= len(lst):
+                    break
+                if not lst[row]["usable"] or lst[row]["action"] == 0:
+                    continue
+                key = (g.read(sym["vs_main_actions"] + lst[row]["action"] * smoke.ACTION + 2, 1)[0] >> 1 & 7, g.read(sym["vs_main_actions"] + lst[row]["action"] * smoke.ACTION + 2, 1)[0] >> 4)
+                if key in seen:
+                    continue
+                seen.add(key)
+                for _ in range(70):
+                    c = r.ui()["items"]["cursor"]
+                    if c == row:
+                        break
+                    g.press("down" if c < row else "up", vsyncs=3, settle=2)
+                g.press("circle", vsyncs=3, settle=4)
+                for _ in range(10):
+                    m = r.ui()["items"]
+                    if m.get("mode") == "actions" and m["actions"][m["action"]]["id"] == "use":
+                        break
+                    g.press("down", vsyncs=3, settle=4)
+                actions[f"item {lst[row]['id']}"] = r.cast(f"item {lst[row]['id']}")
+                states[f"item {lst[row]['id']}"] = r.last_states if actions[f"item {lst[row]['id']}"] else None
+        if "arts" in kinds or ("drive" in kinds and "driven" not in kinds):
             art0, _ = r.learn_art()
             for k in range(4):
                 a = sym["vs_main_actions"] + (art0 + k) * smoke.ACTION + smoke.ACTION_UNLOCKED
@@ -288,6 +409,66 @@ def play_casts(binary, card, out, kinds, limit):
                     g.press("down", vsyncs=3, settle=4)
                 actions[f"art {art0 + k}"] = r.cast(f"art {art0 + k}")
                 states[f"art {art0 + k}"] = r.last_states
+        if "drive" in kinds or "driven" in kinds:
+            g.call("action", capture=False)
+            if "driven" not in kinds and os.environ.get("BUILD_COMPARE_STATES"):
+                g.call("action", save=os.environ["BUILD_COMPARE_STATES"])
+            kept = g.call("action")
+            print(f"build_compare: the driver captured {kept['kinds_captured']} kinds of action in the menus' casts: {kept['keys']}", file=sys.stderr)
+            count = 0
+            # The menus' casts left the game wherever they left it: back to the room as it was before them (the driver's captured
+            # states are host data and stay).
+            g.rewind()
+            g.run(30)
+            print(f"build_compare: after the rewind {g.call('action')['kinds_captured']} kinds are kept", file=sys.stderr)
+            # Every action the game's table defines, but those that cannot take the captured state: a different kind of target (the
+            # action's type and shape) or no name. Each skip is said, with its reason.
+            record = lambda i: g.read(sym["vs_main_actions"] + i * smoke.ACTION, smoke.ACTION)
+            skipped = {}
+            crashers = DRIVE_CRASHES
+            for action_id in range(int(os.environ.get("BUILD_COMPARE_FROM", "0")), 256):
+                if limit and count >= limit:
+                    break
+                if action_id in crashers:
+                    skipped[action_id] = crashers[action_id]
+                    continue
+                raw = record(action_id)
+                if raw[smoke.ACTION_NAME] == 0xE7 or raw[smoke.ACTION_NAME] == 0:
+                    skipped[action_id] = "no name"
+                    continue
+                g.rewind()  # (each action from the room as it was: an action that leaves the game in a state of its own cannot spoil the next)
+                g.run(20)
+                r.refill()
+                print(f"build_compare: driving action {action_id}", file=sys.stderr, flush=True)
+                hashes = r.drive(action_id, f"drive {action_id}")
+                actions[f"drive {action_id}"] = hashes
+                states[f"drive {action_id}"] = r.last_states if hashes else None
+                count += hashes is not None
+                if hashes is None:
+                    skipped[action_id] = f"no menu-driven cast left a state for its kind of target (type {raw[2] >> 1 & 7}), or it could not start"
+            drive_actors("this room", True)
+            reasons = {}
+            for action_id, why in skipped.items():
+                reasons.setdefault(why, []).append(action_id)
+            for why, ids in reasons.items():
+                print(f"build_compare: actions not driven ({why}): {len(ids)}: {ids[:12]}{'...' if len(ids) > 12 else ''}", file=sys.stderr)
+        if "enemies" in kinds:
+            # Every ability the enemies of the game have, each by an enemy of a room that has it (the room's effect data loaded): the rooms
+            # ENEMY_ROOMS (or BUILD_COMPARE_ENEMY_ROOMS, zone,room;zone,room) one after the other.
+            by_actor.clear()
+            count = 0
+            for zone, room in (tuple(int(n) for n in w.split(",")) for w in os.environ.get("BUILD_COMPARE_ENEMY_ROOMS", ENEMY_ROOMS).split(";")):
+                g.call("room_goto", zone=zone, room=room, enemies=True, scripts=False)
+                for _ in range(80):
+                    g.run(20)
+                    if g.call("room_goto", action="status")["phase"] in (0, 4):
+                        break
+                g.run(smoke.APPROACH)
+                g.pause()
+                g.mark()
+                print(f"build_compare: enemies of zone {zone} room {room}", file=sys.stderr, flush=True)
+                drive_actors(f"{zone},{room}", False)
+                g.pause(False)
         try:
             reply = g.call("effect_sites")
             sites, peak = reply["sites"], reply["peak_items"]
@@ -295,6 +476,11 @@ def play_casts(binary, card, out, kinds, limit):
             sites, peak = [], 0
     finally:
         r.close()
+    keep = os.environ.get("BUILD_COMPARE_LOGS")  # (a directory: the games' logs kept, for what a build says with its own debug switches)
+    if keep:
+        pathlib.Path(keep).mkdir(parents=True, exist_ok=True)
+        for log in out.glob("*.log"):
+            (pathlib.Path(keep) / f"{os.getpid()}-{log.name}").write_bytes(log.read_bytes())
     print("RESULT" + json.dumps({"actions": actions, "states": states, "sites": sites, "peak": peak}))
 
 
@@ -523,6 +709,36 @@ def popups(scale):
     return scene
 
 
+def weather_kind(kind):
+    """The room's weather of `kind` (dev RPC weather: 2 snow, 4 falling particles, which no room's own data starts but a room
+    script's command can) started in Snowfly Forest (a room with the weather section), left to run."""
+    def scene(g, cp, symbols):
+        g.call("room_goto", zone=40, room=0, enemies=False, scripts=False)
+        for _ in range(80):
+            g.run(20)
+            if g.call("room_goto", action="status")["phase"] in (0, 4):
+                break
+        g.run(20)
+        g.call("weather", kind=kind)
+        g.run(400)
+    return scene
+
+
+def scene_areamap(g, cp, symbols):
+    """The area map (146C.c func_8008AC78: the room's map in the corner and its frame): Map Right set to Frame (vs_main_settings.simpleMap
+    3), the map shown (D_800F1CD6), in a room with a map section, the frame drawn with the weapon sheathed (green) and drawn (red, pulsing)."""
+    g.call("room_goto", zone=9, room=17, enemies=False, scripts=False)
+    for _ in range(80):
+        g.run(20)
+        if g.call("room_goto", action="status")["phase"] in (0, 4):
+            break
+    g.write(symbols["vs_main_settings"] + 9, b"\x03")
+    g.write(symbols["D_800F1CD6"], b"\x01")
+    g.run(120)
+    g.press("circle", vsyncs=3, settle=90)  # (the weapon drawn)
+    g.run(120)
+
+
 def scene_transition(g, cp, symbols):
     """The screen transition's drawing (146C.c _drawScreenTransition): each effect (fade to black, to white, the wipe at both
     wipe angles) held at a few alphas, written each step (the transition's own step stays idle, so the room goes on)."""
@@ -580,7 +796,7 @@ SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_men
           "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data"),
           "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
           "gameover": scene_gameover, "damage": popups(1), "damage_x2": popups(2), "actor_word_x2": parity_tour("actor_word", 2),
-          "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "opening": scene_opening, "forest": weather(40, 0), "rain": weather(48, 1),
+          "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "areamap": scene_areamap, "opening": scene_opening, "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
           **{n: parity_tour(n) for n in ("gauges", "figure", "status_icons", "battle_mode", "buff", "actor_word", "timer", "text_band",
                                         "target_row", "target_line", "ability_icons")}}
 def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):
@@ -744,10 +960,31 @@ def compare_casts(args):
     return 0 if not changed else 1
 
 
-def run(binary, args, width):
+def compare_rooms(args):
+    """--rooms 40,3;10,1: the fight in each room (its enemies, their abilities), old, old again and new, frame by frame, and the
+    effect polygon call sites the new build ran in them all."""
+    sites, code = set(), 0
+    for room in args.rooms.split(";"):
+        env = dict(os.environ, BUILD_COMPARE_ROOM=room)
+        first, control, new = (run(binary, args, args.old_width, env) for binary in (args.old, args.old, args.new))
+        noise, changed = differing(first, control), differing(first, new)
+        sites |= set(new.get("sites") or [])
+        print(f"room {room}: casts old {len(first['casts'])} new {len(new['casts'])}; control {len(noise)} of {len(first['frames'])} frames differ; "
+              f"old against new {len(changed)} differ{f' (first at {changed[0] / 4:.2f} s)' if changed else ''}", flush=True)
+        if noise:
+            code = 2
+        elif (changed or first["casts"] != new["casts"]) and code == 0:
+            code = 1
+    if sites:
+        ran, calls, fran, fall, pran, pall = coverage(args.new, sorted(sites))
+        print(f"effect polygon call sites run: {ran} of {calls}; functions {fran} of {fall}; plugins {pran} of {pall}")
+    return code
+
+
+def run(binary, args, width, env=None):
     with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
         done = subprocess.run([sys.executable, __file__, "--play", binary, "--seconds", str(args.seconds), "--card", args.card,
-                               "--out", out, "--width", str(width)], capture_output=True, text=True)
+                               "--out", out, "--width", str(width)], capture_output=True, text=True, env=env)
     lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
     if not lines:
         sys.exit(f"build_compare: {binary} did not finish:\n{done.stderr[-1500:]}")
@@ -881,6 +1118,7 @@ def main():
     parser.add_argument("--renderer", choices=["vulkan", "null"], default="vulkan", help="--menus: null hashes the CPU reference frame (the original drawing, no GPU; no ui_text)")
     parser.add_argument("--setting", action="append", default=[], metavar="'KEY VALUE'", help="--menus: a settings.cfg line (ui_text original)")
     parser.add_argument("--aspect", choices=["4:3", "16:9"], default="4:3", help="--menus: the display's aspect")
+    parser.add_argument("--rooms", help="the fight in each of these rooms, zone,room;zone,room")
     parser.add_argument("--play-menus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -892,6 +1130,8 @@ def main():
         return play_casts(args.old, args.card, args.out, args.casts, args.cast_limit)
     if args.play_menus:
         return play_menus(args.old, args.card, args.out, args.menus.split(","), args.menu_sample, args.claims, args.aspect, args.env, args.renderer, args.setting)
+    if args.rooms:
+        return compare_rooms(args)
     if args.menus:
         return compare_menus(args)
     if args.casts:

@@ -939,6 +939,82 @@ static const char* json_str(const char* text)
     return out;
 }
 
+
+/* The action driver's captured states (action_driver.c): host data, so a rewind of the game's state keeps them. */
+#define PC_ACTION_BYTES 0x2C10
+#define PC_ACTION_KEYS 128 /* action_driver.c's key: the action's type (3 bits) and its shape of target (4) */
+static struct {
+    int have, kind, mode, menu, action;
+    unsigned char state[PC_ACTION_BYTES];
+} action_store[PC_ACTION_KEYS];
+static int action_armed, action_pending = -1, action_actor = -1, action_started, action_kinds;
+int pc_action_host_armed(void) { return action_armed; }
+/* The captured states to a file and back (a developer's: capturing takes the menus' casts, replaying only the game). */
+static int action_file(const char* path, int save)
+{
+    FILE* f = fopen(path, save ? "wb" : "rb");
+    int ok = f != NULL;
+    if (!f)
+        return 0;
+    if (save)
+        ok = fwrite(action_store, sizeof action_store, 1, f) == 1;
+    else if ((ok = fread(action_store, sizeof action_store, 1, f) == 1)) {
+        action_kinds = 0;
+        for (int k = 0; k < PC_ACTION_KEYS; k++)
+            action_kinds += action_store[k].have != 0;
+    }
+    return fclose(f) == 0 && ok;
+}
+void pc_action_host_store(int key, const void* state, int kind, int mode, int menu, int action)
+{
+    if (key < 0 || key >= PC_ACTION_KEYS)
+        return;
+    if (!action_store[key].have)
+        ++action_kinds;
+    memcpy(action_store[key].state, state, PC_ACTION_BYTES);
+    action_store[key].have = 1, action_store[key].kind = kind, action_store[key].mode = mode, action_store[key].menu = menu,
+        action_store[key].action = action;
+}
+/* The captured key that serves `action` (its key `key`): its own, when the state was made by an action the replay can stand in for: a break
+ * art of the same weapon category (the four of the equipped weapon's: the effect reads the weapon), any item or ability of the key;
+ * for a spell (type 1) also the nearest shape of the spells captured, its effect not depending on the targets' shape beyond what the menus
+ * built. -1: none (another shape of an item, or another weapon's art, crashes the effect). */
+#define PC_FIRST_ART 184
+int pc_action_host_serving(int key, int action)
+{
+    int best = -1;
+    if (key < 0 || key >= PC_ACTION_KEYS)
+        return -1;
+    if (action_store[key].have) {
+        if (key >> 4 == 3 && (action - PC_FIRST_ART) / 4 != (action_store[key].action - PC_FIRST_ART) / 4)
+            return -1;
+        return key;
+    }
+    if (key >> 4 != 1)
+        return -1;
+    for (int k = 0; k < PC_ACTION_KEYS; k++)
+        if (action_store[k].have && k >> 4 == 1
+            && (best < 0 || abs((k & 15) - (key & 15)) < abs((best & 15) - (key & 15))))
+            best = k;
+    return best;
+}
+const unsigned char* pc_action_host_get(int key, int action, int* kind, int* mode, int* menu)
+{
+    key = pc_action_host_serving(key, action);
+    if (key < 0 || key >= PC_ACTION_KEYS || !action_store[key].have)
+        return NULL;
+    *kind = action_store[key].kind, *mode = action_store[key].mode, *menu = action_store[key].menu;
+    return action_store[key].state;
+}
+int pc_action_host_take(int* actor)
+{
+    int id = action_pending;
+    *actor = action_actor;
+    action_pending = action_actor = -1;
+    return id;
+}
+void pc_action_host_started(void) { ++action_started; }
+
 static void fail(int fd, const char* id, int code, const char* message)
 {
     char line[1024];
@@ -1454,6 +1530,66 @@ static void handle_method(int fd, const char* request)
             pc_qol_weapon_slots_name_ticks = n < 1 ? 1 : n > 3600 ? 3600 : (int)n;
         }
         pc_weapon_slots_json(result, sizeof result);
+        reply(fd, id, result);
+    } else if (!strcmp(method, "weather")) {
+        /* Starts the room's weather of kind 0..4 as the room's script command does (BATTLE func_80090C2C: the room needs its
+         * weather section); 1 rain, 2 snow, 3 motes, 4 falling particles. */
+        extern void func_80090C2C(int) __attribute__((weak));
+        if (!func_80090C2C || !params || !number_value(member(params, "kind"), &n) || n < 0 || n > 4) {
+            fail(fd, id, -32602, "weather needs the battle build and kind 0..4");
+            return;
+        }
+        func_80090C2C((int)n);
+        reply(fd, id, "{\"ok\":true}");
+    } else if (!strcmp(method, "action")) {
+        /* The player's action driver (action_driver.c): {capture: true} arms the capture of menu-driven actions (one state per
+         * kind of action), {capture: false} stops it; {id: N} starts action N with the captured state of its kind, in the
+         * battle loop's next free frame (accepted: false when no such state was captured); {id: N, actor: A} starts it for actor A
+         * by the game's own entry for an actor's action (the base attack's, the enemies' abilities'), with no state;
+         * {save: path}, {load: path} the captured states. */
+        extern int pc_action_kind(int) __attribute__((weak));
+        int flag, accepted = 1, exact = 1;
+        if (!pc_action_kind) {
+            fail(fd, id, -32000, "action needs the battle build");
+            return;
+        }
+        if (params && bool_value(member(params, "capture"), &flag))
+            action_armed = flag;
+        char path[512];
+        if (params && string_value(member(params, "save"), path, sizeof path) && !action_file(path, 1)) {
+            fail(fd, id, -32000, "action save: cannot write the file");
+            return;
+        }
+        if (params && string_value(member(params, "load"), path, sizeof path) && !action_file(path, 0)) {
+            fail(fd, id, -32000, "action load: cannot read the file");
+            return;
+        }
+        long long who;
+        if (params && number_value(member(params, "id"), &n) && number_value(member(params, "actor"), &who)) {
+            /* by the game's own start of an actor's action (func_80072EC4: the base attack's, the actor commands' that run the enemies'
+             * abilities): no captured state, any actor and action */
+            accepted = n >= 0 && n < 256 && who >= 0 && who < 16;
+            if (accepted)
+                action_pending = (int)n, action_actor = (int)who;
+        } else if (params && number_value(member(params, "id"), &n)) {
+            int key = n >= 0 && n < 256 ? pc_action_kind((int)n) : -1;
+            accepted = pc_action_host_serving(key, (int)n) >= 0;
+            exact = accepted && action_store[key].have;
+            if (accepted)
+                action_pending = (int)n;
+        }
+        {
+            char keys[PC_ACTION_KEYS * 48 + 4];
+            int used = 0;
+            for (int k = 0; k < PC_ACTION_KEYS; k++)
+                if (action_store[k].have)
+                    used += snprintf(keys + used, sizeof keys - (size_t)used, "%s{\"key\":%d,\"entry\":%d,\"mode\":%d,\"menu\":%d}",
+                        used ? "," : "", k, action_store[k].kind, action_store[k].mode, action_store[k].menu);
+            keys[used] = 0;
+            snprintf(result, sizeof result,
+                "{\"accepted\":%s,\"exact\":%s,\"kinds_captured\":%d,\"keys\":[%s],\"pending\":%d,\"started\":%d}",
+                accepted ? "true" : "false", exact ? "true" : "false", action_kinds, keys, action_pending, action_started);
+        }
         reply(fd, id, result);
     } else if (!strcmp(method, "skip_charging")) {
         /* Battle charging skip (charge_skip.c, charge_skip.inc). */
@@ -3305,8 +3441,11 @@ static void handle_method(int fd, const char* request)
                 return;
             }
             pc_classic_walker guest = pc_classic_guest();
+            /* (the guest's packets are the last frame's; its items were set aside when this frame's began) */
+            pc_frame_view_last(1);
             int n = pc_classic_scan(&guest, (const void*)(uintptr_t)lo, (const void*)(uintptr_t)hi,
                 packets, 1024);
+            pc_frame_view_last(0);
             int used = snprintf(out, sizeof out, "{\"count\":%d,\"packets\":", n);
             used += pc_classic_packets_json(packets, n, out + used, (int)sizeof out - used - 2);
             snprintf(out + used, sizeof out - (size_t)used, "}");

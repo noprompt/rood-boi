@@ -469,26 +469,16 @@ extern "C" {
 long pc_weather_drops, pc_weather_drops_hidden; /* asked, hidden (RPC render_stats rain_drops*) */
 }
 static int drop_hidden(int x, int y, int z);
-/* The game still draws every drop (native VRAM, the game's state and its
- * replays stay the PS1's); the hardware picture leaves the hidden ones' packets
- * out (boot_runtime.c, until the ordering table is drawn). */
-static std::vector<const void*> hidden_packets;
-extern "C" void pc_weather_drop_packet(const void* packet, int x, int y, int z)
+/* The game still draws every drop (native VRAM, the game's state and its replays stay the PS1's); the hardware picture
+ * leaves the hidden ones out (the drop's item is marked PC_ITEM_HW_HIDDEN by 146C.c func_8008F440). */
+extern "C" int pc_weather_drop_hidden(int x, int y, int z)
 {
     ++pc_weather_drops;
-    if (drop_hidden(x, y, z)) {
-        ++pc_weather_drops_hidden;
-        hidden_packets.push_back(packet);
-    }
+    if (!drop_hidden(x, y, z))
+        return 0;
+    ++pc_weather_drops_hidden;
+    return 1;
 }
-extern "C" int pc_weather_packet_hidden(const void* packet)
-{
-    for (const void* p : hidden_packets)
-        if (p == packet)
-            return 1;
-    return 0;
-}
-extern "C" void pc_weather_frame_drawn(void) { hidden_packets.clear(); }
 static int drop_hidden(int x, int y, int z)
 {
     if (!pc_scene_room_data()) /* a room transition, not this frame's geometry */

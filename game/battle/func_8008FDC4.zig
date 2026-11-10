@@ -2,6 +2,7 @@
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = @import("common").sprite_item;
 
 /// `ot + depth` with the C's 4-byte u_long entries.
 fn ordering(scratch: *v.vs_scratch_t, depth: c_int) ?*anyopaque {
@@ -13,18 +14,20 @@ fn margin() c_int {
     return if (v.g.pc_gte_widescreen().* != 0) 54 else 0;
 }
 
-/// setTile and setSemiTrans(prim, 1).
-fn tile(prim: *v.TILE) void {
-    const tag: *v.P_TAG = @ptrCast(prim);
-    psx.setBits(tag, "len", 3);
-    tag.code = 0x60;
-    tag.code |= 0x02;
+/// A corner as x low, y high.
+fn xy(x: c_int, y: c_int) c_int {
+    return (x & 0xFFFF) | (y << 16);
 }
 
-/// Projects a flake into the packet at the cursor (anchored for the widescreen hook).
-fn project(drop: *v.D_800F1DD4_t, prim: *v.TILE, projection: *c_int, flags: *c_int) c_int {
+/// A semi-transparent tile of the grey `grey` (0xFF: white), `size` pixels square, at the slot `ot`.
+fn flake(ot: ?*anyopaque, x: c_int, y: c_int, size: c_int, grey: c_int) void {
+    sprite_item.tileFlat(ot, true, (grey & 0xFF) * 0x010101, xy(x, y), size | (size << 16));
+}
+
+/// Projects a flake (anchored for the widescreen hook); its screen place as x low, y high in `sxy`.
+fn project(drop: *v.D_800F1DD4_t, sxy: *c_int, projection: *c_int, flags: *c_int) c_int {
     v.g.pc_gte_anchored().* +%= 1;
-    const depth = c.RotTransPers(@ptrCast(drop), @ptrCast(&prim.x0), projection, flags);
+    const depth = c.RotTransPers(@ptrCast(drop), @ptrCast(sxy), projection, flags);
     v.g.pc_gte_anchored().* -%= 1;
     return depth;
 }
@@ -79,50 +82,23 @@ pub fn func_8008FDC4() callconv(.c) void {
                 }
             }
             drop.unkE = 2;
-            var prim: [*]v.TILE = @ptrCast(@alignCast(psx.get(scratch.unk0).?));
-            const depth = project(drop, &prim[0], &projection, &flags);
-            if (psx.conv(u16, @as(c_int, prim[0].x0) +% 639) < 1599 and depth < 2048) {
+            var sxy: c_int = 0;
+            const depth = project(drop, &sxy, &projection, &flags);
+            if (psx.conv(u16, @as(c_int, psx.conv(i16, sxy)) +% 639) < 1599 and depth < 2048) {
                 if (depth > 4) {
-                    const x = prim[0].x0;
-                    const y = prim[0].y0;
-                    if (psx.conv(c_uint, @as(c_int, @as(u16, @bitCast(y))) - 1) < 239 and x > -margin() and x < 320 + margin()) {
-                        tile(&prim[0]);
-                        if (i & 1 != 0) {
-                            prim[0].w = 2;
-                            prim[0].h = 2;
-                        } else {
-                            prim[0].w = 1;
-                            prim[0].h = 1;
-                        }
-                        prim[0].r0 = 255;
-                        prim[0].g0 = 255;
-                        prim[0].b0 = 255;
-                        c.AddPrim(ordering(scratch, depth), &prim[0]);
-                        prim += 1;
+                    const x: c_int = psx.conv(i16, sxy);
+                    const y: c_int = psx.conv(i16, sxy >> 16);
+                    if (psx.conv(c_uint, @as(c_int, psx.conv(u16, y)) - 1) < 239 and x > -margin() and x < 320 + margin()) {
+                        flake(ordering(scratch, depth), x, y, if (i & 1 != 0) 2 else 1, 255);
                         drop.unkE = 0;
                     }
-                    projection = @as(c_int, x) +% (c.rsin(i << 5) >> 6);
-                    flags = @as(c_int, y) -% (c.rcos(i << 5) >> 6);
+                    projection = x +% (c.rsin(i << 5) >> 6);
+                    flags = y -% (c.rcos(i << 5) >> 6);
                     if (psx.conv(c_uint, flags -% 1) < 239 and projection > -margin() and projection < 320 + margin() and depth > 4) {
-                        tile(&prim[0]);
-                        prim[0].x0 = psx.conv(i16, projection);
-                        prim[0].y0 = psx.conv(i16, flags);
-                        if ((i & 1) == 0) {
-                            prim[0].w = 2;
-                            prim[0].h = 2;
-                        } else {
-                            prim[0].w = 1;
-                            prim[0].h = 1;
-                        }
-                        prim[0].r0 = 255;
-                        prim[0].g0 = 255;
-                        prim[0].b0 = 255;
-                        c.AddPrim(ordering(scratch, depth), &prim[0]);
-                        prim += 1;
+                        flake(ordering(scratch, depth), projection, flags, if ((i & 1) == 0) 2 else 1, 255);
                         drop.unkE = 0;
                     }
                     if (drop.unkE == 0) {
-                        psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(&prim[0])));
                         c.pc_insert_tpage(depth, 0x71);
                     }
                 }
@@ -140,21 +116,12 @@ pub fn func_8008FDC4() callconv(.c) void {
                 }
             }
         } else {
-            var prim: [*]v.TILE = @ptrCast(@alignCast(psx.get(scratch.unk0).?));
-            const depth = project(drop, &prim[0], &projection, &flags);
-            if (psx.conv(c_uint, @as(c_int, @as(u16, @bitCast(prim[0].y0))) - 1) < 239 and prim[0].x0 > -margin() and
-                prim[0].x0 < 320 + margin() and depth > 4)
+            var sxy: c_int = 0;
+            const depth = project(drop, &sxy, &projection, &flags);
+            if (psx.conv(c_uint, @as(c_int, psx.conv(u16, sxy >> 16)) - 1) < 239 and psx.conv(i16, sxy) > -margin() and
+                psx.conv(i16, sxy) < 320 + margin() and depth > 4)
             {
-                tile(&prim[0]);
-                prim[0].w = 2;
-                prim[0].h = 2;
-                const grey = psx.conv(u8, 128 -% (@as(c_int, drop.unkD) << 4));
-                prim[0].r0 = grey;
-                prim[0].g0 = grey;
-                prim[0].b0 = grey;
-                c.AddPrim(ordering(scratch, depth), &prim[0]);
-                prim += 1;
-                psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(&prim[0])));
+                flake(ordering(scratch, depth), psx.conv(i16, sxy), psx.conv(i16, sxy >> 16), 2, psx.conv(u8, 128 -% (@as(c_int, drop.unkD) << 4)));
                 c.pc_insert_tpage(depth, 96);
                 if (v.g.D_800F1BA4().* == 0) {
                     drop.unkD = psx.conv(u8, @as(c_int, drop.unkD) +% (v.g.vs_gametime_tickspeed().* >> 1));

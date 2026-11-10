@@ -39,7 +39,7 @@ pub fn func_8009506C(left: c_int, centerY: c_int, arg2: ?*v.D_800F1BAC_t) callco
             const rx: c_int = rect.x;
             const ry: c_int = rect.y;
             // A raw-textured, semi-transparent quad (page 768, CLUT 864, 223).
-            sprite_item.ft4(ot, true, true, (768 & 0x3ff) >> 6, (223 << 6) | ((864 >> 4) & 0x3f), 0,
+            _ = sprite_item.ft4(ot, true, true, (768 & 0x3ff) >> 6, (223 << 6) | ((864 >> 4) & 0x3f), 0,
                 &[4]c_int{ xy(x, y0), xy(x +% w, y0), xy(x, y1), xy(x +% w, y1) },
                 &[4]c_int{ uv(rx, ry), uv(rx +% w, ry), uv(rx, ry +% 10), uv(rx +% w, ry +% 10) });
         }

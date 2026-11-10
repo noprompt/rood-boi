@@ -88,15 +88,15 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
             }
             k = 0;
             while (k < shape[@intCast(tail * 4 + 2)]) : (k += 1) {
-                sprite_item.tile(ot + 2, 0x40303030, psx.at(points, n).*, psx.at(points, v_ + k).*);
+                sprite_item.lineFlat(ot + 2, false, 0x303030, psx.at(points, n).*, psx.at(points, v_ + k).*);
                 n = v_ + k;
             }
             v_ = n;
             n = @intCast((part >> 8) & 0xFF);
-            sprite_item.tile(ot + 2, 0x40303030, psx.at(points, n).*, psx.at(points, v_).*);
+            sprite_item.lineFlat(ot + 2, false, 0x303030, psx.at(points, n).*, psx.at(points, v_).*);
         }
         v_ = @rem(n + 1, i);
-        sprite_item.tile(ot + 2, 0x40303030, psx.at(points, n).*, psx.at(points, v_).*);
+        sprite_item.lineFlat(ot + 2, false, 0x303030, psx.at(points, n).*, psx.at(points, v_).*);
         n = n + 1;
     }
     c.vs_battle_insertTpage(@bitCast(@as(c_uint, 0xE2000000)), ot + 2);

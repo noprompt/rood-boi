@@ -3,6 +3,7 @@
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = @import("common").sprite_item;
 
 /// The scratchpad block, addressed by number as the C does.
 fn view() *v.vs_view_t {
@@ -25,19 +26,6 @@ pub fn anchorMap(start: ?*anyopaque) callconv(.c) void {
 fn otPlus5() ?*anyopaque {
     const base: usize = @intFromPtr(psx.get(scratch().unk4));
     return @ptrFromInt(base +% 20);
-}
-
-/// setLineG4 / setLineG2: the primitive's length and code.
-fn setTag(prim: anytype, len: u8, code: u8) void {
-    const tag: *v.P_TAG = @ptrCast(prim);
-    psx.setBits(tag, "len", len);
-    tag.code = code;
-}
-
-/// setSemiTrans(prim, 1).
-fn setSemiTrans(prim: anytype) void {
-    const tag: *v.P_TAG = @ptrCast(prim);
-    tag.code = tag.code | 0x02;
 }
 
 /// orig: func_8008AC78 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
@@ -91,14 +79,13 @@ pub fn func_8008AC78() callconv(.c) void {
 
     c.func_8008B590(psx.cptr(c.MATRIX, &rotation), 0x800 -% view().camera.angles.vy);
     c.SetRotMatrix(psx.cptr(c.MATRIX, &rotation));
-    var area: *v.DR_AREA = @ptrCast(@alignCast(psx.get(scratch().unk0).?));
-    const mapPackets: *v.DR_AREA = area;
-    c.SetDrawArea(psx.cptr(c.DR_AREA, area), psx.cptr(c.RECT, &v.g.vs_main_drawEnv()[@intCast((v.g.vs_main_frameBuf().* +% 1) & 1)].clip));
-    c.AddPrim(otPlus5(), area);
-    area = psx.at(area, 1);
-    psx.put(&scratch().unk0, area);
+    // The map's drawing areas and frame are draw items placed at the table's slot 5 (the packets AddPrim linked there): the
+    // first area is the other buffer's whole one, the second the map's window.
+    const mapPackets: ?*anyopaque = psx.get(scratch().unk0);
+    const other = &v.g.vs_main_drawEnv()[@intCast((v.g.vs_main_frameBuf().* +% 1) & 1)].clip;
+    sprite_item.area(otPlus5(), other.x, other.y, other.w, other.h, null);
 
-    if (v.g.vs_main_drawEnv()[@intCast((v.g.vs_main_frameBuf().* +% 1) & 1)].clip.x < 320) {
+    if (other.x < 320) {
         clip.x = 216;
     } else {
         clip.x = 536;
@@ -116,105 +103,53 @@ pub fn func_8008AC78() callconv(.c) void {
     c.vs_battle_setGeomOffset(psx.cptr(c.vs_battle_geomOffset, &savedOffset));
     c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
 
-    area = @ptrCast(@alignCast(psx.get(scratch().unk0).?));
-    c.SetDrawArea(psx.cptr(c.DR_AREA, area), psx.cptr(c.RECT, &clip));
-    c.AddPrim(otPlus5(), area);
-    area = psx.at(area, 1);
-    psx.put(&scratch().unk0, area);
+    sprite_item.area(otPlus5(), clip.x, clip.y, clip.w, clip.h, null);
 
     if ((v.g.vs_main_settings().simpleMap & 2) == 0) {
-        c.anchor_map(mapPackets);
+        anchorMap(mapPackets);
         return;
     }
 
-    const frame: *v.LINE_G4 = @ptrCast(@alignCast(area));
-    setTag(frame, 9, 0x5C);
-    frame.pad = 0x55555555;
-    frame.p2 = 0;
-    frame.p3 = 0;
-    frame.x0 = 215;
-    frame.y0 = 155;
-    frame.x1 = 313;
-    frame.y1 = 155;
-    frame.x2 = 313;
-    frame.y2 = 220;
-    frame.x3 = 215;
-    frame.y3 = 220;
-    setSemiTrans(frame);
-    c.AddPrim(otPlus5(), frame);
-    var line: *v.LINE_G2 = @ptrCast(@alignCast(psx.at(frame, 1)));
-    setTag(line, 4, 0x50);
-    setSemiTrans(line);
-    line.y0 = 220;
-    line.x0 = 215;
-    line.x1 = 215;
-    line.y1 = 155;
-    const edge: *v.LINE_G2 = line;
-    line = psx.at(line, 1);
-    c.AddPrim(otPlus5(), edge);
-    psx.put(&scratch().unk0, line);
-    c.pc_insert_tpage(5, 96);
-    c.anchor_map(mapPackets);
-
+    // The frame's colours (the corners of its outline and the ends of its left edge): pulsing red while the weapon is drawn, else green.
+    var frame_rgb: [4]c_int = undefined;
+    var edge_rgb: [2]c_int = undefined;
     if (psx.get(v.g.vs_battle_characterState().*).?.weaponDrawn == 1) {
         const pulse = @divTrunc(c.rsin(v.g.D_800F1BA0().* << 8), 64);
         v.g.D_800F1BA0().* +%= @divTrunc(v.g.vs_gametime_tickspeed().*, 2);
         const red: c_int = 128 -% pulse;
-        setRgb(frame, 0, red, 0, 0);
-        setRgb(frame, 1, red +% 32, 0, 0);
-        setRgb(frame, 2, red +% 63, 0, 0);
-        setRgb(frame, 3, red +% 32, 0, 0);
-        edge.r0 = psx.conv(u8, red +% 32);
-        edge.g0 = 0;
-        edge.b0 = 0;
-        edge.r1 = psx.conv(u8, red);
-        edge.g1 = 0;
-        edge.b1 = 0;
+        frame_rgb = .{ rgb(red, 0, 0), rgb(red +% 32, 0, 0), rgb(red +% 63, 0, 0), rgb(red +% 32, 0, 0) };
+        edge_rgb = .{ rgb(red +% 32, 0, 0), rgb(red, 0, 0) };
     } else {
         v.g.D_800F1BA0().* = 0;
-        setRgb(frame, 0, 0, 128, 0);
-        setRgb(frame, 1, 0, 192, 0);
-        setRgb(frame, 2, 0, 255, 0);
-        setRgb(frame, 3, 0, 192, 0);
-        edge.r0 = 0;
-        edge.g0 = 192;
-        edge.b0 = 0;
-        edge.r1 = 0;
-        edge.g1 = 128;
-        edge.b1 = 0;
+        frame_rgb = .{ rgb(0, 128, 0), rgb(0, 192, 0), rgb(0, 255, 0), rgb(0, 192, 0) };
+        edge_rgb = .{ rgb(0, 192, 0), rgb(0, 128, 0) };
     }
+    // Added last drawn first: the outline's three segments (the polyline's, in order), the left edge, then the draw mode (B+F).
+    const corners = [4]c_int{ xyOf(215, 155), xyOf(313, 155), xyOf(313, 220), xyOf(215, 220) };
+    var seg: usize = 3;
+    while (seg > 0) {
+        seg -= 1;
+        _ = sprite_item.lineG2(otPlus5(), true, frame_rgb[seg], corners[seg], frame_rgb[seg + 1], corners[seg + 1]);
+    }
+    _ = sprite_item.lineG2(otPlus5(), true, edge_rgb[0], xyOf(215, 220), edge_rgb[1], xyOf(215, 155));
+    c.pc_insert_tpage(5, 96);
+    anchorMap(mapPackets);
+}
+
+/// A colour word from its parts (the low byte of each).
+fn rgb(r: c_int, g: c_int, b: c_int) c_int {
+    return (r & 0xFF) | (g & 0xFF) << 8 | (b & 0xFF) << 16;
+}
+
+/// A corner's packed screen position (x low, y high).
+fn xyOf(x: c_int, y: c_int) c_int {
+    return (x & 0xFFFF) | y << 16;
 }
 
 /// `*(u_short*)&vs_battle_roomData`: the room section's first two bytes.
 fn roomState() u16 {
     const p: *const u16 = @ptrCast(v.g.vs_battle_roomData());
     return p.*;
-}
-
-/// setRGB0..3 of a LINE_G4.
-fn setRgb(prim: *v.LINE_G4, comptime corner: u2, r: c_int, g: c_int, b: c_int) void {
-    switch (corner) {
-        0 => {
-            prim.r0 = psx.conv(u8, r);
-            prim.g0 = psx.conv(u8, g);
-            prim.b0 = psx.conv(u8, b);
-        },
-        1 => {
-            prim.r1 = psx.conv(u8, r);
-            prim.g1 = psx.conv(u8, g);
-            prim.b1 = psx.conv(u8, b);
-        },
-        2 => {
-            prim.r2 = psx.conv(u8, r);
-            prim.g2 = psx.conv(u8, g);
-            prim.b2 = psx.conv(u8, b);
-        },
-        3 => {
-            prim.r3 = psx.conv(u8, r);
-            prim.g3 = psx.conv(u8, g);
-            prim.b3 = psx.conv(u8, b);
-        },
-    }
 }
 
 /// orig: pc_battle_action (pc/src/game/BATTLE/BATTLE.PRG/146C.c)

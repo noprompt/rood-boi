@@ -27,9 +27,9 @@
 #ifdef ROOD_PC
 #include "pc/src/widescreen.h"
 #include "pc/src/classic/classic_hook.h"
-/* environment.cpp: a rain drop's packet, left out of the hardware picture
- * where solid room geometry hides the drop (native VRAM draws it) */
-void pc_weather_drop_packet(const void* packet, int x, int y, int z);
+/* environment.cpp: whether solid room geometry hides a rain drop (its item is left out of the hardware picture;
+ * native VRAM draws it) */
+int pc_weather_drop_hidden(int x, int y, int z);
 int pc_charge_skip(int phase); /* pc/src/charge_skip.inc: battle charging skip */
 int pc_charge_skip_hold(void);
 void pc_charge_skip_name(int now);
@@ -1075,6 +1075,10 @@ extern unsigned char D_800E8194[];
 void func_80072BA8(int action);
 
 void func_80072EC4(int arg0, u_short arg1);
+/* The start of an actor's action (the base attack's, a cast's, the enemies' abilities'), named for the dev RPC action (pc/src/action_driver.c). */
+void pc_action_start_actor(int actor, int action) { func_80072EC4(actor, (u_short)action); }
+/* The player's action committed (what the menus' target confirmation calls), likewise. */
+void pc_action_start_player(int kind) { func_80070F28(kind); }
 
 void _initBattleCameraTransition(void);
 
@@ -2153,3 +2157,5 @@ extern void pc_room_warp_room_spawned(void);
 /* Declared for the Zig's c module (the C bodies that declared them are gone). */
 extern void pc_finish_room_checkpoint(void);
 extern int pc_room_warp_poll(void);
+extern int pc_action_poll(void); /* pc/src/action_driver.c: the dev RPC action */
+extern void pc_action_capture(const void* state, int kind, int mode, int menu);

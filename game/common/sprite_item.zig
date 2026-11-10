@@ -24,16 +24,19 @@ pub fn command(item: c_int) ?*const anyopaque {
     return psx.weak(Command, "vs_battle_spriteCommand").?(item);
 }
 
-const Tile = *const fn (?*anyopaque, c_uint, c_uint, c_uint) callconv(.c) c_int;
-const PacketTile = *const fn (?*anyopaque, c_int, c_int, c_int) callconv(.c) void;
-const Mode = *const fn (?*anyopaque, c_int) callconv(.c) void;
+const Flat3 = *const fn (?*anyopaque, c_int, c_int, c_int, c_int) callconv(.c) void;
 
-/// What vs_battle_addTile linked: a flat tile (code 0x60..0x63: `wh` its size) or line (0x40, 0x42: `wh` its end) as a draw item at `ot`;
-/// any other word pair stays the packet it was.
-pub fn tile(ot: ?*anyopaque, rgb0: c_int, xy: c_int, wh: c_int) void {
-    if (psx.weak(Tile, "vs_battle_tileItem").?(ot, @bitCast(rgb0), @bitCast(xy), @bitCast(wh)) != 0) return;
-    psx.weak(PacketTile, "vs_battle_addTile").?(ot, rgb0, xy, wh);
+/// A flat tile at `ot`: `rgb` 0xBBGGRR, its place (x low, y high) and size (w low, h high), semi-transparent when `semi`.
+pub fn tileFlat(ot: ?*anyopaque, semi: bool, rgb: c_int, xy: c_int, wh: c_int) void {
+    psx.weak(Flat3, "vs_battle_tileFlatItem").?(ot, @intFromBool(semi), rgb, xy, wh);
 }
+
+/// A flat line at `ot` from `xy0` to `xy1` (x low, y high).
+pub fn lineFlat(ot: ?*anyopaque, semi: bool, rgb: c_int, xy0: c_int, xy1: c_int) void {
+    psx.weak(Flat3, "vs_battle_lineFlatItem").?(ot, @intFromBool(semi), rgb, xy0, xy1);
+}
+
+const Mode = *const fn (?*anyopaque, c_int) callconv(.c) void;
 
 /// What vs_battle_insertTpage linked for a draw mode word (GP0 E1): the draw mode as an item at `ot`.
 pub fn drawMode(ot: ?*anyopaque, e1: c_int) void {
@@ -65,12 +68,12 @@ pub fn mask(ot: ?*anyopaque, on: bool) void {
     psx.weak(Mask, "vs_battle_maskItem").?(ot, @intFromBool(on));
 }
 
-const Ft4 = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
+const Ft4 = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) c_int;
 
 /// A textured quad at `ot`: its page word and CLUT, the colour its texels are scaled by (`raw`: drawn as they are), corners as x low
 /// and y high, texels as u low and v high.
-pub fn ft4(ot: ?*anyopaque, raw: bool, semi: bool, tpage: c_int, clut: c_int, rgb: c_int, xy: []const c_int, uv: []const c_int) void {
-    psx.weak(Ft4, "vs_battle_ft4Item").?(ot, @intFromBool(raw), @intFromBool(semi), tpage, clut, rgb, xy.ptr, uv.ptr);
+pub fn ft4(ot: ?*anyopaque, raw: bool, semi: bool, tpage: c_int, clut: c_int, rgb: c_int, xy: []const c_int, uv: []const c_int) c_int {
+    return psx.weak(Ft4, "vs_battle_ft4Item").?(ot, @intFromBool(raw), @intFromBool(semi), tpage, clut, rgb, xy.ptr, uv.ptr);
 }
 
 const Area = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int, c_int, c_int) callconv(.c) void;
@@ -79,4 +82,24 @@ const Area = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int, c_int, c
 pub fn area(ot: ?*anyopaque, x: c_int, y: c_int, w: c_int, h: c_int, offset: ?[2]c_int) void {
     const o = offset orelse [2]c_int{ 0, 0 };
     psx.weak(Area, "vs_battle_areaItem").?(ot, x, y, w, h, @intFromBool(offset != null), o[0], o[1]);
+}
+
+const LineG2 = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int) callconv(.c) c_int;
+const Hidden = *const fn (c_int) callconv(.c) void;
+
+/// A shaded line at `ot` between two points (a colour and a corner each), semi-transparent when `semi`; returns the item.
+pub fn lineG2(ot: ?*anyopaque, semi: bool, rgb0: c_int, xy0: c_int, rgb1: c_int, xy1: c_int) c_int {
+    return psx.weak(LineG2, "vs_battle_lineItem").?(ot, @intFromBool(semi), rgb0, xy0, rgb1, xy1);
+}
+
+/// The item is left out of the hardware picture and kept in the game's own.
+pub fn hardwareHidden(item: c_int) void {
+    psx.weak(Hidden, "vs_battle_itemHardwareHidden").?(item);
+}
+
+const Bracket = *const fn (c_int) callconv(.c) void;
+
+/// The item is bracketed by the default draw mode as the effects' packets were (a draw mode set before it, the dithering one after it).
+pub fn bracketed(item: c_int) void {
+    psx.weak(Bracket, "vs_battle_itemBracket").?(item);
 }

@@ -11,6 +11,7 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
     const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
     const image = image_arg.?;
     var alpha: c_int = image.unk3;
+    var semi: bool = undefined;
     var background: c_int = undefined; // set when color is nonzero, the only case that reads it
     const tiles: [*]align(1) u16 = @ptrCast(&image.imageTable[4]); // the PS1's image + 0x200: past the table's first four words
     const scale: c_int = image.unkC & 0x3FFF;
@@ -37,22 +38,23 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
         const r = ((color << 3) & 0xF8) * alpha;
         const g = ((color >> 2) & 0xF8) * alpha;
         const b = ((color >> 7) & 0xF8) * alpha;
-        background = (r >> 7) | ((g >> 7) << 8) | ((b >> 7) << 16) | ((@as(c_int, v.g.D_800F51C8().*) + 48) << 25);
+        background = (r >> 7) | ((g >> 7) << 8) | ((b >> 7) << 16);
+        semi = (v.g.D_800F51C8().* & 1) != 0; // (the colour word's command byte was 0x60 + 2 * it: a tile, semi-transparent when it is 1)
         i = row_y[0];
         if (i > 0) {
-            sprite_item.tile(ot, background, 0, 320 | (i << 16));
+            sprite_item.tileFlat(ot, semi, background, 0, 320 | (i << 16));
         }
         i = row_y[@intCast(rows)];
         if (i < 240) {
-            sprite_item.tile(ot, background, i << 16, 320 | (0xF00000 -% (i << 16)));
+            sprite_item.tileFlat(ot, semi, background, i << 16, 320 | (0xF00000 -% (i << 16)));
         }
         i = column_x[0];
         if (i > 0) {
-            sprite_item.tile(ot, background, 0, i | 0xF00000);
+            sprite_item.tileFlat(ot, semi, background, 0, i | 0xF00000);
         }
         i = column_x[@intCast(columns)];
         if (i < 320) {
-            sprite_item.tile(ot, background, i & 0xFFFF, (320 - i) | 0xF00000);
+            sprite_item.tileFlat(ot, semi, background, i & 0xFFFF, (320 - i) | 0xF00000);
         }
     }
     const quad_color: c_int = alpha | (alpha << 8) | (alpha << 16) | ((@as(c_int, v.g.D_800F51C8().*) + 22) << 25);
@@ -107,7 +109,7 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                     psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(prim + 11)));
                 }
             } else if (color != 0 and (color != 0x8000 or v.g.D_800F51C8().* == 0)) {
-                sprite_item.tile(ot, background, (left & 0xFFFF) | (top << 16), (right -% left) | ((bottom -% top) << 16));
+                sprite_item.tileFlat(ot, semi, background, (left & 0xFFFF) | (top << 16), (right -% left) | ((bottom -% top) << 16));
             }
         }
     }

@@ -18,6 +18,10 @@ pub fn func_800D6D24(sequence: [*c]v.func_800D6CF_t) callconv(.c) void {
         switch (@as(c_uint, @bitCast(word)) & 0xF0000000) {
             0 => {
                 const table = psx.get(psx.at(&v.g.D_800F569C().*.?.block1Tables, s.unk16).*); // block1Tables[4]: unk16 is not checked
+                if (table == null) { // ROOD_PC guard: the effect's data names a table its file does not have (another action's file is loaded: the dev RPC action's start); the PS1 reads low RAM here
+                    psx.put(&s.unk1C, @as(?*v.pFileBlock1Indices, null));
+                    return;
+                }
                 psx.put(&s.unk1C, @as(*v.pFileBlock1Indices, @ptrFromInt(@intFromPtr(table) +% @as(usize, @intCast(word & 0xFFFF)) * @sizeOf(v.pFileBlock1Indices))));
                 @as(*align(1) i16, @ptrCast(&s.unk6)).* = psx.conv(i16, (word >> 16) & 0x3FFF);
                 s.unkE +%= 4;

@@ -3,9 +3,10 @@ const c = @import("c_effect_particles");
 const v = @import("views_effect_particles");
 const psx = @import("common").psx;
 const gte = @import("common").gte;
+const sprite_item = @import("common").sprite_item;
 
 const NativeBegin = *const fn () callconv(.c) void;
-const NativeNode = *const fn ([*c]c_uint, [*c]c_uint, c_int, [*c]const c_int, c_int, c_uint, c_int, c_int, ?*const anyopaque, c_int, c_uint) callconv(.c) void;
+const NativeNode = *const fn ([*c]c_uint, [*c]c_uint, c_int, c_int, [*c]const c_int, c_int, c_uint, c_int, c_int, ?*const anyopaque, c_int, c_uint) callconv(.c) void;
 const NativeEnd = *const fn ([*c]c_uint, [*c]c_uint) callconv(.c) [*c]c_uint;
 
 /// gte_mvmva(1, 1, vector, 1, 0): the sprite's rotation applied to V0..V2.
@@ -127,13 +128,10 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
             8 => depth = -11,
             else => {},
         }
-        var packet: [*]c_uint = @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?));
-        const node_start = packet;
-        psx.put(&v.g.vs_scratch().unk0, @as(?*anyopaque, @ptrCast(packet + 3)));
-        packet[0] = (otSlot(depth).* & 0xFFFFFF) | 0x1000000;
-        otSlot(depth).* = (otSlot(depth).* & 0xFF000000) | (psx.addr(packet) & 0xFFFFFF);
-        packet[1] = 0xE1000200;
-        packet[2] = 0;
+        // The node's tiles are draw items (one marker each at its slot, where the packets linked): the packets' end bracket
+        // and the first item's index are what the native path reads them by.
+        const node_start: [*c]c_uint = @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?));
+        const node_first: c_int = c.pc_frame_count();
         if (node.flags & 0x10000 != 0) {
             x = ((x +% (node.dx >> 5)) & 0xFFFF) +% ((y +% (node.dy >> 5)) << 16);
             z +%= node.dz >> 5;
@@ -214,7 +212,8 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         }
         var index: c_int = 0;
         while (index < indices.unk0) : (index +%= 1) {
-            packet = @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?));
+            var xy: [4]c_int = undefined;
+            var uv: [4]c_int = undefined;
             c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 8)).*, 0);
             c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 12)).*, 2);
             c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 16)).*, 4);
@@ -222,49 +221,39 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
             z = @as(*align(1) u16, @ptrCast(tile + 4)).*; // &tile->u0
             const size: c_int = @as(*align(1) u16, @ptrCast(tile + 6)).*; // &tile->u1
             _ = c.doCOP2(mvmva_v0);
-            @as(*align(1) u16, @ptrCast(&packet[7])).* = psx.conv(u16, z +% (size & 0xFF00));
-            packet[5] = @bitCast((z +% (size & 0xFF)) | ((y >> 16) << 16));
+            uv[2] = psx.conv(u16, z +% (size & 0xFF00));
+            uv[1] = (z +% (size & 0xFF)) & 0xFFFF;
             a = @bitCast(c.MFC2(9));
             b = @bitCast(c.MFC2(10));
-            packet[2] = @bitCast((a & 0xFFFF) +% (b << 16));
+            xy[0] = (a & 0xFFFF) +% (b << 16);
             _ = c.doCOP2(mvmva_v1);
-            if (y & 0x8000 != 0) {
-                packet[1] = @as(c_uint, @bitCast(rgb)) | 0x2E000000;
-            } else {
-                packet[1] = @as(c_uint, @bitCast(rgb)) | 0x2C000000;
-            }
-            @as(*align(1) u16, @ptrCast(&packet[9])).* = psx.conv(u16, z +% size);
+            uv[3] = psx.conv(u16, z +% size);
             a = @bitCast(c.MFC2(9));
             b = @bitCast(c.MFC2(10));
-            packet[4] = @bitCast((a & 0xFFFF) +% (b << 16));
+            xy[1] = (a & 0xFFFF) +% (b << 16);
             _ = c.doCOP2(mvmva_v2);
-            psx.put(&v.g.vs_scratch().unk0, @as(?*anyopaque, @ptrCast(@as([*]c_uint, @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?))) + 10)));
-            packet[0] = (otSlot(depth).* & 0xFFFFFF) | 0x9000000;
             a = @bitCast(c.MFC2(9));
             b = @bitCast(c.MFC2(10));
-            packet[6] = @bitCast((a & 0xFFFF) +% (b << 16));
+            xy[2] = (a & 0xFFFF) +% (b << 16);
+            uv[0] = z & 0xFFFF;
             c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 20)).*, 0); // &tile->unk8[12]
-            packet[3] = @as(c_uint, @bitCast(z & 0xFFFF)) | (@as(c_uint, @bitCast(y)) << 16);
             _ = c.doCOP2(mvmva_v0);
             tile += @sizeOf(v.pFileBlock1Data);
-            otSlot(depth).* = (otSlot(depth).* & 0xFF000000) | (psx.addr(packet) & 0xFFFFFF);
             a = @bitCast(c.MFC2(9));
             b = @bitCast(c.MFC2(10));
-            packet[8] = @bitCast((a & 0xFFFF) +% (b << 16));
+            xy[3] = (a & 0xFFFF) +% (b << 16);
+            // The tile: a textured quad with its page (the high half of its first word) and CLUT, semi-transparent by the CLUT's top
+            // bit; the colour word's command byte is the packet's (the item's colour is its low three bytes).
+            const item = sprite_item.ft4(@ptrCast(otSlot(depth)), false, y & 0x8000 != 0, y >> 16, y & 0xFFFF, rgb, &xy, &uv);
+            sprite_item.bracketed(item);
         }
-        packet = @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?));
-        psx.put(&v.g.vs_scratch().unk0, @as(?*anyopaque, @ptrCast(packet + 3)));
-        packet[0] = (otSlot(depth).* & 0xFFFFFF) | 0x1000000;
-        otSlot(depth).* = (otSlot(depth).* & 0xFF000000) | (psx.addr(packet) & 0xFFFFFF);
-        packet[1] = 0xE1000000;
-        packet[2] = 0;
         if (psx.weak(NativeNode, "pc_particles_native_node")) |native_node| {
             // The node's particle system for glows (glows.c): its sprite
             // script and table, and the matrix it is attached to.
             const attached = node.flags & 0x20000 != 0;
             const source: c_uint = (psx.rawOf(node.sprite.unk18) *% 2654435761) ^ (@as(c_uint, node.sprite.unk16) << 8) ^
                 (if (attached) 0x10000 +% @as(c_uint, node.matrixIndex) else 0);
-            native_node(node_start, @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?)), indices.unk0, &view, centre_sz, centre_xy, depth, @intFromBool(mode >= 5 and mode <= 8), node, node.curves.fields.age, (source & 0x07ffffff) | (if (attached) @as(c_uint, 0x08000000) else 0) | 1); // attached: glows.c
+            native_node(node_start, @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?)), node_first, indices.unk0, &view, centre_sz, centre_xy, depth, @intFromBool(mode >= 5 and mode <= 8), node, node.curves.fields.age, (source & 0x07ffffff) | (if (attached) @as(c_uint, 0x08000000) else 0) | 1); // attached: glows.c
         }
     }
     if (psx.weak(NativeEnd, "pc_particles_native_end")) |native_end| {

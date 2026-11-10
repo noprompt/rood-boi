@@ -1001,9 +1001,8 @@ extern void pc_hw_native_translucent(uint32_t, int, int, int, int, const int*, u
 /* Vector talk bubbles (ui_bubbles.c): their packets are drawn here as on the
  * PS1 but left out of the hardware target, which draws the shapes instead. */
 extern void pc_ui_bubble_packet(const void*, int, int, const int*) __attribute__((weak));
-extern int pc_weather_packet_hidden(const void*) __attribute__((weak));
-extern void pc_weather_frame_drawn(void) __attribute__((weak));
 extern int pc_hw_suppress __attribute__((weak)); /* gpu_hw.c: the packet is left out of the hardware picture */
+extern int pc_frame_drawing_hidden __attribute__((weak)); /* draw_items.c */
 /* Typed draw items (draw_items.c) placed in the ordering table by marker packets: drawn where the marker is. */
 extern int pc_frame_marker(const uint32_t*, int*, int*) __attribute__((weak));
 extern void pc_frame_draw_run(int, int) __attribute__((weak));
@@ -1178,16 +1177,8 @@ static void draw_packet(void* data, int chain)
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
             pc_ui_bubble_packet(p, draw_x, draw_y, clip);
         }
-        if (pc_weather_packet_hidden && &pc_hw_suppress) { /* a rain drop room geometry hides (environment.cpp) */
-            static int weather_hid;
-            if (pc_weather_packet_hidden(p))
-                pc_hw_suppress = 1, weather_hid = 1;
-            else if (weather_hid) {
-                weather_hid = 0;
-                if (!pc_ui_bubble_packet)
-                    pc_hw_suppress = 0;
-            }
-        }
+        if (chain == 2 && pc_frame_drawing_hidden && &pc_hw_suppress) /* a draw item the hardware picture leaves out (a rain drop room geometry hides) */
+            pc_hw_suppress = 1;
         if (render_is_marker && pc_hw_native_marker && render_is_marker(p)) {
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
             pc_hw_native_marker(p[2], draw_x, draw_y, clip, texture_window, (int)mask_set);
@@ -1452,8 +1443,6 @@ extern int pc_ui_ashley_ot_model(void) __attribute__((weak));
 extern void pc_hw_frame_menu_model(int on) __attribute__((weak));
 void pc_battle_frame_complete(void)
 {
-    if (pc_weather_frame_drawn)
-        pc_weather_frame_drawn(); /* the rain packets hidden in it are drawn */
     if (pc_ui_ashley_ot_model && pc_hw_frame_menu_model)
         pc_hw_frame_menu_model(pc_ui_ashley_ot_model());
     ++battle_frames;
