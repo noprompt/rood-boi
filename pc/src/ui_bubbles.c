@@ -226,7 +226,7 @@ static int check_packets(bubble* B, const segments* seg, const polygons* poly)
         return 0;
     const uint32_t* p = flat;
     const uint32_t* end = flat + flat_n;
-    int lines = 0, fills = 0, shadows = 0;
+    int lines = 0, fills = 0, shadows = 0, shadow_lines = 0;
     int debug = debug_level() == 5;
 #define MISMATCH(what)                                                                                               \
     do {                                                                                                             \
@@ -240,7 +240,12 @@ static int check_packets(bubble* B, const segments* seg, const polygons* poly)
         if (p + 1 + len > end)
             MISMATCH("past the end");
         unsigned code = len ? p[1] >> 24 : 0;
-        if (len == 3 && code == 0x40) {
+        if (len == 3 && code == 0x40 && !(p[1] & 0xFFFFFF)) { /* (a shadow's outline: black; the bubble's own is not) */
+            ++shadow_lines;
+        } else if ((len == 4 || len == 5) && (code == 0x20 || code == 0x28) && !(p[1] & 0xFFFFFF)) { /* (its polygon) */
+            B->shadow_rgb = 0;
+            ++shadows;
+        } else if (len == 3 && code == 0x40) {
             if (lines >= seg->count)
                 MISMATCH("extra line");
             const int* a = B->game_points[seg->a[lines]];
@@ -262,9 +267,6 @@ static int check_packets(bubble* B, const segments* seg, const polygons* poly)
             B->clut = p[3] >> 16;
             B->tpage = (p[5] >> 16) & 0xFFFF;
             ++fills;
-        } else if (len == 12 && (code == 0x20 || code == 0x28) && (p[6] >> 24) == 0x48) {
-            B->shadow_rgb = p[6] & 0xFFFFFF;
-            ++shadows;
         } else if (len == 3 && code == 0xE1) {
             B->window = (p[2] >> 24) == 0xE2 ? p[2] & 0xFFFFF : 0;
         }
@@ -274,9 +276,9 @@ static int check_packets(bubble* B, const segments* seg, const polygons* poly)
     }
 #undef MISMATCH
     if (debug)
-        fprintf(stderr, "[ui]   packets: %d lines (%d), %d fills (%d), %d shadows\n", lines, seg->count, fills,
-            poly->count, shadows);
-    return lines == seg->count && fills == poly->count && shadows == poly->count && lines > 2;
+        fprintf(stderr, "[ui]   packets: %d lines (%d), %d fills (%d), %d shadows (%d lines)\n", lines, seg->count, fills,
+            poly->count, shadows, shadow_lines);
+    return lines == seg->count && fills == poly->count && shadows == poly->count && shadow_lines == 4 * shadows && lines > 2;
 }
 
 /* The frame's packets as one list: each marker's items lowered to the packets they stand for (draw items a printer placed:

@@ -4,6 +4,8 @@ const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
+const BubbleFace = *const fn ([*c]c_uint, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
+const BubbleShadow = *const fn ([*c]c_uint, c_int, [*]const c_int) callconv(.c) void;
 const BubbleFrame = *const fn (c_int, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
 /// The bubble's projected points: 16-bit x, y pairs in the scratchpad, read back as words.
@@ -15,10 +17,6 @@ fn px(k: c_int) c_int {
 
 fn py(k: c_int) c_int {
     return @as(*const [2]i16, @ptrCast(psx.at(points, k))).*[1];
-}
-
-fn link(prim: [*c]c_uint) c_uint {
-    return (psx.addr(prim) << 8) >> 8;
 }
 
 /// orig: func_800CD3E4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
@@ -101,7 +99,6 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
         n = n + 1;
     }
     c.vs_battle_insertTpage(@bitCast(@as(c_uint, 0xE2000000)), ot + 2);
-    var prim: [*c]c_uint = @ptrCast(@alignCast(psx.get(scratch.unk0)));
     flip = box.brightness;
     flip = flip | (flip << 8) | (flip << 16);
     n = 0;
@@ -131,42 +128,25 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
             } else {
                 h = 0;
             }
-            prim[0] = (ot[2] & 0xFFFFFF) | @as(c_uint, @bitCast((quad + 7) << 24));
-            prim[1] = @bitCast(flip | ((quad + 9) << 26));
             x = (x >> 6) << 6;
             y = (y >> 6) << 6;
-            prim[2] = @bitCast(psx.at(points, v_).*);
-            prim[3] = @bitCast(((px(v_) - x) & 0xFF) | (((py(v_) - y) << 8) & 0xFF00) | 0x373E0000);
-            prim[4] = @bitCast(psx.at(points, i).*);
-            prim[5] = @bitCast(((px(i) - x) & 0xFF) | (((py(i) - y) << 8) & 0xFF00) | 0x170000);
-            prim[6] = @bitCast(psx.at(points, w).*);
-            prim[7] = @bitCast(((px(w) - x) & 0xFF) | (((py(w) - y) << 8) & 0xFF00));
-            prim[8] = @bitCast(psx.at(points, h).*);
-            prim[9] = @bitCast(((px(h) - x) & 0xFF) | (((py(h) - y) << 8) & 0xFF00));
-            ot[2] = link(prim);
-            prim += @as(usize, @intCast(quad + 8));
-            prim[0] = (ot[1] & 0xFFFFFF) | 0x0C000000;
-            prim[1] = @bitCast((quad + 8) << 26);
-            prim[2] = @bitCast(((px(v_) + 2) & 0xFFFF) | ((py(v_) + 2) << 16));
-            prim[3] = @bitCast(((px(i) + 2) & 0xFFFF) | ((py(i) + 2) << 16));
-            prim[4] = @bitCast(((px(w) + 2) & 0xFFFF) | ((py(w) + 2) << 16));
-            if (quad != 0) {
-                prim[5] = @bitCast(((px(h) + 2) & 0xFFFF) | ((py(h) + 2) << 16));
-            } else {
-                prim[5] = 0;
+            // The face (a textured polygon, its texels the corners' offsets from the top left of the 64 grid) and its shadow
+            // (two pixels over and down: a black polygon and its outline), as draw items.
+            const corners = [4]c_int{ v_, i, w, h };
+            var xy: [4]c_int = undefined;
+            var uv: [4]c_int = undefined;
+            var shadow: [4]c_int = undefined;
+            var m: usize = 0;
+            while (m < 4) : (m += 1) {
+                xy[m] = psx.at(points, corners[m]).*;
+                uv[m] = ((px(corners[m]) - x) & 0xFF) | (((py(corners[m]) - y) << 8) & 0xFF00);
+                shadow[m] = ((px(corners[m]) + 2) & 0xFFFF) | ((py(corners[m]) + 2) << 16);
             }
-            prim[6] = 0x48000000;
-            prim[7] = prim[2];
-            prim[8] = prim[3];
-            prim[9] = prim[@intCast(quad + 3)];
-            prim[10] = prim[4];
-            prim[11] = prim[2];
-            prim[12] = 0x55555555;
-            ot[1] = link(prim);
-            prim += 13;
+            const verts_n: c_int = if (quad != 0) 4 else 3;
+            if (psx.weak(BubbleFace, "vs_battle_bubbleFace")) |face_item| face_item(ot + 2, verts_n, flip, &xy, &uv);
+            if (psx.weak(BubbleShadow, "vs_battle_bubbleShadow")) |shadow_item| shadow_item(ot + 1, verts_n, &shadow);
         }
     }
-    psx.put(&scratch.unk0, @as(?*anyopaque, @ptrCast(prim)));
     c.vs_battle_addTile(ot + 2, @bitCast(@as(c_uint, 0xE1000017)), @bitCast(@as(c_uint, 0xE2000318)), 0);
     // ROOD_PC: the talk bubble's frame.
     if (psx.weak(BubbleFrame, "pc_bubble_frame")) |hook| hook(index, box, shape, frame_start, psx.get(scratch.unk0));

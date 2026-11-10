@@ -32,7 +32,10 @@ The menus' lane: the screens the classic UI draws, reached by the routes classic
 save room's game, the classic look: the shipped plugins on, so rood.classic's claims draw what they claim;
 --claims off leaves the game's own drawing), with the display hashed every N vsyncs (default 10) through
 everything each route does. Old, old again (the control) and new are compared route by route. The routes are
-SCENES below: a new screen's route is one function there, or one of classic_parity.py's tours wrapped as the others are.
+SCENES below: a new screen's route is one function there, or one of classic_parity.py's tours wrapped as the others are. Routes:
+mainmenu, manual, levelled, items, magic, arts, abilities, status, score, map, data (MENU7's SAVE and LOAD file menus), setup, loot,
+storage, ending, menuf, dialogue (the talk bubble's every shape: first_bubble), title (its menu and its file menu's copy) and gameover
+(MENU7's game over LOAD).
 """
 import argparse
 import hashlib
@@ -369,26 +372,6 @@ def scene_menuf(g, cp, symbols):
     cp.tour_menuf(g, symbols, lambda *args, **kwargs: None, lambda: None)
 
 
-def own_menus(cp, out, card, env, wrap):
-    """Every MAINMENU screen's tour (classic_parity.py run_menus: Items, the magic and arts lists, Abilities, the manual,
-    Status, Score, the Map, Data, Setup and its rename grid, Loot, Storage), the games it launches hashed. The gate's own
-    parity mode is on there (the game draws, its claims are only compared): this is the game's drawing."""
-    import tomllib
-    real = cp.launch_at
-
-    def launch(*args, **kwargs):
-        g = real(*args, **kwargs)
-        wrap(g)
-        return g
-    cp.launch_at = launch
-    # (the manual's own state is read by symbol, which not every build answers: its route is the `manual` one)
-    cp.tour_manual = lambda *args, **kwargs: None
-    cp.manual_open = lambda *args, **kwargs: None
-    cp.MENUS_CARD2[:] = [cp.card2_fixture(out, card)]  # (card 2: Data's file states, as classic_parity.py main())
-    waivers = tomllib.loads((ROOT / "pc/tests/classic/waivers.toml").read_text())
-    cp.run_menus(out, card, env, lambda ok, message: ok, waivers, list(cp.MENUS))
-
-
 def tour(name):
     """classic_parity.py's tour `name` from a fresh game (each opens its screen itself): its pad work and waits, hashed."""
     def scene(g, cp, symbols):
@@ -397,12 +380,103 @@ def tour(name):
     return scene
 
 
+CHECKPOINT = {"dialogue": "first_bubble", "title": "title"}  # (the routes that do not start in the save room)
+
+
+def scene_dialogue(g, cp, symbols):
+    """The duke's talk bubble (the first_bubble checkpoint, no card): its zoom; every bubble shape the frames' table has,
+    each flip and tail, written into the open box's fields (classic_parity.py tour_text_frame); the next lines."""
+    import struct
+    boxes, table = symbols["vs_battle_textBoxes"], symbols["D_800EB588"]
+    ptr = cp.PTR
+    g.run(200)
+
+    def open_box():
+        for i in range(8):
+            flags = struct.unpack_from("<I", g.read(boxes + i * 0x30, 4))[0]
+            state = struct.unpack("<h", g.read(boxes + i * 0x30 + 0x1C, 2))[0]
+            if state != 0 and (flags & 15) in (2, 7):
+                return i, flags
+        return None, None
+    box, flags = open_box()
+    if box is None:
+        raise SystemExit("build_compare dialogue: no talk bubble open")
+    shapes = [k for k in range(16) if int.from_bytes(g.read(table + k * ptr, ptr), "little")]
+    try:
+        for shape in shapes:
+            for flip in range(4):
+                for tail in range(4):
+                    g.write(boxes + box * 0x30, struct.pack("<I", (flags & ~0xFFC0) | flip << 6 | shape << 8 | tail << 12
+                                                            | (flags & 0xFFFF0000)))
+                    g.run(3)
+    finally:
+        g.write(boxes + box * 0x30, struct.pack("<I", flags))
+    for _ in range(3):  # the next lines: the bubble closes, the next one opens and zooms in
+        g.press("circle", vsyncs=3, settle=0)
+        g.run(300)
+
+
+def scene_title(g, cp, symbols):
+    """The title (no card needed to rest): its menu idle, then Start and Continue: the LOAD screen (TITLE 22C.c's copy of
+    the file menu): the cards, card 1's files walked past the last page and back, the first file loaded."""
+    def press(button, settle=8):
+        g.press(button, vsyncs=3, settle=settle)
+    g.run(300)
+    g.press("start", vsyncs=4, settle=90)
+    for button in ("down", "up", "down", "up"):
+        press(button, 30)
+    press("circle", 90)  # Continue: the LOAD screen, its cards
+    for button in ("down", "up", "down", "up"):
+        press(button)
+    press("circle", 90)  # card 1's files
+    for button in ("down",) * 17 + ("up",) * 17:
+        press(button, 4)
+    press("cross", 60)
+    press("circle", 90)
+    g.run(30)
+    press("circle", 0)  # its first file: loaded
+    g.run(500)
+
+
+def scene_gameover(g, cp, symbols):
+    """The game over's LOAD (MENU7 vs_menu7_gameOver): Ashley's HP to 0, Continue, the cards, card 1's files walked, the
+    first file loaded."""
+    import struct
+    PTR = cp.PTR
+
+    def press(button, settle=8):
+        g.press(button, vsyncs=3, settle=settle)
+
+    def ashley():
+        actor = int.from_bytes(g.read(symbols["vs_battle_actors"], PTR), "little")
+        try:
+            return actor and g.actor_stats(actor)
+        except Exception:
+            return 0
+    g.until(ashley, step=10, guard=600, what="Ashley in the room")
+    g.run(60)
+    g.write(ashley() + 0x18, (0).to_bytes(2, "little"))
+    g.until(lambda: g.state()["game_over"], step=10, guard=200, what="Game Over")
+    g.run(240)
+    for _ in range(6):
+        press("circle", 30)
+        g.run(30)
+    g.run(90)
+    for button in ("down", "up"):
+        press(button)
+    press("circle", 90)
+    for button in ("down",) * 17 + ("up",) * 17:
+        press(button, 4)
+    g.run(30)
+    press("circle", 0)
+    g.run(400)
+
+
 SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu, "manual": scene_manual,
           "score": tour("score"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items"),
-          "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data")}
-OWN = {"menus": own_menus}  # (routes that launch their own games, and take hashed() as wrap)
-
-
+          "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data"),
+          "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
+          "gameover": scene_gameover}
 def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):
     """The routes of `names`, each in a game of its own: {route: [display hashes]}."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER=renderer, ROOD_ARCH="64",
@@ -427,22 +501,12 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
         env["ROOD_PLUGINS_SHIPPED"] = str(ROOT / "pc/plugins")
     results = {}
     for name in names:
-        if name in OWN:
-            hashes = []
-            plugins = out / "own-plugins"
-            plugins.mkdir()
-            own = {k: v for k, v in env.items() if k not in ("ROOD_AUDIO", "ROOD_GI", "ROOD_WINDOW", "ROOD_OUT", "ROOD_LIGHTS", "ROOD_PREFABS")}  # (as classic_parity's)
-            own.update(ROOD_PLUGINS=str(plugins), ROOD_PLUGINS_SHIPPED=str(ROOT / "pc/plugins"), ROOD_CLASSIC_PARITY="1")
-            (out / "own-settings.cfg").write_text(f"ui_menus 0\nui_text font\naspect {aspect}\ninterpolate 0\n")
-            own["ROOD_SETTINGS"] = str(out / "own-settings.cfg")
-            own_card = out / f"card-{name}.mcd"
-            own_card.write_bytes(pathlib.Path(card).read_bytes())
-            OWN[name](cp, out, str(own_card), own, lambda game: hashed(game, out, sample, hashes))
-            results[name] = {"hashes": hashes, "word_glyphs": None, "item_words": None, "status_glyphs": None}
-            continue
         card_copy = out / f"card-{name}.mcd"
-        card_copy.write_bytes(pathlib.Path(card).read_bytes())
-        g = launch_at("save_room", card=str(card_copy), fast=True, log=out / f"{name}.log", extra_env=env)
+        if name == "dialogue":  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
+            card_copy = out / "no-card.mcd"
+        else:
+            card_copy.write_bytes(pathlib.Path(card).read_bytes())
+        g = launch_at(CHECKPOINT.get(name, "save_room"), card=str(card_copy), fast=True, log=out / f"{name}.log", extra_env=env)
         hashes = []
         try:
             hashed(g, out, sample, hashes)
@@ -474,9 +538,9 @@ def run_menus(binary, args, names):
 
 def compare_menus(args):
     names = [n for n in args.menus.split(",") if n]
-    unknown = [n for n in names if n not in SCENES and n not in OWN]
+    unknown = [n for n in names if n not in SCENES]
     if unknown:
-        sys.exit(f"build_compare: no route {unknown} (have {', '.join(list(SCENES) + list(OWN))})")
+        sys.exit(f"build_compare: no route {unknown} (have {', '.join(SCENES)})")
     first, control, new = run_menus(args.old, args, names), run_menus(args.old, args, names), run_menus(args.new, args, names)
     code = 0
     for name in names:
@@ -667,7 +731,7 @@ def main():
     parser.add_argument("--play-casts", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--play-audio", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--audio", choices=["on", "off"], default="on", help="the sound lane after the fight: the room's recorded mix, old, old again and new, byte for byte")
-    parser.add_argument("--menus", nargs="?", const="ending,menuf", help="the menus' lane: the routes to play (ending,menuf,mainmenu)")
+    parser.add_argument("--menus", nargs="?", const="ending,menuf", help="the menus' lane: the routes to play (see the top of this file)")
     parser.add_argument("--menu-sample", type=int, default=MENU_SAMPLE, help="--menus: vsyncs between display hashes")
     parser.add_argument("--claims", choices=["on", "off"], default="on", help="--menus: rood.classic's claims on or off")
     parser.add_argument("--new-env", action="append", default=[], metavar="KEY=VALUE", help="--menus: set in NEW's game (a dev flag such as ROOD_CLASSIC_ITEMS=1)")

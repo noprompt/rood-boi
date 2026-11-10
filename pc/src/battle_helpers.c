@@ -83,6 +83,49 @@ int vs_battle_spriteColor(int item, int colour)
     return item;
 }
 
+/* A talk bubble's textured face as an item (func_800CD3E4): a flat-coloured triangle or quad (`verts`) with its texels and the page
+ * 0x17 and CLUT 0x373E it names, placed at the table entry `ot` where its packet linked. `xy` and `uv` (u low, v high) per corner. */
+void vs_battle_bubbleFace(unsigned* ot, int verts, int rgb, const int* xy, const int* uv)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_POLY, 0);
+    if (it) {
+        it->verts = (unsigned char)verts, it->flags = PC_ITEM_TEXTURED, it->mode = 0x17, it->clut = 0x373E;
+        it->rgb[0][0] = (unsigned char)rgb, it->rgb[0][1] = (unsigned char)(rgb >> 8), it->rgb[0][2] = (unsigned char)(rgb >> 16);
+        for (int i = 0; i < verts; i++) {
+            it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+            it->u[i] = (unsigned char)uv[i], it->v[i] = (unsigned char)(uv[i] >> 8);
+        }
+    }
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot, cursor));
+}
+
+/* The face's shadow: a black polygon and its outline (the lines the polyline drew: corner 0, 1, 1 (a triangle) or 3, 2, 0), in
+ * whatever draw mode the GPU is in. `xy` already offset. */
+void vs_battle_bubbleShadow(unsigned* ot, int verts, const int* xy)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    int ring[5] = { 0, 1, verts == 4 ? 3 : 1, 2, 0 };
+    /* (drawn in reverse of the order added: the outline, then the polygon) */
+    for (int k = 3; k >= 0; k--) {
+        pc_item* line = pc_frame_add(PC_ITEM_LINE, 0);
+        if (line) {
+            line->mode = PC_ITEM_INHERIT;
+            line->x[0] = (short)xy[ring[k]], line->y[0] = (short)(xy[ring[k]] >> 16);
+            line->x[1] = (short)xy[ring[k + 1]], line->y[1] = (short)(xy[ring[k + 1]] >> 16);
+        }
+    }
+    pc_item* poly = pc_frame_add(PC_ITEM_POLY, 0);
+    if (poly) {
+        poly->verts = (unsigned char)verts, poly->mode = PC_ITEM_INHERIT;
+        for (int i = 0; i < verts; i++)
+            poly->x[i] = (short)xy[i], poly->y[i] = (short)(xy[i] >> 16);
+    }
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot, cursor));
+}
+
 short func_800E6694(int id);
 
 
