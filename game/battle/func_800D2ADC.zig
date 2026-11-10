@@ -73,7 +73,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
     var node: ?*Node = null;
     var prevX: c_int = 0; // set before it is read (the ring's interpolated modes)
     var prevZ: c_int = 0;
-    const scratch: *Scratch = @ptrFromInt(0x1F8001D0);
+    const scratch: *Scratch = v.g.pc_effect_scratch();
     const def = psx.at(&psx.get(v.g.D_800F569C().*.?.block5Data).?.unk4, event);
 
     scratch.flags = psx.getBits(def, "flags");

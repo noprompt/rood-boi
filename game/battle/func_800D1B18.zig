@@ -13,5 +13,5 @@ pub fn func_800D1B18(arg0: ?*v.D_800F54D8_t) callconv(.c) void {
     out.roll = c.vs_battle_getCameraRoll() +% 4096 * 8;
     out.nearClip = v.g.vs_main_nearClip().*;
     out.projectionDistance = v.g.vs_main_projectionDistance().*;
-    out.farClip = v.g.vs_scratch().camera.farClip;
+    out.farClip = v.g.vs_view().camera.farClip;
 }

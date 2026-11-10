@@ -33,7 +33,7 @@ extern void pc_hw_anchor_packets(const void* start, const void* end, int anchor)
  * steps toward now, read the way func_8006E640 reads it in the action state
  * (D_800F196C 2): in _cameraMode 1 and 3 the chosen target candidate
  * (unk29C0[unk298D], while one is chosen: the targeting sphere's), in mode 2
- * the area point (unk2998); and the camera's look-at (vs_scratch.camera,
+ * the area point (unk2998); and the camera's look-at (vs_view.camera,
  * world units). out: [0] D_800F196C (-1: no battle state), [1] _cameraMode,
  * [2] a target candidate chosen, [3..5] its point (the body part's, or the
  * actor's: func_800719FC's list), [6] an area point, [7..9] it, [10..12] the

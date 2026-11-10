@@ -24,7 +24,7 @@ pub fn func_80072BA8(action: c_int) callconv(.c) void {
         v.g.D_800F19CC().*.?.unk29A6 = 4;
         v.g.D_800F19CC().*.?.unk29A7 = 0;
         _ = c.func_800A190C(0, 250, @ptrCast(&v.g.D_800F19CC().*.?.unk29A8), 0);
-        _ = c.func_800C05EC(@ptrCast(&v.g.D_800F19CC().*.?.unk29A0), null, 0, 0);
+        _ = c.func_800C05EC(@ptrCast(&v.g.D_800F19CC().*.?.unk29A0), null, 0, null);
 
         v.g.D_800F19CC().*.?.unk29B0 = 2;
         v.g.D_800F19CC().*.?.unk29B1 = 3;
@@ -53,7 +53,7 @@ pub fn func_80072BA8(action: c_int) callconv(.c) void {
             }
         }
         v.g.D_800F19CC().*.?.unk2C00 = psx.conv(u16, count);
-        c.func_800C1664(count, psx.conv(c_int, psx.addr(&v.g.D_800F19CC().*.?.unk29C0[0])), 0);
+        c.func_800C1664(count, &v.g.D_800F19CC().*.?.unk29C0[0], 0);
         v.g._cameraMode().* = 1;
         return;
     }

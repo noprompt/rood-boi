@@ -35,7 +35,7 @@ pub fn func_8009CFB0(slot: c_int) callconv(.c) c_int {
         };
 
         if (!found) {
-            c.func_8004644C(0x180, @ptrCast(@alignCast(psx.get(psx.get(temp.unk0.unk68).?.akaoOffset))), 0);
+            c.func_8004644C(0x180, @ptrFromInt(@intFromPtr(psx.get(temp.unk0.unk68).?) +% psx.get(temp.unk0.unk68).?.akaoOffset), 0);
             c.vs_main_freeHeap(psx.get(temp.unk0.unk68));
             c.vs_main_freeHeap(psx.get(temp.unk5D0));
         }

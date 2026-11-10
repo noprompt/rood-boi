@@ -79,10 +79,12 @@ typedef struct { int fade, brightness, slot, frame; } pc_classic_menu_background
 #define PC_CLASSIC_SITE_MENU_BACKGROUND 23
 typedef struct { int action, y; } pc_classic_menu_command;
 #define PC_CLASSIC_SITE_MENU_COMMAND 24
+/* sizeof(vs_battle_menuItem_t) (58EC.c and hud_bridge.c assert it). */
+#define PC_CLASSIC_MENU_ITEM_BYTES 0x48
 typedef struct {
     const void* row;
     int id;
-    unsigned char item[0x40];
+    unsigned char item[PC_CLASSIC_MENU_ITEM_BYTES];
 } pc_classic_menu_row;
 #define PC_CLASSIC_SITE_MENU_ROW 25
 /* The hand: MAINMENU's (58EC.c vs_mainMenu_renderCursor) or BATTLE's (5BF94.c vs_battle_drawCursor: the same packets,

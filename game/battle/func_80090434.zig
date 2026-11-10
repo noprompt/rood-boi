@@ -17,8 +17,8 @@ fn grey(color: c_int) c_int {
 pub fn func_80090434() callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
+    c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+    c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
 
     var origin: v.VECTOR = undefined;
     var velocity: v.VECTOR = undefined;

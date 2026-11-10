@@ -7,8 +7,8 @@ const c = @import("c_146C");
 pub fn stepTowardTarget(targetPos: ?*v.SVECTOR, transformFlag: c_int, maxSpeed: c_int) callconv(.c) c_int {
     var displacement: v.VECTOR = undefined;
     var step: v.VECTOR = undefined;
-    const scratch = v.g.vs_scratch();
-    const lookAt = &scratch.camera.lookAt;
+    const view = v.g.vs_view();
+    const lookAt = &view.camera.lookAt;
 
     if (c._computeStepAndDisplacement(
         @ptrCast(targetPos),

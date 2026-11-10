@@ -536,7 +536,7 @@ void func_800FA35C(int startState __attribute__((unused)))
     _zoneContext.unk68 = D_80061068.unk6_0;
     vs_battle_cameraTransition = NULL;
     func_80077EC4();
-    vs_scratch.camera.farClip = 0x1000;
+    vs_view.camera.farClip = 0x1000;
     vs_battle_cameraCurrentSpherical.delta.pitch = 0x800;
     vs_battle_cameraCurrentSpherical.values.yaw = 0x800;
     vs_battle_cameraCurrentSpherical.values.pitch = -0x180;

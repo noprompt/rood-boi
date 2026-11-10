@@ -18,7 +18,7 @@ pub fn buildWeaponPackets(projected: [*]c_uint, object: [*]u8, color: [*]const c
     const scratch: *u32 = @ptrFromInt(0x1f800000);
     const start: ?[*]c_uint = @ptrFromInt(@as(usize, scratch.*));
     const ot: ?[*]c_uint = @ptrFromInt(@as(usize, @as(*u32, @ptrFromInt(0x1f800004)).*));
-    const polygons: ?[*]const c_uint = @ptrFromInt(@as(usize, psx.byteAt(u32, model, 0x3c).*));
+    const polygons: ?[*]const c_uint = @ptrFromInt(@intFromPtr(model) +% psx.byteAt(u32, model, 0x3c).*);
     const end = c.pc_weapon_packets(start, ot, projected, projected + 0x300, polygons, @ptrCast(@alignCast(object + 2)), color[0], texture & 0xffff, texture >> 16);
     scratch.* = psx.addr(end);
     if (psx.weak(NativeDraw, "pc_object_native_draw")) |draw| draw(0, projected, object, model, color, start);

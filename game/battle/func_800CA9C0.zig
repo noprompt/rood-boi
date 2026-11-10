@@ -25,7 +25,7 @@ pub fn func_800CA9C0(base: ?*anyopaque) callconv(.c) void {
     v.g.nameWindowText().* = null;
     _ = c.func_800CA97C();
 
-    c.vs_battle_rMemzero(v.g.vs_battle_menuState(), 8);
+    c.vs_battle_rMemzero(v.g.vs_battle_menuState(), @sizeOf(v.vs_battle_menuState_t));
     v.g.vs_battle_menuState().currentMenu = 0x3F;
     c.vs_battle_rMemzero(v.g.D_800F4E98(), @sizeOf(v.D_800F18EC_t));
     c.vs_battle_rMemzero(&v.g.textBoxes()[0], @sizeOf(v.vs_battle_textBox));

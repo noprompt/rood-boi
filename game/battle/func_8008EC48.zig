@@ -15,8 +15,8 @@ pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
     if (v.g.D_800F1DC9().* != 0 and v.g.D_800F1DCC().* != null) {
         const layout = v.g.D_800F1DCC().*.?;
         if (psx.conv(c_uint, layout.width -% 1) < 31 and psx.conv(c_uint, layout.height -% 1) < 31) {
-            const x: c_int = @divTrunc(scratch.camera.angles.vy *% @as(c_int, v.g.D_800F1DB8().*), 4096) -% @as(c_int, v.g.D_800F1DB4().*);
-            const y: c_int = @as(c_int, v.g.D_800F1DB6().*) -% @divTrunc(scratch.camera.angles.vx *% @as(c_int, v.g.D_800F1DBA().*), 4096);
+            const x: c_int = @divTrunc(v.g.vs_view().camera.angles.vy *% @as(c_int, v.g.D_800F1DB8().*), 4096) -% @as(c_int, v.g.D_800F1DB4().*);
+            const y: c_int = @as(c_int, v.g.D_800F1DB6().*) -% @divTrunc(v.g.vs_view().camera.angles.vx *% @as(c_int, v.g.D_800F1DBA().*), 4096);
 
             // ROOD_PC: PC_ANCHOR_PACKETS(PC_ANCHOR_SCENE, ...) around the tile draw (pc/src/widescreen.h).
             const PC_ANCHOR_SCENE: c_int = 0x14;
@@ -87,21 +87,21 @@ pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
         }
 
         var position: v.VECTOR = undefined;
-        position.vx = @divTrunc(scratch.camera.position.vx, 4096);
-        position.vy = @divTrunc(scratch.camera.position.vy, 4096);
-        position.vz = @divTrunc(scratch.camera.position.vz, 4096);
-        position.vx *%= scratch.camera.farClip;
-        position.vy *%= scratch.camera.farClip;
-        position.vz *%= scratch.camera.farClip;
+        position.vx = @divTrunc(v.g.vs_view().camera.position.vx, 4096);
+        position.vy = @divTrunc(v.g.vs_view().camera.position.vy, 4096);
+        position.vz = @divTrunc(v.g.vs_view().camera.position.vz, 4096);
+        position.vx *%= v.g.vs_view().camera.farClip;
+        position.vy *%= v.g.vs_view().camera.farClip;
+        position.vz *%= v.g.vs_view().camera.farClip;
         position.vx = @divTrunc(position.vx, 4096);
         position.vy = @divTrunc(position.vy, 4096);
         position.vz = @divTrunc(position.vz, 4096);
 
-        c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
-        c.SetTransMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
+        c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+        c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
 
         var matrix: v.MATRIX = undefined;
-        if (scratch.camera.farClip != 4096) {
+        if (v.g.vs_view().camera.farClip != 4096) {
             c.func_80098648(psx.cptr(c.VECTOR, &position), psx.cptr(c.VECTOR, angles), psx.cptr(c.MATRIX, &matrix));
         } else {
             c.func_800985AC(psx.cptr(c.VECTOR, &position), psx.cptr(c.VECTOR, angles), psx.cptr(c.MATRIX, &matrix));

@@ -591,7 +591,7 @@ int pc_weapon_slots_process_pad(void)
         s.wmode = s.assign = 0;
         if (s.msg) {
             box = &vs_battle_textBoxes[7];
-            if ((unsigned long)((char*)psx_get(box->string) - (char*)vs_main_inventory.weapons)
+            if ((unsigned long)((char*)box->string - (char*)vs_main_inventory.weapons)
                 < sizeof vs_main_inventory.weapons)
                 vs_battle_dismissTextBox(7);
             s.msg = 0;
@@ -609,7 +609,7 @@ int pc_weapon_slots_process_pad(void)
     /* The weapon name box: ours while box 7 still shows an inventory name. */
     if (s.msg) {
         box = &vs_battle_textBoxes[7];
-        if ((unsigned long)((char*)psx_get(box->string) - (char*)vs_main_inventory.weapons)
+        if ((unsigned long)((char*)box->string - (char*)vs_main_inventory.weapons)
             >= sizeof vs_main_inventory.weapons) {
             s.msg = 0; /* the game took the box over */
         } else if (!FIELD_MENU_CLOSED(vs_battle_menuState.currentMenu)

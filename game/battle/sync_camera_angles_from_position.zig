@@ -8,25 +8,25 @@ const c = @import("c_146C");
 /// orig: vs_battle_syncCameraAnglesFromPosition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Derives the view direction from the camera position and look-at point, stores the angles in the scratchpad, and fills the spherical camera when given.
 pub fn syncCameraAnglesFromPosition(camera: ?*v._sphericalCamera) callconv(.c) c_int {
-    const scratch = v.g.vs_scratch();
+    const view = v.g.vs_view();
 
     var toCamera: v.VECTOR = undefined;
     var toCameraNorm: v.VECTOR = undefined;
 
-    toCamera.vx = @divTrunc(scratch.camera.position.vx -% scratch.camera.lookAt.vx, 4096);
-    toCamera.vz = @divTrunc(scratch.camera.position.vz -% scratch.camera.lookAt.vz, 4096);
-    toCamera.vy = @divTrunc(scratch.camera.position.vy -% scratch.camera.lookAt.vy, 4096);
+    toCamera.vx = @divTrunc(view.camera.position.vx -% view.camera.lookAt.vx, 4096);
+    toCamera.vz = @divTrunc(view.camera.position.vz -% view.camera.lookAt.vz, 4096);
+    toCamera.vy = @divTrunc(view.camera.position.vy -% view.camera.lookAt.vy, 4096);
 
     _ = c.VectorNormal(psx.cptr(c.VECTOR, &toCamera), psx.cptr(c.VECTOR, &toCameraNorm));
 
     var yaw: c_int = c.ratan2(toCameraNorm.vx, toCameraNorm.vz);
     yaw = @rem(yaw +% 4096, 4096);
-    scratch.camera.angles.vy = yaw;
+    view.camera.angles.vy = yaw;
 
     const horiz: c_int = @divTrunc(toCameraNorm.vx *% toCameraNorm.vx, 4096) +%
         @divTrunc(toCameraNorm.vz *% toCameraNorm.vz, 4096);
     const pitch: c_int = c.ratan2(toCameraNorm.vy, c.SquareRoot12(horiz));
-    scratch.camera.angles.vx = pitch;
+    view.camera.angles.vx = pitch;
 
     if (camera) |sph| {
         sph.values.yaw = yaw;

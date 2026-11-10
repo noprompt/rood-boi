@@ -5,6 +5,10 @@ const v = @import("views_146C");
 const c = @import("c_146C");
 
 /// The scratchpad block, addressed by number as the C does.
+fn view() *v.vs_view_t {
+    return v.g.vs_view();
+}
+
 fn scratch() *v.vs_scratch_t {
     return @ptrFromInt(0x1F800000);
 }
@@ -44,8 +48,8 @@ pub fn func_8008AC78() callconv(.c) void {
     var clip: v.RECT = undefined;
     var rotation: v.MATRIX = undefined;
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch().viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &scratch().viewMatrix));
+    c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
+    c.SetTransMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
     c.func_8008DF14();
     c.func_8009627C();
     c.func_8008C0C0();
@@ -61,12 +65,12 @@ pub fn func_8008AC78() callconv(.c) void {
     const state: u16 = roomState();
     if (state != 0x101) return;
     if (psx.get(v.g.vs_battle_roomData().geometrySection) != null) {
-        const vy = scratch().camera.angles.vy;
+        const vy = view().camera.angles.vy;
         // the masked angle is 0..0xFFF, so the shift amounts are 0..7
         const left: c_int = @as(c_int, 1) << @intCast((((0x9C0 -% vy) & 0xFFF) >> 9));
         const right: c_int = @as(c_int, 1) << @intCast((((0x840 -% vy) & 0xFFF) >> 9));
         const front: c_int = @as(c_int, 1) << @intCast((((0x900 -% vy) & 0xFFF) >> 9));
-        scratch().firstPersonViewFacing = (scratch().firstPersonViewFacing & 0xFFFF_FF00) |
+        view().firstPersonViewFacing = (view().firstPersonViewFacing & 0xFFFF_FF00) |
             psx.conv(c_uint, left) | psx.conv(c_uint, right) | psx.conv(c_uint, front);
         c.func_8008B1FC(psx.get(v.g.vs_battle_roomData().geometrySection));
     }
@@ -85,7 +89,7 @@ pub fn func_8008AC78() callconv(.c) void {
     }
     if (v.g.D_800F1CD4().* <= 0) return;
 
-    c.func_8008B590(psx.cptr(c.MATRIX, &rotation), 0x800 -% scratch().camera.angles.vy);
+    c.func_8008B590(psx.cptr(c.MATRIX, &rotation), 0x800 -% view().camera.angles.vy);
     c.SetRotMatrix(psx.cptr(c.MATRIX, &rotation));
     var area: *v.DR_AREA = @ptrCast(@alignCast(psx.get(scratch().unk0).?));
     const mapPackets: *v.DR_AREA = area;
@@ -110,7 +114,7 @@ pub fn func_8008AC78() callconv(.c) void {
     c.func_80098F8C(psx.cptr(c.vs_battle_scene, psx.get(v.g.vs_battle_roomData().sectionF).?));
     v.g.pc_gte_anchored().* = 0;
     c.vs_battle_setGeomOffset(psx.cptr(c.vs_battle_geomOffset, &savedOffset));
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch().viewMatrix));
+    c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
 
     area = @ptrCast(@alignCast(psx.get(scratch().unk0).?));
     c.SetDrawArea(psx.cptr(c.DR_AREA, area), psx.cptr(c.RECT, &clip));
@@ -289,9 +293,9 @@ pub fn battleCameraFocus(out: *[14]c_int) callconv(.c) void {
             out[9] = b.unk2998.vz;
         }
     }
-    out[10] = v.g.vs_scratch().camera.lookAt.vx >> 12;
-    out[11] = v.g.vs_scratch().camera.lookAt.vy >> 12;
-    out[12] = v.g.vs_scratch().camera.lookAt.vz >> 12;
+    out[10] = v.g.vs_view().camera.lookAt.vx >> 12;
+    out[11] = v.g.vs_view().camera.lookAt.vy >> 12;
+    out[12] = v.g.vs_view().camera.lookAt.vz >> 12;
 }
 
 /// orig: pc_battle_event_threads (pc/src/game/BATTLE/BATTLE.PRG/146C.c)

@@ -65,7 +65,7 @@ BASE = {"native_actors": 2, "native_room": 2, "room_slack_units": 2, "aa": "off"
 # The beam (occlusion_smoke): Ashley behind it at zone 51 room 1's save point.
 POSITION = 28  # D_800F4538_t unk0.position
 SPOT = (704, 0, 960)
-YAW = 0x1F800058
+YAW = symbols()["vs_view"] + 0x48  # vs_view: camera.angles.vy
 
 failures = []
 

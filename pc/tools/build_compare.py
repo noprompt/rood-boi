@@ -38,10 +38,12 @@ storage, ending, menuf, dialogue (the talk bubble's every shape: first_bubble), 
 (MENU7's game over LOAD).
 """
 import argparse
+import contextlib
 import hashlib
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -138,14 +140,15 @@ def play(binary, seconds, card, out, width):
 
 
 SCHOOLS = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))
-SAMPLE = 6  # vsyncs between display hashes in an action
+SAMPLE = int(os.environ.get("ROOD_CAST_SAMPLE", 6))  # vsyncs between display hashes in an action (to narrow a difference: 1)
+CAST_ONLY = [int(i) for i in os.environ.get("ROOD_CAST_ONLY", "").split(",") if i]  # --casts: only these spell ids
 
 
 def play_casts(binary, card, out, kinds, limit):
     """Every spell (and art) cast with its holds skipped, the display hashed through each: {action: [hashes]}, and
     the effect polygon call sites the build recorded (empty for a build without the RPC)."""
-    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64",
-                      ROOD_TEST_SNAPSHOTS="0")
+    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=os.environ.get("ROOD_CAST_SYMBOLS", binary), ROOD_HEADLESS="egl",
+                      ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
     sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
     cover(binary)
     from checkpoints import launch_at
@@ -197,11 +200,24 @@ def play_casts(binary, card, out, kinds, limit):
                         break
                 return None
             hashes = []
+            self.last_states = []
             for i in range(soak.WATCHDOG // SAMPLE):
                 g.run(SAMPLE)
                 shot = out / "frame.ppm"
                 g.screenshot(str(shot))
                 hashes.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:12])
+                keep = os.environ.get("BUILD_COMPARE_KEEP")  # a directory: the action's frames, by process and sample
+                if keep:
+                    pathlib.Path(keep).mkdir(parents=True, exist_ok=True)
+                    (pathlib.Path(keep) / f"cast-{os.getpid()}-{len(hashes) - 1:04d}.ppm").write_bytes(shot.read_bytes())
+                try:
+                    state = g.call("battle_state")
+                    if os.environ.get("ROOD_CAST_VIEW"):  # the scene's view record (vs_view; the scratchpad at 0x1F800010 before it)
+                        symbols = sys.modules["rood_rpc"].symbols()
+                        state["view"] = g.read(symbols.get("vs_view", 0x1F800010), 0x58).hex()
+                    self.last_states.append(state)
+                except Exception:
+                    self.last_states.append(None)
                 if i > 2 and self.mode_now()[0] == 1:
                     break
             g.run(4)
@@ -209,7 +225,7 @@ def play_casts(binary, card, out, kinds, limit):
 
     r = Cast("casts", snap, card_copy, env, out, socket, fast=True)
     g, sym = r.g, r.sym
-    actions, sites, peak = {}, [], 0
+    actions, sites, peak, states = {}, [], 0, {}
     try:
         g.call("ui_menu", modern=True)
         g.call("skip_charging", mode="skip", who="all", name=smoke.NAME_SECONDS)
@@ -237,6 +253,8 @@ def play_casts(binary, card, out, kinds, limit):
             for row, spell in enumerate(spells):
                 if limit and count >= limit:
                     break
+                if CAST_ONLY and spell["id"] not in CAST_ONLY:
+                    continue
                 r.refill()
                 r.shell("magick")
                 for _ in range(6):
@@ -250,6 +268,7 @@ def play_casts(binary, card, out, kinds, limit):
                     g.press("down" if c < row else "up", vsyncs=3, settle=4)
                 hashes = r.cast(f"spell {spell['id']}")
                 actions[f"spell {name} {spell['id']}"] = hashes
+                states[f"spell {name} {spell['id']}"] = r.last_states if hashes else None
                 count += hashes is not None
         if "arts" in kinds:
             art0, _ = r.learn_art()
@@ -268,6 +287,7 @@ def play_casts(binary, card, out, kinds, limit):
                         break
                     g.press("down", vsyncs=3, settle=4)
                 actions[f"art {art0 + k}"] = r.cast(f"art {art0 + k}")
+                states[f"art {art0 + k}"] = r.last_states
         try:
             reply = g.call("effect_sites")
             sites, peak = reply["sites"], reply["peak_items"]
@@ -275,7 +295,7 @@ def play_casts(binary, card, out, kinds, limit):
             sites, peak = [], 0
     finally:
         r.close()
-    print("RESULT" + json.dumps({"actions": actions, "sites": sites, "peak": peak}))
+    print("RESULT" + json.dumps({"actions": actions, "states": states, "sites": sites, "peak": peak}))
 
 
 MENU_SAMPLE = 10  # vsyncs between display hashes in a menu route
@@ -672,7 +692,11 @@ def coverage(binary, sites):
 
 
 def run_casts(binary, args):
-    with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
+    keep = os.environ.get("ROOD_CAST_OUT")  # keep the game's logs here (a debug print in the game), one run per call
+    with (contextlib.nullcontext(keep) if keep else tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build")) as out:
+        if keep:
+            shutil.rmtree(keep, ignore_errors=True)
+            os.makedirs(keep)
         done = subprocess.run([sys.executable, __file__, "--play-casts", binary, "--casts", args.casts, "--cast-limit",
                                str(args.cast_limit), "--card", args.card, "--out", out], capture_output=True, text=True)
     lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
@@ -691,6 +715,24 @@ def compare_casts(args):
     print(f"{len(done)} actions cast ({len(first['actions']) - len(done)} refused here)")
     print(f"control (old against old): {len(noise)} actions differ")
     print(f"old against new: {len(changed)} actions differ{(': ' + ', '.join(changed[:8])) if changed else ''}")
+    for name in changed[:3]:  # what differs first, by name (the samples' battle_state: the actors' and the effects' fields)
+        a, b = first.get("states", {}).get(name), new.get("states", {}).get(name)
+        if a and b and a[0] and b[0] and "effects" in a[0] and "effects" in b[0]:
+            for step, (x, y) in enumerate(zip(a, b)):
+                if x is None or y is None:
+                    continue
+                p, q = fields(x), fields(y)
+                keys = [k for k in dict.fromkeys(list(p) + list(q)) if p.get(k) != q.get(k)]
+                if keys:
+                    print(f"  {name}: state differs from sample {step} ({len(keys)} fields): "
+                          + "; ".join(f"{k}: {p.get(k)} -> {q.get(k)}" for k in keys[:4]))
+                    if os.environ.get("ROOD_CAST_TRACE"):  # the effects of the samples around the first difference, both builds
+                        for t in range(max(0, step - 3), min(len(a), len(b), step + 2)):
+                            for label, run_ in (("old", a), ("new", b)):
+                                for e in (run_[t] or {}).get("effects", [])[:2]:
+                                    print(f"    {label} sample {t}: " + " ".join(f"{k}={e[k]}" for k in e if k not in ("particles", "end")
+                                                                                 and not k.startswith("entry") or k in ("entry0", "entry1", "entry2")))
+                    break
     if new["sites"]:
         ran, calls, fran, fall, pran, pall = coverage(args.new, new["sites"])
         print(f"effect polygon call sites run: {ran} of {calls}; functions {fran} of {fall}; plugins {pran} of {pall}; most items in a frame: {new['peak']}")
@@ -727,6 +769,17 @@ def fields(state):
         if "slot" in entry:
             for section in ("actor", "object", "model", "ai"):
                 flat.setdefault(f"slot {entry['slot']} {section}", entry.get(section) is not None)
+    for index, effect in enumerate(state.get("effects", [])):
+        for name, value in effect.items():
+            if name == "particles":
+                for k, text in enumerate(value[:-1]):
+                    flat[f"effect {index} particle {k}"] = text
+                flat[f"effect {index} particles"] = len(value) - 1
+            elif name != "end":
+                flat[f"effect {index} {name}"] = value
+    flat["effects"] = len(state.get("effects", [])) - 1
+    if "view" in state:
+        flat["view"] = state["view"]
     return flat
 
 
@@ -738,7 +791,8 @@ def compare_states(old, new):
         return None
     for step, (a, b) in enumerate(zip(old["states"], new["states"])):
         x, y = fields(a), fields(b)
-        keys = [k for k in dict.fromkeys(list(x) + list(y)) if x.get(k) != y.get(k)]
+        keys = [k for k in dict.fromkeys(list(x) + list(y)) if x.get(k) != y.get(k)
+                and not (k.startswith("effect") and ("effects" in a) != ("effects" in b))]  # (a build older than the effects dump)
         if keys:
             first = ", ".join(f"{k}: {x.get(k)} -> {y.get(k)}" for k in keys[:3])
             print(f"states: differ from step {step} ({step / 4:.2f} s), {len(keys)} fields: {first}")

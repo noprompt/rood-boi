@@ -14,6 +14,6 @@ pub fn unloadAllActors() callconv(.c) void {
     v.g.D_800F58D0().* = 0;
     v.g.D_800F58B8().* = 0;
     v.g.D_800F58C0().* = 0;
-    c.vs_main_freeHeap(@ptrFromInt(@as(usize, v.g.D_800F58BC().*)));
-    v.g.D_800F58BC().* = 0;
+    c.vs_main_freeHeap(v.g.D_800F58BC().*);
+    v.g.D_800F58BC().* = null;
 }

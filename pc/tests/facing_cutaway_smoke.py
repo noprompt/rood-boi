@@ -65,8 +65,8 @@ from rood_rpc import OUT, symbols  # noqa: E402
 from checkpoints import launch_at  # noqa: E402
 import golden_frames as gf  # noqa: E402
 
-FACING = 0x1F800010  # scratch: the facing mask (low byte), first-person view (bit 16)
-YAW = 0x1F800058  # scratch: camera.angles.vy
+FACING = symbols()["vs_view"]  # scratch: the facing mask (low byte), first-person view (bit 16)
+YAW = symbols()["vs_view"] + 0x48  # vs_view: camera.angles.vy
 GRAPHICS = {**gf.DEFAULTS, "scale": 2, "interpolate": True, "gameplay_walls": "original",
             "editor_hide_masks": True, "editor_game_cutaway": True, "editor_cutaway": True}
 

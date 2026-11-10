@@ -6,6 +6,10 @@ const v = @import("views_146C");
 const c = @import("c_146C");
 
 /// The scratchpad block, addressed by number as the C does.
+fn view() *v.vs_view_t {
+    return v.g.vs_view();
+}
+
 fn scratch() *v.vs_scratch_t {
     return @ptrFromInt(0x1F800000);
 }
@@ -21,8 +25,8 @@ pub fn func_8008CEB0() callconv(.c) void {
     var interpolation: c_int = undefined;
     var flags: c_int = undefined;
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch().viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &scratch().viewMatrix));
+    c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
+    c.SetTransMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
 
     if (psx.get(v.g.vs_battle_roomData().section12) == null) return;
     var object = psx.get(v.g.vs_battle_roomData().section12).?;

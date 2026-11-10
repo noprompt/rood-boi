@@ -17,7 +17,7 @@ pub fn func_800C553C() callconv(.c) void {
             var count: c_int = 0;
             var i: c_int = 0;
             while (i < @as(c_int, v.g.D_800EB9B8().*.?.unk2C)) : (i +%= 1) {
-                const entry = psx.at(psx.get(v.g.D_800EB9B8().*.?.unk40).?, i);
+                const entry = psx.at(v.g.D_800EB9B8().*.?.unk40.?, i);
                 if (@as(c_int, entry.unk9) == group) count +%= 1;
             }
             if (count == size) c.func_800C5360(group);
@@ -25,7 +25,7 @@ pub fn func_800C553C() callconv(.c) void {
     }
     var i: c_int = 0;
     while (i < @as(c_int, v.g.D_800EB9B8().*.?.unk2C)) : (i +%= 1) {
-        const group: c_int = @as(c_int, psx.at(psx.get(v.g.D_800EB9B8().*.?.unk40).?, i).unk9);
+        const group: c_int = @as(c_int, psx.at(v.g.D_800EB9B8().*.?.unk40.?, i).unk9);
         if ((group >> 4) != 0) c.func_800C5360(group);
     }
     var lo: c_int = @as(c_int, v.g.D_800F4CB1().*);

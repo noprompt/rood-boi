@@ -139,7 +139,7 @@ pub fn func_80089DC0(arg0: c_int) callconv(.c) void {
     v.g.vs_main_buttonsPressed().all = 0;
     v.g.vs_main_buttonsPreviousState().* = 0;
     v.g.vs_main_buttonsState().* = 0;
-    v.g.vs_scratch().camera.farClip = 4096;
+    v.g.vs_view().camera.farClip = 4096;
 
     if (v.g.vs_battle_screenTransitionEffect().* == 3) {
         v.g.vs_battle_screenTransitionStep().* = 0;
@@ -179,8 +179,8 @@ pub fn func_80089DC0(arg0: c_int) callconv(.c) void {
 
     c._clampPositionToZoneBounds(psx.cptr(c.VECTOR, &sp20), psx.cptr(c.VECTOR, &lookAt));
 
-    v.g.vs_scratch().camera.lookAt = lookAt;
-    v.g.vs_scratch().camera.angles.vy = cam.values.yaw;
+    v.g.vs_view().camera.lookAt = lookAt;
+    v.g.vs_view().camera.angles.vy = cam.values.yaw;
 
     c._setCameraPositionFromAngles(psx.cptr(c._sphericalValues, &cam.values));
     _ = c.func_800A1108(0, &sp40);

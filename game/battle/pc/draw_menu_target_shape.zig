@@ -15,14 +15,14 @@ fn shortAt(base: [*]u8, offset: isize) c_int {
 /// an intensity from the pair's depth. Scratchpad 0x398.. holds the current
 /// and previous projected point (SXY, depth / 4).
 pub fn drawMenuTargetShape(shape: [*]u8, color_in: c_uint) callconv(.c) void {
-    const buffer: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800EB9B8().*));
-    var point: usize = @intFromPtr(buffer) +% 0x48;
+    const block = v.g.D_800EB9B8().*.?;
+    var point: usize = @intFromPtr(&block.points);
     const scratch: [*]u32 = @ptrFromInt(0x1F800398);
     const halves: [*]u16 = @ptrFromInt(0x1F800398);
     const matrix: [*c]c.MATRIX = @ptrFromInt(0x1F800398);
     const scale = c.func_800C085C(shape + 4, shortAt(shape, 2));
-    _ = c.RotMatrixYXZ_gte(@ptrFromInt(@intFromPtr(buffer) +% 0x24), matrix);
-    const factor = c.rcos(shortAt(buffer, 0x2a) << 6);
+    _ = c.RotMatrixYXZ_gte(@ptrFromInt(@intFromPtr(&block.unk24)), matrix);
+    const factor = c.rcos(block.unk2A << 6);
     var scaling = c.VECTOR{ .vx = factor, .vy = factor, .vz = factor, .pad = 0 };
     _ = c.ScaleMatrix(matrix, &scaling);
     _ = c.func_80041C68(scale, matrix);
@@ -33,9 +33,9 @@ pub fn drawMenuTargetShape(shape: [*]u8, color_in: c_uint) callconv(.c) void {
     c.CTC2(@bitCast(shortAt(shape, 0xa)), 14);
     c.CTC2(@bitCast(shortAt(shape, 0xc)), 15);
     const color = color_in | 0x44000000;
-    var count: c_uint = psx.byteAt(u16, buffer, 0x32).*;
+    var count: c_uint = @as(c_uint, @as(u16, @bitCast(block.unk32)));
     const divisor: c_int = if (shape[6] < shape[4]) shape[4] else shape[6];
-    const bias: c_int = shortAt(buffer, 0x20) << 1;
+    const bias: c_int = @as(c_int, block.unk20) << 1;
     while (count != 0) {
         count -%= 1;
         c.MTC2(psx.byteAt(c_uint, @as([*]u8, @ptrFromInt(point)), 0).*, 0);

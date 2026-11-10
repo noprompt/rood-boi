@@ -82,7 +82,7 @@ pub fn buildBlendedActorPackets(projected: [*]c_uint, object: [*]u8, color: [*]c
     const z = projected + 0x300;
     const totals: [*]const u16 = @ptrCast(@alignCast(object + 2));
     var counts: [*]const u16 = @ptrCast(@alignCast(model));
-    var r: [*c]const c_uint = @ptrFromInt(@as(usize, psx.byteAt(u32, model, 0x3c).*));
+    var r: [*c]const c_uint = @ptrFromInt(@intFromPtr(model) +% psx.byteAt(u32, model, 0x3c).*);
     const scratch: *u32 = @ptrFromInt(0x1f800000);
     var packet: [*]c_uint = @ptrFromInt(@as(usize, scratch.*));
     const start: ?[*]c_uint = packet;

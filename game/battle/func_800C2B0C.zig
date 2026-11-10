@@ -12,7 +12,7 @@ pub fn func_800C2B0C(position: [*c]c_ushort, row: c_uint) callconv(.c) void {
     }
     // The original calls libc memset (it is built -fno-builtin): keep the call.
     const memset = @extern(*const fn (?*anyopaque, c_int, usize) callconv(.c) ?*anyopaque, .{ .name = "memset" });
-    _ = memset(@ptrCast(&v.g.D_800EB9B8().*.?.unk4AB8[row *% 9]), 0, 9);
+    _ = memset(@ptrCast(&v.g.D_800EB9B8().*.?.cellKinds[row *% 9]), 0, 9);
 
     const dims: c_int = c._getCollisionMapDimensions(0);
     const width: c_int = (dims & 0xFFFF) >> 4;
@@ -35,7 +35,7 @@ pub fn func_800C2B0C(position: [*c]c_ushort, row: c_uint) callconv(.c) void {
 
             if (((@as(c_int, psx.getBits(room, "unk0_5")) >> 1) & 1) != 0) {
                 value = @bitCast(@as(c_uint, 0xF0800000));
-                v.g.D_800EB9B8().*.?.unk4AB8[cell] = 0;
+                v.g.D_800EB9B8().*.?.cellKinds[cell] = 0;
             } else if (@as(c_int, psx.getBits(room, "unk0_10")) < 5 or ((@as(c_int, psx.getBits(room, "unk0_18")) >> 1) != 0)) {
                 var offset: c_int = 0;
                 _ = c.func_800FA188(x, z, &offset);
@@ -79,11 +79,11 @@ pub fn func_800C2B0C(position: [*c]c_ushort, row: c_uint) callconv(.c) void {
                 }
                 if (psx.conv(c_uint, @as(c_int, psx.getBits(room, "unk0_10")) -% 1) < 4) {
                     low = high;
-                    v.g.D_800EB9B8().*.?.unk4AB8[cell] = psx.conv(u8, @as(c_int, psx.getBits(room, "unk0_10")) *% 6);
+                    v.g.D_800EB9B8().*.?.cellKinds[cell] = psx.conv(u8, @as(c_int, psx.getBits(room, "unk0_10")) *% 6);
                 }
                 value |= ((top +% 0x30) << 17) | ((low & 0x7FFF) << 2);
             }
         }
-        v.g.D_800EB9B8().*.?.unk4370[cell] = value;
+        v.g.D_800EB9B8().*.?.cellValues[cell] = value;
     }
 }

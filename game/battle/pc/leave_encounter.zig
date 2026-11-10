@@ -11,19 +11,19 @@ const psx = @import("common").psx;
 /// member and notifies actor `id` (func_800D820C). Does nothing when the
 /// actor's bit is not set.
 pub fn leaveEncounter(state: *ai.vs_battle_aiState) callconv(.c) void {
-    const room: [*]u8 = @ptrFromInt(v.g.D_800F58BC().*);
+    const room = v.g.D_800F58BC().*.?;
     const id: c_int = state.id;
-    const mask: c_uint = psx.byteAt(u16, room, 0x10).*;
+    const mask: c_uint = room.unk10;
     // id >= 32 is undefined in C; the x86 shift takes the count modulo 32.
     const bit: c_uint = @as(c_uint, 1) << @truncate(@as(c_uint, @bitCast(id)));
     if (mask & bit == 0) return;
-    psx.byteAt(u16, room, 0x10).* = psx.conv(u16, mask -% bit);
+    room.unk10 = psx.conv(u16, mask -% bit);
     state.timer8E = 0;
     const first: *ai.vs_battle_actor = @ptrCast(@alignCast(v.g.vs_battle_actors()[0].?));
     const second = first.next;
     state.timer98 = if (second != null and second.?.next == null) 0 else 0x30;
     state.timer = 90;
     c.func_800DBF00(state);
-    room[0x12] -%= 1;
+    room.unk12 -%= 1;
     c.func_800D820C(id, 0);
 }

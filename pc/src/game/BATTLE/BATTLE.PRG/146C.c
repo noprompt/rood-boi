@@ -739,6 +739,7 @@ extern char D_800F1BBC;
 extern short vs_battle_doorEntered;
 /* Defined here: the room and zone records hold pointers among their words, so they cannot be imports (LP64). */
 _mpdRoomSection vs_battle_roomData;
+vs_view_t vs_view;
 _zoneContext_t _zoneContext;
 extern u_short D_800F1CCA;
 extern void* D_800F1CC0;
@@ -995,7 +996,7 @@ typedef struct {
 } actionTargetContextView;
 extern unsigned char D_800E81C4[];
 void func_800C0700(void*);
-void func_800C1664(int, int, int);
+void func_800C1664(int, void*, int);
 int func_8008631C(int, int, int, int, void*);
 
 void func_8007053C(void);
@@ -1057,7 +1058,7 @@ void func_800A190C(int, int, void*, int);
 void func_800719FC(int arg0 __attribute__((unused)));
 
 /* 573B8.c stores the target list's guest address (arg3) in an int field. */
-void func_800C05EC(void*, void*, int, int);
+void func_800C05EC(void*, void*, int, void*);
 
 void func_80071F68(int arg0);
 

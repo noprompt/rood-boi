@@ -1,5 +1,4 @@
-//! Copies a block into a destination (allocating one if none is given) and
-//! relocates four of its words by the block's address (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
+//! Copies a model block into a destination (allocating one if none is given) (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
@@ -7,7 +6,7 @@ const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
 /// orig: func_8009A028 (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
-/// Copies `size` bytes from `src` into `dst` (allocated when null) and adds the block's guest address to words 12..15.
+/// Copies `size` bytes from `src` into `dst` (allocated when null) (the header's four offsets stay file offsets: add them to the block's address).
 pub fn func_8009A028(dst: [*c]c_int, src: ?*anyopaque, size: c_int) callconv(.c) ?*anyopaque {
     var out = dst;
     if (out == null) {
@@ -15,11 +14,6 @@ pub fn func_8009A028(dst: [*c]c_int, src: ?*anyopaque, size: c_int) callconv(.c)
     }
 
     _ = c.memcpy(out, src, psx.conv(usize, size));
-
-    out[12] = psx.conv(c_int, psx.conv(c_uint, out[12]) +% psx.addr(out));
-    out[13] = psx.conv(c_int, psx.conv(c_uint, out[13]) +% psx.addr(out));
-    out[14] = psx.conv(c_int, psx.conv(c_uint, out[14]) +% psx.addr(out));
-    out[15] = psx.conv(c_int, psx.conv(c_uint, out[15]) +% psx.addr(out));
 
     return @ptrCast(out);
 }

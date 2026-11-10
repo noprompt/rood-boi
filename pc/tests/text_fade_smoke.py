@@ -48,7 +48,6 @@ sys.path.insert(0, str(ROOT / "pc/tests"))
 from rood_rpc import OUT, RpcError, symbols  # noqa: E402
 from checkpoints import launch_at  # noqa: E402
 
-BOX = 0x30            # sizeof(vs_battle_textBox)
 BLOCK_SLACK = 0.15    # closing: at most this much more of the rectangle in uniform blocks than when open
 BLOCK_BUG = 0.8       # the upload: (nearly) every block uniform
 SETTINGS = "ui_upscale mmpx\nui_text font\nui_text_overlay auto\nwidescreen 1\naa msaa2+fxaa\n"
@@ -75,12 +74,14 @@ class Session:
         self.base = symbols()["vs_battle_textBoxes"]
 
     def box(self):
-        raw = self.game.read(self.base, BOX)
+        g = self.game  # the text box's layout is the game's (Game.layout: it holds a host pointer)
+        raw = g.read(self.base, g.layout("textBox_size", 0x30))
         flags, = struct.unpack_from("<I", raw, 0)
-        x, y = struct.unpack_from("<hh", raw, 0x14)
-        state, = struct.unpack_from("<h", raw, 0x1C)
-        return {"flags": flags, "x": x, "y": y, "state": state, "duration": raw[0x22],
-                "w": raw[0x20] * 12 + 10, "h": raw[0x21] * 13 + 4}
+        x, y = struct.unpack_from("<hh", raw, g.layout("textBox_x", 0x14))
+        state, = struct.unpack_from("<h", raw, g.layout("textBox_state", 0x1C))
+        return {"flags": flags, "x": x, "y": y, "state": state, "duration": raw[g.layout("textBox_unk22", 0x22)],
+                "w": raw[g.layout("textBox_charsPerLine", 0x20)] * 12 + 10,
+                "h": raw[g.layout("textBox_lineCount", 0x21)] * 13 + 4}
 
     def settle(self):
         """Until box 0 is open and settled (its text printing)."""

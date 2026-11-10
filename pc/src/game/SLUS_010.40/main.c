@@ -10077,7 +10077,7 @@ static void _do_panSfx(int arg0, int arg1, int coords, int z)
 
 void vs_main_panSfx(int arg0, int arg1, SVECTOR* vec)
 {
-    vs_gte_view view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+    vs_gte_view view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
     vs_gte_result projected = vs_gte_project(&view, vec);
 
     _do_panSfx(arg0, arg1, projected.sxy, projected.otz);
@@ -10452,7 +10452,7 @@ static void func_80046310(int arg0, u_int arg1[], int arg2, int arg3, int arg4)
 
 static void func_800463BC(int arg0, u_int* arg1, int arg2, SVECTOR* vec)
 {
-    vs_gte_view view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+    vs_gte_view view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
     vs_gte_result projected = vs_gte_project(&view, vec);
 
     func_80046310(arg0, arg1, arg2, projected.sxy, projected.otz);

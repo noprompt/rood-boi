@@ -513,7 +513,7 @@ static int _loadArmFile(void)
 
         _cameraAngles.vx = 568;
         _currentRoomIndex = 0;
-        _cameraAngles.vz = _cameraAngles.vy = 2048 - *(u_short*)getScratchAddr(22);
+        _cameraAngles.vz = _cameraAngles.vy = 2048 - (u_short)vs_view.camera.angles.vy;
 
         _currentScene = vs_battle_getCurrentSceneId();
 
@@ -775,7 +775,7 @@ static int _menuManager(void)
                     _geomOffsetY = 0;
                     _cameraDistance = ONE * 3 / 16;
                     _cameraAngles.vx = 0x238;
-                    _cameraAngles.vy = 0x800 - *(u_short*)getScratchAddr(22);
+                    _cameraAngles.vy = 0x800 - (u_short)vs_view.camera.angles.vy;
                     _currentRoomIndex = _getCurrentRoomIndex(vs_battle_sceneBuffer);
 
                     _snapMapToRoom(vs_battle_sceneBuffer, _currentRoomIndex);
@@ -2435,7 +2435,7 @@ static void _pcResetView(void)
     _geomOffsetY = 0;
     _cameraDistance = ONE * 3 / 16;
     _cameraAngles.vx = 0x238;
-    _cameraAngles.vy = 0x800 - *(u_short*)getScratchAddr(22);
+    _cameraAngles.vy = 0x800 - (u_short)vs_view.camera.angles.vy;
     _currentRoomIndex = _getCurrentRoomIndex(vs_battle_sceneBuffer);
 
     _snapMapToRoom(vs_battle_sceneBuffer, _currentRoomIndex);

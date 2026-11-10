@@ -49,7 +49,8 @@ extern int pc_hw_suppress;
  * frame in 16.16 (func_800CB83C), and its frame's packets [start, end)
  * built from `shape` (func_800CD3E4). */
 void pc_bubble_rect(int id, int x, int y, int w, int h);
-void pc_bubble_frame(int id, const void* box, const void* shape, const void* start, const void* end);
+/* `flags` points at the text box's flag word, `rect` its x, y, w, h (four shorts in a row: vs_battle_textBox unk24..unk2A). */
+void pc_bubble_frame(int id, const unsigned* flags, const short* rect, const void* shape, const void* start, const void* end);
 /* boot_runtime.c: a GPU packet is about to be drawn (draw offset, drawing
  * area); sets pc_hw_suppress for a vector bubble's packets and draws the
  * bubble's shapes in their place. */

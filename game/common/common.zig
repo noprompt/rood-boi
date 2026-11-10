@@ -4,3 +4,4 @@ pub const Panic = @import("panic.zig").Panic;
 pub const route = @import("route.zig");
 pub const sprite_item = @import("sprite_item.zig");
 pub const object = @import("object.zig");
+pub const view = @import("view.zig");

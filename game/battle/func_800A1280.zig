@@ -26,7 +26,7 @@ pub fn func_800A1280(arg0: c_int, arg1: c_int, arg2: ?*v.SVECTOR, arg3: c_int) c
             arg2.?.vy = psx.conv(i16, @as(c_int, slot.unk1E) -% 0xC0);
         }
 
-        const rot: *v.MATRIX = @ptrFromInt(0x1F800014);
+        const rot: *v.MATRIX = common.view.at(v.MATRIX, common.view.matrix_offset);
         c.SetRotMatrix(psx.cptr(c.MATRIX, rot));
         c.SetTransMatrix(psx.cptr(c.MATRIX, rot));
 

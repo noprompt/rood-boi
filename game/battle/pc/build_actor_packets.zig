@@ -19,7 +19,7 @@ pub fn buildActorPackets(projected: [*]c_uint, actor: [*]u8, unused: ?*anyopaque
     const scratch: *u32 = @ptrFromInt(0x1f800000);
     const start: ?[*]c_uint = @ptrFromInt(@as(usize, scratch.*));
     const ot: ?[*]c_uint = @ptrFromInt(@as(usize, @as(*u32, @ptrFromInt(0x1f800004)).*));
-    const polygons: ?[*]const c_uint = @ptrFromInt(@as(usize, psx.byteAt(u32, model, 0x3c).*));
+    const polygons: ?[*]const c_uint = @ptrFromInt(@intFromPtr(model) +% psx.byteAt(u32, model, 0x3c).*);
     const end = c.pc_actor_packets(start, ot, projected, projected + 0x300, polygons, @ptrCast(@alignCast(actor + 2)), texture & 0xffff, texture >> 16);
     scratch.* = psx.addr(end);
     if (psx.weak(NativeDraw, "pc_object_native_draw")) |draw| draw(1, projected, actor, model, null, start);

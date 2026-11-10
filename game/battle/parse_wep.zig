@@ -103,12 +103,6 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
                     psx.put(&m.offsets, buf);
                 }
                 c.vs_main_memcpy(buf, @ptrFromInt(data), @sizeOf(v._wepModelOffsets));
-                const delta: u32 = psx.addr(buf) -% psx.addr(@as(?*u8, @ptrFromInt(data)));
-                const b = buf.?;
-                b.texturesOffset = @bitCast(@as(u32, @bitCast(b.texturesOffset)) +% delta);
-                b.vertexGroupsOffset = @bitCast(@as(u32, @bitCast(b.vertexGroupsOffset)) +% delta);
-                b.verticesOffset = @bitCast(@as(u32, @bitCast(b.verticesOffset)) +% delta);
-                b.polygonsOffset = @bitCast(@as(u32, @bitCast(b.polygonsOffset)) +% delta);
             }
             m.clutSlotOffset = psx.conv(u8, @as(c_int, object.unk11) +% (@as(c_int, object.actorId) << 1) +% 16);
             c._loadMaterialPalette(object.index, object.material);
@@ -125,7 +119,8 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
         .fix_prims => {
             const m = model.?;
             const count: c_int = @as(c_int, m.nOther) + m.nTriangles + m.nQuads;
-            var prim: usize = @as(u32, @bitCast(psx.get(m.offsets).?.polygonsOffset));
+            const offsets = psx.get(m.offsets).?;
+            var prim: usize = @intFromPtr(offsets) +% @as(u32, @bitCast(offsets.polygonsOffset));
             const texU: c_int = (@as(c_int, m.texSlot) & 1) * 64;
             var n: c_int = 0;
             while (n < count) : (n += 1) { // n < count <= 3 * 0xFFFF
@@ -178,12 +173,6 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
     var dst = buf;
     if (dst == null) dst = @ptrCast(@alignCast(c.vs_main_allocHeap(psx.conv(c_uint, size))));
     _ = memcpy(dst, @ptrFromInt(data), intBits(size));
-    const base: u32 = psx.addr(dst);
-    const d = dst.?;
-    d.texturesOffset = @bitCast(@as(u32, @bitCast(d.texturesOffset)) +% base);
-    d.vertexGroupsOffset = @bitCast(@as(u32, @bitCast(d.vertexGroupsOffset)) +% base);
-    d.verticesOffset = @bitCast(@as(u32, @bitCast(d.verticesOffset)) +% base);
-    d.polygonsOffset = @bitCast(@as(u32, @bitCast(d.polygonsOffset)) +% base);
     psx.put(&m.offsets, dst);
     if (dst == null) return -2;
 

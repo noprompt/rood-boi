@@ -144,7 +144,7 @@ typedef struct {
                                                                      * the fade step, brightness, slot, frame buffer */
     int menu_action, menu_step, menu_color, menu_mode, menu_lit; /* menu_command: the action (call_y its slide);
                                                                   * menu_cursor: step, colour; menu_tabs: mode, step, lit */
-    unsigned char menu_item[0x40]; /* menu_row: a copy of its record (vs_battle_menuItem_t) before the emit */
+    unsigned char menu_item[0x48]; /* menu_row: a copy of its record (vs_battle_menuItem_t) before the emit */
     int opt_row, opt_kind, opt_enabled, opt_focused, opt_index, opt_right, opt_lit, opt_other, opt_gap, opt_bar_colour,
         opt_bar_width, opt_fill, opt_link, opt_upper, opt_window_x; /* option_value: pc_classic_option_value's (call_x
                                                                     * the column's x, call_y the row's y) */

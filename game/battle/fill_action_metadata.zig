@@ -38,7 +38,7 @@ pub fn fillActionMetadata(state: ?*v.vs_battle_aiState) callconv(.c) void {
             }
 
             const flagType: u32 = action.flags.raw & 0xE0000;
-            const byte10: u8 = @as([*]const u8, @ptrCast(v.g.D_800F58BC().*.?))[10];
+            const byte10: u8 = v.g.D_800F58BC().*.?.unkA;
             const special = byte10 != 0 and flagType != 0x20000 and flagType != 0x60000 and (mask & 0x4000) != 0;
             psx.setBits(entry, "special", @intFromBool(special));
 

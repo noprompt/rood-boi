@@ -10,10 +10,10 @@ pub fn func_800C2368(step: c_int, radius: c_int, index: c_int) callconv(.c) c_in
     const basis: [*]i16 = @ptrFromInt(0x1F800398);
     var idx = index;
 
-    // (char*)D_800EB9B8 + (index * 8 + 0x48), with the original index.
+    // (char*)D_800EB9B8 + (index * 8 + points), with the original index.
     const table: ?*v.D_800EB9B8_t = v.g.D_800EB9B8().*;
     const table_base: u32 = if (table) |t| psx.addr(t) else 0;
-    var vaddr: u32 = table_base +% psx.conv(u32, idx *% 8 +% 0x48);
+    var vaddr: u32 = table_base +% psx.conv(u32, idx *% 8 +% @as(c_int, @offsetOf(v.D_800EB9B8_t, "points")));
 
     var base: c_int = 0;
     while (base < 0x1000) : (base +%= 0x400) {

@@ -233,18 +233,14 @@ static void _initBladeDescription(vs_battle_uiEquipment* blade, char* menuText[]
 {
     char* str;
 
-    psx_set(vs_battle_stringContext.strings[9],
-        vs_mainMenu_itemNames[blade->material - 1 + VS_ITEMNAME_BIN_INDEX_wood]);
-    psx_set(vs_battle_stringContext.strings[8],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[blade->category + VS_ITEMHELP_BIN_INDEX_dagger - 1]]);
-    psx_set(vs_battle_stringContext.strings[7],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[blade->damageType + VS_ITEMHELP_BIN_INDEX_blunt - 1]]);
-    psx_set(vs_battle_stringContext.strings[6],
-        (char*)&vs_mainMenu_itemHelp
+    vs_battle_stringContext.strings[9] = vs_mainMenu_itemNames[blade->material - 1 + VS_ITEMNAME_BIN_INDEX_wood];
+    vs_battle_stringContext.strings[8] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[blade->category + VS_ITEMHELP_BIN_INDEX_dagger - 1]];
+    vs_battle_stringContext.strings[7] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[blade->damageType + VS_ITEMHELP_BIN_INDEX_blunt - 1]];
+    vs_battle_stringContext.strings[6] = (char*)&vs_mainMenu_itemHelp
             [vs_mainMenu_itemHelp[vs_mainMenu_weaponHands[blade->category - 1]
-                                  + VS_ITEMHELP_BIN_INDEX_oneHanded]]);
+                                  + VS_ITEMHELP_BIN_INDEX_oneHanded]];
 
     str = vs_battle_printf(vs_battle_stringBuf,
         (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp[blade->id - 1]]);
@@ -264,9 +260,8 @@ static void _initGripInfo(
 
     u_short* gripId = &grip->id;
 
-    psx_set(vs_battle_stringContext.strings[5],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[grip->category + VS_ITEMHELP_BIN_INDEX_shortGrip - 1]]);
+    vs_battle_stringContext.strings[5] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[grip->category + VS_ITEMHELP_BIN_INDEX_shortGrip - 1]];
 
     str = vs_battle_printf(vs_battle_stringBuf,
         (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp[*gripId - 6]]);
@@ -1280,7 +1275,7 @@ static void _setActiveRow(int row)
     menuItem->state = menuItemStateSlideX;
     menuItem->targetPosition0 = 155;
     menuItem->selected = 1;
-    psx_set(menuItem->subText, NULL);
+    menuItem->subText = NULL;
 }
 
 /**
@@ -2175,7 +2170,7 @@ static void _drawScreen(void)
     int z = D_800F4538[1]->menuCameraDistance;
     int x = D_800F4538[1]->menuCameraHeightOffset;
 #endif
-    vs_camera_t* camera = &vs_scratch.camera;
+    vs_camera_t* camera = &vs_view.camera;
 
     camera->lookAt.vx = ((-rsin(_xPos) * xOffset) >> 8) * z;
     camera->lookAt.vy = -(x * ONE / 2);
@@ -2195,7 +2190,7 @@ static void _drawScreen(void)
     if (_delayScreenUpdate) {
         --_delayScreenUpdate;
     } else {
-        func_800F9EB8(&vs_scratch.viewMatrix);
+        func_800F9EB8(&vs_view.viewMatrix);
     }
 
     _drawMenuBackground();
@@ -2211,11 +2206,9 @@ static void _renderSelectedLimbCondition(void)
 {
     vs_battle_uiEquipment_limb* limb =
         &vs_battle_actors[_selectedActor - 1]->unk3C->limbs[_selectedElement];
-    psx_set(vs_battle_stringContext.strings[0],
-        (char*)&vs_battle_statusStrings[vs_battle_statusStrings[limb->nameIndex]]);
-    psx_set(vs_battle_stringContext.strings[1],
-        (char*)&_statusStrings[_statusStrings[vs_battle_getLimbStatus(limb)
-                                              + VS_status_INDEX_critical]]);
+    vs_battle_stringContext.strings[0] = (char*)&vs_battle_statusStrings[vs_battle_statusStrings[limb->nameIndex]];
+    vs_battle_stringContext.strings[1] = (char*)&_statusStrings[_statusStrings[vs_battle_getLimbStatus(limb)
+                                              + VS_status_INDEX_critical]];
     vs_battle_printf(
         vs_battle_stringBuf, (char*)&_statusStrings[VS_status_OFFSET_values]);
     vs_mainmenu_setInformationMessage(vs_battle_stringBuf);
@@ -2323,12 +2316,12 @@ int vs_menu4_exec(u_char* state)
 
         {
 
-            D_80108198 = vs_scratch.viewMatrix;
-            D_801081B8 = vs_scratch.camera;
-            vs_scratch.camera.farClip = ONE;
-            vs_scratch.camera.angles.vx = 0;
-            vs_scratch.camera.angles.vy = 0;
-            vs_scratch.camera.angles.vz = 0;
+            D_80108198 = vs_view.viewMatrix;
+            D_801081B8 = vs_view.camera;
+            vs_view.camera.farClip = ONE;
+            vs_view.camera.angles.vx = 0;
+            vs_view.camera.angles.vy = 0;
+            vs_view.camera.angles.vz = 0;
             _xPos = ONE / 16 * 11;
             _yPos = 0;
 
@@ -2765,8 +2758,8 @@ int vs_menu4_exec(u_char* state)
         _renderBasicStats();
         vs_battle_setProjectionDistance(D_80108188);
 
-        vs_scratch.viewMatrix = D_80108198;
-        vs_scratch.camera = D_801081B8;
+        vs_view.viewMatrix = D_80108198;
+        vs_view.camera = D_801081B8;
 
         func_8008A4DC(1);
         vs_mainMenu_setMenuCommand(menuActionNone);

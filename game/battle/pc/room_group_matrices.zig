@@ -1,6 +1,7 @@
 //! Per-group view matrices of a room (D2: 2EA3C.s; oracle pc/src/boot_sdk.c).
 const c = @import("c_boot_sdk");
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 
 fn word(address: usize) *align(1) c_uint {
     return @ptrFromInt(address);
@@ -11,14 +12,13 @@ fn word(address: usize) *align(1) c_uint {
 /// count word, matrix at +0x20) unless the group's flag 0x100 is set: from the
 /// group's position and angles, or for a camera-facing plane (flag 0x400) from
 /// the camera-space position with only the rotation entries the original
-/// writes (the scratchpad's angle at word 0x5C and scale at 0x64).
+/// writes (the view's camera angle and far-clip scale).
 pub fn roomGroupMatrices(geometry: ?*anyopaque) callconv(.c) void {
     const base: usize = @intFromPtr(geometry.?);
-    const scratch: [*]const c_uint = @ptrFromInt(0x1f800000);
     const count = word(base).*;
     var group: usize = base + 4;
-    const angle: c_int = @bitCast(scratch[0x5c / 4]);
-    const scale: c_int = @bitCast(scratch[0x64 / 4]);
+    const angle: c_int = common.view.at(c_int, 0x4C).*;
+    const scale: c_int = common.view.at(c_int, common.view.far_clip_offset).*;
     const sine: c_int = @as(c_int, @bitCast(@as(c_uint, @bitCast(c.rsin(angle))) *% @as(c_uint, @bitCast(scale)))) >> 12;
     const cosine: c_int = @as(c_int, @bitCast(@as(c_uint, @bitCast(c.rcos(angle))) *% @as(c_uint, @bitCast(scale)))) >> 12;
     if (count > 4096) c.pc_unimplemented("room group count");
@@ -49,8 +49,8 @@ pub fn roomGroupMatrices(geometry: ?*anyopaque) callconv(.c) void {
             result.*.t[0] = @bitCast(c.MFC2(25));
             result.*.t[1] = @bitCast(c.MFC2(26));
             result.*.t[2] = @bitCast(c.MFC2(27));
-            c.SetRotMatrix(@ptrFromInt(0x1f800014));
-            c.SetTransMatrix(@ptrFromInt(0x1f800014));
+            c.SetRotMatrix(common.view.at(c.MATRIX, common.view.matrix_offset));
+            c.SetTransMatrix(common.view.at(c.MATRIX, common.view.matrix_offset));
         }
     }
 }

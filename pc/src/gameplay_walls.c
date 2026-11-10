@@ -45,6 +45,7 @@
 #include "room_editor.h"
 #include "scene_capture.h"
 #include <math.h>
+#include "view_state.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,7 +290,7 @@ static int state_block(const void* data)
 
 static int game_camera(view_t* v)
 {
-    const gte_matrix* view = (const gte_matrix*)(uintptr_t)0x1f800014;
+    const gte_matrix* view = (const gte_matrix*)PC_VIEW_MATRIX;
     for (int a = 0; a < 3; a++) {
         for (int b = 0; b < 3; b++)
             v->r[a][b] = view->m[a][b] / 4096.0f;

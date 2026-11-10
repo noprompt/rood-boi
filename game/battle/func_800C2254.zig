@@ -11,8 +11,8 @@ pub fn func_800C2254(angle: c_int, index: c_int) callconv(.c) c_int {
     var idx = index;
     var point: c_int = 0;
     var phase: c_int = angle;
-    // Byte offset of the current vertex: index * 8 + 0x48, advanced by 8 per point.
-    var offset: isize = @as(isize, idx *% 8 +% 0x48);
+    // Byte offset of the current vertex: index * 8 + points, advanced by 8 per point.
+    var offset: isize = @as(isize, idx *% 8 +% @as(c_int, @offsetOf(v.D_800EB9B8_t, "points")));
     while (point < 33) : ({
         idx +%= 1;
         phase +%= 128;

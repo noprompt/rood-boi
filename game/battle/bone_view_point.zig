@@ -34,8 +34,7 @@ pub fn boneViewPoint(actorId: c_int, bone_in: c_int, result: [*c]c_ushort, endpo
         const weaponPtr = psx.at(v.g.vs_battle_wepModels(), actorId *% 2).*;
         bone = bone -% 0x3F;
         const weapon = weaponPtr orelse return -1;
-        const raw = psx.byteAt(c_uint, weapon, 0x1C).*;
-        model = if (raw == 0) null else @ptrFromInt(@as(usize, raw));
+        model = @ptrCast(weapon.offsets); // the weapon's header (null: none)
     }
 
     const arm = psx.at(&model.?.armatures, bone);

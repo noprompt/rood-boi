@@ -225,8 +225,9 @@ class Session:
     # ---- the original menu (ui_menus off) ----
     def menu_items(self):
         """vs_battle_menuItems: {id: (state, selected)} of the live items."""
-        raw = self.game.read(self.ptr(self.items_ptr), 64 * 40)
-        return {i: (raw[i * 64], raw[i * 64 + 6]) for i in range(40) if raw[i * 64]}
+        size = self.game.layout("menuItem_size", 64)
+        raw = self.game.read(self.ptr(self.items_ptr), size * 40)
+        return {i: (raw[i * size], raw[i * size + 6]) for i in range(40) if raw[i * size]}
 
     def wait_ready(self, limit=400, want=None):
         """Until every menu item is idle (vs_mainmenu_ready) for a few frames

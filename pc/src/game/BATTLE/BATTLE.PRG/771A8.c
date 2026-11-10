@@ -42,11 +42,6 @@ void func_800DFA54(int arg0, int arg1, int arg2, func_800DFA54_t* arg3);
 
 int func_800DFAF8(int arg0, u_int arg1, int arg2);
 
-typedef struct {
-    char unk0[14];
-    u_char closedGates;
-} routeEdgeGlobals;
-
 typedef u_short routeEdgePair[2];
 
 extern u_char D_800F175C[];

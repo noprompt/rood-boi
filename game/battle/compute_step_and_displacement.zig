@@ -26,9 +26,9 @@ pub fn computeStepAndDisplacement(targetPos: ?*v.SVECTOR, outStep: ?*v.VECTOR, o
     scaled.vx = psx.conv(i16, @divTrunc(fixed.vx, 4096));
     scaled.vz = psx.conv(i16, @divTrunc(fixed.vz, 4096));
     scaled.vy = psx.conv(i16, @divTrunc(fixed.vy, 4096));
-    const scratch = v.g.vs_scratch();
-    c.SetRotMatrix(@ptrCast(&scratch.viewMatrix));
-    c.SetTransMatrix(@ptrCast(&scratch.viewMatrix));
+    const view = v.g.vs_view();
+    c.SetRotMatrix(@ptrCast(&view.viewMatrix));
+    c.SetTransMatrix(@ptrCast(&view.viewMatrix));
     _ = c.RotTransPers(@ptrCast(&scaled), &sxy, &p, &notCentered);
     if (clampToZone == 0) {
         const y = @divTrunc(sxy, 0x10000);
@@ -44,7 +44,7 @@ pub fn computeStepAndDisplacement(targetPos: ?*v.SVECTOR, outStep: ?*v.VECTOR, o
     } else {
         notCentered = 1;
     }
-    const lookAt = &scratch.camera.lookAt;
+    const lookAt = &view.camera.lookAt;
     const out = outDisplacement.?;
     out.vx = @as(c_int, scaled.vx) *% 4096 -% lookAt.vx;
     fixed.vx = @divTrunc(out.vx, 4096);

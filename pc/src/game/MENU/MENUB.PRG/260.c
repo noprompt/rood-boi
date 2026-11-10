@@ -332,10 +332,9 @@ static int _disassembleItem(int itemIndex)
             0x1F, 0x140, 0xA2, 0x7E, 0, (char*)&_menuText[VS_menuText_OFFSET_optionNo]);
         menuItem->state = 2;
         menuItem->targetPosition0 = 0xC2;
-        psx_set(vs_battle_stringContext.strings[0],
-            disassembleItemCategory == 0
+        vs_battle_stringContext.strings[0] = disassembleItemCategory == 0
                 ? _inventory->weapons[i].name
-                : vs_mainMenu_itemNames[_inventory->shields[i].base.id]);
+                : vs_mainMenu_itemNames[_inventory->shields[i].base.id];
         vs_battle_initInformationTextBox(1);
         vs_mainmenu_setInformationMessage(
             (char*)&_menuText[VS_menuText_OFFSET_disassembleConfirm]);
@@ -568,7 +567,7 @@ static int _consolidateMiscItems(int lootIndex)
             31, 320, 162, 0x7E, 0, (char*)&_menuText[VS_menuText_OFFSET_optionNo]);
         menuItem->state = 2;
         menuItem->targetPosition0 = 194;
-        psx_set(vs_battle_stringContext.strings[0], vs_mainMenu_itemNames[itemId]);
+        vs_battle_stringContext.strings[0] = vs_mainMenu_itemNames[itemId];
 
         vs_battle_initInformationTextBox(1);
         vs_mainmenu_setInformationMessage(
@@ -1396,7 +1395,7 @@ static int _discardItems(int init)
         return state - 3;
 
     case 6:
-        psx_set(vs_battle_stringContext.strings[0], itemName);
+        vs_battle_stringContext.strings[0] = itemName;
 
         vs_battle_initInformationTextBox(1);
         vs_mainmenu_setInformationMessage(

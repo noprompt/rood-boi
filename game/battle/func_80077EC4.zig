@@ -8,15 +8,15 @@ const c = @import("c_146C");
 /// orig: func_80077EC4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Initialises the scratchpad camera from its spherical position, sets the far clip to 0x1000 and zeroes its angles.
 pub fn func_80077EC4() callconv(.c) void {
-    const scratch = v.g.vs_scratch();
+    const view = v.g.vs_view();
     c.vs_battle_initialiseCameraFromSpherical(
-        psx.cptr(c.VECTOR, &scratch.camera.position),
-        psx.cptr(c.VECTOR, &scratch.camera.lookAt),
+        psx.cptr(c.VECTOR, &view.camera.position),
+        psx.cptr(c.VECTOR, &view.camera.lookAt),
         -1,
         -1,
     );
-    scratch.camera.farClip = 0x1000;
-    scratch.camera.angles.vz = 0;
-    scratch.camera.angles.vy = 0;
-    scratch.camera.angles.vx = 0;
+    view.camera.farClip = 0x1000;
+    view.camera.angles.vz = 0;
+    view.camera.angles.vy = 0;
+    view.camera.angles.vx = 0;
 }

@@ -16,36 +16,36 @@ pub fn snapLookAtToPosition(position: ?*v.VECTOR) callconv(.c) void {
     const position_c: [*c]c.VECTOR = @ptrCast(position);
     c._clampPositionToZoneBounds(position_c, psx.cptr(c.VECTOR, &sp10.position));
 
-    const scratch = v.g.vs_scratch();
-    sp10.lookAt.vx = sp10.position.vx -% scratch.camera.lookAt.vx;
-    sp10.lookAt.vz = sp10.position.vz -% scratch.camera.lookAt.vz;
-    sp10.lookAt.vy = sp10.position.vy -% scratch.camera.lookAt.vy;
+    const view = v.g.vs_view();
+    sp10.lookAt.vx = sp10.position.vx -% view.camera.lookAt.vx;
+    sp10.lookAt.vz = sp10.position.vz -% view.camera.lookAt.vz;
+    sp10.lookAt.vy = sp10.position.vy -% view.camera.lookAt.vy;
 
     if (sp10.lookAt.vx > 0x12000) {
-        scratch.camera.lookAt.vx +%= 0x12000;
+        view.camera.lookAt.vx +%= 0x12000;
     } else if (sp10.lookAt.vx < limit_x) {
-        scratch.camera.lookAt.vx -%= 0x12000;
+        view.camera.lookAt.vx -%= 0x12000;
     } else {
-        scratch.camera.lookAt.vx = sp10.position.vx;
+        view.camera.lookAt.vx = sp10.position.vx;
     }
 
     if (sp10.lookAt.vz > 0x12000) {
-        scratch.camera.lookAt.vz +%= 0x12000;
+        view.camera.lookAt.vz +%= 0x12000;
     } else if (sp10.lookAt.vz < limit_x) {
-        scratch.camera.lookAt.vz -%= 0x12000;
+        view.camera.lookAt.vz -%= 0x12000;
     } else {
-        scratch.camera.lookAt.vz = sp10.position.vz;
+        view.camera.lookAt.vz = sp10.position.vz;
     }
 
     if (sp10.lookAt.vy < 0) {
         if (sp10.lookAt.vy < limit_y) {
-            scratch.camera.lookAt.vy +%= 0x60000 +% sp10.lookAt.vy;
+            view.camera.lookAt.vy +%= 0x60000 +% sp10.lookAt.vy;
         }
     } else if (sp10.lookAt.vy > 0x60000) {
-        scratch.camera.lookAt.vy -%= 0x60000 -% sp10.lookAt.vy;
+        view.camera.lookAt.vy -%= 0x60000 -% sp10.lookAt.vy;
     }
 
-    if (scratch.camera.lookAt.vy > 0) {
-        scratch.camera.lookAt.vy = 0;
+    if (view.camera.lookAt.vy > 0) {
+        view.camera.lookAt.vy = 0;
     }
 }

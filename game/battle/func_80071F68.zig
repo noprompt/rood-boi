@@ -46,7 +46,7 @@ pub fn func_80071F68(arg0: c_int) callconv(.c) void {
     }
     c.func_800A190C(state().unk8.unk4.unk0.targetActor, 250, &state().unk29A8, 0);
     if (state().unk2984 != 0) {
-        c.func_800C05EC(&state().unk29A0, null, 0, 0);
+        c.func_800C05EC(&state().unk29A0, null, 0, null);
     }
     const kind = psx.getBits(psx.at(v.g.actions(), action), "unk2_4");
     var count: c_int = 0;
@@ -123,7 +123,7 @@ pub fn func_80071F68(arg0: c_int) callconv(.c) void {
     }
     state().unk2C00 = psx.conv(u16, count);
     if (state().unk2984 != 0) {
-        c.func_800C1664(count, @bitCast(psx.addr(&state().unk29C0)), 0);
+        c.func_800C1664(count, &state().unk29C0, 0);
     }
     if (state().unk8.unk4.unk0.targetActor != 0) {
         count = 0;

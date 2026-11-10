@@ -4,7 +4,8 @@
 #include "game/BATTLE/BATTLE.PRG/ai_state.h"
 extern unsigned char* D_800F5878[];
 /* Guest words at 0x800F58xx: 32-bit guest addresses. */
-extern unsigned D_800F58B8, D_800F58BC, D_800F590C, D_800F5920;
+extern D_800F58BC_t* D_800F58BC;
+extern unsigned D_800F58B8, D_800F590C, D_800F5920;
 extern void func_800E5240(unsigned);
 extern void func_80095B7C(int, int);
 extern void func_800DBF00(void*);

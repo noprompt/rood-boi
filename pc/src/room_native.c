@@ -23,6 +23,7 @@
 #include "room_editor.h"
 #include "room_effects.h"
 #include <math.h>
+#include "view_state.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -474,7 +475,7 @@ int pc_room_native_begin(const void* data, unsigned mode, const unsigned* first)
         return 0;
     /* The camera: the view matrix func_8008B1FC set (scratch 0x1F800014)
      * and the GTE projection. */
-    const gte_matrix* view = (const gte_matrix*)(uintptr_t)0x1f800014;
+    const gte_matrix* view = (const gte_matrix*)PC_VIEW_MATRIX;
     render_camera camera;
     double r[3][3];
     for (int a = 0; a < 3; a++) {
@@ -777,7 +778,7 @@ unsigned pc_room_editor_facing(void)
 {
     if (!pc_editor_game_cutaway || pc_room_photo_whole())
         return 0x10000;
-    const gte_matrix* view = (const gte_matrix*)(uintptr_t)0x1f800014;
+    const gte_matrix* view = (const gte_matrix*)PC_VIEW_MATRIX;
     /* Row 2 is the view direction in world space; the game's yaw is that of
      * the direction from the target to the camera, ratan2(x, z). */
     double x = -view->m[2][0], z = -view->m[2][2];

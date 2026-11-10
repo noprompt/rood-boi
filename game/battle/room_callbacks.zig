@@ -35,7 +35,7 @@ pub fn pc_cb_80092540(p: ?*v.D_800F1DD8_t2) callconv(.c) c_int {
 
 /// orig: pc_cb_80092C68 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092C68 on the entry's two objects.
-pub fn pc_cb_80092C68(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092C68(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092C68(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -43,7 +43,7 @@ pub fn pc_cb_80092C68(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80092E14 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092E14 on the entry's two objects.
-pub fn pc_cb_80092E14(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092E14(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092E14(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -51,7 +51,7 @@ pub fn pc_cb_80092E14(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80092F6C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092F6C on the entry's two objects.
-pub fn pc_cb_80092F6C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092F6C(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092F6C(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -59,7 +59,7 @@ pub fn pc_cb_80092F6C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80092F74 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092F74 on the entry's two objects.
-pub fn pc_cb_80092F74(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092F74(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092F74(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -67,7 +67,7 @@ pub fn pc_cb_80092F74(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80092F98 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092F98 on the entry's two objects.
-pub fn pc_cb_80092F98(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092F98(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092F98(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -75,7 +75,7 @@ pub fn pc_cb_80092F98(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80092FBC (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092FBC on the entry's two objects.
-pub fn pc_cb_80092FBC(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092FBC(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092FBC(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -83,7 +83,7 @@ pub fn pc_cb_80092FBC(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_8009352C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_8009352C on the entry's two objects.
-pub fn pc_cb_8009352C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_8009352C(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_8009352C(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -91,7 +91,7 @@ pub fn pc_cb_8009352C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_800935B8 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_800935B8 on the entry's two objects.
-pub fn pc_cb_800935B8(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_800935B8(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_800935B8(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -99,7 +99,7 @@ pub fn pc_cb_800935B8(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80092E7C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80092E7C on the entry's two objects.
-pub fn pc_cb_80092E7C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80092E7C(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80092E7C(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -107,7 +107,7 @@ pub fn pc_cb_80092E7C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_800935F8 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_800935F8 on the entry's two objects.
-pub fn pc_cb_800935F8(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_800935F8(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_800935F8(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -115,7 +115,7 @@ pub fn pc_cb_800935F8(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_8009361C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_8009361C on the entry's two objects.
-pub fn pc_cb_8009361C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_8009361C(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_8009361C(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -123,7 +123,7 @@ pub fn pc_cb_8009361C(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_800936F0 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_800936F0 on the entry's two objects.
-pub fn pc_cb_800936F0(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_800936F0(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_800936F0(@ptrCast(a), @ptrCast(@alignCast(b)));
@@ -131,7 +131,7 @@ pub fn pc_cb_800936F0(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(
 
 /// orig: pc_cb_80093640 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Room-effect table entry: runs func_80093640 on the entry's two objects.
-pub fn pc_cb_80093640(a: ?*v.func_80092B04_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
+pub fn pc_cb_80093640(a: ?*v.func_80092F74_t, b: ?*v.func_80092B04_t2) callconv(.c) c_int {
     // The C's cast to the 4-aligned func_80092F74_t2 never checks alignment.
     @setRuntimeSafety(false);
     return c.func_80093640(@ptrCast(a), @ptrCast(@alignCast(b)));

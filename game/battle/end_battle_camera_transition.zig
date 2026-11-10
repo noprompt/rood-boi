@@ -5,7 +5,7 @@ const c = @import("c_146C");
 /// orig: _endBattleCameraTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Restores the camera a transition started from, frees the transition and resets the camera subsystems.
 pub fn endBattleCameraTransition() callconv(.c) void {
-    v.g.vs_scratch().camera = v.g.vs_battle_cameraTransition().*.?.fromCameraState;
+    v.g.vs_view().camera = v.g.vs_battle_cameraTransition().*.?.fromCameraState;
 
     v.g.vs_battle_cameraCurrentSpherical().* = v.g.vs_battle_cameraTransition().*.?.fromSpherical;
 

@@ -118,7 +118,7 @@ static void _startMenuTransition(int id)
     menuItem->state = menuItemStateSlideX;
     menuItem->targetPosition0 = 155;
     menuItem->selected = 1;
-    psx_set(menuItem->subText, NULL);
+    menuItem->subText = NULL;
 }
 
 /**

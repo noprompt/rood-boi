@@ -66,7 +66,7 @@ pub fn func_8006EC7C() callconv(.c) void {
     }
     c.func_800AA850(0, psx.conv(u16, camera.yaw & 0xFFF), 0);
     _ = c.func_800A1108(0, &actor);
-    const position = &v.g.vs_scratch().camera.position;
+    const position = &v.g.vs_view().camera.position;
     position.vx = @as(c_int, actor.unk0.unk4.vx) *% 4096;
     position.vz = @as(c_int, actor.unk0.unk4.vz) *% 4096;
     position.vy = (@as(c_int, actor.unk0.unk4.vy) -% 180) *% 4096;

@@ -746,7 +746,7 @@ static int _renameMenuInput(int initialize)
 
         vs_battle_initInformationTextBox(1);
 
-        psx_set(vs_battle_stringContext.strings[0], _nameBuffer);
+        vs_battle_stringContext.strings[0] = _nameBuffer;
 
         vs_battle_printf(vs_battle_stringBuf,
             (char*)(_renderRenameMenuStrings + VS_rename_OFFSET_confirmPrompt));

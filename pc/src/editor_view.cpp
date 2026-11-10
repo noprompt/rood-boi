@@ -581,7 +581,7 @@ void from_game_camera()
 /* The photo mode's camera (photo.cpp, rood.camera): the live free camera driven by a plugin while the
  * game is paused. It borrows the editor's camera (eye, yaw, pitch, the projection) for its time and gives
  * it back as it was; the editor itself (active, its panel) is not turned on. Roll and the field of view
- * are the game's own: the roll the view matrix takes (vs_scratch.camera.angles.vz) and the projection
+ * are the game's own: the roll the view matrix takes (vs_view.camera.angles.vz) and the projection
  * distance (vs_battle_setProjectionDistance), set in func_8007ACB0's hook each frame (the game's state
  * of a render is rewound after it, photo.cpp). */
 bool photo;
@@ -879,7 +879,7 @@ extern "C" int pc_live_camera(PsxVector* position, PsxVector* look_at)
     look_at->vy = (int32_t)((eye[1] + f[1] * 1024) * 4096);
     look_at->vz = (int32_t)((eye[2] + f[2] * 1024) * 4096);
     if (photo) {
-        /* The roll func_8007ACB0 turns the view by next (vs_scratch.camera.angles.vz, 4096 a turn). */
+        /* The roll func_8007ACB0 turns the view by next (vs_view.camera.angles.vz, 4096 a turn). */
         *(volatile int32_t*)(uintptr_t)(0x1F800000u + 0x34 + 0x20 + 8) = (int32_t)lroundf(photo_roll * 4096.0f / 360.0f);
         /* Its yaw and pitch as vs_battle_syncCameraAnglesFromPosition derives them (the direction from the
          * target to the eye: yaw ratan2(x, z) in 0..4095, pitch ratan2(y, horizontal), y down), for what the

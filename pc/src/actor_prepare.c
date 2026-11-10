@@ -117,7 +117,7 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
     int dz;
     int angle;
     int length;
-    vs_scratch_t* frame;
+    vs_view_t* frame;
     int blend;
     u_int flags;
     vs_gte_view view;
@@ -238,13 +238,13 @@ void func_800B28A8(void* actorData, MATRIX* parent, char arg2)
                 }
                 break;
             case 7:
-                frame = (void*)0x1F800000;
+                frame = &vs_view;
                 scratch->rotation.vx = frame->camera.angles.vx;
                 scratch->rotation.vy = frame->camera.angles.vy - 0x400;
                 scratch->rotation.vz = frame->camera.angles.vz;
             case 8:
             case 9:
-                frame = (void*)0x1F800000;
+                frame = &vs_view;
                 dx = frame->camera.position.vx / ONE - scratch->offset.vx;
                 dz = frame->camera.position.vz / ONE - scratch->offset.vz;
                 if (dx == 0 && dz == 0) {

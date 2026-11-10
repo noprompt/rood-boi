@@ -684,6 +684,15 @@ class Game:
         sym = symbols().get(f"pc_actor_offset_{name}")
         return int.from_bytes(self.read(sym, 4), "little") if sym else old
 
+    def layout(self, name, old):
+        """A record's size or a field's offset the game exports (pc_layout_<name>: menuItem_size, textBox_state, ...).
+        `old` is the PS1 layout's, for a baseline built before the export."""
+        cache = self.__dict__.setdefault("_layouts", {})
+        if name not in cache:
+            sym = symbols().get(f"pc_layout_{name}")
+            cache[name] = int.from_bytes(self.read(sym, 4), "little") if sym else old
+        return cache[name]
+
     def object_size(self):
         """The byte size of a D_800F4538_t (the game exports it; a baseline built before answers the PS1 size)."""
         sym = symbols().get("pc_object_size")

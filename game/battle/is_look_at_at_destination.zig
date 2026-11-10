@@ -19,7 +19,7 @@ pub fn isLookAtAtDestination() callconv(.c) c_int {
         sp10.position.vy = 0;
     }
     c._clampPositionToZoneBounds(psx.cptr(c.VECTOR, &sp10.position), psx.cptr(c.VECTOR, &sp10.position));
-    sp10.lookAt = v.g.vs_scratch().camera.lookAt;
+    sp10.lookAt = v.g.vs_view().camera.lookAt;
 
     if ((sp10.position.vx == (sp10.lookAt.vx & ~@as(c_int, 0xFFF))) and
         (sp10.position.vz == (sp10.lookAt.vz & ~@as(c_int, 0xFFF))) and

@@ -43,7 +43,7 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     int scroll;
     int depth;
     vs_gridState* state;
-    func_800FA098_arg1* scratch = (void*)0x1F8001D0;
+    func_800FA098_arg1* scratch = &pc_effect_scratch;
     func_800FA098_arg0* effect;
     MATRIX* matrix;
     pc_item* prim;
@@ -181,7 +181,7 @@ int VS_GRID_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         if (scratch->flags & 0x20000) {
             view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+            view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
         }
         for (row = 0; row < 9; ++row) {
             for (column = 0; column < 9; ++column) {

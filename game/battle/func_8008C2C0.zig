@@ -10,7 +10,7 @@ const c = @import("c_146C");
 pub fn func_8008C2C0(arg0: c_int, arg1: c_int, arg2: c_int, arg3: c_int) callconv(.c) c_int {
     if (psx.get(v.g.vs_battle_roomData().section11) != null) {
         c.func_8008C40C();
-        const facing: c_int = ((v.g.vs_scratch().camera.angles.vy +% 0x900) & 0xFFF) >> 9;
+        const facing: c_int = ((v.g.vs_view().camera.angles.vy +% 0x900) & 0xFFF) >> 9;
         var entry: *align(1) v._mpdRoomSection11 = psx.get(v.g.vs_battle_roomData().section11).?;
         const len: c_int = psx.conv(c_int, v.g.vs_battle_roomData().header.section11Len);
         var i: c_int = 0;

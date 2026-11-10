@@ -49,10 +49,10 @@ from rood_rpc import OUT, Game, symbols  # noqa: E402
 from checkpoints import launch_at  # noqa: E402
 import golden_frames as gf  # noqa: E402
 
-FACING = 0x1F800010  # scratch: facing mask (low byte), first-person view (bit 16)
-POSITION = 0x1F800034  # scratch camera.position (VECTOR, 20.12)
-LOOK_AT = 0x1F800044
-YAW = 0x1F800058  # scratch camera.angles.vy
+FACING = symbols()["vs_view"]  # scratch: facing mask (low byte), first-person view (bit 16)
+POSITION = symbols()["vs_view"] + 0x24  # scratch camera.position (VECTOR, 20.12)
+LOOK_AT = symbols()["vs_view"] + 0x34
+YAW = symbols()["vs_view"] + 0x48  # vs_view: camera.angles.vy
 VULKAN = os.environ.get("ROOD_RENDERER") == "vulkan" and os.environ.get("ROOD_ARCH") == "64"
 
 

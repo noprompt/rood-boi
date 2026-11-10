@@ -17,10 +17,10 @@ pub fn func_800DAD9C(state: ?*v.vs_battle_aiState) callconv(.c) c_int {
 
     const fallback: *v.actionDispatchEntry = &st.entry.fallback;
     if (((fallback.flags4 >> 5) & 255) != 0) {
-        const registry: *v.actionDispatchRegistry = @ptrCast(v.g.D_800F58BC().*.?);
+        const registry = v.g.D_800F58BC().*.?;
         var j: usize = 0;
         while (j < 4) : (j += 1) {
-            const actor = psx.get(registry.registered[j]);
+            const actor = registry.registered[j];
             if (actor) |a| {
                 fallback.flagsC = (fallback.flagsC & ~@as(u32, 15)) | psx.conv(u32, a.id & 15);
                 const model: *v.actionDispatchModel = @ptrCast(psx.at(v.g.D_800F45E0(), a.id).*.?);

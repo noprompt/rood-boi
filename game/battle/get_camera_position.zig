@@ -5,7 +5,7 @@ const v = @import("views_146C");
 /// Copies the scratchpad camera's position vector into `outPosition`.
 pub fn getCameraPosition(outPosition: ?*v.VECTOR) callconv(.c) void {
     const out = outPosition.?;
-    const position = &v.g.vs_scratch().camera.position;
+    const position = &v.g.vs_view().camera.position;
     out.vx = position.vx;
     out.vy = position.vy;
     out.vz = position.vz;

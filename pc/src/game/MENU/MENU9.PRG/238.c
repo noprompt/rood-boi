@@ -460,10 +460,10 @@ int _calculateProgress(void)
     }
 
     vs_main_memcpy(&_cameraPositionBackup,
-        &((vs_scratch_t*)getScratchAddr(0))->camera.position,
+        &vs_view.camera.position,
         sizeof _cameraPositionBackup);
     vs_main_memcpy(&_cameraAnglesBackup,
-        &((vs_scratch_t*)getScratchAddr(0))->camera.angles.vx,
+        &vs_view.camera.angles.vx,
         sizeof _cameraAnglesBackup);
     _setTitleFlags();
     _calculateScore();
@@ -1410,9 +1410,9 @@ int _menuInput(void)
  */
 void _restoreCamera(void)
 {
-    vs_main_memcpy(&((vs_scratch_t*)getScratchAddr(0))->camera.position,
+    vs_main_memcpy(&vs_view.camera.position,
         &_cameraPositionBackup, sizeof _cameraPositionBackup);
-    vs_main_memcpy(&((vs_scratch_t*)getScratchAddr(0))->camera.angles.vx,
+    vs_main_memcpy(&vs_view.camera.angles.vx,
         &_cameraAnglesBackup, sizeof _cameraAnglesBackup);
 }
 
@@ -1488,7 +1488,7 @@ void _buildCameraMatrix(MATRIX* cameraMatrix)
     int angle0;
     int angle1;
     int angle2;
-    vs_scratch_t* scratch;
+    vs_view_t* scratch;
 
     angle0 = (angle1 = rsin(_cameraAngles.vy));
     angle1 = rcos(_cameraAngles.vx);
@@ -1501,7 +1501,7 @@ void _buildCameraMatrix(MATRIX* cameraMatrix)
     angle2 = rsin(_cameraAngles.vx) * -_cameraDistance;
     position.vy = (angle2 / ONE) - (_cameraHeightOffset / 2);
 
-    scratch = (vs_scratch_t*)getScratchAddr(0);
+    scratch = &vs_view;
     setVector(&scratch->camera.position, position.vx * ONE, position.vy * ONE,
         position.vz * ONE);
     scratch->camera.angles.vx = _cameraAngles.vx;

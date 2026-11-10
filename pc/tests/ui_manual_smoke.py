@@ -79,7 +79,6 @@ QUICK_MANUAL = 9  # the top level's command (menuFlags bit 9)
 MENUE_SECTION = "rood_ovl_menu_menue_prg"
 MENUE_STATICS = ("_showMenuState", "_scrollPosition", "_lineCount")
 SHOW_LIST, SHOW_PAGE = 2, 5  # _showMenu's getSelection, showSubMenu
-TEXTBOX_BYTES, TEXTBOX_STATE = 0x30, 0x1C
 TOPICS = 14
 SOUNDS = ("change", "select", "leave", "invalid")
 SOUND_STEPS = ("topic3", "steps", "list", "topic12", "top")  # A's and B's sounds compared (from "open")
@@ -279,7 +278,7 @@ class Session:
             # close only
             "menuState": g.read(self.menu_state, 4),
             "hud": g.read(s["D_800EB9AF"], 1) + g.read(s["D_800EB9B0"], 4),
-            "textBox0": g.read(s["vs_battle_textBoxes"] + TEXTBOX_STATE, 2),
+            "textBox0": g.read(s["vs_battle_textBoxes"] + g.layout("textBox_state", 0x1C), 2),
             # the sounds played so far and those the manual asked for (compare_sounds, check_asked)
             "played": self.played(),
             "asked": self.asked(),

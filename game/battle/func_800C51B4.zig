@@ -6,7 +6,7 @@ const c = @import("c_5BF94");
 /// orig: func_800C51B4 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Applies or clears the group of each entry of the battle entry block, as `mode` selects.
 pub fn func_800C51B4(mode: c_int) callconv(.c) void {
-    const entries = psx.get(v.g.D_800EB9B8().*.?.unk40);
+    const entries = v.g.D_800EB9B8().*.?.unk40;
     if (v.g.D_800EB9B8().*.?.unk31 != 0) {
         if (mode != 3) {
             var i: c_int = 0;

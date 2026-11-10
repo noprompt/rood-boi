@@ -143,8 +143,8 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
             if (side > 416) flagsWord.* |= bit(actor);
             side = (flagsWord.* >> @truncate(@as(c_uint, @bitCast(actor)))) & 1;
             if (side != 0) return;
-            c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
-            c.SetTransMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
+            c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+            c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
             other.vy = psx.conv(i16, @as(c_int, other.vy) -% 64);
             // PC_GTE_UNNARROWED
             v.g.pc_gte_anchored().* +%= 1;

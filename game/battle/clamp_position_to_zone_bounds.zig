@@ -9,7 +9,7 @@ pub fn clampPositionToZoneBounds(inPos: ?*v.VECTOR, outPos: ?*v.VECTOR) callconv
     const out = outPos.?;
     const zone = v.g._zoneContext();
     const cam = v.g.vs_battle_cameraCurrentSpherical();
-    const scratch = v.g.vs_scratch();
+    const view = v.g.vs_view();
 
     const entityRadius: c_int = @divTrunc(cam.values.distance *% 4096, 2304);
 
@@ -46,12 +46,12 @@ pub fn clampPositionToZoneBounds(inPos: ?*v.VECTOR, outPos: ?*v.VECTOR) callconv
     out.vz &= ~@as(c_int, 4096 - 1);
 
     // Y axis: keep the input height unless it is out of the look-at band.
-    const yBound: c_int = in.vy -% scratch.camera.lookAt.vy;
+    const yBound: c_int = in.vy -% view.camera.lookAt.vy;
     const lowLimit: c_int = -393216; // -(ONE * 96)
     if (yBound > 393216 or yBound < lowLimit) {
         out.vy = in.vy;
     } else {
-        out.vy = scratch.camera.lookAt.vy;
+        out.vy = view.camera.lookAt.vy;
     }
     if (out.vy > 0) {
         out.vy = 0;

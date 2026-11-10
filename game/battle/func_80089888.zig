@@ -44,7 +44,7 @@ pub fn func_80089888() callconv(.c) void {
 
     _ = c.func_800A1108(0, &sp18);
     c.func_8009E5C4(0);
-    c.func_800A4828(0, psx.cptr(c.MATRIX, &v.g.vs_scratch().viewMatrix));
+    c.func_800A4828(0, psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
     c.func_800A0A1C(0, 0);
     c.func_800E6158();
 }

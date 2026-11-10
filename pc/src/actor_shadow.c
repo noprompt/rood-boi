@@ -89,7 +89,7 @@ flat:
     slope = (SVECTOR) { 0 };
 transform:;
     MATRIX terrain = { 0 }, rotation = { 0 };
-    MATRIX* camera = (MATRIX*)(scratch + 0x14);
+    MATRIX* camera = &vs_view.viewMatrix;
     RotMatrixYXZ_gte(&slope, &terrain);
     func_800B196C(camera, &terrain);
     SVECTOR angles = *(SVECTOR*)&actor->unk0.unk24; /* unk24, facing, unk28, unk2A */

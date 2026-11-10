@@ -10,15 +10,16 @@ const psx = @import("common").psx;
 /// (bytes 1, 0, 3, 2), and for a state with byte 0x19B set masks grid byte
 /// 0xE with the bits from its own low five bits up.
 pub fn releaseActorTile(state: *ai.vs_battle_aiState) callconv(.c) void {
-    const grid: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F58BC().*));
+    const grid = v.g.D_800F58BC().*.?;
     const x: c_uint = psx.fieldAt(u8, &state.next, 0).*;
     const z: c_uint = psx.fieldAt(u8, &state.next, 2).*;
     const active = state.gate;
     state.f1A = 0;
-    if (x >= grid[1] and x <= grid[0] and z >= grid[3] and z <= grid[2]) c.func_800E4C28(@bitCast(x), @bitCast(z));
+    // As the assembly reads the bounds: x between bytes 1 and 0, z between bytes 3 and 2 (the record's names are the C's).
+    if (x >= grid.maxZ and x <= grid.maxX and z >= grid.minZ and z <= grid.minX) c.func_800E4C28(@bitCast(x), @bitCast(z));
     if (active != 0) {
-        const value: c_uint = grid[0xe];
+        const value: c_uint = grid.closedGates;
         // The original uses the byte itself as a masked variable shift.
-        grid[0xe] = @truncate(value & (0 -% (@as(c_uint, 1) << @intCast(value & 31))));
+        grid.closedGates = @truncate(value & (0 -% (@as(c_uint, 1) << @intCast(value & 31))));
     }
 }

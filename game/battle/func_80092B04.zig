@@ -5,11 +5,11 @@ const v = @import("views_2842C");
 
 /// orig: func_80092B04 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Runs each of the arg1 entries' command scripts until it ends; returns nonzero unless every entry is idle.
-pub fn func_80092B04(arg0: ?*v.func_80092B04_t, arg1: c_int, _: ?*v.D_800F1DD8_t) callconv(.c) c_int {
+pub fn func_80092B04(arg0: ?*v.func_80092F74_t, arg1: c_int, _: ?*v.D_800F1DD8_t) callconv(.c) c_int {
     const Handler = *const fn (?*anyopaque, ?*anyopaque) callconv(.c) c_int;
 
     var idle: c_int = 0;
-    const entries: [*c]v.func_80092B04_t = arg0;
+    const entries: [*c]v.func_80092F74_t = arg0;
     var i: c_int = 0;
     while (i < arg1) : (i +%= 1) {
         const entry = &entries[@intCast(i)];

@@ -40,7 +40,7 @@ pub fn func_800AE4FC(arg0: ?*v.D_800F4538_unk0, arg1: c_int) callconv(.c) void {
 
     if (sp1 == 0) return;
 
-    const akao_raw: *align(4) anyopaque = @alignCast(psx.get(psx.get(rec.unk68).?.akaoOffset).?);
+    const akao_raw: *align(4) anyopaque = @ptrFromInt(@intFromPtr(psx.get(rec.unk68).?) +% psx.get(rec.unk68).?.akaoOffset);
     const akao: [*c]c_uint = @ptrCast(akao_raw);
 
     if (kind == 8) {

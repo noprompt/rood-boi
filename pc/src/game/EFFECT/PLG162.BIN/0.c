@@ -40,7 +40,7 @@ int func_800F9800(func_800D4910_t* arg0, u_int arg1, int arg2)
     MATRIX unusedTransform;
     func_800FB4C0_t child;
     vs_transposedRingState* state;
-    func_800FA098_arg1* scratch = (func_800FA098_arg1*)0x1F8001D0;
+    func_800FA098_arg1* scratch = &pc_effect_scratch;
     func_800FA098_arg0* effect;
     D_800F53B8_t* battle;
     int alive;
@@ -202,7 +202,7 @@ int func_800F9800(func_800D4910_t* arg0, u_int arg1, int arg2)
         if (scratch->flags & 0x20000) {
             view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+            view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
         }
         for (drawRow = 0; drawRow < 3; ++drawRow) {
             for (drawColumn = 0; drawColumn < 16; ++drawColumn) {
@@ -214,7 +214,7 @@ int func_800F9800(func_800D4910_t* arg0, u_int arg1, int arg2)
 
         func_800D6D24(&state->texture);
         texture =
-            &D_800F569C->block1Data[psx_get(state->texture.unk1C)->dataIndex];
+            &D_800F569C->block1Data[state->texture.unk1C->dataIndex];
         for (column = 0; column < 17; ++column)
             v[column] = texture->v0 + ((texture->v1 * column) / 16);
 
@@ -350,7 +350,7 @@ int func_800FC21C(func_800D4910_t* arg0, u_int arg1, int arg2)
     MATRIX unusedTransform;
     func_800FB4C0_t child;
     vs_closedRingState* state;
-    func_800FA098_arg1* scratch = (func_800FA098_arg1*)0x1F8001D0;
+    func_800FA098_arg1* scratch = &pc_effect_scratch;
     func_800FA098_arg0* effect;
     D_800F53B8_t* battle;
     int alive;
@@ -512,7 +512,7 @@ int func_800FC21C(func_800D4910_t* arg0, u_int arg1, int arg2)
         if (scratch->flags & 0x20000) {
             view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+            view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
         }
         for (drawRow = 0; drawRow < 3; ++drawRow) {
             for (drawColumn = 0; drawColumn < 16; ++drawColumn) {
@@ -524,7 +524,7 @@ int func_800FC21C(func_800D4910_t* arg0, u_int arg1, int arg2)
 
         func_800D6D24(&state->texture);
         texture =
-            &D_800F569C->block1Data[psx_get(state->texture.unk1C)->dataIndex];
+            &D_800F569C->block1Data[state->texture.unk1C->dataIndex];
         for (column = 0; column < 5; ++column)
             u[column] = texture->u0 + ((texture->u1 * column) / 4);
 

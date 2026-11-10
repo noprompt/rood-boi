@@ -228,11 +228,13 @@ def case_stall(s, check):
     raw = s.g.read(s.sym["_cdQueue"], 32 * SLOT)
     free = next(i for i in range(32) if struct.unpack_from("<h", raw, i * SLOT)[0] == 0)
     state = s.sym["vs_battle_menuState"]
-    last = struct.unpack("<I", s.g.read(state + 4, 4))[0]  # the slot of the last menu load (a guest pointer)
+    at = s.g.layout("menuState_cdQueue", 4)  # the slot of the last menu load (a host pointer on 64 bits)
+    word = "<Q" if at == 8 else "<I"
+    last = struct.unpack(word, s.g.read(state + at, struct.calcsize(word)))[0]
     check(0 <= last - s.sym["_cdQueue"] < 32 * SLOT, f"stall: the menu's slot pointer is a queue slot ({last:#x})")
-    # loading 1, its slot (a guest pointer at +4) a free one: nothing will ever load it
+    # loading 1, its slot a free one: nothing will ever load it
     s.g.write(state + 3, b"\x01")
-    s.g.write(state + 4, struct.pack("<I", s.sym["_cdQueue"] + free * SLOT))
+    s.g.write(state + at, struct.pack(word, s.sym["_cdQueue"] + free * SLOT))
     s.g.run(2)
     stalled = s.ui().get("mainmenu", {})
     check(not stalled.get("resident"), f"stall: MAINMENU waits for the slot ({stalled})")

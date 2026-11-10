@@ -3,7 +3,8 @@
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
 #include "game/BATTLE/BATTLE.PRG/ai_state.h"
 extern unsigned char* D_800F5878[];
-extern unsigned D_800F58BC, D_800F58D0, D_800F58B8, D_800F58CC, D_800F58C0, D_800F58C4;
+extern D_800F58BC_t* D_800F58BC;
+extern unsigned D_800F58D0, D_800F58B8, D_800F58CC, D_800F58C0, D_800F58C4;
 extern unsigned D_800F16E0, D_800F16E4, D_800F16E8, D_800F16EC, D_800F16F0;
 extern void pc_unimplemented(const char*);
 extern int func_800E45B4(void);
@@ -38,7 +39,7 @@ void pc_actor_scratch(unsigned* scratch)
     /* Without a navigation record (func_800E5308 does not test it, unlike
      * func_800E511C) the original reads word 4 of address 0: PS1 RAM, the
      * kernel area, read here through guest RAM. */
-    scratch[0x3dc / 4] = *psx_to_ptr(unsigned*, (D_800F58BC ? D_800F58BC : 0x80000000u) + 4);
+    scratch[0x3dc / 4] = D_800F58BC ? *(unsigned*)&D_800F58BC->unk4 : *psx_to_ptr(unsigned*, 0x80000004u);
 }
 void func_800E65DC(void);
 

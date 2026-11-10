@@ -1,5 +1,6 @@
 //! Ticks the room's section-9 timers and draws the ones still running (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
@@ -34,7 +35,7 @@ pub fn func_8008DF14() callconv(.c) void {
 
             if (s3.unkB != 0 and s3.unk6 < 0x10) {
                 if (s2 != 0) {
-                    c.vs_main_memcpy(v.g.D_800E856C(), @ptrFromInt(0x1F800014), @sizeOf(v.MATRIX));
+                    c.vs_main_memcpy(v.g.D_800E856C(), common.view.at(anyopaque, common.view.matrix_offset), @sizeOf(v.MATRIX));
                     v.g.D_800F1D6C().* = psx.conv(u16, @as(c_int, v.g.D_800F1D6C().*) +% v.g.vs_gametime_tickspeed().*);
                     if (@as(c_int, v.g.D_800F1D6C().*) >= 8) {
                         v.g.D_800F1D6C().* = psx.conv(u16, @as(c_int, v.g.D_800F1D6C().*) -% 8);

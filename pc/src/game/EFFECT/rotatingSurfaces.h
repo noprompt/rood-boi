@@ -38,7 +38,7 @@ int VS_ROTATING_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     u_char u[VS_ROTATING_SURFACE_U_SEGMENTS + 1];
     u_char v[5];
     vs_rotatingSurfaceState* state;
-    func_800FA098_arg1* scratch = (func_800FA098_arg1*)0x1F8001D0;
+    func_800FA098_arg1* scratch = &pc_effect_scratch;
     func_800FA098_arg0* effect;
     D_800F53B8_t* battle;
     int alive;
@@ -199,7 +199,7 @@ int VS_ROTATING_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         if (scratch->flags & 0x20000) {
             view = vs_gte_view_of(&battle->unk1C[effect->unkC8].unk58, vs_gte_screen_current());
         } else {
-            view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+            view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
         }
         for (row = 0; row < 5; ++row) {
             for (column = 0; column < 16; ++column) {
@@ -210,7 +210,7 @@ int VS_ROTATING_SURFACE_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
         }
         func_800D6D24(&state->texture);
         texture =
-            &D_800F569C->block1Data[psx_get(state->texture.unk1C)->dataIndex];
+            &D_800F569C->block1Data[state->texture.unk1C->dataIndex];
         for (sample = 0; sample < VS_ROTATING_SURFACE_U_SEGMENTS + 1; ++sample)
             u[sample] =
                 texture->u0 + texture->u1 * sample / VS_ROTATING_SURFACE_U_SEGMENTS;

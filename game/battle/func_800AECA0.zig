@@ -11,8 +11,8 @@ const c = @import("c_44F14");
 pub fn func_800AECA0(source: ?*v.MATRIX) callconv(.c) void {
     var rotation: v.MATRIX = std.mem.zeroes(v.MATRIX);
     const scratch: *v.cameraTransformScratch = @ptrFromInt(0x1F80035C);
-    const camera_angle: *c_int = @ptrFromInt(0x1F80005C);
-    const camera_zoom: *c_int = @ptrFromInt(0x1F800064);
+    const camera_angle: *c_int = common.view.at(c_int, 0x4C);
+    const camera_zoom: *c_int = common.view.at(c_int, common.view.far_clip_offset);
 
     {
         var i: usize = 0;

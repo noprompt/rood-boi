@@ -120,7 +120,7 @@ pub fn func_800DFBCC(state: ?*v.vs_battle_aiState, index: c_int, area: c_int) ca
                 i = result >> 1;
                 if (c.func_8008E320(i) >= 0) {
                     psx.setBits(&candidate.p, "y", psx.conv(u8, i +% 2));
-                    const gates: *v.routeEdgeGlobals = @ptrCast(v.g.D_800F58BC().*.?);
+                    const gates = v.g.D_800F58BC().*.?;
                     // The shift amount as x86 masks it (the C's is undefined past 31).
                     if ((@as(c_int, gates.closedGates) >> @truncate(@as(c_uint, psx.getBits(&candidate.p, "y")))) & 1 == 0) {
                         s.gate = psx.getBits(&candidate.p, "y");

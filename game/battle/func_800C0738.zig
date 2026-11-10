@@ -5,6 +5,6 @@ const v = @import("views_573B8");
 /// Clears the flag byte at offset 0x10 of the battle record, if the record exists.
 pub fn func_800C0738() callconv(.c) void {
     if (v.g.D_800EB9B8().*) |record| {
-        record.unk10.unk0 = 0;
+        record.unk0[1].unk0 = 0;
     }
 }

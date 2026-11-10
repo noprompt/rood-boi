@@ -146,12 +146,6 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
         data = advance(data, 4);
         const model: ?*v.D_800F4538_unk68 = @ptrCast(@alignCast(c.vs_main_allocHeap(psx.conv(c_uint, size))));
         _ = memcpy(model, @ptrFromInt(data), @as(u32, @bitCast(size)));
-        const m = model.?;
-        const base: usize = psx.addr(model);
-        psx.put(&m.akaoOffset, @as(?*anyopaque, @ptrFromInt(@intFromPtr(psx.get(m.akaoOffset)) +% base)));
-        psx.put(&m.groupOffset, @as(?*anyopaque, @ptrFromInt(@intFromPtr(psx.get(m.groupOffset)) +% base)));
-        psx.put(&m.vertexOffset, @as(?*anyopaque, @ptrFromInt(@intFromPtr(psx.get(m.vertexOffset)) +% base)));
-        psx.put(&m.polyOffset, @as(?*anyopaque, @ptrFromInt(@intFromPtr(psx.get(m.polyOffset)) +% base)));
         psx.put(&actor.unk0.unk68, model);
         if (model == null) return -2;
         data = advance(data, size);
@@ -291,7 +285,8 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
 
     if (stage == .fix_uvs) {
         const count: c_int = @as(c_int, actor.unk0.nOther) + actor.unk0.nTriangles + actor.unk0.nQuads;
-        var prim: usize = @intFromPtr(psx.get(psx.get(actor.unk0.unk68).?.polyOffset));
+        const header = psx.get(actor.unk0.unk68).?;
+        var prim: usize = @intFromPtr(header) +% header.polyOffset;
         const texV: c_int = @as(c_int, v.g.D_800E8F90()[actor.unk5BB]) << 6;
         if (psx.getBits(&actor.unk0, "unk8_3") == 0) {
             var k: c_int = 0;

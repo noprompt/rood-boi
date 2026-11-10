@@ -7,7 +7,7 @@
  *   0x1F8000DC  per-scanline span counts (224 rows)
  *   0x1F8001BC  180 cell-edge flags, then their row bytes at +0xB4; later
  *               reused for triangle span rows and the 32-point view circle
- * D_800EB9B8 + 0xB70 holds 224 rows of 32 x-coordinates (span pairs). The
+ * the battle menu block (D_800EB9B8_t.spans) holds 224 rows of 32 x-coordinates (span pairs). The
  * spans are built from the projected cell outlines, cut by lowered walls and
  * marker triangles (+0x4AB8), clipped to the circle's left edge, then emitted
  * as semi-transparent LINE_F2 packets along the circle's right edge. */
@@ -15,10 +15,13 @@
 #include "widescreen.h"
 #include <libgte.h>
 #include <inline_c.h>
+#include "pc/src/game/BATTLE/BATTLE.PRG/target_block.h"
+
+/* The battle menu's block (target_block.h). */
+extern D_800EB9B8_t* D_800EB9B8;
 
 extern void pc_unimplemented(const char*);
 /* A 32-bit guest word: the battle menu state block's address. */
-extern u_int D_800EB9B8;
 extern u_short D_800EA130[]; /* 0x8000 / n; indexed past its end as the original */
 extern u_short D_800EA6B0[]; /* edge -> pair of neighbouring cell indices */
 extern short D_800EA818[];   /* 40-entry sine table: sin at i, cos at i + 8 */

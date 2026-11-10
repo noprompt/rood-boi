@@ -15,7 +15,7 @@ extern int func_8008DC7C(int, int);
 /* Guest words at 0x800F58xx hold 32-bit guest addresses: stored as words so
  * a write never spills into the next one (the game declares D_800F58C0 int). */
 extern unsigned D_800F58C0, D_800F58D8, D_800F58C8, D_800F5908, D_800F5910, D_800F58CC,
-    D_800F58BC, D_800F58B8, D_800F58D0;
+    D_800F58B8, D_800F58D0;
 extern void pc_unimplemented(const char*);
 
 int func_800E71DC(int x, int z);

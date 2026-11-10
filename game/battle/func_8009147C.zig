@@ -10,8 +10,8 @@ const c = @import("c_2842C");
 pub fn func_8009147C(arg0: ?*v.vs_battle_backgroundLayout, scrollX: c_int, scrollY: c_int, tpage: c_int) callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
     var buffer: [*]u8 = @ptrCast(psx.get(scratch.unk0).?);
-    const cosStep: c_int = c.rcos(scratch.camera.angles.vz) *% 32;
-    const sinStep: c_int = c.rsin(scratch.camera.angles.vz) *% 32;
+    const cosStep: c_int = c.rcos(v.g.vs_view().camera.angles.vz) *% 32;
+    const sinStep: c_int = c.rsin(v.g.vs_view().camera.angles.vz) *% 32;
     // arg0 is only dereferenced from the loop condition on, after the two calls above.
     const layout = arg0.?;
     const tiles = &layout.tiles;
@@ -24,8 +24,8 @@ pub fn func_8009147C(arg0: ?*v.vs_battle_backgroundLayout, scrollX: c_int, scrol
         var col: c_int = 0;
         while (col < 1024) : (col +%= 32) {
             const x = ((col +% scrollX) & 1023) -% 512;
-            const screenX = c.rcos(scratch.camera.angles.vz) *% x -% c.rsin(scratch.camera.angles.vz) *% y;
-            const screenY = c.rsin(scratch.camera.angles.vz) *% x +% c.rcos(scratch.camera.angles.vz) *% y;
+            const screenX = c.rcos(v.g.vs_view().camera.angles.vz) *% x -% c.rsin(v.g.vs_view().camera.angles.vz) *% y;
+            const screenY = c.rsin(v.g.vs_view().camera.angles.vz) *% x +% c.rcos(v.g.vs_view().camera.angles.vz) *% y;
 
             // Widescreen widens the sky limits by 54 units (54 << 12).
             const wide: c_int = if (v.g.pc_gte_widescreen().* != 0) 54 else 0;

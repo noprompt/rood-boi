@@ -6,7 +6,7 @@ const c = @import("c_146C");
 /// Stores the far clip in the scratchpad camera and, when arg1 is 0, passes it on as a draw distance in 8-unit steps, clamped to 0..0x800.
 pub fn setFarClip(farClip: c_int, arg1: c_int) callconv(.c) void {
     var clip: c_int = farClip;
-    v.g.vs_scratch().camera.farClip = clip;
+    v.g.vs_view().camera.farClip = clip;
 
     if (arg1 == 0) {
         if (clip < 0) {

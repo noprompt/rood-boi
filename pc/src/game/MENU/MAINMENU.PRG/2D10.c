@@ -135,31 +135,25 @@ void vs_mainMenu_setWeaponRow(
     vs_battle_uiEquipment* blade = &weapon->blade;
     int stats = vs_mainMenu_getEquipmentMaxStats(weapon, 0);
 
-    psx_set(vs_battle_stringContext.strings[0],
-        (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
-                [(stats & 0xFF) + VS_ITEMHELP_BIN_INDEX_warriorEquipment - 1]]);
+    vs_battle_stringContext.strings[0] = (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
+                [(stats & 0xFF) + VS_ITEMHELP_BIN_INDEX_warriorEquipment - 1]];
 
     maxStatRank = ((stats >> 8) & 0xFF);
 
-    psx_set(vs_battle_stringContext.strings[1],
-        (char*)&vs_mainMenu_itemHelp
+    vs_battle_stringContext.strings[1] = (char*)&vs_mainMenu_itemHelp
             [maxStatRank != 0
                     ? vs_mainMenu_itemHelp[maxStatRank + (stats >> 15) - 1
                                            + VS_ITEMHELP_BIN_INDEX_weaponPrestige]
                     : vs_mainMenu_itemHelp[blade->category - 1
-                                           + VS_ITEMHELP_BIN_INDEX_weaponBasePrestige]]);
-    psx_set(vs_battle_stringContext.strings[9],
-        (char*)&vs_mainMenu_itemNames[blade->material - 1 + VS_ITEMNAME_BIN_INDEX_wood]);
-    psx_set(vs_battle_stringContext.strings[8],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[blade->category - 1 + VS_ITEMHELP_BIN_INDEX_dagger]]);
-    psx_set(vs_battle_stringContext.strings[7],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[blade->damageType - 1 + VS_ITEMHELP_BIN_INDEX_blunt]]);
-    psx_set(vs_battle_stringContext.strings[6],
-        (char*)&vs_mainMenu_itemHelp
+                                           + VS_ITEMHELP_BIN_INDEX_weaponBasePrestige]];
+    vs_battle_stringContext.strings[9] = (char*)&vs_mainMenu_itemNames[blade->material - 1 + VS_ITEMNAME_BIN_INDEX_wood];
+    vs_battle_stringContext.strings[8] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[blade->category - 1 + VS_ITEMHELP_BIN_INDEX_dagger]];
+    vs_battle_stringContext.strings[7] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[blade->damageType - 1 + VS_ITEMHELP_BIN_INDEX_blunt]];
+    vs_battle_stringContext.strings[6] = (char*)&vs_mainMenu_itemHelp
             [vs_mainMenu_itemHelp[vs_mainMenu_weaponHands[blade->category - 1]
-                                  + VS_ITEMHELP_BIN_INDEX_oneHanded]]);
+                                  + VS_ITEMHELP_BIN_INDEX_oneHanded]];
 
     vs_battle_printf(
         vs_battle_printf(
@@ -189,18 +183,14 @@ void vs_mainMenu_setWeaponRowFromInventory(
 void vs_mainMenu_setBladeRow(
     vs_main_inventoryBlade* blade, char* menuText[], int* rowType, void* buf)
 {
-    psx_set(vs_battle_stringContext.strings[9],
-        (char*)&vs_mainMenu_itemNames[blade->material - 1 + VS_ITEMNAME_BIN_INDEX_wood]);
-    psx_set(vs_battle_stringContext.strings[8],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[blade->category - 1 + VS_ITEMHELP_BIN_INDEX_dagger]]);
-    psx_set(vs_battle_stringContext.strings[7],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[blade->damageType - 1 + VS_ITEMHELP_BIN_INDEX_blunt]]);
-    psx_set(vs_battle_stringContext.strings[6],
-        (char*)&vs_mainMenu_itemHelp
+    vs_battle_stringContext.strings[9] = (char*)&vs_mainMenu_itemNames[blade->material - 1 + VS_ITEMNAME_BIN_INDEX_wood];
+    vs_battle_stringContext.strings[8] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[blade->category - 1 + VS_ITEMHELP_BIN_INDEX_dagger]];
+    vs_battle_stringContext.strings[7] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[blade->damageType - 1 + VS_ITEMHELP_BIN_INDEX_blunt]];
+    vs_battle_stringContext.strings[6] = (char*)&vs_mainMenu_itemHelp
             [vs_mainMenu_itemHelp[vs_mainMenu_weaponHands[blade->category - 1]
-                                  + VS_ITEMHELP_BIN_INDEX_oneHanded]]);
+                                  + VS_ITEMHELP_BIN_INDEX_oneHanded]];
     vs_battle_printf(
         vs_battle_printf(
             buf, (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
@@ -216,9 +206,8 @@ void vs_mainMenu_setGripRow(
     vs_main_inventoryGrip* grip, char* menuText[], int* rowType, void* buf)
 {
     u_short* id;
-    psx_set(vs_battle_stringContext.strings[5],
-        (char*)&vs_mainMenu_itemHelp
-            [vs_mainMenu_itemHelp[grip->category - 1 + VS_ITEMHELP_BIN_INDEX_shortGrip]]);
+    vs_battle_stringContext.strings[5] = (char*)&vs_mainMenu_itemHelp
+            [vs_mainMenu_itemHelp[grip->category - 1 + VS_ITEMHELP_BIN_INDEX_shortGrip]];
     id = &grip->id;
 
     vs_battle_printf(vs_battle_printf(buf,
@@ -238,23 +227,19 @@ void vs_mainMenu_setShieldRow(
     vs_battle_uiEquipment* shieldBase = &shield->base;
     int stats = vs_mainMenu_getEquipmentMaxStats(shield, 1);
 
-    psx_set(vs_battle_stringContext.strings[0],
-        (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
-                [(stats & 0xFF) - 1 + VS_ITEMHELP_BIN_INDEX_warriorEquipment]]);
+    vs_battle_stringContext.strings[0] = (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
+                [(stats & 0xFF) - 1 + VS_ITEMHELP_BIN_INDEX_warriorEquipment]];
 
     maxStatRank = (stats >> 8) & 0xFF;
 
-    psx_set(vs_battle_stringContext.strings[1],
-        (char*)&vs_mainMenu_itemHelp
+    vs_battle_stringContext.strings[1] = (char*)&vs_mainMenu_itemHelp
             [maxStatRank != 0
                     ? vs_mainMenu_itemHelp[maxStatRank + (stats >> 0xF) - 1
                                            + VS_ITEMHELP_BIN_INDEX_armorPrestige]
-                    : VS_ITEMHELP_BIN_OFFSET_armorBasePrestige]);
-    psx_set(vs_battle_stringContext.strings[8],
-        (char*)&vs_mainMenu_itemHelp[VS_ITEMHELP_BIN_OFFSET_armorCategory]);
-    psx_set(vs_battle_stringContext.strings[9],
-        (char*)&vs_mainMenu_itemNames[shieldBase->material - 1
-                                      + VS_ITEMNAME_BIN_INDEX_wood]);
+                    : VS_ITEMHELP_BIN_OFFSET_armorBasePrestige];
+    vs_battle_stringContext.strings[8] = (char*)&vs_mainMenu_itemHelp[VS_ITEMHELP_BIN_OFFSET_armorCategory];
+    vs_battle_stringContext.strings[9] = (char*)&vs_mainMenu_itemNames[shieldBase->material - 1
+                                      + VS_ITEMNAME_BIN_INDEX_wood];
 
     vs_battle_printf(
         vs_battle_printf(
@@ -298,25 +283,21 @@ void vs_mainMenu_setArmorRow(
 
     stats = vs_mainMenu_getEquipmentMaxStats(armor, 2);
 
-    psx_set(vs_battle_stringContext.strings[0],
-        (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
-                [(stats & 0xFF) - 1 + VS_ITEMHELP_BIN_INDEX_warriorEquipment]]);
+    vs_battle_stringContext.strings[0] = (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
+                [(stats & 0xFF) - 1 + VS_ITEMHELP_BIN_INDEX_warriorEquipment]];
 
     maxStatRank = (stats >> 8) & 0xFF;
 
-    psx_set(vs_battle_stringContext.strings[1],
-        (char*)&vs_mainMenu_itemHelp
+    vs_battle_stringContext.strings[1] = (char*)&vs_mainMenu_itemHelp
             [maxStatRank != 0
                     ? vs_mainMenu_itemHelp[maxStatRank + (stats >> 0xF) - 1
                                            + VS_ITEMHELP_BIN_INDEX_armorPrestige]
                     : vs_mainMenu_itemHelp[armorBase->category - 1
-                                           + VS_ITEMHELP_BIN_INDEX_armorBasePrestige]]);
-    psx_set(vs_battle_stringContext.strings[8],
-        (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
-                [armorBase->category - 1 + VS_ITEMHELP_BIN_INDEX_armorCategory]]);
-    psx_set(vs_battle_stringContext.strings[9],
-        (char*)&vs_mainMenu_itemNames[armorBase->material - 1
-                                      + VS_ITEMNAME_BIN_INDEX_wood]);
+                                           + VS_ITEMHELP_BIN_INDEX_armorBasePrestige]];
+    vs_battle_stringContext.strings[8] = (char*)&vs_mainMenu_itemHelp[vs_mainMenu_itemHelp
+                [armorBase->category - 1 + VS_ITEMHELP_BIN_INDEX_armorCategory]];
+    vs_battle_stringContext.strings[9] = (char*)&vs_mainMenu_itemNames[armorBase->material - 1
+                                      + VS_ITEMNAME_BIN_INDEX_wood];
 
     vs_battle_printf(
         vs_battle_printf(

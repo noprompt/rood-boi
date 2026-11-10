@@ -6,6 +6,6 @@ const v = @import("views_5BE50");
 pub fn func_800C4734() callconv(.c) c_int {
     const rec = v.g.D_800EB9B8().* orelse return 0;
     if (rec.unk2A != 0) return 0;
-    if (rec.unk3E == 0 or (v.g.vs_main_buttonsState().* & 0x80) != 0) return 1;
+    if (rec.unk38.vec.pad == 0 or (v.g.vs_main_buttonsState().* & 0x80) != 0) return 1;
     return 2;
 }

@@ -488,12 +488,12 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
     if (arg1->flags & 0x20000) {
         view = vs_gte_view_of(&arg2->unk1C[arg0->unkC8].unk58, vs_gte_screen_current());
     } else {
-        view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+        view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
     }
 
     func_800D6D24(&arg3->unkC);
 
-    temp_s7 = &D_800F569C->block1Data[psx_get(arg3->unkC.unk1C)->dataIndex];
+    temp_s7 = &D_800F569C->block1Data[arg3->unkC.unk1C->dataIndex];
 
     for (i = 0; i < arg3->trailcount; ++i) {
 
@@ -628,7 +628,7 @@ int VS_TRAIL_DISPATCH_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     int j;
     func_800FA76C_arg3* temp_v0;
 
-    func_800FA098_arg1* s4 = (func_800FA098_arg1*)0x1F8001D0;
+    func_800FA098_arg1* s4 = &pc_effect_scratch;
     func_800FA76C_arg3* temp_s0 = arg0->unk8;
     D_800F53B8_t* temp_s5 = D_800F53BC;
     int var_s6 = 1;

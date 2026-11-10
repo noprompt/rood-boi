@@ -70,6 +70,6 @@ pub fn func_8007053C() callconv(.c) void {
     }
 
     d.unk2C00 = psx.conv(u16, kept);
-    c.func_800C1664(kept, psx.conv(c_int, psx.addr(&d.unk29C0[0])), 1);
+    c.func_800C1664(kept, &d.unk29C0[0], 1);
     v.g._cameraMode().* = 3;
 }

@@ -187,12 +187,12 @@ fn spanRow(spans: [*]i16, row: c_int) [*]i16 {
 /// spans, cut by walls and marker triangles, clipped to a 32-point circle and
 /// emitted as LINE_F2 packets along its right edge.
 pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callconv(.c) void {
-    const state: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800EB9B8().*));
+    const state = v.g.D_800EB9B8().*.?;
     const grid: [*]u8 = @ptrFromInt(scratch_base + 0x88);
     const rows: [*]u8 = @ptrFromInt(scratch_base + 0xdc);
     const edges: [*]u8 = @ptrFromInt(scratch_base + 0x1bc);
-    const cells: [*]c_uint = @ptrCast(@alignCast(state + 0x4370));
-    const spans: [*]i16 = @ptrCast(@alignCast(state + 0xb70));
+    const cells: [*]c_uint = @ptrCast(&state.cellValues);
+    const spans: [*]i16 = @ptrCast(@alignCast(&state.spans));
     const points: [*]c_uint = @ptrCast(@alignCast(edges));
     const grid_words: [*]c_uint = @ptrCast(@alignCast(grid));
     var packet: [*]c_uint = undefined;
@@ -212,7 +212,7 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
     while (i < 0x7a) : (i +%= 1) grid_words[@intCast(i)] = 0;
 
     k = 0;
-    const view_turn: c_int = psx.byteAt(i16, state, 0x22).*;
+    const view_turn: c_int = state.unk22;
     switch (((view_turn -% 0x200) >> 10) & 3) {
         0 => {
             row = 0;
@@ -281,7 +281,7 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
     const base_x: c_int = ((origin_x >> 7) -% 4) << 7;
     const base_z: c_int = ((origin_z >> 7) -% 4) << 7;
     const rotation: c_int = ((view_turn -% 0x200) >> 10) & 3;
-    const outline: [*]u16 = @ptrCast(@alignCast(state + @as(usize, @intCast(0x44b4 +% rotation *% 0x168))));
+    const outline: [*]u16 = @ptrCast(@alignCast(@as([*]u8, @ptrCast(&state.outlines)) + @as(usize, @intCast(rotation *% 0x168))));
     i = 0;
     while (i < 0xb4) : (i +%= 1) {
         const e = psx.at(edges, i);
@@ -412,12 +412,12 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
         }
     }
 
-    // Marker triangles from the 9x9 grid at +0x4AB8: rasterise and cut.
+    // Marker triangles from the 9x9 grid (cellKinds): rasterise and cut.
     row = 0;
     while (row < 9) : (row +%= 1) {
         col = 0;
         while (col < 9) : (col +%= 1) {
-            const a2: c_int = state[@intCast(0x4ab8 +% row *% 9 +% col)];
+            const a2: c_int = state.cellKinds[@intCast(row *% 9 +% col)];
             if (a2 == 0) continue;
             const bits: c_int = @as(c_int, 0x38847780) >> @intCast(a2 & 31);
             const cx: c_int = (origin_x >> 7) +% col -% 4;

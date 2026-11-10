@@ -439,7 +439,7 @@ typedef struct {
 } vs_battle_uiMiscRand;
 
 typedef struct {
-    char unk0[0x5E8];
+    char unk0[sizeof(vs_battle_wepModels_t)]; /* a weapon model slot */
 } vs_battle_actor4;
 
 typedef struct {

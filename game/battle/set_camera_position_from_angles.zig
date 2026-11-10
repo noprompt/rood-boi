@@ -13,14 +13,14 @@ pub fn setCameraPositionFromAngles(spherical: ?*v._sphericalValues) callconv(.c)
     if (psx.weak(Hook, "pc_camera_stick_place")) |place| {
         if (spherical == &v.g.vs_battle_cameraCurrentSpherical().values) {
             placed = spherical.?.*;
-            place(&placed, &v.g.vs_scratch().camera.lookAt);
+            place(&placed, &v.g.vs_view().camera.lookAt);
             current = &placed;
         }
     }
 
     c._computeSphericalOffset(
-        psx.cptr(c.VECTOR, &v.g.vs_scratch().camera.position),
-        psx.cptr(c.VECTOR, &v.g.vs_scratch().camera.lookAt),
+        psx.cptr(c.VECTOR, &v.g.vs_view().camera.position),
+        psx.cptr(c.VECTOR, &v.g.vs_view().camera.lookAt),
         @ptrCast(current),
     );
 }

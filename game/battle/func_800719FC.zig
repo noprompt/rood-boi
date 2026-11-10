@@ -97,7 +97,7 @@ pub fn func_800719FC(_: c_int) callconv(.c) void {
         }
     }
     state().unk2C00 = psx.conv(u16, count);
-    c.func_800C1664(count, @bitCast(psx.addr(&state().unk29C0)), 1);
+    c.func_800C1664(count, &state().unk29C0, 1);
     state().unk298C = 240;
     v.g._cameraMode().* = 3;
 }

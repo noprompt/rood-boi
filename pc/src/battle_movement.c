@@ -69,7 +69,8 @@ void func_800DB820(void* state);
 
 
 /* Guest words at 0x800F58xx hold 32-bit guest addresses (see psx_load). */
-extern unsigned D_800F58BC, D_800F58B8;
+extern D_800F58BC_t* D_800F58BC;
+extern unsigned D_800F58B8;
 extern int func_800E4660(int, int, int);
 extern int vs_gte_rsqrt(int);
 
@@ -722,13 +723,13 @@ void func_800E4B18(void* state);
  * room record's byte 0xE. Bit 31 inverts the sign test, as in the original. */
 static void room_flag(int bit, int clear)
 {
-    unsigned char* room = psx_to_ptr(unsigned char*, D_800F58BC);
+    D_800F58BC_t* room = D_800F58BC;
     if (!room)
         return;
     int mask = 1 << (bit & 31);
     if (clear)
         mask = -1 - mask;
-    room[0xE] = mask < 0 ? room[0xE] & mask : room[0xE] | mask;
+    room->closedGates = mask < 0 ? room->closedGates & mask : room->closedGates | mask;
 }
 void func_800E4BD8(int bit);
 

@@ -76,7 +76,7 @@ int pc_menu_model_fill(pc_menu_model* m)
         r->material = item->material, r->color = item->fontColor;
         r->count = item->count, r->max = item->max, r->page = item->itemPage;
         row_text(item, r);
-        raw_text(psx_get(item->subText), r->sub, sizeof r->sub);
+        raw_text(item->subText, r->sub, sizeof r->sub);
     }
     pc_classic_mainmenu_read(&mm);
     m->cursor.row = mm.row, m->cursor.page = mm.page, m->cursor.sub_menu = mm.sub_menu;
@@ -88,9 +88,9 @@ int pc_menu_model_fill(pc_menu_model* m)
     }
     m->command = mm.command, m->command_next = mm.command_next;
     m->fade = vs_mainMenu_backgroundFadeStep, m->fade_in = _backgroundFadeState != 0;
-    if (vs_battle_textBoxes[7].state > 0 && psx_get(vs_battle_textBoxes[7].string)) {
+    if (vs_battle_textBoxes[7].state > 0 && vs_battle_textBoxes[7].string) {
         m->info_shown = 1;
-        pc_ui_text_decode((const u_char*)psx_get(vs_battle_textBoxes[7].string), 200, m->info, sizeof m->info);
+        pc_ui_text_decode((const u_char*)vs_battle_textBoxes[7].string, 200, m->info, sizeof m->info);
     }
     return 1;
 }

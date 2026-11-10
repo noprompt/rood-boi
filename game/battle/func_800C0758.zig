@@ -8,17 +8,17 @@ pub fn func_800C0758(phase: c_int, segments: c_int, index: c_int) callconv(.c) c
     const trig: [*]i16 = @ptrFromInt(0x1F8003B0);
     const basis: [*][4]i16 = @ptrFromInt(0x1F800398);
     var idx = index;
-    // The C takes (char*)D_800EB9B8 + 0x48 + index * 8 with the int product wrapped first.
+    // The C takes (char*)D_800EB9B8 + points + index * 8 with the int product wrapped first.
     const base = v.g.D_800EB9B8().*;
     const scaled: c_int = index *% 8;
-    var vaddr: usize = @intFromPtr(base) +% 0x48 +% @as(usize, @bitCast(@as(isize, scaled)));
+    var vaddr: usize = @intFromPtr(base) +% @offsetOf(v.D_800EB9B8_t, "points") +% @as(usize, @bitCast(@as(isize, scaled)));
     var i: c_int = 0;
     while (i <= segments) : ({
         idx +%= 1;
         i +%= 1;
         vaddr +%= 8;
     }) {
-        const vertex: *align(1) v.menuCurveVertex = @ptrFromInt(vaddr);
+        const vertex: *align(1) v.menuCircleVertex = @ptrFromInt(vaddr);
         const idx1: usize = @intCast((i +% phase +% 8) & 31);
         const idx2: usize = @intCast((i +% phase) & 31);
         var component: usize = 0;

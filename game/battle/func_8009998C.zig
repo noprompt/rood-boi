@@ -48,7 +48,8 @@ pub fn func_8009998C(arg0: ?*v.vs_battle_objectData) callconv(.c) c_int {
         psx.put(&s1.unk68, c.func_8009A028(null, after, ent.unkC));
 
         if (psx.get(s1.unk68) == null) return -2;
-        const temp_v1_2 = psx.get(psx.get(s1.unk68).?.unk3C);
+        const header = psx.get(s1.unk68).?;
+        const temp_v1_2: ?*anyopaque = @ptrFromInt(@intFromPtr(header) +% header.unk3C);
 
         var j: c_int = obj.actorId;
         if (j >= 6) {

@@ -2,15 +2,12 @@
 const psx = @import("common").psx;
 const c = @import("c_navigation");
 const v = @import("views_navigation");
-
-fn half(base: [*]u8, offset: usize) *align(1) u16 {
-    return @ptrCast(base + offset);
-}
+const grid_views = @import("views_actor_cleanup"); // the navigation record's type and its global
 
 /// orig: func_800E6F9C (pc/src/navigation.c)
 /// Builds the navigation grid of the loaded room section: records the section's
-/// sub-table addresses in D_800F58C0.., allocates the 0x1038-byte grid (cells
-/// at +0x38, heights at +0x838), fills a cell-flag halfword and a height for
+/// sub-table addresses in D_800F58C0.., allocates the grid record (its cells after the
+/// header, heights 0x800 bytes on), fills a cell-flag halfword and a height for
 /// each of the 32x32 tiles (a missing tile adds 0x8000 to the flags of the
 /// tile before it: `flags` is not reset between tiles, as in the oracle),
 /// takes the grid's settings from the section (150 when there is none) and
@@ -26,21 +23,22 @@ pub fn buildNavigationGrid() callconv(.c) void {
     v.g.D_800F5908().* = address +% 0x450;
     v.g.D_800F5910().* = address +% 0x454;
     v.g.D_800F58CC().* = address +% 0x498;
-    const grid: [*]u8 = @ptrCast(c.vs_main_allocHeap(0x1038) orelse {
+    const bytes = @sizeOf(grid_views.D_800F58BC_t) + 0x1000;
+    const grid: *grid_views.D_800F58BC_t = @ptrCast(@alignCast(c.vs_main_allocHeap(bytes) orelse {
         c.pc_unimplemented("navigation allocation failed");
         return;
-    });
-    v.g.D_800F58BC().* = psx.addr(grid);
-    c.func_800E4288(grid, 0x1038);
-    v.g.D_800F58B8().* = psx.addr(grid + 0x38);
-    v.g.D_800F58D0().* = psx.addr(grid + 0x838);
-    const heights: [*]align(1) u16 = @ptrCast(grid + 0x838);
-    const cells: [*]align(1) u16 = @ptrCast(grid + 0x38);
+    }));
+    grid_views.g.D_800F58BC().* = grid;
+    c.func_800E4288(grid, bytes);
+    const cells: [*]u16 = @ptrCast(&grid.cells);
+    const heights: [*]u16 = cells + 0x400;
+    v.g.D_800F58B8().* = psx.addr(cells);
+    v.g.D_800F58D0().* = psx.addr(heights);
     const size = c._getCollisionMapDimensions(0);
     const packed_size: u16 = @truncate(((size & 0xffff) >> 4) | (size >> 12));
-    half(grid, 4).* = packed_size;
-    half(grid, 0).* = packed_size;
-    @as(*align(1) c_int, @ptrCast(grid + 0x14)).* = -%(@as(c_int, c.func_8008E4AC()) *% 64);
+    grid.unk4 = packed_size;
+    @as(*align(1) u16, @ptrCast(grid)).* = packed_size;
+    grid.unk14 = -%(@as(c_int, c.func_8008E4AC()) *% 64);
     var flags: c_uint = 0;
     var i: c_uint = 0;
     while (i < 1024) : (i += 1) {
@@ -64,11 +62,11 @@ pub fn buildNavigationGrid() callconv(.c) void {
     if (section) |s| {
         const settings = @as(*align(1) const c_uint, @ptrFromInt(@as(usize, v.g.D_800F5908().*))).*;
         @as(*align(1) c_uint, @ptrCast(grid)).* = @as(*align(1) const c_uint, @ptrCast(s + 0x494)).*;
-        grid[0xd] = @truncate(settings >> 29);
-        half(grid, 8).* = @truncate((settings << 3) >> 24);
-        grid[0xa] = @truncate((settings << 11) >> 31);
+        grid.unkD = @truncate(settings >> 29);
+        grid.unk8 = @truncate((settings << 3) >> 24);
+        grid.unkA = @truncate((settings << 11) >> 31);
     } else {
-        half(grid, 8).* = 150;
+        grid.unk8 = 150;
     }
     c.func_800DC638();
 }

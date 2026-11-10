@@ -14,8 +14,8 @@ pub fn candidateStartable(state: *ai.vs_battle_aiState, candidate: [*]u8) callco
     const weight: c_uint = psx.byteAt(u32, candidate, 12).*;
     const target: usize = weight & 0xf;
     if ((weight >> 19) & 0xff == 0) return 0;
-    const room: [*]u8 = @ptrFromInt(v.g.D_800F58BC().*);
-    if (psx.byteAt(u16, room, 0x18).* < (psx.byteAt(u32, candidate, 4).* >> 13) & 0xffff) return 0;
+    const room = v.g.D_800F58BC().*.?;
+    if (room.unk18 < (psx.byteAt(u32, candidate, 4).* >> 13) & 0xffff) return 0;
     if (c.func_800DBCB4(state, candidate) == 0) return 0;
     const limit: c_int = psx.fieldAt(c_int, &state.tbl.t.distances, @as(isize, @intCast(target * 4))).*; // target < 16
     if (v.g.D_800F45E0()[target] != null) {

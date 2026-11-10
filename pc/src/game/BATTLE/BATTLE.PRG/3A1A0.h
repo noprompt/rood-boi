@@ -90,10 +90,11 @@ typedef struct {
 
 typedef struct {
     u_char unk0[48];
-    psx_ptr(void) akaoOffset;
-    psx_ptr(void) groupOffset;
-    psx_ptr(void) vertexOffset;
-    psx_ptr(void) polyOffset;
+    /* Bytes from the header's own address, as the file stores them (never rewritten to addresses). */
+    u_int akaoOffset;
+    u_int groupOffset;
+    u_int vertexOffset;
+    u_int polyOffset;
     _armature_t armatures[0];
 } D_800F4538_unk68;
 PSX_ASSERT_SIZE(D_800F4538_unk68, 0x40);
@@ -395,7 +396,7 @@ typedef struct {
     int unk14;
     short unk18;
     short unk1A;
-    psx_ptr(_wepModelOffsets) offsets;
+    int unk1C; /* the PS1's offsets pointer; offsets is at the end, so the matrices at +0x20 keep their place */
     short unk20;
     short unk22;
     short unk24;
@@ -427,16 +428,17 @@ typedef struct {
     short unk5CE;
     int unk5D0;
     int unk5D4;
-    psx_ptr(void) unk5D8;
+    int unk5D8;
     int unk5DC;
     int unk5E0;
     int unk5E4;
+    _wepModelOffsets* offsets;
+    void* seq; /* the PS1's unk5D8 */
 } vs_battle_wepModels_t;
-PSX_ASSERT_SIZE(vs_battle_wepModels_t, 0x5e8);
 
 typedef struct {
     u_char unk0[0x3C];
-    psx_ptr(void) unk3C;
+    u_int unk3C; /* polyOffset */
 } D_800F45E0_unk68;
 PSX_ASSERT_SIZE(D_800F45E0_unk68, 0x40);
 

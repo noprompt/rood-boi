@@ -50,9 +50,8 @@ static int _breakArtUnlocked(int init)
 
         vs_main_artsStatus.artsLearned[weaponCategoryMod] = actionId + 1;
         actionId = 184 + ((weaponCategory - 1) * 4) + actionId;
-        psx_set(vs_battle_stringContext.strings[0],
-            (char*)&_battleAbilityMenuStrings[_battleAbilityMenuStrings[weaponCategory]]);
-        psx_set(vs_battle_stringContext.strings[1], vs_main_actions[actionId].name);
+        vs_battle_stringContext.strings[0] = (char*)&_battleAbilityMenuStrings[_battleAbilityMenuStrings[weaponCategory]];
+        vs_battle_stringContext.strings[1] = vs_main_actions[actionId].name;
 
         vs_mainmenu_setInformationMessage((char*)&_battleAbilityMenuStrings
                 [VS_battleAbilitiesMenu_OFFSET_breakArtUnlock]);
@@ -359,7 +358,7 @@ static int _battleAbilityUnlocked(int initialize)
             vs_battle_initInformationTextBox(3);
 
             action = remainingChainAbilities[row];
-            psx_set(vs_battle_stringContext.strings[1], vs_main_actions[action].name);
+            vs_battle_stringContext.strings[1] = vs_main_actions[action].name;
 
             vs_mainmenu_setInformationMessage((char*)&_battleAbilityMenuStrings
                     [VS_battleAbilitiesMenu_OFFSET_battleAbilityUnlock]);
@@ -385,7 +384,7 @@ static int _battleAbilityUnlocked(int initialize)
             vs_battle_initInformationTextBox(3);
 
             action = remainingDefenseAbilities[row];
-            psx_set(vs_battle_stringContext.strings[1], vs_main_actions[action].name);
+            vs_battle_stringContext.strings[1] = vs_main_actions[action].name;
 
             vs_mainmenu_setInformationMessage((char*)&_battleAbilityMenuStrings
                     [VS_battleAbilitiesMenu_OFFSET_battleAbilityUnlock]);

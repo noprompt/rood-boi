@@ -39,8 +39,8 @@ pub fn func_8008FDC4() callconv(.c) void {
     var projection: c_int = undefined;
     var flags: c_int = undefined;
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
-    c.SetRotMatrix(@ptrCast(&scratch.viewMatrix));
-    c.SetTransMatrix(@ptrCast(&scratch.viewMatrix));
+    c.SetRotMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
+    c.SetTransMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
     const wind = v.g.D_800F1D98();
     var particle: [*]v.D_800F1DD4_t = @ptrCast(v.g.D_800F1DD4().*.?);
     var i: c_int = 0;

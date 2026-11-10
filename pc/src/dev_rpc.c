@@ -1104,7 +1104,9 @@ static int writable(uintptr_t address, uintptr_t length)
     uintptr_t end = address + length;
     return length <= 65536 && end >= address
         && ((address >= 0x80000000ul && end <= 0x80200000ul)
-            || (address >= 0x1F800000ul && end <= 0x1F800400ul));
+            || (address >= 0x1F800000ul && end <= 0x1F800400ul)
+            /* host data: the game state that holds pointers (the battle menu's records) is defined natively */
+            || (address >= (uintptr_t)__data_start && end <= (uintptr_t)_end));
 }
 
 static void handle_method(int fd, const char* request)

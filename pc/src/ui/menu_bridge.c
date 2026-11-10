@@ -100,7 +100,7 @@ static void mainmenu_wait(int resident)
     }
     if (++mainmenu_waited > mainmenu_longest)
         mainmenu_longest = mainmenu_waited;
-    slot = psx_get(vs_battle_menuState.cdQueue);
+    slot = vs_battle_menuState.cdQueue;
     if (mainmenu_waited >= MAINMENU_CHECK && _loadedSubMenu == 0 && vs_battle_menuState.loading
         && !mainmenu_slot_live(slot)) {
         pc_format(line, sizeof line,

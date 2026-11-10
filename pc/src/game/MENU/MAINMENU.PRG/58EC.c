@@ -946,7 +946,7 @@ static vs_battle_menuItem_t* _initItemRow(int row, int x)
     } else if (row <= 102) {
         menuItem->outsetIcon = row - 100;
     } else {
-        psx_set(menuItem->subText, vs_battle_limbNames[row - 103]);
+        menuItem->subText = vs_battle_limbNames[row - 103];
     }
 
     menuItem->material = (flags >> 16) & 7;
@@ -1671,6 +1671,7 @@ static void _renderMenuItems(void)
          * copy of its record taken before the emit steps its gradient. */
         {
             pc_classic_menu_row pcRow;
+            _Static_assert(sizeof(vs_battle_menuItem_t) == PC_CLASSIC_MENU_ITEM_BYTES, "menu item record");
             pcRow.row = menuItem;
             pcRow.id = i;
             vs_battle_memcpy(pcRow.item, menuItem, sizeof pcRow.item);

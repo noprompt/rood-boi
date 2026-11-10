@@ -9,7 +9,7 @@ const c = @import("c_5BF94");
 pub fn func_800D0984(arg0: c_int, effect: ?*v.func_800D0C60_t, push: c_int) callconv(.c) void {
     _ = arg0;
     const e = effect.?;
-    const camera = &v.g.vs_scratch().camera;
+    const camera = &v.g.vs_view().camera;
     var delta: v.VECTOR = undefined;
     var start: v.VECTOR = undefined;
     var end: v.VECTOR = undefined;

@@ -50,7 +50,7 @@ void VS_PARTICLE_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* a
     if (arg1->flags & 0x20000) {
         view = vs_gte_view_of(&arg2->unk1C[arg0->unkC8].unk58, vs_gte_screen_current());
     } else {
-        view = vs_gte_view_of(&vs_scratch.viewMatrix, vs_gte_screen_current());
+        view = vs_gte_view_of(&vs_view.viewMatrix, vs_gte_screen_current());
     }
 
     for (particleIndex = 0; particleIndex < arg3->unk2; ++particleIndex) {

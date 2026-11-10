@@ -67,7 +67,7 @@ from weapon_slots_smoke import default_card  # noqa: E402
 CLOSED = 0x3F
 STATUS = 0x45  # the original Status (MENU4: command 4 -> 5 | 0x40)
 PTR = 8 if os.environ.get("ROOD_ARCH") == "64" else 4  # host pointers (characterState, D_800F4538, wepModels)
-CAMERA, CAMERA_BYTES = 0x1F800014, 0x54  # vs_scratch.camera
+CAMERA, CAMERA_BYTES = symbols()["vs_view"] + 4, 0x54  # vs_view: the view matrix and the camera
 
 
 def theme_ground():

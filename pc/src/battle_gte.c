@@ -3,6 +3,10 @@
 #include <sys/types.h>
 #include <libgte.h>
 #include <inline_c.h>
+#include "pc/src/game/BATTLE/BATTLE.PRG/target_block.h"
+
+/* The battle menu's block (target_block.h). */
+extern D_800EB9B8_t* D_800EB9B8;
 
 /* 7399C.s: weighted sum a * 6 + 4 * b + c + 2 * d of signed 16-bit b, c, d.
  * The original computes it with MVMVA through the rotation matrix, leaving
@@ -21,15 +25,13 @@ extern psx_long VectorNormal(VECTOR*, VECTOR*);
 int func_800E437C(short* from, short* to, int angle, unsigned distance);
 
 
-/* A 32-bit guest word: the battle menu state block's address. */
-extern unsigned D_800EB9B8;
 extern MATRIX* func_800C085C(unsigned char*, int);
 extern MATRIX* RotMatrixYXZ_gte(SVECTOR*, MATRIX*);
 extern MATRIX* func_80041C68(MATRIX*, MATRIX*);
 extern void func_800C02A8(void);
 extern void func_800C0990(void*, void*, unsigned, int);
 /* 58350.s (hand-written): draw a battle menu target shape. Its points (at the
- * shape buffer D_800EB9B8 + 0x48, count 0x32) are transformed by the GTE light
+ * D_800EB9B8_t.points, count 0x32) are transformed by the GTE light
  * matrix (shape scale/rotation composed at scratchpad 0x398) plus the shape
  * origin as background colour, then projected; each point with a nonzero pad
  * draws a segment from the previous point (func_800C0990) with intensity from

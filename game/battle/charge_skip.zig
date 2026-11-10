@@ -162,7 +162,7 @@ pub fn nameWindow(out: [*]u8, size: c_int, held: *c_int) callconv(.c) c_int {
 /// Test aid: the view and the caster's facing: lookAt xyz, position xyz, the camera's distance and yaw, the facing.
 pub fn view(out: *[9]c_int, actor_: c_int) callconv(.c) void {
     const a: ?*v.D_800F4538_t = if (actor_ >= 0 and actor_ < 17) v.g.D_800F4538()[@intCast(actor_)] else null;
-    const camera = &v.g.vs_scratch().camera;
+    const camera = &v.g.vs_view().camera;
     out[0] = camera.lookAt.vx;
     out[1] = camera.lookAt.vy;
     out[2] = camera.lookAt.vz;

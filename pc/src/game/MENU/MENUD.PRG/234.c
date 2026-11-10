@@ -767,7 +767,7 @@ void func_80103F64(int arg0)
     menuItem->state = 2;
     menuItem->targetPosition0 = 0x9B;
     menuItem->selected = 1;
-    psx_set(menuItem->subText, NULL);
+    menuItem->subText = NULL;
     menuItem->unselectable = 0;
 }
 

@@ -23,10 +23,10 @@ pub fn func_8007ACB0() callconv(.c) void {
     var up = up_axis;
     var negative: v.SVECTOR = undefined;
     var roll: v.MATRIX = undefined;
-    const scratch = v.g.vs_scratch();
+    const view = v.g.vs_view();
     // ROOD_PC: the editor's live camera (pc_live_camera) builds the view instead; the game's camera is kept.
-    var position = scratch.camera.position;
-    var lookAt = scratch.camera.lookAt;
+    var position = view.camera.position;
+    var lookAt = view.camera.lookAt;
     if (psx.weak(LiveCamera, "pc_live_camera")) |live| {
         _ = live(@ptrCast(&position), @ptrCast(&lookAt));
     }
@@ -42,19 +42,19 @@ pub fn func_8007ACB0() callconv(.c) void {
     c.OuterProduct0(@ptrCast(&right), @ptrCast(&forward), @ptrCast(&up));
     _ = c.VectorNormal(@ptrCast(&up), @ptrCast(&up));
     const copy = psx.global(v.MATRIX, "D_8005E218");
-    const view = &scratch.viewMatrix;
+    const viewMatrix = &view.viewMatrix;
     const axes = [3]*v.VECTOR{ &right, &up, &forward };
     for (axes, 0..) |axis, row| {
-        view.m[row][0] = psx.conv(i16, -low(axis.vx));
-        copy.m[row][0] = view.m[row][0];
-        view.m[row][1] = psx.conv(i16, low(axis.vy));
-        copy.m[row][1] = view.m[row][1];
-        view.m[row][2] = psx.conv(i16, low(axis.vz));
-        copy.m[row][2] = view.m[row][2];
+        viewMatrix.m[row][0] = psx.conv(i16, -low(axis.vx));
+        copy.m[row][0] = viewMatrix.m[row][0];
+        viewMatrix.m[row][1] = psx.conv(i16, low(axis.vy));
+        copy.m[row][1] = viewMatrix.m[row][1];
+        viewMatrix.m[row][2] = psx.conv(i16, low(axis.vz));
+        copy.m[row][2] = viewMatrix.m[row][2];
     }
-    roll.m[0][0] = psx.conv(i16, c.rcos(scratch.camera.angles.vz));
+    roll.m[0][0] = psx.conv(i16, c.rcos(view.camera.angles.vz));
     roll.m[1][1] = roll.m[0][0];
-    roll.m[1][0] = psx.conv(i16, c.rsin(scratch.camera.angles.vz));
+    roll.m[1][0] = psx.conv(i16, c.rsin(view.camera.angles.vz));
     roll.m[0][1] = psx.conv(i16, -@as(c_int, roll.m[1][0]));
     roll.m[2][2] = 4096;
     roll.m[2][1] = 0;
@@ -65,16 +65,16 @@ pub fn func_8007ACB0() callconv(.c) void {
     delta.vy = 4096;
     delta.vz = 4096;
     _ = c.ScaleMatrix(@ptrCast(&roll), @ptrCast(&delta));
-    c.func_80041C68(@ptrCast(&roll), @ptrCast(view));
+    c.func_80041C68(@ptrCast(&roll), @ptrCast(viewMatrix));
     negative.vx = psx.conv(i16, @divTrunc(-%position.vx, 4096));
     negative.vy = psx.conv(i16, @divTrunc(-%position.vy, 4096));
     negative.vz = psx.conv(i16, @divTrunc(-%position.vz, 4096));
-    _ = c.ApplyMatrix(@ptrCast(view), @ptrCast(&negative), @ptrCast(&view.t));
-    delta.vx = scratch.camera.farClip;
+    _ = c.ApplyMatrix(@ptrCast(viewMatrix), @ptrCast(&negative), @ptrCast(&viewMatrix.t));
+    delta.vx = view.camera.farClip;
     delta.vy = delta.vx;
     delta.vz = delta.vy;
-    _ = c.ScaleMatrix(@ptrCast(view), @ptrCast(&delta));
-    view.t[0] = @divTrunc(view.t[0] *% scratch.camera.farClip, 4096);
-    view.t[1] = @divTrunc(view.t[1] *% scratch.camera.farClip, 4096);
-    view.t[2] = @divTrunc(view.t[2] *% scratch.camera.farClip, 4096);
+    _ = c.ScaleMatrix(@ptrCast(viewMatrix), @ptrCast(&delta));
+    viewMatrix.t[0] = @divTrunc(viewMatrix.t[0] *% view.camera.farClip, 4096);
+    viewMatrix.t[1] = @divTrunc(viewMatrix.t[1] *% view.camera.farClip, 4096);
+    viewMatrix.t[2] = @divTrunc(viewMatrix.t[2] *% view.camera.farClip, 4096);
 }

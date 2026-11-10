@@ -89,7 +89,7 @@ from menu_nav import MAP_COMMAND, top_command  # noqa: E402
 CLOSED = 0x3F
 MAP_MENU = 6 | 0x40
 PTR = 8 if os.environ.get("ROOD_ARCH") == "64" else 4
-CAMERA, CAMERA_BYTES = 0x1F800014, 0x54  # vs_scratch.camera
+CAMERA, CAMERA_BYTES = symbols()["vs_view"] + 4, 0x54  # vs_view: the view matrix and the camera
 MAP_PALING = 0x135  # offsetof(vs_main_flags_t, mapPaling)
 AREAS = list(range(1, 14))  # the fixture's visited areas (13 > the list's 9 rows)
 TARGET_ROW = 4  # the parity story's area: four rows below the current one

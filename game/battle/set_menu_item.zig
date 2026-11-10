@@ -12,7 +12,7 @@ pub fn setMenuItem(row: c_int, x: c_int, y: c_int, w: c_int, background_width: c
     item.state = 1;
     item.w = psx.conv(u8, w);
     item.backgroundWidth = psx.conv(u8, background_width);
-    c.vs_battle_rMemzero(&item.gradientState, 0x3C);
+    c.vs_battle_rMemzero(&item.gradientState, @sizeOf(v.vs_battle_menuItem_t) - @offsetOf(v.vs_battle_menuItem_t, "gradientState")); // to the record's end: the PS1's 0x3C
     item.x = psx.conv(i16, x);
     item.y = psx.conv(i16, y);
     var i: usize = 0;

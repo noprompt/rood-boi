@@ -51,7 +51,7 @@ from checkpoints import launch_at  # noqa: E402
 import golden_frames as gf  # noqa: E402
 
 POSITION = 28  # D_800F4538_t unk0.position (3 shorts, world units, y down)
-YAW = 0x1F800058  # scratch: camera.angles.vy
+YAW = symbols()["vs_view"] + 0x48  # vs_view: camera.angles.vy
 SPOT = (704, 0, 960)  # behind the beam at zone 51 room 1's save point
 failures = []
 

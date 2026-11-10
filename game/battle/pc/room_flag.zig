@@ -7,13 +7,11 @@ const v = @import("views_battle_movement");
 /// sign test, as in the original (a clear of bit 31 sets the byte, a set
 /// clears it).
 fn roomFlag(bit: c_int, clear: bool) void {
-    const address = v.g.D_800F58BC().*;
-    if (address == 0) return;
-    const room: [*]u8 = @ptrFromInt(address);
+    const room = v.g.D_800F58BC().* orelse return;
     var mask: c_int = @as(c_int, 1) << @intCast(bit & 31);
     if (clear) mask = -1 -% mask;
-    const byte: c_int = room[0xe];
-    room[0xe] = psx.conv(u8, if (mask < 0) byte & mask else byte | mask);
+    const byte: c_int = room.closedGates;
+    room.closedGates = psx.conv(u8, if (mask < 0) byte & mask else byte | mask);
 }
 
 /// orig: func_800E4BD8 (pc/src/battle_movement.c)

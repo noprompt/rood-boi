@@ -708,7 +708,9 @@ static const unsigned short PANEL_SCREENS[PC_HUD_KINDS - PC_HUD_ITEMS_CATEGORY] 
     [PC_HUD_RENAME_GRID - PC_HUD_ITEMS_CATEGORY] = 1u << 8, /* MENU8 _renderRenameMenu */
     [PC_HUD_RENAME_BOX - PC_HUD_ITEMS_CATEGORY] = 1u << 8,  /* MENU8 _highlightSelection */
 };
-static unsigned char menu_row_item[0x40]; /* the row the element just recorded drew: d.menu_row's copy */
+static unsigned char menu_row_item[PC_CLASSIC_MENU_ITEM_BYTES];
+_Static_assert(sizeof(vs_battle_menuItem_t) == PC_CLASSIC_MENU_ITEM_BYTES, "menu item record");
+_Static_assert(sizeof(((pc_hud_fields*)0)->menu_item) == PC_CLASSIC_MENU_ITEM_BYTES, "hud.h menu_item"); /* the row the element just recorded drew: d.menu_row's copy */
 void pc_hud_menu(int kind, void* record, void* first, void* end)
 {
     static pc_hud_fields rows[40], one[5];

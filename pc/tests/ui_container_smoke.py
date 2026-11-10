@@ -87,7 +87,6 @@ from ui_data_smoke import menu7_symbols, changed_ranges, file_bytes_only, KEY, G
 
 PTR = 8 if os.environ.get("ROOD_ARCH") == "64" else 4
 CLOSED = 0x3F
-ITEM = 64  # sizeof(vs_battle_menuItem_t)
 # vs_menu_inventoryStorage_t's members (their names are their offsets)
 STORAGE = {"unk0": (0, 0xF00), "unkF00": (0xF00, 0xB0), "unkFB0": (0xFB0, 0x3C00), "unk87B0": (0x87B0, 0x3C00),
            "itemsToTransfer": (0xC3B0, 0x80), "unkC430": (0xC430, 0x3C00 + 0x580), "unk105B0": (0x105B0, 0x3C00 + 0x580)}
@@ -204,7 +203,7 @@ class Session:
 
     def item_state(self, i):
         items = self.ptr("vs_battle_menuItems")
-        return self.g.read(items + i * ITEM, 1)[0] if items else 0
+        return self.g.read(items + i * self.g.layout("menuItem_size", 64), 1)[0] if items else 0
 
     def shot(self, what):
         if self.shots:
@@ -271,8 +270,9 @@ class Session:
         items = self.ptr("vs_battle_menuItems")
         if not items:
             return True
-        raw = self.g.read(items, 40 * ITEM)
-        return all(raw[i * ITEM] <= 1 for i in range(40))
+        size = self.g.layout("menuItem_size", 64)
+        raw = self.g.read(items, 40 * size)
+        return all(raw[i * size] <= 1 for i in range(40))
 
     def a_ready(self):
         """The original takes input (A): MENUD's top menu at its state 3, func_80107490's list (2, 6: the
@@ -390,7 +390,7 @@ class Session:
 
     def item_selected(self, i):
         items = self.ptr("vs_battle_menuItems")
-        return self.g.read(items + i * ITEM + 6, 1)[0] if items else 0  # selected
+        return self.g.read(items + i * self.g.layout("menuItem_size", 64) + 6, 1)[0] if items else 0  # selected
 
     def to_top(self):
         """MENUD's top menu takes input."""

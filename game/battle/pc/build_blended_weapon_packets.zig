@@ -199,7 +199,7 @@ pub fn buildBlendedWeaponPackets(projected: [*]u8, object: [*]u8, color: [*]u8, 
     const mode: c_uint = object[9] & 0xf;
     s.blend = if (mode == 0) 0 else if (mode < 7) 0x400000 else 0x200000;
     const mask: c_uint = object[0x64];
-    var record: [*]u8 = @ptrFromInt(@as(usize, psx.byteAt(u32, model, 0x3c).*));
+    var record: [*]u8 = @ptrFromInt(@intFromPtr(model) +% psx.byteAt(u32, model, 0x3c).*);
     var counts: [*]align(1) const u16 = @ptrCast(model);
     const totals: [*]align(1) u16 = @ptrCast(object + 2);
     // Triangles (16-byte records) and quads (20-byte records).

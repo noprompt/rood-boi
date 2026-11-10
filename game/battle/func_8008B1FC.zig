@@ -9,10 +9,10 @@ const c = @import("c_146C");
 pub fn func_8008B1FC(arg0: ?*anyopaque) callconv(.c) void {
     // ROOD_PC: lighting capture of world-space room geometry and this frame's camera.
     c.pc_scene_room(arg0);
-    const scratch: *anyopaque = @ptrFromInt(0x1F800014);
+    const scratch: *anyopaque = common.view.at(anyopaque, common.view.matrix_offset);
     c.pc_scene_camera(scratch);
 
-    const camera: *v.MATRIX = @ptrFromInt(0x1F800014);
+    const camera = common.view.at(v.MATRIX, common.view.matrix_offset);
     c.SetRotMatrix(psx.cptr(c.MATRIX, camera));
     c.SetTransMatrix(psx.cptr(c.MATRIX, camera));
     c.func_800983F8(arg0);

@@ -12,9 +12,11 @@
 #include "pc/src/hud/hud_hook.h"
 #endif
 
+/* One entry of a script block's table (func_800927AC builds them on the heap): the effect file's record and
+ * the script's cursor. func_80092B04 steps the cursor; the handlers read and write the rest. */
 typedef struct {
-    psx_ptr(int) unk0;
-    psx_ptr(void) unk4;
+    int* unk0;
+    void* unk4;
     short unk8;
     short unkA;
     int unkC;
@@ -31,10 +33,10 @@ typedef struct {
     short unk30;
     short unk32;
 } func_80092F74_t;
-PSX_ASSERT_SIZE(func_80092F74_t, 0x34);
 
+/* A script command (file data): its length and opcode, then its parameters. */
 typedef struct {
-    psx_ptr(int) unk0;
+    int unk0;
     union {
         u_short u16[2];
         short s16[2];
@@ -43,7 +45,6 @@ typedef struct {
     int unk14;
     int unk18;
 } func_80092F74_t2;
-PSX_ASSERT_SIZE(func_80092F74_t2, 0x1c);
 
 typedef struct {
     int unk0;
@@ -73,13 +74,6 @@ typedef struct {
     short unk0;
     short unk2;
 } func_80092B04_t2;
-
-typedef struct {
-    int unk0;
-    psx_ptr(void) unk4;
-    char unk8[0x2C];
-} func_80092B04_t;
-PSX_ASSERT_SIZE(func_80092B04_t, 0x34);
 
 typedef struct {
     u_short unk0;
@@ -195,7 +189,7 @@ void func_80090B28(void);
 int vs_battle_clamp(short, int, int);
 void func_8009121C(void);
 void func_800927AC(D_800F1DD8_t*);
-int func_80092B04(func_80092B04_t*, int, D_800F1DD8_t*);
+int func_80092B04(func_80092F74_t*, int, D_800F1DD8_t*);
 int func_8009291C(int);
 void func_80092EDC(func_80092F74_t* arg0);
 int func_8009306C(func_80092F74_t* arg0);
@@ -211,7 +205,7 @@ void* func_800962E4();
 void func_80096444(int);
 
 extern int (*D_800E85CC[])(D_800F1DD8_t2*);
-extern int (*D_800E85E8[])(func_80092B04_t*, func_80092B04_t2*);
+extern int (*D_800E85E8[])(func_80092F74_t*, func_80092B04_t2*);
 extern char D_80068EB4[];
 extern int D_80068F04[][4];
 extern u_short D_80068F64[][4];
@@ -358,7 +352,7 @@ int func_8009291C(int arg0);
 
 int func_80092A18(void);
 
-int func_80092B04(func_80092B04_t* arg0, int arg1, D_800F1DD8_t* arg2);
+int func_80092B04(func_80092F74_t* arg0, int arg1, D_800F1DD8_t* arg2);
 
 int func_80092C68(func_80092F74_t* arg0, func_80092F74_t2* arg1);
 

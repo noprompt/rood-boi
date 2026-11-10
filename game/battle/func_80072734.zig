@@ -89,7 +89,7 @@ pub fn func_80072734(arg0: c_int) callconv(.c) void {
         state().unk2998.pad = 0;
     }
     if (state().unk2984 != 0) {
-        c.func_800C05EC(&state().unk29A0, &state().unk29B0, count, @bitCast(psx.addr(&state().unk29C0)));
+        c.func_800C05EC(&state().unk29A0, &state().unk29B0, count, &state().unk29C0);
     }
     v.g._cameraMode().* = 2;
 }

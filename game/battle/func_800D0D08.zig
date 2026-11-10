@@ -91,6 +91,6 @@ pub fn func_800D0D08(arg0: ?*v.D_800F53B8_t) callconv(.c) void {
             _ = c.CompMatrix(psx.cptr(c.MATRIX, &state.facing), psx.cptr(c.MATRIX, &scratch.unk48), psx.cptr(c.MATRIX, &state.world));
         }
 
-        _ = c.CompMatrix(psx.cptr(c.MATRIX, &v.g.vs_scratch().viewMatrix), psx.cptr(c.MATRIX, &state.world), psx.cptr(c.MATRIX, &state.view));
+        _ = c.CompMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix), psx.cptr(c.MATRIX, &state.world), psx.cptr(c.MATRIX, &state.view));
     }
 }

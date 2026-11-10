@@ -340,15 +340,14 @@ static int chain(bubble* B, const segments* seg)
  * those packets is drawn, so nothing is recorded. */
 int pc_bubble_frame_muted;
 
-void pc_bubble_frame(int id, const void* box, const void* shape, const void* start, const void* end)
+void pc_bubble_frame(int id, const unsigned* flags_word, const short* rect, const void* shape, const void* start, const void* end)
 {
     if (pc_bubble_frame_muted)
         return;
     ++stats.frames;
-    if (id < 0 || id >= MAX_BUBBLES || !box || !shape)
+    unsigned flags = flags_word ? *flags_word : 0;
+    if (id < 0 || id >= MAX_BUBBLES || !rect || !shape)
         return;
-    const unsigned char* b = box;
-    unsigned flags = u32_at(b);
     int fresh = rects[id].set, slot = pending_count;
     rects[id].set = 0;
     for (int i = 0; i < pending_count; i++)
@@ -370,7 +369,7 @@ void pc_bubble_frame(int id, const void* box, const void* shape, const void* sta
     }
     B->id = id;
     B->shape = (flags >> 8) & 15, B->flip = (flags >> 6) & 3, B->tail = (flags >> 12) & 15;
-    int x = s16_at(b + 0x24), y = s16_at(b + 0x26), w = s16_at(b + 0x28), h = s16_at(b + 0x2A);
+    int x = rect[0], y = rect[1], w = rect[2], h = rect[3];
     float exact[4];
     int subpixel = fresh && pc_ui_subpixel;
     if (subpixel) {

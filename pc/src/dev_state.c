@@ -3,13 +3,14 @@
 #include "common.h"
 #include "../../pc/src/game/BATTLE/BATTLE.PRG/146C.h"
 #include "../../pc/src/game/BATTLE/BATTLE.PRG/3A1A0.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/5BF94.h"
+#include "../../pc/src/game/BATTLE/BATTLE.PRG/target_block.h"
 #include "../../pc/src/game/SLUS_010.40/main.h"
 
 extern int vs_main_startState;
 /* 146C.h: the room the player is in (the last door's destination). INITBTL
  * starts it from D_80061068, which then holds the saved location only: the
  * game copies the current room back into it when saving. */
-extern _mpdRoomDoorSection_t D_800F1AB0;
 /* 146C.h: vs_battle_actors[0] is Ashley; its unk3C points at the HUD record
  * (name[24], then currentHP, maxHP, currentMP, maxMP, risk as shorts). */
 extern int sprintf(char*, const char*, ...);
@@ -157,6 +158,51 @@ static void put(struct json* j, const char* key, long value)
         j->p += sprintf(j->p, "\"%s\":%ld,", key, value);
 }
 #define F(j, o, field) put(j, #field, (long)(o)->field)
+/* The effect runtime (the script nodes of D_800F53B8 and their particles), by value: a 64-bit FNV-1a of each node's
+ * records and, per particle, its numbers as text. Pointers are left out, so two builds with different layouts
+ * agree when the effects do (build_compare.py compares them step by step). */
+static unsigned long long fnv(const void* data, unsigned size)
+{
+    unsigned long long h = 1469598103934665603ull;
+    for (unsigned i = 0; i < size; ++i)
+        h = (h ^ ((const unsigned char*)data)[i]) * 1099511628211ull;
+    return h;
+}
+static void effect_nodes(struct json* j)
+{
+    j->p += sprintf(j->p, ",\"effects\":[");
+    int count = 0;
+    for (D_800F53B8_t* n = D_800F53B8; n && count < 64 && guest_pointer(n, sizeof *n); n = n->next, ++count) {
+        if (j->p + 8192 > j->end)
+            break;
+        j->p += sprintf(j->p, "{");
+        F(j, n, unk8); F(j, n, unk9); F(j, n, unkA);
+        put(j, "word14", *(unsigned*)(n->unk10 + 4));
+        for (int i = 0; i < 4; ++i)
+            j->p += sprintf(j->p, "\"unk10_%d\":%d,", i, n->unk10[i]);
+        for (int i = 0; i < 16; ++i) {
+            func_800CE714_t2_2* e = &n->unk1C[i];
+            j->p += sprintf(j->p, "\"entry%d\":\"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%llx,%llx\",", i, e->unk0, e->unk4,
+                e->unk8, e->unkC, e->unk10, e->unk14, e->unk18, e->unk1C, e->unk20, e->unk24, e->unk28, e->unk2C,
+                e->unk30, e->unk34, e->unk35, e->unk36, e->unk37, e->unkBE, fnv(&e->unk38, sizeof e->unk38 + sizeof e->unk58),
+                fnv(e->unk78, sizeof e->unk78 + 2 + sizeof e->unkC0));
+        }
+        put(j, "t3a", n->unkD1C.unk38); put(j, "t3b", n->unkD1C.unk3A); put(j, "t3c", n->unkD1C.unk3C);
+        j->p += sprintf(j->p, "\"particles\":[");
+        int k = 0;
+        for (func_800D2904_t* p = n->unk18; p && k < 96 && guest_pointer(p, sizeof *p); p = p->next, ++k) {
+            if (j->p + 512 > j->end)
+                break;
+            j->p += sprintf(j->p, "\"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%llx,%u,%d,%d,%d,%d,%d,%d\",",
+                p->unk8, p->unkA, p->unkC, p->unk10, p->unk14, p->unk18[0], p->unk18[1], p->unk18[2], p->unk24[0],
+                p->unk24[1], p->unk24[2], p->unk30[0], p->unk30[1], p->unk30[2], p->unk5C, p->lifetime,
+                fnv(&p->sprite, 0x18), p->unk60_0 | p->unk60_8 << 8 | p->unk60_12 << 12, p->unk62[0], p->unk62[1], p->unk62[2], p->unk6A,
+                p->endEvent, p->tickEvent);
+        }
+        j->p += sprintf(j->p, "\"end\"]},");
+    }
+    j->p += sprintf(j->p, "{}]");
+}
 void pc_rpc_battle_state(char* out, unsigned size)
 {
     struct json j = { out, out + size };
@@ -223,7 +269,9 @@ void pc_rpc_battle_state(char* out, unsigned size)
         }
         j.p += sprintf(j.p, "\"slot\":%d},", i);
     }
-    j.p += sprintf(j.p, "{}]}");
+    j.p += sprintf(j.p, "{}]");
+    effect_nodes(&j);
+    j.p += sprintf(j.p, "}");
 }
 
 /* The zone context's layout, for tests that read it (two_model_enemy_smoke). */
@@ -262,3 +310,18 @@ ROOM_OFFSET(section12);
 const unsigned pc_room_offset_geometrySectionLen = __builtin_offsetof(_mpdRoomSection, header.geometrySectionLen);
 const unsigned pc_room_offset_textureEffectsSectionLen = __builtin_offsetof(_mpdRoomSection, header.textureEffectsSectionLen);
 const unsigned pc_room_offset_section12Len = __builtin_offsetof(_mpdRoomSection, header.section12Len);
+
+/* The battle menu's record layouts (Game.layout in rood_rpc.py): a menu item and a text box hold a host
+ * pointer, so tests read their strides and later fields from here, not from the PS1's. */
+#define LAYOUT(name, type, field) const unsigned pc_layout_##name##_##field = __builtin_offsetof(type, field)
+const unsigned pc_layout_menuItem_size = sizeof(vs_battle_menuItem_t);
+LAYOUT(menuState, vs_battle_menuState_t, cdQueue);
+const unsigned pc_layout_textBox_size = sizeof(vs_battle_textBox);
+LAYOUT(textBox, vs_battle_textBox, x);
+LAYOUT(textBox, vs_battle_textBox, state);
+LAYOUT(textBox, vs_battle_textBox, brightness);
+LAYOUT(textBox, vs_battle_textBox, charsPerLine);
+LAYOUT(textBox, vs_battle_textBox, lineCount);
+LAYOUT(textBox, vs_battle_textBox, unk22);
+LAYOUT(targetRows, D_800EB9B8_t, unk990); /* the battle menu block's target rows (classic_parity.py) */
+const unsigned pc_layout_targetRow_size = sizeof(D_800EB9B8_unk990);

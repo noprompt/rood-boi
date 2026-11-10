@@ -7,8 +7,8 @@ const c = @import("c_146C");
 /// Projects every live particle, builds its quad from two projected points and links it into the ordering table.
 pub fn func_8008FAC8() callconv(.c) void {
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &scratch.viewMatrix));
+    c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+    c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
     const base: ?*v.D_800F1DD4_t = v.g.D_800F1DD4().*;
     var i: c_int = 0;
     while (i < @as(c_int, v.g.D_800F1DC0().*)) : (i +%= 1) {

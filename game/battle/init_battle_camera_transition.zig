@@ -15,11 +15,11 @@ pub fn initBattleCameraTransition() callconv(.c) void {
         transition.* = @ptrCast(@alignCast(c.vs_main_allocHeapR(@sizeOf(v.vs_battle_cameraTransition_t))));
     }
     if (v.g.D_800F196C().* != 7) {
-        transition.*.?.fromCameraState = v.g.vs_scratch().camera;
+        transition.*.?.fromCameraState = v.g.vs_view().camera;
         transition.*.?.fromSpherical = v.g.vs_battle_cameraCurrentSpherical().*;
         transition.*.?.fromNearClip = v.g.vs_main_nearClip().*;
         transition.*.?.fromProjectionDistance = v.g.vs_main_projectionDistance().*;
-        transition.*.?.fromFarClip = v.g.vs_scratch().camera.farClip;
+        transition.*.?.fromFarClip = v.g.vs_view().camera.farClip;
     }
     transition.*.?.toNearClip = 4;
     transition.*.?.toProjectionDistance = 224;

@@ -5,23 +5,23 @@ const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
 /// The battle state block (D_800EB9B8), dereferenced.
-fn battleState() *v.func_800C56C0_t {
+fn battleState() *v.D_800EB9B8_t {
     return v.g.D_800EB9B8().*.?;
 }
 
 /// The current selection's slot in the battle state's 24-entry array.
-fn slotAt(idx: c_int) *v.func_800C56C0_t2 {
+fn slotAt(idx: c_int) *v.D_800EB9B8_unk990 {
     return psx.at(&battleState().unk990, idx);
 }
 
 /// The slot at the current cursor position (`D_800EB9B8->unk990[D_800EB9B8->unk2D]`).
-fn curSlot() *v.func_800C56C0_t2 {
+fn curSlot() *v.D_800EB9B8_unk990 {
     return slotAt(@as(c_int, battleState().unk2D));
 }
 
 /// `psx_get(D_800EB9B8->unk40)[idx]`.
 fn entryAt(idx: c_int) *v.func_800C5798_t {
-    return psx.at(psx.get(battleState().unk40).?, idx);
+    return psx.at(battleState().unk40.?, idx);
 }
 
 /// `vs_battle_actors[idx]`, dereferenced.
@@ -71,7 +71,7 @@ fn finishMenu() c_int {
 /// One row's slot: its `unk7` follows the slot before it in the row.
 fn setRowItem(row: usize, mode: c_int) void {
     const i = tableC70(row, v.g.D_800EABAA().*);
-    const item: ?*v.func_800C56C0_t2 = @ptrCast(@alignCast(c.func_800C5798(i, mode, v.g.D_800EABAA().*)));
+    const item: ?*v.D_800EB9B8_unk990 = @ptrCast(@alignCast(c.func_800C5798(i, mode, v.g.D_800EABAA().*)));
     if (v.g.D_800EABAA().* != 0) {
         const prev = tableC70(row, @as(c_int, v.g.D_800EABAA().*) - 1);
         if (entryAt(i).unk9 != entryAt(prev).unk9) {
@@ -84,14 +84,14 @@ fn setRowItem(row: usize, mode: c_int) void {
 
 /// The cursor-movement and description state (state 19 of the menu).
 fn caseNineteen(target: [*c]u8) void {
-    curSlot().unk1[2] +%= 1;
-    if (curSlot().unk1[2] == 0x22) curSlot().unk1[2] = 0x12;
-    curSlot().unk1[0] = 0;
+    curSlot().unk3 +%= 1;
+    if (curSlot().unk3 == 0x22) curSlot().unk3 = 0x12;
+    curSlot().unk1 = 0;
 
     if ((pressed() & 0x40) != 0) {
         c.vs_battle_playMenuLeaveSfx();
         c.func_800C56C0();
-        v.g.D_800EB9AC().* = @intFromBool(battleState().unk0.unk1 == 2);
+        v.g.D_800EB9AC().* = @intFromBool(battleState().unk0[0].unk1 == 2);
         v.g.D_800EABAA().* = 21;
         return;
     }
@@ -201,9 +201,9 @@ fn caseNineteen(target: [*c]u8) void {
     }
 
     battleState().unk2D = psx.conv(u8, pos);
-    curSlot().unk1[0] = 1;
+    curSlot().unk1 = 1;
     if (prev != @as(c_int, battleState().unk2D)) {
-        curSlot().unk1[2] = 0;
+        curSlot().unk3 = 0;
         c.vs_battle_playMenuChangeSfx();
         c.func_800C51B4(3);
     }
@@ -301,7 +301,7 @@ pub fn func_800C58F8(target: [*c]u8) callconv(.c) c_int {
                 }
             },
             17 => {
-                v.g.D_800EB9AC().* = @intFromBool(battleState().unk0.unk1 == 2);
+                v.g.D_800EB9AC().* = @intFromBool(battleState().unk0[0].unk1 == 2);
                 v.g.D_800EABAA().* = 21;
             },
             18 => {

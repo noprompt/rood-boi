@@ -20,7 +20,7 @@ int pc_text_box_line(int x, int y, int glyph, int* glyphs, int* xs, int max);
  * at x: its glyphs into glyphs/xs, their count returned (0: no such line). */
 static int walk(vs_battle_textBox* box, int x, int y, int glyph, int* glyphs, int* xs, int max)
 {
-    const u_char* str = (const u_char*)psx_get(box->string);
+    const u_char* str = (const u_char*)box->string;
     const u_char* saved = NULL;
     char number[16];
     int table = box->unk0.unk0_0 != 4, justify = 0, printX = box->xIndent, printY = box->yIndent, count = 0;
@@ -117,7 +117,7 @@ static int walk(vs_battle_textBox* box, int x, int y, int glyph, int* glyphs, in
             case 0xFF:
                 if (!saved) {
                     saved = str;
-                    str = (const u_char*)psx_get(vs_battle_stringContext.strings[param]);
+                    str = (const u_char*)vs_battle_stringContext.strings[param];
                     if (!str)
                         return 0;
                 }
@@ -136,7 +136,7 @@ static int walk(vs_battle_textBox* box, int x, int y, int glyph, int* glyphs, in
 static int printed(const vs_battle_textBox* box)
 {
     int state = box->state, kind = box->unk0.unk0_0;
-    if (!psx_get(box->string) || state <= 0 || box->unk0.unk0_31 || state != box->unk22 + 1)
+    if (!box->string || state <= 0 || box->unk0.unk0_31 || state != box->unk22 + 1)
         return 0;
     return kind != 3 && kind != 6;
 }

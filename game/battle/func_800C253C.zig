@@ -16,7 +16,7 @@ pub fn func_800C253C(type_: c_int) callconv(.c) void {
     if (shape != 0) {
         ps.*.?.unk2A = psx.conv(i16, shape -% 1);
     }
-    const vertices = psx.byteAt(v.menuCircleVertex, ps.*.?, 0x48);
+    const vertices = psx.byteAt(v.menuCircleVertex, ps.*.?, @offsetOf(v.D_800EB9B8_t, "points"));
 
     if (psx.conv(c_uint, type_) < 3) {
         if (type_ == 0) {

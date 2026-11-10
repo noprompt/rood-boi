@@ -340,16 +340,16 @@ void pc_ui_ashley_fill(void)
 
 static void backup_world_view(void)
 {
-    model.view = vs_scratch.viewMatrix;
+    model.view = vs_view.viewMatrix;
     model.view_copy = D_8005E218;
-    model.camera = vs_scratch.camera;
+    model.camera = vs_view.camera;
     model.projection = vs_main_projectionDistance;
 }
 
 static void restore_world_view(void)
 {
-    vs_scratch.camera = model.camera;
-    vs_scratch.viewMatrix = model.view;
+    vs_view.camera = model.camera;
+    vs_view.viewMatrix = model.view;
     D_8005E218 = model.view_copy;
     vs_battle_setProjectionDistance(model.projection);
     SetGeomOffset(160, 112);
@@ -361,7 +361,7 @@ static void restore_world_view(void)
 static void place_camera(void)
 {
     D_800F4538_t* clone = D_800F4538[1];
-    vs_camera_t* camera = &vs_scratch.camera;
+    vs_camera_t* camera = &vs_view.camera;
     int z = clone->menuCameraDistance;
     int x = clone->menuCameraHeightOffset;
     int t;
@@ -728,7 +728,7 @@ void pc_ui_ashley_model_tick(int resident, int held)
     place_camera();
     SetGeomOffset((int)(ofx + 0.5f), (int)(ofy + 0.5f));
     func_8007ACB0();
-    func_800F9EB8(&vs_scratch.viewMatrix);
+    func_800F9EB8(&vs_view.viewMatrix);
     restore_world_view();
     model.state = 2;
     publish();

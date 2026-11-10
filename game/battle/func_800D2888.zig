@@ -17,7 +17,7 @@ pub fn func_800D2888(arg0: ?*v.func_800D2904_t, arg1: ?*v.D_800F53B8_t) callconv
     if (psx.get(self.previous)) |prev| {
         prev.next = self.next;
     } else {
-        owner.unk18 = self.next;
+        owner.unk18 = psx.get(self.next);
     }
 
     psx.put(&self.next, v.g.D_800F55F4().*);

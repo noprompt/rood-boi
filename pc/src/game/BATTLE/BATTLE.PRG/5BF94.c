@@ -8,6 +8,7 @@
 #include "40564.h"
 #include "573B8.h"
 #include "58578.h"
+#include "target_block.h"
 #include "pc/src/game/SLUS_010.40/main.h"
 #include "pc/src/game/SLUS_010.40/overlay.h"
 #include "pc/src/game/SLUS_010.40/31724.h"
@@ -62,28 +63,20 @@ typedef struct {
 } func_800D6894_t;
 
 typedef struct {
-    psx_ptr(D_800F53B8_t3) unk0;
-    psx_ptr(D_800F53B8_t3) unk4;
-    psx_ptr(D_800F53B8_t3) unk8;
-    psx_ptr(D_800F53B8_t3) unkC;
+    D_800F53B8_t3* unk0;
+    D_800F53B8_t3* unk4;
+    D_800F53B8_t3* unk8;
+    D_800F53B8_t3* unkC;
     int unk10;
-    psx_ptr(char) unk14;
+    char* unk14;
     int unk18;
-    psx_ptr(D_800F53B8_t) unk1C;
+    D_800F53B8_t* unk1C;
     u_char unk20;
     u_char unk21;
     u_char unk22;
     u_char unk23;
     int unk24;
 } D_800F53B8_t2;
-
-typedef struct {
-    char unk0[0x22];
-    u_short unk22_0 : 2;
-    u_short unk22_2 : 1;
-    u_short unk22_3 : 13;
-    char unk24[0xAC];
-} func_800D6508_t;
 
 typedef struct {
     int unk0;
@@ -206,62 +199,6 @@ typedef struct {
     short unk2C[6];
 } func_800D0B30_t;
 
-typedef struct {
-    int unk0;
-    int unk4;
-    u_char unk8;
-    u_char unk9;
-    u_char unkA;
-    u_char unkB;
-    u_short unkC;
-    u_short unkE;
-    u_int unk10;
-    u_char unk14;
-    u_char unk15;
-    u_char unk16;
-    u_char unk17;
-} func_800C5798_t;
-
-typedef struct {
-    char unk0;
-    char unk1[3];
-    short unk4;
-    u_char unk6;
-    char unk7;
-    int unk8;
-    int unkC;
-    psx_ptr(char) limbName;
-} func_800C56C0_t2;
-PSX_ASSERT_SIZE(func_800C56C0_t2, 0x14);
-
-typedef union {
-    SVECTOR vec;
-    int words[2];
-} func_800C4794_t;
-
-typedef struct {
-    func_800C1564_t unk0;
-    func_800C1564_t unk10;
-    short unk20;
-    short unk22;
-    int unk24;
-    short unk28;
-    short unk2A;
-    u_char unk2C;
-    u_char unk2D;
-    u_char unk2E;
-    u_char unk2F;
-    u_char unk30;
-    u_char unk31;
-    char unk32[2];
-    int unk34;
-    func_800C4794_t unk38;
-    psx_ptr(func_800C5798_t) unk40;
-    psx_ptr(func_800C5798_t) unk44;
-    char unk48[0x948];
-    func_800C56C0_t2 unk990[24];
-} func_800C56C0_t;
-PSX_ASSERT_SIZE(func_800C56C0_t, 0xb70);
 
 typedef struct {
     int unk0_0 : 12;
@@ -319,7 +256,7 @@ int func_800D5780(func_800D5780_t*);
 int func_800D57FC(D_800F53B8_t*, func_800D5780_t*);
 int func_800D5904(D_800F53B8_t*, func_800D5780_t*);
 typedef struct {
-    psx_ptr(u_char) data;
+    u_char* data;
     char prefix[8];
     short delay;
     short index;
@@ -368,7 +305,7 @@ extern char D_800EA9B6[];
 extern char D_800EAA54[];
 extern char D_800EB9AC;
 extern signed char _loadedSubMenu;
-extern func_800C56C0_t* D_800EB9B8;
+extern D_800EB9B8_t* D_800EB9B8;
 extern gim_t* D_800EB9BC;
 extern char D_800EB9CC;
 extern char D_800EB9CD;
@@ -450,13 +387,17 @@ extern u_int D_800F531C;
 extern int D_800F5320[];
 extern int D_800F5330[];
 extern int D_800F53B4;
-extern D_800F53B8_t* D_800F53B8;
 extern char D_800F54A8;
 extern char D_800F54A9;
 extern D_800F53B8_t* D_800F54B0;
 extern D_800F54B8_t D_800F54B8[];
 extern short D_800F54D0;
 extern D_800F54D8_t D_800F54D8;
+/* Defined here: these hold pointers among their words, so they cannot be imports (LP64). */
+vs_battle_menuState_t vs_battle_menuState;
+vs_battle_stringContext_t vs_battle_stringContext;
+vs_battle_textBox vs_battle_textBoxes[8];
+func_800FA098_arg1 pc_effect_scratch;
 extern u_char D_800F4E80;
 extern char D_800F5518;
 extern D_800F54D8_t D_800F5520[2];
@@ -493,7 +434,7 @@ void func_800C553C(void);
 
 void func_800C56C0(void);
 
-func_800C56C0_t2* func_800C5798(int arg0, int arg1, int arg2);
+D_800EB9B8_unk990* func_800C5798(int arg0, int arg1, int arg2);
 
 char* _getStatusString(uint arg0);
 
@@ -1316,7 +1257,7 @@ void func_800D6448(D_800F53B8_t* arg0, u_char arg1, u_char arg2);
 
 void func_800D64E4(void);
 
-void func_800D6508(func_800D6508_t* arg0, char arg1);
+void func_800D6508(D_800F53B8_t* arg0, char arg1);
 
 void func_800D6538(D_800F53B8_t* arg0);
 
@@ -1324,7 +1265,7 @@ void func_800D6554(void);
 
 void func_800D6574(D_800F53B8_t* arg0);
 
-void func_800D65A8(func_800D6508_t* arg0, char arg1);
+void func_800D65A8(D_800F53B8_t* arg0, char arg1);
 
 void func_800D65D8(D_800F53B8_t* arg0, u_char arg1);
 

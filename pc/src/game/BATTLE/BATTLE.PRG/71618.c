@@ -91,11 +91,6 @@ typedef struct actionDispatchModel {
     short status;
     short position[3];
 } actionDispatchModel;
-typedef struct {
-    char pad[0x28];
-    psx_ptr(vs_battle_actor) registered[4];
-} actionDispatchRegistry;
-PSX_ASSERT_SIZE(actionDispatchRegistry, 0x38);
 extern int D_800F16F4;
 void func_800DB820(vs_battle_aiState*);
 void func_800DB7B4(vs_battle_aiState*);

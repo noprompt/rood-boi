@@ -84,7 +84,7 @@ FLAGS_SIZE = 0x440      # sizeof(vs_main_flags_t)
 UNK_A7, INTRO, UNK_B5, MAGIC_USED, SAVE_POINTS = 0xA7, 0xAB, 0xB5, 0xB7, 0x156
 MENU_FLAGS = 2          # vs_main_settings.menuFlags (bit 0: the Magic command)
 MP, MP_MAX = 0x1C, 0x1E  # vs_battle_actor2 currentMP / maxMP
-ITEM = 64               # sizeof(vs_battle_menuItem_t): state +0, selected +6, unselectable +7
+# a menu item (Game.layout menuItem_size): state +0, selected +6, unselectable +7
 MAGIC_ITEM, TELEPORT_ITEM, LIST_ITEM = 0, 14, 20  # the top level's Magic, MENU0's Teleport row, the destinations
 TELEPORT_MENU = 14      # vs_menu0_exec's state while _teleportMenu runs (vs_battle_submenuStates[1])
 SHORTCUT_TRAVEL = 9     # vs_battle_shortcutInvoked of the Travel button (fast_travel.h)
@@ -191,8 +191,9 @@ class Trip:
         p = int.from_bytes(self.g.read(self.sym["vs_battle_menuItems"], PTR), "little")
         if not p:
             return {}
-        raw = self.g.read(p, ITEM * 40)
-        return {i: (raw[i * ITEM], raw[i * ITEM + 6], raw[i * ITEM + 7]) for i in range(40) if raw[i * ITEM]}
+        size = self.g.layout("menuItem_size", 64)
+        raw = self.g.read(p, size * 40)
+        return {i: (raw[i * size], raw[i * size + 6], raw[i * size + 7]) for i in range(40) if raw[i * size]}
 
     def wait(self, pred, limit, what, step=2, quiet=False):
         for n in range(0, limit + 1, step):

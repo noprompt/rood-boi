@@ -2,6 +2,7 @@
 #include "146C.h"
 #include "4A0A8.h"
 #include "573B8.h"
+#include "target_block.h"
 #include "pc/src/game/SLUS_010.40/main.h"
 #include "build/src/include/lbas.h"
 #include <libetc.h>
@@ -11,36 +12,6 @@ extern int (*_opcodeFunctionTable[])(u_char*, short);
 extern unsigned char D_800F4B70[17];
 extern vs_main_CdQueueSlot* D_800F4BBC;
 extern vs_main_CdFile D_800F4BF0;
-
-typedef struct {
-    u_char unk0;
-    u_char unk1;
-    u_char unk2;
-    u_char unk3;
-    int unk4;
-    int unk8;
-    int unkC;
-} D_800EB9B8_t2;
-
-typedef struct {
-    D_800EB9B8_t2 unk0;
-    D_800EB9B8_t2 unk10;
-    int unk20;
-    short unk24;
-    short unk26;
-    short unk28;
-    short unk2A;
-    char unk2C;
-    char unk2D;
-    u_char unk2E;
-    char unk2F;
-    int unk30;
-    int unk34;
-    int unk38;
-    int unk3C;
-    int unk40;
-    int unk44;
-} D_800EB9B8_t;
 
 extern D_800EB9B8_t* D_800EB9B8;
 extern u_char D_800EB9AC;
@@ -230,18 +201,14 @@ void func_800C031C(void);
 
 void func_800C05B4(void);
 
-void func_800C05EC(D_800EB9B8_t2* arg0, D_800EB9B8_t2* arg1, u_char arg2, int arg3);
+void func_800C05EC(func_800C1564_t* arg0, func_800C1564_t* arg1, u_char arg2, void* arg3);
 
 void func_800C06E0(void);
 
-void func_800C0700(D_800EB9B8_t2* arg0);
+void func_800C0700(func_800C1564_t* arg0);
 
 void func_800C0738(void);
 
-typedef struct {
-    short xyz[3];
-    short flags;
-} menuCurveVertex;
 
 int func_800C0758(int phase, int segments, int index);
 

@@ -10,7 +10,7 @@ pub fn func_800C5360(group: c_int) callconv(.c) void {
     var i: c_int = 0;
     if (v.g.D_800F4CB1().* > v.g.D_800F4CB0().*) {
         while (i < v.g.D_800EB9B8().*.?.unk2C) : (i +%= 1) {
-            const elem = psx.at(psx.get(v.g.D_800EB9B8().*.?.unk40).?, i);
+            const elem = psx.at(v.g.D_800EB9B8().*.?.unk40.?, i);
             if (@as(c_int, elem.unk9) == group) {
                 if (first == 0) first = i +% 1;
                 const row: [*]u8 = &v.g.D_800F4C70().*[1];
@@ -25,7 +25,7 @@ pub fn func_800C5360(group: c_int) callconv(.c) void {
         v.g.D_800F4CB2().* +%= 1;
     } else {
         while (i < v.g.D_800EB9B8().*.?.unk2C) : (i +%= 1) {
-            const elem = psx.at(psx.get(v.g.D_800EB9B8().*.?.unk40).?, i);
+            const elem = psx.at(v.g.D_800EB9B8().*.?.unk40.?, i);
             if (@as(c_int, elem.unk9) == group) {
                 if (first == 0) first = i +% 1;
                 const row: [*]u8 = &v.g.D_800F4C70().*[0];

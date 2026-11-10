@@ -20,21 +20,21 @@ pub fn unloadActor(node: *ai.vs_battle_actor) callconv(.c) void {
         const other: *ai.vs_battle_aiState = @ptrCast(@alignCast(states[@as(c_uint, @bitCast(p.id))].?));
         if (@as(c_uint, @as(u8, @bitCast(other.target16))) == id) other.target16 = 0x10;
     }
-    const grid: [*]u8 = @ptrFromInt(@as(usize, v.g.D_800F58BC().*));
-    var offset: usize = 0x34;
-    while (offset >= 0x28) : (offset -= 4) {
-        if (@as(usize, psx.byteAt(u32, grid, @intCast(offset)).*) == @intFromPtr(node)) psx.byteAt(u32, grid, @intCast(offset)).* = 0;
+    const grid = v.g.D_800F58BC().*.?;
+    var slot: usize = 4;
+    while (slot > 0) {
+        slot -= 1;
+        if (@intFromPtr(grid.registered[slot]) == @intFromPtr(node)) grid.registered[slot] = null;
     }
     if (@as(u8, @truncate(node.allegiance)) & 5 == 0) return;
     const state = states[id];
     c.func_800E5240(id);
     c.func_800E678C(state);
     if (id == 0) return;
-    const bits: *align(1) u16 = @ptrCast(grid + 0x10);
-    const bit = (@as(c_uint, 1) << @intCast(id & 31)) & bits.*;
+    const bit = (@as(c_uint, 1) << @intCast(id & 31)) & grid.unk10;
     if (bit != 0) {
-        bits.* = @truncate(@as(c_uint, bits.*) -% bit);
-        grid[0x12] -%= 1;
+        grid.unk10 = @truncate(@as(c_uint, grid.unk10) -% bit);
+        grid.unk12 -%= 1;
     }
     node.unkB &= 0xfc;
     if (state != null) {

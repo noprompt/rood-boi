@@ -39,7 +39,7 @@ static void _renderAshley(int mode)
     static vs_camera_t cameraBackup;
 
     int yOffset;
-    vs_camera_t* camera = &vs_scratch.camera;
+    vs_camera_t* camera = &vs_view.camera;
 
     switch (mode) {
     case ashleyRenderModeRender:
@@ -109,7 +109,7 @@ static void _renderAshley(int mode)
             camera->position.vz = camera->lookAt.vz + offsetZ;
 
             func_8007ACB0();
-            func_800F9EB8(&vs_scratch.viewMatrix);
+            func_800F9EB8(&vs_view.viewMatrix);
         }
         break;
 
@@ -123,7 +123,7 @@ static void _renderAshley(int mode)
 
             vs_battle_setProjectionDistance(512);
 
-            viewMatrixBackup = ((vs_scratch_t*)((void*)camera - 0x34))->viewMatrix;
+            viewMatrixBackup = vs_view.viewMatrix;
             cameraBackup = *camera;
             setVector(&camera->angles, 0, 0, 0);
             camera->farClip = 0x1000;
@@ -141,7 +141,7 @@ static void _renderAshley(int mode)
             vs_mainMenu_setBackgroundRenderPriority(-4, 128);
             vs_battle_setProjectionDistance(projectionDistance);
 
-            ((vs_scratch_t*)((void*)camera - 0x34))->viewMatrix = viewMatrixBackup;
+            vs_view.viewMatrix = viewMatrixBackup;
             *camera = cameraBackup;
             render = 0;
         }

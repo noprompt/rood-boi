@@ -63,9 +63,8 @@ typedef struct {
     short targetPosition0;
     short targetPosition1;
     char text[32];
-    psx_ptr(char) subText;
+    char* subText;
 } vs_battle_menuItem_t;
-PSX_ASSERT_SIZE(vs_battle_menuItem_t, 0x40);
 
 enum vs_battle_menuStates {
     menuStateMainMenu,
@@ -79,9 +78,8 @@ typedef struct {
     char returnState;
     char executeAbilityType;
     char loading;
-    psx_ptr(vs_main_CdQueueSlot) cdQueue;
+    vs_main_CdQueueSlot* cdQueue;
 } vs_battle_menuState_t;
-PSX_ASSERT_SIZE(vs_battle_menuState_t, 0x8);
 
 /* The GIM image loader's record: three in a row, shared with 4A0A8.c's view of them. */
 typedef struct {
@@ -124,7 +122,7 @@ typedef struct {
     vs_battle_textBox_fields unk0;
     short unk4;
     short unk6;
-    psx_ptr(char) string;
+    char* string;
     u_short speed;
     u_short prevChunksPrinted;
     short xIndent;
@@ -147,7 +145,6 @@ typedef struct {
     short unk2C;
     short unk2E;
 } vs_battle_textBox;
-PSX_ASSERT_SIZE(vs_battle_textBox, 0x30);
 
 typedef struct {
     char cursorMemories[52];
@@ -190,9 +187,8 @@ typedef struct {
 
 typedef struct {
     int integers[10];
-    psx_ptr(char) strings[10];
+    char* strings[10];
 } vs_battle_stringContext_t;
-PSX_ASSERT_SIZE(vs_battle_stringContext_t, 0x50);
 
 typedef struct {
     short unk0[6];
@@ -235,10 +231,9 @@ typedef struct {
     short unk14;
     u_char unk16;
     u_char unk17;
-    psx_ptr(u_char) unk18;
-    psx_ptr(pFileBlock1Indices) unk1C;
+    u_char* unk18;
+    pFileBlock1Indices* unk1C;
 } func_800D6CF_t;
-PSX_ASSERT_SIZE(func_800D6CF_t, 0x20);
 
 typedef struct {
     u_char unk0;
@@ -390,8 +385,8 @@ typedef struct {
 } D_800F54D8_t;
 
 typedef struct func_800D2904_t {
-    psx_ptr(struct func_800D2904_t) previous;
-    psx_ptr(struct func_800D2904_t) next;
+    struct func_800D2904_t* previous;
+    struct func_800D2904_t* next;
     short unk8;
     short unkA;
     int unkC;
@@ -453,7 +448,7 @@ typedef struct {
 } func_800D5780_t2;
 
 typedef struct {
-    /* 0x0 */ psx_ptr(u_long) unk0;
+    /* 0x0 */ u_long* unk0;
     /* 0x4 */ func_800D5780_t2 unk4;
     /* 0x6 */ short unk6;
     /* 0x8 */ short unk8;
@@ -474,26 +469,26 @@ typedef struct {
     D_800F53B8_t3_2 unkC;
     D_800F53B8_t3_2 unk18;
     D_800F53B8_t3_2 unk24;
-    psx_ptr(D_800F53B8_t4) unk30;
-    psx_ptr(func_800D4910_t) unk34;
+    D_800F53B8_t4* unk30;
+    func_800D4910_t* unk34;
     short unk38;
     short unk3A;
     int unk3C;
 } D_800F53B8_t3;
 
 typedef struct D_800F53B8_t {
-    psx_ptr(struct D_800F53B8_t) next;
-    psx_ptr(struct D_800F53B8_t) previous;
+    struct D_800F53B8_t* next;
+    struct D_800F53B8_t* previous;
     char unk8;
     char unk9;
     u_short unkA;
-    psx_ptr(char) unkC;
+    char* unkC;
     char unk10[4];
     u_int unk14_0 : 8;
     u_int unk14_8 : 3;
     u_int unk14_11 : 5;
     u_int unk14_16 : 16;
-    psx_ptr(func_800D2904_t) unk18;
+    func_800D2904_t* unk18;
     func_800CE714_t2_2 unk1C[16];
     D_800F53B8_t3 unkD1C;
 } D_800F53B8_t;
@@ -744,6 +739,9 @@ extern char D_800F4FDB;
 extern D_800F569C_t* D_800F569C;
 extern D_800F569C_t D_800F56C8;
 extern vs_battle_textBox vs_battle_textBoxes[];
+extern D_800F53B8_t* D_800F53B8; /* the effect scripts, the first of a list */
+/* The particle emitter's working record (the PS1 kept it in the scratchpad at 0x1F8001D0). */
+extern func_800FA098_arg1 pc_effect_scratch;
 extern u_char vs_battle_miscItemInvoked;
 extern vs_battle_stringContext_t vs_battle_stringContext;
 extern vs_battle_menuState_t vs_battle_menuState;

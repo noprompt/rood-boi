@@ -56,7 +56,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
 
     var pcRow: v.pc_classic_target_row = undefined;
     pcRow.row = arg0;
-    pcRow.text = psx.get(row.unk10);
+    pcRow.text = row.limbName;
     pcRow.x = @as(c_int, row.unk4);
     pcRow.y = y;
     pcRow.selected = @as(c_int, row.unk1);
@@ -65,7 +65,7 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
     pcRow.slot = psx.conv(c_int, nextPrim -% psx.addr(psx.get(v.g.vs_scratch().unk4).?));
     pcRowFirst = @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*));
 
-    c.vs_battle_renderTextRawColor(psx.get(row.unk10), textXy, color, @ptrCast(np));
+    c.vs_battle_renderTextRawColor(row.limbName, textXy, color, @ptrCast(np));
 
     if (gradient != 0) row.unk2 = psx.conv(u8, gradient -% 1);
     x = @as(c_int, row.unk4) & 0xFFFF;

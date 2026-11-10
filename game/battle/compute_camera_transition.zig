@@ -8,13 +8,13 @@ const c = @import("c_146C");
 /// Sets up the camera transition toward targetPosition: direction, frame count, look-at point and per-frame steps.
 pub fn computeCameraTransition(targetPosition: ?*v.VECTOR) callconv(.c) void {
     const target = targetPosition.?;
-    const scratch = v.g.vs_scratch();
+    const view = v.g.vs_view();
     const ct = v.g.vs_battle_cameraTransition().*.?;
     var cameraToTarget: v.VECTOR = undefined;
 
-    cameraToTarget.vx = @divTrunc(target.vx -% scratch.camera.position.vx, 4096);
-    cameraToTarget.vz = @divTrunc(target.vz -% scratch.camera.position.vz, 4096);
-    cameraToTarget.vy = @divTrunc(target.vy -% scratch.camera.position.vy, 4096);
+    cameraToTarget.vx = @divTrunc(target.vx -% view.camera.position.vx, 4096);
+    cameraToTarget.vz = @divTrunc(target.vz -% view.camera.position.vz, 4096);
+    cameraToTarget.vy = @divTrunc(target.vy -% view.camera.position.vy, 4096);
 
     _ = c.VectorNormal(psx.cptr(c.VECTOR, &cameraToTarget), psx.cptr(c.VECTOR, &ct.direction));
 
@@ -24,7 +24,7 @@ pub fn computeCameraTransition(targetPosition: ?*v.VECTOR) callconv(.c) void {
     ct.targetPosition.vy = target.vy;
     ct.targetPosition.vz = target.vz;
 
-    cameraToTarget.vy = target.vy -% scratch.camera.position.vy;
+    cameraToTarget.vy = target.vy -% view.camera.position.vy;
 
     ct.transitionFrames = @divTrunc(cameraToTarget.vy, ct.direction.vy *% ct.transitionSpeed);
 
@@ -38,11 +38,11 @@ pub fn computeCameraTransition(targetPosition: ?*v.VECTOR) callconv(.c) void {
     ct.targetLookAt.vz = (ct.targetLookAt.vz *% 0x900) +% ct.targetPosition.vz;
     ct.targetLookAt.vy = (ct.targetLookAt.vy *% 0x900) +% ct.targetPosition.vy;
 
-    ct.lookAtStep.vx = @divTrunc(ct.targetLookAt.vx -% scratch.camera.lookAt.vx, ct.transitionFrames);
-    ct.lookAtStep.vz = @divTrunc(ct.targetLookAt.vz -% scratch.camera.lookAt.vz, ct.transitionFrames);
-    ct.lookAtStep.vy = @divTrunc(ct.targetLookAt.vy -% scratch.camera.lookAt.vy, ct.transitionFrames);
+    ct.lookAtStep.vx = @divTrunc(ct.targetLookAt.vx -% view.camera.lookAt.vx, ct.transitionFrames);
+    ct.lookAtStep.vz = @divTrunc(ct.targetLookAt.vz -% view.camera.lookAt.vz, ct.transitionFrames);
+    ct.lookAtStep.vy = @divTrunc(ct.targetLookAt.vy -% view.camera.lookAt.vy, ct.transitionFrames);
 
-    ct.farClipStep = @divTrunc(ct.toFarClip -% scratch.camera.farClip, ct.transitionFrames);
+    ct.farClipStep = @divTrunc(ct.toFarClip -% view.camera.farClip, ct.transitionFrames);
     ct.nearClipStep = @divTrunc(ct.toNearClip -% v.g.vs_main_nearClip().*, ct.transitionFrames);
     ct.projectionDistanceStep = @divTrunc(ct.toProjectionDistance -% v.g.vs_main_projectionDistance().*, ct.transitionFrames);
 }

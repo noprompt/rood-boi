@@ -253,12 +253,10 @@ def synthetic(game, out, shots):
 
 # ---- the opening's first talk bubble ----
 
-BOX = 0x30
-
 
 def box_state(game, sym):
-    raw = game.read(sym["vs_battle_textBoxes"], BOX)
-    return struct.unpack_from("<I", raw, 0)[0], struct.unpack_from("<h", raw, 0x1C)[0]
+    raw = game.read(sym["vs_battle_textBoxes"], game.layout("textBox_size", 0x30))
+    return struct.unpack_from("<I", raw, 0)[0], struct.unpack_from("<h", raw, game.layout("textBox_state", 0x1C))[0]
 
 
 def dump_screen(game, out):

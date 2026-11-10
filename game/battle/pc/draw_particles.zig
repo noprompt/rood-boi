@@ -96,8 +96,8 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
             gte.SetTransMatrix(m);
         } else {
             if ((node.flags & 0x80000) != 0 and y > 0) continue;
-            gte.SetRotMatrix(&v.g.vs_scratch().viewMatrix);
-            gte.SetTransMatrix(&v.g.vs_scratch().viewMatrix);
+            gte.SetRotMatrix(&v.g.vs_view().viewMatrix);
+            gte.SetTransMatrix(&v.g.vs_view().viewMatrix);
         }
         b = z;
         c.MTC2(@bitCast(a), 0);

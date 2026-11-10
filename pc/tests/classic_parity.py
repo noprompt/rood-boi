@@ -505,7 +505,8 @@ def tour_text_band(g, check, counters):
     box's fields written: from the top or the bottom, each grown edge, one to four lines, each icon."""
     import struct
     symbols = rood_rpc.symbols()
-    box = symbols["vs_battle_textBoxes"] + 7 * 0x30
+    box = symbols["vs_battle_textBoxes"] + 7 * g.layout("textBox_size", 0x30)
+    box_y, box_lines = g.layout("textBox_x", 0x14) + 2, g.layout("textBox_lineCount", 0x21)
     covered, seen = [], set()
 
     def compared(label, frames=2):
@@ -529,19 +530,19 @@ def tour_text_band(g, check, counters):
     g.call("hud", action="show", kind="name_window", hold=True)
     compared("held")
     flags = struct.unpack("<I", g.read(box, 4))[0]
-    y, lines = g.read(box + 0x16, 2), g.read(box + 0x21, 1)
+    y, lines = g.read(box + box_y, 2), g.read(box + box_lines, 1)
     try:
         for top in (1, 0):
             for count in (1, 2, 3, 4):
                 for icon in (0, 1, 2, 3, 4):
-                    g.write(box + 0x16, struct.pack("<h", 0 if top else 1))
-                    g.write(box + 0x21, bytes([count]))
+                    g.write(box + box_y, struct.pack("<h", 0 if top else 1))
+                    g.write(box + box_lines, bytes([count]))
                     g.write(box, struct.pack("<I", (flags & ~0xF00) | icon << 8))
                     compared(f"{'top' if top else 'bottom'}, {count} lines, icon {icon}")
     finally:
         g.write(box, struct.pack("<I", flags))
-        g.write(box + 0x16, y)
-        g.write(box + 0x21, lines)
+        g.write(box + box_y, y)
+        g.write(box + box_lines, lines)
         g.call("hud", action="clear")
     return covered
 
@@ -564,7 +565,9 @@ def targeting(g, on=True):
     return up() == on
 
 
-ROW = 0x990  # D_800EB9B8's rows (unk990: 24 of 20 bytes)
+def rows_at(g):
+    """D_800EB9B8's rows (unk990: 24 records; the game's layout: they hold a host pointer): (offset, size)."""
+    return g.layout("targetRows_unk990", 0x990), g.layout("targetRow_size", 20)
 
 
 def limb_names(g):
@@ -586,19 +589,22 @@ def write_row(g, i, state=1, selected=0, fade=8, age=0, x=248, y=32, bank=0, tex
     age)."""
     import struct
     base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
-    g.write(base + ROW + 20 * i, struct.pack("<BBBBhbbhhhhI", state, selected, fade, age, x, y, bank, 0, 0, 0, 0,
-                                             text))
+    first, size = rows_at(g)
+    g.write(base + first + size * i, struct.pack("<BBBBhbbhhhh" + ("Q" if size == 24 else "I"), state, selected, fade,
+                                                 age, x, y, bank, 0, 0, 0, 0, text))
 
 
 def row_state(g, i):
     base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
-    return g.read(base + ROW + 20 * i, 1)[0]
+    first, size = rows_at(g)
+    return g.read(base + first + size * i, 1)[0]
 
 
 def clear_rows(g):
     base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
     if base:
-        g.write(base + ROW, bytes(24 * 20))
+        first, size = rows_at(g)
+        g.write(base + first, bytes(24 * size))
 
 
 def tour_target_row(g, check, counters):
@@ -625,7 +631,7 @@ def tour_target_row(g, check, counters):
                     return row_state(g, 0) == 1 and 0 in seen
                 g.until(faded, step=1, guard=40)
                 base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
-                g.write(base + ROW, bytes([out]))  # (as func_800C56C0 sends them off)
+                g.write(base + rows_at(g)[0], bytes([out]))  # (as func_800C56C0 sends them off)
                 gone = g.until(lambda: row_state(g, 0) == 0, step=1, guard=40)
                 frames = counters("target_row")["frames"] - before
                 check(bool(gone) and frames >= 8, f"target_row {name!r} from the {('right', 'left')[side]}, bank "
@@ -653,7 +659,7 @@ def tour_target_row(g, check, counters):
         write_row(g, 0, selected=1, text=names[1][0])
         g.run(4)
         base = int.from_bytes(g.read(rood_rpc.symbols()["D_800EB9B8"], 4), "little")
-        g.write(base + ROW + 1, b"\0")
+        g.write(base + rows_at(g)[0] + 1, b"\0")
         seen = set()
         g.until(lambda: seen.update(e["fade"] for e in g.call("hud", action="list")["elements"]
                                     if e["kind"] == "target_row" and e["live"]) or 0 in seen, step=1, guard=30)
@@ -686,10 +692,10 @@ def tour_target_line(g, check, counters):
             for k, point in enumerate(points):
                 clear_rows(g)
                 write_row(g, 0, selected=1, x=x, y=32 + 11 * (k % 8), bank=k & 1, text=names[1 + k % (len(names) - 1)][0])
-                g.write(base + ROW + 8, struct.pack("<hhh", *point))
+                g.write(base + rows_at(g)[0] + 8, struct.pack("<hhh", *point))
                 before = counters("target_line")["frames"]
                 for age in (range(34) if k == 0 else LINE_AGES):
-                    g.write(base + ROW + 3, bytes([age]))
+                    g.write(base + rows_at(g)[0] + 3, bytes([age]))
                     at = counters("target_line")["frames"]
                     if g.until(lambda: counters("target_line")["frames"] >= at + 1, step=1, guard=20):
                         e = next((e for e in g.call("hud", action="list")["elements"]
@@ -951,12 +957,13 @@ def tour_text_frame(g, check, counters):
     import struct
     symbols = rood_rpc.symbols()
     boxes, table = symbols["vs_battle_textBoxes"], symbols["D_800EB588"]
+    size = g.layout("textBox_size", 0x30)
     covered, seen = [], set()
 
     def open_box():
         for i in range(8):
-            flags, state = struct.unpack_from("<I", g.read(boxes + i * 0x30, 4))[0], struct.unpack(
-                "<h", g.read(boxes + i * 0x30 + 0x1C, 2))[0]
+            flags, state = struct.unpack_from("<I", g.read(boxes + i * size, 4))[0], struct.unpack(
+                "<h", g.read(boxes + i * size + g.layout("textBox_state", 0x1C), 2))[0]
             if state != 0 and (flags & 15) in (2, 7):
                 return i, flags
         return None, None
@@ -978,11 +985,11 @@ def tour_text_frame(g, check, counters):
         for shape in shapes:
             for flip in range(4):
                 for tail in (0, 1, 2, 3):
-                    g.write(boxes + box * 0x30, struct.pack("<I", (flags & ~0xFFC0) | flip << 6 | shape << 8
+                    g.write(boxes + box * size, struct.pack("<I", (flags & ~0xFFC0) | flip << 6 | shape << 8
                                                             | tail << 12 | (flags & 0xFFFF0000)))
                     compared(f"box {box} shape {shape} flip {flip} tail {tail}")
     finally:
-        g.write(boxes + box * 0x30, struct.pack("<I", flags))
+        g.write(boxes + box * size, struct.pack("<I", flags))
     check(len({sh for sh, _, _ in seen}) == len(shapes), f"text_frame: every shape drawn {sorted({sh for sh, _, _ in seen})}"
                                                          f" of {shapes}")
     for line in range(2):  # the next lines: the bubble closes, the next one opens and zooms in
@@ -1013,15 +1020,16 @@ def tour_box_text(g, check, counters):
     compared("the duke's line", frames=20)
     boxes = rood_rpc.symbols()["vs_battle_textBoxes"]
     box = next(e["box"] for e in g.call("hud", action="list")["elements"] if e["kind"] == "box_text" and e["live"])
-    flags, brightness = struct.unpack("<I", g.read(boxes + box * 0x30, 4))[0], g.read(boxes + box * 0x30 + 0x1E, 1)
+    size, lit = g.layout("textBox_size", 0x30), g.layout("textBox_brightness", 0x1E)
+    flags, brightness = struct.unpack("<I", g.read(boxes + box * size, 4))[0], g.read(boxes + box * size + lit, 1)
     try:  # (the printer's font table and colour style follow the box's kind; its brightness the box's selection)
         for kind, light in ((2, 0x40), (7, 0x80), (7, 0x40), (5, 0x80)):
-            g.write(boxes + box * 0x30, struct.pack("<I", (flags & ~15) | kind))
-            g.write(boxes + box * 0x30 + 0x1E, bytes([light]))
+            g.write(boxes + box * size, struct.pack("<I", (flags & ~15) | kind))
+            g.write(boxes + box * size + lit, bytes([light]))
             compared(f"box {box} as kind {kind}, brightness {light:#x}")
     finally:
-        g.write(boxes + box * 0x30, struct.pack("<I", flags))
-        g.write(boxes + box * 0x30 + 0x1E, brightness)
+        g.write(boxes + box * size, struct.pack("<I", flags))
+        g.write(boxes + box * size + lit, brightness)
     before = counters("box_text")["frames"]
     g.press("circle", vsyncs=3, settle=0)
     g.run(240)
@@ -1257,8 +1265,9 @@ def items_open(g, symbols):
 def items_live(g, symbols):
     """The live rows' ids (vs_battle_menuItems: 20.. a list, 32.. an action menu, ui_items_smoke's)."""
     p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
-    raw = g.read(p, 64 * 40) if p else b""
-    return [i for i in range(len(raw) // 64) if raw[i * 64]]
+    size = g.layout("menuItem_size", 64)
+    raw = g.read(p, size * 40) if p else b""
+    return [i for i in range(len(raw) // size) if raw[i * size]]
 
 
 def items_ready(g, symbols, limit=400):
@@ -1266,8 +1275,9 @@ def items_ready(g, symbols, limit=400):
     calm = 0
     for _ in range(limit):
         p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
-        raw = g.read(p, 64 * 40) if p else b""
-        live = [raw[i * 64] for i in range(len(raw) // 64) if raw[i * 64]]
+        size = g.layout("menuItem_size", 64)
+        raw = g.read(p, size * 40) if p else b""
+        live = [raw[i * size] for i in range(len(raw) // size) if raw[i * size]]
         calm = calm + 1 if live and all(st <= 1 for st in live) else 0
         if calm >= 3:
             g.run(2)
@@ -1289,8 +1299,9 @@ def tour_items(g, symbols, toured, frames):
 
     def rows_now():  # (the live rows and their places: a status view slides them)
         p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
-        raw = g.read(p, 64 * 40) if p else b""
-        return [(i, raw[i * 64 + 20:i * 64 + 24]) for i in range(len(raw) // 64) if raw[i * 64]]
+        size = g.layout("menuItem_size", 64)
+        raw = g.read(p, size * 40) if p else b""
+        return [(i, raw[i * size + 20:i * size + 24]) for i in range(len(raw) // size) if raw[i * size]]
 
     def at_rest():
         items_ready(g, symbols)
@@ -1385,8 +1396,9 @@ def items_category_now(g, symbols):
 def items_rows_now(g, symbols):
     """The live rows and their places (a status view slides them)."""
     p = int.from_bytes(g.read(symbols["vs_battle_menuItems"], PTR), "little")
-    raw = g.read(p, 64 * 40) if p else b""
-    return [(i, raw[i * 64 + 20:i * 64 + 24]) for i in range(len(raw) // 64) if raw[i * 64]]
+    size = g.layout("menuItem_size", 64)
+    raw = g.read(p, size * 40) if p else b""
+    return [(i, raw[i * size + 20:i * size + 24]) for i in range(len(raw) // size) if raw[i * size]]
 
 
 def items_to_category(g, symbols, want):

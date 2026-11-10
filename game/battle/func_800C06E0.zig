@@ -5,5 +5,5 @@ const v = @import("views_573B8");
 /// Clears the first byte of the object held in D_800EB9B8, if there is one.
 pub fn func_800C06E0() callconv(.c) void {
     const p = v.g.D_800EB9B8().* orelse return;
-    p.unk0.unk0 = 0;
+    p.unk0[0].unk0 = 0;
 }

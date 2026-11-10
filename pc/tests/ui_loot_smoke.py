@@ -295,8 +295,9 @@ class Session:
         p = self.ptr(self.sym["vs_battle_menuItems"])
         if not p:
             return {}
-        raw = self.g.read(p, 64 * 40)
-        return {i: (raw[i * 64], raw[i * 64 + 6]) for i in range(40) if raw[i * 64]}
+        size = self.g.layout("menuItem_size", 64)
+        raw = self.g.read(p, size * 40)
+        return {i: (raw[i * size], raw[i * size + 6]) for i in range(40) if raw[i * size]}
 
     def wait_ready(self, want=None, limit=400):
         calm = 0

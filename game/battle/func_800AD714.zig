@@ -16,7 +16,7 @@ fn word5AC(actor: *v.D_800F4538_t) c_int {
 /// The vertex word `which` of vertex `index` in the actor's model (`(short*)(vertexOffset + index * 8)`).
 fn vertexWord(actor: *v.D_800F4538_t, index: c_int, which: c_int) *align(1) i16 {
     const model = psx.get(actor.unk0.unk68).?;
-    const base: [*]u8 = @ptrCast(psx.get(model.vertexOffset).?);
+    const base: [*]u8 = @ptrFromInt(@intFromPtr(model) +% model.vertexOffset);
     return psx.byteAt(i16, base, @as(isize, index) * 8 + @as(isize, which) * 2);
 }
 

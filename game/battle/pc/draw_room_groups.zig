@@ -1,7 +1,13 @@
 //! Room group submission (D2: 2EA3C.s; oracle pc/src/room_geometry.c).
 const c = @import("c_room_geometry");
 const v = @import("views_room_geometry");
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
+
+/// The view's facing word (cutaway direction mask, first-person bit).
+fn facingWord() *c_uint {
+    return common.view.at(c_uint, 0);
+}
 
 const NativeBegin = *const fn (?*const anyopaque, c_uint, [*c]const c_uint) callconv(.c) c_int;
 const NativeGroup = *const fn (?*const anyopaque, c_uint) callconv(.c) void;
@@ -45,12 +51,12 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
     if (record) {
         v.g.drawn_data().* = data;
         v.g.drawn_count().* = count;
-        v.g.drawn_facing().* = if (free_camera != 0) free_facing else scratch[4];
+        v.g.drawn_facing().* = if (free_camera != 0) free_facing else facingWord().*;
         var i: c_uint = 0;
         while (i < count) : (i +%= 1) v.g.drawn_groups()[i] = 0; // count <= 4096 here
     }
     const smart = record and if (psx.weak(WallsFrame, "pc_gameplay_walls_frame")) |frame|
-        frame(if (free_camera != 0) null else data, scratch[4], mode) != 0
+        frame(if (free_camera != 0) null else data, facingWord().*, mode) != 0
     else
         false;
     var i: c_uint = 0;
@@ -59,7 +65,7 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
         group += 0x40;
     }) {
         const flags: c_uint = @as(*align(1) const c_uint, @ptrCast(group)).*;
-        var facing: c_uint = scratch[4];
+        var facing: c_uint = facingWord().*;
         if (free_camera != 0) facing = free_facing;
         if (@intFromPtr(packet) >= @intFromPtr(limit)) break;
         if (flags & hidden_flags != 0 or ((flags >> 15) & mode & 1) != 0) continue;

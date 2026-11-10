@@ -74,7 +74,7 @@ PTR = 8 if os.environ.get("ROOD_ARCH") == "64" else 4
 MENU7_SECTION = "rood_ovl_menu_menu7_prg"
 MENU7_STATICS = ("_selectCursorXy", "_fileMenuElements")
 ELEMENT = 52  # sizeof(fileMenuElements_t); y at +14
-ITEM = 64     # sizeof(vs_battle_menuItem_t); x at +20
+# a menu item (Game.layout menuItem_size): x at +20
 KEY = 0x2468ACE1
 GAMETIME = bytes([0, 45, 23, 1])  # vs_main_gametime: 1:23:45
 # _applyLoadedSaveFile's blocks: vs_main_scoredata .. vs_main_inventoryIndices (one span of main's data)
@@ -166,7 +166,7 @@ class Session:
 
     def title_x(self):
         items = int.from_bytes(self.g.read(self.sym["vs_battle_menuItems"], PTR), "little")
-        return struct.unpack("<h", self.g.read(items + 6 * ITEM + 20, 2))[0] if items else None
+        return struct.unpack("<h", self.g.read(items + 6 * self.g.layout("menuItem_size", 64) + 20, 2))[0] if items else None
 
     def span(self):
         return self.g.read(SPAN[0], SPAN[1] - SPAN[0])

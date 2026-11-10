@@ -33,12 +33,6 @@ typedef struct {
 } func_800A0024_t;
 
 typedef struct {
-    u_char unk0[0x30];
-    psx_ptr(int) unk30;
-} func_8004644C_t;
-PSX_ASSERT_SIZE(func_8004644C_t, 0x34);
-
-typedef struct {
     int unk0;
     int unk4;
     int unk8;

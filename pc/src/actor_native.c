@@ -38,6 +38,7 @@
 #include "psx_types.h"
 #include "render.h"
 #include <math.h>
+#include "view_state.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -335,9 +336,9 @@ static model_mesh* mesh_for(const void* object, const void* model, int kind, uin
     const unsigned char* obj = object;
     m.group_count = obj[1];
     memcpy(m.counts, obj + 2, sizeof m.counts);
-    m.groups = psx_load(const unsigned*, (const char*)model + 0x34);
-    m.vertices = psx_load(const short*, (const char*)model + 0x38);
-    m.records = psx_load(const unsigned*, (const char*)model + 0x3c);
+    m.groups = ((const unsigned*)((const char*)model + *(const unsigned*)((const char*)model + 0x34)));
+    m.vertices = ((const short*)((const char*)model + *(const unsigned*)((const char*)model + 0x38)));
+    m.records = ((const unsigned*)((const char*)model + *(const unsigned*)((const char*)model + 0x3c)));
     m.group_counts = model;
     m.mask = GROUPS(kind) ? obj[0x64] : 0;
     if (!m.group_count || !m.groups || !m.vertices || !m.records)
@@ -507,7 +508,7 @@ static render_camera camera;
 
 static int read_camera(uint32_t serial)
 {
-    const gte_matrix* view = (const gte_matrix*)(uintptr_t)0x1f800014;
+    const gte_matrix* view = (const gte_matrix*)PC_VIEW_MATRIX;
     double r[3][3];
     for (int a = 0; a < 3; a++) {
         for (int b = 0; b < 3; b++)
@@ -826,7 +827,7 @@ void pc_object_native_draw(int kind, const void* projected, const void* object, 
              * list that several draws joined gets a marker per draw; the
              * first one the GPU reaches draws it. */
             unsigned count = ((const unsigned char*)object)[1];
-            const unsigned* groups = psx_load(const unsigned*, (const char*)model + 0x34);
+            const unsigned* groups = ((const unsigned*)((const char*)model + *(const unsigned*)((const char*)model + 0x34)));
             unsigned vertices = count ? groups[count - 1] >> 16 : 0, most = 0;
             for (unsigned v = 0; v < vertices && v < 768; v++)
                 most = depths[v] > most ? depths[v] : most;

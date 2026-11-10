@@ -7,7 +7,7 @@ const sprite_item = common.sprite_item;
 
 const BubbleFace = *const fn ([*c]c_uint, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
 const BubbleShadow = *const fn ([*c]c_uint, c_int, [*]const c_int) callconv(.c) void;
-const BubbleFrame = *const fn (c_int, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque) callconv(.c) void;
+const BubbleFrame = *const fn (c_int, *const c_uint, *const [4]i16, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
 /// The bubble's projected points: 16-bit x, y pairs in the scratchpad, read back as words.
 const points: [*]c_int = @ptrFromInt(0x1F800088);
@@ -150,5 +150,5 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
     }
     c.vs_battle_addTile(ot + 2, @bitCast(@as(c_uint, 0xE1000017)), @bitCast(@as(c_uint, 0xE2000318)), 0);
     // ROOD_PC: the talk bubble's frame.
-    if (psx.weak(BubbleFrame, "pc_bubble_frame")) |hook| hook(index, box, shape, frame_start, psx.get(scratch.unk0));
+    if (psx.weak(BubbleFrame, "pc_bubble_frame")) |hook| hook(index, @ptrCast(&box.unk0), @ptrCast(&box.unk24), shape, frame_start, psx.get(scratch.unk0));
 }

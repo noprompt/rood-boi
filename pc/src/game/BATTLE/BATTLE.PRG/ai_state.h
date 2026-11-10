@@ -345,17 +345,31 @@ typedef struct {
     signed char unk0_6 : 2;
 } D_800F16EC_t;
 
-typedef struct {
+/* The room's navigation record (D_800F58BC, one heap block built by buildNavigationGrid): the room's bounds and
+ * encounter state, then the 32 x 32 cell flags and, 0x800 bytes on, their heights. */
+typedef struct D_800F58BC_t {
     u_char maxX, maxZ, minX, minZ;
-    char unk4[0x10];
-    int unk14;
-    u_short unk18;
+    u_short unk4;
+    u_short unk6;
+    u_short unk8;
+    u_char unkA;
+    u_char unkB;
+    u_char unkC;
+    u_char unkD; /* the most that can engage at once */
+    u_char closedGates; /* the room flags (func_800E4BD8 / func_800E4BE0) */
+    u_char unkF;
+    u_short unk10; /* the actors engaged, one bit each */
+    u_char unk12; /* how many */
+    u_char unk13;
+    int unk14; /* the height limit */
+    u_short unk18; /* the encounter clock */
     char unk1A[2];
-    psx_ptr(vs_battle_aiState) unk1C;
-    psx_ptr(vs_battle_aiState) unk20;
+    vs_battle_aiState* unk1C; /* the engaged list: first, last */
+    vs_battle_aiState* unk20;
     int unk24;
+    vs_battle_actor* registered[4];
+    u_short cells[]; /* 0x400 cell flags; the heights are at cells + 0x400 */
 } D_800F58BC_t;
-PSX_ASSERT_SIZE(D_800F58BC_t, 0x28);
 
 typedef struct {
     char unk0[0xA];

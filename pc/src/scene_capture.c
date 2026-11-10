@@ -7,6 +7,7 @@
  * estimation, and the hardware renderer's lighting. */
 #define _POSIX_C_SOURCE 200809L
 #include <math.h>
+#include "view_state.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -201,7 +202,7 @@ void pc_scene_room(const void* data)
         fprintf(stderr, "[scene] %d room groups outside the %u-byte block left out\n", bad, length);
     fprintf(stderr, "[scene] room geometry captured: %d triangles\n", triangle_count);
     if (getenv("ROOD_SCENE_DEBUG")) {
-        const pc_matrix* cam = (const pc_matrix*)0x1f800014;
+        const pc_matrix* cam = (const pc_matrix*)PC_VIEW_MATRIX;
         for (unsigned g = 0; g < count && g < 3; ++g) {
             const unsigned char* group = bytes + 4 + g * 0x40;
             const pc_matrix* actual = (const pc_matrix*)(group + 0x20);
@@ -336,7 +337,7 @@ void pc_scene_camera(const void* view)
     camera_ofx = pc_gte_view_ofx(); /* widescreen: as narrowed (PsyX_GTE.cpp) */
     camera_ofy = (int)CFC2(25) / 65536.0f;
     camera_valid = 1;
-    camera_facing = *(const unsigned*)0x1f800010;
+    camera_facing = PC_VIEW_FACING;
 }
 
 /* ---- queries (RPC, light estimation, renderer) ---- */

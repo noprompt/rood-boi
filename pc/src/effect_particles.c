@@ -17,8 +17,8 @@ extern void pc_unimplemented(const char*);
 #define gte_rtv0tr2() gte_rtv0tr()
 #define gte_rtps2() gte_rtps()
 typedef struct func_800D6E44_t {
-    psx_ptr(struct func_800D6E44_t) previous;
-    psx_ptr(struct func_800D6E44_t) next;
+    struct func_800D6E44_t* previous;
+    struct func_800D6E44_t* next;
     short unk8;
     short unkA;
     int x;
