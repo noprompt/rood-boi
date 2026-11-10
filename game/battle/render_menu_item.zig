@@ -3,6 +3,7 @@
 const psx = @import("common").psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const sprite_item = @import("common").sprite_item;
 
 /// orig: vs_battle_renderMenuItem (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Draws a menu item's label, gradient background and sub text into the packet at the scratchpad cursor.
@@ -62,7 +63,7 @@ pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
         const x: c_int = @as(u16, @bitCast(m.x));
         y = m.y;
 
-        c.vs_battle_addTile(
+        sprite_item.tile(
             scratch + 1,
             0x60000000,
             @bitCast((bits(x +% 2) & 0xFFFF) | (bits(y +% 2) << 16)),

@@ -14,6 +14,7 @@ extern void pc_unimplemented(const char*);
 extern void pc_tick(void);
 #include "audio.h"
 #include "widescreen.h"
+#include "draw_items.h"
 /* Weak so the standalone GTE/GPU probes link without the audio objects. */
 #pragma weak pc_audio_set_tick
 #pragma weak pc_audio_enable_tick
@@ -467,13 +468,13 @@ void pc_deliver_event(psx_ulong event, psx_long spec)
 
 void pc_insert_tpage(int after, int page)
 {
-    unsigned int *ot = psx_load(unsigned int*, 0x1f800004);
-    unsigned int *packet = psx_load(unsigned int*, 0x1f800000);
-    packet[1] = 0xe1000200 | (page & 0x1ff);
-    packet[2] = 0;
-    packet[0] = 0x02000000 | (ot[after] & 0xffffff);
-    ot[after] = (ot[after] & 0xff000000) | (psx_to_int(unsigned int, packet) & 0xffffff);
-    psx_store(0x1f800000, packet + 3);
+    /* the draw mode (GP0 E1) for what draws after it, as an item at slot `after` of the table at 0x1f800004 */
+    unsigned int* ot = psx_load(unsigned int*, 0x1f800004);
+    unsigned int* cursor = psx_load(unsigned int*, 0x1f800000);
+    pc_item* item = pc_frame_poly_at(after, PC_ITEM_MODE_SET, 0, 0, ot, &cursor);
+    if (item)
+        item->mode = (unsigned short)(0x200 | (page & 0x1ff));
+    psx_store(0x1f800000, cursor);
 }
 
 /* Preserve the original SDK's terminating primitive and forward/reverse links. */
@@ -745,7 +746,6 @@ unsigned* pc_background_packets(
     unsigned* mesh, unsigned* packet, unsigned* ot, int transformed[34][4])
 {
     int margin = PC_WIDESCREEN_MARGIN;
-    unsigned* first = packet;
     /* The sphere is about the eye: func_8008EC48 places it at the game
      * camera's position through the view matrix, which leaves no
      * translation for the game's camera. The free camera's view matrix is
@@ -767,7 +767,9 @@ unsigned* pc_background_packets(
         transformed[i][3] = mesh[2];
         mesh += 3;
     }
-    unsigned head = *ot;
+    /* The triangles as draw items in one run, placed at the table entry by a marker (a later one draws first, as a packet
+     * linked at the head did). */
+    int first_item = pc_frame_count();
     for (int i = 0; i < 64; ++i) {
         unsigned indices = mesh[i];
         int* v[3];
@@ -787,17 +789,22 @@ unsigned* pc_background_packets(
             || (y[0] < 0 && y[1] < 0 && y[2] < 0)
             || (y[0] >= 224 && y[1] >= 224 && y[2] >= 224))
             continue;
-        packet[0] = 0x06000000 | (head & 0xffffff);
+        pc_item* item = pc_frame_add(PC_ITEM_POLY, 0);
+        if (!item)
+            break;
+        item->verts = 3, item->flags = PC_ITEM_SHADED, item->mode = PC_ITEM_INHERIT;
         for (int j = 0; j < 3; ++j) {
-            packet[1 + j * 2] = v[j][3];
-            packet[2 + j * 2] = (unsigned short)x[j] | ((unsigned)y[j] << 16);
+            item->x[j] = (short)x[j], item->y[j] = (short)y[j];
+            item->rgb[j][0] = (unsigned char)v[j][3], item->rgb[j][1] = (unsigned char)(v[j][3] >> 8),
+            item->rgb[j][2] = (unsigned char)(v[j][3] >> 16);
         }
-        head = (head & 0xff000000) | (psx_to_int(unsigned, packet) & 0xffffff);
-        packet += 7;
     }
-    *ot = head;
-    if (pc_gte_widescreen && pc_hw_anchor_packets && packet > first)
-        pc_hw_anchor_packets(first, packet, PC_ANCHOR_SCENE);
+    int count = pc_frame_count() - first_item;
+    if (count > 0) {
+        packet = pc_frame_place(first_item, count, ot, packet);
+        if (pc_gte_widescreen)
+            pc_frame_anchor(first_item, first_item + count, PC_ANCHOR_SCENE);
+    }
     return packet;
 }
 void func_8009820C(void* mesh);

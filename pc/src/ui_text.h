@@ -245,6 +245,7 @@ void pc_ui_text_set_scale(float scale);
  * moved to the UI text scale when its packet (`tag`: the ordering table's
  * packet, its successors through `next`) is a popup digit; 0 otherwise. */
 int pc_ui_text_popup_place(const uint32_t* tag, const uint32_t* (*next)(const uint32_t*), float xy[8]);
+int pc_ui_text_popup_place_item(int item, float xy[8]); /* the same for a draw item's quad */
 typedef struct {
     long regions, failed; /* regions drawn from a font / that fell back to the original */
     long labels;          /* of those regions, fixed labels (text baked into images) */

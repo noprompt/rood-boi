@@ -1,13 +1,8 @@
-//! Battle tile primitive: queues one tile packet built from the colour and position word (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
-const c = @import("c_5BF94");
+//! Battle drawing area: the 320 x 240 view at the frame buffer `arg1` names (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
+const sprite_item = @import("common").sprite_item;
 
 /// orig: func_800CC5C0 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
-/// Adds a tile to the packet at `arg0`, with colour, position and size derived from `arg1`.
+/// Sets the drawing area to the 320 x 240 view of the frame buffer at x = `arg1` (0 or 320) and the draw offset there.
 pub fn func_800CC5C0(arg0: [*c]c_uint, arg1: c_int) callconv(.c) void {
-    // C computes these in unsigned int (0xE3000000 etc. do not fit int); the
-    // position sum is int arithmetic that wraps.
-    const rgb: c_uint = @as(c_uint, @bitCast(arg1)) | 0xE3000000;
-    const xy: c_uint = @as(c_uint, @bitCast(arg1 +% 0x13F)) | 0xE403BC00;
-    const wh: c_uint = @as(c_uint, @bitCast(arg1)) | 0xE5000000;
-    c.vs_battle_addTile(arg0, @bitCast(rgb), @bitCast(xy), @bitCast(wh));
+    sprite_item.area(arg0, arg1 & 0x3FF, 0, 320, 240, .{ arg1, 0 });
 }

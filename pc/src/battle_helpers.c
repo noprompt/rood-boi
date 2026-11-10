@@ -83,6 +83,107 @@ int vs_battle_spriteColor(int item, int colour)
     return item;
 }
 
+/* vs_battle_insertTpage's E1 word as an item: the draw mode for what draws after it, placed where its packet linked. */
+void vs_battle_modeItem(unsigned* ot, int e1)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_MODE_SET, 0);
+    if (it)
+        it->mode = (unsigned short)(e1 & 0x3fff);
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot, cursor));
+}
+
+/* The items the battle drawing needs where it linked a primitive at the table entry `ot` (one marker each). */
+static int place(unsigned* ot, unsigned* cursor, int first)
+{
+    cursor_set(pc_frame_place(first, pc_frame_count() - first, ot, cursor));
+    return first;
+}
+/* A flat triangle or quad (`verts`), `rgb` 0xBBGGRR, corners as x low, y high words. */
+void vs_battle_flatItem(unsigned* ot, int verts, int semi, int rgb, const int* xy)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_POLY, 0);
+    if (it) {
+        it->verts = (unsigned char)verts, it->flags = semi ? PC_ITEM_SEMI : 0, it->mode = PC_ITEM_INHERIT;
+        it->rgb[0][0] = (unsigned char)rgb, it->rgb[0][1] = (unsigned char)(rgb >> 8), it->rgb[0][2] = (unsigned char)(rgb >> 16);
+        for (int i = 0; i < verts; i++)
+            it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+    }
+    place(ot, cursor, first);
+}
+/* A shaded triangle or quad: a colour per corner. */
+void vs_battle_shadedItem(unsigned* ot, int verts, int semi, const int* rgb, const int* xy)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_POLY, 0);
+    if (it) {
+        it->verts = (unsigned char)verts, it->flags = PC_ITEM_SHADED | (semi ? PC_ITEM_SEMI : 0), it->mode = PC_ITEM_INHERIT;
+        for (int i = 0; i < verts; i++) {
+            it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+            it->rgb[i][0] = (unsigned char)rgb[i], it->rgb[i][1] = (unsigned char)(rgb[i] >> 8), it->rgb[i][2] = (unsigned char)(rgb[i] >> 16);
+        }
+    }
+    place(ot, cursor, first);
+}
+/* A textured quad (FT4): the page word and CLUT it names, `rgb` the colour its texels are scaled by (a raw one is drawn as the texels
+ * are), corners as x low, y high words and texels as u low, v high. */
+void vs_battle_ft4Item(unsigned* ot, int raw, int semi, int tpage, int clut, int rgb, const int* xy, const int* uv)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_POLY, 0);
+    if (it) {
+        it->verts = 4, it->flags = (unsigned short)(PC_ITEM_TEXTURED | (raw ? PC_ITEM_RAW : 0) | (semi ? PC_ITEM_SEMI : 0));
+        it->mode = (unsigned short)tpage, it->clut = (unsigned short)clut;
+        it->rgb[0][0] = (unsigned char)rgb, it->rgb[0][1] = (unsigned char)(rgb >> 8), it->rgb[0][2] = (unsigned char)(rgb >> 16);
+        for (int i = 0; i < 4; i++) {
+            it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+            it->u[i] = (unsigned char)uv[i], it->v[i] = (unsigned char)(uv[i] >> 8);
+        }
+    }
+    place(ot, cursor, first);
+}
+/* SetDrawMode's DR_MODE: the draw mode (E1 bits) and, when `window` is not -1, the texture window (E2's 20 bits). */
+void vs_battle_drawModeItem(unsigned* ot, int e1, int window)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_MODE_SET, 0);
+    if (it) {
+        it->mode = (unsigned short)(e1 & 0x3fff);
+        if (window != -1)
+            it->flags |= PC_ITEM_WINDOW, it->tw = (unsigned)window & 0xfffffu;
+    }
+    place(ot, cursor, first);
+}
+/* The drawing area (x, y, w, h) and, when `offset`, the draw offset (ox, oy): GP0 E3, E4 and E5. */
+void vs_battle_areaItem(unsigned* ot, int x, int y, int w, int h, int offset, int ox, int oy)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_AREA, 0);
+    if (it) {
+        it->x[0] = (short)x, it->y[0] = (short)y, it->w = (short)w, it->h = (short)h;
+        if (offset)
+            it->flags |= PC_ITEM_OFFSET, it->x[1] = (short)ox, it->y[1] = (short)oy;
+    }
+    place(ot, cursor, first);
+}
+/* DR_STP: the mask bit set when drawing (E6). */
+void vs_battle_maskItem(unsigned* ot, int on)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_MASK, 0);
+    if (it)
+        it->x[0] = (short)(on != 0);
+    place(ot, cursor, first);
+}
+
 /* A talk bubble's textured face as an item (func_800CD3E4): a flat-coloured triangle or quad (`verts`) with its texels and the page
  * 0x17 and CLUT 0x373E it names, placed at the table entry `ot` where its packet linked. `xy` and `uv` (u low, v high) per corner. */
 void vs_battle_bubbleFace(unsigned* ot, int verts, int rgb, const int* xy, const int* uv)

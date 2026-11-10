@@ -47,7 +47,7 @@ import sys
 import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-ROOM = (48, 10)
+ROOM = tuple(int(n) for n in os.environ.get("BUILD_COMPARE_ROOM", "48,10").split(","))  # (zone, room) of the fight; another room has other enemies and abilities
 
 
 ROOM_ENEMIES = range(2, 10)  # vs_battle_actors slots of the room's enemies
@@ -79,6 +79,16 @@ def loot(g, width):
     return drops
 
 
+def cover(binary):
+    """BUILD_COMPARE_COVER=<log>: this tree's own build runs under gdb (pc/tools/line_coverage.py), the lines it reaches
+    appended to the log; ROOD_BINARY is the wrapper, ROOD_SYMBOLS stays the binary."""
+    log = os.environ.get("BUILD_COMPARE_COVER")
+    work = ROOT / "pc/build/line_coverage"
+    if log and pathlib.Path(binary).resolve() == pathlib.Path(os.environ.get("BUILD_COMPARE_COVER_BINARY") or ROOT / "pc/build/boot64/rood_battle_probe").resolve() and (work / "wrap").exists():
+        os.environ.update(ROOD_BINARY=str(work / "wrap"), COV_REAL=str(pathlib.Path(binary).resolve()), COV_PROBE=str(work / "probe.py"),
+                          COV_TARGETS=str(work / "targets.txt"), COV_LOG=log)
+
+
 def start(card, out, name):
     """A game in the fight's room, scripts off, the settings the comparison needs."""
     from checkpoints import launch_at
@@ -98,6 +108,7 @@ def play(binary, seconds, card, out, width):
     """In a process of its own (ROOD_BINARY is read at import): the hashes, the casts and the drops, as JSON on stdout."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
     sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    cover(binary)
     out = pathlib.Path(out)
     (out / "settings.cfg").write_text("qol_skip_charging 0\nui_menus 0\n")
     g = start(card, out, "fight")
@@ -136,6 +147,7 @@ def play_casts(binary, card, out, kinds, limit):
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64",
                       ROOD_TEST_SNAPSHOTS="0")
     sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    cover(binary)
     from checkpoints import launch_at
     import skip_charging_smoke as smoke
     import charge_skip_soak as soak
@@ -380,7 +392,7 @@ def tour(name):
     return scene
 
 
-CHECKPOINT = {"dialogue": "first_bubble", "title": "title"}  # (the routes that do not start in the save room)
+CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title"}  # (the routes that do not start in the save room)
 
 
 def scene_dialogue(g, cp, symbols):
@@ -438,6 +450,77 @@ def scene_title(g, cp, symbols):
     g.run(500)
 
 
+def parity_tour(name, scale=1):
+    """One of classic_parity.py's battle HUD tours (tour_<name>(g, check, counters)) from the save room, the gate's parity mode on
+    (the game draws its own packets, which is what is compared; the claims only compare). `scale`: the UI text scale (the
+    popups are drawn that much larger by ui_text: ui_text font is on in these games). Known: against a build older than 739f4c808
+    actor_word_x2's frames 667-668 (two labels at once) differ: that build scaled a label 2x for two frames on a stale member
+    address of the popup placement (ui_text.c); later builds keep it at normal size, as in the frames before."""
+    def scene(g, cp, symbols):
+        g.call("classic", parity=True, reset=True)
+        g.call("ui_text", scale=scale)
+        getattr(cp, f"tour_{name}")(g, lambda ok, message="": ok, lambda kind: g.call("classic")["kinds"][kind])
+    return scene
+
+
+def weather(zone, room):
+    """A room with weather, left to run: zone 40 (Snowfly Forest) has the motes (146C.c func_80090434), zone 48 the rain
+    (func_8008F440); no room has the snow or the falling particles (a scan of all 419 rooms), whose code is gone."""
+    def scene(g, cp, symbols):
+        g.call("room_goto", zone=zone, room=room, enemies=False, scripts=False)
+        for _ in range(80):
+            g.run(20)
+            if g.call("room_goto", action="status")["phase"] in (0, 4):
+                break
+        g.run(400)
+    return scene
+
+
+def scene_opening(g, cp, symbols):
+    """New Game's opening (the title, no card: Start, Circle): its picture cards (func_800CCA90's tiled drawer, the scaled and
+    fading images), the manor's exterior in the rain and the first dialogue, left to play with Circle now and then."""
+    g.run(60)
+    g.press("start", vsyncs=4, settle=90)
+    g.press("circle", vsyncs=3, settle=0)
+    for step in range(60):
+        g.run(60)
+        if step % 4 == 3:
+            g.press("circle", vsyncs=2, settle=4)
+
+
+def popups(scale):
+    """The damage and heal numbers (HP and MP, both signs, one to three digits) shown over the party, at UI text scale `scale`."""
+    def scene(g, cp, symbols):
+        g.call("classic", parity=True, reset=True)
+        g.call("ui_text", scale=scale)
+        for pool in ("hp", "mp"):
+            for sign in (-1, 1):
+                for value in (1, 9, 57, 100, 999):
+                    g.call("hud", action="show", kind="damage", hold=True, pool=pool, sign=sign, value=value, age=10)
+                    g.run(12)
+        g.call("hud", action="clear")
+        g.run(10)
+    return scene
+
+
+def scene_transition(g, cp, symbols):
+    """The screen transition's drawing (146C.c _drawScreenTransition): each effect (fade to black, to white, the wipe at both
+    wipe angles) held at a few alphas, written each step (the transition's own step stays idle, so the room goes on)."""
+    effect, alpha, angle = (symbols[n] for n in ("vs_battle_screenTransitionEffect", "vs_battle_screenTransitionAlpha",
+                                                   "vs_battle_screenTransitionWipeAngle"))
+    size = cp.PTR if False else 4
+    g.run(120)
+    for kind in (0, 1, 2, 4, 5):
+        for wipe_angle in ((0, 1024, 2048) if kind == 2 else (0,)):
+            for level in (16, 64, 128, 200, 254, 255):
+                g.write(effect, kind.to_bytes(4, "little"))
+                g.write(angle, wipe_angle.to_bytes(4, "little"))
+                g.write(alpha, level.to_bytes(4, "little"))
+                g.run(2)
+    g.write(alpha, (0).to_bytes(4, "little"))
+    g.run(20)
+
+
 def scene_gameover(g, cp, symbols):
     """The game over's LOAD (MENU7 vs_menu7_gameOver): Ashley's HP to 0, Continue, the cards, card 1's files walked, the
     first file loaded."""
@@ -476,12 +559,16 @@ SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_men
           "score": tour("score"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items"),
           "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data"),
           "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
-          "gameover": scene_gameover}
+          "gameover": scene_gameover, "damage": popups(1), "damage_x2": popups(2), "actor_word_x2": parity_tour("actor_word", 2),
+          "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "opening": scene_opening, "forest": weather(40, 0), "rain": weather(48, 1),
+          **{n: parity_tour(n) for n in ("gauges", "figure", "status_icons", "battle_mode", "buff", "actor_word", "timer", "text_band",
+                                        "target_row", "target_line", "ability_icons")}}
 def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):
     """The routes of `names`, each in a game of its own: {route: [display hashes]}."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER=renderer, ROOD_ARCH="64",
                       ROOD_TEST_SNAPSHOTS="0")
     sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    cover(binary)
     import classic_parity as cp
     import rood_rpc
     from checkpoints import launch_at
@@ -502,7 +589,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     results = {}
     for name in names:
         card_copy = out / f"card-{name}.mcd"
-        if name == "dialogue":  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
+        if name in ("dialogue", "opening"):  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
             card_copy = out / "no-card.mcd"
         else:
             card_copy.write_bytes(pathlib.Path(card).read_bytes())
@@ -665,6 +752,7 @@ def play_audio(binary, card, out):
     to out/audio.wav. Everything the sound drivers do reaches the wav, which no frame or actor field shows."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
     sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    cover(binary)
     from checkpoints import launch_at
     out = pathlib.Path(out)
     g = launch_at("save_room", card=card, fast=True, log=out / "audio.log", audio=f"wav:{out / 'audio.wav'}", extra_env={

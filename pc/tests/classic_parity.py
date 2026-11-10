@@ -1948,7 +1948,7 @@ def menu4(g, name, size=1):
     """One of MENU4's statics: _selectedElement (0..5 the body's parts, 6.. the stat descriptions), _selectedActor
     (1 Ashley, then the room's other actors)."""
     if not MENU4:
-        out = subprocess.run([os.environ.get("ROOD_OBJDUMP", "objdump"), "-t", str(rood_rpc.BINARY)],
+        out = subprocess.run([os.environ.get("ROOD_OBJDUMP", "objdump"), "-t", os.environ.get("ROOD_SYMBOLS") or str(rood_rpc.BINARY)],
                              capture_output=True, text=True).stdout
         for line in out.splitlines():
             parts = line.split()
@@ -2182,7 +2182,7 @@ def ovl(g, section, name, size=4, signed=True):
     """An overlay's static by name (its section rood_ovl_menu_<section>_prg; other overlays have statics of the
     same name; a function's static by its name without the compiler's .N, the first of that name)."""
     if not OVERLAY_STATICS:
-        out = subprocess.run([os.environ.get("ROOD_OBJDUMP", "objdump"), "-t", str(rood_rpc.BINARY)],
+        out = subprocess.run([os.environ.get("ROOD_OBJDUMP", "objdump"), "-t", os.environ.get("ROOD_SYMBOLS") or str(rood_rpc.BINARY)],
                              capture_output=True, text=True).stdout
         for line in out.splitlines():
             parts = line.split()

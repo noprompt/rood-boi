@@ -2,6 +2,15 @@
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
+const sprite_item = @import("common").sprite_item;
+
+/// A corner (x low, y high) and a texel (u low, v high) as the packets packed them.
+fn xy(x: c_int, y: c_int) c_int {
+    return (x & 0xFFFF) | (y << 16);
+}
+fn uv(u: c_int, w: c_int) c_int {
+    return (u & 0xFF) | ((w & 0xFF) << 8);
+}
 
 /// orig: func_80094B0C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Draws the digits of a floating number at x, y as bouncing textured quads.
@@ -48,8 +57,8 @@ pub fn func_80094B0C(x_in: c_int, y_in: c_int, p: ?*v.D_800F1BAC_t) callconv(.c)
 
     const ci: usize = @intCast(color);
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
-    var cursor: usize = psx.addr(psx.get(scratch.unk0).?);
-    var prim: usize = cursor;
+    // The slot 20 bytes before the table the scratchpad names.
+    const ot: ?*anyopaque = @ptrFromInt(@as(usize, psx.addr(psx.get(scratch.unk4).?) -% 20));
 
     i = @as(c_int, q.displayTextLen) -% 1;
     while (i >= 0) : ({
@@ -59,57 +68,13 @@ pub fn func_80094B0C(x_in: c_int, y_in: c_int, p: ?*v.D_800F1BAC_t) callconv(.c)
         const digitY: c_int = y +% offset;
         offset = @divTrunc(offset, 2);
         if (psx.conv(c_uint, x +% 8) < 328) {
-            const pp: *align(1) v.POLY_FT4 = @ptrFromInt(prim);
-            const tag: *align(1) v.P_TAG = @ptrFromInt(prim);
-
-            // setPolyFT4: len 9, code 0x2c
-            psx.setBits(tag, "len", 9);
-            tag.code = 0x2c;
-
-            // setXY4
-            pp.x0 = psx.conv(i16, x);
-            pp.y0 = psx.conv(i16, digitY -% 6);
-            pp.x1 = psx.conv(i16, x +% 8);
-            pp.y1 = psx.conv(i16, digitY -% 6);
-            pp.x2 = psx.conv(i16, x);
-            pp.y2 = psx.conv(i16, digitY +% 6);
-            pp.x3 = psx.conv(i16, x +% 8);
-            pp.y3 = psx.conv(i16, digitY +% 6);
-
-            // setShadeTex(prim, 0): clears bit 0 of code
-            tag.code &= 0xFE;
-
-            // setRGB0
-            pp.r0 = colors[ci].r;
-            pp.g0 = colors[ci].@"g";
-            pp.b0 = colors[ci].b;
-
-            // setUV4: glyph of the character at displayText[i]
+            // The glyph of the character at displayText[i], in this number's colour.
             const glyph: c_int = @as(c_int, psx.byteAt(i8, q, @as(isize, i) + 20).*) -% '0';
             const base: c_int = glyph *% 8;
-            pp.u0 = psx.conv(u8, base +% 64);
-            pp.v0 = 0;
-            pp.u1 = psx.conv(u8, base +% 72);
-            pp.v1 = 0;
-            pp.u2 = psx.conv(u8, base +% 64);
-            pp.v2 = 12;
-            pp.u3 = psx.conv(u8, base +% 72);
-            pp.v3 = 12;
-
-            // setTPage(prim, 0, 0, 768, 0)
-            pp.tpage = (768 & 0x3ff) >> 6;
-            // setClut(prim, 832, 223)
-            pp.clut = (223 << 6) | ((832 >> 4) & 0x3f);
-
-            cursor +%= @sizeOf(v.POLY_FT4);
-            const ot_addr: u32 = psx.addr(psx.get(scratch.unk4).?) -% 20;
-            c.AddPrim(
-                @as(?*anyopaque, @ptrFromInt(@as(usize, ot_addr))),
-                @as(?*anyopaque, @ptrFromInt(prim)),
-            );
-            prim +%= @sizeOf(v.POLY_FT4);
+            const rgb: c_int = @as(c_int, colors[ci].r) | (@as(c_int, colors[ci].@"g") << 8) | (@as(c_int, colors[ci].b) << 16);
+            sprite_item.ft4(ot, false, false, (768 & 0x3ff) >> 6, (223 << 6) | ((832 >> 4) & 0x3f), rgb,
+                &[4]c_int{ xy(x, digitY -% 6), xy(x +% 8, digitY -% 6), xy(x, digitY +% 6), xy(x +% 8, digitY +% 6) },
+                &[4]c_int{ uv(base +% 64, 0), uv(base +% 72, 0), uv(base +% 64, 12), uv(base +% 72, 12) });
         }
     }
-
-    psx.put(&scratch.unk0, @as(?*anyopaque, @ptrFromInt(cursor)));
 }

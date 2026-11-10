@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
+const sprite_item = @import("common").sprite_item;
 
 /// orig: func_800C16FC (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Adds the fading line segments of one trail from packed point x0 to packed point x1, with `count` steps shown.
@@ -49,7 +50,7 @@ pub fn func_800C16FC(x0_in: c_int, x1_in: c_int, count: c_int) callconv(.c) void
         if (start < dx) {
             const end: c_int = segmentEnd >> 4;
             if (end < dx) {
-                c.vs_battle_addTile(
+                sprite_item.tile(
                     @ptrCast(@alignCast(psx.get(scratch.unk8))),
                     color | 0x42000000,
                     ((x1 -% start *% signX) & 0xFFFF) | y1Bits,
@@ -57,7 +58,7 @@ pub fn func_800C16FC(x0_in: c_int, x1_in: c_int, count: c_int) callconv(.c) void
                 );
             } else {
                 const lineColor: c_int = color | 0x42000000;
-                c.vs_battle_addTile(
+                sprite_item.tile(
                     @ptrCast(@alignCast(psx.get(scratch.unk8))),
                     lineColor,
                     ((x1 -% start *% signX) & 0xFFFF) | y1Bits,
@@ -65,7 +66,7 @@ pub fn func_800C16FC(x0_in: c_int, x1_in: c_int, count: c_int) callconv(.c) void
                 );
                 const tail: c_int = length *% (15 -% i);
                 if (y1 != y0 -% ((tail >> 4) *% signY)) {
-                    c.vs_battle_addTile(
+                    sprite_item.tile(
                         @ptrCast(@alignCast(psx.get(scratch.unk8))),
                         lineColor,
                         (midX & 0xFFFF) | y1Bits,
@@ -77,7 +78,7 @@ pub fn func_800C16FC(x0_in: c_int, x1_in: c_int, count: c_int) callconv(.c) void
         } else {
             const far2: c_int = length *% (16 -% i);
             const near2: c_int = length *% (15 -% i);
-            c.vs_battle_addTile(
+            sprite_item.tile(
                 @ptrCast(@alignCast(psx.get(scratch.unk8))),
                 color | 0x42000000,
                 ((x0 +% (far2 >> 5)) & 0xFFFF) | ((y0 -% ((far2 >> 4) *% signY)) << 16),
@@ -86,8 +87,5 @@ pub fn func_800C16FC(x0_in: c_int, x1_in: c_int, count: c_int) callconv(.c) void
             );
         }
     }
-    c.vs_battle_insertTpage(
-        @as(c_int, @bitCast(@as(c_uint, 0xE1000020))),
-        @ptrCast(@alignCast(psx.get(scratch.unk8))),
-    );
+    sprite_item.drawMode(@ptrCast(@alignCast(psx.get(scratch.unk8))), @as(c_int, @bitCast(@as(c_uint, 0xE1000020))));
 }

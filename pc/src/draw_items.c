@@ -426,6 +426,8 @@ static unsigned lower(const pc_item* it, uint32_t* p)
     case PC_ITEM_AREA:
         p[n++] = 0xe3000000u | ((uint32_t)it->y[0] & 0x3ffu) << 10 | ((uint32_t)it->x[0] & 0x3ffu);
         p[n++] = 0xe4000000u | ((uint32_t)(it->y[0] + it->h - 1) & 0x3ffu) << 10 | ((uint32_t)(it->x[0] + it->w - 1) & 0x3ffu);
+        if (it->flags & PC_ITEM_OFFSET)
+            p[n++] = 0xe5000000u | ((uint32_t)it->y[1] & 0x7ffu) << 11 | ((uint32_t)it->x[1] & 0x7ffu);
         break;
     case PC_ITEM_LINE:
         if (it->flags & PC_ITEM_SHADED) {

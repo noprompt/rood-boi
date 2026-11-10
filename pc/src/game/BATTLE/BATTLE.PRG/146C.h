@@ -790,10 +790,6 @@ typedef struct vs_battle_lootListNode {
     vs_battle_loot loot;
 } vs_battle_lootListNode;
 
-typedef struct {
-    POLY_F4 covered;
-    POLY_F4 edge;
-} vs_battle_screenTransitionWipePoly;
 
 typedef struct {
     vs_camera_t fromCameraState;
@@ -1090,16 +1086,10 @@ extern short D_800F1CD4;
 extern char D_800F1CD6;
 extern int vs_battle_submenuState;
 extern int D_800F1CE0[8];
-extern DR_MODE vs_battle_screenTransitionDrMode[];
 extern int vs_battle_screenTransitionAlpha;
-extern vs_battle_screenTransitionWipePoly vs_battle_screenTransitionWipePolyF4[];
-extern POLY_G4 vs_battle_screenTransitionEdgePolyG4[];
-extern POLY_F4 vs_battle_screenTransitionPolyF4[];
 extern vs_battle_cameraTransition_t* vs_battle_cameraTransition;
 extern u_int vs_battle_screenTransitionStep;
 extern int vs_battle_screenTransitionEffect;
 extern int vs_battle_screenTransitionWipeAngle;
 extern int vs_battle_screenTransitionSpeed;
 extern void* D_800F4930;
-extern DR_STP D_800F1970[];
-extern DR_STP D_800F1988[];

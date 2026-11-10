@@ -55,25 +55,11 @@ pub fn func_80090EEC() callconv(.c) void {
 
         switch (@as(c_int, v.g.D_800F1DCA().*)) {
             1 => c.func_8008F440(),
-            2 => {
-                const start = scratchPointer();
-                c.func_8008FDC4();
-                if (psx.weak(Anchor, "pc_hw_anchor_packets")) |hook| {
-                    hook(start, scratchPointer(), psx.conv(c_int, c.PC_ANCHOR_SCENE));
-                }
-            },
             3 => {
                 const start = scratchPointer();
                 c.func_80090434();
                 if (psx.weak(Anchor, "pc_hw_anchor_packets")) |hook| {
                     hook(start, scratchPointer(), psx.conv(c_int, c.PC_ANCHOR_COVER));
-                }
-            },
-            4 => {
-                const start = scratchPointer();
-                c.func_8008FAC8();
-                if (psx.weak(Anchor, "pc_hw_anchor_packets")) |hook| {
-                    hook(start, scratchPointer(), psx.conv(c_int, c.PC_ANCHOR_SCENE));
                 }
             },
             else => {},

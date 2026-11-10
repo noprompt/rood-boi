@@ -70,7 +70,7 @@ pub fn func_800CC600(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                 c.func_800CC580(ot, page);
             }
         }
-        c.vs_battle_addTile(ot, 0x60000000, 0, 64 | (height << 16));
+        sprite_item.tile(ot, 0x60000000, 0, 64 | (height << 16));
         c.func_800CC580(ot, page);
     }
 }

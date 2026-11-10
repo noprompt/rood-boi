@@ -469,35 +469,6 @@ static void func_800F9CCC(void)
 
 static void _initTransitionState(void)
 {
-    RECT sp18;
-    memset(&sp18, 0, sizeof sp18);
-
-    SetPolyF4(&vs_battle_screenTransitionPolyF4[0]);
-    setRGB0(&vs_battle_screenTransitionPolyF4[0], 0, 0, 0);
-    setXY4(&vs_battle_screenTransitionPolyF4[0], 0, 0, 320, 0, 0, 240, 320, 240);
-    SetSemiTrans(&vs_battle_screenTransitionPolyF4[0], 1);
-    vs_battle_screenTransitionPolyF4[1] = vs_battle_screenTransitionPolyF4[0];
-
-    SetPolyF4(&vs_battle_screenTransitionWipePolyF4[0].covered);
-    setRGB0(&vs_battle_screenTransitionWipePolyF4[0].covered, 0, 0, 0);
-    SetSemiTrans(vs_battle_screenTransitionWipePolyF4, 0);
-    setRGB0(&vs_battle_screenTransitionWipePolyF4[0].covered, 0, 0, 1);
-    vs_battle_screenTransitionWipePolyF4[0].edge =
-        vs_battle_screenTransitionWipePolyF4[0].covered;
-    vs_battle_screenTransitionWipePolyF4[1] = vs_battle_screenTransitionWipePolyF4[0];
-
-    SetPolyG4(&vs_battle_screenTransitionEdgePolyG4[0]);
-    setRGB0(&vs_battle_screenTransitionEdgePolyG4[0], 255, 255, 255);
-    setRGB2(&vs_battle_screenTransitionEdgePolyG4[0], 255, 255, 255);
-    setRGB1(&vs_battle_screenTransitionEdgePolyG4[0], 0, 0, 0);
-    setRGB3(&vs_battle_screenTransitionEdgePolyG4[0], 0, 0, 0);
-    setXY4(&vs_battle_screenTransitionEdgePolyG4[0], 0, 0, 320, 0, 0, 240, 320, 240);
-    SetSemiTrans(vs_battle_screenTransitionEdgePolyG4, 1);
-    vs_battle_screenTransitionEdgePolyG4[1] = vs_battle_screenTransitionEdgePolyG4[0];
-
-    SetDrawMode(vs_battle_screenTransitionDrMode, 0, 1, getTPage(0, 2, 0, 0), &sp18);
-    vs_battle_screenTransitionDrMode[1] = vs_battle_screenTransitionDrMode[0];
-
     vs_battle_screenTransitionAlpha = 255;
 }
 
@@ -520,10 +491,6 @@ void func_800FA35C(int startState __attribute__((unused)))
     D_8005E0C0[0] = NULL;
     D_80055C80[0] = vs_main_allocHeap(0x2088);
     D_80055C80[1] = vs_main_allocHeap(0x2088);
-    SetDrawStp(&D_800F1970[0], 0);
-    SetDrawStp(&D_800F1970[1], 0);
-    SetDrawStp(&D_800F1988[0], 1);
-    SetDrawStp(&D_800F1988[1], 1);
     vs_main_clutInit();
     _initTransitionState();
     func_8007D3F8();

@@ -3,6 +3,15 @@
 const psx = @import("common").psx;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
+const sprite_item = @import("common").sprite_item;
+
+/// A corner (x low, y high) and a texel (u low, v high) as the packets packed them.
+fn xy(x: c_int, y: c_int) c_int {
+    return (x & 0xFFFF) | (y << 16);
+}
+fn uv(u: c_int, w: c_int) c_int {
+    return (u & 0xFF) | ((w & 0xFF) << 8);
+}
 
 /// orig: func_80095258 (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
 /// Draws the combat label strip for `p` at (x, y), sliding in or out and fading by its phase.
@@ -59,7 +68,6 @@ pub fn func_80095258(x_arg: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) v
     }
 
     const scratch: *v.vs_scratch_t = @ptrFromInt(0x1F800000);
-    var cursor: u32 = psx.rawOf(scratch.unk0);
 
     i = 0;
     while (i < @as(c_int, labelDef.count)) : (i += 1) {
@@ -67,62 +75,34 @@ pub fn func_80095258(x_arg: c_int, y: c_int, p: ?*v.D_800F1BAC_t) callconv(.c) v
         const rect = rects[idx];
         const w: c_int = rect.w;
         if (x < 320 and x +% w >= 0) {
-            const prim: *align(1) v.POLY_FT4 = @ptrFromInt(@as(usize, cursor));
-
-            psx.setBits(@as(*align(1) v.P_TAG, @ptrCast(prim)), "len", 9);
-            prim.code = 0x2c;
-            prim.x0 = psx.conv(i16, x);
-            prim.y0 = psx.conv(i16, y -% 6);
-            prim.x1 = psx.conv(i16, x +% w);
-            prim.y1 = psx.conv(i16, y -% 6);
-            prim.x2 = psx.conv(i16, x);
-            prim.y2 = psx.conv(i16, y +% 6);
-            prim.x3 = psx.conv(i16, x +% w);
-            prim.y3 = psx.conv(i16, y +% 6);
-            prim.code &= 0xFE;
-
             const col = psx.at(v.g.D_80069134(), width);
+            var r: c_int = undefined;
+            var g: c_int = undefined;
+            var b: c_int = undefined;
             if (step == 5) {
-                prim.r0 = psx.conv(u8, @divTrunc(@as(c_int, col.r), 2) +% 96);
-                prim.g0 = psx.conv(u8, @divTrunc(@as(c_int, col.g), 2) +% 96);
-                prim.b0 = psx.conv(u8, @divTrunc(@as(c_int, col.b), 2) +% 96);
+                r = @divTrunc(@as(c_int, col.r), 2) +% 96;
+                g = @divTrunc(@as(c_int, col.g), 2) +% 96;
+                b = @divTrunc(@as(c_int, col.b), 2) +% 96;
             } else if (step == 4) {
-                prim.r0 = psx.conv(u8, @divTrunc(@as(c_int, col.r), 2));
-                prim.g0 = psx.conv(u8, @divTrunc(@as(c_int, col.g), 2));
-                prim.b0 = psx.conv(u8, @divTrunc(@as(c_int, col.b), 2));
+                r = @divTrunc(@as(c_int, col.r), 2);
+                g = @divTrunc(@as(c_int, col.g), 2);
+                b = @divTrunc(@as(c_int, col.b), 2);
             } else {
                 const f: c_int = psx.at(&fade, step).*;
-                prim.r0 = psx.conv(u8, @divTrunc(@as(c_int, col.r) *% f, 32));
-                prim.g0 = psx.conv(u8, @divTrunc(@as(c_int, col.g) *% f, 32));
-                prim.b0 = psx.conv(u8, @divTrunc(@as(c_int, col.b) *% f, 32));
+                r = @divTrunc(@as(c_int, col.r) *% f, 32);
+                g = @divTrunc(@as(c_int, col.g) *% f, 32);
+                b = @divTrunc(@as(c_int, col.b) *% f, 32);
             }
-
-            prim.u0 = psx.conv(u8, @as(c_int, rect.x));
-            prim.v0 = psx.conv(u8, @as(c_int, rect.y));
-            prim.u1 = psx.conv(u8, @as(c_int, rect.x) +% w);
-            prim.v1 = psx.conv(u8, @as(c_int, rect.y));
-            prim.u2 = psx.conv(u8, @as(c_int, rect.x));
-            prim.v2 = psx.conv(u8, @as(c_int, rect.y) +% 12);
-            prim.u3 = psx.conv(u8, @as(c_int, rect.x) +% w);
-            prim.v3 = psx.conv(u8, @as(c_int, rect.y) +% 12);
-
-            prim.code |= 0x02;
-            if (step != 4) {
-                // setTPage(prim, 0, 1, 448, 256); setClut(prim, 960, 220)
-                prim.tpage = 0x37;
-                prim.clut = 14140;
-            } else {
-                // setTPage(prim, 0, 0, 448, 256); setClut(prim, 976, 220)
-                prim.tpage = 0x17;
-                prim.clut = 14141;
-            }
-
-            const ot: usize = @as(usize, psx.rawOf(scratch.unk4)) -% 20;
-            c.AddPrim(@as(?*anyopaque, @ptrFromInt(ot)), prim);
-            cursor +%= @sizeOf(v.POLY_FT4);
+            const rgb: c_int = (r & 0xFF) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16);
+            const rx: c_int = rect.x;
+            const ry: c_int = rect.y;
+            // A semi-transparent quad (the page and CLUT of the label's colour: step 4 has its own).
+            sprite_item.ft4(@as(?*anyopaque, @ptrFromInt(@as(usize, psx.rawOf(scratch.unk4)) -% 20)), false, true,
+                if (step != 4) 0x37 else 0x17, if (step != 4) 14140 else 14141, rgb,
+                &[4]c_int{ xy(x, y -% 6), xy(x +% w, y -% 6), xy(x, y +% 6), xy(x +% w, y +% 6) },
+                &[4]c_int{ uv(rx, ry), uv(rx +% w, ry), uv(rx, ry +% 12), uv(rx +% w, ry +% 12) });
         }
         x +%= w;
     }
 
-    psx.put(&scratch.unk0, @as(?*anyopaque, @ptrFromInt(@as(usize, cursor))));
 }

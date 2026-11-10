@@ -2,6 +2,15 @@
 const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = @import("common").sprite_item;
+
+/// A corner (x low, y high); a colour as the grey byte the packet's three channels took.
+fn xy(x: c_int, y: c_int) c_int {
+    return (x & 0xFFFF) | (y << 16);
+}
+fn grey(color: c_int) c_int {
+    return @as(c_int, psx.conv(u8, color)) * 0x010101;
+}
 
 /// orig: func_80090434 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Moves each particle on the view and draws it as one or two tiles into the ordering table.
@@ -17,7 +26,8 @@ pub fn func_80090434() callconv(.c) void {
     c.RotTrans(@ptrCast(v.g.D_800F1CE0()), psx.cptr(c.VECTOR, &origin), &flags);
     c.RotTrans(@ptrCast(v.g.D_800F1D98()), psx.cptr(c.VECTOR, &velocity), &flags);
 
-    var cursor: usize = @intFromPtr(psx.get(scratch.unk0));
+    // The slot 4 entries past the table's base.
+    const ot: ?*anyopaque = @ptrFromInt(@intFromPtr(psx.get(scratch.unk4)) +% 4 * @sizeOf(c_uint));
     origin.vx = (velocity.vx -% origin.vx) >> 3;
     origin.vy = (velocity.vy -% origin.vy) >> 3;
     origin.vz = (velocity.vz -% origin.vz) >> 3;
@@ -32,7 +42,6 @@ pub fn func_80090434() callconv(.c) void {
 
     var particleAddr: usize = @intFromPtr(v.g.D_800F1DD4().*);
     var particle: *allowzero align(1) v.D_800F1DD4_t = @ptrFromInt(particleAddr);
-    var prim: usize = cursor;
 
     flags = 0;
     while (flags < v.g.D_800F1DC0().*) : ({
@@ -93,76 +102,17 @@ pub fn func_80090434() callconv(.c) void {
             color = 0;
         }
 
+        const size: c_int = if ((flags & 1) != 0) 0x20002 else 0x10001;
+        // Each sparkle is one semi-transparent tile, or three when it has a previous place (a trail halving in brightness).
         if (psx.conv(c_uint, x) < 320 and psx.conv(c_uint, y) < 240) {
-            const tag: *allowzero align(1) v.P_TAG = @ptrFromInt(prim);
-            const tile: *allowzero align(1) v.TILE = @ptrFromInt(prim);
-            psx.setBits(tag, "len", 3);
-            tag.code = 0x60;
-            tag.code |= 0x02;
-            tile.x0 = psx.conv(i16, x);
-            tile.y0 = psx.conv(i16, y);
-            if ((flags & 1) != 0) {
-                tile.w = 2;
-                tile.h = 2;
-            } else {
-                tile.w = 1;
-                tile.h = 1;
-            }
-            tile.r0 = psx.conv(u8, color);
-            tile.g0 = psx.conv(u8, color);
-            tile.b0 = psx.conv(u8, color);
-            c.AddPrim(@ptrFromInt(@intFromPtr(psx.get(scratch.unk4)) +% 4 * @sizeOf(c_uint)), @ptrFromInt(prim));
-            prim +%= @sizeOf(v.TILE);
-            cursor +%= @sizeOf(v.TILE);
+            sprite_item.tile(ot, 0x62000000 | grey(color), xy(x, y), size);
         }
 
         if (psx.conv(u16, particle.unk8) < 320 and psx.conv(u16, particle.unkA) < 240) {
-            {
-                const tag: *allowzero align(1) v.P_TAG = @ptrFromInt(prim);
-                const tile: *allowzero align(1) v.TILE = @ptrFromInt(prim);
-                psx.setBits(tag, "len", 3);
-                tag.code = 0x60;
-                tag.code |= 0x02;
-                tile.x0 = particle.unk8;
-                tile.y0 = particle.unkA;
-                color >>= 1;
-                if ((flags & 1) != 0) {
-                    tile.w = 2;
-                    tile.h = 2;
-                } else {
-                    tile.w = 1;
-                    tile.h = 1;
-                }
-                tile.r0 = psx.conv(u8, color);
-                tile.g0 = psx.conv(u8, color);
-                tile.b0 = psx.conv(u8, color);
-                c.AddPrim(@ptrFromInt(@intFromPtr(psx.get(scratch.unk4)) +% 4 * @sizeOf(c_uint)), @ptrFromInt(prim));
-                prim +%= @sizeOf(v.TILE);
-                cursor +%= @sizeOf(v.TILE);
-            }
-            {
-                const tag: *allowzero align(1) v.P_TAG = @ptrFromInt(prim);
-                const tile: *allowzero align(1) v.TILE = @ptrFromInt(prim);
-                psx.setBits(tag, "len", 3);
-                tag.code = 0x60;
-                tag.code |= 0x02;
-                tile.x0 = psx.conv(i16, x -% ((x -% @as(c_int, particle.unk8)) *% 2));
-                tile.y0 = psx.conv(i16, y -% ((y -% @as(c_int, particle.unkA)) *% 2));
-                color >>= 1;
-                if ((flags & 1) != 0) {
-                    tile.w = 2;
-                    tile.h = 2;
-                } else {
-                    tile.w = 1;
-                    tile.h = 1;
-                }
-                tile.r0 = psx.conv(u8, color);
-                tile.g0 = psx.conv(u8, color);
-                tile.b0 = psx.conv(u8, color);
-                c.AddPrim(@ptrFromInt(@intFromPtr(psx.get(scratch.unk4)) +% 4 * @sizeOf(c_uint)), @ptrFromInt(prim));
-                prim +%= @sizeOf(v.TILE);
-                cursor +%= @sizeOf(v.TILE);
-            }
+            color >>= 1;
+            sprite_item.tile(ot, 0x62000000 | grey(color), xy(@as(c_int, particle.unk8), @as(c_int, particle.unkA)), size);
+            color >>= 1;
+            sprite_item.tile(ot, 0x62000000 | grey(color), xy(x -% ((x -% @as(c_int, particle.unk8)) *% 2), y -% ((y -% @as(c_int, particle.unkA)) *% 2)), size);
         }
 
         if (v.g.D_800F1BA4().* == 0) {
@@ -171,6 +121,5 @@ pub fn func_80090434() callconv(.c) void {
         }
     }
 
-    psx.put(&scratch.unk0, @as(?*anyopaque, @ptrFromInt(cursor)));
     c.pc_insert_tpage(4, 0x31);
 }

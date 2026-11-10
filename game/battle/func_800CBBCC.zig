@@ -40,19 +40,19 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
         background = (r >> 7) | ((g >> 7) << 8) | ((b >> 7) << 16) | ((@as(c_int, v.g.D_800F51C8().*) + 48) << 25);
         i = row_y[0];
         if (i > 0) {
-            c.vs_battle_addTile(ot, background, 0, 320 | (i << 16));
+            sprite_item.tile(ot, background, 0, 320 | (i << 16));
         }
         i = row_y[@intCast(rows)];
         if (i < 240) {
-            c.vs_battle_addTile(ot, background, i << 16, 320 | (0xF00000 -% (i << 16)));
+            sprite_item.tile(ot, background, i << 16, 320 | (0xF00000 -% (i << 16)));
         }
         i = column_x[0];
         if (i > 0) {
-            c.vs_battle_addTile(ot, background, 0, i | 0xF00000);
+            sprite_item.tile(ot, background, 0, i | 0xF00000);
         }
         i = column_x[@intCast(columns)];
         if (i < 320) {
-            c.vs_battle_addTile(ot, background, i & 0xFFFF, (320 - i) | 0xF00000);
+            sprite_item.tile(ot, background, i & 0xFFFF, (320 - i) | 0xF00000);
         }
     }
     const quad_color: c_int = alpha | (alpha << 8) | (alpha << 16) | ((@as(c_int, v.g.D_800F51C8().*) + 22) << 25);
@@ -107,7 +107,7 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                     psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(prim + 11)));
                 }
             } else if (color != 0 and (color != 0x8000 or v.g.D_800F51C8().* == 0)) {
-                c.vs_battle_addTile(ot, background, (left & 0xFFFF) | (top << 16), (right -% left) | ((bottom -% top) << 16));
+                sprite_item.tile(ot, background, (left & 0xFFFF) | (top << 16), (right -% left) | ((bottom -% top) << 16));
             }
         }
     }

@@ -838,9 +838,9 @@ static void _renderStatPage(int xOffset)
 
         vs_battle_renderTextRawColor(statHeaders[j + (statPage * 8)],
             ((xOffset + 0x40) & 0xFFFF) | (0x400000 + var_s6 * 0x10000), i, before);
-        vs_battle_addTile(before, 0x40D0E030, sp14 | ((var_s6 + 0x42) << 0x10),
+        vs_menu_line(vs_menu_depth(before), 0, 0, 0x40D0E030, sp14 | ((var_s6 + 0x42) << 0x10),
             sp14 | ((var_s6 + 0x45) << 0x10));
-        vs_battle_addTile(before, 0x40978918, sp14 | (0x400000 + var_s6 * 0x10000),
+        vs_menu_line(vs_menu_depth(before), 0, 0, 0x40978918, sp14 | (0x400000 + var_s6 * 0x10000),
             sp14 | ((var_s6 + 0x47) << 0x10));
 
         j = (var_s7[j] * 24) / 100;
@@ -858,7 +858,7 @@ static void _renderStatPage(int xOffset)
 
                 temp_v0_2 = (var_s6 + i + 66) << 0x10;
 
-                vs_battle_addTile(before, positiveStatColors[i], sp14 | temp_v0_2,
+                vs_menu_line(vs_menu_depth(before), 0, 0, positiveStatColors[i], sp14 | temp_v0_2,
                     ((xOffset + j + 116) & 0xFFFF) | temp_v0_2);
 
                 if (j == (24 - i)) {
@@ -870,7 +870,7 @@ static void _renderStatPage(int xOffset)
 
                 temp_v0_3 = ((var_s6 - i) + 0x45) << 0x10;
 
-                vs_battle_addTile(before, negativeStatColors[i], sp14 | temp_v0_3,
+                vs_menu_line(vs_menu_depth(before), 0, 0, negativeStatColors[i], sp14 | temp_v0_3,
                     ((xOffset + j + 0x74) & 0xFFFF) | temp_v0_3);
 
                 if (j == (i - 24)) {
@@ -880,19 +880,16 @@ static void _renderStatPage(int xOffset)
         }
 
         for (j = 2; j < 6; ++j) {
-            vs_battle_addTile(before, 0x40330500,
-                _subtract(xOffset, j, 97) | ((var_s6 + j + 64) << 0x10),
+            vs_menu_line(vs_menu_depth(before), 0, 0, 0x40330500, _subtract(xOffset, j, 97) | ((var_s6 + j + 64) << 0x10),
                 _subtract(xOffset, j, 142) | ((var_s6 + j + 64) << 0x10));
         }
 
         for (j = 0; j < 8; ++j) {
-            vs_battle_addTile(before, 0x405D3200,
-                _subtract(xOffset, j, 97) | ((var_s6 + j + 64) << 0x10),
+            vs_menu_line(vs_menu_depth(before), 0, 0, 0x405D3200, _subtract(xOffset, j, 97) | ((var_s6 + j + 64) << 0x10),
                 _subtract(xOffset, j, 145) | ((var_s6 + j + 64) << 0x10));
         }
 
-        vs_battle_insertTpage(
-            vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff), before);
+        vs_menu_mode(vs_menu_depth(before), vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff));
 
         for (j = 0; j < 11; ++j) {
             temp_a0 = var_s6 + j;
@@ -902,8 +899,7 @@ static void _renderStatPage(int xOffset)
                 0x5D3200, (((xOffset - temp_v1_3) & 0xFFFF) | temp_a0_2));
         }
 
-        vs_battle_insertTpage(
-            vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn), before);
+        vs_menu_mode(vs_menu_depth(before), vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOn));
     }
 
     vs_mainmenu_renderButtonBackground(xOffset + 24, 48, 135, 12);

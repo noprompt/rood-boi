@@ -46,6 +46,7 @@ enum {
     PC_ITEM_PLACED = 32,  /* a marker in an ordering table draws it (set by pc_frame_place) */
     PC_ITEM_WINDOW = 64,  /* `tw` is the texture window it draws with (GP0 E2); without the flag the window is left as it is */
     PC_ITEM_AFTER = 128,  /* `after` is the draw mode (GP0 E1) left set after it; without the flag the mode it drew with stays */
+    PC_ITEM_OFFSET = 512, /* drawing area: x[1], y[1] is also the draw offset (GP0 E5) it sets */
     PC_ITEM_BEFORE = 256  /* textured polygon: `before` is the draw mode (GP0 E1) set before it, whose dither and display bits it
                            * draws with (its own page word sets the rest) */
 };

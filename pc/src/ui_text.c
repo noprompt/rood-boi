@@ -1089,6 +1089,10 @@ int pc_ui_text_popup_place(const uint32_t* tag, const uint32_t* (*next)(const ui
     }
     if (text_scale == 1.0f || pc_ui_text != PC_UI_TEXT_FONT)
         return 0;
+    static unsigned members_vsync;
+    unsigned now = pc_vsync_count ? pc_vsync_count() : 0;
+    if (now != members_vsync) /* (each frame finds its popups again: an item's place in the frame is not a packet's address) */
+        member_count = 0, members_vsync = now;
     int known = 0;
     for (int i = 0; i < member_count && !known; i++)
         known = members[i] == tag;
@@ -1121,6 +1125,41 @@ int pc_ui_text_popup_place(const uint32_t* tag, const uint32_t* (*next)(const ui
         xy[i * 2 + 1] = anchor[1] + (xy[i * 2 + 1] - anchor[1]) * text_scale;
     }
     return 1;
+}
+
+/* The popup pieces that are draw items (damage digits, MISS letters, a stat change's sign and word: the game's own, or a
+ * classic claim's). An item is seen as the lowered packet it stands for (kept per item, so the placement above finds the
+ * same piece again); the piece that follows it is the quad added just before it (items of a slot draw last added first;
+ * a draw mode or two may lie between), and popup_piece's geometry says whether it belongs. */
+#define ITEM_TAGS 256
+static uint32_t item_tags[ITEM_TAGS][11]; /* a tag word, the ten words of a textured quad, the item */
+static const uint32_t* item_tag(int item)
+{
+    uint32_t* t = item_tags[item & (ITEM_TAGS - 1)];
+    unsigned words[3][16];
+    int lengths[3], n = pc_frame_lower ? pc_frame_lower(item, words, lengths) : 0;
+    if (n < 1 || lengths[n - 1] != 9)
+        return NULL;
+    t[0] = 9u << 24 | 0xffffffu;
+    memcpy(t + 1, words[n - 1], 9 * sizeof *t);
+    t[10] = (uint32_t)item;
+    return t;
+}
+static const uint32_t* item_tag_next(const uint32_t* tag)
+{
+    for (int i = (int)tag[10] - 1; i >= 0 && i >= (int)tag[10] - 12; i--) {
+        const uint32_t* next = item_tag(i);
+        if (next)
+            return next;
+    }
+    return NULL;
+}
+/* The same placement for the draw item `item` (its quad's corners in xy, as the packet's). */
+int pc_ui_text_popup_place_item(int item, float xy[8])
+{
+    const pc_item* it = pc_frame_item(item);
+    const uint32_t* tag = it && it->kind == PC_ITEM_POLY ? item_tag(item) : NULL;
+    return tag ? pc_ui_text_popup_place(tag, item_tag_next, xy) : 0;
 }
 
 /* The scale of one digit size (s: fitted to the original's height): all

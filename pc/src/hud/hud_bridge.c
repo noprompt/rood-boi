@@ -222,11 +222,21 @@ static int quads(void* first, void* end, hud_quad* out)
             int order[MAX_QUADS * 4], k, m = pc_frame_order(run, run_count, 0, order, MAX_QUADS * 4);
             for (k = 0; k < m && count < MAX_QUADS; ++k) {
                 const pc_item* it = pc_frame_item(order[k]);
-                if (!it || it->kind != PC_ITEM_SPRITE)
+                int sprite = it && it->kind == PC_ITEM_SPRITE;
+                int quad = it && it->kind == PC_ITEM_POLY && it->verts == 4 && (it->flags & PC_ITEM_TEXTURED);
+                if (!sprite && !quad)
                     continue;
                 q = &out[count++];
                 q->packet = NULL, q->item = order[k];
-                q->x0 = it->x[0], q->y0 = it->y[0], q->x1 = it->x[0] + it->w, q->y1 = it->y[0] + it->h;
+                if (sprite) {
+                    q->x0 = it->x[0], q->y0 = it->y[0], q->x1 = it->x[0] + it->w, q->y1 = it->y[0] + it->h;
+                } else { /* (a textured quad: its corners' box) */
+                    q->x0 = q->y0 = 1 << 20, q->x1 = q->y1 = -(1 << 20);
+                    for (int c = 0; c < 4; ++c) {
+                        q->x0 = it->x[c] < q->x0 ? it->x[c] : q->x0, q->y0 = it->y[c] < q->y0 ? it->y[c] : q->y0;
+                        q->x1 = it->x[c] > q->x1 ? it->x[c] : q->x1, q->y1 = it->y[c] > q->y1 ? it->y[c] : q->y1;
+                    }
+                }
                 q->rgb = full_rgb((unsigned)it->rgb[0][0] | (unsigned)it->rgb[0][1] << 8 | (unsigned)it->rgb[0][2] << 16);
             }
             w += 1 + len;
@@ -1224,9 +1234,11 @@ void pc_hud_element(int kind, void* record, int x, int y, void* first, void* end
         if (f.pool == 2) {
             /* its icon's word (func_80094E18's image: STR, INT, AGL, RISK, ...) */
             u_int* w = q[0].packet;
-            int tpage = (int)(w[5] >> 16), u0 = (int)(w[3] & 0xff), v0 = (int)(w[3] >> 8 & 0xff);
-            int u1 = (int)(w[9] & 0xff), v1 = (int)(w[9] >> 8 & 0xff);
-            const char* word = pc_ui_text_label_at && (w[0] >> 24) == 9
+            const pc_item* icon = w ? NULL : pc_frame_item(q[0].item);
+            int tpage = w ? (int)(w[5] >> 16) : icon ? icon->mode : 0;
+            int u0 = w ? (int)(w[3] & 0xff) : icon ? icon->u[0] : 0, v0 = w ? (int)(w[3] >> 8 & 0xff) : icon ? icon->v[0] : 0;
+            int u1 = w ? (int)(w[9] & 0xff) : icon ? icon->u[3] : 0, v1 = w ? (int)(w[9] >> 8 & 0xff) : icon ? icon->v[3] : 0;
+            const char* word = pc_ui_text_label_at && (w ? (w[0] >> 24) == 9 : icon && icon->kind == PC_ITEM_POLY && icon->verts == 4)
                 ? pc_ui_text_label_at((tpage & 15) * 64, (tpage >> 4 & 1) * 256, u0, v0, u1 - 1, v1 - 1)
                 : NULL;
             f.bounce = (float)(f.sign > 0 ? -(p->unkB >> 1) : p->unkB >> 1); /* a drift */

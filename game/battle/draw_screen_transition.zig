@@ -5,19 +5,16 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = common.sprite_item;
 
 /// orig: _drawScreenTransition (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws the current screen transition effect into the ordering table, then advances its alpha and step.
 pub fn drawScreenTransition(ot: ?*anyopaque) callconv(.c) void {
-    var rect: v.RECT = undefined;
-    const memset = @extern(*const fn (?*anyopaque, c_int, usize) callconv(.c) ?*anyopaque, .{ .name = "memset" });
-    _ = memset(&rect, 0, @sizeOf(v.RECT));
-
     if (alpha() != 0) {
         switch (v.g.vs_battle_screenTransitionEffect().*) {
-            0, 4, 5 => fadeBlack(ot, &rect),
-            1 => fadeWhite(ot, &rect),
-            2 => wipe(ot, &rect),
+            0, 4, 5 => fadeBlack(ot),
+            1 => fadeWhite(ot),
+            2 => wipe(ot),
             else => {},
         }
     }
@@ -47,98 +44,51 @@ fn alpha() c_int {
     return v.g.vs_battle_screenTransitionAlpha().*;
 }
 
-/// The frame buffer index, read each time the C reads it.
-fn frameBuf() c_int {
-    return v.g.vs_main_frameBuf().*;
-}
-
-/// The current frame's full-screen fill polygon.
-fn polyF4() *v.POLY_F4 {
-    return psx.at(v.g.vs_battle_screenTransitionPolyF4(), frameBuf());
-}
-
-/// The current frame's draw mode primitive.
-fn drMode() *v.DR_MODE {
-    return psx.at(v.g.vs_battle_screenTransitionDrMode(), frameBuf());
-}
-
-/// The current frame's edge gradient polygon.
-fn edgeG4() *v.POLY_G4 {
-    return psx.at(v.g.vs_battle_screenTransitionEdgePolyG4(), frameBuf());
-}
-
-/// The current frame's wipe polygon pair.
-fn wipePoly() *v.vs_battle_screenTransitionWipePoly {
-    return psx.at(v.g.vs_battle_screenTransitionWipePolyF4(), frameBuf());
-}
-
 /// `ot + 4` as the C computes it on a void pointer.
 fn otPlus4(ot: ?*anyopaque) ?*anyopaque {
     const base: usize = if (ot) |q| @intFromPtr(q) else 0;
     return @ptrFromInt(base +% 4);
 }
 
-/// setRGB0 with the current alpha.
-fn setRgb0(p: *v.POLY_F4) void {
-    p.r0 = psx.conv(u8, alpha());
-    p.g0 = psx.conv(u8, alpha());
-    p.b0 = psx.conv(u8, alpha());
+/// A corner as x low, y high.
+fn xy(x: c_int, y: c_int) c_int {
+    return (x & 0xFFFF) | (y << 16);
 }
 
+/// The alpha as a grey (setRGB0 with the current alpha, a byte).
+fn grey() c_int {
+    return @as(c_int, psx.conv(u8, alpha())) * 0x010101;
+}
+
+/// SetDrawMode(dr, 0, 1, tpage, an empty RECT): the draw mode (dither on, `tpage`) and the texture window cleared.
+fn drawMode(ot: ?*anyopaque, tpage: c_int) void {
+    sprite_item.drawModeWindow(otPlus4(ot), 0x200 | (tpage & 0x1FF), 0);
+}
+
+const screen = [4]c_int{ 0, 320, 240 << 16, 320 | (240 << 16) };
+
 /// Fade to black: a semi-transparent full-screen quad.
-fn fadeBlack(ot: ?*anyopaque, rect: *v.RECT) void {
-    const p0 = polyF4();
-    p0.x0 = 0;
-    p0.y0 = 0;
-    p0.x1 = 320;
-    p0.y1 = 0;
-    p0.x2 = 0;
-    p0.y2 = 240;
-    p0.x3 = 320;
-    p0.y3 = 240;
-    c.SetDrawMode(psx.cptr(c.DR_MODE, drMode()), 0, 1, 64, psx.cptr(c.RECT, rect));
-    c.SetSemiTrans(polyF4(), 1);
-    setRgb0(polyF4());
-    c.AddPrim(otPlus4(ot), polyF4());
-    c.AddPrim(otPlus4(ot), drMode());
+fn fadeBlack(ot: ?*anyopaque) void {
+    sprite_item.flat(otPlus4(ot), 4, true, grey(), &screen);
+    drawMode(ot, 64);
 }
 
 /// Fade to white: a full-screen quad, opaque only at full alpha.
-fn fadeWhite(ot: ?*anyopaque, rect: *v.RECT) void {
-    const p0 = polyF4();
-    p0.x0 = 0;
-    p0.y0 = 0;
-    p0.x1 = 320;
-    p0.y1 = 0;
-    p0.x2 = 0;
-    p0.y2 = 240;
-    p0.x3 = 320;
-    p0.y3 = 240;
-    c.SetDrawMode(psx.cptr(c.DR_MODE, drMode()), 0, 1, 32, psx.cptr(c.RECT, rect));
-
-    if (alpha() == 255) {
-        c.SetSemiTrans(polyF4(), 0);
-    } else {
-        c.SetSemiTrans(polyF4(), 1);
-    }
-
-    setRgb0(polyF4());
-    c.AddPrim(otPlus4(ot), polyF4());
-    c.AddPrim(otPlus4(ot), drMode());
+fn fadeWhite(ot: ?*anyopaque) void {
+    sprite_item.flat(otPlus4(ot), 4, alpha() != 255, grey(), &screen);
+    drawMode(ot, 32);
 }
 
-const Xy = struct { x: i16, y: i16 };
-
-/// RotTrans of (x, y, 0) through the current matrices, with the projected point stored as i16.
-fn rotTransAt(pos: *v.SVECTOR, projected: *v.VECTOR, flag: *c_int, x: c_int, y: c_int) Xy {
+/// RotTrans of (x, y, 0) through the current matrices, the projected point as x low, y high.
+fn rotTransAt(pos: *v.SVECTOR, projected: *v.VECTOR, flag: *c_int, x: c_int, y: c_int) c_int {
     pos.vx = psx.conv(i16, x);
     pos.vy = psx.conv(i16, y);
     c.RotTrans(psx.cptr(c.SVECTOR, pos), psx.cptr(c.VECTOR, projected), flag);
-    return .{ .x = psx.conv(i16, projected.vx), .y = psx.conv(i16, projected.vy) };
+    return xy(@as(c_int, psx.conv(i16, projected.vx)), @as(c_int, psx.conv(i16, projected.vy)));
 }
 
-/// Screen wipe: a rotated, translated frame of the covered and edge polygons.
-fn wipe(ot: ?*anyopaque, rect: *v.RECT) void {
+/// Screen wipe: a rotated, translated frame of the covered and edge polygons and the edge's gradient.
+fn wipe(ot: ?*anyopaque) void {
     var rotTransMatrix: v.MATRIX = std.mem.zeroes(v.MATRIX);
     var screenCenter: v.VECTOR = std.mem.zeroes(v.VECTOR);
     var zRotation: v.SVECTOR = std.mem.zeroes(v.SVECTOR);
@@ -166,49 +116,19 @@ fn wipe(ot: ?*anyopaque, rect: *v.RECT) void {
     const ex2 = scaled -% 360;
     const ex3 = scaled -% 200;
 
-    var p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, -360, -200);
-    wipePoly().covered.x0 = p.x;
-    wipePoly().covered.y0 = p.y;
+    // The covered quad runs from the left to ex1, the edge quad from ex1 to ex2, the gradient from ex2 to ex3.
+    const a = rotTransAt(&wipeEdgePos, &projectedPos, &flag, -360, -200);
+    const b = rotTransAt(&wipeEdgePos, &projectedPos, &flag, -360, 200);
+    const cc = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex1, -200);
+    const d = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex1, 200);
+    const e = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex2, -200);
+    const f = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex2, 200);
+    const g = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex3, -200);
+    const h = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex3, 200);
 
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, -360, 200);
-    wipePoly().covered.x2 = p.x;
-    wipePoly().covered.y2 = p.y;
-
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex1, -200);
-    wipePoly().covered.x1 = p.x;
-    wipePoly().covered.y1 = p.y;
-    wipePoly().edge.x0 = p.x;
-    wipePoly().edge.y0 = p.y;
-
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex1, 200);
-    wipePoly().covered.x3 = p.x;
-    wipePoly().covered.y3 = p.y;
-    wipePoly().edge.x2 = p.x;
-    wipePoly().edge.y2 = p.y;
-
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex2, -200);
-    wipePoly().edge.x1 = p.x;
-    wipePoly().edge.y1 = p.y;
-    edgeG4().x0 = p.x;
-    edgeG4().y0 = p.y;
-
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex2, 200);
-    wipePoly().edge.x3 = p.x;
-    wipePoly().edge.y3 = p.y;
-    edgeG4().x2 = p.x;
-    edgeG4().y2 = p.y;
-
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex3, -200);
-    edgeG4().x1 = p.x;
-    edgeG4().y1 = p.y;
-
-    p = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex3, 200);
-    edgeG4().x3 = p.x;
-    edgeG4().y3 = p.y;
-
-    c.AddPrim(otPlus4(ot), &wipePoly().covered);
-    c.AddPrim(otPlus4(ot), &wipePoly().edge);
-    c.AddPrim(otPlus4(ot), edgeG4());
-    c.SetDrawMode(psx.cptr(c.DR_MODE, drMode()), 0, 1, 64, psx.cptr(c.RECT, rect));
-    c.AddPrim(otPlus4(ot), drMode());
+    const blue: c_int = 1 << 16;
+    sprite_item.flat(otPlus4(ot), 4, false, blue, &[4]c_int{ a, cc, b, d });
+    sprite_item.flat(otPlus4(ot), 4, false, blue, &[4]c_int{ cc, e, d, f });
+    sprite_item.shaded(otPlus4(ot), 4, true, &[4]c_int{ 0xFFFFFF, 0, 0xFFFFFF, 0 }, &[4]c_int{ e, g, f, h });
+    drawMode(ot, 64);
 }

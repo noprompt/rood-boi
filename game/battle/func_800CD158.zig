@@ -46,11 +46,11 @@ pub fn func_800CD158(id: c_int) callconv(.c) void {
     }
     if (y < 128) {
         if (y >= 0) {
-            c.vs_battle_addTile(ot, 0x60000000, 0, ((y +% 1) << 16) | 320);
+            sprite_item.tile(ot, 0x60000000, 0, ((y +% 1) << 16) | 320);
         }
     } else {
         if (y < 240) {
-            c.vs_battle_addTile(ot, 0x60000000, y << 16, (0xF00000 -% (y << 16)) | 320);
+            sprite_item.tile(ot, 0x60000000, y << 16, (0xF00000 -% (y << 16)) | 320);
         }
         if (box.state == @as(c_int, box.unk22) + 1) {
             c.func_800CD0FC(y -% 7, @bitCast(@as(c_int, psx.getBits(&box.unk0, "unk0_8")) - 1));

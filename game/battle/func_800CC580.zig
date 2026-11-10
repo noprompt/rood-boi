@@ -1,17 +1,8 @@
-//! Adds the drawing area and draw offset commands for a clip rectangle
-//! (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
-const common = @import("common");
-const psx = common.psx;
-const c = @import("c_5BF94");
+//! Battle drawing area: the 64-wide column of the second frame buffer page `arg1` names (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
+const sprite_item = @import("common").sprite_item;
 
 /// orig: func_800CC580 (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
-/// Adds the GP0 drawing area (top-left and bottom-right) and draw offset commands for the rectangle at `pos`.
+/// Sets the drawing area to the 64 x 256 column at x = `arg1`, y = 256 and the draw offset there.
 pub fn func_800CC580(arg0: [*c]c_uint, arg1: c_int) callconv(.c) void {
-    // arg1 | 0xE3040000 etc.: the OR is unsigned; arg1 + 0x3F is int arithmetic, wrapping before the OR.
-    c.vs_battle_addTile(
-        arg0,
-        psx.conv(c_int, psx.conv(c_uint, arg1) | 0xE304_0000),
-        psx.conv(c_int, psx.conv(c_uint, arg1 +% 0x3F) | 0xE407_FC00),
-        psx.conv(c_int, psx.conv(c_uint, arg1) | 0xE508_0000),
-    );
+    sprite_item.area(arg0, arg1 & 0x3FF, 256, 64, 256, .{ arg1, 256 });
 }

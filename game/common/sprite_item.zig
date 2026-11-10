@@ -23,3 +23,60 @@ pub fn color(item: c_int, word: c_int) void {
 pub fn command(item: c_int) ?*const anyopaque {
     return psx.weak(Command, "vs_battle_spriteCommand").?(item);
 }
+
+const Tile = *const fn (?*anyopaque, c_uint, c_uint, c_uint) callconv(.c) c_int;
+const PacketTile = *const fn (?*anyopaque, c_int, c_int, c_int) callconv(.c) void;
+const Mode = *const fn (?*anyopaque, c_int) callconv(.c) void;
+
+/// What vs_battle_addTile linked: a flat tile (code 0x60..0x63: `wh` its size) or line (0x40, 0x42: `wh` its end) as a draw item at `ot`;
+/// any other word pair stays the packet it was.
+pub fn tile(ot: ?*anyopaque, rgb0: c_int, xy: c_int, wh: c_int) void {
+    if (psx.weak(Tile, "vs_battle_tileItem").?(ot, @bitCast(rgb0), @bitCast(xy), @bitCast(wh)) != 0) return;
+    psx.weak(PacketTile, "vs_battle_addTile").?(ot, rgb0, xy, wh);
+}
+
+/// What vs_battle_insertTpage linked for a draw mode word (GP0 E1): the draw mode as an item at `ot`.
+pub fn drawMode(ot: ?*anyopaque, e1: c_int) void {
+    psx.weak(Mode, "vs_battle_modeItem").?(ot, e1);
+}
+
+const Flat = *const fn (?*anyopaque, c_int, c_int, c_int, [*]const c_int) callconv(.c) void;
+const Shaded = *const fn (?*anyopaque, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
+const DrawModeWindow = *const fn (?*anyopaque, c_int, c_int) callconv(.c) void;
+const Mask = *const fn (?*anyopaque, c_int) callconv(.c) void;
+
+/// A flat polygon (`verts` 3 or 4) at `ot`, `rgb` 0xBBGGRR, corners x low and y high.
+pub fn flat(ot: ?*anyopaque, verts: c_int, semi: bool, rgb: c_int, xy: []const c_int) void {
+    psx.weak(Flat, "vs_battle_flatItem").?(ot, verts, @intFromBool(semi), rgb, xy.ptr);
+}
+
+/// A shaded polygon: a colour per corner.
+pub fn shaded(ot: ?*anyopaque, verts: c_int, semi: bool, rgb: []const c_int, xy: []const c_int) void {
+    psx.weak(Shaded, "vs_battle_shadedItem").?(ot, verts, @intFromBool(semi), rgb.ptr, xy.ptr);
+}
+
+/// SetDrawMode's DR_MODE at `ot`: the draw mode (E1 bits) and the texture window (E2's 20 bits).
+pub fn drawModeWindow(ot: ?*anyopaque, e1: c_int, window: c_int) void {
+    psx.weak(DrawModeWindow, "vs_battle_drawModeItem").?(ot, e1, window);
+}
+
+/// DR_STP at `ot`: the mask bit set when drawing.
+pub fn mask(ot: ?*anyopaque, on: bool) void {
+    psx.weak(Mask, "vs_battle_maskItem").?(ot, @intFromBool(on));
+}
+
+const Ft4 = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
+
+/// A textured quad at `ot`: its page word and CLUT, the colour its texels are scaled by (`raw`: drawn as they are), corners as x low
+/// and y high, texels as u low and v high.
+pub fn ft4(ot: ?*anyopaque, raw: bool, semi: bool, tpage: c_int, clut: c_int, rgb: c_int, xy: []const c_int, uv: []const c_int) void {
+    psx.weak(Ft4, "vs_battle_ft4Item").?(ot, @intFromBool(raw), @intFromBool(semi), tpage, clut, rgb, xy.ptr, uv.ptr);
+}
+
+const Area = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int, c_int, c_int) callconv(.c) void;
+
+/// A drawing area at `ot` (x, y, w, h) with, when `offset` is given, the draw offset it sets.
+pub fn area(ot: ?*anyopaque, x: c_int, y: c_int, w: c_int, h: c_int, offset: ?[2]c_int) void {
+    const o = offset orelse [2]c_int{ 0, 0 };
+    psx.weak(Area, "vs_battle_areaItem").?(ot, x, y, w, h, @intFromBool(offset != null), o[0], o[1]);
+}

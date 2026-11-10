@@ -1,4 +1,4 @@
-//! Copies the 20-byte scene data block and writes its 33 packed command words into the GPU packet list at D_80068C1C (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
+//! Copies the 20-byte scene data block and writes its 33 colours into the background mesh at D_80068C1C (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const v = @import("views_146C");
 const c = @import("c_146C");
 
@@ -11,13 +11,13 @@ pub fn func_8008EB30(arg0: [*c]c_int) callconv(.c) void {
     var p: usize = 2;
     var a: usize = 0;
 
-    dst[p] = (arg0[a] & 0xFFFFFF) | 0x30000000;
+    dst[p] = (arg0[a] & 0xFFFFFF);
     a += 1;
     p += 1;
 
     for (0..8) |_| {
         p += 2;
-        dst[p] = (arg0[a] & 0xFFFFFF) | 0x30000000;
+        dst[p] = (arg0[a] & 0xFFFFFF);
         p += 1;
     }
 
@@ -25,7 +25,7 @@ pub fn func_8008EB30(arg0: [*c]c_int) callconv(.c) void {
 
     for (0..16) |_| {
         p += 2;
-        dst[p] = (arg0[a] & 0xFFFFFF) | 0x30000000;
+        dst[p] = (arg0[a] & 0xFFFFFF);
         p += 1;
     }
 
@@ -33,9 +33,9 @@ pub fn func_8008EB30(arg0: [*c]c_int) callconv(.c) void {
 
     for (0..8) |_| {
         p += 2;
-        dst[p] = (arg0[a] & 0xFFFFFF) | 0x30000000;
+        dst[p] = (arg0[a] & 0xFFFFFF);
         p += 1;
     }
 
-    dst[p + 2] = (arg0[a + 1] & 0xFFFFFF) | 0x30000000;
+    dst[p + 2] = (arg0[a + 1] & 0xFFFFFF);
 }

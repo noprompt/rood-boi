@@ -57,6 +57,8 @@ extern int pc_hw_text_quad(const float*, const int*, const int*, unsigned, unsig
 extern void pc_hw_text_piece_done(void) __attribute__((weak));
 /* ui_text.c: battle number popups at the UI text scale. */
 extern int pc_ui_text_popup_place(const uint32_t*, const uint32_t* (*)(const uint32_t*), float*) __attribute__((weak));
+extern int pc_ui_text_popup_place_item(int, float*) __attribute__((weak));
+extern int pc_frame_command_item(const void*) __attribute__((weak));
 /* Room polygon depths from room_geometry.c (1) or the projection log (0). */
 int pc_room_exact_depth = 1;
 /* Widescreen HUD anchoring of the packet about to draw (gpu_hw.c). */

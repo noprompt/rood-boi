@@ -317,7 +317,9 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         float placed[8]; /* (as the packet's: without the drawing offset) */
         for (int i = 0; i < 4; ++i)
             placed[i * 2] = vertex[i].fx - draw_x, placed[i * 2 + 1] = vertex[i].fy - draw_y;
-        if (pc_ui_text_popup_place(drawing_tag, next_packet, placed))
+        int item = pc_frame_command_item ? pc_frame_command_item(p) : -1; /* (a draw item's quad: its group is the popup) */
+        if (item >= 0 && pc_ui_text_popup_place_item ? pc_ui_text_popup_place_item(item, placed)
+                                                     : pc_ui_text_popup_place(drawing_tag, next_packet, placed))
             for (int i = 0; i < 4; ++i) {
                 placed[i * 2] += draw_x, placed[i * 2 + 1] += draw_y;
                 vertex[i].fx = placed[i * 2], vertex[i].fy = placed[i * 2 + 1];

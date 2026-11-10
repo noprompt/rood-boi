@@ -13,7 +13,7 @@ fn density(room: *v._mpdRoomSectionB, divisor: c_int) c_int {
 }
 
 /// orig: func_80090C2C (pc/src/game/BATTLE/BATTLE.PRG/2842C.c)
-/// Sets up weather `kind` (0 none, 1..4) from the current room's section B and switches the looping sound
+/// Sets up weather `kind` (0 none, 1 rain, 3 motes: no room has the snow, 2, or the falling particles, 4) from the current room's section B and switches the looping sound
 /// D_800F1DBC to the kind's (21 for kind 1, none otherwise); with no room, stops the sound.
 pub fn func_80090C2C(kind: c_int) callconv(.c) void {
     const current = v.g.D_800F1DBC();
@@ -36,9 +36,7 @@ pub fn func_80090C2C(kind: c_int) callconv(.c) void {
                 c.func_8008F29C(density(room, 4), kind);
                 sound = 21;
             },
-            2 => c.func_8008F29C(density(room, 4), kind),
             3 => c.func_8008F30C(density(room, 4), kind),
-            4 => c.func_8008F9A4(density(room, 2), kind),
             else => {},
         }
 

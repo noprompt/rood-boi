@@ -60,7 +60,11 @@ ONLY_UNDER = {"gte_state_machine": "pc/src/game/", "gte_sdk_calls": "pc/src/game
 # packets are for, T16), and the typed items' lowering to packets (it goes when a renderer takes items directly).
 SKIP_FOR = {"gpu_packet_writes": ("pc/src/game/SLUS_010.40/libgpu/", "pc/src/boot_sdk.c", "pc/src/boot_runtime.c",
                                   "pc/src/boot_polygons.inc", "pc/src/boot_lines.inc", "pc/src/gpu_hw.c",
-                                  "pc/src/draw_items.c")}
+                                  "pc/src/draw_items.c",
+                                  # not GPU packets: the SPU's registers and volume words, the movie library's data words,
+                                  # and the classic layer's own records (a `.tag` field of its suppression list)
+                                  "pc/src/game/SLUS_010.40/libspu/", "pc/src/game/SLUS_010.40/25AC.c",
+                                  "pc/src/game/TITLE/TITLE.PRG/libpress/", "pc/src/classic/classic_parity.c")}
 COMMENTS = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|//[^\n]*', re.S)
 
 

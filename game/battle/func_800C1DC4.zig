@@ -4,6 +4,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_58578");
 const c = @import("c_58578");
+const sprite_item = common.sprite_item;
 
 /// orig: func_800C1DC4 (pc/src/game/BATTLE/BATTLE.PRG/58578.c)
 /// Draws target row `arg0`: its gradient plate and text, then its leader line to the projected point when selected.
@@ -66,29 +67,21 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
 
     c.vs_battle_renderTextRawColor(psx.get(row.unk10), textXy, color, @ptrCast(np));
 
-    var prim: c_uint = psx.addr(psx.get(v.g.vs_scratch().unk0).?);
     if (gradient != 0) row.unk2 = psx.conv(u8, gradient -% 1);
     x = @as(c_int, row.unk4) & 0xFFFF;
     gradient = @as(c_int, @intFromBool(@as(c_int, row.unk4) < 160)) *% 2;
 
-    const pp: [*]align(1) c_uint = @ptrFromInt(@as(usize, prim));
-    pp[0] = (np[0] & 0xFFFFFF) | 0x0D000000;
-    pp[1] = 0x60000000;
-    pp[2] = psx.conv(c_uint, ((x +% 2 -% gradient) & 0xFFFF) | ((y +% 2) << 16));
-    pp[3] = psx.conv(c_uint, (gradient +% 0x48) | 0x80000);
-    pp[4] = 0xE1000200;
-    pp[5] = psx.conv(c_uint, color0 | 0x38000000);
-    pp[6] = psx.conv(c_uint, x | (y << 16));
-    pp[7] = psx.conv(c_uint, color1);
-    pp[8] = psx.conv(c_uint, ((x +% 0x48) & 0xFFFF) | (y << 16));
-    pp[9] = psx.conv(c_uint, color0);
-    pp[10] = psx.conv(c_uint, x | ((y +% 8) << 16));
-    pp[11] = psx.conv(c_uint, color1);
-    pp[12] = psx.conv(c_uint, ((x +% 0x48) & 0xFFFF) | ((y +% 8) << 16));
-    pp[13] = 0xE1000000;
-    np[0] = (prim << 8) >> 8;
-    prim +%= 56;
-    psx.put(&v.g.vs_scratch().unk0, @as(?*anyopaque, @ptrFromInt(@as(usize, prim))));
+    // The row's plate as draw items at its slot: a black tile (the draw mode the GPU is in), then in the dithered mode a gradient quad
+    // that leaves mode 0 set (the packet's four parts, in the order they draw: the last added draws first).
+    sprite_item.drawMode(@ptrCast(np), @bitCast(@as(c_uint, 0xE1000000)));
+    sprite_item.shaded(@ptrCast(np), 4, false, &[4]c_int{ color0, color1, color0, color1 }, &[4]c_int{
+        x | (y << 16),
+        ((x +% 0x48) & 0xFFFF) | (y << 16),
+        x | ((y +% 8) << 16),
+        ((x +% 0x48) & 0xFFFF) | ((y +% 8) << 16),
+    });
+    sprite_item.drawMode(@ptrCast(np), @bitCast(@as(c_uint, 0xE1000200)));
+    sprite_item.tile(@ptrCast(np), 0x60000000, ((x +% 2 -% gradient) & 0xFFFF) | ((y +% 2) << 16), (gradient +% 0x48) | 0x80000);
 
     if (psx.weak(SiteFn, "pc_classic_site")) |site| {
         site(20, &pcRow, pcRow.x, pcRow.y, pcRowFirst, @ptrFromInt(@as(usize, @as(*align(1) const c_uint, @ptrFromInt(0x1F800000)).*)));

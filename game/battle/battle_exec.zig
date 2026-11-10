@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = common.sprite_item;
 
 const Site = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaque) callconv(.c) void;
 const Anchor = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
@@ -69,7 +70,7 @@ pub fn battleExec() callconv(.c) void {
                     // ROOD_PC: the frame's typed draw items (the effects') start empty with its table.
                     c.pc_frame_begin();
                     psx.put(&v.g.vs_scratch().unk0, v.g.D_8005E0C0()[psx.conv(usize, v.g.vs_main_frameBuf().*)]);
-                    c.AddPrim(ot, psx.at(v.g.D_800F1970(), v.g.vs_main_frameBuf().*));
+                    sprite_item.mask(ot, false);
                     if ((v.g.vs_main_startState().* == 3 or v.g.vs_main_startState().* == 4) and
                         (buttonsPressed() & 0x9FF) != 0)
                     {
@@ -512,14 +513,7 @@ pub fn battleExec() callconv(.c) void {
                     } else if (v.g.D_800F196C().* == 3) {
                         c.func_800E5308();
                     }
-                    const stp = psx.at(v.g.D_800F1988(), v.g.vs_main_frameBuf().*);
-                    if (v.g.D_800F1B98().* == 1 or v.g.D_800F1B98().* == 2) {
-                        c.SetDrawStp(psx.cptr(c.DR_STP, stp), 1);
-                        c.AddPrim(ot + 0x820, stp);
-                    } else {
-                        c.SetDrawStp(psx.cptr(c.DR_STP, stp), 0);
-                        c.AddPrim(ot + 0x820, stp);
-                    }
+                    sprite_item.mask(ot + 0x820, v.g.D_800F1B98().* == 1 or v.g.D_800F1B98().* == 2);
                     _ = c.func_800E45B4();
                     _ = c.func_8007629C(ot + 0x821);
                     c.func_8007DF98();
