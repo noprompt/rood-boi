@@ -111,3 +111,10 @@ const Gt4 = *const fn (c_int, c_int, c_int, c_int, [*]const c_int, [*]const c_in
 pub fn gt4(depth: c_int, semi: bool, tpage: c_int, clut: c_int, rgb: []const c_int, xy: []const c_int, uv: []const c_int) void {
     psx.weak(Gt4, "vs_battle_gt4Item").?(depth, @intFromBool(semi), tpage, clut, rgb.ptr, xy.ptr, uv.ptr);
 }
+
+const Before = *const fn (c_int, c_int) callconv(.c) void;
+
+/// The textured item is drawn after the draw mode `e1` (GP0 E1) is set, as the packet that began with that word drew: its dither and display bits.
+pub fn before(item: c_int, e1: c_int) void {
+    psx.weak(Before, "vs_battle_itemBefore").?(item, e1);
+}

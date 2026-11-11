@@ -3,6 +3,9 @@
 #include <string.h>
 #include <sys/mman.h>
 void pc_screff2_warp_packets(unsigned*, unsigned short, short, unsigned short*);
+/* (the draw items the warp also deforms are the story routes' to prove: no marker is placed here) */
+int pc_frame_marker(const unsigned* packet, int* first, int* count) { (void)packet, (void)first, (void)count; return 0; }
+void* pc_frame_item(int index) { (void)index; return 0; }
 unsigned short D_80040C18[192] = { [0] = 4096, [64] = 5792 };
 void pc_unimplemented(const char* s)
 {

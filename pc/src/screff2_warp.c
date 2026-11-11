@@ -4,6 +4,7 @@
 #include <libgte.h>
 #include <inline_c.h>
 #include "view_state.h"
+#include "draw_items.h"
 #include "pc/src/game/GIM/SCREFF2.PRG/0.h"
 extern unsigned short D_80040C18[];
 extern void pc_unimplemented(const char*);
@@ -38,6 +39,39 @@ static unsigned warped_position(unsigned xy, const unsigned short* factors)
     int wx = (int)((unsigned)x * scale) >> 13, wy = (int)((unsigned)y * scale) >> 13;
     return (unsigned short)(wx + 160) | ((unsigned)(unsigned short)(wy + 112) << 16);
 }
+/* The polygon items a marker places (pc_frame_place), deformed as the packets they replace were: their corners (a tile or sprite, like a
+ * rectangle packet, is not). */
+static void warp_items(int first, int count, const unsigned short* factors)
+{
+    for (int index = first; index < first + count; ++index) {
+        pc_item* item = pc_frame_item(index);
+        if (!item || item->kind != PC_ITEM_POLY)
+            continue;
+        for (int v = 0; v < item->verts; ++v) {
+            unsigned xy = warped_position((unsigned short)item->x[v] | ((unsigned)(unsigned short)item->y[v] << 16), factors);
+            item->x[v] = (short)xy, item->y[v] = (short)(xy >> 16);
+        }
+    }
+}
+/* The polygon a packet holds after its draw mode words (a rectangle, a line or anything else is left as it is). */
+static void warp_packet(unsigned* packet, unsigned words, const unsigned short* factors)
+{
+    for (unsigned i = 1; i <= words; ++i) {
+        unsigned type = (packet[i] >> 26) - 8;
+        if (type >= 48)
+            continue;
+        if (type < 8) {
+            unsigned stride = 1 + (type & 1) + ((type >> 2) & 1);
+            unsigned count = 3 + ((type >> 1) & 1);
+            unsigned start = i + 1;
+            if (start + (count - 1) * stride > words)
+                pc_unimplemented("truncated screen warp polygon");
+            for (unsigned v = 0; v < count; ++v)
+                packet[start + v * stride] = warped_position(packet[start + v * stride], factors);
+        }
+        break;
+    }
+}
 void pc_screff2_warp_packets(
     unsigned* ot, unsigned short base, short growth, unsigned short* factors)
 {
@@ -51,22 +85,11 @@ void pc_screff2_warp_packets(
     unsigned* packet = ot + 0x7fe;
     for (unsigned links = 0; links < 100000; ++links) {
         unsigned words = packet[0] >> 24;
-        for (unsigned i = 1; i <= words; ++i) {
-            unsigned type = (packet[i] >> 26) - 8;
-            if (type >= 48)
-                continue;
-            if (type < 8) {
-                unsigned stride = 1 + (type & 1) + ((type >> 2) & 1);
-                unsigned count = 3 + ((type >> 1) & 1);
-                unsigned start = i + 1;
-                if (start + (count - 1) * stride > words)
-                    pc_unimplemented("truncated screen warp polygon");
-                for (unsigned v = 0; v < count; ++v)
-                    packet[start + v * stride] =
-                        warped_position(packet[start + v * stride], factors);
-            }
-            break;
-        }
+        int first, placed;
+        if (pc_frame_marker(packet, &first, &placed))
+            warp_items(first, placed, factors);
+        else
+            warp_packet(packet, words, factors);
         unsigned next = packet[0] & 0xffffff;
         if (next == 0xffffff) {
             ot[0] = saved;

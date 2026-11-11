@@ -202,6 +202,13 @@ void vs_battle_itemBracket(int item)
     if (it)
         it->flags |= PC_ITEM_BRACKET;
 }
+/* The textured polygon item drawn after the draw mode `e1` (GP0 E1): the packet that began with that word (PC_ITEM_BEFORE). */
+void vs_battle_itemBefore(int item, int e1)
+{
+    pc_item* it = pc_frame_item(item);
+    if (it)
+        it->flags |= PC_ITEM_BEFORE, it->before = (unsigned short)(e1 & 0x3fff);
+}
 /* SetDrawMode's DR_MODE: the draw mode (E1 bits) and, when `window` is not -1, the texture window (E2's 20 bits). */
 void vs_battle_drawModeItem(unsigned* ot, int e1, int window)
 {

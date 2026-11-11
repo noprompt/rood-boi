@@ -77,10 +77,6 @@ pub fn func_8007D734(ot: ?*anyopaque) callconv(.c) void {
         v.g.D_800F1B98().* +%= 1;
         if (v.g.D_800F1B98().* >= 5) {
             v.g.D_800F1B98().* = 0;
-            if (v.g.D_800F1ABC().*) |buf| {
-                c.vs_main_freeHeapR(buf);
-                v.g.D_800F1ABC().* = null;
-            }
         }
     }
 }

@@ -58,7 +58,7 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
             sprite_item.tileFlat(ot, semi, background, i & 0xFFFF, (320 - i) | 0xF00000);
         }
     }
-    const quad_color: c_int = alpha | (alpha << 8) | (alpha << 16) | ((@as(c_int, v.g.D_800F51C8().*) + 22) << 25);
+    const quad_color: c_int = alpha | (alpha << 8) | (alpha << 16); // (the packet's command byte, 0x2C + 2 * D_800F51C8, is the item's flags)
     alpha |= @as(c_int, v.g.D_800F51C8().*) << 8;
     j = 0;
     while (j < rows) : (j += 1) {
@@ -90,24 +90,18 @@ pub fn func_800CBBCC(image_arg: ?*v.gim_t, clut: c_int, ot: [*c]c_uint) callconv
                 if (scale == 4096) {
                     _ = sprite_item.sprite(ot, alpha, left | (top << 16), 0xF0040, tpage_word, u | vv | clut);
                 } else {
+                    // A textured quad of the tile's corners (x0, top), (right, top), (x0, bottom), (right, bottom): the texels as the words held
+                    // them (the row bits spill into the CLUT and page halves, as they did), the draw mode set before it.
                     const x0 = left & 0xFFFF;
                     var u_right = u + 64;
                     u_right -= u_right >> 8;
                     const packed_bottom = bottom << 16;
-                    const prim: [*c]c_uint = @ptrCast(@alignCast(psx.get(scratch.unk0).?));
-                    prim[0] = (ot.* & 0xFFFFFF) | 0xA000000;
-                    prim[1] = @bitCast(tpage_word);
-                    prim[2] = @bitCast(quad_color);
-                    prim[4] = @bitCast(u | vv | clut);
-                    prim[3] = @bitCast(x0 | (top << 16));
-                    prim[5] = @bitCast(right | (top << 16));
-                    prim[6] = @bitCast(u_right | vv | (tpage << 16));
-                    prim[7] = @bitCast(x0 | packed_bottom);
-                    prim[8] = @bitCast(u | (vv + 0xF00));
-                    prim[9] = @bitCast(right | packed_bottom);
-                    prim[10] = @bitCast(u_right | (vv + 0xF00));
-                    ot.* = (psx.addr(prim) << 8) >> 8;
-                    psx.put(&scratch.unk0, @as(*anyopaque, @ptrCast(prim + 11)));
+                    const clut_word: c_uint = @bitCast(u | vv | clut);
+                    const page_word: c_uint = @bitCast(u_right | vv | (tpage << 16));
+                    const corners = [4]c_int{ x0 | (top << 16), right | (top << 16), x0 | packed_bottom, right | packed_bottom };
+                    const texels = [4]c_int{ u | vv, u_right | vv, u | (vv + 0xF00), u_right | (vv + 0xF00) };
+                    const item = sprite_item.ft4(ot, false, (v.g.D_800F51C8().* & 1) != 0, @intCast(page_word >> 16), @intCast(clut_word >> 16), quad_color, &corners, &texels);
+                    sprite_item.before(item, tpage_word & 0x3FFF);
                 }
             } else if (color != 0 and (color != 0x8000 or v.g.D_800F51C8().* == 0)) {
                 sprite_item.tileFlat(ot, semi, background, (left & 0xFFFF) | (top << 16), (right -% left) | ((bottom -% top) << 16));

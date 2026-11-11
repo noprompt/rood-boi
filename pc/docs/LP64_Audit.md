@@ -288,7 +288,6 @@ Pointer-typed imports:
 | `D_800F18EC` | `D_800F18EC_t *` | - | zero | BATTLE | 3 |
 | `D_800F192C` | `vs_battle_actor *` | - | zero | BATTLE | 2 |
 | `D_800F19CC` | `D_800F19CC_t *` | - | zero | BATTLE | 610 |
-| `D_800F1ABC` | `D_800F1ABC_t *` | - | zero | BATTLE | 69 |
 | `D_800F1BA8` | `u_short *` | - | zero | BATTLE | 7 |
 | `D_800F1BAC` | `D_800F1BAC_t (*)[32]` | - | zero | BATTLE | 28 |
 | `D_800F1BB8` | `void *` | - | zero | BATTLE | 2 |
@@ -835,7 +834,7 @@ one). 32-bit builds, `make commit-check` ("All files match") and `run.py -j 2`
 - *Left for task 7:* the 32 OT links above; pointer-typed imports written by
   this group's code (`D_800F1CC0`, `D_800F1BB8` from the scratchpad,
   `D_800F4810[4][16]` sequence pointers, `vs_battle_wepModels[]`,
-  `D_800F4528`, `D_800F22E4`, `D_800F1ABC`, `D_800EB9B8` in src).
+  `D_800F4528`, `D_800F22E4`, `D_800EB9B8` in src).
   Not checked: heap high-water (no struct of the group grew; the effect node
   grows 0xC -> 0x18 per node on LP64).
 

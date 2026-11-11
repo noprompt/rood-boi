@@ -434,12 +434,6 @@ typedef union {
 } func_800765B0_t;
 
 typedef struct {
-    POLY_FT4 poly[10];
-    SPRT sprite[10];
-    int unk258[30];
-} D_800F1ABC_t;
-
-typedef struct {
     int roomSectionOffset;
     u_short roomSectionLen;
     int clearedSectionOffset;
@@ -543,7 +537,6 @@ void vs_battle_initialiseCameraFromSpherical(
     VECTOR* arg0, VECTOR* arg1, int arg2, int arg3);
 int _getLocationId(int, int);
 void func_8007D360(void);
-void func_8007D41C(void);
 void _calculateWeaponClassAffinity(vs_battle_actor2*);
 int vs_battle_itemIdIsInInventory(int);
 short _getDefenseGemBuff(vs_action_t*, vs_battle_actor2*, int);
@@ -728,7 +721,6 @@ extern int D_800F1A50[];
 extern D_800F1A68_t D_800F1A68;
 extern P_CODE D_800F1A78;
 extern char D_800F1A9C[];
-extern D_800F1ABC_t* D_800F1ABC;
 extern int D_800F1B98;
 extern int D_800F1B9C;
 extern u_short D_800F1BA4;
@@ -1078,7 +1070,15 @@ void func_80072BA8(int action);
 
 void func_80072EC4(int arg0, u_short arg1);
 /* The start of an actor's action (the base attack's, a cast's, the enemies' abilities'), named for the dev RPC action (pc/src/action_driver.c). */
-void pc_action_start_actor(int actor, int action) { func_80072EC4(actor, (u_short)action); }
+void pc_action_start_actor(int actor, int action)
+{
+    /* An enemy's ability starts after its AI's targeting commands chose who it is for (unk10: the target actor, the limb in the high half):
+     * func_80071F68 then picks the target list entry that choice names, and with none (unk298C stays 0xFF) the AI does not carry the ability
+     * out. The driver has no such command: Ashley (actor 0) is the choice, as it is for an enemy with no other to choose. */
+    if (actor != 0 && vs_battle_actors[actor])
+        vs_battle_actors[actor]->unk10.s32 = 0;
+    func_80072EC4(actor, (u_short)action);
+}
 /* The player's action committed (what the menus' target confirmation calls), likewise. */
 void pc_action_start_player(int kind) { func_80070F28(kind); }
 
@@ -1492,8 +1492,6 @@ void vs_battle_setActionUnlocked(u_int arg0);
 void func_8007D340(int arg0);
 
 void func_8007D360(void);
-
-void func_8007D41C(void);
 
 void func_8007D734(void* arg0);
 

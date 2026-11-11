@@ -156,8 +156,8 @@ def play(binary, seconds, card, out, width):
 
 DRIVE_CRASHES = {}  # action id -> why the driver skips it (none: a valid id does not crash)
 # The rooms whose enemies have, together, every ability the 182 rooms with enemies give them (a scan of stats + 0x8C0 of the first 59 zones'
-# rooms, greedily; not 29,0, whose enemy 6 crashes the game at battle frame 2946 whatever it is driven to do): the lane `--casts enemies` drives each ability once.
-ENEMY_ROOMS = ("56,22;24,1;48,25;48,18;52,5;40,24;50,14;55,1;22,0;24,0;24,4;24,15;49,1;51,16;56,6;13,9;25,1;40,11;48,20;50,6;51,1;51,9;"
+# rooms, greedily): the lane `--casts enemies` drives each ability once.
+ENEMY_ROOMS = ("56,22;24,1;48,25;48,18;52,5;29,0;40,24;50,14;55,1;22,0;24,0;24,4;24,15;49,1;51,16;56,6;13,9;25,1;40,11;48,20;50,6;51,1;51,9;"
                "51,21;55,21;56,10;12,1;13,2;16,0;24,11;40,22;48,26;49,0;50,0;51,6;51,12;52,6;53,23;53,29;54,4;55,14;56,1;56,5")
 ENEMY_SKIPS = {147: "an enemy of zone 13 room 9 casting it reads a sector far past the disc's end (the effect's file is named by data that room lacks): the disc read fails"}  # action id -> why the enemies lane leaves it out
 SCHOOLS = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))
@@ -271,22 +271,25 @@ def play_casts(binary, card, out, kinds, limit):
     g, sym = r.g, r.sym
     actions, sites, peak, states = {}, [], 0, {}
     try:
-        g.call("ui_menu", modern=True)
-        g.call("skip_charging", mode="skip", who="all", name=smoke.NAME_SECONDS)
-        g.write(sym["vs_main_settings"] + smoke.INFORMATION, b"\x01")
-        flags = g.read(sym["vs_main_settings"] + soak.MENU_FLAGS, 1)[0]
-        g.write(sym["vs_main_settings"] + soak.MENU_FLAGS, bytes([flags | 1]))
-        for name, size in SCHOOLS:
-            for i in g.read(sym[f"vs_battle_{name}SpellIds"], size):
-                a = sym["vs_main_actions"] + i * smoke.ACTION + smoke.ACTION_UNLOCKED
-                g.write(a, bytes([g.read(a, 1)[0] | 0x80]))
-        g.run(4)
-        try:
-            g.call("effect_sites", on=True, reset=True)
-        except Exception:
-            pass
+        def prepare():
+            g.call("ui_menu", modern=True)
+            g.call("skip_charging", mode="skip", who="all", name=smoke.NAME_SECONDS)
+            g.write(sym["vs_main_settings"] + smoke.INFORMATION, b"\x01")
+            flags = g.read(sym["vs_main_settings"] + soak.MENU_FLAGS, 1)[0]
+            g.write(sym["vs_main_settings"] + soak.MENU_FLAGS, bytes([flags | 1]))
+            for name, size in SCHOOLS:
+                for i in g.read(sym[f"vs_battle_{name}SpellIds"], size):
+                    a = sym["vs_main_actions"] + i * smoke.ACTION + smoke.ACTION_UNLOCKED
+                    g.write(a, bytes([g.read(a, 1)[0] | 0x80]))
+            g.run(4)
+            try:
+                g.call("effect_sites", on=True, reset=True)
+            except Exception:
+                pass
+        prepare()
         count = 0
         by_actor = set()
+        found = {}
         record = lambda i: g.read(sym["vs_main_actions"] + i * smoke.ACTION, smoke.ACTION)
         def drive_actors(tag, attack):
             """The game's own entry for an actor's action (func_80072EC4: the base attack's, and what the actor commands run for the
@@ -459,6 +462,20 @@ def play_casts(binary, card, out, kinds, limit):
             by_actor.clear()
             count = 0
             for zone, room in (tuple(int(n) for n in w.split(",")) for w in os.environ.get("BUILD_COMPARE_ENEMY_ROOMS", ENEMY_ROOMS).split(";")):
+                # Each room in a game of its own, from the same room snapshot: what an earlier room's last action left (the player's
+                # hurt or dead, the enemies' acting, a battle mode that never returns to free) is not the next room's start. A room run
+                # after others ended the game in an effect script (zone 29 room 0 after five others) that it never reaches alone, and
+                # rooms' actions "could not start" because the battle was not free.
+                try:
+                    reply = g.call("effect_sites")
+                    found.update({json.dumps(site): site for site in reply["sites"]})
+                    peak = max(peak, reply["peak_items"])
+                except Exception:
+                    pass
+                r.close()
+                r = Cast("casts", snap, card_copy, env, out, socket, fast=True)
+                g, sym = r.g, r.sym
+                prepare()
                 g.call("room_goto", zone=zone, room=room, enemies=True, scripts=False)
                 for _ in range(80):
                     g.run(20)
@@ -472,7 +489,8 @@ def play_casts(binary, card, out, kinds, limit):
                 g.pause(False)
         try:
             reply = g.call("effect_sites")
-            sites, peak = reply["sites"], reply["peak_items"]
+            found.update({json.dumps(site): site for site in reply["sites"]})  # (the games of the enemies' rooms keep theirs)
+            sites, peak = list(found.values()), max(peak, reply["peak_items"])
         except Exception:
             sites, peak = [], 0
     finally:
@@ -600,7 +618,9 @@ def tour(name):
 
 
 STORY_ROUTES = ("room-001-00-s000", "room-003-00-s000", "evt-0001", "evt-0002", "room-010-00-s000", "room-034-00-s034", "room-032-17-s038")  # the story scenes whose drawers no room_goto route reaches
-CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title", "opening_events": "title", **{f"story_{i}": "title" for i in STORY_ROUTES}}  # (the routes that do not start in the save room)
+STORY_WARPS = ("room-034-00-s034", "room-032-17-s038")  # the scenes with a border, played again with the screen warp set
+STORY_SCALED = ("room-001-00-s000",)  # the scenes with GIM images, played again with them drawn at another scale
+CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title", "opening_events": "title", **{f"story_{i}": "title" for i in STORY_ROUTES}, **{f"story_{i}_warp": "title" for i in STORY_WARPS}, **{f"story_{i}_scaled": "title" for i in STORY_SCALED}}  # (the routes that do not start in the save room)
 
 
 def scene_dialogue(g, cp, symbols):
@@ -758,11 +778,15 @@ def room_script(zone, room, steps=90):
     return scene
 
 
-def story_scene(scene_id):
+def story_scene(scene_id, warp=False, scaled=0):
     """A story scene (pc/assets/cutscenes/story.json) played as the cutscene player plays it (RPC cutscene start: the game started in the scene's
     room with the story's flags, its event run by the game's own entry, the dialogue going on by itself), from the title with no card. For the
     rooms whose scripts room_goto cannot warp to (no door into them), and the chained events (EVT 1, 2): the wipes, the screen effect, the
-    border. Back at the scene's first frame, paused (the scene went on by itself, unpaced, while it was reached: the replay is exact), then run for the scene's frames (the player's count) and a little more."""
+    border. Back at the scene's first frame, paused (the scene went on by itself, unpaced, while it was reached: the replay is exact), then run for the scene's frames (the player's count) and a little more.
+    With `warp`: the screen effect's radial warp (SCREFF2, set by the event script's op 237, which no scene plays here) set in its state while the
+    border is on, so the scene's frames are drawn through it (the warp deforms what the ordering table holds: packets and polygon items).
+    With `scaled`: the scene's GIM images drawn at that scale (D_800EB9BC's records, unkC's low 14 bits; the scripts here leave them at 4096) from
+    the first frame they show to the end: the textured quads of func_800CBBCC's scaled branch."""
     def scene(g, cp, symbols):
         story = json.loads((ROOT / "pc/assets/cutscenes/story.json").read_text())
         frames = next(s["frames"] for s in story["scenes"] if s["id"] == scene_id)
@@ -781,6 +805,29 @@ def story_scene(scene_id):
             time.sleep(0.1)
             if not g.call("cutscene")["busy"]:
                 break
+        if scaled:
+            images = symbols["D_800EB9BC"]
+            for step in range(frames // 10 + 12):
+                g.run(10)
+                base = int.from_bytes(g.read(images, 8), "little")
+                shown = [base + i * 0x3F8 for i in range(4) if base and g.read(base + i * 0x3F8 + 3, 1)[0]]  # (a record's unk3 is its brightness)
+                for gim in shown:
+                    unk_c = int.from_bytes(g.read(gim + 0xC, 2), "little")
+                    g.write(gim + 0xC, ((unk_c & 0xC000) | scaled).to_bytes(2, "little"))
+                if step >= frames // 10 + 11:
+                    break
+            return
+        if warp:
+            state = symbols["D_800F4ED8"]  # (the screen effect's state: unk8 the border's, then unk4 and unk6 the warp's base scale and growth)
+            for _ in range(frames // 10 + 12):
+                g.run(10)
+                if int.from_bytes(g.read(state + 8, 4), "little"):
+                    break
+            else:
+                raise RuntimeError(f"{scene_id}: the border never came on")
+            g.write(state + 4, struct.pack("<hh", 3400, -48))
+            g.run(frames + 120)
+            return
         g.run(frames + 120)
     return scene
 
@@ -858,7 +905,7 @@ SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_men
           "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
           "gameover": scene_gameover, "damage": popups(1), "damage_x2": popups(2), "actor_word_x2": parity_tour("actor_word", 2),
           "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "areamap": scene_areamap, "opening": scene_opening, "opening_events": scene_opening_events,
-          **{f"script_{z}_{r}": room_script(z, r) for z, r in ((9, 0), (48, 3), (9, 2), (22, 0))}, **{f"story_{i}": story_scene(i) for i in STORY_ROUTES}, "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
+          **{f"script_{z}_{r}": room_script(z, r) for z, r in ((9, 0), (48, 3), (9, 2), (22, 0))}, **{f"story_{i}": story_scene(i) for i in STORY_ROUTES}, **{f"story_{i}_warp": story_scene(i, warp=True) for i in STORY_WARPS}, **{f"story_{i}_scaled": story_scene(i, scaled=3000) for i in STORY_SCALED}, "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
           **{n: parity_tour(n) for n in ("gauges", "figure", "status_icons", "battle_mode", "buff", "actor_word", "timer", "text_band",
                                         "target_row", "target_line", "ability_icons")}}
 def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):
