@@ -750,7 +750,9 @@ void vs_mainMenu_unpackMenubg(u_int* buf)
     int var_a2;
     int i;
     u_int var_v1;
-    void* data = vs_overlay_slots[2];
+    /* The background follows MAINMENU.PRG in the same read (the main menu's load is 0xF000 bytes into slot 1,
+     * 0x9000 of them its file): the bytes the original found at the submenu slot's start. */
+    void* data = (char*)vs_overlay_slots[1] + 0x9000;
     u_int* temp_t1 = data + 0x200;
 
     for (i = 0, var_a2 = 0; i < 0x1780;) {

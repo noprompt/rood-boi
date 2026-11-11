@@ -383,12 +383,11 @@ snapshots each overlay's initial statics and restores them whenever that file is
 overlay file's first sector (the game's `VS_<NAME>_LBA`, written by `build_boot.py` into
 `overlay_statics_table.c`), so the runtime no longer opens the disc image to walk its directories at startup.
 The submenu slot (MENU0-F, `vs_overlay_slots[2]`) has no pinned import left: MENUB's two `items1.h` flags
-(`_itemCategoryIconsEnabled`, `_statusCommandState`) are the overlay's own statics. Its load destination
-cannot yet leave 0x80102800: `vs_mainMenu_unpackMenubg` (`MAINMENU.PRG/58EC.c`) hands pointers into the
-loaded file (the menu background's palette and image) to `vs_main_loadClut` and `vs_battle_renderImage`,
-which take guest addresses; with the file read into a buffer of the program the menus lose their
-background (checked, items route). Those 512 bytes have to be copied into guest memory (the heap) first,
-then the slot can be a program buffer (the largest file, MENUC, is exactly the slot's 0x9800 bytes).
+(`_itemCategoryIconsEnabled`, `_statusCommandState`) are the overlay's own statics. Its load destination is a buffer of
+the program (`_submenuSlot`, `main.c`; MENUC, the largest file, is exactly the slot's 0x9800 bytes). What
+had kept it at 0x80102800: the main menu's read into slot 1 is 0xF000 bytes (MAINMENU.PRG's 0x9000 and the
+menu background after it), so `vs_mainMenu_unpackMenubg` found the background at the submenu slot's start;
+it now reads it at slot 1 + 0x9000. `overlay.c` (the MIPS original, not built) is gone.
 Found on the way: in MENUB, `items1.h`'s functions and the rest of the file use two pairs of
 `_itemCategoryIconsEnabled` / `_statusCommandState` (the original's static redeclaration made one);
 making it one variable changes the loot screen (481 of 717 frames), so it stays as it was.
@@ -510,14 +509,14 @@ accessors.
 **Player feels.** Nothing directly.
 
 **Evidence.**
-- Counts (`pc/tools/ps1_address_baseline.json`, 2026-11-10): `ps1_address` 12, `scratchpad` 52,
+- Counts (`pc/tools/ps1_address_baseline.json`, 2026-11-10): `ps1_address` 7, `scratchpad` 52,
   `unnamed_symbol` 20594, `zig_raw_memory` 1036 (mostly in `game/battle`), `address_as_integer` 230.
 - `pc/tools/build_boot.py` (`imports.ld`); `game/ownership.toml`; `game/common/psx.zig`.
-- 958 data imports in the 64-bit build (`lp64_imports.json`): 198 native, 760 pinned (see below).
+- 956 data imports in the 64-bit build (`lp64_imports.json`): 195 native, 761 pinned (see below).
 
-**Status.** Fully PS1-shaped in addressing; native in logic. Since 2026-11-10 `ps1_address` is 12 (from
+**Status.** Fully PS1-shaped in addressing; native in logic. Since 2026-11-10 `ps1_address` is 7 (from
 60): what is left is the RAM base (`ROOD_GUEST_RAM_BASE`, `psx.guest_ram_base`), the heap
-(`VS_MAIN_HEAP_ADDRESS`), the overlay slot table (`overlay.c`, T10), the ordering-table link walk in Zig
+(`VS_MAIN_HEAP_ADDRESS`), the ordering-table link walk in Zig
 (`func_800C64D0`), and the actor-engagement reads through guest RAM (`no_hostile_near_target.zig`).
 
 **To replace.** Very large, mostly mechanical per unit: rename by meaning, replace the address with a
@@ -528,8 +527,8 @@ The build gives a data import (a global the C only declares) one of two homes: n
 `native_imports.c`, no PS1 address) or pinned (`imports.ld`: the address the original had, inside the
 fixed RAM). `pc/build/boot64/lp64_imports.json` (written by `build_boot.py --arch 64`) lists each
 import's address, users, declared types and, for a pinned one, `pinned`: the first reason it stays.
-958 data imports: 198 native (117 hold pointers, which the LP64 mover widens; 81 are plain data the
-mover now moves too), 760 pinned.
+956 data imports: 195 native (117 hold pointers, which the LP64 mover widens; 81 are plain data the
+mover now moves too), 761 pinned.
 
 | Where (PS1 address range) | Pinned | Native |
 |---|---|---|
@@ -538,7 +537,7 @@ mover now moves too), 760 pinned.
 | main menu and effect plug-in slot (`0x800F9800-0x80102800`) | 157 | 0 |
 | submenu slot (`0x80102800-0x8010C000`) | 0 | 0 |
 
-Why the 760 are pinned (each counted once, in this order):
+Why the 761 are pinned (each counted once, in this order):
 - 334 hold pointers or a type whose layout differs (psx_ptr structs, tables of function or data
   pointers that are not moved natively): T13 has to widen them first.
 - 160 have their address taken: an `lea` or a data relocation in an object, or owned Zig using the
@@ -562,7 +561,7 @@ moved global by a literal address (a grep of `pc/`, `game/` and the tests for ea
 none; `ending_smoke.py` reads ENDING's globals by address, and those stay).
 
 What the slots still do:
-- `vs_overlay_slots` (`overlay.c`, T10) is where a loaded file's bytes land: 0x80068800 (BATTLE,
+- `vs_overlay_slots` (`main.c`, T10) is where a loaded file's bytes land: 0x80068800 (BATTLE,
   INITBTL, ENDING), 0x800F9800 (main menu, effect plug-ins, EFFPURGE), 0x80102800 (the submenus). The
   code of every file is native already; the bytes matter only as the initial values of the pinned
   globals above, and as a scratch destination: `load_eff_purge.zig` and `load_menu_prg.zig` load
