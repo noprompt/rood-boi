@@ -11,7 +11,7 @@ pub fn func_8008E6DC(arg0: c_int) callconv(.c) void {
     const mapId: c_int = room.mapId;
 
     // D_800E84AC[i][k] of the static helper get_D_800E84AC: four bytes per row.
-    const table = @as([*][4]u8, @ptrCast(psx.globalMany(u8, "D_800E84AC")));
+    const table = @as([*][4]u8, @ptrCast(psx.GlobalMany(u8, "D_800E84AC").ptr()));
     const sections = v.g.D_800E849C();
     const flags = v.g.vs_main_stateFlags();
 

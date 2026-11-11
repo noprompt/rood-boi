@@ -7,7 +7,7 @@ const v = @import("views_74088");
 const c = @import("c_74088");
 
 fn statsCopies() *?[*]v.vs_battle_actor2 {
-    return psx.global(?[*]v.vs_battle_actor2, "D_800F58E8");
+    return psx.Global(?[*]v.vs_battle_actor2, "D_800F58E8").ptr();
 }
 
 /// orig: snapshotActorStats (pc/src/game/BATTLE/BATTLE.PRG/74088.c)
@@ -54,12 +54,12 @@ pub fn func_800DE3E4(state: ?*v.vs_battle_aiState) callconv(.c) void {
     var selected = [3]c_int{ 0, 0, 0 };
     const s = state.?;
     const stats = psx.get(s.stats.actor2);
-    const pass1 = psx.global(?[*][16]v.actionCandidateEntry, "D_800F58EC");
-    const fallbacks = psx.global(?[*]v.actionCandidateEntry, "D_800F58F8");
-    const used = psx.global(?[*][256]u8, "D_800F5904");
+    const pass1 = psx.Global(?[*][16]v.actionCandidateEntry, "D_800F58EC").ptr();
+    const fallbacks = psx.Global(?[*]v.actionCandidateEntry, "D_800F58F8").ptr();
+    const used = psx.Global(?[*][256]u8, "D_800F5904").ptr();
 
-    psx.global(c_int, "D_800F58F0").* = 0;
-    psx.global(c_int, "D_800F58F4").* = 0;
+    psx.Global(c_int, "D_800F58F0").ptr().* = 0;
+    psx.Global(c_int, "D_800F58F4").ptr().* = 0;
 
     var row: usize = 0;
     while (row < 6) : (row += 1) {
@@ -130,13 +130,13 @@ pub fn func_800DE3E4(state: ?*v.vs_battle_aiState) callconv(.c) void {
 
             if (s.count470 == 0 and s.allowFallback != 0) {
                 var i: c_int = 0;
-                while (i < psx.global(c_int, "D_800F58F0").*) : (i += 1) {
+                while (i < psx.Global(c_int, "D_800F58F0").ptr().*) : (i += 1) {
                     const fallback = psx.at(&s.candidates, i);
                     c.func_800DC2E0(@ptrCast(fallback), @ptrCast(psx.at(fallbacks.*.?, i)));
                     psx.setBits(fallback, "weight", 128);
                     psx.put(psx.at(&s.entries.candidates, i), fallback);
                 }
-                s.count470 = psx.global(c_int, "D_800F58F0").*;
+                s.count470 = psx.Global(c_int, "D_800F58F0").ptr().*;
                 planFn("func_800DC3CC")(s);
             }
         }

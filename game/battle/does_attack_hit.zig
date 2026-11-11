@@ -16,7 +16,7 @@ pub fn doesAttackHit(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: 
     if (target.?.unk40 == 0 and psx.get(actors[target.?.unk0.targetActor].?.stats).?.unk957 == 0x80) {
         threshold = 100;
     } else {
-        const table = psx.globalMany(?HitFunction, "_hitFunctions");
+        const table = psx.GlobalMany(?HitFunction, "_hitFunctions").ptr();
         // hitParams has 2 entries; hitNumber is not bounded by the C.
         const params = psx.at(&action.?.hitParams, hitNumber);
         threshold = table[psx.getBits(params, "hitFunction")].?(action, source, target, hitNumber, addVariance);

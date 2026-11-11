@@ -74,7 +74,7 @@ pub fn loadMpdRoomSection(room: c_int, data: ?*anyopaque) callconv(.c) c_int {
     c.func_8008E8F8();
     c.func_8008E938();
     c.func_8008B320();
-    psx.global(u8, "D_800F1BBC").* = 0;
+    psx.Global(u8, "D_800F1BBC").ptr().* = 0;
     if (psx.get(rooms.sectionE) != null) {
         c.vs_main_wait();
     }

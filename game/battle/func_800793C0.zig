@@ -23,7 +23,7 @@ fn link(k: c_int) *v.D_800F19CC_t2 {
 /// still busy (func_8009E4B0), plays every hit's reaction and every link user's own (func_800792E4), then, unless
 /// in battle state 3, ends the action (func_80073898 when func_800BEC58(0xC) answers 1, else func_8006FB48).
 pub fn func_800793C0() callconv(.c) void {
-    const mode = psx.global(c_int, "D_800F19EC").*;
+    const mode = psx.Global(c_int, "D_800F19EC").ptr().*;
     const projection = v.g.vs_main_projectionDistance();
     const camera = &v.g.vs_battle_cameraCurrentSpherical().values;
     if (mode == 1 or mode == 3) {
@@ -52,7 +52,7 @@ pub fn func_800793C0() callconv(.c) void {
             }
         }
     }
-    if (projection.* == 0x200 and psx.global(c_int, "D_800F19D8").* == state().unk2C0C and c._isLookAtAtDestination() != 0) {
+    if (projection.* == 0x200 and psx.Global(c_int, "D_800F19D8").ptr().* == state().unk2C0C and c._isLookAtAtDestination() != 0) {
         var idle = true;
         var k: c_int = 0;
         // unk4C has 30 entries; the hit count unk4A is not bounded by the C.

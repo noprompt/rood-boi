@@ -8,8 +8,8 @@ const c = @import("c_5BF94");
 /// LoadImage of `buffer` into the next of eight RECTs (D_800F51D0, cursor D_800EC280), its x, y and w, h words from `xy` and `wh`.
 pub fn renderImage(xy: c_int, buffer: ?*anyopaque, wh: c_int) callconv(.c) void {
     // Block-scope externs in the C (not in the unit's DWARF): reached by name.
-    const cursor = psx.global(c_int, "D_800EC280");
-    const rect = psx.at(psx.globalMany(v.RECT, "D_800F51D0"), cursor.*);
+    const cursor = psx.Global(c_int, "D_800EC280").ptr();
+    const rect = psx.at(psx.GlobalMany(v.RECT, "D_800F51D0").ptr(), cursor.*);
     cursor.* = (cursor.* +% 1) & 7;
     @as(*align(2) c_int, @ptrCast(&rect.x)).* = xy;
     @as(*align(2) c_int, @ptrCast(&rect.w)).* = wh;

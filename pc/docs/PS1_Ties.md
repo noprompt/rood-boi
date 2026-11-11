@@ -379,7 +379,19 @@ snapshots each overlay's initial statics and restores them whenever that file is
 - `pc/src/boot_sdk.c`: `vs_overlay_jumpToTitle`, `vs_overlay_jumpToBattle`, `pc_title_jump`,
   `pc_battle_jump`.
 
-**Status.** Fully PS1-shaped; the code part is native.
+**Status.** Fully PS1-shaped; the code part is native. Since 2026-11-10 the restart table carries each
+overlay file's first sector (the game's `VS_<NAME>_LBA`, written by `build_boot.py` into
+`overlay_statics_table.c`), so the runtime no longer opens the disc image to walk its directories at startup.
+The submenu slot (MENU0-F, `vs_overlay_slots[2]`) has no pinned import left: MENUB's two `items1.h` flags
+(`_itemCategoryIconsEnabled`, `_statusCommandState`) are the overlay's own statics. Its load destination
+cannot yet leave 0x80102800: `vs_mainMenu_unpackMenubg` (`MAINMENU.PRG/58EC.c`) hands pointers into the
+loaded file (the menu background's palette and image) to `vs_main_loadClut` and `vs_battle_renderImage`,
+which take guest addresses; with the file read into a buffer of the program the menus lose their
+background (checked, items route). Those 512 bytes have to be copied into guest memory (the heap) first,
+then the slot can be a program buffer (the largest file, MENUC, is exactly the slot's 0x9800 bytes).
+Found on the way: in MENUB, `items1.h`'s functions and the rest of the file use two pairs of
+`_itemCategoryIconsEnabled` / `_statusCommandState` (the original's static redeclaration made one);
+making it one variable changes the loot screen (481 of 717 frames), so it stays as it was.
 
 **To replace.** Large. Overlays become modules with explicit init/reset state; the restart rule becomes
 code instead of a memory copy. The effect plugins that reuse function names at one address are the
@@ -501,7 +513,7 @@ accessors.
 - Counts (`pc/tools/ps1_address_baseline.json`, 2026-11-10): `ps1_address` 12, `scratchpad` 52,
   `unnamed_symbol` 20594, `zig_raw_memory` 1036 (mostly in `game/battle`), `address_as_integer` 230.
 - `pc/tools/build_boot.py` (`imports.ld`); `game/ownership.toml`; `game/common/psx.zig`.
-- 960 data imports in the 64-bit build (`lp64_imports.json`): 198 native, 762 pinned (see below).
+- 958 data imports in the 64-bit build (`lp64_imports.json`): 198 native, 760 pinned (see below).
 
 **Status.** Fully PS1-shaped in addressing; native in logic. Since 2026-11-10 `ps1_address` is 12 (from
 60): what is left is the RAM base (`ROOD_GUEST_RAM_BASE`, `psx.guest_ram_base`), the heap
@@ -516,17 +528,17 @@ The build gives a data import (a global the C only declares) one of two homes: n
 `native_imports.c`, no PS1 address) or pinned (`imports.ld`: the address the original had, inside the
 fixed RAM). `pc/build/boot64/lp64_imports.json` (written by `build_boot.py --arch 64`) lists each
 import's address, users, declared types and, for a pinned one, `pinned`: the first reason it stays.
-960 data imports: 198 native (117 hold pointers, which the LP64 mover widens; 81 are plain data the
-mover now moves too), 762 pinned.
+958 data imports: 198 native (117 hold pointers, which the LP64 mover widens; 81 are plain data the
+mover now moves too), 760 pinned.
 
 | Where (PS1 address range) | Pinned | Native |
 |---|---|---|
 | main program (`0x80010000-0x80068800`) | 102 | 51 |
 | BATTLE and ENDING slot (`0x80068800-0x800F9800`) | 501 | 147 |
 | main menu and effect plug-in slot (`0x800F9800-0x80102800`) | 157 | 0 |
-| submenu slot (`0x80102800-0x8010C000`) | 2 | 0 |
+| submenu slot (`0x80102800-0x8010C000`) | 0 | 0 |
 
-Why the 762 are pinned (each counted once, in this order):
+Why the 760 are pinned (each counted once, in this order):
 - 334 hold pointers or a type whose layout differs (psx_ptr structs, tables of function or data
   pointers that are not moved natively): T13 has to widen them first.
 - 160 have their address taken: an `lea` or a data relocation in an object, or owned Zig using the
@@ -534,7 +546,7 @@ Why the 762 are pinned (each counted once, in this order):
   user need guest RAM: GPU packets and ordering-table entries (links are 24 bits of a RAM address, see
   `next_packet` in `boot_runtime.c`) and DMA/CD destinations. D_800F4CD0 is declared `u_long` and is the
   start of the ordering-table pages; declared sizes cannot be trusted for these.
-- 103 have an incomplete type (`[]`) or are over 256 bytes: the extent is a guess (the next import).
+- 101 have an incomplete type (`[]`) or are over 256 bytes: the extent is a guess (the next import).
 - 66 are in a slot whose restart is not wired (effect plug-in and main menu data, ENDING), or are
   shared between the main program and an overlay.
 - 49 follow an array of unknown length (it may run into them); 44 overlap or sit inside another import;

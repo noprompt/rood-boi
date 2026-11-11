@@ -8,7 +8,7 @@ const c = @import("c_6F014");
 /// Queues a CD read of `size` bytes at `lba` into `buf`; once it has loaded, frees the slot and returns 0, else 1.
 fn loadFile(lba: c_int, size: c_int, buf: ?*anyopaque) c_int {
     var cdFile: c.vs_main_CdFile = undefined;
-    const slot = psx.global(?*c.vs_main_CdQueueSlot, "D_800F568C");
+    const slot = psx.Global(?*c.vs_main_CdQueueSlot, "D_800F568C").ptr();
 
     if (slot.* == null) {
         cdFile.lba = psx.conv(@TypeOf(cdFile.lba), lba);

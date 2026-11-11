@@ -10,7 +10,7 @@ Two halves:
   - emit(dump, names): the Zig module: extern structs/unions with explicit
     padding, align(1) where C is misaligned, psx.Ptr(T) for psx_ptr fields,
     a `bitfields` table per struct (psx.getBits/setBits), comptime asserts of
-    every offset and size, and `g.<global>()` accessors (psx.global).
+    every offset and size, and `g.<global>()` accessors (psx.Global).
 Readable names (PORTING.md §16) come from battle/MEANINGS.tsv's zig_name
 column: a global's accessor, a field (`Type.field` rows) or a bitfield is
 emitted under its readable name with an `/// orig:` comment; the symbol and
@@ -393,7 +393,7 @@ class Emitter:
                 out.append(f"    /// a static of the unit, globalised by the build as {symbol}")
             if r["kind"] == "array" and r["count"] == 0:
                 out.append(f"    pub inline fn {zid(zig)}() [*]{self.ztype(r['elem'])} "
-                           f'{{ return psx.globalMany({self.ztype(r["elem"])}, "{symbol}"); }}')
+                           f'{{ return psx.GlobalMany({self.ztype(r["elem"])}, "{symbol}").ptr(); }}')
             else:
                 # A global pointer to integers (`u_short* D_800F58C8`) is indexed
                 # by the C (`D_800F58C8[i]`): many-item, so a reader sees a table.
@@ -406,7 +406,7 @@ class Emitter:
                     zt = re.sub(rf"(?<![\w.]){re.escape(zid(zig))}\b", f"views.{zid(zig)}", zt)
                     self.self_alias = True
                 out.append(f"    pub inline fn {zid(zig)}() *{zt} "
-                           f'{{ return psx.global({zt}, "{symbol}"); }}')
+                           f'{{ return psx.Global({zt}, "{symbol}").ptr(); }}')
         out.append("};")
         return "\n".join(out)
 

@@ -103,10 +103,10 @@ with tempfile.TemporaryDirectory() as d:
         dump = zig_views.dump_with_gdb(obj, [], ["counter", "first::reported", "second::reported", "slot::cell"],
                                        d / f"views{bits}.json")
         views = zig_views.emit(dump, {"globals": {}, "fields": {}}, psx_import="psx", unit_object="unit")
-        check('pub inline fn first__reported() *i32 { return psx.global(i32, "unit__first__reported"); }' in views
-              and 'pub inline fn second__reported() *i32 { return psx.global(i32, "unit__second__reported"); }' in views
-              and 'pub inline fn slot__cell() *[2]i32 { return psx.global([2]i32, "unit__slot__cell"); }' in views
-              and 'pub inline fn counter() *i32 { return psx.global(i32, "unit__counter"); }' in views,
+        check('pub inline fn first__reported() *i32 { return psx.Global(i32, "unit__first__reported").ptr(); }' in views
+              and 'pub inline fn second__reported() *i32 { return psx.Global(i32, "unit__second__reported").ptr(); }' in views
+              and 'pub inline fn slot__cell() *[2]i32 { return psx.Global([2]i32, "unit__slot__cell").ptr(); }' in views
+              and 'pub inline fn counter() *i32 { return psx.Global(i32, "unit__counter").ptr(); }' in views,
               f"{bits}-bit: views accessors link to the globalised names")
         if failures:
             print(views)

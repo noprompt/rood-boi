@@ -100,7 +100,7 @@ with tempfile.TemporaryDirectory() as d:
         (d / f"views{bits}.zig").write_text(views)
         (d / f"test{bits}.zig").write_text(TEST % values.rstrip(","))
         ok = "/// orig: rec\n    pub inline fn record()" in views and "/// orig: arr\n    values:" in views \
-            and '"rec")' in views and 'pub inline fn table() [*]i16 { return psx.globalMany(i16, "table"); }' in views
+            and '"rec")' in views and 'pub inline fn table() [*]i16 { return psx.GlobalMany(i16, "table").ptr(); }' in views
         print(("ok:   " if ok else "FAIL: ") + f"{bits}-bit: renamed accessor and field keep their orig: lines and symbol; unsized array is [*]")
         if not ok:
             failures.append(bits + " names")

@@ -48,7 +48,7 @@ pub fn commitAction(kind: c_int) callconv(.c) void {
     state().unk0 = 0;
     if (state().unk8.unk4.unk0.targetActor == 0) {
         // ROOD_PC guard: the ability menu state is null until the menu first opens; the PS1 reads address 0.
-        const ability: *align(1) v.D_800F18EC_t = if (psx.global(?*v.D_800F18EC_t, "D_800F18EC").*) |p| p else psx.lowRam(v.D_800F18EC_t);
+        const ability: *align(1) v.D_800F18EC_t = if (psx.Global(?*v.D_800F18EC_t, "D_800F18EC").ptr().*) |p| p else psx.lowRam(v.D_800F18EC_t);
         if (ability.unk2 != 7) {
             if (ability.unk2 == 8) {
                 _ = c.vs_battle_decreaseMiscCount(@as(c_int, ability.executeAbility.u16[1]));
@@ -100,7 +100,7 @@ pub fn commitAction(kind: c_int) callconv(.c) void {
     state().unk2C07 = 0;
 
     if (state().unk8.actionIndex >= 55) {
-        psx.global(u8, "D_8005FFAF").* = 0;
+        psx.Global(u8, "D_8005FFAF").ptr().* = 0;
         switch (state().unk8.actionIndex) {
             0x4D, 0x60, 0xE0, 0xE1, 0xE2, 0xE3, 0xE8, 0xE9, 0xEA, 0xEB => {
                 const score = v.g.scoreData();

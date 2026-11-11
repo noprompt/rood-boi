@@ -41,7 +41,7 @@ pub fn func_800775C0(id: c_int, spawn: ?*v.mpdEnemySpawn, init: ?*v.vs_battle_ch
     const zudIndex = data.mpdIdentifer;
     const bladeId: c_int = @as(u8, @bitCast(data.weapon.blade.wepId));
     const shieldId: c_int = @as(u8, @bitCast(data.shield.base.wepId));
-    const two_part = psx.globalMany(u8, "D_8004FE88")[data.unk2] != 0;
+    const two_part = psx.GlobalMany(u8, "D_8004FE88").ptr()[data.unk2] != 0;
     var actor: *v.vs_battle_actor = undefined;
     // The block: the actor, its stats, its object (the model), then the unk48 records: two weapon records,
     // or for a two-part enemy the second part's object.
@@ -123,7 +123,7 @@ pub fn func_800775C0(id: c_int, spawn: ?*v.mpdEnemySpawn, init: ?*v.vs_battle_ch
     object.material = data.unk24;
     _ = c.vs_battle_populateDataSlot(@ptrCast(&object));
     if (data.unk2 != 0x7F) {
-        if (psx.globalMany(u8, "D_8004FE88")[data.unk2] != 0) {
+        if (psx.GlobalMany(u8, "D_8004FE88").ptr()[data.unk2] != 0) {
             object.dataType = 1;
             object.index = psx.conv(i8, id +% 4);
             const templates: [*]v.vs_battle_charInitData = @ptrCast(@alignCast(psx.get(zone.zndEnemies).?));

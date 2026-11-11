@@ -8,7 +8,7 @@ const c = @import("c_38C1C");
 /// Runs two follow-up calls for entity slot `arg0`, then sets its unkB_4 field to 6.
 pub fn func_800A2574(arg0: c_int, arg1: c_short) callconv(.c) void {
     // The entity pointer is read before the calls; it is unwrapped only at the store, as the C dereferences only there.
-    const entities = psx.global([17]?*v.D_800F4538_t, "D_800F4538");
+    const entities = psx.Global([17]?*v.D_800F4538_t, "D_800F4538").ptr();
     const temp_s1: ?*v.D_800F4538_t = psx.at(entities, arg0).*;
     c.func_800A9EB4(arg0, @as(c_int, arg1), 8);
     c.func_8009DF3C(arg0, 3);

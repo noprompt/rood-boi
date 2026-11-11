@@ -20,7 +20,7 @@ fn actionKind(action: ?*v.vs_action_t) c_int {
 /// _actionEffectMediators[action->hitParams[hit].effect](action, arg1, arg2, hit, arg3).
 fn callMediator(action: ?*v.vs_action_t, arg1: ?*v._hitEntity_t, arg2: ?*v._hitEntity_t, hit: c_int, arg3: c_int) void {
     const effect = psx.getBits(psx.at(&action.?.hitParams, hit), "effect");
-    const mediators = psx.globalMany(?Mediator, "_actionEffectMediators");
+    const mediators = psx.GlobalMany(?Mediator, "_actionEffectMediators").ptr();
     mediators[effect].?(action, arg1, arg2, hit, arg3);
 }
 

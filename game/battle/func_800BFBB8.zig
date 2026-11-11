@@ -38,8 +38,8 @@ pub fn func_800BFBB8(arg0: [*c][*c]u8, arg1: c_short) callconv(.c) c_short {
         v.g.D_800F4C2C().* = 2;
     }
 
-    const table = psx.globalMany(?Op, "_opcodeFunctionTable");
-    const scene = psx.global(?[*]?Op, "D_800F4C28");
+    const table = psx.GlobalMany(?Op, "_opcodeFunctionTable").ptr();
+    const scene = psx.Global(?[*]?Op, "D_800F4C28").ptr();
     while (true) {
         // ROOD_PC: the opcode's callback must be native code (its low 32 bits, as the C casts it).
         const callback: ?Op = if (v.g.D_800F4C2C().* != 2) table[script[0]] else scene.*.?[script[0]];

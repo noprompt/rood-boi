@@ -134,17 +134,30 @@ const host = blk: {
     break :blk @hasDecl(root, "reload_mode") and root.reload_mode == 1;
 };
 
-/// Globals reached PC-relative like GCC, never through Windows .refptr stubs.
-pub inline fn global(comptime T: type, comptime name: []const u8) *T {
-    if (library or host) return @extern(*T, .{ .name = name });
-    return @extern(*T, .{ .name = name, .relocation = .pcrel, .visibility = .hidden });
+/// A global reached PC-relative like GCC, never through Windows .refptr stubs: `psx.Global(T, "name").ptr()`.
+/// A type, not a function taking the name: Zig's Debug code (the development library) spills an inline
+/// function's comptime string parameter into the caller's frame, and the unwritten slot then keeps a host
+/// pointer (into the game library's rodata) on the game stack, which is saved state. A name captured by a
+/// type reaches no frame. An unsized array (`extern T name[];`) is `GlobalMany(T, "name")`, declared as
+/// `T name[0]`, as the C declares it, never as one `T`: the 64-bit build sizes each moved pointer import
+/// from every object's declaration, and a complete one-element declaration shrank `vs_battle_actors`
+/// (16 slots) to its first two.
+pub fn Global(comptime T: type, comptime name: []const u8) type {
+    return struct {
+        pub inline fn ptr() *T {
+            if (library or host) return @extern(*T, .{ .name = name });
+            return @extern(*T, .{ .name = name, .relocation = .pcrel, .visibility = .hidden });
+        }
+    };
 }
-/// An unsized array (`extern T name[];`). Declared as `T name[0]`, as the C
-/// declares it, never as one `T`: the 64-bit build sizes each moved pointer
-/// import from every object's declaration, and a complete one-element
-/// declaration shrank `vs_battle_actors` (16 slots) to its first two.
-pub inline fn globalMany(comptime T: type, comptime name: []const u8) [*]T {
-    return global([0]T, name);
+
+/// An unsized array (`extern T name[];`) as a many-item pointer: `psx.GlobalMany(T, "name").ptr()`.
+pub fn GlobalMany(comptime T: type, comptime name: []const u8) type {
+    return struct {
+        pub inline fn ptr() [*]T {
+            return Global([0]T, name).ptr();
+        }
+    };
 }
 
 /// A host hook the C declares `__attribute__((weak))` and tests for null

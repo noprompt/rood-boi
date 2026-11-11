@@ -48,7 +48,7 @@ pub fn script_specialOp(script: [*c]u8, _: c_short) callconv(.c) c_int {
         15 => c.pc_screff2_set_border(script[2]),
         16 => {
             v.g.D_800F4C64().* = @bitCast(psx.addr(script + 6));
-            return @bitCast(psx.addr(psx.global(u8, "D_800E9B5C")));
+            return @bitCast(psx.addr(psx.Global(u8, "D_800E9B5C").ptr()));
         },
         17 => c.func_8007C4D4(),
         else => _ = c.sprintf(&buf, @constCast("<SPECIAL=%d> IS UNDEFINED!"), @as(c_int, script[1])),

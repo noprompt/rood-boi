@@ -28,7 +28,7 @@ pub fn func_800A2CD4(arg0: ?*v.D_800F4538_t) callconv(.c) void {
         2 => {
             _ = c.func_800A2FBC(@ptrCast(a));
             _ = c.func_800A9378(@as(c_int, a.unk0.position.vx), @as(c_int, a.unk0.position.vy), @as(c_int, a.unk0.position.vz), 2);
-            if (psx.global(c_int, "D_800F49F4").* != 0) {
+            if (psx.Global(c_int, "D_800F49F4").ptr().* != 0) {
                 psx.setBits(&a.unk0, "unkA_5", 1);
                 block17(a);
                 return;
@@ -65,7 +65,7 @@ pub fn func_800A2CD4(arg0: ?*v.D_800F4538_t) callconv(.c) void {
         5 => {
             _ = c.func_800A2FBC(@ptrCast(a));
             _ = c.func_800A9378(@as(c_int, a.unk0.position.vx), @as(c_int, a.unk0.position.vy), @as(c_int, a.unk0.position.vz), 3);
-            if (psx.global(c_int, "D_800F49F4").* == 0) {
+            if (psx.Global(c_int, "D_800F49F4").ptr().* == 0) {
                 if (a.unk5CA == 0) {
                     block17(a);
                 }

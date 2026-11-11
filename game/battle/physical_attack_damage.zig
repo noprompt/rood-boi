@@ -88,7 +88,7 @@ fn physicalAttackDamage(action: *v.vs_action_t, source: *v._hitEntity_t, target:
             sp18.weaponDamage = psx.conv(i16, @as(c_int, sp18.weaponDamage) -% wear(@as(c_int, attacker.weapon.maxDp) - attacker.weapon.currentDp, attacker.weapon.maxDp));
         }
         if (attacker.weapon.maxPp != 0) {
-            const charge: c_int = psx.at(psx.globalMany(u16, "D_800E82F4"), attacker.weapon.blade.category).*;
+            const charge: c_int = psx.at(psx.GlobalMany(u16, "D_800E82F4").ptr(), attacker.weapon.blade.category).*;
             sp18.weaponDamage = psx.conv(i16, @as(c_int, sp18.weaponDamage) +% @divTrunc(@as(c_int, attacker.weapon.currentPp) *% charge, @as(c_int, attacker.weapon.maxPp)));
         }
     } else {
@@ -147,7 +147,7 @@ fn physicalAttackDamage(action: *v.vs_action_t, source: *v._hitEntity_t, target:
     if (withRandMod != 0) {
         if (action.id < 6 and c.vs_main_getRand(100) < @divTrunc(@as(c_int, attacker.risk), 10) + 10) {
             value = psx.conv(i16, (psx.conv(c_uint, @as(c_int, value) << 0x10)) >> 0xF);
-            psx.global(c_int, "D_800F1A0C").* = 1;
+            psx.Global(c_int, "D_800F1A0C").ptr().* = 1;
         }
         if (nHit == 0) {
             if (target.unk40 == 0) {

@@ -48,7 +48,7 @@ pub fn func_8007C694(location: c_int, arg1: c_int, arg2: c_int, effect: c_int, s
 /// zone's (D_8004FCCC) differs. Static in the C: ported with each caller (PORTING.md §13).
 fn loadZnd(id: c_int) void {
     const zone = v.g._zoneContext();
-    const files = psx.global([256]v.vs_main_CdFile, "vs_main_zndFiles");
+    const files = psx.Global([256]v.vs_main_CdFile, "vs_main_zndFiles").ptr();
     var file: v.vs_main_CdFile = undefined;
     file.lba = psx.at(files, id).lba;
     file.size = psx.at(files, id).size;
@@ -62,7 +62,7 @@ fn loadZnd(id: c_int) void {
     psx.put(&zone.zndData, c.vs_main_allocHeapR(psx.conv(c_uint, file.size)));
     c.vs_main_cdEnqueuePriority(@ptrCast(@alignCast(psx.get(zone.zndCdFile))), psx.get(zone.zndData));
     if (zone.unk30 != 0) {
-        const music: c_int = psx.at(psx.globalMany(u8, "D_8004FCCC"), id).*;
+        const music: c_int = psx.at(psx.GlobalMany(u8, "D_8004FCCC").ptr(), id).*;
         if (c.vs_main_getCurrentMusicId() != music) {
             _ = c.func_8004552C(v.g.vs_main_soundData().currentMusicSlot, 0, 0x78);
         }

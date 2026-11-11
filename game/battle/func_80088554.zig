@@ -4,7 +4,7 @@ const v = @import("views_146C");
 const c = @import("c_146C");
 
 fn every(period: c_int) bool {
-    return @rem(psx.global(c_int, "D_800E8490").*, period) == 0;
+    return @rem(psx.Global(c_int, "D_800E8490").ptr().*, period) == 0;
 }
 
 /// A defeated actor's reaction (func_800792E4); for an enemy that does not react, the end of the action is
@@ -48,7 +48,7 @@ fn regenerateHp(stats: *v.vs_battle_actor2) void {
         }
     }
     // the limb D_800E8494 cycles 0..5; limbs has 6 entries (the C does not bound it)
-    const limb = psx.at(&stats.limbs, psx.global(c_int, "D_800E8494").*);
+    const limb = psx.at(&stats.limbs, psx.Global(c_int, "D_800E8494").ptr().*);
     if (limb.maxHp != 0) {
         if (limb.hp < limb.maxHp) {
             limb.hp +%= 1;
@@ -128,10 +128,10 @@ pub fn func_80088554() callconv(.c) c_int {
             }
         }
     }
-    const ticks = psx.global(c_int, "D_800E8490");
+    const ticks = psx.Global(c_int, "D_800E8490").ptr();
     ticks.* = @rem(ticks.* +% v.g.vs_gametime_tickspeed().*, 720);
     if (every(240)) {
-        const limb = psx.global(c_int, "D_800E8494");
+        const limb = psx.Global(c_int, "D_800E8494").ptr();
         limb.* = @rem(limb.* +% 1, 6);
     }
     const timer = c.func_800882F4();

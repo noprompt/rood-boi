@@ -133,7 +133,7 @@ pub fn timingWindow() callconv(.c) void {
                         missed();
                     }
                     if (state().battleAbilityInputSuccessful == 0) {
-                        psx.global(i16, "D_8005FFB0").* = 0;
+                        psx.Global(i16, "D_8005FFB0").ptr().* = 0;
                     }
                 } else {
                     if (v.g.D_800F1868().* & 3 == 0) {

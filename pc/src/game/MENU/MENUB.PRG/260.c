@@ -45,7 +45,17 @@ static u_char _lootListCount;
 static char D_8010A6B7;
 static char _lootClaimed;
 
+/* items1.h declares these two as externs, and _toggleUi.h redeclares them static after it: the original's
+ * compiler merged both into one variable, the PC build's renamed statics (below) are a second pair. The
+ * functions items1.h defines use the first pair, which is this file's own storage (it was two globals at a
+ * fixed address in the submenu slot's RAM). The two pairs have always been separate variables here. */
+#define _itemCategoryIconsEnabled _items1_itemCategoryIconsEnabled
+#define _statusCommandState _items1_statusCommandState
+static char _itemCategoryIconsEnabled;
+static char _statusCommandState;
 #include "pc/src/game/MENU/items1.h"
+#undef _itemCategoryIconsEnabled
+#undef _statusCommandState
 #include "pc/src/game/MENU/_toggleUi.h"
 #include "pc/src/game/MENU/items2.h"
 #include "pc/src/game/MENU/_renderAshley.h"

@@ -36,7 +36,7 @@ build_boot.py lp64_longs) with a Linux target for GCC's bitfield layout:
 its remaining `long`s are MinGW's 4-byte ones, which `c_long` already is
 when the module is compiled for Windows, so nothing is respelled here.
 Extern variables are left in but are never used (globals go through the
-views' psx.global: no .refptr on Windows); types come from the views,
+views' psx.Global: no .refptr on Windows); types come from the views,
 functions and constants from here.
 """
 import pathlib

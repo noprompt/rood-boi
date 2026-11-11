@@ -56,8 +56,8 @@ pub fn func_80072734(arg0: c_int) callconv(.c) void {
             const status = c.func_800A0BE0(i);
             const actor = actors[@intCast(i)];
             if (actor != null and (status & 0x3000001) == 1 and
-                (i != state().unk8.unk4.unk0.targetActor or psx.globalMany(u8, "D_800E81B4")[kind] != 0) and
-                (@as(c_int, actor.?.allegiance) & psx.globalMany(u8, "D_800E81D4")[kind]) != 0 and
+                (i != state().unk8.unk4.unk0.targetActor or psx.GlobalMany(u8, "D_800E81B4").ptr()[kind] != 0) and
+                (@as(c_int, actor.?.allegiance) & psx.GlobalMany(u8, "D_800E81D4").ptr()[kind]) != 0 and
                 (actor.?.allegiance & 0x8000) == 0)
             {
                 // unk29C0 has 23 entries: the C does not bound the count (the views' targets alias them).

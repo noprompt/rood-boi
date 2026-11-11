@@ -6,7 +6,7 @@ const c = @import("c_38C1C");
 /// orig: func_800A249C (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c)
 /// Starts the turn of actor `actorId` toward `facing` (0x1000 a full turn) unless it is already there or busy.
 pub fn turnToward(actorId: c_int, facing: c_int) callconv(.c) void {
-    const actor: *v.D_800F4538_t = psx.at(psx.globalMany(?*v.D_800F4538_t, "D_800F4538"), actorId).*.?;
+    const actor: *v.D_800F4538_t = psx.at(psx.GlobalMany(?*v.D_800F4538_t, "D_800F4538").ptr(), actorId).*.?;
 
     if (psx.getBits(&actor.unk0, "unkA_5") != 0) {
         return;

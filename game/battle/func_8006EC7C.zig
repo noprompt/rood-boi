@@ -7,7 +7,7 @@ const StickLook = *const fn ([*c]c_int, [*c]c_int) callconv(.c) void;
 
 /// FP_INVERT_Y: the PC's inverted first-person pitch setting (host, read at each use as the C does).
 fn invertY() bool {
-    return psx.global(c_int, "pc_qol_fp_invert_y").* != 0;
+    return psx.Global(c_int, "pc_qol_fp_invert_y").ptr().* != 0;
 }
 
 /// orig: func_8006EC7C (pc/src/game/BATTLE/BATTLE.PRG/146C.c)

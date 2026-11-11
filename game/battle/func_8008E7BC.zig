@@ -5,7 +5,7 @@ const v = @import("views_146C");
 
 /// D_800E84AC[i][k] (char[][4]): the static helper get_D_800E84AC, carried here.
 fn tableEntry(i: c_int, k: c_int) c_int {
-    return @as(c_int, psx.at(psx.globalMany(u8, "D_800E84AC"), i *% 4 +% k).*);
+    return @as(c_int, psx.at(psx.GlobalMany(u8, "D_800E84AC").ptr(), i *% 4 +% k).*);
 }
 
 /// orig: func_8008E7BC (pc/src/game/BATTLE/BATTLE.PRG/146C.c)

@@ -100,7 +100,7 @@ with tempfile.TemporaryDirectory() as d:
               f"{bits}-bit: the reference object takes the built unit's names for what it holds ({renamed})")
         dump = zig_views.dump_with_gdb(obj, [], ["emitted_count", "clip_left"], d / f"views{bits}.json")
         views = zig_views.emit(dump, {"globals": {}, "fields": {}}, psx_import="psx", unit_object="pcunit")
-        check('psx.global(i32, "pcunit__emitted_count")' in views and 'psx.global(i16, "pcunit__clip_left")' in views,
+        check('psx.Global(i32, "pcunit__emitted_count").ptr()' in views and 'psx.Global(i16, "pcunit__clip_left").ptr()' in views,
               f"{bits}-bit: the views reach an unlisted static through its global name")
         if can_link(bits, d):
             exe = d / f"main{bits}"

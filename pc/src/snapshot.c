@@ -316,6 +316,7 @@ extern const unsigned long long pc_snapshot_code_key __attribute__((weak));
 extern const unsigned long long pc_snapshot_layout_key __attribute__((weak));
 struct pc_overlay_statics {
     const char* path;
+    int lba;
     char *data_start, *data_end, *bss_start, *bss_end;
 };
 extern const struct pc_overlay_statics pc_overlay_statics[] __attribute__((weak));

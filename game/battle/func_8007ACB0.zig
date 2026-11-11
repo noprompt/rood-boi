@@ -41,7 +41,7 @@ pub fn func_8007ACB0() callconv(.c) void {
     _ = c.VectorNormal(@ptrCast(&right), @ptrCast(&right));
     c.OuterProduct0(@ptrCast(&right), @ptrCast(&forward), @ptrCast(&up));
     _ = c.VectorNormal(@ptrCast(&up), @ptrCast(&up));
-    const copy = psx.global(v.MATRIX, "D_8005E218");
+    const copy = psx.Global(v.MATRIX, "D_8005E218").ptr();
     const viewMatrix = &view.viewMatrix;
     const axes = [3]*v.VECTOR{ &right, &up, &forward };
     for (axes, 0..) |axis, row| {

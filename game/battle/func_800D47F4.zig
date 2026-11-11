@@ -15,7 +15,7 @@ pub fn func_800D47F4(arg0: ?*v.D_800F53B8_t) callconv(.c) c_int {
         temp_s0 = arg0.?.unkD1C.unk3C;
     }
 
-    const effects = psx.globalMany(c.effectExec, "D_800EC324");
+    const effects = psx.GlobalMany(c.effectExec, "D_800EC324").ptr();
     _ = c.func_800CF694(@ptrCast(arg0), effects[@intCast(temp_s2)], temp_s0);
     return 1;
 }

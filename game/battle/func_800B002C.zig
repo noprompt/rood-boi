@@ -108,7 +108,7 @@ pub fn func_800B002C(actor: ?*v.D_800F4538_t, arg1: c_int) callconv(.c) void {
                     body.currentTileX = psx.conv(u8, @divTrunc(@as(c_int, body.position.vx), 128));
                     body.currentTileZ = psx.conv(u8, @divTrunc(@as(c_int, body.position.vz), 128));
                     _ = c.func_800A92B8(body.currentTileX, body.currentTileZ);
-                    psx.setBits(a, "unk5AC_28", psx.conv(u4, psx.global(u8, "D_800F49F8").*));
+                    psx.setBits(a, "unk5AC_28", psx.conv(u4, psx.Global(u8, "D_800F49F8").ptr().*));
                 }
             }
         }

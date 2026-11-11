@@ -12,7 +12,7 @@ const c = @import("c_74088");
 fn statusScore(stats: *v.actionStatSnapshot, id: c_int) c_int {
     var sum: c_int = 0;
     const row = psx.at(stats, id);
-    const scoreState = psx.globalMany(?*v.vs_battle_aiState, "D_800F5878")[@as(usize, @intCast(row.unknown & 15))].?;
+    const scoreState = psx.GlobalMany(?*v.vs_battle_aiState, "D_800F5878").ptr()[@as(usize, @intCast(row.unknown & 15))].?;
     const noCost = scoreState.maxActionCost == 0;
     var i: c_int = 0;
     while (i < 32) : (i += 1) {

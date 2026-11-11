@@ -5,7 +5,7 @@ A C `static` (file scope or block scope) is a local symbol: an owned Zig
 object cannot link to it, and translate-c would give it a copy of its own. So
 the build makes each listed static global, under a prefixed name, in its own
 object and section (the overlay restart still covers it), and the Zig port
-reaches that one storage through the views (`g.<name>()`, psx.global):
+reaches that one storage through the views (`g.<name>()`, psx.Global):
 
     file static `name` of unit object battle_5BF94          -> battle_5BF94__name
     block-scope static `name` of function F in battle_44F14  -> battle_44F14__F__name

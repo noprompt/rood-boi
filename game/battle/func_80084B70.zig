@@ -11,7 +11,7 @@ pub fn func_80084B70(action: ?*v.vs_action_t, source: ?*v._hitEntity_t, target: 
     const actors = v.g.vs_battle_actors();
     const source_stats = psx.get(actors[source.?.unk0.targetActor].?.stats);
     const target_stats = psx.get(actors[target.?.unk0.targetActor].?.stats);
-    const critical = psx.global(c_int, "D_800F1A0C");
+    const critical = psx.Global(c_int, "D_800F1A0C").ptr();
     critical.* = 0;
     const amount = c._calculateStatChange(@ptrCast(action), @ptrCast(source), @ptrCast(target), hit, arg4);
     const entity = target.?;

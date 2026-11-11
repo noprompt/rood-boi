@@ -112,7 +112,7 @@ pub fn func_80089114() callconv(.c) void {
                 param |= 0x80;
             }
             const template = &@as([*]v._zndEnemy, @ptrCast(psx.get(zone.zndEnemies).?))[id];
-            const two_part = psx.globalMany(u8, "D_8004FE88")[template.unk0[2]] != 0;
+            const two_part = psx.GlobalMany(u8, "D_8004FE88").ptr()[template.unk0[2]] != 0;
             var slot: u16 = enemy.slot;
             // slots has 16 entries: the list's slots stay below 12 (slot + 4 is not bounded by the C).
             if (slot == 0) {

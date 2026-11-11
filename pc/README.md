@@ -2692,9 +2692,10 @@ uses fixed mappings instead, as described below.
   shortcuts are isolated behind `ROOD_PC_BOOT_DIAGNOSTIC` or the host SDK layer.
 - Overlay C keeps its statics in host memory, but on the PS1 they live in the
   overlay image and restart whenever the file is reloaded (MAINMENU.PRG at every
-  menu open). The build puts each overlay's `.data`/`.bss` in its own sections;
-  `pc/src/overlay_statics.c` snapshots them at startup and restores them when
-  the disc read that loads the file completes. `ROOD_OVERLAY_STATICS=0` turns
+  menu open). The build puts each overlay's `.data`/`.bss` in its own sections
+  and writes the table of overlay files with each file's first sector (the
+  game's own `VS_<NAME>_LBA`); `pc/src/overlay_statics.c` snapshots the statics
+  at startup and restores them when the disc read that loads the file completes. `ROOD_OVERLAY_STATICS=0` turns
   this off for comparison.
 - Unsupported function imports log `[UNIMPLEMENTED] name` and exit 2. This keeps
   missing behavior visible. Successful title boot must not be described as

@@ -47,7 +47,7 @@ fn findSharedSequence(object: *v.vs_battle_objectData) bool {
 /// orig: vs_battleQueueSequenceObject (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c)
 /// Copies an object into the first free object slot; returns the slot or -1 when none is free.
 fn queueSequenceObject(objectData: *const v.vs_battle_objectData) c_int {
-    const slots = psx.globalMany(v.vs_battle_objectData, "vs_battle_objectDataSlots");
+    const slots = psx.GlobalMany(v.vs_battle_objectData, "vs_battle_objectDataSlots").ptr();
     var slot: c_int = -1;
     var i: usize = 0;
     while (i < 16) : (i += 1) {

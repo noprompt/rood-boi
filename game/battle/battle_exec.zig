@@ -478,7 +478,7 @@ pub fn battleExec() callconv(.c) void {
                             c.func_800941FC();
                         }
                         // ROOD_PC: explicit rendering diagnostic; normal battle logic is unchanged.
-                        if (psx.global(c_int, "pc_room_checkpoint_requested").* != 0) {
+                        if (psx.Global(c_int, "pc_room_checkpoint_requested").ptr().* != 0) {
                             // Inspect loaded geometry even while an entry script hides it.
                             if (v.g.vs_battle_roomData().unk1 == 0 and psx.get(v.g.vs_battle_roomData().geometrySection) != null) {
                                 c.func_8008B1FC(psx.get(v.g.vs_battle_roomData().geometrySection));
