@@ -996,6 +996,14 @@ if battle:
     # their data resolves against that PLG's ELF (the loader puts the image in
     # guest RAM). pc/src/effects/plgNNN.c holds native-only translations.
     plg_sources = sorted((root / "pc/src/game/EFFECT").glob("PLG*.BIN/*.c"))
+    # The plug-in slot is a buffer of the program (main.c pc_plugin_slot): the words of the files are read as
+    # data. A plug-in source that turns one into a pointer would find a PS1 address in it, so none may.
+    guest_conversion = re.compile(r"psx_get|psx_set|psx_to_ptr|psx_addr|psx_ptr|ROOD_GUEST_RAM_BASE|0x80[0-9A-Fa-f]{6}\b")
+    for source in [*plg_sources, *sorted((root / "pc/src/game/EFFECT").glob("*.h"))]:
+        found = guest_conversion.search(source.read_text())
+        if found:
+            raise RuntimeError(f"{source.relative_to(root)}: {found.group(0)}: no guest-address conversion in effect plug-in "
+                               "sources (their slot is a program buffer; see main.c)")
     sources += [
         (p.relative_to(root).as_posix(), p.parent.name.split(".")[0].lower() + "_" + p.stem)
         for p in plg_sources
@@ -2381,7 +2389,11 @@ for name in sorted(missing):
             raise RuntimeError(
                 f"Data import {name} at {address:#x} is outside mapped guest memory"
             )
-        assign.append(f"{name} = 0x{address:08x};")
+        if 0x800F9800 <= address < 0x80102800:
+            # The effect plug-ins' slot is a buffer of the program (main.c): their tables are offsets into it.
+            assign.append(f"{name} = pc_plugin_slot + 0x{address - 0x800F9800:x};")
+        else:
+            assign.append(f"{name} = 0x{address:08x};")
     elif name in calls or name in functions:
         traps.append(name)
     else:

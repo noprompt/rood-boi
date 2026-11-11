@@ -388,10 +388,13 @@ the program (`_submenuSlot`, `main.c`; MENUC, the largest file, is exactly the s
 had kept it at 0x80102800: the main menu's read into slot 1 is 0xF000 bytes (MAINMENU.PRG's 0x9000 and the
 menu background after it), so `vs_mainMenu_unpackMenubg` found the background at the submenu slot's start;
 it now reads it at slot 1 + 0x9000. `overlay.c` (the MIPS original, not built) is gone.
-Slot 1 (MAINMENU.PRG with its background, INITBTL, SCREFF2) and slot 4 (EFFPURGE) are program buffers too: no
-pinned import lies in slot 1's range except the effect plug-ins' data (157 imports, 83 pointed at by words in
-the plug-in files, which carry absolute pointers into their own slot), and those load through slot 3, which
-stays at 0x800F9800. Moving slot 3 needs the plug-ins' data as owned, relocatable data (T9/T13), not a buffer.
+Every slot but 0 (BATTLE, ENDING) is a buffer of the program now. Slot 1 (MAINMENU.PRG with its background,
+INITBTL, SCREFF2) and slot 4 (EFFPURGE) hold nothing pinned. Slot 3 (the effect plug-ins): its 157 pinned
+imports are plain data (declared `u_char [][4]`, `int`, `SVECTOR`; none of pointer type) and the link places each at
+`pc_plugin_slot + offset` (`imports.ld`). The 2994 in-range words of the plug-in files are jump tables and
+other code pointers that no native code reads; `build_boot.py` refuses an effect plug-in source or header
+that converts a guest address (`psx_get`, `psx_to_ptr`, `ROOD_GUEST_RAM_BASE`, a 0x80xxxxxx literal), which
+is what would turn such a word into a pointer.
 Found on the way: in MENUB, `items1.h`'s functions and the rest of the file use two pairs of
 `_itemCategoryIconsEnabled` / `_statusCommandState` (the original's static redeclaration made one);
 making it one variable changes the loot screen (481 of 717 frames), so it stays as it was.

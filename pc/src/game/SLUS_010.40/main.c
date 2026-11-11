@@ -22,13 +22,16 @@
  * read into slots 1, 2 and 4 (the main menu with the menu background after it, INITBTL, SCREFF2; the
  * submenus; EFFPURGE) is not looked at beyond the background: those slots are buffers of this program.
  * The main menu's read is 0xF000 bytes (MAINMENU.PRG's 0x9000 and the background), the largest submenu
- * file, MENUC, 0x9800. Slot 0 (BATTLE, ENDING) and slot 3 (the effect plug-ins, whose data the build
- * pins at these addresses and whose files carry absolute pointers into it) are guest RAM (T10). */
+ * file, MENUC, 0x9800. Slot 3 (the effect plug-ins) is a buffer too: native code reads their tables
+ * through imports the link places in it, and no native code turns a pointer word of those files into a
+ * pointer (the declared types hold none). Only slot 0 (BATTLE, ENDING) is guest RAM (T10). */
 static char _mainMenuSlot[0xF000] __attribute__((aligned(16)));
 static char _submenuSlot[0x9800] __attribute__((aligned(16)));
 static char _effPurgeSlot[0x4800] __attribute__((aligned(16)));
+/* The plug-ins' tables are imports placed in it by the link (imports.ld: pc_plugin_slot + their offset). */
+char pc_plugin_slot[0x9000] __attribute__((aligned(16)));
 void* const vs_overlay_slots[5] = { (void*)(ROOD_GUEST_RAM_BASE + 0x68800), _mainMenuSlot, _submenuSlot,
-    (void*)(ROOD_GUEST_RAM_BASE + 0xF9800), _effPurgeSlot };
+    pc_plugin_slot, _effPurgeSlot };
 
 typedef struct {
     int unk0[2];
