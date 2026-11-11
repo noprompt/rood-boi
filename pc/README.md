@@ -322,6 +322,21 @@ stick put them. An R3 reset in a menu waits for the field.
 | `qol_map_invert` | 0 | the map screen pans the other way on both axes (D-pad, the left stick the game reads as the D-pad, arrow keys) |
 | `qol_map_controls` | 0 | the map screen's right stick and triggers: 0 Modern (the right stick turns and tilts, L2 / R2 alone zoom out / in), 1 Original (the PlayStation's: L2 / R2 with the right stick, the right stick pans) |
 | `qol_fp_invert_y` | 0 | in the first-person view up looks down and down looks up (D-pad and right stick; left and right unchanged) |
+| `analog_move` | 0 | the left stick walks and runs Ashley at any angle (`pc/src/analog_move.c`, BATTLE `func_8006E7F0`); off: the D-pad's eight directions, as the original. The D-pad and the keyboard are unchanged either way |
+| `analog_dead_zone` | 20 | percent of the stick's travel that moves nothing |
+| `analog_run` | 70 | percent of the stick's travel from which she runs (the D-pad's pace); below it she walks (the pace R2 held gives; the original has only these two). R2 still walks |
+| `rumble_strength` | 100 | percent of the game's actuator bytes sent to the gamepad's motors (0 off); the game's own Vibration option still decides what it asks for |
+
+Rumble (`boot_sdk.c` `PadSetAct`, `boot_gamepad.c`): the game registers its
+actuator buffer and rewrites it each frame in battle and the field
+(`vs_main_setVibrateParams`, from the effect and event scripts' vibration
+blocks, only with its Vibration option On; the Option screen's On also plays
+a test pulse). The host hands byte 0 (the small motor, a DualShock's on/off:
+any nonzero byte) to SDL's high-frequency motor and byte 1 (the large motor,
+0..255) to the low-frequency one, each field. The pad reports a DualShock-shaped
+extended ID so the small motor's byte carries that on/off. RPC `rumble` reads
+what was sent (the recording backend without a gamepad).
+`pc/tests/analog_move_smoke.py` tests it and the analog movement.
 
 The two `qol_` options come from eremtsov's QoL mod (CC0) and are off by
 default: editor Graphics > Controls, the modern menus' System > Controls,
@@ -2388,7 +2403,8 @@ redraws at about 60 Hz, and after each request):
 | `wait` | `timeout_ms` (default 1000, at most 60000) | the `status` reply, sent once the game is paused with no step left (or at the timeout): a step's end without polling |
 | `pause` | `paused` (default true) | stop or resume at vsync boundaries |
 | `step` | `vsyncs` | run exactly N vsyncs, then pause |
-| `input` | `buttons` (name or list), `right_stick` (`[x, y]`, -1..1, down +y), `triggers` (`[l2, r2]`, 0..1 past the press point), `vsyncs` | hold PS1 buttons and/or the right stick (the camera) and/or the triggers' analog travel (the map's zoom; the L2 / R2 bits come from `buttons`); works unfocused |
+| `rumble` | `reset` | the game's actuator bytes (`small`, `large`) and the SDL motor values last sent (`low`, `high`, 0..65535) with the number of rumble calls (`pc/src/boot_gamepad.c`) |
+| `input` | `buttons` (name or list), `right_stick` (`[x, y]`, -1..1, down +y), `left_stick` (the same: analog movement), `triggers` (`[l2, r2]`, 0..1 past the press point), `vsyncs` | hold PS1 buttons and/or the right stick (the camera) and/or the triggers' analog travel (the map's zoom; the L2 / R2 bits come from `buttons`); works unfocused |
 | `camera_stick` | the settings without `camera_stick_` (`enabled`, `speed`, ..., `r3_reset`, `idle_reset`, `keys`), `action` (`reset`) | the right-stick camera: settings and state (zoom, distances, collision hit, yaw; the first-person look: `first_person`, `fp_looks`, `fp_step`) |
 | `camera_options` | `map_invert`, `map_controls`, `fp_invert_y` | the optional map panning and first-person up/down inversions and the map's stick controls (settings `qol_map_invert`, `qol_map_controls` 0 Modern / 1 Original, `qol_fp_invert_y`) |
 | `skip_charging` | `mode` (0/1 or `off`/`skip`), `who` (0/1 or `mine`/`all`), `name`, `hold_mine`, `hold_enemy` (seconds), `kinds`, `pump`, `pin`, `reset` | battle charging skip (settings `qol_skip_charging`, `qol_skip_charging_who`; pc/src/dev_rpc.c has the fields): whether this vsync is in a wind-up and skipped or hidden, the counters since the last reset (wind-ups, their vsyncs per phase, skipped, hidden, presented, wall `ms`), the view at the last release, the actions that ended; tests: `kinds` (a mask of spells, enemy arts, Break Arts, items), `pump` (the effect's files a step a frame when false), `pin` (seed the random numbers at each action's end) |

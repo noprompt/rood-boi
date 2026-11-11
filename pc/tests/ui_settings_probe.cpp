@@ -113,7 +113,7 @@ static void pages()
     CHECK(pc_ui_settings_rows(A) == (game ? 2 : 1));
     CHECK(pc_ui_settings_rows(I) == 15); // with Menu opacity, Menu tint, Tint red, green, blue
     CHECK(find(I, "ui_menu_tint") == 2 && find(I, "ui_menu_tint_b") == 5);
-    CHECK(pc_ui_settings_rows(C) == (game ? 19 : 18));
+    CHECK(pc_ui_settings_rows(C) == (game ? 23 : 22));
     // the look inversions after the stick camera (qol_fp_invert_y, qol_map_invert)
     CHECK(find(C, "qol_fp_invert_y") == find(C, "reset_camera") + 1 && find(C, "qol_map_invert") == find(C, "reset_camera") + 2);
     CHECK(value(C, "qol_map_invert") == "Off" && change(C, "qol_map_invert", 1) == 1 && pc_qol_map_invert == 1);

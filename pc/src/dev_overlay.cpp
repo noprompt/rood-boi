@@ -1117,6 +1117,29 @@ static void look_panel()
                           "semi-transparent sprite, whose outline blends with the field.");
 }
 
+extern "C" int pc_rumble_strength, pc_analog_move, pc_analog_dead_zone, pc_analog_run; /* project_settings.cpp */
+/* Graphics > Controls: analog movement (analog_move.c; off by default) and the gamepad's rumble. */
+static void analog_panel()
+{
+    ImGui::Separator();
+    bool analog = pc_analog_move != 0;
+    if (ImGui::Checkbox("Analog movement (left stick)", &analog))
+        pc_analog_move = analog;
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Ashley walks and runs at any angle by the left stick, instead of the D-pad's eight\n"
+                          "directions. Off: the original. The D-pad and the keyboard always work as before.");
+    ImGui::BeginDisabled(!analog);
+    ImGui::SliderInt("Analog dead zone %", &pc_analog_dead_zone, 0, 60);
+    ImGui::SliderInt("Analog run from %", &pc_analog_run, 10, 100);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Stick travel at which she runs; below it she walks (the pace R2 held gives).");
+    ImGui::EndDisabled();
+    ImGui::SliderInt("Rumble strength %", &pc_rumble_strength, 0, 100);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("The gamepad's motors, scaled from what the game asks for (its own Vibration option\n"
+                          "still decides whether it asks). 0: no rumble.");
+}
+
 extern "C" int pc_qol_confirm_cross, pc_qol_field_cross_attack; /* project_settings.cpp */
 /* Graphics > Controls: Circle and Cross exchanged where the game confirms or
  * attacks (button_roles.c; off by default). */
@@ -2265,6 +2288,7 @@ static void details(float x, float y, float w, float h, double frame_ms)
             if (ImGui::CollapsingHeader("Controls")) {
                 camera_stick_panel();
                 look_panel();
+                analog_panel();
                 button_roles_panel();
             }
             if (ImGui::CollapsingHeader("Gameplay"))

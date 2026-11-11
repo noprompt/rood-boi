@@ -220,7 +220,7 @@ suites = ["editor_*", "tunables_smoke", "room_browser_smoke", "photo_mode_smoke"
 [[rule]]
 paths = ["pc/src/project_settings.cpp"]
 suites = ["system_settings_smoke", "ui_system_smoke", "options_*", "window_mode_smoke", "tunables_smoke",
-          "camera_options_smoke", "skip_intro_smoke", "rpc_smoke"]
+          "camera_options_smoke", "analog_move_smoke", "skip_intro_smoke", "rpc_smoke"]
 
 # ---- sound ----
 [[rule]]
@@ -542,7 +542,12 @@ suites = ["input:*", "window_smoke"]
 
 [[rule]]
 paths = ["pc/src/boot_controller.*", "pc/src/boot_gamepad.c"]
-suites = ["input:*", "window_smoke", "system_settings_smoke", "camera_stick_smoke", "button_prompts_smoke", "ctest"]
+suites = ["input:*", "window_smoke", "system_settings_smoke", "camera_stick_smoke", "button_prompts_smoke", "ctest",
+          "analog_move_smoke"]
+
+[[rule]]
+paths = ["pc/src/analog_move.c", "pc/src/boot_sdk.c", "game/battle/func_8006E7F0.zig"]
+suites = ["analog_move_smoke", "input:*", "camera_stick_smoke", "camera_options_smoke"]
 
 [[rule]]
 paths = ["pc/src/camera_stick.*"]

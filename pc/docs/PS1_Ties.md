@@ -666,8 +666,12 @@ disc's rate; `xa_audio.c` decodes them, resamples to 44.1 kHz and feeds the soft
 pad format (`pc_vblank_wait`: `0x41`, then the inverted 16 buttons). The game reads that buffer at its own
 rate. Sticks, triggers and the keyboard are mapped onto the 16 digital buttons by the host.
 The right stick and the photo mode are host features that do not go through the game's pad.
-`PadSetAct` (vibration) is a no-op. Whether the original game ever uses it is **unconfirmed**; its title
-screen does have a vibration setting.
+`PadSetAct` registers the game's actuator buffer; the host reads it each field and drives the gamepad's
+motors (`pc_controller_rumble`, small motor on/off, large motor 0..255, scaled by `rumble_strength`). The original
+does use it: `vs_main_setVibrateParams` (called each frame in battle and the field, and the title's fades) turns the
+vibration blocks of effect and event scripts into the bytes while its Vibration option is On (confirmed by
+sampling the bytes in a fight: the large motor ramps on hits, the small one blips).
+The left stick can give the game analog movement (`analog_move`, off by default): see Status.
 
 **Player feels.** Digital movement only (as the original); input is read once per field and acted on at the
 game's frame, so input can land up to a game frame late (**unconfirmed**; not measured).
@@ -675,10 +679,13 @@ game's frame, so input can land up to a game frame late (**unconfirmed**; not me
 **Evidence.** `pc/src/boot_sdk.c` (`PadInitDirect`, `PadGetState`, `PadSetAct`, `pc_vblank_wait`),
 `pc/src/boot_window.c` (`pc_window_buttons`), `pc/src/boot_gamepad.c`, `pc/src/input_record.c`.
 
-**Status.** Partly native (host input, camera and photo controls are native).
+**Status.** Partly native (host input, camera and photo controls are native; rumble and analog movement
+are native, T20a). Analog movement is Ashley's movement input only (`func_8006E7F0`: the stick's angle as the
+heading, its travel choosing the game's two paces, the D-pad's run and R2's walk); menus and targeting still
+read the digital pad (the stick also sets the D-pad bits, as before). Not recorded by the input recorder (the
+left stick is not in its event log), so a replay of a recording made with the setting on plays the D-pad's.
 
-**To replace.** Small to give the game an analog stick and rumble; the game's movement code reads
-buttons, so analog movement needs game logic changes. Medium for lower latency (needs T1).
+**To replace.** Medium for lower latency (needs T1); analog-stick targeting and menus if wanted.
 
 **Depends on.** T1 for latency.
 

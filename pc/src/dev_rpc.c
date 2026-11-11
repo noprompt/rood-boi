@@ -32,6 +32,7 @@
  *                                polling status (rood_rpc.Game.wait_paused)
  *   input {buttons, vsyncs}      hold buttons ("circle", "up", ...) for N vsyncs;
  *         {right_stick: [x, y]}  and/or hold the right stick (-1..1, down +y)
+ *         {left_stick: [x, y]}   and/or the left stick (analog movement, analog_move.c)
  *         {triggers: [l2, r2]}   and/or the triggers' analog travel (0..1 past
  *                                the press point; the map's zoom, map_pad.h;
  *                                the L2 / R2 bits still come from buttons)
@@ -739,6 +740,8 @@ static struct hold {
 } holds[16];
 static float stick_hold[2]; /* input {right_stick: [x, y]} */
 static long stick_vsyncs;
+static float left_hold[2]; /* input {left_stick: [x, y]} (analog_move.c) */
+static long left_vsyncs;
 static float trigger_hold[2]; /* input {triggers: [l2, r2]} */
 static long trigger_vsyncs;
 
@@ -1120,6 +1123,14 @@ int pc_rpc_triggers(float out[2])
     out[1] = trigger_hold[1];
     return 1;
 }
+int pc_rpc_left_stick(float out[2])
+{
+    if (left_vsyncs <= 0)
+        return 0;
+    out[0] = left_hold[0];
+    out[1] = left_hold[1];
+    return 1;
+}
 int pc_rpc_stick(float out[2])
 {
     if (stick_vsyncs <= 0)
@@ -1395,6 +1406,22 @@ static void handle_method(int fd, const char* request)
         n = 2;
         if (params)
             number_value(member(params, "vsyncs"), &n);
+        if (params && pair_value(member(params, "left_stick"), stick)) {
+            /* The left stick for N vsyncs (analog movement, analog_move.c). */
+            if (n < 1) {
+                fail(fd, id, -32602, "bad vsyncs");
+                return;
+            }
+            for (int k = 0; k < 2; k++)
+                left_hold[k] = (float)(stick[k] < -1 ? -1 : stick[k] > 1 ? 1 : stick[k]);
+            left_vsyncs = (long)n;
+            if (!has_stick && !member(params, "buttons") && !member(params, "triggers")) {
+                snprintf(result, sizeof result, "{\"left_stick\":[%g,%g],\"vsyncs\":%lld}", left_hold[0],
+                    left_hold[1], n);
+                reply(fd, id, result);
+                return;
+            }
+        }
         if (params && pair_value(member(params, "triggers"), trig)) {
             if (n < 1) {
                 fail(fd, id, -32602, "bad vsyncs");
@@ -1501,6 +1528,23 @@ static void handle_method(int fd, const char* request)
             pc_qol_fp_invert_y = flag;
         snprintf(result, sizeof result, "{\"map_invert\":%d,\"map_controls\":%d,\"fp_invert_y\":%d}",
             pc_qol_map_invert != 0, pc_qol_map_controls, pc_qol_fp_invert_y != 0);
+        reply(fd, id, result);
+    } else if (!strcmp(method, "rumble")) {
+        /* The gamepad's motors (boot_gamepad.c): {reset: true} clears; replies the game's actuator bytes and the
+         * SDL motor values last sent (the recording backend without a gamepad). */
+        extern void pc_controller_rumble_state(unsigned out[5]) __attribute__((weak));
+        extern void pc_controller_rumble_reset(void) __attribute__((weak));
+        int flag;
+        unsigned r[5] = { 0 };
+        if (!pc_controller_rumble_state) {
+            fail(fd, id, -32000, "no gamepad layer");
+            return;
+        }
+        if (params && bool_value(member(params, "reset"), &flag) && flag)
+            pc_controller_rumble_reset();
+        pc_controller_rumble_state(r);
+        snprintf(result, sizeof result, "{\"small\":%u,\"large\":%u,\"low\":%u,\"high\":%u,\"calls\":%u}", r[0],
+            r[1], r[2], r[3], r[4]);
         reply(fd, id, result);
     } else if (!strcmp(method, "button_roles")) {
         /* Circle and Cross exchanged by the game's context (button_roles.c). */
@@ -1896,7 +1940,7 @@ static void handle_method(int fd, const char* request)
         reply(fd, id, result);
     } else if (!strcmp(method, "release")) {
         memset(holds, 0, sizeof holds);
-        stick_vsyncs = trigger_vsyncs = 0;
+        stick_vsyncs = trigger_vsyncs = left_vsyncs = 0;
         reply(fd, id, "{}");
     } else if (!strcmp(method, "screenshot")) {
         char path[400];
@@ -5144,7 +5188,7 @@ static void take_mark(void)
         paused = 1;
         step_budget = 0;
         memset(holds, 0, sizeof holds);
-        stick_vsyncs = trigger_vsyncs = 0;
+        stick_vsyncs = trigger_vsyncs = left_vsyncs = 0;
         if (c && c->fd >= 0) {
             snprintf(result, sizeof result, "{\"rewound\":true,\"vsync\":%u}", pc_vsync_count());
             rpc_set_blocking(c->fd, 1);
@@ -5228,6 +5272,8 @@ void pc_rpc_poll(void)
         --stick_vsyncs;
     if (trigger_vsyncs > 0)
         --trigger_vsyncs;
+    if (left_vsyncs > 0)
+        --left_vsyncs;
     poll_requests();
 }
 /* In the library that follows another (engine_reload.c): the socket, clients

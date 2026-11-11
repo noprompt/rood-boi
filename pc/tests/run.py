@@ -301,6 +301,9 @@ def suites(args, mode="egl"):
                                                str(args.save)], 300,
                   note="right-stick camera in menus over the scene (command, chest; classic and modern): turns, "
                        "game state as without; full-screen menus and camera_stick_menus none: nothing"),
+            Suite("analog_move_smoke", [PY, str(TESTS / "analog_move_smoke.py"), "--card", str(args.save)], 300,
+                  note="analog movement (stick angle, walk/run, dead zone; off: unchanged) and rumble (actuator "
+                       "bytes to the host motors, strength)"),
             Suite("camera_options_smoke", [PY, str(TESTS / "camera_options_smoke.py"), "--card", str(args.save)],
                   300, note="map panning and first-person up/down inversions off and on; the right stick looks "
                             "around in first person; R3 leaves it"),

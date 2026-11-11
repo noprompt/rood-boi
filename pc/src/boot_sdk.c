@@ -116,6 +116,10 @@ u_long DrawSyncCallback(void (*fn)(void))
     return old;
 }
 static int ticks;
+/* PadSetAct's actuator buffer (below), given to the gamepad's motors each vblank. */
+static unsigned char* act0;
+static int act0_size;
+extern void pc_controller_rumble(int small, int large) __attribute__((weak)); /* boot_gamepad.c */
 /* snapshot.c: pc_tick through the vsync boundary, where a save state cuts
  * the stack (the game's frames below, the host's above). Weak: the GTE probe
  * links this unit with its own pc_tick. */
@@ -135,6 +139,8 @@ void pc_vblank_wait(void)
         pad0[2] = b >> 8;
         pad0[3] = b;
     }
+    if (act0 && act0_size >= 2 && pc_controller_rumble)
+        pc_controller_rumble(act0[0], act0[1]);
     if (vsync_callback)
         vsync_callback();
 }
@@ -193,17 +199,22 @@ void PadStartCom(void) { }
 int PadInfoMode(int port, int info, int index)
 {
     (void)index;
-    return port == 0 && pc_window_enabled && info == InfoModeCurID ? 4 : 0;
+    /* A digital pad (4) whose actuators the game drives as a DualShock's (an extended ID: the small motor's
+     * byte carries its on/off, not the Dual Analog's constant 0x40; PadSetAct). */
+    if (port != 0 || !pc_window_enabled)
+        return 0;
+    return info == InfoModeCurID ? 4 : info == InfoModeCurExID ? 1 : 0;
 }
 int PadGetState(int port)
 {
     return port == 0 && pc_window_enabled ? PadStateStable : PadStateDiscon;
 }
+/* The actuator buffer the game registered: the pad library reads it every field (the game rewrites it in
+ * vs_main_setVibrateParams), so it is kept and handed to the gamepad's motors each vblank. */
 void PadSetAct(int port, unsigned char* data, int size)
 {
-    (void)port;
-    (void)data;
-    (void)size;
+    if (port == 0)
+        act0 = data, act0_size = size;
 }
 int PadSetActAlign(int port, unsigned char* data)
 {

@@ -105,6 +105,11 @@ unsigned pc_controller_buttons(void);
 unsigned pc_controller_stick_only(void);
 int pc_controller_fast_forward(void); /* both stick clicks held: fast-forward (boot_window.c) */
 void pc_controller_right_stick(float out[2]);
+/* The game's actuator bytes (PadSetAct) to the gamepad's motors (boot_gamepad.c); the state is {game
+ * small, game large, SDL low, SDL high, calls} (RPC rumble). */
+void pc_controller_rumble(int small, int large);
+void pc_controller_rumble_state(unsigned out[5]);
+void pc_controller_rumble_reset(void);
 void pc_controller_left_stick(float out[2]); /* -1..1 (down +y); 0 without a gamepad */
 /* L2 (0) / R2 (1) bound to an axis: its travel past the press point (0..1); -1 a button or no gamepad. */
 float pc_controller_trigger(int which);

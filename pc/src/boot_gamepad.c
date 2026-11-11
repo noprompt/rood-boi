@@ -27,6 +27,14 @@ static float right_stick[2]; /* -1..1, SDL's direction (down is +y) */
 static float left_stick[2];  /* the same (photo.cpp's input capture reads it; the game's pad stays digital) */
 static unsigned stick_only; /* pc_controller_stick_only */
 static float triggers[2];    /* L2, R2: their axis' travel past the press point (0..1), -1 not an axis */
+extern int pc_rumble_strength;
+static struct {
+    int small, large;      /* the game's actuator bytes, last given */
+    int low, high;         /* the SDL motor values last sent (0..65535) */
+    unsigned calls;        /* SDL rumble calls made, or that would have been */
+    unsigned refresh;      /* fields since the last send */
+} rumble;
+
 static const char* requested;
 static char requested_event[300];
 
@@ -165,6 +173,7 @@ void pc_controller_event(const SDL_Event* event)
         SDL_CloseGamepad(pad);
         pad = NULL;
         mask = 0;
+        rumble.low = rumble.high = 0; /* the next pad starts silent: the game's values are sent again */
         right_stick[0] = right_stick[1] = 0;
         fprintf(stderr, "[controller] disconnected\n");
         open_first(event->gdevice.which);
@@ -302,6 +311,49 @@ void pc_controller_poll(void)
                 / (32767 - PC_TRIGGER_PRESSED);
         triggers[i] = e < 0 || e >= SDL_GAMEPAD_AXIS_COUNT ? -1 : t < 0 ? 0 : t > 1 ? 1 : t;
     }
+}
+
+/* Rumble. The game's actuator buffer (PadSetAct's data, written each frame by
+ * vs_main_setVibrateParams from the effect and event scripts, only while the
+ * game's own Vibration setting is On): byte 0 the small motor (the DualShock
+ * takes it on or off: any nonzero byte is on), byte 1 the large motor
+ * (0..255). SDL's high-frequency motor is the small one, its low-frequency
+ * motor the large one. rumble_strength (project_settings.cpp, percent) scales
+ * both; 0 sends nothing. With no gamepad the values are only recorded
+ * (pc_controller_rumble_state: the tests' backend). */
+void pc_controller_rumble(int small, int large)
+{
+    small &= 255;
+    large &= 255;
+    rumble.small = small;
+    rumble.large = large;
+    int strength = pc_rumble_strength < 0 ? 0 : pc_rumble_strength > 100 ? 100 : pc_rumble_strength;
+    int high = small ? 0xFFFF * strength / 100 : 0;
+    int low = large * 257 * strength / 100;
+    int changed = high != rumble.high || low != rumble.low;
+    /* A motor on is refreshed (SDL stops it after the duration, so a game that stops asking stops it). */
+    if (!changed && (!(high || low) || ++rumble.refresh < 8))
+        return;
+    rumble.refresh = 0;
+    rumble.high = high;
+    rumble.low = low;
+    ++rumble.calls;
+    if (pad)
+        SDL_RumbleGamepad(pad, (Uint16)low, (Uint16)high, (high || low) ? 250 : 0);
+}
+
+/* {game small, game large, SDL low, SDL high, calls} */
+void pc_controller_rumble_state(unsigned out[5])
+{
+    out[0] = (unsigned)rumble.small, out[1] = (unsigned)rumble.large;
+    out[2] = (unsigned)rumble.low, out[3] = (unsigned)rumble.high;
+    out[4] = rumble.calls;
+}
+void pc_controller_rumble_reset(void)
+{
+    if (pad)
+        SDL_RumbleGamepad(pad, 0, 0, 0);
+    memset(&rumble, 0, sizeof rumble);
 }
 
 unsigned pc_controller_buttons(void) { return mask; }

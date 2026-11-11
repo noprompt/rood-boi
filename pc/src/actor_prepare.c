@@ -22,6 +22,8 @@ const unsigned pc_object_offset_unk6FC = __builtin_offsetof(D_800F4538_t, unk6FC
 const unsigned pc_object_offset_unk704 = __builtin_offsetof(D_800F4538_t, unk704);
 const unsigned pc_object_offset_unk11A4 = __builtin_offsetof(D_800F4538_t, unk11A4);
 const unsigned pc_object_offset_unk17FD = __builtin_offsetof(D_800F4538_t, unk17FD);
+/* The movement request func_800B64CC makes (analog_move_smoke): command, angle word, speed. */
+const unsigned pc_object_offset_unk1848 = __builtin_offsetof(D_800F4538_t, unk1848);
 
 typedef struct {
     char prefix[0x30];

@@ -48,6 +48,7 @@ extern float pc_qol_skip_charging_hold_mine, pc_qol_skip_charging_hold_enemy; /*
 extern int pc_skip_intro;        /* project_settings.cpp; boot_runtime.c */
 extern int pc_save_states;       /* project_settings.cpp; savestate_slots.c */
 extern int pc_qol_map_invert, pc_qol_fp_invert_y; /* project_settings.cpp; MENU5, BATTLE func_8006EC7C */
+extern int pc_analog_move, pc_analog_dead_zone, pc_analog_run, pc_rumble_strength; /* analog_move.c, boot_gamepad.c */
 extern int pc_qol_map_controls;                   /* project_settings.cpp; map_pad.h */
 extern int pc_qol_confirm_cross, pc_qol_field_cross_attack; /* project_settings.cpp; button_roles.c */
 extern int pc_ui_menus;          /* project_settings.cpp; ui_shell */
@@ -234,6 +235,7 @@ const char* need_lights(const Row&)
     return pc_lights_enabled ? nullptr : "Needs dynamic lights on";
 }
 const char* lighting_choice(const Row& r, int i) { return pc_lighting_unavailable(r.key, i); }
+const char* need_analog(const Row&) { return pc_analog_move ? nullptr : "Needs Analog movement on"; }
 const char* need_stick(const Row&) { return pc_camera_stick ? nullptr : "Needs Right stick camera on"; }
 const char* need_zoom(const Row& r)
 {
@@ -702,6 +704,20 @@ void build()
     c.push_back(toggle("qol_field_cross_attack", "Cross attacks",
         "In the field Cross draws the weapon and attacks; Circle interacts and sheathes.",
         &pc_qol_field_cross_attack));
+    c.push_back(toggle("analog_move", "Analog movement",
+        "Ashley walks and runs at any angle by the left stick instead of the D-pad's eight directions. Off: the "
+        "original. The D-pad and the keyboard always work as before.",
+        &pc_analog_move));
+    c.push_back(islider("analog_dead_zone", "Analog dead zone", "How far the stick moves before Ashley does.",
+        &pc_analog_dead_zone, 0, 60, "%d%%")
+                    .grey(need_analog));
+    c.push_back(islider("analog_run", "Analog run from",
+        "The stick's travel at which Ashley runs; below it she walks (the pace R2 held gives).", &pc_analog_run,
+        10, 100, "%d%%")
+                    .grey(need_analog));
+    c.push_back(islider("rumble_strength", "Rumble strength",
+        "The gamepad's motors, from what the game asks for (its Vibration option below decides whether it asks).",
+        &pc_rumble_strength, 0, 100, "%d%%"));
     c.push_back(game_option("vibration", "Vibration",
         "The game's vibration setting. Saved with your game, not in settings.", PC_GAME_OPT_VIBRATION, OFF_ON, 2));
 

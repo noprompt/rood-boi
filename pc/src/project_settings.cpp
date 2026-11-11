@@ -71,6 +71,15 @@ int pc_skip_intro;
  * (BATTLE func_8006EC7C), the D-pad and the right stick alike. Off by
  * default. */
 int pc_qol_map_invert, pc_qol_fp_invert_y;
+/* rumble_strength: the gamepad's motors, percent of what the game's actuator
+ * bytes ask for (boot_gamepad.c; the game's own Vibration setting still gates
+ * what it asks for); 0 is off. analog_move: the left stick walks and runs
+ * Ashley at any angle (analog_move.c; off by default: the d-pad's eight
+ * directions, as the original); analog_dead_zone and analog_run are percent of
+ * the stick's travel: below the dead zone nothing moves, from analog_run up
+ * Ashley runs (the D-pad's pace), between she walks (the pace R2 held gives). */
+int pc_rumble_strength = 100;
+int pc_analog_move, pc_analog_dead_zone = 20, pc_analog_run = 70;
 /* hud_label_opaque: the battle stat bars' label (HP, MP, RISK) is drawn as an
  * opaque sprite (1, default), like its digits; 0 draws the original's
  * semi-transparent one (BATTLE _renderStatBar, sprite flag 0x180). */
@@ -352,6 +361,10 @@ const Entry entries[] = {
     I("qol_map_invert", pc_qol_map_invert),
     I("qol_map_controls", pc_qol_map_controls),
     I("qol_fp_invert_y", pc_qol_fp_invert_y),
+    I("rumble_strength", pc_rumble_strength), /* percent, 0..100 */
+    I("analog_move", pc_analog_move),
+    I("analog_dead_zone", pc_analog_dead_zone), /* percent of the stick's travel */
+    I("analog_run", pc_analog_run), /* percent: at or past it Ashley runs */
     I("hud_label_opaque", pc_hud_label_opaque), /* the stat bars' label opaque (1) or the original's 0x180 (0) */
     I("opacity_2d", pc_opacity_2d), /* 2D at an opacity as primitives (1) or the game's read-back (0; ROOD_OPACITY_2D wins) */
     I("qol_confirm_cross", pc_qol_confirm_cross),

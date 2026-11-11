@@ -3,6 +3,8 @@ const psx = @import("common").psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
+const AnalogMove = *const fn (*c_int, *c_int, *c_int) callconv(.c) c_int;
+
 /// orig: func_8006E7F0 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Reads the camera input and steers the camera by the stick, the d-pad or the buttons.
 pub fn func_8006E7F0() callconv(.c) c_int {
@@ -76,6 +78,19 @@ pub fn func_8006E7F0() callconv(.c) c_int {
             }
         }
 
+        // PC: the left stick's own heading and pace (pc/src/analog_move.c, the setting analog_move, off by default).
+        var analog_walk = false; // the walking pace: the one R2 held gives (stats unk31); the D-pad's own is the run
+        if (psx.weak(AnalogMove, "pc_analog_move_get")) |analog| {
+            var ax: c_int = 0;
+            var az: c_int = 0;
+            var run: c_int = 0;
+            if (analog(&ax, &az, &run) != 0) {
+                pad[1] = psx.conv(@TypeOf(pad[1]), ax);
+                pad[3] = psx.conv(@TypeOf(pad[3]), az);
+                analog_walk = run == 0;
+            }
+        }
+
         const cam = v.g.vs_battle_cameraCurrentSpherical();
         if (cam.values.distance > 2304) {
             cam.values.distance = 2304;
@@ -88,7 +103,7 @@ pub fn func_8006E7F0() callconv(.c) c_int {
             const angle: c_int = (c.ratan2(pad[1], pad[3]) +% cam.values.yaw +% 2048) & 0xFFF;
             if ((temp_s1 & 0x80000) != 0) {
                 c.func_800B64A8(0, angle, @as(c_int, temp_s0.?.unk31) *% 4096);
-            } else if ((v.g.vs_main_buttonsPreviousState().* & (1 << 1)) != 0) {
+            } else if ((v.g.vs_main_buttonsPreviousState().* & (1 << 1)) != 0 or analog_walk) {
                 if ((v.g.vs_main_buttonsPressed().all & (1 << 7)) != 0) {
                     c.func_800A48CC(0, angle, @as(c_int, temp_s0.?.unk31) *% 4096);
                 } else {
