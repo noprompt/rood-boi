@@ -1576,7 +1576,15 @@ def screen_open(g, symbols, command, screen):
     top_command(g, symbols, command)
     for _ in range(5):  # (Circle once the top level takes it)
         g.press("circle", vsyncs=2, settle=2)
-        if g.until(lambda: g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F == screen, guard=10):
+        # (A bounded number of vsyncs, not seconds: a Circle the top level did not take left this waiting for
+        # its whole guard in awake seconds, so the vsyncs it ran, and the frames after, depended on the machine's speed.)
+        opened = False
+        for _ in range(30):
+            if g.read(symbols["vs_battle_menuState"], 1)[0] & 0x3F == screen:
+                opened = True
+                break
+            g.run(2)
+        if opened:
             break
     items_ready(g, symbols)
 
