@@ -4,6 +4,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = common.sprite_item;
 
 /// orig: func_8007D734 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
 /// Draws the five wipe panels into the ordering table `ot` and steps the wipe state machine.
@@ -29,82 +30,41 @@ pub fn func_8007D734(ot: ?*anyopaque) callconv(.c) void {
         c.SetTransMatrix(psx.cptr(c.MATRIX, &sp18));
 
         const m30 = v.g.D_800F1A30();
+        const code = v.g.D_800F1A78();
+        const rgb: c_int = @as(c_int, code.r0) | (@as(c_int, code.g0) << 8) | (@as(c_int, code.b0) << 16);
+        const slot: ?*anyopaque = @ptrFromInt(@intFromPtr(ot) +% @as(usize, v.g.D_800F1A44().* *% 4));
+        // The picture drawn so far (the frame buffer, 64 across for each of five strips; the other buffer when D_800F1A40), semi-transparent.
+        const buffer: c_int = if (v.g.D_800F1A40().* != 0) v.g.vs_main_frameBuf().* ^ 1 else v.g.vs_main_frameBuf().* & 1;
         if ((@as(c_int, v.g.D_800F1A28()[2]) & 0xFFF) != 0 or m30[0] != 0x1000 or m30[1] != m30[0]) {
-            // Rotated or scaled: five quads.
-            const buf = v.g.D_800F1ABC().*.?;
+            // Rotated or scaled: five quads (this buffer unless the rotation's low bits are clear and D_800F1A40 is set).
+            const other: c_int = if ((psx.conv(u16, v.g.D_800F1A2C().*) & 0xFFF) == 0 and v.g.D_800F1A40().* != 0) v.g.vs_main_frameBuf().* ^ 1 else v.g.vs_main_frameBuf().* & 1;
             var s1: c_int = 0;
-            while (true) {
-                const idx: c_int = v.g.vs_main_frameBuf().* *% 5 +% s1;
-                const poly = psx.at(&buf.poly, idx);
-                const code = v.g.D_800F1A78();
-                poly.r0 = code.r0;
-                poly.g0 = code.g0;
-                poly.b0 = code.b0;
-                if ((psx.conv(u16, v.g.D_800F1A2C().*) & 0xFFF) == 0 and v.g.D_800F1A40().* != 0) {
-                    poly.tpage = c.GetTPage(2, v.g.D_800F1B9C().*, s1 *% 64 +% ((v.g.vs_main_frameBuf().* ^ 1) *% 320), 0);
-                } else {
-                    poly.tpage = c.GetTPage(2, v.g.D_800F1B9C().*, s1 *% 64 +% ((v.g.vs_main_frameBuf().* & 1) *% 320), 0);
+            while (s1 < 5) : (s1 +%= 1) {
+                const tpage: c_int = c.GetTPage(2, v.g.D_800F1B9C().*, s1 *% 64 +% (other *% 320), 0);
+                var xy: [4]c_int = undefined;
+                const corners = [4][2]c_int{ .{ s1 *% 64 -% 160, -0x70 }, .{ s1 *% 64 -% 96, -0x70 }, .{ s1 *% 64 -% 160, 0x6F }, .{ s1 *% 64 -% 96, 0x6F } };
+                for (corners, 0..) |corner, k| {
+                    vertex.vx = psx.conv(i16, corner[0]);
+                    vertex.vy = psx.conv(i16, corner[1]);
+                    vertex.vz = 0;
+                    c.RotTrans(psx.cptr(c.SVECTOR, &vertex), psx.cptr(c.VECTOR, &sp50), &sp68);
+                    xy[k] = (@as(c_int, psx.conv(i16, sp50.vx)) & 0xFFFF) | (@as(c_int, psx.conv(i16, sp50.vy)) << 16);
                 }
-
-                vertex.vx = psx.conv(i16, s1 *% 64 -% 160);
-                vertex.vy = -0x70;
-                vertex.vz = 0;
-                c.RotTrans(psx.cptr(c.SVECTOR, &vertex), psx.cptr(c.VECTOR, &sp50), &sp68);
-                poly.x0 = psx.conv(i16, sp50.vx);
-                poly.y0 = psx.conv(i16, sp50.vy);
-
-                vertex.vx = psx.conv(i16, s1 *% 64 -% 96);
-                vertex.vy = -0x70;
-                vertex.vz = 0;
-                c.RotTrans(psx.cptr(c.SVECTOR, &vertex), psx.cptr(c.VECTOR, &sp50), &sp68);
-                poly.x1 = psx.conv(i16, sp50.vx);
-                poly.y1 = psx.conv(i16, sp50.vy);
-
-                vertex.vx = psx.conv(i16, s1 *% 64 -% 160);
-                vertex.vy = 0x6F;
-                vertex.vz = 0;
-                c.RotTrans(psx.cptr(c.SVECTOR, &vertex), psx.cptr(c.VECTOR, &sp50), &sp68);
-                poly.x2 = psx.conv(i16, sp50.vx);
-                poly.y2 = psx.conv(i16, sp50.vy);
-
-                vertex.vx = psx.conv(i16, s1 *% 64 -% 96);
-                vertex.vy = 0x6F;
-                vertex.vz = 0;
-                c.RotTrans(psx.cptr(c.SVECTOR, &vertex), psx.cptr(c.VECTOR, &sp50), &sp68);
-                poly.x3 = psx.conv(i16, sp50.vx);
-                poly.y3 = psx.conv(i16, sp50.vy);
-
-                c.AddPrim(@as(?*anyopaque, @ptrFromInt(@intFromPtr(ot) +% @as(usize, v.g.D_800F1A44().* *% 4))), poly);
-                s1 +%= 1;
-                if (s1 >= 5) break;
+                // Texels u 0..64 (the last strip 63), v 0..223.
+                const right: c_int = if (s1 == 4) 63 else 64;
+                const uv = [4]c_int{ 0, right, 223 << 8, right | (223 << 8) };
+                _ = sprite_item.ft4(slot, false, true, tpage, 0, rgb, &xy, &uv);
             }
         } else {
             // Unrotated and unscaled: five sprites, each with its draw mode.
-            const buf = v.g.D_800F1ABC().*.?;
             var s1: c_int = 0;
-            while (true) {
-                const idx: c_int = v.g.vs_main_frameBuf().* *% 5 +% s1;
-                const code = v.g.D_800F1A78();
-                const sprite = psx.at(&buf.sprite, idx);
-                sprite.r0 = code.r0;
-                sprite.g0 = code.g0;
-                sprite.b0 = code.b0;
+            while (s1 < 5) : (s1 +%= 1) {
                 const temp_s0: c_int = s1 << 6;
-                sprite.x0 = psx.conv(i16, @as(c_int, psx.conv(u16, v.g.D_800F1A68().unk0)) +% temp_s0);
-                sprite.y0 = psx.conv(i16, v.g.D_800F1A68().unk4);
-                c.AddPrim(@as(?*anyopaque, @ptrFromInt(@intFromPtr(ot) +% @as(usize, v.g.D_800F1A44().* *% 4))), sprite);
-
-                const page: u16 = if (v.g.D_800F1A40().* != 0)
-                    c.GetTPage(2, v.g.D_800F1B9C().*, temp_s0 +% ((v.g.vs_main_frameBuf().* ^ 1) *% 0x140), 0)
-                else
-                    c.GetTPage(2, v.g.D_800F1B9C().*, temp_s0 +% ((v.g.vs_main_frameBuf().* & 1) *% 0x140), 0);
-
-                // The DR_MODE slot follows the sprite array at byte 0x258; 12-byte entries, so 4-aligned.
-                const dr: *v.DR_MODE = @alignCast(psx.byteAt(v.DR_MODE, buf, @as(isize, idx *% 12 +% 0x258)));
-                c.SetDrawMode(psx.cptr(c.DR_MODE, dr), 0, 1, @as(c_int, page), psx.cptr(c.RECT, &sp60));
-                c.AddPrim(@as(?*anyopaque, @ptrFromInt(@intFromPtr(ot) +% @as(usize, v.g.D_800F1A44().* *% 4))), dr);
-                s1 +%= 1;
-                if (s1 >= 5) break;
+                const page: c_int = c.GetTPage(2, v.g.D_800F1B9C().*, temp_s0 +% (buffer *% 0x140), 0);
+                const x: c_int = @as(c_int, psx.conv(i16, @as(c_int, psx.conv(u16, v.g.D_800F1A68().unk0)) +% temp_s0));
+                const item = sprite_item.sprite(slot, 0x100, (x & 0xFFFF) | (@as(c_int, psx.conv(i16, v.g.D_800F1A68().unk4)) << 16), 64 | (223 << 16), 0, 0);
+                sprite_item.color(item, rgb | 0x02000000);
+                sprite_item.drawModeWindow(slot, 0x200 | (page & 0x1FF), 0);
             }
         }
     }

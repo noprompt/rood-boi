@@ -35,7 +35,7 @@ everything each route does. Old, old again (the control) and new are compared ro
 SCENES below: a new screen's route is one function there, or one of classic_parity.py's tours wrapped as the others are. Routes:
 mainmenu, manual, levelled, items, magic, arts, abilities, status, score, map, data (MENU7's SAVE and LOAD file menus), setup, loot,
 storage, ending, menuf, dialogue (the talk bubble's every shape: first_bubble), title (its menu and its file menu's copy) and gameover
-(MENU7's game over LOAD).
+(MENU7's game over LOAD). opening_events (the opening played through, the scanlines forced on) and script_<zone>_<room> (a room's own event script, for the rooms with a door into them) and story_<scene id> (a story scene of pc/assets/cutscenes/story.json played as the cutscene player plays it, from the title: the rooms and events no warp reaches; the wipes, the screen effect, its border).
 """
 import argparse
 import contextlib
@@ -48,6 +48,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ROOM = tuple(int(n) for n in os.environ.get("BUILD_COMPARE_ROOM", "48,10").split(","))  # (zone, room) of the fight; another room has other enemies and abilities
@@ -155,8 +156,8 @@ def play(binary, seconds, card, out, width):
 
 DRIVE_CRASHES = {}  # action id -> why the driver skips it (none: a valid id does not crash)
 # The rooms whose enemies have, together, every ability the 182 rooms with enemies give them (a scan of stats + 0x8C0 of the first 59 zones'
-# rooms, greedily): the lane `--casts enemies` drives each ability once.
-ENEMY_ROOMS = ("56,22;24,1;48,25;48,18;52,5;29,0;40,24;50,14;55,1;22,0;24,0;24,4;24,15;49,1;51,16;56,6;13,9;25,1;40,11;48,20;50,6;51,1;51,9;"
+# rooms, greedily; not 29,0, whose enemy 6 crashes the game at battle frame 2946 whatever it is driven to do): the lane `--casts enemies` drives each ability once.
+ENEMY_ROOMS = ("56,22;24,1;48,25;48,18;52,5;40,24;50,14;55,1;22,0;24,0;24,4;24,15;49,1;51,16;56,6;13,9;25,1;40,11;48,20;50,6;51,1;51,9;"
                "51,21;55,21;56,10;12,1;13,2;16,0;24,11;40,22;48,26;49,0;50,0;51,6;51,12;52,6;53,23;53,29;54,4;55,14;56,1;56,5")
 ENEMY_SKIPS = {147: "an enemy of zone 13 room 9 casting it reads a sector far past the disc's end (the effect's file is named by data that room lacks): the disc read fails"}  # action id -> why the enemies lane leaves it out
 SCHOOLS = (("warlock", 18), ("shaman", 6), ("sorcerer", 18), ("enchanter", 8))
@@ -231,10 +232,10 @@ def play_casts(binary, card, out, kinds, limit):
                 shot = out / "frame.ppm"
                 g.screenshot(str(shot))
                 hashes.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:12])
-                keep = os.environ.get("BUILD_COMPARE_KEEP")  # a directory: the action's frames, by process and sample
+                keep = os.environ.get("BUILD_COMPARE_KEEP")  # a directory: the action's frames, by process, action and sample
                 if keep:
                     pathlib.Path(keep).mkdir(parents=True, exist_ok=True)
-                    (pathlib.Path(keep) / f"cast-{os.getpid()}-{len(hashes) - 1:04d}.ppm").write_bytes(shot.read_bytes())
+                    (pathlib.Path(keep) / f"cast-{os.getpid()}-{what.replace(' ', '_')}-{len(hashes) - 1:04d}.ppm").write_bytes(shot.read_bytes())
                 try:
                     state = g.call("battle_state")
                     if os.environ.get("ROOD_CAST_VIEW"):  # the scene's view record (vs_view; the scratchpad at 0x1F800010 before it)
@@ -598,7 +599,8 @@ def tour(name):
     return scene
 
 
-CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title"}  # (the routes that do not start in the save room)
+STORY_ROUTES = ("room-001-00-s000", "room-003-00-s000", "evt-0001", "evt-0002", "room-010-00-s000", "room-034-00-s034", "room-032-17-s038")  # the story scenes whose drawers no room_goto route reaches
+CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title", "opening_events": "title", **{f"story_{i}": "title" for i in STORY_ROUTES}}  # (the routes that do not start in the save room)
 
 
 def scene_dialogue(g, cp, symbols):
@@ -724,6 +726,65 @@ def weather_kind(kind):
     return scene
 
 
+def scene_opening_events(g, cp, symbols):
+    """New Game's opening played through (its event script: the GIM images, the wipe among them, the screen effect's tiles, the
+    five-panel screen freeze), Circle every 90 vsyncs to move its talk boxes along; for part of it the film's scanlines
+    (D_800F4BE4, an event opcode's flag) are forced on, as EVT 6 and 15 turn them on (no room starts those)."""
+    g.run(60)
+    g.press("start", vsyncs=4, settle=90)
+    g.press("circle", vsyncs=3, settle=0)
+    for step in range(90):
+        if 30 <= step < 40:
+            g.write(symbols["D_800F4BE4"], b"\x01")
+        g.run(30)
+        g.press("circle", vsyncs=2, settle=4)
+
+
+def room_script(zone, room, steps=90):
+    """A room's own event script (the cutscene's GIM images, screen wipes, screen effects): warped to with the room's scripts on
+    (as cutscene_scan.py does), Circle pressed now and then to move its talk boxes along, left to play."""
+    def scene(g, cp, symbols):
+        warp = g.call("room_goto", zone=zone, room=room, enemies=False, scripts=True)
+        if not warp.get("ok", True):  # (a room with no door into it: the story_ routes play those)
+            raise RuntimeError(f"script_{zone}_{room}: {warp.get('message')}")
+        for _ in range(80):
+            g.run(20)
+            if g.call("room_goto", action="status")["phase"] in (0, 4):
+                break
+        for step in range(steps):
+            g.run(60)
+            if step % 3 == 2:
+                g.press("circle", vsyncs=2, settle=4)
+    return scene
+
+
+def story_scene(scene_id):
+    """A story scene (pc/assets/cutscenes/story.json) played as the cutscene player plays it (RPC cutscene start: the game started in the scene's
+    room with the story's flags, its event run by the game's own entry, the dialogue going on by itself), from the title with no card. For the
+    rooms whose scripts room_goto cannot warp to (no door into them), and the chained events (EVT 1, 2): the wipes, the screen effect, the
+    border. Back at the scene's first frame, paused (the scene went on by itself, unpaced, while it was reached: the replay is exact), then run for the scene's frames (the player's count) and a little more."""
+    def scene(g, cp, symbols):
+        story = json.loads((ROOT / "pc/assets/cutscenes/story.json").read_text())
+        frames = next(s["frames"] for s in story["scenes"] if s["id"] == scene_id)
+        g.call("cutscene", action="start", scene=scene_id)
+        for _ in range(300):  # (the game reaching the scene runs by itself; vsyncs run now would wait on it)
+            time.sleep(0.1)
+            status = g.call("cutscene")
+            if status["on"] and not status["busy"]:
+                break
+        else:
+            raise RuntimeError(f"{scene_id}: {status['message']}")
+        # (the scene went on by itself, unpaced, while it was reached: back to its first frame, paused, replayed exactly from there)
+        g.call("cutscene", action="pause")
+        g.call("cutscene", action="seek", frame=g.call("cutscene")["first"])
+        for _ in range(300):
+            time.sleep(0.1)
+            if not g.call("cutscene")["busy"]:
+                break
+        g.run(frames + 120)
+    return scene
+
+
 def scene_areamap(g, cp, symbols):
     """The area map (146C.c func_8008AC78: the room's map in the corner and its frame): Map Right set to Frame (vs_main_settings.simpleMap
     3), the map shown (D_800F1CD6), in a room with a map section, the frame drawn with the weapon sheathed (green) and drawn (red, pulsing)."""
@@ -796,7 +857,8 @@ SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_men
           "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data"),
           "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
           "gameover": scene_gameover, "damage": popups(1), "damage_x2": popups(2), "actor_word_x2": parity_tour("actor_word", 2),
-          "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "areamap": scene_areamap, "opening": scene_opening, "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
+          "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "areamap": scene_areamap, "opening": scene_opening, "opening_events": scene_opening_events,
+          **{f"script_{z}_{r}": room_script(z, r) for z, r in ((9, 0), (48, 3), (9, 2), (22, 0))}, **{f"story_{i}": story_scene(i) for i in STORY_ROUTES}, "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
           **{n: parity_tour(n) for n in ("gauges", "figure", "status_icons", "battle_mode", "buff", "actor_word", "timer", "text_band",
                                         "target_row", "target_line", "ability_icons")}}
 def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):
@@ -825,7 +887,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     results = {}
     for name in names:
         card_copy = out / f"card-{name}.mcd"
-        if name in ("dialogue", "opening"):  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
+        if name in ("dialogue", "opening", "opening_events") or name.startswith("story_"):  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
             card_copy = out / "no-card.mcd"
         else:
             card_copy.write_bytes(pathlib.Path(card).read_bytes())

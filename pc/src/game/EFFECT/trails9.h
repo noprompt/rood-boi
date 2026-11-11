@@ -630,7 +630,7 @@ void VS_TRAIL_RENDER_FUNCTION(func_800FA098_arg0* arg0, func_800FA098_arg1* arg1
 int VS_TRAIL_DISPATCH_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
 {
     vs_gte_view view;
-    func_800FB4C0_t sp18;
+    func_800FB4C0_t sp18 = { 0 }; /* (unk60_8, the draw order the children take: 0, their own) */
     func_800FA098_arg0* temp_s3;
     int trail;
     int j;

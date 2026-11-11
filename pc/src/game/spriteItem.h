@@ -8,6 +8,11 @@
 #define VS_SPRITE_ITEM_H
 #define VS_SPRITE_PAGE 0xE100000C
 int vs_battle_spriteItem(unsigned* ot, int brightness, int xy, int wh, int mode, int uv_clut);
+void vs_battle_tileFlatItem(unsigned* ot, int semi, int rgb, int xy, int wh); /* a flat tile (wh its size), colour 0xBBGGRR */
+void vs_battle_shadedItem(unsigned* ot, int verts, int semi, const int* rgb, const int* xy); /* a shaded triangle or quad */
+void vs_battle_modeItem(unsigned* ot, int e1); /* the draw mode (GP0 E1) for what draws after it */
+void vs_battle_areaItem(unsigned* ot, int x, int y, int w, int h, int offset, int ox, int oy); /* the drawing area (and its offset) */
+void vs_battle_maskItem(unsigned* ot, int on); /* the mask bit set when drawing (GP0 E6) */
 const void* vs_battle_spriteCommand(int item);
 int vs_battle_spriteColor(int item, int colour); /* its colour as a word: 0xBBGGRR, bit 25 semi-transparent; returns the item */
 #endif

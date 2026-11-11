@@ -170,6 +170,24 @@ int vs_battle_lineItem(unsigned* ot, int semi, int rgb0, int xy0, int rgb1, int 
     }
     return place(ot, cursor, first);
 }
+/* An effect trail's segment: a textured Gouraud quad (GT4) at slot `depth` of the table scratch.unk4, bracketed by the default draw
+ * mode as the effect plugins' packets were (effectItem.h), semi-transparent when `semi`. `rgb`, `xy` and `uv` per corner as the
+ * others (rgb 0xBBGGRR; xy x low, y high; uv u low, v high), `tpage` its page word and `clut` its CLUT. */
+void vs_battle_gt4Item(int depth, int semi, int tpage, int clut, const int* rgb, const int* xy, const int* uv)
+{
+    unsigned* cursor = cursor_get();
+    pc_item* it = pc_frame_poly_at(depth, PC_ITEM_POLY, 4, PC_ITEM_TEXTURED | PC_ITEM_SHADED | PC_ITEM_BRACKET | (semi ? PC_ITEM_SEMI : 0),
+        vs_scratch.unk4, &cursor);
+    cursor_set(cursor);
+    if (!it)
+        return;
+    it->mode = (unsigned short)tpage, it->clut = (unsigned short)clut;
+    for (int i = 0; i < 4; i++) {
+        it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+        it->u[i] = (unsigned char)uv[i], it->v[i] = (unsigned char)(uv[i] >> 8);
+        it->rgb[i][0] = (unsigned char)rgb[i], it->rgb[i][1] = (unsigned char)(rgb[i] >> 8), it->rgb[i][2] = (unsigned char)(rgb[i] >> 16);
+    }
+}
 /* The item (from vs_battle_lineItem, vs_battle_ft4Item) left out of the hardware picture, still in the game's own. */
 void vs_battle_itemHardwareHidden(int item)
 {

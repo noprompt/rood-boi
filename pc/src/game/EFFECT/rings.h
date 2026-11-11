@@ -31,7 +31,7 @@ int VS_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     CVECTOR colors[3];
     u_char u[9];
     u_char v[3];
-    func_800FB4C0_t child;
+    func_800FB4C0_t child = { 0 }; /* (unk60_8, the draw order the children take: 0, their own) */
     D_800F53B8_t* battle;
     int alive;
     MATRIX* actorMatrix;

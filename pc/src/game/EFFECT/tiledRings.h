@@ -41,7 +41,7 @@ int VS_TILED_RING_FUNCTION(func_800D4910_t* arg0, u_int arg1, int arg2)
     CVECTOR colors[3];
     vs_tiledRingUV uv[2][4];
     MATRIX unusedTransform;
-    func_800FB4C0_t child;
+    func_800FB4C0_t child = { 0 }; /* (unk60_8, the draw order the children take: 0, their own) */
     vs_tiledRingState* state;
     func_800FA098_arg1* scratch = &pc_effect_scratch;
     func_800FA098_arg0* effect;

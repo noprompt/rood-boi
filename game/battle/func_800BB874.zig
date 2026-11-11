@@ -3,38 +3,25 @@
 const common = @import("common");
 const psx = common.psx;
 const v = @import("views_4A0A8");
-const c = @import("c_4A0A8");
+const sprite_item = common.sprite_item;
 
 /// orig: func_800BB874 (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c)
 /// Advances the stripe phase, adds a flat line primitive per shaded row to the ordering table, then sets the draw tpage.
 pub fn func_800BB874() callconv(.c) void {
-    const scratch = common.scratch.get();
-    var line: *v.LINE_F2 = @ptrCast(@alignCast(scratch.unk0.?));
+    const ot = common.scratch.get().unk8;
 
     v.g.D_800F4B20().* +%= 1;
 
     var i: i16 = 0;
     while (@as(c_int, i) < @as(c_int, v.g.D_8005DFDA().*)) : (i +%= 1) {
         const temp: c_uint = psx.conv(c_uint, ((@as(c_int, i) +% (@as(c_int, v.g.D_800F4B20().*) >> 1)) & 1) << 5);
-        const shade: u8 = psx.conv(u8, temp);
         if (temp != 0) {
-            c.SetLineF2(psx.cptr(c.LINE_F2, line));
-            line.r0 = shade;
-            line.g0 = shade;
-            line.b0 = shade;
-            line.code |= 0x02;
-            line.x0 = 0;
-            line.y0 = i;
-            line.y1 = i;
-            line.x1 = v.g.D_8005DFD6().*;
-
-            c.AddPrim(scratch.unk8, @ptrCast(line));
-            line = @ptrFromInt(@intFromPtr(line) +% @sizeOf(v.LINE_F2));
+            // A semi-transparent grey line across row i.
+            const shade: c_int = @bitCast(temp & 0xFF);
+            sprite_item.lineFlat(ot, true, shade | (shade << 8) | (shade << 16), @as(c_int, i) << 16, (@as(c_int, i) << 16) | @as(c_int, @as(u16, @bitCast(v.g.D_8005DFD6().*))));
         }
     }
 
-    c.SetDrawTPage(@ptrCast(line), 1, 1, @as(c_int, c.GetTPage(0, 2, 0, 0)));
-
-    c.AddPrim(scratch.unk8, @ptrCast(line));
-    scratch.unk0 = &line.x0;
+    // The draw mode the lines drew in: additive-subtractive blend (abr 2), dithering and drawing on the display on.
+    sprite_item.drawMode(ot, 0x640);
 }

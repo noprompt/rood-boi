@@ -28,7 +28,6 @@ void func_800F986C(void)
     int var_s2;
     int y;
     u_long* temp_s4;
-    u_long* var_t2;
 
     temp_s4 = vs_scratch.unk4;
 
@@ -80,29 +79,17 @@ void func_800F986C(void)
         }
     }
 
+    /* The picture's own screen area (the sprites above draw in it) and, drawn last, the display's again: items drawn in
+     * the reverse of the order they are made in, so the last is made first. */
     var_s0 = D_800EB9B4->unk2 - 3;
-    var_t2 = vs_scratch.unk0;
-    var_t2[0] = ((temp_s4[var_s0] & 0xFFFFFF) | 0x07000000);
-    var_t2[1] = 0xE30402C0;
-    var_t2[2] = 0xE4077FFF;
-    var_t2[3] = 0xE50802C0;
-    var_t2[4] = 0x60000000;
-    var_t2[5] = 0;
-    var_t2[6] = 0xE00140;
-    var_t2[7] = 0xE6000001;
-    temp_s4[var_s0] = (psx_to_int(u_long, var_t2) << 8) >> 8;
-    var_t2 += 8;
+    vs_battle_maskItem(temp_s4 + var_s0, 1);
+    vs_battle_tileFlatItem(temp_s4 + var_s0, 0, 0, 0, 0x140 | (0xE0 << 16));
+    vs_battle_areaItem(temp_s4 + var_s0, 704, 256, 320, 224, 1, 704, 256);
 
     x = vs_main_frameBuf == 0 ? 0x140 : 0;
 
-    var_t2[0] = ((*temp_s4 & 0xFFFFFF) | 0x04000000);
-    var_t2[1] = x | 0xE3000000;
-    var_t2[2] = (x + 0x13F) | 0xE4037C00;
-    var_t2[3] = x | 0xE5000000;
-    var_t2[4] = 0xE6000000;
-
-    *temp_s4 = (psx_to_int(u_long, var_t2) << 8) >> 8;
-    vs_scratch.unk0 = var_t2 + 5;
+    vs_battle_maskItem(temp_s4, 0);
+    vs_battle_areaItem(temp_s4, x, 0, 320, 224, 1, x, 0);
 }
 
 void func_800F9BC0(short arg0, short arg1)

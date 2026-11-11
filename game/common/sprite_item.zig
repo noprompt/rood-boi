@@ -103,3 +103,11 @@ const Bracket = *const fn (c_int) callconv(.c) void;
 pub fn bracketed(item: c_int) void {
     psx.weak(Bracket, "vs_battle_itemBracket").?(item);
 }
+
+const Gt4 = *const fn (c_int, c_int, c_int, c_int, [*]const c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
+
+/// An effect trail's textured Gouraud quad at slot `depth` of the table vs_scratch.unk4, bracketed by the default draw mode as the
+/// effect plugins' packets were: its page word and CLUT, a colour, corner (x low, y high) and texel (u low, v high) each.
+pub fn gt4(depth: c_int, semi: bool, tpage: c_int, clut: c_int, rgb: []const c_int, xy: []const c_int, uv: []const c_int) void {
+    psx.weak(Gt4, "vs_battle_gt4Item").?(depth, @intFromBool(semi), tpage, clut, rgb.ptr, xy.ptr, uv.ptr);
+}

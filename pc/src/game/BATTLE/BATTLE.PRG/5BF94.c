@@ -872,11 +872,6 @@ typedef struct {
         currentSecond;
     int projectionDepth, projectionFlags;
 } effectTrailState;
-typedef struct {
-    u_long tag;
-    POLY_GT4 poly;
-    u_long endPage;
-} TrailPacket;
 extern CVECTOR D_800EC308[], D_800EC2E8[];
 void func_800CF988(func_800CF988_t*, int, int, int);
 void func_800CDCBC(effectTrailState* t, int head, int tail);
