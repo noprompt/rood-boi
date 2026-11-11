@@ -1,5 +1,6 @@
 //! The camera's step toward a target point (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
@@ -27,9 +28,11 @@ pub fn computeStepAndDisplacement(targetPos: ?*v.SVECTOR, outStep: ?*v.VECTOR, o
     scaled.vz = psx.conv(i16, @divTrunc(fixed.vz, 4096));
     scaled.vy = psx.conv(i16, @divTrunc(fixed.vy, 4096));
     const view = v.g.vs_view();
-    c.SetRotMatrix(@ptrCast(&view.viewMatrix));
-    c.SetTransMatrix(@ptrCast(&view.viewMatrix));
-    _ = c.RotTransPers(@ptrCast(&scaled), &sxy, &p, &notCentered);
+    const gteView = gte.viewOf(&view.viewMatrix, gte.screenCurrent());
+    const projected = gte.project(&gteView, &scaled);
+    sxy = projected.sxy;
+    p = projected.ir0;
+    notCentered = @bitCast(projected.flag);
     if (clampToZone == 0) {
         const y = @divTrunc(sxy, 0x10000);
         if (psx.conv(c_uint, (sxy -% y *% 0x10000) -% 61) < 199) {

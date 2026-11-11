@@ -2,6 +2,7 @@
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = common.sprite_item;
@@ -16,7 +17,6 @@ pub fn func_8007D734(ot: ?*anyopaque) callconv(.c) void {
     var vertex = std.mem.zeroes(v.SVECTOR);
     var sp50: v.VECTOR = undefined;
     var sp60 = std.mem.zeroes(v.RECT);
-    var sp68: c_int = undefined;
 
     _ = c.memset(&sp60, @as(c_int, 0), @as(usize, 8));
 
@@ -26,8 +26,7 @@ pub fn func_8007D734(ot: ?*anyopaque) callconv(.c) void {
         _ = c.RotMatrix_gte(@ptrCast(v.g.D_800F1A28()), psx.cptr(c.MATRIX, &sp18));
         _ = c.TransMatrix(psx.cptr(c.MATRIX, &sp18), psx.cptr(c.VECTOR, &translation));
         _ = c.ScaleMatrix(psx.cptr(c.MATRIX, &sp18), @ptrCast(v.g.D_800F1A30()));
-        c.SetRotMatrix(psx.cptr(c.MATRIX, &sp18));
-        c.SetTransMatrix(psx.cptr(c.MATRIX, &sp18));
+        const view = gte.viewOf(&sp18, gte.no_screen);
 
         const m30 = v.g.D_800F1A30();
         const code = v.g.D_800F1A78();
@@ -47,7 +46,7 @@ pub fn func_8007D734(ot: ?*anyopaque) callconv(.c) void {
                     vertex.vx = psx.conv(i16, corner[0]);
                     vertex.vy = psx.conv(i16, corner[1]);
                     vertex.vz = 0;
-                    c.RotTrans(psx.cptr(c.SVECTOR, &vertex), psx.cptr(c.VECTOR, &sp50), &sp68);
+                    gte.transformTo(&sp50, &view, &vertex);
                     xy[k] = (@as(c_int, psx.conv(i16, sp50.vx)) & 0xFFFF) | (@as(c_int, psx.conv(i16, sp50.vy)) << 16);
                 }
                 // Texels u 0..64 (the last strip 63), v 0..223.

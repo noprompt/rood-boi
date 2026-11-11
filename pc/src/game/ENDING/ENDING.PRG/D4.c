@@ -8,6 +8,7 @@
 #include "scratch.h"
 #define PC_LEAF_TABLE 0 /* (the frame is items alone: the leaves' items are placed in no table: menufLeaf.h) */
 #include "pc/src/draw_items.h"
+#include "pc/src/gte_value.h"
 #include <libapi.h>
 #include <libetc.h>
 #include <memory.h>
@@ -292,13 +293,12 @@ void _renderPhantomPain(_creditsElement* element)
     SVECTOR rot;
     SVECTOR vertices[4];
     MATRIX matrix;
-    psx_long p;
-    psx_long flag;
     u_short brightness;
     u_short scale;
     u_short i;
     u_short j;
-    psx_long sxy[4];
+    int sxy[4];
+    vs_gte_view view;
     pc_item* poly;
     int k;
     int dx;
@@ -358,8 +358,7 @@ void _renderPhantomPain(_creditsElement* element)
     RotMatrix_gte(&rot, &matrix);
     matrix.t[0] = matrix.t[1] = 0;
     matrix.t[2] = 512;
-    SetRotMatrix(&matrix);
-    SetTransMatrix(&matrix);
+    view = vs_gte_view_of(&matrix, vs_gte_screen_current());
 
     for (i = 0; i < 4; ++i) {
         for (j = 0; j < 16; ++j) {
@@ -380,8 +379,9 @@ void _renderPhantomPain(_creditsElement* element)
                     * scale)
                 >> 12;
 
-            RotTransPers4(&vertices[0], &vertices[1], &vertices[2], &vertices[3],
-                &sxy[0], &sxy[1], &sxy[2], &sxy[3], &p, &flag);
+            for (k = 0; k < 4; ++k) {
+                sxy[k] = vs_gte_project(&view, &vertices[k]).sxy;
+            }
             poly = pc_frame_add(PC_ITEM_POLY, 3);
             if (poly == NULL) {
                 continue;

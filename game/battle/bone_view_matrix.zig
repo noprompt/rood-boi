@@ -2,6 +2,7 @@
 const std = @import("std");
 const psx = @import("common").psx;
 const pad = @import("common").pad;
+const gte = @import("common").gte;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
@@ -40,21 +41,13 @@ pub fn boneViewMatrix(actorId: c_int, bone: c_int, _: ?*v.MATRIX) callconv(.c) ?
     const camera = v.g.D_800F49B8();
     const result = &scratch.matrix;
     c.func_80041C68(psx.cptr(c.MATRIX, camera), psx.cptr(c.MATRIX, result));
-    c.SetRotMatrix(psx.cptr(c.MATRIX, camera));
-
-    // Only t is meaningful here; the rest of the translation matrix is zeroed (uninitialised in the original).
-    var zeroTranslation: v.MATRIX = std.mem.zeroes(v.MATRIX);
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &zeroTranslation));
+    // The camera's rotation, translation zero (the translation matrix was uninitialised in the original).
+    const view = gte.viewRotation(camera, gte.no_screen);
 
     scratch.position.vx = psx.conv(i16, scratch.matrix.t[0] -% camera.t[0]);
     scratch.position.vy = psx.conv(i16, scratch.matrix.t[1] -% camera.t[1]);
     scratch.position.vz = psx.conv(i16, scratch.matrix.t[2] -% camera.t[2]);
 
-    var flag: c_int = 0;
-    c.RotTrans(
-        psx.cptr(c.SVECTOR, &scratch.position),
-        psx.cptr(c.VECTOR, @as(*v.VECTOR, @ptrCast(&scratch.matrix.t))),
-        &flag,
-    );
+    gte.transformTo(&scratch.matrix.t, &view, &scratch.position);
     return result;
 }

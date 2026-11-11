@@ -1,5 +1,6 @@
 //! The rain: falling drops as lines, landed drops as splashes (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = @import("common").sprite_item;
@@ -18,10 +19,8 @@ fn ordering(scratch: *v.vs_scratch_t, depth: c_int) ?*anyopaque {
 pub fn func_8008F440() callconv(.c) void {
     var vertices: [10]v.SVECTOR = undefined;
     var projection: c_int = undefined;
-    var flags: c_int = undefined;
     const scratch = v.g.vs_scratch();
-    c.SetRotMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
-    c.SetTransMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
+    const view = gte.viewOf(&v.g.vs_view().viewMatrix, gte.screenCurrent());
     const wind = v.g.D_800F1D98();
     var particle: [*]v.D_800F1DD4_t = @ptrCast(v.g.D_800F1DD4().*.?);
     var i: c_int = 0;
@@ -44,7 +43,9 @@ pub fn func_8008F440() callconv(.c) void {
             }
             drop.unkE = 2;
             var sxy0: c_int = 0;
-            const depth = c.RotTransPers(@ptrCast(drop), @ptrCast(&sxy0), &projection, &flags);
+            const dropProjected = gte.project(&view, drop);
+            sxy0 = dropProjected.sxy;
+            const depth: c_int = @intCast(dropProjected.otz);
             if (psx.conv(u16, @as(c_int, psx.conv(i16, sxy0)) +% 639) < 1599 and depth < 2048) {
                 if (psx.conv(c_uint, (sxy0 >> 16 & 0xFFFF) - 1) < 239 and psx.conv(i16, sxy0) > 0 and
                     psx.conv(i16, sxy0) < 320 and depth > 4)
@@ -53,7 +54,7 @@ pub fn func_8008F440() callconv(.c) void {
                     vertices[0].vy = psx.conv(i16, @as(c_int, drop.unk2) -% wind[1]);
                     vertices[0].vz = psx.conv(i16, @as(c_int, drop.unk4) -% wind[2]);
                     var sxy1: c_int = 0;
-                    _ = c.RotTransPers(@ptrCast(&vertices[0]), @ptrCast(&sxy1), &projection, &flags);
+                    sxy1 = gte.project(&view, &vertices[0]).sxy;
                     // The drop: a semi-transparent shaded line back along the wind; left out of the hardware picture where room
                     // geometry hides it (environment.cpp), as it always was.
                     const item = sprite_item.lineG2(ordering(scratch, depth), true, 96 | (96 << 8) | (128 << 16), sxy0, 32 | (32 << 8) | (100 << 16), sxy1);
@@ -86,8 +87,13 @@ pub fn func_8008F440() callconv(.c) void {
                 vertices[k].vz = psx.conv(i16, @as(c_int, drop.unk4) +% corner[1]);
             }
             var corners_xy: [4]c_int = .{ 0, 0, 0, 0 };
-            var depth = c.RotTransPers4(@ptrCast(&vertices[0]), @ptrCast(&vertices[1]), @ptrCast(&vertices[2]), @ptrCast(&vertices[3]),
-                @ptrCast(&corners_xy[0]), @ptrCast(&corners_xy[1]), @ptrCast(&corners_xy[2]), @ptrCast(&corners_xy[3]), &projection, &flags);
+            // RotTransPers4: three vertices, then the fourth; its depth is the fourth's.
+            var depth: c_int = 0;
+            for (vertices[0..4], &corners_xy) |*vertex, *xy| {
+                const corner = gte.project(&view, vertex);
+                xy.* = corner.sxy;
+                depth = @intCast(corner.otz);
+            }
             depth -%= 64;
             if (psx.conv(c_uint, depth -% 1) < 2047) {
                 // A semi-transparent splash quad: frame unkD / 2 of the strip.

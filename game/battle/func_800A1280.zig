@@ -2,6 +2,7 @@
 //! for any other code (pc/src/game/BATTLE/BATTLE.PRG/30DB0.c).
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_30DB0");
 const c = @import("c_30DB0");
 
@@ -27,12 +28,15 @@ pub fn func_800A1280(arg0: c_int, arg1: c_int, arg2: ?*v.SVECTOR, arg3: c_int) c
         }
 
         const rot: *v.MATRIX = common.view.at(v.MATRIX, common.view.matrix_offset);
-        c.SetRotMatrix(psx.cptr(c.MATRIX, rot));
-        c.SetTransMatrix(psx.cptr(c.MATRIX, rot));
+        const view = gte.viewOf(rot, gte.screenCurrent());
 
         // PC_GTE_UNNARROWED: the projection runs with the widescreen anchor raised.
         v.g.pc_gte_anchored().* +%= 1;
-        arg2.?.vz = psx.conv(i16, c.RotTransPers(psx.cptr(c.SVECTOR, arg2.?), &sp10, &sp14, &sp18));
+        const projected = gte.project(&view, arg2.?);
+        sp10 = projected.sxy;
+        sp14 = projected.ir0;
+        sp18 = @bitCast(projected.flag);
+        arg2.?.vz = psx.conv(i16, @as(c_int, @intCast(projected.otz)));
         v.g.pc_gte_anchored().* -%= 1;
 
         arg2.?.vx = psx.conv(i16, sp10);

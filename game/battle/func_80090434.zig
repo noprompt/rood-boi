@@ -1,5 +1,6 @@
 //! The sparkle particles: they drift on the view and are drawn as one or two tiles each (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = @import("common").sprite_item;
@@ -17,14 +18,13 @@ fn grey(color: c_int) c_int {
 pub fn func_80090434() callconv(.c) void {
     const scratch = v.g.vs_scratch();
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+    const view = gte.viewOf(&v.g.vs_view().viewMatrix, gte.no_screen);
 
     var origin: v.VECTOR = undefined;
     var velocity: v.VECTOR = undefined;
     var flags: c.psx_long = undefined;
-    c.RotTrans(@ptrCast(v.g.D_800F1CE0()), psx.cptr(c.VECTOR, &origin), &flags);
-    c.RotTrans(@ptrCast(v.g.D_800F1D98()), psx.cptr(c.VECTOR, &velocity), &flags);
+    gte.transformTo(&origin, &view, v.g.D_800F1CE0());
+    gte.transformTo(&velocity, &view, v.g.D_800F1D98());
 
     // The slot 4 entries past the table's base.
     const ot: ?*anyopaque = @ptrFromInt(@intFromPtr(psx.get(scratch.unk4)) +% 4 * @sizeOf(c_uint));

@@ -1,5 +1,6 @@
 //! The snow: drifting flakes drawn as one or two tiles, landed flakes fading (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = @import("common").sprite_item;
@@ -25,11 +26,14 @@ fn flake(ot: ?*anyopaque, x: c_int, y: c_int, size: c_int, grey: c_int) void {
 }
 
 /// Projects a flake (anchored for the widescreen hook); its screen place as x low, y high in `sxy`.
-fn project(drop: *v.D_800F1DD4_t, sxy: *c_int, projection: *c_int, flags: *c_int) c_int {
+fn project(view: *const gte.View, drop: *v.D_800F1DD4_t, sxy: *c_int, projection: *c_int, flags: *c_int) c_int {
     v.g.pc_gte_anchored().* +%= 1;
-    const depth = c.RotTransPers(@ptrCast(drop), @ptrCast(sxy), projection, flags);
+    const projected = gte.project(view, drop);
     v.g.pc_gte_anchored().* -%= 1;
-    return depth;
+    sxy.* = projected.sxy;
+    projection.* = projected.ir0;
+    flags.* = @bitCast(projected.flag);
+    return @intCast(projected.otz);
 }
 
 /// orig: func_8008FDC4 (pc/src/game/BATTLE/BATTLE.PRG/146C.c)
@@ -42,8 +46,7 @@ pub fn func_8008FDC4() callconv(.c) void {
     var projection: c_int = undefined;
     var flags: c_int = undefined;
     const scratch = v.g.vs_scratch();
-    c.SetRotMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
-    c.SetTransMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
+    const view = gte.viewOf(&v.g.vs_view().viewMatrix, gte.screenCurrent());
     const wind = v.g.D_800F1D98();
     var particle: [*]v.D_800F1DD4_t = @ptrCast(v.g.D_800F1DD4().*.?);
     var i: c_int = 0;
@@ -83,7 +86,7 @@ pub fn func_8008FDC4() callconv(.c) void {
             }
             drop.unkE = 2;
             var sxy: c_int = 0;
-            const depth = project(drop, &sxy, &projection, &flags);
+            const depth = project(&view, drop, &sxy, &projection, &flags);
             if (psx.conv(u16, @as(c_int, psx.conv(i16, sxy)) +% 639) < 1599 and depth < 2048) {
                 if (depth > 4) {
                     const x: c_int = psx.conv(i16, sxy);
@@ -117,7 +120,7 @@ pub fn func_8008FDC4() callconv(.c) void {
             }
         } else {
             var sxy: c_int = 0;
-            const depth = project(drop, &sxy, &projection, &flags);
+            const depth = project(&view, drop, &sxy, &projection, &flags);
             if (psx.conv(c_uint, @as(c_int, psx.conv(u16, sxy >> 16)) - 1) < 239 and psx.conv(i16, sxy) > -margin() and
                 psx.conv(i16, sxy) < 320 + margin() and depth > 4)
             {

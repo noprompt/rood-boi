@@ -3,6 +3,7 @@
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = common.sprite_item;
@@ -80,10 +81,10 @@ fn fadeWhite(ot: ?*anyopaque) void {
 }
 
 /// RotTrans of (x, y, 0) through the current matrices, the projected point as x low, y high.
-fn rotTransAt(pos: *v.SVECTOR, projected: *v.VECTOR, flag: *c_int, x: c_int, y: c_int) c_int {
+fn rotTransAt(view: *const gte.View, pos: *v.SVECTOR, projected: *v.VECTOR, x: c_int, y: c_int) c_int {
     pos.vx = psx.conv(i16, x);
     pos.vy = psx.conv(i16, y);
-    c.RotTrans(psx.cptr(c.SVECTOR, pos), psx.cptr(c.VECTOR, projected), flag);
+    gte.transformTo(projected, view, pos);
     return xy(@as(c_int, psx.conv(i16, projected.vx)), @as(c_int, psx.conv(i16, projected.vy)));
 }
 
@@ -94,7 +95,6 @@ fn wipe(ot: ?*anyopaque) void {
     var zRotation: v.SVECTOR = std.mem.zeroes(v.SVECTOR);
     var wipeEdgePos: v.SVECTOR = std.mem.zeroes(v.SVECTOR);
     var projectedPos: v.VECTOR = std.mem.zeroes(v.VECTOR);
-    var flag: c_int = 0;
 
     const step = v.g.vs_battle_screenTransitionStep().*;
     const angle = v.g.vs_battle_screenTransitionWipeAngle().*;
@@ -107,8 +107,7 @@ fn wipe(ot: ?*anyopaque) void {
     screenCenter.vz = 0;
     _ = c.RotMatrix_gte(psx.cptr(c.SVECTOR, &zRotation), psx.cptr(c.MATRIX, &rotTransMatrix));
     _ = c.TransMatrix(psx.cptr(c.MATRIX, &rotTransMatrix), psx.cptr(c.VECTOR, &screenCenter));
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &rotTransMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &rotTransMatrix));
+    const view = gte.viewOf(&rotTransMatrix, gte.no_screen);
 
     wipeEdgePos.vz = 0;
     const scaled = @divTrunc(alpha() *% 560, 255);
@@ -117,14 +116,14 @@ fn wipe(ot: ?*anyopaque) void {
     const ex3 = scaled -% 200;
 
     // The covered quad runs from the left to ex1, the edge quad from ex1 to ex2, the gradient from ex2 to ex3.
-    const a = rotTransAt(&wipeEdgePos, &projectedPos, &flag, -360, -200);
-    const b = rotTransAt(&wipeEdgePos, &projectedPos, &flag, -360, 200);
-    const cc = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex1, -200);
-    const d = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex1, 200);
-    const e = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex2, -200);
-    const f = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex2, 200);
-    const g = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex3, -200);
-    const h = rotTransAt(&wipeEdgePos, &projectedPos, &flag, ex3, 200);
+    const a = rotTransAt(&view, &wipeEdgePos, &projectedPos, -360, -200);
+    const b = rotTransAt(&view, &wipeEdgePos, &projectedPos, -360, 200);
+    const cc = rotTransAt(&view, &wipeEdgePos, &projectedPos, ex1, -200);
+    const d = rotTransAt(&view, &wipeEdgePos, &projectedPos, ex1, 200);
+    const e = rotTransAt(&view, &wipeEdgePos, &projectedPos, ex2, -200);
+    const f = rotTransAt(&view, &wipeEdgePos, &projectedPos, ex2, 200);
+    const g = rotTransAt(&view, &wipeEdgePos, &projectedPos, ex3, -200);
+    const h = rotTransAt(&view, &wipeEdgePos, &projectedPos, ex3, 200);
 
     const blue: c_int = 1 << 16;
     sprite_item.flat(otPlus4(ot), 4, false, blue, &[4]c_int{ a, cc, b, d });

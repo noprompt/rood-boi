@@ -120,3 +120,92 @@ pub inline fn zrtr() void {
     CTC2(0, 6);
     CTC2(0, 7);
 }
+
+// The GTE's maths as values (pc/src/gte_value_core.h, gte_value.h): a view and a vector in, the registers'
+// results out, on a private register set (the game's registers are not read or changed).
+
+/// vs_gte_screen: OFX and OFY as the registers hold them (16.16), H, DQA, DQB.
+pub const Screen = extern struct { ofx: c_int, ofy: c_int, h: c_int, dqa: c_int, dqb: c_int };
+
+/// vs_gte_view: rotation, translation, projection.
+pub const View = extern struct { rot: [3][3]i16, t: [3]c_int, screen: Screen };
+
+/// vs_gte_result: the registers an operation writes (the others are zero).
+pub const Result = extern struct {
+    sxy: c_int,
+    sx: i16,
+    sy: i16,
+    sz: c_uint,
+    otz: c_uint,
+    ir0: i16,
+    ir: [3]i16,
+    mac: [4]c_int,
+    flag: c_uint,
+};
+
+const RTPS: c_int = 0x0180001;
+const RTV0TR: c_int = 0x0480012;
+const RTV0: c_int = 0x0486012;
+
+extern fn vs_gte_run(op: c_int, view: *const View, v: *const [3]i16, caller: ?*const anyopaque) callconv(.c) Result;
+extern fn vs_gte_screen_current() callconv(.c) Screen;
+
+/// For a transform or a rotation, which do not project.
+pub const no_screen: Screen = .{ .ofx = 0, .ofy = 0, .h = 0, .dqa = 0, .dqb = 0 };
+
+/// The projection the game has set so far (SetGeomOffset, SetGeomScreen).
+pub fn screenCurrent() Screen {
+    return vs_gte_screen_current();
+}
+
+/// The PS1 MATRIX layout: the rotation, a pad halfword, the translation at +20.
+const Matrix = extern struct { m: [3][3]i16, pad: i16, t: [3]c_int };
+
+/// SetRotMatrix and SetTransMatrix of a MATRIX (rotation at +0, translation at +20).
+pub fn viewOf(m: anytype, screen: Screen) View {
+    var view: View = undefined;
+    const mat: *align(1) const Matrix = @ptrCast(m);
+    view.rot = mat.m;
+    view.t = mat.t;
+    view.screen = screen;
+    return view;
+}
+
+/// SetRotMatrix of a MATRIX with the translation zero (gte_zrtr).
+pub fn viewRotation(m: anytype, screen: Screen) View {
+    var view = viewOf(m, screen);
+    view.t = .{ 0, 0, 0 };
+    return view;
+}
+
+/// RotTrans: the vector rotated and translated (MAC1-3).
+pub inline fn transform(view: *const View, vec: anytype) Result {
+    return vs_gte_run(RTV0TR, view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
+}
+
+/// ApplyRotMatrix, ApplyMatrix: the vector rotated (MAC1-3, IR1-3).
+pub inline fn rotate(view: *const View, vec: anytype) Result {
+    return vs_gte_run(RTV0, view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
+}
+
+/// RotTransPers: the vector projected (sxy, sz, otz, ir0).
+pub inline fn project(view: *const View, vec: anytype) Result {
+    return vs_gte_run(RTPS, view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
+}
+
+/// RotTrans stored as a vector (gte_stlvnl): MAC1-3, the flags dropped.
+pub inline fn transformTo(out: anytype, view: *const View, vec: anytype) void {
+    const r = vs_gte_run(RTV0TR, view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
+    storeVector(out, r);
+}
+
+/// ApplyMatrix, ApplyRotMatrix stored as a vector.
+pub inline fn rotateTo(out: anytype, view: *const View, vec: anytype) void {
+    const r = vs_gte_run(RTV0, view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
+    storeVector(out, r);
+}
+
+fn storeVector(out: anytype, r: Result) void {
+    const v: *align(1) [3]c_int = @ptrCast(out);
+    v.* = r.mac[1..4].*;
+}

@@ -1,5 +1,6 @@
 //! Draws an actor's emote (the speech-bubble icons over its head) (pc/src/game/BATTLE/BATTLE.PRG/2842C.c).
 const common = @import("common");
+const gte = common.gte;
 const psx = common.psx;
 const sprite_item = @import("common").sprite_item;
 const v = @import("views_2842C");
@@ -143,12 +144,14 @@ pub fn func_80095C18(actor: c_int, kind_arg: c_int) callconv(.c) void {
             if (side > 416) flagsWord.* |= bit(actor);
             side = (flagsWord.* >> @truncate(@as(c_uint, @bitCast(actor)))) & 1;
             if (side != 0) return;
-            c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
-            c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+            const gteView = gte.viewOf(&v.g.vs_view().viewMatrix, gte.screenCurrent());
             other.vy = psx.conv(i16, @as(c_int, other.vy) -% 64);
             // PC_GTE_UNNARROWED
             v.g.pc_gte_anchored().* +%= 1;
-            _ = c.RotTransPers(psx.cptr(c.SVECTOR, &other), @ptrCast(&position), &depth, &side);
+            const projected = gte.project(&gteView, &other);
+            @as(*align(1) c_int, @ptrCast(&position)).* = projected.sxy;
+            depth = projected.ir0;
+            side = @bitCast(projected.flag);
             v.g.pc_gte_anchored().* -%= 1;
             const ot = slot(&common.scratch.get().unk4);
             position.vx = psx.conv(i16, @as(c_int, position.vx) -% 8);

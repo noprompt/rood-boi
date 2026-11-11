@@ -1,5 +1,6 @@
 #include "common.h"
 #include "238.h"
+#include "pc/src/gte_value.h"
 #include "57BC.h"
 #include "pc/src/game/SLUS_010.40/main.h"
 #include "pc/src/game/SLUS_010.40/31724.h"
@@ -1482,6 +1483,7 @@ void _buildPitchMatrix(MATRIX* arg0, short arg1);
  */
 void _buildCameraMatrix(MATRIX* cameraMatrix)
 {
+    vs_gte_view rotation;
     SVECTOR negPosition;
     SVECTOR position;
     MATRIX pitchMatrix;
@@ -1514,7 +1516,8 @@ void _buildCameraMatrix(MATRIX* cameraMatrix)
 
     applyVector(&negPosition, position.vx, position.vy, position.vz, = -);
 
-    ApplyMatrix(cameraMatrix, &negPosition, (VECTOR*)&cameraMatrix->t);
+    rotation = vs_gte_view_rotation(cameraMatrix, VS_GTE_NO_SCREEN);
+    vs_gte_rotate_to((VECTOR*)&cameraMatrix->t, &rotation, &negPosition);
 }
 
 /**

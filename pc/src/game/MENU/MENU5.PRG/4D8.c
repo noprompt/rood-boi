@@ -2,6 +2,7 @@
 #ifdef ROOD_PC
 #include "pc/src/psx_types.h"
 #include "pc/src/widescreen.h"
+#include "pc/src/gte_value.h"
 #include "pc/src/ui/map_frame.h"
 #endif
 #include "pc/src/game/SLUS_010.40/main.h"
@@ -1048,11 +1049,15 @@ static void _renderScreen(void)
     }
 }
 
+/* _setCamera's rotation and translation; _renderRoom adds the projection (the geometry offset _renderMap has set). */
+static vs_gte_view _cameraView;
+
 /**
  * Applies the current camera values.
  */
 static void _setCamera(void)
 {
+    vs_gte_view rotation;
     SVECTOR sp10;
     MATRIX sp18;
     MATRIX sp38;
@@ -1071,9 +1076,12 @@ static void _setCamera(void)
 
     applyVector(&sp10, _cameraPos.vx, _cameraPos.vy, _cameraPos.vz, = -);
 
-    ApplyMatrix(&sp18, &sp10, (VECTOR*)sp38.t);
-    SetRotMatrix(&sp18);
-    SetTransMatrix(&sp38);
+    rotation = vs_gte_view_rotation(&sp18, VS_GTE_NO_SCREEN);
+    vs_gte_rotate_to((VECTOR*)sp38.t, &rotation, &sp10);
+    _cameraView = vs_gte_view_of(&sp18, VS_GTE_NO_SCREEN);
+    _cameraView.t[0] = sp38.t[0];
+    _cameraView.t[1] = sp38.t[1];
+    _cameraView.t[2] = sp38.t[2];
 }
 
 /**
@@ -1230,16 +1238,20 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
 
     short (*var_s1)[4] = (void*)PC_PAD(0x100);
     int elementCount = *(int*)roomData;
+    vs_gte_view view = _cameraView;
 #ifdef ROOD_PC
     int pc_vertex_count = elementCount;
 #endif
     roomData += 4;
 
+    view.screen = vs_gte_screen_current();
     for (i = 0; i < elementCount; ++i) {
-        u_int v0 = RotTransPers(roomData, (psx_long*)var_s1[i], &sp38, &sp3C);
+        vs_gte_result projected = vs_gte_project(&view, (SVECTOR*)roomData);
+        u_int v0 = projected.otz;
+        *(int*)var_s1[i] = projected.sxy;
         var_s1[i][2] = v0;
         v0 -= 0x40;
-        var_s1[i][3] = sp38;
+        var_s1[i][3] = projected.ir0;
 
         if (v0 >= 0x7BF) {
             return 0;

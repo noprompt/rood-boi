@@ -1,6 +1,7 @@
 //! An effect point's random spline controls (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
@@ -59,10 +60,9 @@ pub fn func_800D05F4(mode_arg: ?*v.func_800D0548_arg0, point: ?*v.func_800D0548_
     transform.t[0] = start.vx;
     transform.t[1] = start.vy;
     transform.t[2] = start.vz;
-    c.SetRotMatrix(@ptrCast(&transform));
-    c.SetTransMatrix(@ptrCast(&transform));
-    c.RotTrans(@ptrCast(&control0), @ptrCast(&start), &distance);
-    c.RotTrans(@ptrCast(&control1), @ptrCast(&end), &distance);
+    const view = gte.viewOf(&transform, gte.no_screen);
+    gte.transformTo(&start, &view, &control0);
+    gte.transformTo(&end, &view, &control1);
     b.control0.vx = psx.conv(i16, start.vx);
     b.control0.vy = psx.conv(i16, start.vy);
     b.control0.vz = psx.conv(i16, start.vz);

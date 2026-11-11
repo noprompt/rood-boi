@@ -1,5 +1,6 @@
 //! Falling particle quads: projects each live particle, builds its quad from two projected points and links it into the ordering table (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 const sprite_item = @import("common").sprite_item;
@@ -12,8 +13,7 @@ fn xy(x: c_int, y: c_int) c_int {
 /// Projects every live particle, builds its quad from two projected points and links it into the ordering table.
 pub fn func_8008FAC8() callconv(.c) void {
     const scratch = v.g.vs_scratch();
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+    const view = gte.viewOf(&v.g.vs_view().viewMatrix, gte.screenCurrent());
     const base: ?*v.D_800F1DD4_t = v.g.D_800F1DD4().*;
     var i: c_int = 0;
     while (i < @as(c_int, v.g.D_800F1DC0().*)) : (i +%= 1) {
@@ -28,8 +28,10 @@ pub fn func_8008FAC8() callconv(.c) void {
         var dx: c_int = undefined;
         var dy: c_int = undefined;
         v.g.pc_gte_anchored().* +%= 1;
-        var depth: c_int = c.RotTransPers(@ptrCast(particle), @ptrCast(&sxy1), &dx, &dy);
+        const first = gte.project(&view, particle);
         v.g.pc_gte_anchored().* -%= 1;
+        sxy1 = first.sxy;
+        var depth: c_int = @intCast(first.otz);
         const x1: c_int = psx.conv(i16, sxy1);
         const y1: c_int = psx.conv(i16, sxy1 >> 16);
 
@@ -39,8 +41,10 @@ pub fn func_8008FAC8() callconv(.c) void {
 
         particle.unk2 = psx.conv(i16, @as(c_int, particle.unk2) +% 192);
         v.g.pc_gte_anchored().* +%= 1;
-        depth = c.RotTransPers(@ptrCast(particle), @ptrCast(&sxy2), &dx, &dy);
+        const second = gte.project(&view, particle);
         v.g.pc_gte_anchored().* -%= 1;
+        sxy2 = second.sxy;
+        depth = @intCast(second.otz);
         particle.unk2 = psx.conv(i16, @as(c_int, particle.unk2) -% 192);
         const x2: c_int = psx.conv(i16, sxy2);
         const y2: c_int = psx.conv(i16, sxy2 >> 16);

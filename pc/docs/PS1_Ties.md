@@ -255,6 +255,52 @@ machine remains for the rest. Float maths must not be substituted blindly (round
 **Depends on.** Nothing, but it must go before any renderer thread (T1), since the global state is
 single-owner.
 
+**T7 plan (2026-11-10).**
+
+*State.* One `GTERegisters` (`gte_global`, `psx/gtereg.h`): the control file (rotation R, translation TR,
+OFX/OFY/H/DQA/DQB, FLAG) and the data file (V0-V2, IR0-3, MAC0-3, SXY/SZ FIFOs, OTZ). Operations reach it
+through the thread-local `gte_cur`; a value call (`pc/src/gte_value.cpp`, `vs_gte_run`) points `gte_cur` at
+a private set, so the game's registers are untouched. Beside the registers, three plain globals are part of
+the machine: `pc_gte_widescreen` and `pc_gte_anchored` (the projection narrowing, `widescreen.h`) and
+`pc_gte_caller` (what the projection log attributes a projection to).
+
+*Already values.* `vs_gte_view` (rotation, translation, screen) plus a vector in, `vs_gte_result` out, for
+RTPS, RTV0TR and RTV0 (`gte_value.h`); the EFFECT plugins, two sound-pan projections and the actor bone
+transforms use them. What is left on the registers, by who reads them:
+
+1. *Set and consumed in the same function* (easy: a local view): ENDING's phantom-pain wave, MENU9's camera
+   matrix, the Zig `RotTrans`/`ApplyRotMatrix`/`ApplyMatrixLV` calls on a matrix just built
+   (`func_800D2ADC`, `func_800D2A38`, `func_800D197C`, `func_800BD2B8`, `func_80090434`, ...).
+2. *Set in one function, consumed in another* (the hard case; the view becomes a value the first function
+   returns or stores and the second takes): MENU5's map (`_setCamera` sets, `_renderRoom` projects), battle's
+   `battle_exec`, `scene_submit`, `room_shadows`, `draw_room_groups`, `room_group_matrices` (SetRotMatrix and
+   SetTransMatrix, then RotTransPers/RotAverage4 through the frame's draw functions), and the host render
+   files that read the registers the battle code left (`room_geometry.c`, `weapon_packets.c`,
+   `actor_shadow.c`, `actor_packets.c`, `actor_vertices.c`, `screff2_warp.c`, `scene_capture.c`,
+   `gameplay_walls.c`, `room_native.c`: about 90 `CTC2/MTC2/MFC2/doCOP2` uses). These need the camera to own
+   a `vs_gte_view` (T4/T6), so they go last.
+3. *The projection itself* (OFX, OFY, H): `SetGeomOffset`/`SetGeomScreen` (7 sites in the game's C, 3 in
+   battle's Zig, `vs_battle_set/getGeomOffset`) are the one piece every view reads. It stays a single
+   global, `vs_gte_screen_current()`, until the camera holds it; a view built after the offset is changed
+   must take the screen at projection time (MENU5 does).
+4. *Ops that use the registers as scratch* (`VectorNormal`, `SquareRoot12`, `OuterProduct0`, `ScaleMatrix`,
+   `CompMatrix`, the battle `weighted_sum`, `squared_component_sum`, `scale_matrix_columns`): pure maths
+   with no state worth keeping; they become value functions on their operands with the same saturation
+   and FLAG (nothing reads the FLAG after them: to be confirmed per caller).
+5. *The SDK* (`boot_sdk.c`, 88 uses, and `battle_gte.c`): the register interface itself; it stays until
+   the callers above are gone, then becomes the private-set implementation of the value calls.
+
+*Order.* (a) the C overlays: ENDING, MENU5, MENU9, TITLE (smallest, reachable by `--menus` routes);
+(b) the Zig single-function callers (1 above), one file per commit; (c) projection state: the screen as
+an explicit input; (d) the camera-held view (2 above), battle's frame by subsystem (room, actors, weapons,
+shadows), each with its host render reader; (e) the pure-maths ops (4); (f) retire the global set. The
+lint (`gte_state_machine`, `gte_sdk_calls`) counts the game's C only; the Zig `c.SetRotMatrix`-style calls and
+the host files are not in it yet, and a rule for them goes with step (b).
+
+*Proof for each step.* `build_compare.py` against the commit before (fight frames, casts, `--menus`
+routes the change can reach), the lint, and the projection-log smokes. FLAG, saturation and rounding are
+those of the same PsyCross code, so a value call and the register sequence must agree bit for bit.
+
 ## T8. 2D, text and effects as packets
 
 **What it is.** The classic HUD, menus, text, loading screens, and most of the effect plugins in
