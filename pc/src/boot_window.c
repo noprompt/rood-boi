@@ -29,19 +29,14 @@ static int fast;
 static int fast_forward_key;
 static int fast_forward_held(void) { return focused && (fast_forward_key || pc_controller_fast_forward()); }
 /* Battle charging skip (charge_skip.c): the vsyncs of a skipped wind-up
- * that still run (its effect's loading) are not presented and not paced;
- * what the audio device has no room for meanwhile is dropped
- * (audio_output.c). */
+ * that still run (its effect's loading) are not presented and not paced.
+ * The sound is not tied to them: the audio thread keeps its own clock. */
 extern int pc_charge_skip_hidden(void) __attribute__((weak));
 extern int pc_take_pace(void) __attribute__((weak)); /* cutscene.cpp */
-extern void pc_audio_output_turbo(int on) __attribute__((weak)); /* audio_output.c */
 static int charge_hidden; /* this vsync's */
 static void charge_update(void)
 {
-    int hidden = pc_charge_skip_hidden && pc_charge_skip_hidden();
-    if (hidden != charge_hidden && pc_audio_output_turbo)
-        pc_audio_output_turbo(hidden);
-    charge_hidden = hidden;
+    charge_hidden = pc_charge_skip_hidden && pc_charge_skip_hidden();
 }
 extern int pc_gl_active;
 extern SDL_Window* pc_gl_create_window(const char*, int, int);

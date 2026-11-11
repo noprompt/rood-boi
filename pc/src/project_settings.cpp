@@ -79,6 +79,11 @@ int pc_qol_map_invert, pc_qol_fp_invert_y;
  * the stick's travel: below the dead zone nothing moves, from analog_run up
  * Ashley runs (the D-pad's pace), between she walks (the pace R2 held gives). */
 int pc_rumble_strength = 100;
+/* audio_latency_ms: how much sound the audio thread keeps queued ahead of the audio device
+ * (audio_output.c; 10..500). More rides out a longer stall of that thread on a loaded machine, and
+ * delays what is heard by as much. Without an audio device the sound is clocked by the game's fields
+ * instead and this does nothing. */
+int pc_audio_latency_ms = 50;
 int pc_analog_move, pc_analog_dead_zone = 20, pc_analog_run = 70;
 /* hud_label_opaque: the battle stat bars' label (HP, MP, RISK) is drawn as an
  * opaque sprite (1, default), like its digits; 0 draws the original's
@@ -362,6 +367,7 @@ const Entry entries[] = {
     I("qol_map_controls", pc_qol_map_controls),
     I("qol_fp_invert_y", pc_qol_fp_invert_y),
     I("rumble_strength", pc_rumble_strength), /* percent, 0..100 */
+    I("audio_latency_ms", pc_audio_latency_ms), /* 10..500 */
     I("analog_move", pc_analog_move),
     I("analog_dead_zone", pc_analog_dead_zone), /* percent of the stick's travel */
     I("analog_run", pc_analog_run), /* percent: at or past it Ashley runs */

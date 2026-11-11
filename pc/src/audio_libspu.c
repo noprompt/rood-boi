@@ -1,10 +1,15 @@
 /* PC replacements for the Sony libspu/libsnd calls the game's sound driver
  * makes, over the software SPU (audio_spu.cpp), plus the driver's clock.
  * On the PS1 the driver runs from a root-counter 2 interrupt at about 240 Hz
- * (reload 0x44E8); here it runs four times per 60 Hz frame on the game
- * thread, with the register sync and a quarter frame of audio after each
- * tick. Host transfers finish at once, so DMA completion callbacks run before
- * SpuWrite/SpuRead return (the driver busy-waits on the flag they clear). */
+ * (reload 0x44E8); here each tick is one slice (pc_audio_slice: the tick, the
+ * register sync and a tick's worth of audio), run by the audio thread when
+ * there is an audio device and four per field on the game thread otherwise
+ * (audio_output.c). The driver's state is shared with game logic as on the
+ * PS1, where the timer interrupt could land between any two instructions:
+ * the commands mask it (DisableEvent -> pc_sound_mask) and everything here
+ * takes the sound lock. Host transfers finish at once, so DMA completion
+ * callbacks run before SpuWrite/SpuRead return (the driver busy-waits on
+ * the flag they clear). */
 #include "psx_types.h" /* psx_long: the SDK's 32-bit long on every build */
 #include "audio.h"
 #include <stdio.h>
@@ -21,9 +26,11 @@ static int tick_enabled, reverb_depth_left, reverb_depth_right;
  * the SDK initialisation does; the driver then edits SPUCNT directly. */
 void SpuStart(void)
 {
+    pc_sound_lock();
     pc_spu_reset();
     pc_spu_set_transfer_mode(0);
     *(volatile unsigned short*)0x1F801DAA = 0xC000;
+    pc_sound_unlock();
 }
 void SpuQuit(void) {}
 psx_long SpuSetNoiseClock(psx_long clock)
@@ -65,22 +72,28 @@ psx_long SpuSetTransferMode(psx_long mode)
 psx_ulong SpuSetTransferStartAddr(psx_ulong addr) { return pc_spu_set_transfer_addr(addr); }
 psx_ulong SpuWrite(unsigned char* data, psx_ulong size)
 {
+    pc_sound_lock(); /* the write and its completion callback together */
     psx_ulong written = pc_spu_write(data, size);
     if (transfer_callback)
         transfer_callback();
+    pc_sound_unlock();
     return written;
 }
 psx_ulong SpuRead(unsigned char* data, psx_ulong size)
 {
+    pc_sound_lock();
     psx_ulong read = pc_spu_read(data, size);
     if (transfer_callback)
         transfer_callback();
+    pc_sound_unlock();
     return read;
 }
 callback_t SpuSetTransferCallback(callback_t fn)
 {
+    pc_sound_lock();
     callback_t previous = transfer_callback;
     transfer_callback = fn;
+    pc_sound_unlock();
     return previous;
 }
 /* SPU address interrupt (SPUCNT bit 6): the sound driver streams effect and
@@ -88,39 +101,47 @@ callback_t SpuSetTransferCallback(callback_t fn)
  * at the half a voice reaches next; the callback loads the following part,
  * and the last one keys the voices off (src 25AC.c Sound_Cutscene_*). The
  * core raises it when a voice reads the block holding the address
- * (audio_spu.cpp); pc_audio_frame runs the callback after the quarter frame
- * that raised it, on the game thread, as the PS1's interrupt handler would
+ * (audio_spu.cpp); pc_audio_slice runs the callback after the slice that
+ * raised it, on the audio thread (the game thread without a device), as the PS1's interrupt handler would
  * between two driver ticks. As in libspu, disabling it acknowledges it. The
  * enable and address live here (saved with the game's statics) and are handed
  * to the core before each render. ROOD_SPU_IRQ=0 never runs the callback (a
  * diagnostic: streams then loop until the driver's stop command). */
 psx_long SpuSetIRQ(psx_long on)
 {
+    pc_sound_lock();
     if (on == 0 || on == 3)
         irq_enabled = 0;
     pc_spu_set_irq(irq_enabled, (unsigned int)irq_address);
     if (on == 1 || on == 3)
         irq_enabled = 1;
     pc_spu_set_irq(irq_enabled, (unsigned int)irq_address);
+    pc_sound_unlock();
     return on;
 }
 psx_ulong SpuSetIRQAddr(psx_ulong addr)
 {
     if (addr > 0x7FFF8)
         return 0;
+    pc_sound_lock();
     irq_address = addr;
     pc_spu_set_irq(irq_enabled, (unsigned int)irq_address);
+    pc_sound_unlock();
     return addr;
 }
 void pc_spu_irq_get(int* enabled, unsigned int* addr)
 {
+    pc_sound_lock();
     *enabled = irq_enabled != 0;
     *addr = (unsigned int)irq_address;
+    pc_sound_unlock();
 }
 callback_t SpuSetIRQCallback(callback_t fn)
 {
+    pc_sound_lock();
     callback_t previous = irq_callback;
     irq_callback = fn;
+    pc_sound_unlock();
     return previous;
 }
 /* Root counter 2 is only used to clock the sound driver. */
@@ -137,11 +158,48 @@ psx_long StartRCnt(psx_ulong spec)
     return 1;
 }
 
-void pc_audio_set_tick(psx_long (*fn)(void)) { driver_tick = fn; }
-void pc_audio_enable_tick(int enabled) { tick_enabled = enabled; }
+void pc_audio_set_tick(psx_long (*fn)(void))
+{
+    pc_sound_lock();
+    driver_tick = fn;
+    pc_sound_unlock();
+}
+/* The driver's own EnableEvent/DisableEvent of its timer event (boot_sdk.c): disabling masks the
+ * tick as the PS1's interrupt mask did, which here also waits out a tick in progress on the audio
+ * thread and keeps the next one off until the enable (the sound commands' bracket, 25AC.c
+ * func_80018C30). */
+void pc_audio_enable_tick(int enabled)
+{
+    if (!enabled)
+        pc_sound_mask();
+    tick_enabled = enabled;
+    if (enabled)
+        pc_sound_unmask();
+}
+
+/* One slice, under the sound lock (the audio thread holds it for the whole of it, so a game thread's
+ * sound call or command lands between two slices, never inside one). */
+void pc_audio_slice(short* out, int frames)
+{
+    /* ROOD_SPU_IRQ=0: never serve the interrupt (read each slice: a static
+     * would be restored by save states) */
+    const char* irq_env = getenv("ROOD_SPU_IRQ");
+    int raise = !irq_env || atoi(irq_env) != 0;
+    pc_sound_lock();
+    if (driver_tick && tick_enabled)
+        driver_tick();
+    pc_spu_sync_registers();
+    pc_spu_set_irq((int)irq_enabled, (unsigned int)irq_address);
+    pc_spu_render(out, frames);
+    if (pc_spu_take_irq() && irq_callback && raise)
+        irq_callback();
+    pc_sound_unlock();
+}
 
 void pc_audio_frame(void)
 {
+    if (pc_audio_device_clocked())
+        return;
     /* 44100 / 59.94 = 735.735 frames per field: carry the fraction so the
      * output rate matches what the sound card consumes. */
     static unsigned remainder;
@@ -153,19 +211,9 @@ void pc_audio_frame(void)
     static int frames;
     if (getenv("ROOD_AUDIO_DEBUG") && ++frames % 120 == 0)
         fprintf(stderr, "[audio] frame %d tick=%p enabled=%d\n", frames, (void*)driver_tick, tick_enabled);
-    /* ROOD_SPU_IRQ=0: never serve the interrupt (read each frame: a static
-     * would be restored by save states) */
-    const char* irq_env = getenv("ROOD_SPU_IRQ");
-    int raise = !irq_env || atoi(irq_env) != 0;
     for (int i = 0; i < 4; ++i) {
-        if (driver_tick && tick_enabled)
-            driver_tick();
-        pc_spu_sync_registers();
-        pc_spu_set_irq((int)irq_enabled, (unsigned int)irq_address);
-        pc_spu_render(buffer, chunk[i]);
+        pc_audio_slice(buffer, chunk[i]);
         pc_audio_output_push(buffer, chunk[i]);
-        if (pc_spu_take_irq() && irq_callback && raise)
-            irq_callback();
     }
 }
 

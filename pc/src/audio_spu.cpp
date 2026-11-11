@@ -5,8 +5,10 @@
  *    are synchronised into the core by pc_spu_sync_registers();
  *  - the SDK library calls (SpuWrite, reverb, ...) are replaced on PC by
  *    pc/src/audio_libspu.c, which calls the pc_spu_* helpers below.
- * Rendering happens on the game thread (pc_spu_render), so the core needs no
- * locking; only the output ring (audio_output.c) is shared with a thread. */
+ * The core is rendered on the audio thread when there is a device (the game
+ * thread otherwise): every entry point here holds the sound lock
+ * (audio_output.c, recursive), so a game-thread SDK call, CD feed or save
+ * state lands between two slices. */
 #include "PsyX_SPUCore.h"
 #include "PsyX/PsyX_public.h"
 
@@ -22,6 +24,13 @@ using PsyX::SPUCore;
 extern "C" {
 #include "audio.h"
 }
+
+struct SoundLock {
+    SoundLock() { pc_sound_lock(); }
+    ~SoundLock() { pc_sound_unlock(); }
+    SoundLock(const SoundLock&) = delete;
+    SoundLock& operator=(const SoundLock&) = delete;
+};
 
 static SPUCore* core;
 static bool last_valid[24];
@@ -71,6 +80,7 @@ static void volume_attr(uint16_t raw, short* volume, short* mode)
 
 extern "C" void pc_spu_sync_registers(void)
 {
+    SoundLock lock;
     SPUCore& s = spu();
     for (int voice = 0; voice < 24; ++voice) {
         volatile uint16_t* r = regs + voice * 8;
@@ -167,6 +177,7 @@ extern "C" void pc_spu_sync_registers(void)
 
 extern "C" void pc_spu_render(short* out, int frames)
 {
+    SoundLock lock;
     spu().RenderFrames(out, frames);
     static int calls;
     if (getenv("ROOD_AUDIO_DEBUG") && ++calls % 960 == 0) {
@@ -189,6 +200,7 @@ extern "C" void pc_spu_render(short* out, int frames)
  * the game often rewrites identical values, which must still take effect. */
 extern "C" void pc_spu_reset(void)
 {
+    SoundLock lock;
     spu().Reset();
     memset(last_valid, 0, sizeof(last_valid));
     memset(last_mode, 0xff, sizeof(last_mode));
@@ -196,32 +208,46 @@ extern "C" void pc_spu_reset(void)
 }
 extern "C" unsigned int pc_spu_set_transfer_addr(unsigned int addr)
 {
+    SoundLock lock;
     return spu().SetTransferStartAddr(addr);
 }
 extern "C" void pc_spu_set_transfer_mode(int io)
 {
+    SoundLock lock;
     spu().SetTransferMode(io ? PsyX::TransferMode::ManualWrite : PsyX::TransferMode::DmaWrite);
 }
 extern "C" unsigned int pc_spu_write(const unsigned char* data, unsigned int size)
 {
+    SoundLock lock;
     return spu().Write(data, static_cast<u_int>(size));
 }
 extern "C" unsigned int pc_spu_read(unsigned char* data, unsigned int size)
 {
+    SoundLock lock;
     return spu().Read(data, static_cast<u_int>(size));
 }
 extern "C" void pc_spu_init_malloc(int records, unsigned int base)
 {
+    SoundLock lock;
     spu().InitMalloc(records, base);
 }
-extern "C" void pc_spu_set_irq(int enabled, unsigned int addr) { spu().SetIrq(enabled != 0, addr); }
-extern "C" int pc_spu_take_irq(void) { return spu().TakeIrq(); }
+extern "C" void pc_spu_set_irq(int enabled, unsigned int addr)
+{
+    SoundLock lock;
+    spu().SetIrq(enabled != 0, addr);
+}
+extern "C" int pc_spu_take_irq(void)
+{
+    SoundLock lock;
+    return spu().TakeIrq();
+}
 /* RPC spu (dev_rpc.c): voices keyed (attack..sustain), sounding (envelope
  * above 0), reverb sends (EON as last synced) and the reverb master enable,
  * and the address interrupt: the enable and address the game set
  * (audio_libspu.c) and whether a voice has raised it. */
 extern "C" int pc_spu_status_json(char* out, int size)
 {
+    SoundLock lock;
     SPUCore& s = spu();
     uint32_t keyed = 0, sounding = 0;
     for (int voice = 0; voice < 24; ++voice) {
@@ -241,9 +267,14 @@ extern "C" int pc_spu_status_json(char* out, int size)
         keyed, sounding, eon & 0xffffff, s.GetReverbMasterEnable() ? 1 : 0, irq_enabled, irq_address,
         s.IrqRaised() ? 1 : 0);
 }
-extern "C" void pc_spu_set_reverb(int on) { spu().SetReverbMasterEnable(on != 0); }
+extern "C" void pc_spu_set_reverb(int on)
+{
+    SoundLock lock;
+    spu().SetReverbMasterEnable(on != 0);
+}
 extern "C" void pc_spu_set_reverb_mode(int type, int depth_left, int depth_right, int mask)
 {
+    SoundLock lock;
     SpuReverbAttr attr;
     spu().GetReverbModeParam(attr);
     attr.mask = mask;
@@ -254,30 +285,46 @@ extern "C" void pc_spu_set_reverb_mode(int type, int depth_left, int depth_right
 }
 extern "C" int pc_spu_get_reverb_mode(void)
 {
+    SoundLock lock;
     SpuReverbAttr attr;
     spu().GetReverbModeParam(attr);
     return attr.mode;
 }
-extern "C" void pc_spu_set_noise_clock(int clock) { spu().SetNoiseClock(clock); }
+extern "C" void pc_spu_set_noise_clock(int clock)
+{
+    SoundLock lock;
+    spu().SetNoiseClock(clock);
+}
 extern "C" short pc_spu_get_envelope(int voice)
 {
+    SoundLock lock;
     int16_t envx = 0;
     spu().GetVoiceEnvelope(voice, &envx);
     return envx;
 }
 extern "C" void pc_spu_set_master_volume(short left, short right)
 {
+    SoundLock lock;
     spu().SetMasterVolume(left, right);
 }
 
 extern "C" void pc_spu_push_cd(const short* frames, int count)
 {
+    SoundLock lock;
     SPUCore& s = spu();
     for (int i = 0; i < count; ++i)
         s.PushCdStereoFrame(frames[i * 2], frames[i * 2 + 1]);
 }
-extern "C" int pc_spu_cd_pending(void) { return static_cast<int>(spu().GetPendingCdFrameCount()); }
-extern "C" void pc_spu_clear_cd(void) { spu().ClearCdQueue(); }
+extern "C" int pc_spu_cd_pending(void)
+{
+    SoundLock lock;
+    return static_cast<int>(spu().GetPendingCdFrameCount());
+}
+extern "C" void pc_spu_clear_cd(void)
+{
+    SoundLock lock;
+    spu().ClearCdQueue();
+}
 
 /* Save states (snapshot.c): the core's state plus this adapter's register
  * mirror (what the next pc_spu_sync_registers sends depends on it). */
@@ -288,11 +335,13 @@ struct adapter_state {
 static std::vector<uint8_t> saved;
 extern "C" int pc_spu_state_size(void)
 {
+    SoundLock lock;
     spu().SaveState(saved);
     return static_cast<int>(saved.size() + sizeof(adapter_state));
 }
 extern "C" void pc_spu_state_save(void* out)
 {
+    SoundLock lock;
     adapter_state a;
     memcpy(a.last_valid, last_valid, sizeof last_valid);
     memcpy(a.last_regs, last_regs, sizeof last_regs);
@@ -306,6 +355,7 @@ extern "C" void pc_spu_state_save(void* out)
 }
 extern "C" int pc_spu_state_load(const void* in, int size)
 {
+    SoundLock lock;
     if (size < static_cast<int>(sizeof(adapter_state)))
         return 0;
     const uint8_t* bytes = static_cast<const uint8_t*>(in);

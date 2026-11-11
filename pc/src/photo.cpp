@@ -31,6 +31,10 @@ extern "C" {
 int pc_photo_rendering;
 void pc_audio_frame(void) __attribute__((weak));               /* audio_libspu.c: a vsync's sound */
 void pc_audio_output_duck(float gain) __attribute__((weak));   /* audio_output.c */
+int pc_audio_device_clocked(void) __attribute__((weak));       /* audio_output.c: the audio thread runs the sound */
+void pc_audio_pause(int on) __attribute__((weak));
+void pc_sound_lock(void) __attribute__((weak));
+void pc_sound_unlock(void) __attribute__((weak));
 
 /* state_rewind.c (absent where save states are: weak) */
 int pc_snapshot_mark_slot(int slot, char* error, int size) __attribute__((weak));
@@ -98,6 +102,22 @@ int audio_mode(float* gain)
         *gain = 1;
     return pausers.empty() ? PC_PHOTO_AUDIO_STOP : mode;
 }
+/* With an audio device the audio thread runs the sound on its own clock, so a held game needs nothing
+ * pumped: it only stops the thread for the stop mode, and a render holds the sound lock from its
+ * moment's mark until the rewind has landed (the driver's state the render changes is put back with the
+ * rest, and nothing it did is ticked meanwhile; the sound goes quiet for those frames). Every render
+ * marks anew: the thread moved the driver on since the last one. */
+static bool sound_held;
+static void sound_hold(bool on)
+{
+    if (on == sound_held || !pc_sound_lock || (on && !(pc_audio_device_clocked && pc_audio_device_clocked())))
+        return;
+    sound_held = on;
+    if (on)
+        pc_sound_lock();
+    else
+        pc_sound_unlock();
+}
 /* Held: the sound driver's ticks and the SPU in real time (pc_audio_frame: what a vsync runs for the
  * sound, nothing else), a few at most to catch up after a render. */
 void audio_pump()
@@ -106,6 +126,11 @@ void audio_pump()
     int mode = audio_mode(&gain);
     if (pc_audio_output_duck)
         pc_audio_output_duck(mode == PC_PHOTO_AUDIO_DUCK ? gain : 1);
+    if (pc_audio_device_clocked && pc_audio_device_clocked()) {
+        pc_audio_pause(mode == PC_PHOTO_AUDIO_STOP);
+        audio_moved = mode != PC_PHOTO_AUDIO_STOP;
+        return;
+    }
     double now = photo::now_seconds();
     if (mode == PC_PHOTO_AUDIO_STOP || !pc_audio_frame) {
         audio_next = 0;
@@ -245,6 +270,7 @@ extern "C" void pc_photo_state_replaced(void)
         phase = HELD;
     landing = false;
     pc_photo_rendering = 0;
+    sound_hold(false);
     held_vsync = pc_vsync_count();
     audio_next = 0;
     audio_moved = false;
@@ -271,6 +297,7 @@ extern "C" int pc_photo_poll(void)
     if (landing) { /* at M again (state_rewind.c restored it), the render's picture kept */
         landing = false;
         pc_photo_rendering = 0;
+        sound_hold(false);
         phase = HELD;
     }
     if (phase == RENDERING) {
@@ -287,6 +314,7 @@ extern "C" int pc_photo_poll(void)
         /* It could not: the game is a render ahead of M (never seen so far: the mark was taken). */
         landing = false;
         pc_photo_rendering = 0;
+        sound_hold(false);
         phase = HELD;
         last_error = std::string("rewind failed: ") + error;
         fprintf(stderr, "[photo] %s (the game is %u vsyncs past the pause)\n", last_error.c_str(), render_vsyncs);
@@ -350,6 +378,8 @@ extern "C" int pc_photo_poll(void)
         redraw_wanted = false;
         audio_next = 0;
         audio_moved = false;
+        if (pc_audio_pause)
+            pc_audio_pause(0);
         if (pc_audio_output_duck)
             pc_audio_output_duck(1);
         if (rendered && pc_hw_resync)
@@ -380,9 +410,11 @@ extern "C" int pc_photo_poll(void)
     if (audio_moved && pc_snapshot_drop_slot) /* the sound went on: the moment a render returns to is now */
         pc_snapshot_drop_slot(SLOT);
     audio_moved = false;
+    sound_hold(true); /* from the mark to the landing */
     if (!pc_snapshot_slot_valid(SLOT)) {
         char error[160] = "";
         if (pc_snapshot_mark_slot(SLOT, error, (int)sizeof error)) {
+            sound_hold(false);
             last_error = std::string("cannot keep the moment: ") + error;
             fprintf(stderr, "[photo] %s\n", last_error.c_str());
             redraw_failed();
@@ -392,6 +424,7 @@ extern "C" int pc_photo_poll(void)
     if (view_borrowed) {
         if (!pc_hw_photo_mark || !pc_hw_photo_mark()) {
             last_error = "cannot keep the presented image";
+            sound_hold(false);
             redraw_failed();
             return 0;
         }

@@ -35,4 +35,20 @@ void pc_audio_output_start(void);
 void pc_audio_output_duck(float gain);
 void pc_audio_set_tick(psx_long (*fn)(void));
 void pc_audio_enable_tick(int enabled);
+/* The field-clocked sound (no audio device, ROOD_AUDIO=none or wav): a vsync's four slices on the game
+ * thread. With a device it does nothing: the audio thread clocks the sound itself. */
 void pc_audio_frame(void);
+/* One slice of sound under the sound lock: a driver tick (at about 240 Hz), the register sync and `frames`
+ * frames of SPU output. */
+void pc_audio_slice(short* out, int frames);
+/* The lock between the game thread and the audio thread (audio_output.c), recursive: held by the audio
+ * thread for each slice, by the game thread for each SDK sound call, sound command (the driver's timer
+ * event masked: pc_sound_mask until pc_sound_unmask) and around a save state or rewind. */
+void pc_sound_lock(void);
+void pc_sound_unlock(void);
+void pc_sound_mask(void);
+void pc_sound_unmask(void);
+/* Whether the audio thread runs the sound (so pc_audio_frame has nothing to do), and the photo mode's
+ * stop of it. */
+int pc_audio_device_clocked(void);
+void pc_audio_pause(int on);

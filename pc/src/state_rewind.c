@@ -33,6 +33,7 @@ extern void pc_snap_enter(const snap_context*, void (*)(void)) __attribute__((no
 extern void pc_tick_resumed(void); /* boot_runtime.c */
 extern void pc_rpc_rewound(void);  /* dev_rpc.c: reply from the resumed vsync */
 extern char* pc_game_stack(size_t*);
+extern void pc_sound_lock(void) __attribute__((weak)), pc_sound_unlock(void) __attribute__((weak)); /* audio_output.c */
 extern int pc_spu_state_size(void) __attribute__((weak));
 extern void pc_spu_state_save(void*) __attribute__((weak));
 extern int pc_spu_state_load(const void*, int) __attribute__((weak));
@@ -120,12 +121,16 @@ __attribute__((noinline)) int pc_snapshot_mark_slot(int slot, char* error, int s
         || (mark.spu_size && !reserve(&mark.spu, &mark.spu_cap, (size_t)mark.spu_size))
         || (mark.fog_size && !reserve(&mark.fog, &mark.fog_cap, (size_t)mark.fog_size + 1)))
         goto oom;
+    if (pc_sound_lock)
+        pc_sound_lock(); /* the audio thread ticks the driver: not while its state is copied */
     char* p = mark.memory;
     for (int i = 0; i < mark.count; i++) {
         memcpy(p, mark.ranges[i].start, mark.ranges[i].size);
         p += mark.ranges[i].size;
     }
     if (mark.spu_size) pc_spu_state_save(mark.spu);
+    if (pc_sound_unlock)
+        pc_sound_unlock();
     if (mark.fog_size) pc_fog_state_save(mark.fog);
     mark.sp = sp;
     memcpy(mark.stack, (void*)sp, mark.stack_bytes);
@@ -173,6 +178,8 @@ static __attribute__((noreturn)) void restore(void)
 #define mark (*m)
     if (pc_cd_release)
         pc_cd_release(); /* the open disc file: closed, not leaked (pc_cd_restored opens it) */
+    if (pc_sound_lock)
+        pc_sound_lock(); /* the audio thread ticks the driver: not while its state is copied */
     const char* p = mark.memory;
     for (int i = 0; i < mark.count; i++) {
         memcpy(mark.ranges[i].start, p, mark.ranges[i].size);
@@ -180,6 +187,8 @@ static __attribute__((noreturn)) void restore(void)
     }
     memcpy((void*)mark.sp, mark.stack, mark.stack_bytes);
     if (mark.spu_size) pc_spu_state_load(mark.spu, mark.spu_size);
+    if (pc_sound_unlock)
+        pc_sound_unlock();
     if (mark.fog_size) pc_fog_state_load(mark.fog, mark.fog_size);
     if (pc_cd_restored) pc_cd_restored();
     if (pc_input_rewound) pc_input_rewound();

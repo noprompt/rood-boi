@@ -327,6 +327,7 @@ extern void pc_input_rewound(void) __attribute__((weak)); /* input_record.c */
 extern void pc_tick_resumed(void);        /* boot_runtime.c: the rest of a resumed vsync */
 extern const uint16_t* pc_native_vram(void);
 /* Subsystems with state outside those ranges (weak: absent in some builds). */
+extern void pc_sound_lock(void) __attribute__((weak)), pc_sound_unlock(void) __attribute__((weak)); /* audio_output.c */
 extern int pc_spu_state_size(void) __attribute__((weak));
 extern void pc_spu_state_save(void* out) __attribute__((weak));
 extern int pc_spu_state_load(const void* in, int size) __attribute__((weak));
@@ -520,6 +521,8 @@ static int write_file(const char* path, uintptr_t sp, char* error, int esize)
     h.boundary = pc_snap_boundary;
     h.canary = read_canary();
     int ok = fwrite(&h, sizeof h, 1, f) == 1;
+    if (pc_sound_lock)
+        pc_sound_lock(); /* the audio thread ticks the driver: not while its state is copied */
     range r[MAX_RANGES];
     int n = ranges(r);
     for (int i = 0; i < n && ok; i++)
@@ -535,6 +538,8 @@ static int write_file(const char* path, uintptr_t sp, char* error, int esize)
         }
         free(spu);
     }
+    if (pc_sound_unlock)
+        pc_sound_unlock();
     if (ok && pc_fog_state_size) {
         int size = pc_fog_state_size();
         void* fog = malloc((size_t)size + 1);
@@ -847,6 +852,8 @@ static char* apply(prepared* p, const char* path, int replay_log, size_t* stack_
 {
     char* stack_image = NULL;
     *stack_bytes = 0;
+    if (pc_sound_lock)
+        pc_sound_lock(); /* the audio thread ticks the driver: not while its state is copied */
     for (int i = 0; i < p->count; i++) {
         const chunk* c = &p->chunks[i].c;
         char* data = p->chunks[i].data;
@@ -874,6 +881,8 @@ static char* apply(prepared* p, const char* path, int replay_log, size_t* stack_
     free(p->chunks);
     p->chunks = NULL;
     p->count = 0;
+    if (pc_sound_unlock)
+        pc_sound_unlock();
     if (pc_cd_restored)
         pc_cd_restored();
     if (pc_photo_state_replaced)

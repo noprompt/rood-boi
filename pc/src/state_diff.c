@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern void pc_sound_lock(void) __attribute__((weak)), pc_sound_unlock(void) __attribute__((weak)); /* audio_output.c */
 extern int pc_spu_state_size(void) __attribute__((weak));
 extern void pc_spu_state_save(void*) __attribute__((weak));
 extern int pc_spu_state_load(const void*, int) __attribute__((weak));
@@ -92,6 +93,8 @@ pc_state_image* pc_state_capture(void)
         pc_state_image_free(m);
         return NULL;
     }
+    if (pc_sound_lock)
+        pc_sound_lock(); /* the audio thread ticks the driver: not while its state is copied */
     size_t at = 0;
     for (int i = 0; i < m->count; i++) {
         if (m->ranges[i].size)
@@ -100,6 +103,8 @@ pc_state_image* pc_state_capture(void)
     }
     if (m->spu_size)
         pc_spu_state_save(m->data + at);
+    if (pc_sound_unlock)
+        pc_sound_unlock();
     return m;
 }
 void pc_state_image_free(pc_state_image* m)
@@ -116,14 +121,21 @@ int pc_state_restore(const pc_state_image* m)
     if (!m || describe(&live) || !same_layout(m, &live))
         return -1;
     size_t at = m->bytes - (size_t)m->spu_size;
-    if (m->spu_size && !pc_spu_state_load(m->data + at, m->spu_size))
+    if (pc_sound_lock)
+        pc_sound_lock(); /* the audio thread ticks the driver: not while its state is copied */
+    if (m->spu_size && !pc_spu_state_load(m->data + at, m->spu_size)) {
+        if (pc_sound_unlock)
+            pc_sound_unlock();
         return -1;
+    }
     at = 0;
     for (int i = 0; i < m->count; i++) {
         if (m->ranges[i].size)
             memcpy(m->ranges[i].start, m->data + at, m->ranges[i].size);
         at += m->ranges[i].size;
     }
+    if (pc_sound_unlock)
+        pc_sound_unlock();
     return 0;
 }
 static int masked(uintptr_t address)

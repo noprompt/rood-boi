@@ -884,8 +884,11 @@ two thirds of the primary display's height (1440 x 1080 on a 4K screen, at least
 overlay (by default the desktop's content scale). Closing the window exits.
 The frame loop paces itself to 59.94 Hz deadlines (`--fast` runs unpaced), with
 swap interval 0. Sound goes to SDL's audio output (PipeWire, PulseAudio or ALSA)
-at 44.1 kHz stereo, about 50 ms ahead, starting after a 2048-frame prebuffer;
-`ROOD_AUDIO=none` is silent and `ROOD_AUDIO=wav:PATH` records instead.
+at 44.1 kHz stereo, run by an audio thread of its own that keeps `audio_latency_ms`
+(default 50) of sound queued ahead of the device, whatever the game's frames do;
+`ROOD_AUDIO=none` is silent and `ROOD_AUDIO=wav:PATH` records instead, and those
+(and a machine without an audio device) clock the sound by the game's fields on
+the game thread, so a headless run stays deterministic.
 The game's sound driver writes the SPU's registers itself (`pc/src/audio_spu.cpp`
 mirrors them into the software SPU); key on/off writes apply at once, as they do
 on the chip, and the SPU address interrupt is raised by voice reads

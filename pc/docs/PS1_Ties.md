@@ -53,7 +53,7 @@ path exists next to the PS1 one), **native**.
 | T15 | Globals at PS1 addresses; code named after addresses; raw memory in Zig | Nothing directly | PS1 | very large | T13 |
 | T16 | The SDK/BIOS layer is hand-written and covers only what this game calls | Nothing directly (crashes with a message on anything uncovered) | partly | medium | T9, T20 |
 | T17 | Save states, rewind and the RPC depend on the memory layout | Nothing directly | PS1 | follows T12, T13 | T12, T13 |
-| T18 | Sound: the PS1 sound driver writes chip registers; a software SPU renders them | Sound is the PS1's, locked to the game thread | partly | large | T9, T1 |
+| T18 | Sound: the PS1 sound driver writes chip registers; a software SPU renders them | Sound is the PS1's; off the game thread with a device | partly | large | T9, T1 |
 | T19 | CD-XA audio decoded from the disc's sectors | Nothing directly | PS1 | medium | T9 |
 | T20 | Controller seen as a 16-button digital pad, one read per field | No analog movement; input latency of the game's frame rate | partly | small | T1 for latency |
 | T21 | Movies: PS1 STR video decoded by a software MDEC, from disc | 15-year-old video quality | PS1 | medium | T9 |
@@ -634,25 +634,34 @@ format.
 sound chip's voice registers into a plain page at `0x1F801C00` and uploads samples (PS1 ADPCM) into a
 512 KB sound memory. The host synchronizes those registers into a software SPU
 (`pc/third_party/psycross-audio`, whose reverb and noise were rewritten clean-room) and renders it.
-The driver's 240 Hz tick is run four times per field, on the game thread, with the
-sound render for each quarter after it. Output goes through a ring buffer to an SDL audio device on
-another thread.
+With an audio device, an audio thread runs the driver's 240 Hz tick, the register sync and the render
+(`pc_audio_slice`), whenever the device's queue holds less than `audio_latency_ms`. The game thread and it
+share the driver's state and the SPU through one recursive lock (`pc_sound_lock`): the audio thread holds it for a
+slice, the game thread for each SDK sound call, each sound command (the game's own `DisableEvent` of its timer
+event, `func_80018C30`, masks the tick as the PS1's interrupt mask did) and a save state or rewind. Without a device
+(`ROOD_AUDIO=none` or `wav:`, tests, the compare tools) the sound is clocked by the game's fields
+(four slices per field on the game thread), because game logic reads the driver's state and a headless run must
+depend on the frame count only.
 
-**Player feels.** The PS1's instruments, reverb and sequencing. Because the driver and the render
-run on the game thread, a long frame can starve the ring buffer; the code waits for it to refill rather
-than padding silence. (How often that is audible is **unconfirmed**.)
+**Player feels.** The PS1's instruments, reverb and sequencing, and a long or hitched game frame no longer
+starves or stalls the sound (T18b). The tick is the game thread's data too: a few status words the driver
+keeps (channel masks, music ids) are read by game logic without the lock, as the PS1 read them with its
+timer interrupt able to land between any two instructions, and the register page's 16-bit words are written
+by the driver while the audio thread may sync them (a half-updated voice lasts one slice); neither was run
+under a race detector.
 
 **Evidence.**
 - `pc/src/audio_libspu.c`: `pc_audio_frame` (the four ticks), `SpuSetIRQ`, `GetRCnt`.
 - `pc/src/audio_spu.cpp`: the register page and `pc_spu_sync_registers`, `pc_spu_render`.
-- `pc/src/audio_output.c`: the ring and the device thread.
+- `pc/src/audio_output.c`: the audio thread, the sound lock, the device stream.
 - `pc/src/game/include/hw.h`, `sound.h`.
 
-**Status.** Partly native.
+**Status.** Partly native; off the game thread (T18b, moderate version) when there is an audio device. While a
+photo mode render runs the sound lock is held, so the sound is quiet for those frames. CD-XA is still fed per
+game field (T19).
 
 **To replace.** Large. Replacing the sample format and the voice model while keeping the sequencing is a
-mixer project, and the driver is original code that calls the chip directly. A moderate version moves
-the mixing off the game thread.
+mixer project, and the driver is original code that calls the chip directly.
 
 **Depends on.** T9 (samples load from disc), T1 (to leave the game thread).
 

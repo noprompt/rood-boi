@@ -1117,7 +1117,7 @@ static void look_panel()
                           "semi-transparent sprite, whose outline blends with the field.");
 }
 
-extern "C" int pc_rumble_strength, pc_analog_move, pc_analog_dead_zone, pc_analog_run; /* project_settings.cpp */
+extern "C" int pc_rumble_strength, pc_analog_move, pc_analog_dead_zone, pc_analog_run, pc_audio_latency_ms; /* project_settings.cpp */
 /* Graphics > Controls: analog movement (analog_move.c; off by default) and the gamepad's rumble. */
 static void analog_panel()
 {
@@ -1138,6 +1138,10 @@ static void analog_panel()
     if (ImGui::IsItemHovered())
         ImGui::SetTooltip("The gamepad's motors, scaled from what the game asks for (its own Vibration option\n"
                           "still decides whether it asks). 0: no rumble.");
+    ImGui::SliderInt("Audio latency (ms)", &pc_audio_latency_ms, 10, 500);
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("How far ahead the audio thread keeps the sound queued for the audio device. More rides out a\n"
+                          "stall on a loaded machine and delays what you hear by as much. (No audio device: unused.)");
 }
 
 extern "C" int pc_qol_confirm_cross, pc_qol_field_cross_attack; /* project_settings.cpp */
