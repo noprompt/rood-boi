@@ -388,6 +388,10 @@ the program (`_submenuSlot`, `main.c`; MENUC, the largest file, is exactly the s
 had kept it at 0x80102800: the main menu's read into slot 1 is 0xF000 bytes (MAINMENU.PRG's 0x9000 and the
 menu background after it), so `vs_mainMenu_unpackMenubg` found the background at the submenu slot's start;
 it now reads it at slot 1 + 0x9000. `overlay.c` (the MIPS original, not built) is gone.
+Slot 1 (MAINMENU.PRG with its background, INITBTL, SCREFF2) and slot 4 (EFFPURGE) are program buffers too: no
+pinned import lies in slot 1's range except the effect plug-ins' data (157 imports, 83 pointed at by words in
+the plug-in files, which carry absolute pointers into their own slot), and those load through slot 3, which
+stays at 0x800F9800. Moving slot 3 needs the plug-ins' data as owned, relocatable data (T9/T13), not a buffer.
 Found on the way: in MENUB, `items1.h`'s functions and the rest of the file use two pairs of
 `_itemCategoryIconsEnabled` / `_statusCommandState` (the original's static redeclaration made one);
 making it one variable changes the loot screen (481 of 717 frames), so it stays as it was.

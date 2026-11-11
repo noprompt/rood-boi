@@ -1,5 +1,5 @@
 //! The effect purge file's load: queues or completes the read of EFFPURGE.BIN
-//! into overlay slot 3 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
+//! into overlay slot 4 (pc/src/game/BATTLE/BATTLE.PRG/6F014.c).
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
@@ -38,5 +38,5 @@ pub fn loadEffPurge() callconv(.c) c_int {
     }
 
     // VS_EFFPURGE_BIN_LBA, VS_EFFPURGE_BIN_SIZE.
-    return loadFile(115000, 18432, v.g.vs_overlay_slots()[3]);
+    return loadFile(115000, 18432, v.g.vs_overlay_slots()[4]);
 }

@@ -18,14 +18,17 @@
 #include "pc/src/psx_types.h"
 #include "pc/src/gte_value.h"
 
-/* Where a loaded overlay file lands (overlay.c on the PS1). The submenu files' code and data are linked
- * natively, so their bytes are not looked at: the submenu slot is this program's own buffer (the largest
- * file, MENUC, is 0x9800 bytes), not RAM at 0x80102800. The others are the guest addresses their files'
- * data is pinned at (T10); the main menu's load runs on into the old submenu slot's range (0xF000 bytes
- * from 0x800F9800: MAINMENU.PRG and the menu background that follows it). */
+/* Where a loaded overlay file lands (overlay.c on the PS1). The files' code is linked natively, so what is
+ * read into slots 1, 2 and 4 (the main menu with the menu background after it, INITBTL, SCREFF2; the
+ * submenus; EFFPURGE) is not looked at beyond the background: those slots are buffers of this program.
+ * The main menu's read is 0xF000 bytes (MAINMENU.PRG's 0x9000 and the background), the largest submenu
+ * file, MENUC, 0x9800. Slot 0 (BATTLE, ENDING) and slot 3 (the effect plug-ins, whose data the build
+ * pins at these addresses and whose files carry absolute pointers into it) are guest RAM (T10). */
+static char _mainMenuSlot[0xF000] __attribute__((aligned(16)));
 static char _submenuSlot[0x9800] __attribute__((aligned(16)));
-void* const vs_overlay_slots[5] = { (void*)(ROOD_GUEST_RAM_BASE + 0x68800), (void*)(ROOD_GUEST_RAM_BASE + 0xF9800),
-    _submenuSlot, (void*)(ROOD_GUEST_RAM_BASE + 0xF9800), (void*)(ROOD_GUEST_RAM_BASE + 0xF9800) };
+static char _effPurgeSlot[0x4800] __attribute__((aligned(16)));
+void* const vs_overlay_slots[5] = { (void*)(ROOD_GUEST_RAM_BASE + 0x68800), _mainMenuSlot, _submenuSlot,
+    (void*)(ROOD_GUEST_RAM_BASE + 0xF9800), _effPurgeSlot };
 
 typedef struct {
     int unk0[2];
