@@ -2281,14 +2281,40 @@ def lp64_native_imports():
         by_address[addresses[n]] = by_address.get(addresses[n], 0) + 1
     plain = []
     pinned = {}  # import -> why it keeps its PS1 address (lp64_imports.json, PS1_Ties.md T15)
+    def plain_array(name):
+        """An unsized array (`u_char x[]`) of plain elements: its extent is where the next import starts."""
+        infos = [(obj, info) for obj, info in declarations.get(declared_name(name), [])]
+        return bool(infos) and any(info.get("size") == 0 for _, info in infos) and not any(
+            info.get("pointer") or info.get("pointer_words") or (info.get("element") or {}).get("pointer")
+            or not (info.get("ps1_size") or obj.stem.endswith("_zig")) for obj, info in infos)
+    sorted_data = sorted(data, key=lambda n: addresses[n])
+    next_address = {}
+    for i, n in enumerate(sorted_data):
+        j = i + 1
+        while j < len(sorted_data) and (addresses[sorted_data[j]] == addresses[n] or groups[sorted_data[j]] != groups[n]):
+            j += 1
+        next_address[n] = addresses[sorted_data[j]] if j < len(sorted_data) else None
+    candidates = {}  # import -> (start, size, class of its place, unsized)
     for name in sorted(data - moved):
-        start, size = addresses[name], complete_size(name)
-        end = start + size
+        start = addresses[name]
         group_name = groups[name] or ""
         keys = users.get(name, set())
-        if not plain_data(name):
+        unsized = plain_array(name)
+        if unsized:
+            if next_address[name] is None:
+                pinned[name] = "type incomplete or larger than %#x bytes" % PLAIN_MAX
+                continue
+            size = next_address[name] - start
+        else:
+            size = complete_size(name)
+        end = start + size
+        if len({info.get("ps1_size") for obj, info in declarations.get(declared_name(name), []) if not obj.stem.endswith("_zig")}) > 1:
+            # Declared as different things (D_800E909C: u_char [] here, func_800AAE9C_t [][28] there): the bytes are
+            # a table of the larger kind, whose extent the labels after it do not mark.
+            pinned[name] = "declared with different sizes: its extent is not the next label's"
+        elif not (plain_data(name) or unsized):
             pinned[name] = "holds pointers or an LP64-sized type"
-        elif not 0 < size <= PLAIN_MAX or start % 4:
+        elif not (0 < size <= (0x10000 if unsized else PLAIN_MAX)):
             pinned[name] = "type incomplete or larger than %#x bytes" % PLAIN_MAX
         elif by_address[start] != 1:
             pinned[name] = "another name at its address"
@@ -2301,15 +2327,60 @@ def lp64_native_imports():
                 pinned[name] = "in an overlay slot the restart does not cover (effect plug-ins, menus, ENDING), or shared across overlays"
             elif pointed_into(start, end):
                 pinned[name] = "a pointer word in a game file points into it"
-            elif start in incomplete_before:
-                pinned[name] = "follows an array of unknown length"
-            elif name in taken_names:
+            elif name in taken_names and not unsized:
                 pinned[name] = "its address is taken (lea, data relocation, owned Zig other than X().*)"
             elif any(a < end and b > start and who != name for a, b, who in covers):
                 pinned[name] = "overlaps another import"
             else:
-                plain.append((name, start, size, group_name, in_battle, in_ending))
-    for name, start, size, group_name, in_battle, in_ending in plain:
+                candidates[name] = (start, size, (group_name, in_exe, in_battle, in_ending), unsized)
+    # An unsized array may run into what follows it: it moves only together with the next import (one region,
+    # the layout kept), and an import after an array that stays moves with it or not at all.
+    changed = True
+    while changed:
+        changed = False
+        for name in sorted(candidates, key=lambda n: addresses[n]):
+            start, size, kind, unsized = candidates[name]
+            if unsized:
+                follower = next((n for n in candidates if addresses[n] == start + size and n != name), None)
+                if follower is None or candidates[follower][2] != kind:
+                    pinned[name] = "an array of unknown length whose next import stays at its address"
+                    del candidates[name]
+                    changed = True
+                    break
+        else:
+            for name in sorted(candidates, key=lambda n: addresses[n]):
+                if addresses[name] in incomplete_before and not any(
+                        candidates.get(p, (0, 0, 0, False))[3] and addresses[p] + candidates[p][1] == addresses[name] for p in candidates):
+                    pinned[name] = "follows an array of unknown length"
+                    del candidates[name]
+                    changed = True
+                    break
+    # What follows an unsized array in the same run is read through the array's base too (a table the decomp
+    # labelled at each reference: the bytes between the labels are the table's): a member after an array
+    # extends to the next import, so the region covers those bytes.
+    extended_to = None
+    for name in sorted(candidates, key=lambda n: addresses[n]):
+        start, size, kind, unsized = candidates[name]
+        if unsized or extended_to == start:
+            following = next_address[name]
+            if following is not None and following - start <= 0x10000:
+                size = max(size, following - start)
+                candidates[name] = (start, size, kind, unsized)
+            extended_to = start + size
+        else:
+            extended_to = None
+    # Touching imports of one place share a region: the layout of the guest copy is the layout of the native one.
+    spans = []
+    for name in sorted(candidates, key=lambda n: addresses[n]):
+        start, size, kind, _ = candidates[name]
+        if spans and spans[-1][4] == kind and spans[-1][1] == start:
+            spans[-1][1] = start + size
+            spans[-1][2].append(name)
+        else:
+            spans.append([start, start + size, [name], kind[0], kind])
+    for start, end, names, group_name, kind in spans:
+        size = end - start
+        in_battle, in_ending = kind[2], kind[3]
         attributes = "__attribute__((used, aligned(8)"
         if in_ending:
             attributes += ', section("rood_ovl_ending_ending_prg_data")'
@@ -2321,15 +2392,19 @@ def lp64_native_imports():
             win_overlay_statics.setdefault("BATTLE/BATTLE.PRG", set()).add("data")
         attributes += "))"
         region = f"rood_lp64_plain_{start:08x}" + (f"_{group_name}" if group_name else "")
+        # (the region starts at an address of the guest's alignment: a member keeps the alignment it had)
+        pad = start % 8
         content = image_bytes(start, size, group_name)
         if content is None or not any(content):
-            definitions.append(f"{attributes} unsigned char {region}[{size}];")
+            definitions.append(f"{attributes} unsigned char {region}[{pad + size}];")
         else:
-            definitions.append(f"{attributes} unsigned char {region}[{size}] = {{ "
-                               + ", ".join(f"{b:#x}" for b in content) + " };")
-        definitions.append(f'__asm__(".globl {name}\\n.type {name}, @object\\n.set {name}, {region}");')
-        moved.add(name)
-        regions.append([start, start + size, [name], group_name])
+            definitions.append(f"{attributes} unsigned char {region}[{pad + size}] = {{ "
+                               + ", ".join(f"{b:#x}" for b in bytes(pad) + content) + " };")
+        for name in names:
+            definitions.append(f'__asm__(".globl {name}\\n.type {name}, @object\\n.set {name}, {region} + {pad + addresses[name] - start}");')
+            moved.add(name)
+            plain.append(name)
+        regions.append([start, end, names, group_name])
     if plain:
         print(f"LP64: {len(plain)} plain data imports defined natively")
     # The mover's view of every data import, for pc/tools/lp64_alias_scan.py
@@ -2340,6 +2415,7 @@ def lp64_native_imports():
             "group": groups[name] or "",
             "moved": name in moved,
             "pinned": pinned.get(name, ""),
+            "taken": name in taken_names,
             "users": sorted(k or "main" for k in users.get(name, ())),
             "declarations": [dict(info, object=obj.stem) for obj, info in declarations.get(declared_name(name), [])],
         } for name in sorted(data)}, indent=1, sort_keys=True) + "\n")
