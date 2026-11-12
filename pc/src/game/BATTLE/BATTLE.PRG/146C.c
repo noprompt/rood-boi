@@ -1,3 +1,4 @@
+#include "pc/src/gte_value_core.h"
 #include "common.h"
 #include "146C.h"
 #include "2842C.h"
@@ -732,6 +733,9 @@ extern short vs_battle_doorEntered;
 /* Defined here: the room and zone records hold pointers among their words, so they cannot be imports (LP64). */
 _mpdRoomSection vs_battle_roomData;
 vs_view_t vs_view;
+/* The frame's view for the GTE maths (game/common/gte.zig): the camera's rotation and translation, set where the frame set
+ * the GTE's registers. */
+vs_gte_view vs_frame_view;
 vs_scratch_t vs_scratch;
 unsigned char vs_pad[0x400] __attribute__((aligned(16)));
 _zoneContext_t _zoneContext;

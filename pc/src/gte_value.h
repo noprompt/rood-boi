@@ -13,7 +13,7 @@
 #include "gte_value_core.h"
 
 /* For a transform or a rotation, which do not project. */
-#define VS_GTE_NO_SCREEN ((vs_gte_screen){ 0, 0, 0, 0, 0 })
+#define VS_GTE_NO_SCREEN ((vs_gte_screen){ 0, 0, 0, 0, 0, 0, 0 })
 
 /* Rotation and translation of m (SetRotMatrix, SetTransMatrix). */
 static inline vs_gte_view vs_gte_view_of(const MATRIX* m, vs_gte_screen screen)

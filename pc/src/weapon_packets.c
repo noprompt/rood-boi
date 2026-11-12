@@ -2,7 +2,7 @@
  * The projected arrays, packed polygon records and 24-bit OT links stay intact. */
 #include <sys/types.h>
 #include <libgte.h>
-#include <inline_c.h>
+#include "gte_value.h"
 extern void pc_unimplemented(const char*);
 
 static unsigned vertex_index(unsigned offset)
@@ -13,21 +13,13 @@ static unsigned vertex_index(unsigned offset)
 }
 static int area(const unsigned* xy)
 {
-    MTC2(xy[0], 12);
-    MTC2(xy[1], 13);
-    MTC2(xy[2], 14);
-    gte_nclip();
-    return MFC2(24);
+    return vs_gte_nclip(xy[0], xy[1], xy[2]);
 }
 static unsigned average_depth(const unsigned* z, int quad)
 {
     if (quad)
         return (z[0] + z[1] + z[2] + z[3]) >> 4;
-    MTC2(z[0], 17);
-    MTC2(z[1], 18);
-    MTC2(z[2], 19);
-    gte_avsz3();
-    return MFC2(7);
+    return vs_gte_avsz3(vs_gte_screen_current().zsf3, z[0], z[1], z[2]);
 }
 static unsigned* emit(unsigned* packet, unsigned* ot, int bucket, unsigned color,
     unsigned tpage, unsigned clut, const unsigned* xy, const unsigned* uv, int quad)
@@ -50,16 +42,11 @@ static unsigned* emit(unsigned* packet, unsigned* ot, int bucket, unsigned color
 static int split_diagonal(const unsigned* xy, const unsigned* z)
 {
     int x0 = (short)xy[0], y0 = (short)(xy[0] >> 16);
-    CTC2((short)xy[2] - x0, 0);
-    CTC2((short)(xy[2] >> 16) - y0, 2);
-    CTC2(z[2] - z[0], 4);
-    MTC2((short)xy[1] - x0, 9);
-    MTC2((short)(xy[1] >> 16) - y0, 10);
-    MTC2(z[1] - z[0], 11);
-    gte_op0();
-    unsigned dot = ((unsigned)((short)xy[3] - x0) * MFC2(25))
-                 + ((unsigned)((short)(xy[3] >> 16) - y0) * MFC2(26))
-                 + ((z[3] - z[0]) * MFC2(27));
+    int mac[3];
+    vs_gte_op0((short)xy[2] - x0, (short)(xy[2] >> 16) - y0, z[2] - z[0], (short)xy[1] - x0, (short)(xy[1] >> 16) - y0, z[1] - z[0], mac);
+    unsigned dot = ((unsigned)((short)xy[3] - x0) * mac[0])
+                 + ((unsigned)((short)(xy[3] >> 16) - y0) * mac[1])
+                 + ((z[3] - z[0]) * mac[2]);
     return (int)(0u - dot) > 0;
 }
 static unsigned* split_quad(unsigned* packet, unsigned* ot, unsigned color,
@@ -181,19 +168,11 @@ struct group_walk {
 };
 static int nclip3(unsigned a, unsigned b, unsigned c)
 {
-    MTC2(a, 12);
-    MTC2(b, 13);
-    MTC2(c, 14);
-    gte_nclip();
-    return MFC2(24);
+    return vs_gte_nclip(a, b, c);
 }
 static unsigned avsz3(unsigned a, unsigned b, unsigned c)
 {
-    MTC2(a, 17);
-    MTC2(b, 18);
-    MTC2(c, 19);
-    gte_avsz3();
-    return MFC2(7);
+    return vs_gte_avsz3(vs_gte_screen_current().zsf3, a, b, c);
 }
 void func_800B516C(void* projected, void* object, void* color, void* model);
 

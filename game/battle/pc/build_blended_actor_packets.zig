@@ -17,21 +17,13 @@ fn actorVertex(offset: c_uint) c_uint {
 /// orig: actor_nclip (pc/src/actor_packets.c)
 /// GTE NCLIP of three screen words.
 fn actorNclip(a: c_uint, b: c_uint, third: c_uint) c_int {
-    c.MTC2(a, 12);
-    c.MTC2(b, 13);
-    c.MTC2(third, 14);
-    gte.nclip();
-    return @bitCast(c.MFC2(24));
+    return gte.nclipOf(a, b, third);
 }
 
 /// orig: actor_avsz3 (pc/src/actor_packets.c)
 /// GTE AVSZ3 of three depth words.
 fn actorAvsz3(a: c_uint, b: c_uint, third: c_uint) c_uint {
-    c.MTC2(a, 17);
-    c.MTC2(b, 18);
-    c.MTC2(third, 19);
-    gte.avsz3();
-    return c.MFC2(7);
+    return gte.avsz3Of(a, b, third);
 }
 
 /// orig: actor_link (pc/src/actor_packets.c)

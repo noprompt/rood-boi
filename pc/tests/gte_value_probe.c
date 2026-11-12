@@ -170,7 +170,7 @@ int main(void)
     }
     {
         /* The projection the game set is read back as set. */
-        vs_gte_screen s = { 160 << 16, 112 << 16, 800, -98, 340 };
+        vs_gte_screen s = { 160 << 16, 112 << 16, 800, -98, 340, 341, 256 };
         vs_gte_screen got;
         pc_gte_widescreen = 0;
         C2_OFX = s.ofx;
@@ -178,6 +178,8 @@ int main(void)
         C2_H = s.h;
         C2_DQA = s.dqa;
         C2_DQB = s.dqb;
+        C2_ZSF3 = s.zsf3;
+        C2_ZSF4 = s.zsf4;
         got = vs_gte_screen_current();
         CHECK(!memcmp(&s, &got, sizeof s), "vs_gte_screen_current");
     }

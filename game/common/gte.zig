@@ -125,7 +125,7 @@ pub inline fn zrtr() void {
 // results out, on a private register set (the game's registers are not read or changed).
 
 /// vs_gte_screen: OFX and OFY as the registers hold them (16.16), H, DQA, DQB.
-pub const Screen = extern struct { ofx: c_int, ofy: c_int, h: c_int, dqa: c_int, dqb: c_int };
+pub const Screen = extern struct { ofx: c_int, ofy: c_int, h: c_int, dqa: c_int, dqb: c_int, zsf3: c_int, zsf4: c_int };
 
 /// vs_gte_view: rotation, translation, projection.
 pub const View = extern struct { rot: [3][3]i16, t: [3]c_int, screen: Screen };
@@ -143,15 +143,22 @@ pub const Result = extern struct {
     flag: c_uint,
 };
 
+/// vs_gte_result4: RotAverage4's results.
+pub const Result4 = extern struct { sxy: [4]c_int, ir0: i16, flag: c_uint, otz: c_uint };
+
 const RTPS: c_int = 0x0180001;
 const RTV0TR: c_int = 0x0480012;
 const RTV0: c_int = 0x0486012;
 
 extern fn vs_gte_run(op: c_int, view: *const View, v: *const [3]i16, caller: ?*const anyopaque) callconv(.c) Result;
+extern fn vs_gte_run4(view: *const View, v: *const [4][3]i16, caller: ?*const anyopaque) callconv(.c) Result4;
+extern fn vs_gte_nclip(sxy0: c_uint, sxy1: c_uint, sxy2: c_uint) callconv(.c) c_int;
+extern fn vs_gte_avsz3(zsf3: c_int, sz1: c_uint, sz2: c_uint, sz3: c_uint) callconv(.c) c_uint;
+extern fn vs_gte_op0(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir3: c_uint, mac: *[3]c_int) callconv(.c) void;
 extern fn vs_gte_screen_current() callconv(.c) Screen;
 
 /// For a transform or a rotation, which do not project.
-pub const no_screen: Screen = .{ .ofx = 0, .ofy = 0, .h = 0, .dqa = 0, .dqb = 0 };
+pub const no_screen: Screen = .{ .ofx = 0, .ofy = 0, .h = 0, .dqa = 0, .dqb = 0, .zsf3 = 0, .zsf4 = 0 };
 
 /// The projection the game has set so far (SetGeomOffset, SetGeomScreen).
 pub fn screenCurrent() Screen {
@@ -208,4 +215,47 @@ pub inline fn rotateTo(out: anytype, view: *const View, vec: anytype) void {
 fn storeVector(out: anytype, r: Result) void {
     const v: *align(1) [3]c_int = @ptrCast(out);
     v.* = r.mac[1..4].*;
+}
+
+/// NCLIP of three SXY words: MAC0, the sign of the screen triangle's area.
+pub fn nclipOf(a: c_uint, b: c_uint, third: c_uint) c_int {
+    return vs_gte_nclip(a, b, third);
+}
+
+/// AVSZ3 of three depth words, scaled by the game's current ZSF3 (OTZ as MFC2 reads it).
+pub fn avsz3Of(a: c_uint, b: c_uint, third: c_uint) c_uint {
+    return vs_gte_avsz3(vs_gte_screen_current().zsf3, a, b, third);
+}
+
+/// OP: the outer product of the rotation diagonal (raw CTC2 values) and IR (raw MTC2 values), MAC1-3.
+pub fn op0Of(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir3: c_uint) [3]c_int {
+    var mac: [3]c_int = undefined;
+    vs_gte_op0(r11, r22, r33, ir1, ir2, ir3, &mac);
+    return mac;
+}
+
+/// RotAverage4: the four vectors projected (the first three together, as RTPT) and their depths averaged.
+pub inline fn average4(view: *const View, a: anytype, b: anytype, cc: anytype, d: anytype) Result4 {
+    const vs = [4][3]i16{ @as(*align(1) const [3]i16, @ptrCast(a)).*, @as(*align(1) const [3]i16, @ptrCast(b)).*, @as(*align(1) const [3]i16, @ptrCast(cc)).*, @as(*align(1) const [3]i16, @ptrCast(d)).* };
+    return vs_gte_run4(view, &vs, @ptrFromInt(@returnAddress()));
+}
+
+/// The scene camera's view for the frame (vs_frame_view, defined in 146C.c beside vs_view): its rotation and
+/// translation are what the battle frame sets (SetRotMatrix, SetTransMatrix of vs_view.viewMatrix); the projection
+/// is the game's current one (SetGeomOffset, SetGeomScreen), read when the view is taken, so a later offset
+/// change (the area map's) is seen.
+extern var vs_frame_view: View;
+
+/// The camera sets the frame's view from a MATRIX (what the registers' SetRotMatrix and SetTransMatrix were).
+pub fn setFrame(m: anytype) void {
+    const mat: *align(1) const Matrix = @ptrCast(m);
+    vs_frame_view.rot = mat.m;
+    vs_frame_view.t = mat.t;
+}
+
+/// The frame's view with the current projection.
+pub fn frame() View {
+    var view = vs_frame_view;
+    view.screen = vs_gte_screen_current();
+    return view;
 }

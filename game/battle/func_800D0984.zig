@@ -1,6 +1,7 @@
 //! An effect view facing the camera (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
@@ -34,9 +35,8 @@ pub fn func_800D0984(arg0: c_int, effect: ?*v.func_800D0C60_t, push: c_int) call
         offset.vx = 0;
         offset.vy = 0;
         offset.vz = psx.conv(i16, distance -% 0x600);
-        c.SetRotMatrix(@ptrCast(matrix));
-        c.SetTransMatrix(@ptrCast(matrix));
-        c.RotTrans(@ptrCast(&offset), @ptrCast(&start), &distance);
+        const view = gte.viewOf(matrix, gte.no_screen);
+        gte.transformTo(&start, &view, &offset);
         e.unk78.unk14.vx = start.vx;
         e.unk78.unk14.vy = start.vy;
         e.unk78.unk14.vz = start.vz;

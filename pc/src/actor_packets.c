@@ -3,7 +3,7 @@
 #include "psx_types.h" /* psx_load/psx_store: 4-byte guest pointers */
 #include <sys/types.h>
 #include <libgte.h>
-#include <inline_c.h>
+#include "gte_value.h"
 extern void pc_unimplemented(const char*);
 static unsigned actor_vertex(unsigned offset)
 {
@@ -26,11 +26,7 @@ unsigned* pc_actor_packets(unsigned* packet, unsigned* ot, const unsigned* proje
                 index[3] = actor_vertex(polygons[1] >> 16);
             int culled = 0;
             if (!(flags & 1)) {
-                MTC2(projected[index[0]], 12);
-                MTC2(projected[index[1]], 13);
-                MTC2(projected[index[2]], 14);
-                gte_nclip();
-                culled = (int)MFC2(24) <= 0;
+                culled = vs_gte_nclip(projected[index[0]], projected[index[1]], projected[index[2]]) <= 0;
             }
             if (culled) {
                 unsigned stride = kind == 2 ? polygons[3] >> 24 : (quad ? 32 : 24);
@@ -49,11 +45,7 @@ unsigned* pc_actor_packets(unsigned* packet, unsigned* ot, const unsigned* proje
                             + depths[index[3]])
                      >> 4;
             } else {
-                MTC2(depths[index[0]], 17);
-                MTC2(depths[index[1]], 18);
-                MTC2(depths[index[2]], 19);
-                gte_avsz3();
-                depth = MFC2(7);
+                depth = vs_gte_avsz3(vs_gte_screen_current().zsf3, depths[index[0]], depths[index[1]], depths[index[2]]);
             }
             if (kind == 2)
                 depth += ((polygons[4] >> 26) & 3) * 4;

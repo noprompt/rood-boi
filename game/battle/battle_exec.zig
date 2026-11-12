@@ -414,6 +414,7 @@ pub fn battleExec() callconv(.c) void {
                     c.func_8007ACB0();
                     c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
                     c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+                    common.gte.setFrame(&v.g.vs_view().viewMatrix);
                     if (skipCameraUpdate == 0) {
                         switch (v.g.D_800F196C().*) {
                             0, 1 => {
@@ -475,6 +476,7 @@ pub fn battleExec() callconv(.c) void {
                             _ = c.vs_battle_processObjectDataQueue();
                             c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
                             c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+                            common.gte.setFrame(&v.g.vs_view().viewMatrix);
                             c.func_800941FC();
                         }
                         // ROOD_PC: explicit rendering diagnostic; normal battle logic is unchanged.

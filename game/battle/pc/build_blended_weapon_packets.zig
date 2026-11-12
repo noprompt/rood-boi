@@ -3,6 +3,7 @@ const c = @import("c_weapon_packets");
 const common = @import("common");
 const pad = @import("common").pad;
 const psx = common.psx;
+const gte = common.gte;
 
 const NativeDraw = *const fn (c_int, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?*const anyopaque, ?[*]c_uint) callconv(.c) void;
 
@@ -57,26 +58,14 @@ fn nextGroup(g: *GroupWalk, section_total: c_uint, mask: c_uint, clut: c_int, al
     }
 }
 
-fn mtc2(value: c_uint, reg: c_int) void {
-    c.MTC2(value, reg);
-}
-
 /// orig: nclip3 (pc/src/weapon_packets.c)
 fn nclip3(a: c_uint, b: c_uint, cc: c_uint) c_int {
-    mtc2(a, 12);
-    mtc2(b, 13);
-    mtc2(cc, 14);
-    _ = c.doCOP2(0x01400006); // gte_nclip
-    return @bitCast(c.MFC2(24));
+    return gte.nclipOf(a, b, cc);
 }
 
 /// orig: avsz3 (pc/src/weapon_packets.c)
 fn avsz3(a: c_uint, b: c_uint, cc: c_uint) c_uint {
-    mtc2(a, 17);
-    mtc2(b, 18);
-    mtc2(cc, 19);
-    _ = c.doCOP2(0x0158002D); // gte_avsz3
-    return c.MFC2(7);
+    return gte.avsz3Of(a, b, cc);
 }
 
 /// `(short)w` and `(short)(w >> 16)` as ints.
@@ -93,16 +82,10 @@ fn highShort(w: c_uint) c_int {
 fn splitDiagonal(xy: *const [4]c_uint, z: *const [4]c_uint) bool {
     const x0 = lowShort(xy[0]);
     const y0 = highShort(xy[0]);
-    c.CTC2(@bitCast(lowShort(xy[2]) -% x0), 0);
-    c.CTC2(@bitCast(highShort(xy[2]) -% y0), 2);
-    c.CTC2(z[2] -% z[0], 4);
-    mtc2(@bitCast(lowShort(xy[1]) -% x0), 9);
-    mtc2(@bitCast(highShort(xy[1]) -% y0), 10);
-    mtc2(z[1] -% z[0], 11);
-    _ = c.doCOP2(0x0170000C); // gte_op0
+    const mac = gte.op0Of(@bitCast(lowShort(xy[2]) -% x0), @bitCast(highShort(xy[2]) -% y0), z[2] -% z[0], @bitCast(lowShort(xy[1]) -% x0), @bitCast(highShort(xy[1]) -% y0), z[1] -% z[0]);
     const dx: c_uint = @bitCast(lowShort(xy[3]) -% x0);
     const dy: c_uint = @bitCast(highShort(xy[3]) -% y0);
-    const dot: c_uint = (dx *% c.MFC2(25)) +% (dy *% c.MFC2(26)) +% ((z[3] -% z[0]) *% c.MFC2(27));
+    const dot: c_uint = (dx *% @as(c_uint, @bitCast(mac[0]))) +% (dy *% @as(c_uint, @bitCast(mac[1]))) +% ((z[3] -% z[0]) *% @as(c_uint, @bitCast(mac[2])));
     return @as(c_int, @bitCast(0 -% dot)) > 0;
 }
 

@@ -34,6 +34,7 @@ pub fn func_800CE174(node_arg: [*c]v.func_800D4910_t, mode: c_uint, config: c_in
                 }
                 c.SetRotMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
                 c.SetTransMatrix(@ptrCast(&v.g.vs_view().viewMatrix));
+                @import("common").gte.setFrame(&v.g.vs_view().viewMatrix);
                 spline(t, "first", t.index, -4096, &t.previousFirst);
                 spline(t, "second", t.index, -4096, &t.previousSecond);
                 var weight: c_int = (segments + 1) * 2; // segments 1..5

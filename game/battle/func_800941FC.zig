@@ -3,6 +3,7 @@
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_2842C");
 const c = @import("c_2842C");
 
@@ -111,8 +112,6 @@ pub fn func_800941FC() callconv(.c) void {
 
         var position: c.SVECTOR = std.mem.zeroes(c.SVECTOR);
         var screen: [2]i16 align(4) = .{ 0, 0 };
-        var p: c_int = 0;
-        var flag: c_int = 0;
         var visible: c_int = 0;
 
         remove: {
@@ -123,7 +122,10 @@ pub fn func_800941FC() callconv(.c) void {
                 position.vy = psx.conv(i16, @as(c_int, position.vy) +% label.unk2);
                 position.vz = psx.conv(i16, @as(c_int, position.vz) +% label.unk4);
                 v.g.pc_gte_anchored().* +%= 1;
-                visible = c.RotTransPers(&position, @ptrCast(&screen), &p, &flag);
+                const frame = gte.frame();
+                const projected = gte.project(&frame, &position);
+                @as(*align(1) c_int, @ptrCast(&screen)).* = projected.sxy;
+                visible = @intCast(projected.otz);
                 v.g.pc_gte_anchored().* -%= 1;
                 if (screen[0] < 32) screen[0] = 32;
                 if (screen[0] > 288) screen[0] = 288;
@@ -131,7 +133,10 @@ pub fn func_800941FC() callconv(.c) void {
                 if (screen[1] > 200) screen[1] = 200;
             } else if (label.unk8.u8[0] == 3) {
                 v.g.pc_gte_anchored().* +%= 1;
-                visible = c.RotTransPers(@ptrCast(label), @ptrCast(&screen), &p, &flag);
+                const frame = gte.frame();
+                const projected = gte.project(&frame, label);
+                @as(*align(1) c_int, @ptrCast(&screen)).* = projected.sxy;
+                visible = @intCast(projected.otz);
                 v.g.pc_gte_anchored().* -%= 1;
             } else {
                 visible = 1;

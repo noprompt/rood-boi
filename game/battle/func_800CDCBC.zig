@@ -2,6 +2,7 @@
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 const sprite_item = common.sprite_item;
@@ -10,8 +11,12 @@ const sprite_item = common.sprite_item;
 /// Projects the segment's four points (RotAverage4) and, inside the depth range, adds a quad: Gouraud from table D_800EC308 (config 6, through func_800CF988), else textured from D_800EC2E8, the head and tail brightnesses scaling the colours.
 pub fn func_800CDCBC(trail: ?*v.effectTrailState, head: c_int, tail: c_int) callconv(.c) void {
     const t = trail.?;
-    var xy: [4]c_int = undefined;
-    const depth = c.RotAverage4(@ptrCast(&t.previousFirst), @ptrCast(&t.currentFirst), @ptrCast(&t.previousSecond), @ptrCast(&t.currentSecond), &xy[0], &xy[1], &xy[2], &xy[3], &t.projectionDepth, &t.projectionFlags);
+    const frame = gte.frame();
+    const projected = gte.average4(&frame, &t.previousFirst, &t.currentFirst, &t.previousSecond, &t.currentSecond);
+    const xy: [4]c_int = projected.sxy;
+    const depth: c_int = @intCast(projected.otz);
+    t.projectionDepth = projected.ir0;
+    t.projectionFlags = @bitCast(projected.flag);
     if (psx.conv(c_uint, depth -% 17) >= 2031) {
         return;
     }
