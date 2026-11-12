@@ -156,6 +156,7 @@ extern fn vs_gte_nclip(sxy0: c_uint, sxy1: c_uint, sxy2: c_uint) callconv(.c) c_
 extern fn vs_gte_avsz3(zsf3: c_int, sz1: c_uint, sz2: c_uint, sz3: c_uint) callconv(.c) c_uint;
 extern fn vs_gte_op0(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir3: c_uint, mac: *[3]c_int) callconv(.c) void;
 extern fn SetGeomOffset(ofx: c_int, ofy: c_int) callconv(.c) void;
+extern fn vs_gte_light_transform(llm: *const [5]c_uint, bk: *const [3]c_uint, v: *const [3]i16, ir: *[3]i16) callconv(.c) void;
 extern fn vs_gte_screen_current() callconv(.c) Screen;
 
 /// For a transform or a rotation, which do not project.
@@ -231,6 +232,15 @@ pub fn avsz3Of(a: c_uint, b: c_uint, third: c_uint) c_uint {
 /// SetGeomOffset: the screen offset in pixels (the registers and the screen record).
 pub fn setGeomOffset(ofx: c_int, ofy: c_int) void {
     SetGeomOffset(ofx, ofy);
+}
+
+/// MVMVA through the light matrix with the background colour as the translation (the raw CTC2 register values: the matrix's
+/// five words, the colour's three); IR1-3 of the vector.
+pub fn lightTransform(llm: *const [5]c_uint, bk: *const [3]c_uint, vec: anytype) [3]i16 {
+    var ir: [3]i16 = undefined;
+    const v: [3]i16 = @as(*align(1) const [3]i16, @ptrCast(vec)).*;
+    vs_gte_light_transform(llm, bk, &v, &ir);
+    return ir;
 }
 
 /// OP: the outer product of the rotation diagonal (raw CTC2 values) and IR (raw MTC2 values), MAC1-3.

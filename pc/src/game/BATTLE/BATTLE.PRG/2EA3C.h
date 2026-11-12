@@ -1,5 +1,6 @@
 #pragma once
 #include "146C.h"
+#include "pc/src/gte_value_core.h"
 
 typedef struct {
     int x;
@@ -10,6 +11,6 @@ vs_battle_roomName* vs_battle_initSceneAndGetRoomNames(void*);
 void vs_battle_getGeomOffset(vs_battle_geomOffset*);
 void vs_battle_setGeomOffset(vs_battle_geomOffset*);
 
-void func_8009820C(void*);
+void func_8009820C(void*, const vs_gte_view*);
 void func_800985AC(VECTOR*, VECTOR*, MATRIX*);
 void func_80098648(VECTOR*, VECTOR*, MATRIX*);

@@ -13,8 +13,7 @@ pub fn func_8008B1FC(arg0: ?*anyopaque) callconv(.c) void {
     c.pc_scene_camera(scratch);
 
     const camera = common.view.at(v.MATRIX, common.view.matrix_offset);
-    c.SetRotMatrix(psx.cptr(c.MATRIX, camera));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, camera));
+    common.gte.setFrame(camera); // the room's group matrices and packets read the frame's view
     c.func_800983F8(arg0);
 
     v.g.D_800F1CC0().* = v.g.vs_scratch().unk0;

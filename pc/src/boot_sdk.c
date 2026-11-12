@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <libgte.h>
 #include <inline_c.h>
+#include "gte_value.h"
 #include <libgpu.h>
 #include <libetc.h>
 #include <libpad.h>
@@ -708,26 +709,30 @@ void OuterProduct0(VECTOR* a, VECTOR* b, VECTOR* result)
 }
 
 /* 2EA3C.s: local YXZ rotation followed by the scratchpad camera rotation.
- * Translation uses the GTE's existing TR registers, not camera->t. */
-void pc_room_transform(VECTOR* position, VECTOR* angles, MATRIX* camera, MATRIX* result)
+ * Translation is the camera's rotation of the position plus `translation` (the GTE's TR registers in the original:
+ * the frame view's, passed), not camera->t. */
+void pc_room_transform(VECTOR* position, VECTOR* angles, MATRIX* camera, MATRIX* result, const int translation[3])
 {
     SVECTOR rotation = { angles->vx, angles->vy, angles->vz, 0 };
     RotMatrixYXZ_gte(&rotation, result);
     compose_rotation(camera, result, result);
-    MTC2((unsigned short)position->vx | ((unsigned)position->vy << 16), 0);
-    MTC2(position->vz, 1);
-    gte_mvmva(1, 0, 0, 0, 0);
-    result->t[0] = MFC2(25);
-    result->t[1] = MFC2(26);
-    result->t[2] = MFC2(27);
+    vs_gte_view view = vs_gte_view_of(camera, VS_GTE_NO_SCREEN);
+    view.t[0] = translation[0];
+    view.t[1] = translation[1];
+    view.t[2] = translation[2];
+    SVECTOR vector = { (short)position->vx, (short)position->vy, (short)position->vz, 0 };
+    vs_gte_result r = vs_gte_transform(&view, &vector);
+    result->t[0] = r.mac[1];
+    result->t[1] = r.mac[2];
+    result->t[2] = r.mac[3];
 }
-void func_800985AC(VECTOR* position, VECTOR* angles, MATRIX* result);
+void func_800985AC(VECTOR* position, VECTOR* angles, MATRIX* result); /* with the frame view's translation (room_transform.zig) */
 
 
 /* 2EA3C.s 98648: inverse far-clip scale precedes camera/local rotation.
  * Keep the original signed-halfword scale and GTE translation registers. */
 void pc_scaled_room_transform(
-    VECTOR* position, VECTOR* angles, MATRIX* camera, int far_clip, MATRIX* result)
+    VECTOR* position, VECTOR* angles, MATRIX* camera, int far_clip, MATRIX* result, const int translation[3])
 {
     MATRIX scale = { 0 }, scaled_camera = *camera;
     /* `div $zero` has no zero check: the R3000 leaves LO = -1 for the
@@ -735,7 +740,7 @@ void pc_scaled_room_transform(
     short factor = far_clip ? 0x1000000 / far_clip : -1;
     scale.m[0][0] = scale.m[1][1] = scale.m[2][2] = factor;
     compose_rotation(&scale, &scaled_camera, &scaled_camera);
-    pc_room_transform(position, angles, &scaled_camera, result);
+    pc_room_transform(position, angles, &scaled_camera, result, translation);
 }
 void func_80098648(VECTOR* position, VECTOR* angles, MATRIX* result);
 
@@ -755,8 +760,9 @@ void func_80098648(VECTOR* position, VECTOR* angles, MATRIX* result);
  * reaches: they kept the picture drawn there two frames before, which
  * smeared as the camera moved ("trails"). 4:3 is unchanged. */
 unsigned* pc_background_packets(
-    unsigned* mesh, unsigned* packet, unsigned* ot, int transformed[34][4])
+    unsigned* mesh, unsigned* packet, unsigned* ot, int transformed[34][4], const vs_gte_view* camera)
 {
+    vs_gte_view view = *camera;
     int margin = PC_WIDESCREEN_MARGIN;
     /* The sphere is about the eye: func_8008EC48 places it at the game
      * camera's position through the view matrix, which leaves no
@@ -764,18 +770,14 @@ unsigned* pc_background_packets(
      * built from its own eye (func_8007ACB0's hook), so that left the sky
      * offset by the two eyes' distance, off the screen (black where the sky
      * belongs): about the free camera's eye instead, as the game's is. */
-    if (pc_live_camera_active && pc_live_camera_active()) {
-        CTC2(0, 5);
-        CTC2(0, 6);
-        CTC2(0, 7);
-    }
+    if (pc_live_camera_active && pc_live_camera_active())
+        view.t[0] = view.t[1] = view.t[2] = 0;
     for (int i = 0; i < 34; ++i) {
-        MTC2(mesh[0], 0);
-        MTC2(mesh[1], 1);
-        gte_mvmva(1, 0, 0, 0, 0);
-        transformed[i][0] = MFC2(25);
-        transformed[i][1] = MFC2(26);
-        transformed[i][2] = MFC2(27);
+        SVECTOR vector = { (short)mesh[0], (short)(mesh[0] >> 16), (short)mesh[1], 0 };
+        vs_gte_result r = vs_gte_transform(&view, &vector);
+        transformed[i][0] = r.mac[1];
+        transformed[i][1] = r.mac[2];
+        transformed[i][2] = r.mac[3];
         transformed[i][3] = mesh[2];
         mesh += 3;
     }
@@ -819,7 +821,7 @@ unsigned* pc_background_packets(
     }
     return packet;
 }
-void func_8009820C(void* mesh);
+void func_8009820C(void* mesh, const vs_gte_view* camera);
 
 void func_800983F8(void* geometry);
 

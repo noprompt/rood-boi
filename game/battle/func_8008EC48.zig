@@ -97,8 +97,7 @@ pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
         position.vy = @divTrunc(position.vy, 4096);
         position.vz = @divTrunc(position.vz, 4096);
 
-        c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
-        c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
+        common.gte.setFrame(&v.g.vs_view().viewMatrix); // func_80098648 and func_800985AC take the frame's translation
 
         var matrix: v.MATRIX = undefined;
         if (v.g.vs_view().camera.farClip != 4096) {
@@ -106,8 +105,7 @@ pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
         } else {
             c.func_800985AC(psx.cptr(c.VECTOR, &position), psx.cptr(c.VECTOR, angles), psx.cptr(c.MATRIX, &matrix));
         }
-        c.SetRotMatrix(psx.cptr(c.MATRIX, &matrix));
-        c.SetTransMatrix(psx.cptr(c.MATRIX, &matrix));
-        c.func_8009820C(@ptrCast(v.g.D_80068C1C()));
+        const background = common.gte.viewOf(&matrix, common.gte.no_screen);
+        c.func_8009820C(@ptrCast(v.g.D_80068C1C()), @ptrCast(&background));
     }
 }

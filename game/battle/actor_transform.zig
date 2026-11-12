@@ -18,11 +18,8 @@ pub fn offsetToWorld(actor: ?psx.GuestPtr(v.D_800F4538_t)) callconv(.c) void {
     scratch.matrix.t[0] = 0;
     scratch.matrix.t[1] = 0;
     scratch.matrix.t[2] = 0;
-    gte.SetRotMatrix(&scratch.matrix);
-    gte.SetTransMatrix(&scratch.matrix);
-    gte.ldv0(&scratch.offset);
-    gte.rtv0tr2();
-    gte.stlvnl(&scratch.matrix.t);
+    const view = gte.viewOf(&scratch.matrix, gte.no_screen);
+    gte.transformTo(&scratch.matrix.t, &view, &scratch.offset);
     scratch.offset.vx = psx.conv(i16, scratch.matrix.t[0]);
     scratch.offset.vy = psx.conv(i16, scratch.matrix.t[1]);
     scratch.offset.vz = psx.conv(i16, scratch.matrix.t[2]);

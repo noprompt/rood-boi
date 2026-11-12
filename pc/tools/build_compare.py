@@ -35,7 +35,7 @@ everything each route does. Old, old again (the control) and new are compared ro
 SCENES below: a new screen's route is one function there, or one of classic_parity.py's tours wrapped as the others are. Routes:
 mainmenu, manual, levelled, items, magic, arts, abilities, status, score, map, data (MENU7's SAVE and LOAD file menus), setup, loot,
 storage, ending, menuf, dialogue (the talk bubble's every shape: first_bubble), title (its menu and its file menu's copy) and gameover
-(MENU7's game over LOAD). opening_events (the opening played through, the scanlines forced on) and script_<zone>_<room> (a room's own event script, for the rooms with a door into them) and story_<scene id> (a story scene of pc/assets/cutscenes/story.json played as the cutscene player plays it, from the title: the rooms and events no warp reaches; the wipes, the screen effect, its border).
+(MENU7's game over LOAD). opening_events (the opening played through, the scanlines forced on) and script_<zone>_<room> (a room's own event script, for the rooms with a door into them) and platforms (the platform shadows of rooms 9-5, 15-7, 24-2, 25-2, 32-0) and story_<scene id> (a story scene of pc/assets/cutscenes/story.json played as the cutscene player plays it, from the title: the rooms and events no warp reaches; the wipes, the screen effect, its border).
 """
 import argparse
 import contextlib
@@ -530,8 +530,9 @@ def hashed(g, out, sample, hashes):
 
 def scene_ending(g, cp, symbols):
     """The credits skipped, MISSION COMPLETE coming in, at rest and left with Cross (its fade-out)."""
-    from ending_smoke import CREDITS_DONE, RANK_SCREEN_STEP
-    step = lambda: int.from_bytes(g.read(RANK_SCREEN_STEP, 4), "little")
+    from ending_smoke import RANK_SCREEN_STEP
+    at = symbols[RANK_SCREEN_STEP] if isinstance(RANK_SCREEN_STEP, str) else RANK_SCREEN_STEP  # (a name once ENDING's data moved)
+    step = lambda: int.from_bytes(g.read(at, 4), "little")
     g.call("ending")
     g.run(1200)
     g.press("start", vsyncs=4, settle=200)
@@ -617,7 +618,9 @@ def tour(name):
     return scene
 
 
-STORY_ROUTES = ("room-001-00-s000", "room-003-00-s000", "evt-0001", "evt-0002", "room-010-00-s000", "room-034-00-s034", "room-032-17-s038")  # the story scenes whose drawers no room_goto route reaches
+STORY_ROUTES = ("room-001-00-s000", "room-003-00-s000", "evt-0001", "evt-0002", "room-010-00-s000", "room-034-00-s034", "room-032-17-s038",
+                "evt-0069", "evt-0036", "evt-0038")  # the story scenes whose drawers no room_goto route reaches
+STORY_SETTLE = {"evt-0069": 30}  # vsyncs run before a scene is sampled
 STORY_WARPS = ("room-034-00-s034", "room-032-17-s038")  # the scenes with a border, played again with the screen warp set
 STORY_SCALED = ("room-001-00-s000",)  # the scenes with GIM images, played again with them drawn at another scale
 CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title", "opening_events": "title", **{f"story_{i}": "title" for i in STORY_ROUTES}, **{f"story_{i}_warp": "title" for i in STORY_WARPS}, **{f"story_{i}_scaled": "title" for i in STORY_SCALED}}  # (the routes that do not start in the save room)
@@ -688,6 +691,21 @@ def parity_tour(name, scale=1):
         g.call("classic", parity=True, reset=True)
         g.call("ui_text", scale=scale)
         getattr(cp, f"tour_{name}")(g, lambda ok, message="": ok, lambda kind: g.call("classic")["kinds"][kind])
+    return scene
+
+
+def platforms(rooms=((9, 5), (15, 7), (24, 2), (25, 2), (32, 0))):
+    """The rooms whose moving platforms are above the floor, each left to run: the flat subtractive squares under them
+    (146C.c func_8008CEB0, room_shadows.zig; the native renderer gets each too). Found by a scan of all 419 rooms with a
+    breakpoint on the draw: 9-5, 9-6, 15-7..10, 24-2, 24-3, 24-7, 24-8, 24-13, 24-14, 25-2, 25-3, 31-1, 32-0."""
+    def scene(g, cp, symbols):
+        for zone, room in rooms:
+            g.call("room_goto", zone=zone, room=room, enemies=False, scripts=False)
+            for _ in range(80):
+                g.run(20)
+                if g.call("room_goto", action="status")["phase"] in (0, 4):
+                    break
+            g.run(200)
     return scene
 
 
@@ -828,6 +846,9 @@ def story_scene(scene_id, warp=False, scaled=0):
             g.write(state + 4, struct.pack("<hh", 3400, -48))
             g.run(frames + 120)
             return
+        if scene_id in STORY_SETTLE:  # (the frame the seek lands on is not the same to the pixel in every game: evt-0069's first)
+            g.call("step", vsyncs=STORY_SETTLE[scene_id])  # (not sampled)
+            g.wait_paused()
         g.run(frames + 120)
     return scene
 
@@ -905,7 +926,7 @@ SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_men
           "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
           "gameover": scene_gameover, "damage": popups(1), "damage_x2": popups(2), "actor_word_x2": parity_tour("actor_word", 2),
           "text_band_x2": parity_tour("text_band", 2), "buff_x2": parity_tour("buff", 2), "transition": scene_transition, "areamap": scene_areamap, "opening": scene_opening, "opening_events": scene_opening_events,
-          **{f"script_{z}_{r}": room_script(z, r) for z, r in ((9, 0), (48, 3), (9, 2), (22, 0), (9, 1), (22, 4), (22, 6), (24, 0), (24, 4), (24, 11), (24, 15), (25, 1), (39, 0), (40, 22), (41, 2), (49, 1), (49, 5), (50, 6), (50, 22), (51, 2), (51, 6), (53, 1), (53, 23), (53, 29), (54, 1), (55, 3), (55, 12), (56, 14), (56, 22))}, **{f"story_{i}": story_scene(i) for i in STORY_ROUTES}, **{f"story_{i}_warp": story_scene(i, warp=True) for i in STORY_WARPS}, **{f"story_{i}_scaled": story_scene(i, scaled=3000) for i in STORY_SCALED}, "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
+          **{f"script_{z}_{r}": room_script(z, r) for z, r in ((9, 0), (48, 3), (9, 2), (22, 0), (9, 1), (22, 4), (22, 6), (24, 0), (24, 4), (24, 11), (24, 15), (25, 1), (39, 0), (40, 22), (41, 2), (49, 1), (49, 5), (50, 6), (50, 22), (51, 2), (51, 6), (53, 1), (53, 23), (53, 29), (54, 1), (55, 3), (55, 12), (56, 14), (56, 22))}, **{f"story_{i}": story_scene(i) for i in STORY_ROUTES}, **{f"story_{i}_warp": story_scene(i, warp=True) for i in STORY_WARPS}, **{f"story_{i}_scaled": story_scene(i, scaled=3000) for i in STORY_SCALED}, "platforms": platforms(), "forest": weather(40, 0), "rain": weather(48, 1), "snow": weather_kind(2), "fall": weather_kind(4),
           **{n: parity_tour(n) for n in ("gauges", "figure", "status_icons", "battle_mode", "buff", "actor_word", "timer", "text_band",
                                         "target_row", "target_line", "ability_icons")}}
 def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env=(), renderer="vulkan", settings_lines=()):

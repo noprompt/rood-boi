@@ -3,6 +3,7 @@ const c = @import("c_battle_gte");
 const v = @import("views_battle_gte");
 const psx = @import("common").psx;
 const pad = @import("common").pad;
+const gte = @import("common").gte;
 
 fn shortAt(base: [*]u8, offset: isize) c_int {
     return psx.byteAt(i16, base, offset).*;
@@ -28,30 +29,22 @@ pub fn drawMenuTargetShape(shape: [*]u8, color_in: c_uint) callconv(.c) void {
     _ = c.ScaleMatrix(matrix, &scaling);
     _ = c.func_80041C68(scale, matrix);
     c.func_800C02A8();
-    var i: usize = 0;
-    while (i < 5) : (i += 1) c.CTC2(scratch[i], @intCast(8 + i));
-    c.CTC2(@bitCast(shortAt(shape, 8)), 13);
-    c.CTC2(@bitCast(shortAt(shape, 0xa)), 14);
-    c.CTC2(@bitCast(shortAt(shape, 0xc)), 15);
+    const frame = gte.frame();
+    // The light matrix (the composed rotation's five words) and the background colour, as the registers took them.
+    const light: [5]c_uint = .{ scratch[0], scratch[1], scratch[2], scratch[3], scratch[4] };
+    const background: [3]c_uint = .{ @bitCast(shortAt(shape, 8)), @bitCast(shortAt(shape, 0xa)), @bitCast(shortAt(shape, 0xc)) };
     const color = color_in | 0x44000000;
     var count: c_uint = @as(c_uint, @as(u16, @bitCast(block.unk32)));
     const divisor: c_int = if (shape[6] < shape[4]) shape[4] else shape[6];
     const bias: c_int = @as(c_int, block.unk20) << 1;
     while (count != 0) {
         count -%= 1;
-        c.MTC2(psx.byteAt(c_uint, @as([*]u8, @ptrFromInt(point)), 0).*, 0);
-        c.MTC2(psx.byteAt(c_uint, @as([*]u8, @ptrFromInt(point)), 4).*, 1);
-        _ = c.doCOP2(0x04A2012); // gte_mvmva(1, 1, 0, 1, 0)
-        const x = c.MFC2(9);
-        const y = c.MFC2(10);
-        const z = c.MFC2(11);
-        c.MTC2((x & 0xffff) | (y << 16), 0);
-        c.MTC2(z, 1);
+        const ir = gte.lightTransform(&light, &background, @as(*align(1) const [3]i16, @ptrFromInt(point))); // gte_mvmva(1, 1, 0, 1, 0)
         const flag: c_int = psx.byteAt(i16, @as([*]u8, @ptrFromInt(point)), 6).*;
         point +%= 8;
-        _ = c.doCOP2(0x0180001); // gte_rtps
-        scratch[0] = c.MFC2(14);
-        scratch[1] = @bitCast(@as(c_int, @bitCast(c.MFC2(19))) >> 2);
+        const projected = gte.project(&frame, &ir); // gte_rtps
+        scratch[0] = @bitCast(projected.sxy);
+        scratch[1] = @bitCast(@as(c_int, @bitCast(projected.sz)) >> 2);
         if (flag != 0) {
             const sum: c_int = @as(c_int, @as(i16, @bitCast(halves[2]))) +% @as(c_int, @as(i16, @bitCast(halves[6]))) -% bias;
             // `div $zero` has no zero check: the R3000 then leaves LO = -1 for a non-negative dividend and 1 for a negative one.

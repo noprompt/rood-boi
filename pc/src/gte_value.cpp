@@ -143,6 +143,24 @@ extern "C" unsigned vs_gte_avsz3(int zsf3, unsigned sz1, unsigned sz2, unsigned 
     return (unsigned)regs.CP2D.p[7].w.l;
 }
 
+extern "C" void vs_gte_light_transform(const unsigned llm[5], const unsigned bk[3], const short v[3], short ir[3])
+{
+    GTERegisters regs = {};
+    GTERegisters* saved = gte_cur;
+    for (int i = 0; i < 5; ++i)
+        regs.CP2C.p[8 + i].d = llm[i];
+    regs.CP2C.p[12].d = (unsigned)(int)(short)llm[4]; /* CTC2 sign-extends register 12 */
+    for (int i = 0; i < 3; ++i)
+        regs.CP2C.p[13 + i].d = bk[i];
+    regs.CP2D.p[0].d = (unsigned short)v[0] | ((unsigned)(unsigned short)v[1] << 16);
+    regs.CP2D.p[1].d = (unsigned short)v[2];
+    gte_cur = &regs;
+    GTE_operator(0x04A2012);
+    gte_cur = saved;
+    for (int i = 0; i < 3; ++i)
+        ir[i] = regs.CP2D.p[9 + i].sw.l;
+}
+
 extern "C" void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir1, unsigned ir2, unsigned ir3, int mac[3])
 {
     GTERegisters regs = {};

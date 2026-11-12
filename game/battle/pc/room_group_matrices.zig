@@ -36,21 +36,17 @@ pub fn roomGroupMatrices(geometry: ?*anyopaque) callconv(.c) void {
             var zero = c.VECTOR{ .vx = 0, .vy = 0, .vz = 0, .pad = 0 };
             var camera: c.MATRIX = undefined; // filled whole by func_800985AC
             c.func_800985AC(&zero, &zero, &camera);
-            c.SetRotMatrix(&camera);
-            c.SetTransMatrix(&camera);
-            c.MTC2((word(group + 4).* & 0xffff) | (word(group + 8).* << 16), 0);
-            c.MTC2(word(group + 12).*, 1);
-            _ = c.doCOP2(0x0480012); // gte_mvmva(1, 0, 0, 0, 0)
+            const view = common.gte.viewOf(&camera, common.gte.no_screen);
+            const vector = [3]i16{ psx.conv(i16, word(group + 4).*), psx.conv(i16, word(group + 8).*), psx.conv(i16, word(group + 12).*) };
+            const moved = common.gte.transform(&view, &vector); // gte_mvmva(1, 0, 0, 0, 0)
             result.*.m[0][0] = psx.conv(i16, cosine);
             result.*.m[0][1] = psx.conv(i16, -%sine);
             result.*.m[1][0] = psx.conv(i16, sine);
             result.*.m[1][1] = psx.conv(i16, cosine);
             result.*.m[2][2] = psx.conv(i16, scale);
-            result.*.t[0] = @bitCast(c.MFC2(25));
-            result.*.t[1] = @bitCast(c.MFC2(26));
-            result.*.t[2] = @bitCast(c.MFC2(27));
-            c.SetRotMatrix(common.view.at(c.MATRIX, common.view.matrix_offset));
-            c.SetTransMatrix(common.view.at(c.MATRIX, common.view.matrix_offset));
+            result.*.t[0] = moved.mac[1];
+            result.*.t[1] = moved.mac[2];
+            result.*.t[2] = moved.mac[3];
         }
     }
 }
