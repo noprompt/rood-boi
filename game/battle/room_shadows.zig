@@ -2,6 +2,7 @@
 //! pc/src/game/BATTLE/BATTLE.PRG/146C.c.
 const std = @import("std");
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
@@ -22,11 +23,8 @@ const ShadowsEnd = *const fn (?*const anyopaque, ?*const anyopaque) callconv(.c)
 pub fn func_8008CEB0() callconv(.c) void {
     // uninitialised in the original (the GTE reads the vector's pad word): zeroed
     var vertices = std.mem.zeroes([4]v.SVECTOR);
-    var interpolation: c_int = undefined;
-    var flags: c_int = undefined;
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
+    const camera = gte.viewOf(&view().viewMatrix, gte.screenCurrent());
 
     if (psx.get(v.g.vs_battle_roomData().section12) == null) return;
     var object = psx.get(v.g.vs_battle_roomData().section12).?;
@@ -68,18 +66,13 @@ pub fn func_8008CEB0() callconv(.c) void {
         vertices[3].vx = psx.conv(i16, @divTrunc(object.unkA8, 4096) +% half);
         vertices[3].vy = psx.conv(i16, height);
         vertices[3].vz = psx.conv(i16, @divTrunc(object.unkB0, 4096) +% half);
-        const depth = c.RotAverage4(
-            psx.cptr(c.SVECTOR, &vertices[0]),
-            psx.cptr(c.SVECTOR, &vertices[1]),
-            psx.cptr(c.SVECTOR, &vertices[2]),
-            psx.cptr(c.SVECTOR, &vertices[3]),
-            @ptrCast(@alignCast(&prim.x0)),
-            @ptrCast(@alignCast(&prim.x1)),
-            @ptrCast(@alignCast(&prim.x2)),
-            @ptrCast(@alignCast(&prim.x3)),
-            &interpolation,
-            &flags,
-        );
+        const average = gte.average4(&camera, &vertices[0], &vertices[1], &vertices[2], &vertices[3]);
+        // The four screen words go to the packet's x0/y0 .. x3/y3 words.
+        @as(*align(1) c_int, @ptrCast(&prim.x0)).* = average.sxy[0];
+        @as(*align(1) c_int, @ptrCast(&prim.x1)).* = average.sxy[1];
+        @as(*align(1) c_int, @ptrCast(&prim.x2)).* = average.sxy[2];
+        @as(*align(1) c_int, @ptrCast(&prim.x3)).* = average.sxy[3];
+        const depth: c_int = @intCast(average.otz);
         if (depth > 4 and depth < 2048) {
             const tag: *v.P_TAG = @ptrCast(prim);
             psx.setBits(tag, "len", 5); // setPolyF4

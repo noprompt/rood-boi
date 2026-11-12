@@ -157,6 +157,7 @@ extern fn vs_gte_avsz3(zsf3: c_int, sz1: c_uint, sz2: c_uint, sz3: c_uint) callc
 extern fn vs_gte_op0(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir3: c_uint, mac: *[3]c_int) callconv(.c) void;
 extern fn SetGeomOffset(ofx: c_int, ofy: c_int) callconv(.c) void;
 extern fn vs_gte_light_transform(llm: *const [5]c_uint, bk: *const [3]c_uint, v: *const [3]i16, ir: *[3]i16) callconv(.c) void;
+extern fn vs_gte_dpcs(far_color: c_uint, rgbc: c_uint, ir0: c_uint) callconv(.c) c_uint;
 extern fn vs_gte_screen_current() callconv(.c) Screen;
 
 /// For a transform or a rotation, which do not project.
@@ -229,6 +230,11 @@ pub fn avsz3Of(a: c_uint, b: c_uint, third: c_uint) c_uint {
     return vs_gte_avsz3(vs_gte_screen_current().zsf3, a, b, third);
 }
 
+/// DPCS: the colour word faded toward `far_color` (each channel) by `ir0`; RGB2 as MFC2 reads it.
+pub fn dpcsOf(far_color: c_uint, rgbc: c_uint, ir0: c_uint) c_uint {
+    return vs_gte_dpcs(far_color, rgbc, ir0);
+}
+
 /// SetGeomOffset: the screen offset in pixels (the registers and the screen record).
 pub fn setGeomOffset(ofx: c_int, ofy: c_int) void {
     SetGeomOffset(ofx, ofy);
@@ -248,6 +254,20 @@ pub fn op0Of(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir
     var mac: [3]c_int = undefined;
     vs_gte_op0(r11, r22, r33, ir1, ir2, ir3, &mac);
     return mac;
+}
+
+/// ApplyMatrixSV: the vector rotated by a MATRIX's rotation, IR1-3 stored as a short vector.
+pub inline fn applyMatrixSV(out: anytype, m: anytype, vec: anytype) void {
+    const view = viewOf(m, no_screen);
+    const r = vs_gte_run(RTV0, &view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
+    const o: *align(1) [3]i16 = @ptrCast(out);
+    o.* = r.ir;
+}
+
+/// ApplyMatrix: the vector rotated by a MATRIX's rotation, MAC1-3 stored as a vector.
+pub inline fn applyMatrix(out: anytype, m: anytype, vec: anytype) void {
+    const view = viewOf(m, no_screen);
+    rotateTo(out, &view, vec);
 }
 
 /// RotAverage4: the four vectors projected (the first three together, as RTPT) and their depths averaged.

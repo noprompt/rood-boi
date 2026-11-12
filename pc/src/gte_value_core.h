@@ -67,6 +67,7 @@ unsigned vs_gte_avsz3(int zsf3, unsigned sz1, unsigned sz2, unsigned sz3);
 /* MVMVA with the light matrix and the background colour (sf 1, mx 1, v 0, cv 1, lm 0): llm are the raw CTC2 values of
  * registers 8..12, bk those of 13..15, v the vector (three shorts); IR1..3 into ir. */
 void vs_gte_light_transform(const unsigned llm[5], const unsigned bk[3], const short v[3], short ir[3]);
+unsigned vs_gte_dpcs(unsigned far_color, unsigned rgbc, unsigned ir0);
 void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir1, unsigned ir2, unsigned ir3, int mac[3]);
 
 /* The projection the game has set so far (SetGeomOffset, SetGeomScreen): the

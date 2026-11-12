@@ -36,8 +36,7 @@ pub fn func_8008AC78() callconv(.c) void {
     var clip: v.RECT = undefined;
     var rotation: v.MATRIX = undefined;
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
+    @import("common").gte.setFrame(&view().viewMatrix);
     c.func_8008DF14();
     c.func_8009627C();
     c.func_8008C0C0();
@@ -101,7 +100,6 @@ pub fn func_8008AC78() callconv(.c) void {
     c.func_80098F8C(psx.cptr(c.vs_battle_scene, psx.get(v.g.vs_battle_roomData().sectionF).?), @ptrCast(&mapView));
     v.g.pc_gte_anchored().* = 0;
     c.vs_battle_setGeomOffset(psx.cptr(c.vs_battle_geomOffset, &savedOffset));
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));
 
     sprite_item.area(otPlus5(), clip.x, clip.y, clip.w, clip.h, null);
 

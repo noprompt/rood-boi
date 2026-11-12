@@ -1,5 +1,6 @@
 //! The view matrix from the camera (pc/src/game/BATTLE/BATTLE.PRG/146C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
 
@@ -69,7 +70,7 @@ pub fn func_8007ACB0() callconv(.c) void {
     negative.vx = psx.conv(i16, @divTrunc(-%position.vx, 4096));
     negative.vy = psx.conv(i16, @divTrunc(-%position.vy, 4096));
     negative.vz = psx.conv(i16, @divTrunc(-%position.vz, 4096));
-    _ = c.ApplyMatrix(@ptrCast(viewMatrix), @ptrCast(&negative), @ptrCast(&viewMatrix.t));
+    gte.applyMatrix(&viewMatrix.t, viewMatrix, &negative);
     delta.vx = view.camera.farClip;
     delta.vy = delta.vx;
     delta.vz = delta.vy;

@@ -1,5 +1,6 @@
 //! Tests whether a point offset from arg0's transform lies within a radius, by its transformed squared length (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
@@ -23,11 +24,7 @@ pub fn func_800C1034(arg0: ?*v.func_800C1564_t, arg1: [*c]c_ushort) callconv(.c)
         }
     }
 
-    _ = c.ApplyMatrixSV(
-        psx.cptr(c.MATRIX, &matrix),
-        psx.cptr(c.SVECTOR, &work.unk0),
-        psx.cptr(c.SVECTOR, &work.unk8),
-    );
+    gte.applyMatrixSV(&work.unk8, &matrix, &work.unk0);
 
     {
         const src: *[3]i16 = @ptrCast(&work.unk8);

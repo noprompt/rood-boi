@@ -44,7 +44,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned int CFC2(int reg);
+#include "gte_value_core.h" /* vs_gte_screen_current: the projection the game set */
 extern float pc_gte_view_ofx(void);
 extern int pc_gte_widescreen;
 extern int pc_hw_active;
@@ -515,9 +515,9 @@ static int read_camera(uint32_t serial)
             camera.rotation[a][b] = (float)(r[a][b] = view->m[a][b] / 4096.0);
         camera.translation[a] = (float)(camera_translation[a] = view->t[a]);
     }
-    camera.h = (float)(CFC2(26) & 0xffff);
+    camera.h = (float)((unsigned)vs_gte_screen_current().h & 0xffff);
     camera.ofx = pc_gte_view_ofx(); /* widescreen: as narrowed (PsyX_GTE.cpp) */
-    camera.ofy = (int)CFC2(25) / 65536.0f;
+    camera.ofy = vs_gte_screen_current().ofy / 65536.0f;
     camera.widescreen = pc_gte_widescreen;
     double c[3][3] = {
         { r[1][1] * r[2][2] - r[1][2] * r[2][1], r[0][2] * r[2][1] - r[0][1] * r[2][2], r[0][1] * r[1][2] - r[0][2] * r[1][1] },
@@ -661,7 +661,7 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
          * clips at its own planes). */
         if (pc_live_camera_active && pc_live_camera_active())
             rules.far_bucket = 1 << 20;
-        rules.zsf3 = (int)(short)CFC2(29);
+        rules.zsf3 = vs_gte_screen_current().zsf3;
         list = render_list_begin(&camera, &rules);
         if (!list)
             return 0;
@@ -734,7 +734,7 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
      * within the list: plus the table pointer's shift since the group's
      * first draw) and the buckets of the translucent ones. */
     int shift = (int)(ot - group.ot);
-    int zsf3 = (int)(short)CFC2(29);
+    int zsf3 = vs_gte_screen_current().zsf3;
     int translucent = pc_native_blend && (blend || c->semi);
     for (int p = 0; c->sort && p < c->polygons; p++) {
         const sort_info* s = &c->sort[p];

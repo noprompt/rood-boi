@@ -2,6 +2,7 @@
 const common = @import("common");
 const pad = @import("common").pad;
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_573B8");
 const c = @import("c_573B8");
 
@@ -29,11 +30,7 @@ pub fn func_800C085C(scale: [*c]u8, angle: c_int) callconv(.c) ?*v.MATRIX {
             else
                 0;
         }
-        _ = c.ApplyMatrixSV(
-            psx.cptr(c.MATRIX, rotation),
-            psx.cptr(c.SVECTOR, @as(*v.SVECTOR, @ptrCast(scratch))),
-            psx.cptr(c.SVECTOR, @as(*v.SVECTOR, @ptrCast(&scratch[8 + axis * 4]))),
-        );
+        gte.applyMatrixSV(@as(*v.SVECTOR, @ptrCast(&scratch[8 + axis * 4])), rotation, @as(*v.SVECTOR, @ptrCast(scratch)));
     }
 
     // Transpose in place: the output rows at scratch[8..19] are read and the

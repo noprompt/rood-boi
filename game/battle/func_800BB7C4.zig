@@ -1,6 +1,7 @@
 //! An actor's screen-space heading (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
@@ -14,9 +15,11 @@ pub fn func_800BB7C4(arg0: c_int, out: *v.SVECTOR) callconv(.c) c_int {
     out.vy = -0x3E8;
     out.vz = 0;
     _ = c.func_800A1178(arg0, 1, &matrix, @ptrCast(&sp30[2]));
-    c.SetRotMatrix(&matrix);
-    c.SetTransMatrix(&matrix);
-    _ = c.RotTransPers(psx.cptr(c.SVECTOR, out), &sp30[0], &sp30[3], &sp30[4]);
+    const view = gte.viewOf(&matrix, gte.screenCurrent());
+    const projected = gte.project(&view, out);
+    sp30[0] = projected.sxy;
+    sp30[3] = projected.ir0;
+    sp30[4] = @bitCast(projected.flag);
     _ = c.func_800A1280(arg0, 1, psx.cptr(c.SVECTOR, out), sp30[2]);
     const sy: i16 = @truncate(sp30[0] >> 16); // ((short*)&sp30)[1]: the high half of the screen xy
     const sx: i16 = @truncate(sp30[0]); // (short)sp30[0]

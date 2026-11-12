@@ -9,10 +9,11 @@ const NativeBegin = *const fn () callconv(.c) void;
 const NativeNode = *const fn ([*c]c_uint, [*c]c_uint, c_int, c_int, [*c]const c_int, c_int, c_uint, c_int, c_int, ?*const anyopaque, c_int, c_uint) callconv(.c) void;
 const NativeEnd = *const fn ([*c]c_uint, [*c]c_uint) callconv(.c) [*c]c_uint;
 
-/// gte_mvmva(1, 1, vector, 1, 0): the sprite's rotation applied to V0..V2.
-const mvmva_v0 = 0x0400012 | (1 << 19) | (1 << 17) | (0 << 15) | (1 << 13);
-const mvmva_v1 = 0x0400012 | (1 << 19) | (1 << 17) | (1 << 15) | (1 << 13);
-const mvmva_v2 = 0x0400012 | (1 << 19) | (1 << 17) | (2 << 15) | (1 << 13);
+/// A tile corner: the x/y word at `offset`, z zero (the sprite's rotation has no z terms).
+fn cornerAt(tile: [*]u8, offset: usize) [3]i16 {
+    const word = @as(*align(1) c_uint, @ptrCast(tile + offset)).*;
+    return .{ psx.conv(i16, word), psx.conv(i16, word >> 16), 0 };
+}
 
 /// orig: pc_curve_value (pc/src/effect_particles.c)
 /// Sample `clock` of colour curve `index` (an empty curve is read at `clock`, as `div $zero` leaves HI).
@@ -45,8 +46,8 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
     var a: c_int = undefined;
     var b: c_int = undefined;
 
-    c.CTC2(0, 11);
-    c.CTC2(0x1000, 12);
+    // The light matrix's last rows (registers 11 and 12) are constant: the sprite's rotation is a turn in the plane.
+    var light: [5]c_uint = .{ 0, 0, 0, 0, 0x1000 };
     if (psx.weak(NativeBegin, "pc_particles_native_begin")) |begin| begin();
 
     while (node_ptr) |node| : (node_ptr = psx.get(node.next)) {
@@ -80,34 +81,28 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         var y: c_int = (node.y >> 12) +% node.sprite.unkA;
         var z: c_int = node.z >> 12;
         a = (x & 0xFFFF) +% (y << 16);
+        var projView: gte.View = undefined; // the matrices the registers held for this node's projections
         if (node.flags & 0x20000 != 0) {
             if (node.flags & 0x80000 != 0) {
                 const m = &psx.at(&parent.?.unk1C, node.matrixIndex).unk38;
-                gte.SetRotMatrix(m);
-                gte.SetTransMatrix(m);
+                const attached = gte.viewOf(m, gte.screenCurrent());
                 b = z;
-                c.MTC2(@bitCast(a), 0);
-                c.MTC2(@bitCast(b), 1);
-                gte.rtv0tr2();
-                b = @bitCast(c.MFC2(26));
+                const moved = gte.transform(&attached, &[3]i16{ psx.conv(i16, a), psx.conv(i16, a >> 16), psx.conv(i16, b) });
+                b = moved.mac[2];
                 if (b > 0) continue;
             }
             const m = &psx.at(&parent.?.unk1C, node.matrixIndex).unk58;
-            gte.SetRotMatrix(m);
-            gte.SetTransMatrix(m);
+            projView = gte.viewOf(m, gte.screenCurrent());
         } else {
             if ((node.flags & 0x80000) != 0 and y > 0) continue;
-            gte.SetRotMatrix(&v.g.vs_view().viewMatrix);
-            gte.SetTransMatrix(&v.g.vs_view().viewMatrix);
+            projView = gte.viewOf(&v.g.vs_view().viewMatrix, gte.screenCurrent());
         }
         b = z;
-        c.MTC2(@bitCast(a), 0);
-        c.MTC2(@bitCast(b), 1);
-        gte.rtps2();
-        a = @bitCast(c.MFC2(14));
-        var otz: c_int = @bitCast(c.MFC2(19));
+        const centred = gte.project(&projView, &[3]i16{ psx.conv(i16, a), psx.conv(i16, a >> 16), psx.conv(i16, b) });
+        a = centred.sxy;
+        var otz: c_int = @bitCast(centred.sz);
         // The centre in view space and its depth (native particles).
-        const view: [3]c_int = .{ @bitCast(c.MFC2(25)), @bitCast(c.MFC2(26)), @bitCast(c.MFC2(27)) };
+        const view: [3]c_int = .{ centred.mac[1], centred.mac[2], centred.mac[3] };
         const centre_sz = otz;
         const centre_xy: c_uint = @bitCast(a);
         otz >>= 2;
@@ -135,10 +130,7 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         if (node.flags & 0x10000 != 0) {
             x = ((x +% (node.dx >> 5)) & 0xFFFF) +% ((y +% (node.dy >> 5)) << 16);
             z +%= node.dz >> 5;
-            c.MTC2(@bitCast(x), 0);
-            c.MTC2(@bitCast(z), 1);
-            gte.rtps2();
-            x = @bitCast(c.MFC2(14));
+            x = gte.project(&projView, &[3]i16{ psx.conv(i16, x), psx.conv(i16, x >> 16), psx.conv(i16, z) }).sxy;
             y = short(a) -% short(x);
             z = (a >> 16) -% (x >> 16);
             var cc: c_int = 0;
@@ -167,10 +159,8 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         // `div $zero` has no zero check: the R3000 leaves LO = -1 for a
         // non-negative dividend and 1 for a negative one.
         const projection_scale: c_int = if (otz != 0) @divTrunc(projection, otz) else if (projection < 0) 1 else -1;
-        c.CTC2(@bitCast(short(a)), 13);
+        const background: [3]c_uint = .{ @bitCast(short(a)), @bitCast(a >> 16), 0 }; // BK: the centre's screen position
         a >>= 16;
-        c.CTC2(@bitCast(a), 14);
-        c.CTC2(0, 15);
         const indices = psx.get(node.sprite.unk1C).?;
         // block1Data + dataIndex: an address only until the tiles are read.
         var tile: [*]u8 = @ptrFromInt(@intFromPtr(psx.get(v.g.D_800F569C().*.?.block1Data)) +% @as(usize, indices.dataIndex) * @sizeOf(v.pFileBlock1Data));
@@ -183,10 +173,10 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         sinv *%= a;
         sinv >>= 12;
         a = b | (-%sinv << 16);
-        c.CTC2(@bitCast(a), 8);
+        light[0] = @bitCast(a);
         sinv <<= 16;
-        c.CTC2(@bitCast(sinv), 9);
-        c.CTC2(@bitCast(b), 10);
+        light[1] = @bitCast(sinv);
+        light[2] = @bitCast(b);
         var rgb: c_int = 0;
         const clock: c_int = psx.conv(u8, @as(c_int, node.curves.fields.age) +% 1);
         if (node.curves.fields.rCurve != 0) {
@@ -214,34 +204,24 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         while (index < indices.unk0) : (index +%= 1) {
             var xy: [4]c_int = undefined;
             var uv: [4]c_int = undefined;
-            c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 8)).*, 0);
-            c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 12)).*, 2);
-            c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 16)).*, 4);
             y = @as(*align(1) c_int, @ptrCast(tile)).*;
             z = @as(*align(1) u16, @ptrCast(tile + 4)).*; // &tile->u0
             const size: c_int = @as(*align(1) u16, @ptrCast(tile + 6)).*; // &tile->u1
-            _ = c.doCOP2(mvmva_v0);
+            // gte_mvmva(1, 1, vector, 1, 0) on each corner: the light matrix and the background colour (the corners' z is not
+            // used: the matrix's z terms are zero).
+            const c0 = gte.lightTransform(&light, &background, &cornerAt(tile, 8));
             uv[2] = psx.conv(u16, z +% (size & 0xFF00));
             uv[1] = (z +% (size & 0xFF)) & 0xFFFF;
-            a = @bitCast(c.MFC2(9));
-            b = @bitCast(c.MFC2(10));
-            xy[0] = (a & 0xFFFF) +% (b << 16);
-            _ = c.doCOP2(mvmva_v1);
+            xy[0] = (@as(c_int, c0[0]) & 0xFFFF) +% (@as(c_int, c0[1]) << 16);
+            const c1 = gte.lightTransform(&light, &background, &cornerAt(tile, 12));
             uv[3] = psx.conv(u16, z +% size);
-            a = @bitCast(c.MFC2(9));
-            b = @bitCast(c.MFC2(10));
-            xy[1] = (a & 0xFFFF) +% (b << 16);
-            _ = c.doCOP2(mvmva_v2);
-            a = @bitCast(c.MFC2(9));
-            b = @bitCast(c.MFC2(10));
-            xy[2] = (a & 0xFFFF) +% (b << 16);
+            xy[1] = (@as(c_int, c1[0]) & 0xFFFF) +% (@as(c_int, c1[1]) << 16);
+            const c2 = gte.lightTransform(&light, &background, &cornerAt(tile, 16));
+            xy[2] = (@as(c_int, c2[0]) & 0xFFFF) +% (@as(c_int, c2[1]) << 16);
             uv[0] = z & 0xFFFF;
-            c.MTC2(@as(*align(1) c_uint, @ptrCast(tile + 20)).*, 0); // &tile->unk8[12]
-            _ = c.doCOP2(mvmva_v0);
+            const c3 = gte.lightTransform(&light, &background, &cornerAt(tile, 20)); // &tile->unk8[12]
             tile += @sizeOf(v.pFileBlock1Data);
-            a = @bitCast(c.MFC2(9));
-            b = @bitCast(c.MFC2(10));
-            xy[3] = (a & 0xFFFF) +% (b << 16);
+            xy[3] = (@as(c_int, c3[0]) & 0xFFFF) +% (@as(c_int, c3[1]) << 16);
             // The tile: a textured quad with its page (the high half of its first word) and CLUT, semi-transparent by the CLUT's top
             // bit; the colour word's command byte is the packet's (the item's colour is its low three bytes).
             const item = sprite_item.ft4(@ptrCast(otSlot(depth)), false, y & 0x8000 != 0, y >> 16, y & 0xFFFF, rgb, &xy, &uv);

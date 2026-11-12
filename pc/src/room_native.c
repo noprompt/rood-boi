@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned int CFC2(int reg);
+#include "gte_value_core.h" /* vs_gte_screen_current: the projection the game set */
 extern float pc_gte_view_ofx(void);
 extern int pc_gte_widescreen;
 extern int pc_hw_active;
@@ -483,9 +483,9 @@ int pc_room_native_begin(const void* data, unsigned mode, const unsigned* first)
             camera.rotation[a][b] = (float)(r[a][b] = view->m[a][b] / 4096.0);
         camera.translation[a] = (float)(camera_translation[a] = view->t[a]);
     }
-    camera.h = (float)(CFC2(26) & 0xffff);
+    camera.h = (float)((unsigned)vs_gte_screen_current().h & 0xffff);
     camera.ofx = pc_gte_view_ofx(); /* widescreen: as narrowed (PsyX_GTE.cpp) */
-    camera.ofy = (int)CFC2(25) / 65536.0f;
+    camera.ofy = vs_gte_screen_current().ofy / 65536.0f;
     camera.widescreen = pc_gte_widescreen;
     double c[3][3] = {
         { r[1][1] * r[2][2] - r[1][2] * r[2][1], r[0][2] * r[2][1] - r[0][1] * r[2][2], r[0][1] * r[1][2] - r[0][2] * r[1][1] },

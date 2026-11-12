@@ -29,7 +29,7 @@ pub fn func_800C1384(shape: ?*v.func_800C1564_t, position: [*c]c_ushort, angled:
         dst[k].* = psx.conv(i16, pos -% origin);
     }
 
-    _ = c.ApplyMatrixSV(psx.cptr(c.MATRIX, &matrix), psx.cptr(c.SVECTOR, &work.local), psx.cptr(c.SVECTOR, &work.rotated));
+    gte.applyMatrixSV(&work.rotated, &matrix, &work.local);
     if (@as(c_int, psx.conv(u16, -%@as(c_int, work.rotated.vy))) > (@as(c_int, s.unk4.values[1]) << 5)) {
         return 0;
     }

@@ -1,5 +1,6 @@
 //! Tests a point against an actor's circle in the actor's frame (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
@@ -21,7 +22,7 @@ pub fn func_800C123C(arg0: ?*v.func_800C1564_t, arg1: [*c]c_ushort, arg2: c_int)
         dst.* = psx.conv(i16, diff);
     }
 
-    _ = c.ApplyMatrixSV(@ptrCast(&matrix), @ptrCast(&work.unk0), @ptrCast(&work.unk8));
+    gte.applyMatrixSV(&work.unk8, &matrix, &work.unk0);
 
     const flags: *v.func_800C1564_flags = &arg0.?.unk4.flags;
     const unk1: c_int = @as(c_int, psx.getBits(flags, "unk1"));

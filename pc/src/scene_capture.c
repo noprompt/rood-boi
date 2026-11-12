@@ -21,7 +21,7 @@ typedef struct {
     short vx, vy, vz, pad;
 } pc_svector;
 extern pc_matrix* RotMatrixYXZ_gte(pc_svector*, pc_matrix*);
-extern unsigned int CFC2(int reg);
+#include "gte_value_core.h" /* vs_gte_screen_current: the projection the game set */
 
 #include "psx_types.h"
 #include "scene_capture.h"
@@ -333,9 +333,9 @@ void pc_scene_camera(const void* view)
             camera_rotation[r][c] = m->m[r][c] / 4096.0f;
         camera_translation[r] = (float)m->t[r];
     }
-    camera_h = (float)(CFC2(26) & 0xffff);
+    camera_h = (float)((unsigned)vs_gte_screen_current().h & 0xffff);
     camera_ofx = pc_gte_view_ofx(); /* widescreen: as narrowed (PsyX_GTE.cpp) */
-    camera_ofy = (int)CFC2(25) / 65536.0f;
+    camera_ofy = vs_gte_screen_current().ofy / 65536.0f;
     camera_valid = 1;
     camera_facing = PC_VIEW_FACING;
 }

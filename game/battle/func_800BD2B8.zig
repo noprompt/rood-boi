@@ -2,6 +2,7 @@
 //! returns the lowest depth, scaled by ONE (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
 
@@ -10,19 +11,17 @@ const c = @import("c_4A0A8");
 pub fn func_800BD2B8(arg0: ?*v.MATRIX) callconv(.c) c_int {
     var pos: v.VECTOR = undefined;
     var offset: v.SVECTOR = undefined;
-    var flag: c_int = undefined;
     var first: c_int = undefined;
     var second: c_int = undefined;
     var h: c_int = undefined;
     var lowest: i16 = undefined;
 
-    c.SetRotMatrix(@ptrCast(arg0));
-    c.SetTransMatrix(@ptrCast(arg0));
+    const view = gte.viewOf(arg0.?, gte.no_screen);
 
     offset.vx = 80;
     offset.vy = 80;
     offset.vz = 150;
-    c.RotTrans(psx.cptr(c.SVECTOR, &offset), psx.cptr(c.VECTOR, &pos), &flag);
+    gte.transformTo(&pos, &view, &offset);
     // Sign-extends the low 15 bits of the depth, then subtracts 200.
     first = ((@as(c_int, c.func_8008DC7C(pos.vx, pos.vz)) << 0x11) >> 0x11) -% 200;
     lowest = psx.conv(i16, first);
@@ -30,7 +29,7 @@ pub fn func_800BD2B8(arg0: ?*v.MATRIX) callconv(.c) c_int {
     offset.vx = -80;
     offset.vy = 80;
     offset.vz = 150;
-    c.RotTrans(psx.cptr(c.SVECTOR, &offset), psx.cptr(c.VECTOR, &pos), &flag);
+    gte.transformTo(&pos, &view, &offset);
     second = ((@as(c_int, c.func_8008DC7C(pos.vx, pos.vz)) << 0x11) >> 0x11) -% 200;
 
     if (second < first) {
@@ -40,7 +39,7 @@ pub fn func_800BD2B8(arg0: ?*v.MATRIX) callconv(.c) c_int {
     offset.vx = 80;
     offset.vy = -80;
     offset.vz = 150;
-    c.RotTrans(psx.cptr(c.SVECTOR, &offset), psx.cptr(c.VECTOR, &pos), &flag);
+    gte.transformTo(&pos, &view, &offset);
     h = ((@as(c_int, c.func_8008DC7C(pos.vx, pos.vz)) << 0x11) >> 0x11) -% 200;
 
     if (h < lowest) {
@@ -50,7 +49,7 @@ pub fn func_800BD2B8(arg0: ?*v.MATRIX) callconv(.c) c_int {
     offset.vx = -80;
     offset.vy = -80;
     offset.vz = 150;
-    c.RotTrans(psx.cptr(c.SVECTOR, &offset), psx.cptr(c.VECTOR, &pos), &flag);
+    gte.transformTo(&pos, &view, &offset);
     h = ((@as(c_int, c.func_8008DC7C(pos.vx, pos.vz)) << 0x11) >> 0x11) -% 200;
 
     if (h < lowest) {

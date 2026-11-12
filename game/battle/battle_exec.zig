@@ -412,8 +412,6 @@ pub fn battleExec() callconv(.c) void {
 
                     c.func_80069D78();
                     c.func_8007ACB0();
-                    c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
-                    c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
                     common.gte.setFrame(&v.g.vs_view().viewMatrix);
                     if (skipCameraUpdate == 0) {
                         switch (v.g.D_800F196C().*) {
@@ -474,8 +472,6 @@ pub fn battleExec() callconv(.c) void {
                         if (v.g.D_800F190C().* != 0) {
                             c.func_800AEF94(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
                             _ = c.vs_battle_processObjectDataQueue();
-                            c.SetRotMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
-                            c.SetTransMatrix(psx.cptr(c.MATRIX, &v.g.vs_view().viewMatrix));
                             common.gte.setFrame(&v.g.vs_view().viewMatrix);
                             c.func_800941FC();
                         }

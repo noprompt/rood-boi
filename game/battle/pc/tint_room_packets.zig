@@ -1,6 +1,7 @@
 //! Room packet tint (D2: 2EA3C.s; oracle pc/src/room_geometry.c).
 const c = @import("c_room_geometry");
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 
 const NativeTint = *const fn ([*c]const c_uint, c_int, c_int, c_int, c_int) callconv(.c) void;
 const TranslucentMarker = *const fn ([*c]const c_uint, [*c]c_uint, [*c]c_int, [*c]c_int) callconv(.c) c_int;
@@ -15,13 +16,7 @@ fn tintColor(color_in: c_uint, fade: c_int, dr: c_int, dg: c_int, db: c_int) c_u
     var b: c_int = @intCast((color >> 16) & 0xff);
     if (fade != 0) {
         const luminance: c_uint = @intCast(r * 5 + g * 9 + b * 2); // channels are 0..255
-        c.CTC2(luminance, 21);
-        c.CTC2(luminance, 22);
-        c.CTC2(luminance, 23);
-        c.MTC2(color, 6);
-        c.MTC2(@bitCast(fade), 8);
-        _ = c.doCOP2(0x0780010); // gte_dpcs
-        color = c.MFC2(22);
+        color = gte.dpcsOf(luminance, color, @bitCast(fade)); // gte_dpcs
         r = @intCast(color & 0xff);
         g = @intCast((color >> 8) & 0xff);
         b = @intCast((color >> 16) & 0xff);

@@ -2,6 +2,7 @@
 const common = @import("common");
 const pad = @import("common").pad;
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_49268");
 const c = @import("c_49268");
 
@@ -19,29 +20,14 @@ pub fn func_800B26B8(actor_in: ?*v.D_800F4538_t, parent: ?*v.MATRIX, bone: c_int
     c.func_800B196C(psx.cptr(c.MATRIX, parent.?), psx.cptr(c.MATRIX, matrix));
 
     // gte_SetRotMatrix(parent); gte_SetTransMatrix(parent);
-    const words: *align(1) const [8]c_uint = @ptrCast(parent.?);
-    c.CTC2(words[0], 0);
-    c.CTC2(words[1], 1);
-    c.CTC2(words[2], 2);
-    c.CTC2(words[3], 3);
-    c.CTC2(words[4], 4);
-    c.CTC2(words[5], 5);
-    c.CTC2(words[6], 6);
-    c.CTC2(words[7], 7);
+    const view = gte.viewOf(parent.?, gte.no_screen);
 
     scratch.translation.vx = psx.conv(i16, psx.fieldAt(u16, &saved_matrix.t[0], 0).*);
     scratch.translation.vy = psx.conv(i16, psx.fieldAt(u16, &saved_matrix.t[1], 0).*);
     scratch.translation.vz = psx.conv(i16, psx.fieldAt(u16, &saved_matrix.t[2], 0).*);
 
     // gte_ldv0(0x1F8003A8); gte_rtv0tr2(); gte_stlvnl(0x1F8003D4);
-    const tr: [*]align(1) const c_uint = @ptrFromInt(pad.addr(0x3A8));
-    c.MTC2(tr[0], 0);
-    c.MTC2(tr[1], 1);
-    _ = c.doCOP2(0x0480012);
-    const out: [*]align(1) c_uint = @ptrFromInt(pad.addr(0x3D4));
-    out[0] = c.MFC2(25);
-    out[1] = c.MFC2(26);
-    out[2] = c.MFC2(27);
+    gte.transformTo(@as(*[3]c_int, @ptrFromInt(pad.addr(0x3D4))), &view, @as(*const v.SVECTOR, @ptrFromInt(pad.addr(0x3A8))));
 
     // *psx_to_ptr(MATRIX*, boneOffset + psx_to_int(int, table)) = *matrix;
     const bone_offset: c_int = bone << 5;

@@ -51,7 +51,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern unsigned int CFC2(int reg);
+#include "gte_value_core.h" /* vs_gte_screen_current: the projection the game set */
 extern int pc_gte_widescreen;
 extern int pc_room_group_black(const void* data, unsigned index) __attribute__((weak));
 extern const void* pc_scene_room_data(void) __attribute__((weak));
@@ -296,7 +296,7 @@ static int game_camera(view_t* v)
             v->r[a][b] = view->m[a][b] / 4096.0f;
         v->t[a] = (float)view->t[a];
     }
-    v->h = (float)(CFC2(26) & 0xffff);
+    v->h = (float)((unsigned)vs_gte_screen_current().h & 0xffff);
     v->hx = v->h * (pc_gte_widescreen ? 0.75f : 1.0f);
     /* The grid's origin relative to the projection centre: the game's
      * frames are 320 x 240 around it (widescreen narrows hx instead). */

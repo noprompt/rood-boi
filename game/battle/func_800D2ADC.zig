@@ -57,6 +57,15 @@ fn next(node: *Node) ?*Node {
     return psx.get(node.next);
 }
 
+/// RotTrans through a view: the vector and the flags into `out` (the pad word held the flags).
+fn rotTrans(out: [*c]c.VECTOR, view: *const gte.View, vec: *v.SVECTOR) void {
+    const r = gte.transform(view, vec);
+    out.*.vx = r.mac[1];
+    out.*.vy = r.mac[2];
+    out.*.vz = r.mac[3];
+    out.*.pad = @bitCast(r.flag);
+}
+
 /// orig: func_800D2ADC (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c)
 /// Emits effect event `event` of the effect `arg0` (every unkC0-curve frames):
 /// takes the count (unkBC curve, capped by the pool) of nodes, places them by
@@ -99,8 +108,6 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
     var sample: c_int = undefined;
     if (@rem(frame, c.func_800CFE1C(&def.unkC0, curveAt(def.unk16))) != 0) return;
 
-    gte.zrtr();
-
     var matrix: *v.MATRIX = &psx.at(&effect.unk1C, scratch.unk168).unk38;
     var count = c.func_800CFE1C(&def.unkBC, curveAt(def.unk15));
     if (count +% v.g.D_800F55F8().* >= v.g.D_800F55F0().*) {
@@ -141,9 +148,9 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
     c.vs_battle_lerpVector(&def.unk24, curveAt(def.unk9), vp(&scratch.unkA8));
     node = first;
     sample = c.func_800CFE1C(&def.unk30, curveAt(def.unk17));
-    c.SetRotMatrix(@ptrCast(matrix));
-    gte.zrtr();
 
+    // The rotation the emitter's nodes are placed by (func_800D2A38): the first matrix, translation zero (gte_zrtr).
+    const emitterView = gte.viewRotation(matrix, gte.no_screen);
     const a = &scratch.unkA8;
     const d = &scratch.unkD8;
     const s = &scratch.unk2C;
@@ -173,7 +180,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
                     s.vy = s16((((@as(c_int, s.vy) *% scratch.unk178) >> 12) *% scratch.unk174) >> 12);
                     s.vz = s16((@as(c_int, s.vz) *% scratch.unk170) >> 12);
                 }
-                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node));
+                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node), @ptrCast(&emitterView));
                 node = next(node.?);
             }
         },
@@ -217,7 +224,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
                     },
                     else => {},
                 }
-                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node));
+                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node), @ptrCast(&emitterView));
                 node = next(node.?);
             }
         },
@@ -243,7 +250,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
                     s.vx = s16(@divTrunc(((@as(c_int, s.vx) *% scratch.unk178) >> 12) *% s.vy, a.vy));
                     s.vz = s16(@divTrunc(((@as(c_int, s.vz) *% scratch.unk170) >> 12) *% s.vy, a.vy));
                 }
-                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node));
+                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node), @ptrCast(&emitterView));
                 node = next(node.?);
             }
         },
@@ -274,7 +281,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
                         s.vz = s16((@as(c_int, s.vz) *% scratch.unk170) >> 12);
                     }
                 }
-                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node));
+                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node), @ptrCast(&emitterView));
                 node = next(node.?);
             }
         },
@@ -321,7 +328,7 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
                     }
                 }
                 s.vy = 0;
-                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node));
+                c.func_800D2A38(@ptrCast(scratch), @ptrCast(node), @ptrCast(&emitterView));
                 node = next(node.?);
             }
         },
@@ -362,18 +369,19 @@ pub fn func_800D2ADC(arg0: ?*v.D_800F53B8_t, event: c_int, arg2: c_int, arg3_in:
                 s.vy = s16(e.vy +% uniform(r.vy, -%r.vy));
                 s.vz = s16(e.vz +% uniform(r.vz, -%r.vz));
                 _ = c.RotMatrix_gte(sp(s), @ptrCast(scratch));
-                gte.SetRotMatrix(scratch);
+                // The translation is zero throughout (gte_zrtr): each transform is the rotation of the last matrix set.
+                const scratchView = gte.viewRotation(scratch, gte.no_screen);
                 psx.byteAt(c_int, s, 0).* = 0;
                 s.vz = 0x1000;
-                c.RotTrans(sp(s), vp(b), &b.pad);
+                rotTrans(vp(b), &scratchView, s);
                 if (aim == 0x8000) {
-                    gte.SetRotMatrix(matrix);
+                    const matrixView = gte.viewRotation(matrix, gte.no_screen);
                     c.vs_battle_vecToSvec(vp(b), sp(s));
-                    c.RotTrans(sp(s), vp(b), &b.pad);
+                    rotTrans(vp(b), &matrixView, s);
                 } else if (scratch.flags & 0x40000 != 0) {
                     c.vs_battle_vecToSvec(vp(b), sp(s));
-                    gte.SetRotMatrix(matrix);
-                    _ = c.ApplyRotMatrix(sp(s), vp(b));
+                    const matrixView = gte.viewRotation(matrix, gte.no_screen);
+                    gte.rotateTo(vp(b), &matrixView, s);
                 }
                 scratch.unk120 = uniform(scratch.unk118[0], scratch.unk118[1]);
                 const n = node.?;

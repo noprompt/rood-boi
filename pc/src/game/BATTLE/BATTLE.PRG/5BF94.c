@@ -1,5 +1,6 @@
 #include "common.h"
 #include "5BF94.h"
+#include "pc/src/gte_value_core.h"
 #include "146C.h"
 #include "2842C.h"
 #include "30DB0.h"
@@ -1101,7 +1102,7 @@ void vs_battle_svecToVec(SVECTOR* arg0, VECTOR* arg1);
 
 void vs_battle_vecToSvec(VECTOR* arg0, SVECTOR* arg1);
 
-void func_800D2A38(func_800FA098_arg1* arg0, func_800D2904_t* arg1);
+void func_800D2A38(func_800FA098_arg1* arg0, func_800D2904_t* arg1, const vs_gte_view* rotation);
 
 /* Uniform integer between a and b (inclusive) using 30 random bits. */
 #define RAND_UNIFORM_WIDE(a, b)                                                    \

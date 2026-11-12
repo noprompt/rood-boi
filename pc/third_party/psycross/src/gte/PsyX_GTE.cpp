@@ -45,9 +45,10 @@ static long long rood_centre16(void)
 /* OFX as a renderer projecting with H * 3/4 sees it in widescreen: centre +
  * (OFX - centre) * 3/4, so sx = OFX' + 3/4 H x / z narrows about the centre
  * like the GTE (room_native.c, actor_native.c, scene_capture.c). */
+extern "C" int rood_screen_ofx(void); /* the game's screen record (pc/src/gte_value.cpp) */
 float pc_gte_view_ofx(void)
 {
-	float ofx = (float)C2_OFX / 65536.0f;
+	float ofx = (float)rood_screen_ofx() / 65536.0f;
 	if (!pc_gte_widescreen)
 		return ofx;
 	float c = (float)rood_centre16() / 65536.0f;

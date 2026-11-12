@@ -2,6 +2,7 @@
 //! (pc/src/game/BATTLE/BATTLE.PRG/58578.c).
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_58578");
 const c = @import("c_58578");
 
@@ -20,7 +21,7 @@ pub fn func_800C110C(actor: ?*v.func_800C1564_t, point: [*c]c_ushort, adjust: c_
     work.unk0.vy = psx.conv(i16, @as(c_int, point[1]) -% @as(c_int, @as(u16, @bitCast(work.unk10[1]))));
     work.unk0.vz = psx.conv(i16, @as(c_int, point[2]) -% @as(c_int, @as(u16, @bitCast(work.unk10[2]))));
 
-    _ = c.ApplyMatrixSV(@ptrCast(&matrix), @ptrCast(&work.unk0), @ptrCast(&work.unk8));
+    gte.applyMatrixSV(&work.unk8, &matrix, &work.unk0);
 
     const flags = &actor.?.unk4.flags;
 

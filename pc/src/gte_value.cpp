@@ -161,6 +161,22 @@ extern "C" void vs_gte_light_transform(const unsigned llm[5], const unsigned bk[
         ir[i] = regs.CP2D.p[9 + i].sw.l;
 }
 
+/* DPCS: the colour word faded toward the far colour (all three channels `far_color`) by IR0, as RGB2 holds it. */
+extern "C" unsigned vs_gte_dpcs(unsigned far_color, unsigned rgbc, unsigned ir0)
+{
+    GTERegisters regs = {};
+    GTERegisters* saved = gte_cur;
+    regs.CP2C.p[21].d = far_color;
+    regs.CP2C.p[22].d = far_color;
+    regs.CP2C.p[23].d = far_color;
+    regs.CP2D.p[6].d = rgbc;
+    regs.CP2D.p[8].d = ir0;
+    gte_cur = &regs;
+    GTE_operator(0x0780010);
+    gte_cur = saved;
+    return regs.CP2D.p[22].d;
+}
+
 extern "C" void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir1, unsigned ir2, unsigned ir3, int mac[3])
 {
     GTERegisters regs = {};
@@ -176,6 +192,11 @@ extern "C" void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir
     gte_cur = saved;
     for (int i = 0; i < 3; ++i)
         mac[i] = (int)regs.CP2D.p[25 + i].d;
+}
+
+extern "C" int rood_screen_ofx(void)
+{
+    return frame_screen.ofx;
 }
 
 extern "C" vs_gte_screen vs_gte_screen_current(void)

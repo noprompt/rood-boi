@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include <libgte.h>
 #include "gte_value.h"
-#include <inline_c.h> /* the Zig ports of this unit (tint_room_packets) still use its MTC2/CTC2/doCOP2 */
 
 extern void pc_unimplemented(const char*);
 extern int pc_room_quad_visible(const unsigned[4]);
