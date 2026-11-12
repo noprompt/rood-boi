@@ -48,6 +48,9 @@ extern "C" int pc_ui_text_style_index(const char* name) __attribute__((weak));
 extern "C" int pc_ui_text_override(int style, const char* field, const char* value) __attribute__((weak));
 extern "C" void pc_ui_text_override_clear(int style) __attribute__((weak));
 extern "C" unsigned pc_ui_text_overridden(int style) __attribute__((weak));
+/* (At file scope: a C-linkage variable declared inside rl's anonymous namespace gets a mangled name.) */
+extern "C" int vs_encode(const char* utf8, unsigned char* out, int cap, int* bad);
+extern "C" char vs_battle_characterWidths[];
 
 namespace hud {
 void (*render)(const Command*, int, const char*);
@@ -1156,8 +1159,6 @@ int api_text_glyph(lua_State* L)
 // d.font_text(s, x, y, style) -> x: classic only: s (UTF-8, the menu charset: vs_encode) in the text boxes' font by
 // the game's printer (vs_battle_printVariableWidthFontChar, after vs_battle_setFontStyle(style): table 0, its
 // brightness 384), from x along y; returns the pen after it (each glyph's width, the game's table).
-extern "C" int vs_encode(const char* utf8, unsigned char* out, int cap, int* bad);
-extern "C" char vs_battle_characterWidths[];
 int api_font_text(lua_State* L)
 {
     const char* fn = "rood.draw.font_text";

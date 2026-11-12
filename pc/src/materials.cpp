@@ -496,19 +496,25 @@ bool read_master(const std::string& path, Master& m)
         }
     return true;
 }
+/* Whether files asked about every frame or batch are due a look: at most four times a
+ * second (stat is cheap on Linux, not on Windows). `last_at` < 0 means look now. */
+bool files_due(long long& last_at)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    const long long now_ms = (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    if (last_at >= 0 && now_ms - last_at < 250) return false;
+    last_at = now_ms;
+    return true;
+}
 /* Both master folders' stamps (and their files': a graph saved in place
  * changes its file, not always its folder). */
 long long masters_stamp_last_at = -1; /* (masters_changed resets it) */
 long long masters_stamp_now()
 {
-    long long& last_at = masters_stamp_last_at;
-    /* Asked every frame (the catalog's generation): the folders' files are stat'ed at most four times a second. */
+    /* Asked every frame (the catalog's generation). */
     static long long last_st;
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    long long now_ms = (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-    if (last_at >= 0 && now_ms - last_at < 250) return last_st;
-    last_at = now_ms;
+    if (!files_due(masters_stamp_last_at)) return last_st;
     long long st = stamp(masters_dir()) * 31 + stamp(graphs_dir());
     for (const std::string& dir : { masters_dir(), graphs_dir() }) {
         std::error_code ec;
@@ -880,15 +886,24 @@ void rebuild_catalog()
 }
 const std::vector<Entry>& current_catalog()
 {
-    const long long a = stamp(catalog_path()), b = stamp(catalog_user_path()), c = masters_stamp_now();
+    /* Asked for every draw batch and, when a palette changes, for every texture it
+     * touches: the files are stat'ed at most four times a second, as the masters are.
+     * stat is cheap on Linux but not on Windows, where this took much of the game
+     * thread's frame in the targeting sphere's many batches and held the game near
+     * 12 updates a second as it opened. An edit in the game still shows at once. */
+    static long long looked_at = -1;
     FileLayer& f = file_layer;
-    bool files = f.stale || a != f.shipped_stamp || b != f.user_stamp || c != f.masters_seen;
-    if (files) {
-        f.stale = false;
-        f.shipped_stamp = a, f.user_stamp = b, f.masters_seen = c;
-        f.instances.clear(), f.problems.clear();
-        read_catalog(catalog_path(), f.instances, false, f.problems);
-        read_catalog(catalog_user_path(), f.instances, true, f.problems);
+    bool files = false;
+    if (files_due(looked_at) || f.stale) {
+        const long long a = stamp(catalog_path()), b = stamp(catalog_user_path()), c = masters_stamp_now();
+        files = f.stale || a != f.shipped_stamp || b != f.user_stamp || c != f.masters_seen;
+        if (files) {
+            f.stale = false;
+            f.shipped_stamp = a, f.user_stamp = b, f.masters_seen = c;
+            f.instances.clear(), f.problems.clear();
+            read_catalog(catalog_path(), f.instances, false, f.problems);
+            read_catalog(catalog_user_path(), f.instances, true, f.problems);
+        }
     }
     if (files || applied_pending != pending_serial) {
         applied_pending = pending_serial;

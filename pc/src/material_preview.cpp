@@ -52,6 +52,8 @@ int pc_env_gpu_get(pc_env_gpu* out) __attribute__((weak));
 bool pc_material_preview_open = false;
 
 namespace {
+
+constexpr float pi = 3.14159265358979f; /* (M_PI is not in MinGW's math.h without _USE_MATH_DEFINES) */
 std::string shown; /* the instance previewed (the Materials panel's selection follows it) */
 std::vector<uint8_t> pixels; /* size x size RGB */
 int pixels_size = 0;
@@ -72,7 +74,7 @@ float q(float v) { return roundf(v * 256.0f) / 256.0f; } /* (the cache key: a fl
 Lighting preview_lighting()
 {
     Lighting l;
-    float yaw = pc_material_preview_yaw * (float)M_PI / 180, pitch = pc_material_preview_pitch * (float)M_PI / 180;
+    float yaw = pc_material_preview_yaw * pi / 180, pitch = pc_material_preview_pitch * pi / 180;
     l.dir[0] = sinf(yaw) * cosf(pitch), l.dir[1] = sinf(pitch), l.dir[2] = cosf(yaw) * cosf(pitch);
     for (int c = 0; c < 3; c++) l.key[c] = pc_material_preview_light, l.ambient[c] = pc_material_preview_ambient;
     l.key_from = "preview";
@@ -276,7 +278,7 @@ void shade()
             float albedo[3] = { pc_material_preview_swatch, pc_material_preview_swatch, pc_material_preview_swatch };
             float rough = s.roughness, spec_v = s.specular, metal = s.metal, cav = 0;
             if (tw > 0) {
-                float u = 0.5f + atan2f(N[0], N[2]) / (2 * (float)M_PI), v = 0.5f - asinf(N[1]) / (float)M_PI;
+                float u = 0.5f + atan2f(N[0], N[2]) / (2 * pi), v = 0.5f - asinf(N[1]) / pi;
                 int tx = (int)(u * tw * 2) % tw, ty = (int)(v * th * 2) % th; /* the texture twice around */
                 size_t at = (size_t)ty * tw + tx;
                 const uint8_t* p = &tex.rgba[at * 4];
@@ -315,7 +317,7 @@ void shade()
             float NoV = N[2], NoH = N[0] * H[0] + N[1] * H[1] + N[2] * H[2], VoH = H[2];
             if (NoL < 0) NoL = 0;
             float d = NoH * NoH * (a2 - 1) + 1;
-            float D = a2 / ((float)M_PI * d * d);
+            float D = a2 / (pi * d * d);
             float gv = NoL * sqrtf(NoV * NoV * (1 - a2) + a2), gl = NoV * sqrtf(NoL * NoL * (1 - a2) + a2);
             float Vis = gv + gl > 0 ? 0.5f / (gv + gl) : 0;
             float fres = powf(1 - VoH, 5);
@@ -325,7 +327,7 @@ void shade()
                 float f90 = spec_v * (1 - metal) + metal;
                 float F = f0 + (f90 - f0) * fres;
                 float diffuse = albedo[c] * (1 - metal) * (amb + NoL * light);
-                float spec = (float)M_PI * D * Vis * F * NoL * light * pc_specular_strength + albedo[c] * metal * amb * F;
+                float spec = pi * D * Vis * F * NoL * light * pc_specular_strength + albedo[c] * metal * amb * F;
                 float v = diffuse + spec;
                 v = v / (1 + v * 0.35f); /* a soft shoulder */
                 o[c] = (uint8_t)(clamp01(v) * 255 + 0.5f);

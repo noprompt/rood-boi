@@ -121,7 +121,7 @@ pub fn setBits(p: anytype, comptime name: []const u8, value: BitInt(bitSpec(@Typ
 /// globals through its GOT: a hidden PC-relative reference cannot leave a
 /// shared object (PORTING.md §20, hot swap item 2). Everything else keeps
 /// GCC's PC-relative access.
-const library = blk: {
+pub const library = blk: {
     const root = @import("root");
     break :blk @hasDecl(root, "reload_mode") and root.reload_mode == 2;
 };
@@ -129,7 +129,7 @@ const library = blk: {
 /// The development host (reload_mode 1) holds the resident routes' code: like the library, it reaches the
 /// globals through its GOT. A hidden reference would make the linker keep each global local, and the
 /// library could not find it.
-const host = blk: {
+pub const host = blk: {
     const root = @import("root");
     break :blk @hasDecl(root, "reload_mode") and root.reload_mode == 1;
 };
@@ -222,10 +222,9 @@ pub const guest_ram_base: u32 = 0x80000000;
 /// The 64 KiB of zeroes (rood_null_page, boot_runtime.c) where the PC C's
 /// safety guards read instead of NULL: the original read PS1 address 0
 /// (PORTING.md §5.3). One page, shared with the C.
-extern var rood_null_page: [0x10000]u8 align(16);
 var test_null_page: [0x10000]u8 align(16) = std.mem.zeroes([0x10000]u8);
 pub inline fn lowRam(comptime T: type) *align(1) T {
-    return @ptrCast(if (builtin.is_test) &test_null_page else &rood_null_page);
+    return @ptrCast(if (builtin.is_test) &test_null_page else Global([0x10000]u8, "rood_null_page").ptr());
 }
 
 /// Struct names, one per line (or `raw`: base types of one byte, void, integers), that `byteAt` rejects at

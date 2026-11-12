@@ -1411,11 +1411,21 @@ int func_800E45B4(void)
 
 /* The game's code pinned for save states (64 bits: pc/tools/snapshot_layout.py). */
 extern char __start_rood_game_text[] __attribute__((weak)), __stop_rood_game_text[] __attribute__((weak));
+/* The executable's own code (its image), whatever its size: not a PS1 address. */
+static int native_code(uintptr_t address)
+{
+#ifdef _WIN32
+    return address >= (uintptr_t)__ImageBase && address < ROOD_GUEST_RAM_BASE;
+#else
+    extern char __executable_start[], etext[];
+    return address >= (uintptr_t)__executable_start && address < (uintptr_t)etext;
+#endif
+}
 void pc_require_native_callback(unsigned address, const char* context, unsigned opcode)
 {
     int pinned = __start_rood_game_text && address >= (uintptr_t)__start_rood_game_text
               && address < (uintptr_t)__stop_rood_game_text;
-    if (!pinned && (address < 0x00400000 || address >= 0x01000000)) {
+    if (!pinned && !native_code(address)) {
         fprintf(stderr, "[callback] %s: opcode 0x%02x, target 0x%08x\n", context, opcode,
             address);
         pc_unimplemented(context);

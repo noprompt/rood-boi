@@ -3,11 +3,18 @@
 //! 0x1F800000. They overlay one another (a view of one file is another's at a different time), so they stay one
 //! block, indexed by their PS1 offset from 0x1F800000. The bytes below 0x68 are the packet cursor and the view
 //! (vs_scratch, vs_view): named globals, not here.
-extern var vs_pad: [0x400]u8 align(16);
+const psx = @import("psx.zig");
+
+/// Hidden, so Windows reaches it directly rather than through a .refptr stub (the build rejects those); not
+/// psx.Global: file-scope views (`pad.ptr` in a `const`) need its address at compile time.
+const vs_pad: *align(16) [0x400]u8 = if (psx.library or psx.host)
+    @extern(*align(16) [0x400]u8, .{ .name = "vs_pad" }) // (through the GOT, as psx.Global does there)
+else
+    @extern(*align(16) [0x400]u8, .{ .name = "vs_pad", .visibility = .hidden });
 
 /// The address of the byte at `offset` (a PS1 offset from 0x1F800000, 0x68..0x3FF).
 pub inline fn addr(offset: usize) usize {
-    return @intFromPtr(&vs_pad) + offset;
+    return @intFromPtr(vs_pad) + offset;
 }
 
 /// The same as a 32-bit guest address, for the words the game keeps its own addresses in (the image is linked

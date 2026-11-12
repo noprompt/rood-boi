@@ -34,12 +34,19 @@ typedef struct {
     int event;       /* an event script (a cutscene) runs */
 } pc_game_query;
 
+/* Weak to its users (absent outside battle builds); not to query_bridge.c, which defines them: on Windows a weak
+ * definition and the users' weak references can take the same COFF alias (.weak.<name>.) and fail to link. */
+#ifdef PC_GAME_QUERY_DEFINES
+#define PC_GAME_QUERY_WEAK
+#else
+#define PC_GAME_QUERY_WEAK __attribute__((weak))
+#endif
 /* query_bridge.c (battle builds; absent elsewhere: weak): the state now. */
-void pc_game_query_fill(pc_game_query* out) __attribute__((weak));
+void pc_game_query_fill(pc_game_query* out) PC_GAME_QUERY_WEAK;
 /* The room's names (the game's, through room_warp.h's list; built once, tens of
  * ms the first time): 1 when found. */
 int pc_game_query_room_names(int zone, int room, char* area, int area_size, char* name, int name_size)
-    __attribute__((weak));
+    PC_GAME_QUERY_WEAK;
 
 #ifdef __cplusplus
 }

@@ -260,18 +260,18 @@ pub inline fn average4(view: *const View, a: anytype, b: anytype, cc: anytype, d
 /// translation are what the battle frame sets (SetRotMatrix, SetTransMatrix of vs_view.viewMatrix); the projection
 /// is the game's current one (SetGeomOffset, SetGeomScreen), read when the view is taken, so a later offset
 /// change (the area map's) is seen.
-extern var vs_frame_view: View;
+const vs_frame_view = @import("psx.zig").Global(View, "vs_frame_view");
 
 /// The camera sets the frame's view from a MATRIX (what the registers' SetRotMatrix and SetTransMatrix were).
 pub fn setFrame(m: anytype) void {
     const mat: *align(1) const Matrix = @ptrCast(m);
-    vs_frame_view.rot = mat.m;
-    vs_frame_view.t = mat.t;
+    vs_frame_view.ptr().rot = mat.m;
+    vs_frame_view.ptr().t = mat.t;
 }
 
 /// The frame's view with the current projection.
 pub fn frame() View {
-    var view = vs_frame_view;
+    var view = vs_frame_view.ptr().*;
     view.screen = vs_gte_screen_current();
     return view;
 }
