@@ -2,6 +2,7 @@
 const std = @import("std");
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
@@ -18,8 +19,7 @@ pub fn projectBonePoint(slot: c_int, bone: c_int, out: c_int, mode: c_int) callc
     const v0 = psx.at(&model.bones, bone);
     const temp = psx.get(model.unk0.unk68);
 
-    c.SetRotMatrix(psx.cptr(c.MATRIX, v0));
-    c.SetTransMatrix(psx.cptr(c.MATRIX, v0));
+    const view = gte.viewOf(v0, gte.screenCurrent());
 
     const vx: i16 = switch (mode) {
         0 => 0,
@@ -33,19 +33,14 @@ pub fn projectBonePoint(slot: c_int, bone: c_int, out: c_int, mode: c_int) callc
     sp0.vz = 0;
     sp0.pad = 0;
 
-    // gte_ldv0(&sp0): the two words of the vector, as the GTE reads them.
-    const words: *const [8]u8 = @ptrCast(&sp0);
-    c.MTC2(std.mem.readInt(u32, words[0..4], .little), 0);
-    c.MTC2(std.mem.readInt(u32, words[4..8], .little), 1);
-
     // PC_GTE_UNNARROWED(gte_rtps()): the 4:3 projection, not widened.
     v.g.pc_gte_anchored().* +%= 1;
-    _ = c.doCOP2(0x0180001);
+    const projected = gte.project(&view, &sp0);
     v.g.pc_gte_anchored().* -%= 1;
 
     const dst: *align(1) [2]c_uint = @ptrFromInt(@as(usize, psx.conv(u32, out)));
-    dst[0] = c.MFC2(14);
-    dst[1] = c.MFC2(19);
+    dst[0] = @bitCast(projected.sxy);
+    dst[1] = projected.sz;
 
     return 0;
 }

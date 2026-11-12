@@ -14,14 +14,13 @@ pub fn func_800C28AC(position: ?*v.SVECTOR, arg1: c_int) callconv(.c) void {
 
     var pcMarker: v.pc_classic_target_marker = undefined;
 
-    gte.ldv0(position.?);
+    const frame = gte.frame();
     // PC_GTE_UNNARROWED: widescreen keeps the marker 2D.
     v.g.pc_gte_anchored().* +%= 1;
-    gte.rtps2();
+    const projected = gte.project(&frame, position.?);
     v.g.pc_gte_anchored().* -%= 1;
 
-    var xy: c_int = undefined;
-    gte.stsxy(&xy);
+    const xy: c_int = projected.sxy;
     const xyu: c_uint = @bitCast(xy);
 
     const step = (@as(c_int, v.g.D_800EA6AC().*) +% 1) & 0xF;

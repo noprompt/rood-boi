@@ -1,5 +1,6 @@
 //! The weapon transform: the weapon model's matrix from the object's pose, its holder's anchors and the camera (pc/src/game/BATTLE/BATTLE.PRG/49268.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const pad = @import("common").pad;
 const v = @import("views_49268");
 const c = @import("c_49268");
@@ -12,38 +13,9 @@ fn matAt(addr: usize) *v.MATRIX {
     return @ptrFromInt(addr);
 }
 
-// gte_ldv0 on a scratchpad SVECTOR: VXY0 and VZ0 from two words.
-fn ldv0(addr: usize) void {
-    c.MTC2(@as(*const c_uint, @ptrFromInt(addr)).*, 0);
-    c.MTC2(@as(*const c_uint, @ptrFromInt(addr + 4)).*, 1);
-}
-
-// gte_rtv0tr2.
-fn rtv0tr2() void {
-    _ = c.doCOP2(0x0480012);
-}
-
 // gte_stlvnl: the translation vector stored to three words.
-fn stlvnl(t: *[3]i32) void {
-    t[0] = @bitCast(c.MFC2(25));
-    t[1] = @bitCast(c.MFC2(26));
-    t[2] = @bitCast(c.MFC2(27));
-}
-
-// gte_SetRotMatrix.
-fn setRotMatrix(m: *v.MATRIX) void {
-    c.CTC2(psx.byteAt(c_uint, m, 0).*, 0);
-    c.CTC2(psx.byteAt(c_uint, m, 4).*, 1);
-    c.CTC2(psx.byteAt(c_uint, m, 8).*, 2);
-    c.CTC2(psx.byteAt(c_uint, m, 12).*, 3);
-    c.CTC2(psx.byteAt(c_uint, m, 16).*, 4);
-}
-
-// gte_SetTransMatrix.
-fn setTransMatrix(m: *v.MATRIX) void {
-    c.CTC2(psx.byteAt(c_uint, m, 20).*, 5);
-    c.CTC2(psx.byteAt(c_uint, m, 24).*, 6);
-    c.CTC2(psx.byteAt(c_uint, m, 28).*, 7);
+fn stlvnl(t: *[3]i32, mac: *const [3]i32) void {
+    t.* = mac.*;
 }
 
 /// orig: func_800B1A68 (pc/src/game/BATTLE/BATTLE.PRG/49268.c)
@@ -56,13 +28,13 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
     var anchors: [2]v.SVECTOR = undefined;
 
     psx.put(&scratch.model, psx.get(obj.unk68));
-    setRotMatrix(cam);
-    setTransMatrix(cam);
+    const view = gte.viewOf(cam, gte.no_screen);
+    // The registers' MAC1-3, what gte_stlvnl stores: the last transform's.
+    var mac: [3]i32 = undefined;
     scratch.translation.vx = scratch.position.vx;
     scratch.translation.vy = psx.conv(i16, @as(c_int, scratch.position.vy) +% 16);
     scratch.translation.vz = scratch.position.vz;
-    ldv0(pad.addr(0x3A8));
-    rtv0tr2();
+    gte.transformTo(&mac, &view, svAt(pad.addr(0x3A8)));
     const attachment: c_uint = @as(c_uint, psx.getBits(&obj.unk6C[8], "actorId"));
 
     composed: {
@@ -70,18 +42,15 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
             const holder = psx.at(v.g.D_800F4538(), obj.unk12).*;
             _ = c.func_800A190C(@as(c_int, obj.unk12), 0xF0, psx.cptr(c.SVECTOR, &anchors[0]), 1);
             _ = c.func_800A190C(@as(c_int, obj.unk12), 0xF1, psx.cptr(c.SVECTOR, &anchors[1]), 1);
-            setRotMatrix(cam);
-            setTransMatrix(cam);
             scratch.translation.vx = psx.conv(i16, @divTrunc(@as(c_int, anchors[0].vx) +% anchors[1].vx, 2));
             scratch.translation.vy = psx.conv(i16, @divTrunc(@as(c_int, anchors[0].vy) +% anchors[1].vy, 2));
             scratch.translation.vz = psx.conv(i16, @divTrunc(@as(c_int, anchors[0].vz) +% anchors[1].vz, 2));
-            ldv0(pad.addr(0x3A8));
-            rtv0tr2();
+            gte.transformTo(&mac, &view, svAt(pad.addr(0x3A8)));
             const pose: *v.SVECTOR = @ptrCast(&obj.unk6C[5]);
             scratch.rotation.vx = psx.conv(i16, @as(c_int, pose.vx) +% obj.unk24);
             scratch.rotation.vy = psx.conv(i16, @as(c_int, pose.vy) +% obj.unk26);
             scratch.rotation.vz = psx.conv(i16, @as(c_int, pose.vz) +% psx.conv(i16, obj.unk28));
-            stlvnl(@as(*[3]i32, @ptrFromInt(pad.addr(0x3D4))));
+            stlvnl(@as(*[3]i32, @ptrFromInt(pad.addr(0x3D4))), &mac);
             c.func_800B17F0(psx.cptr(c.SVECTOR, svAt(pad.addr(0x3E0))), psx.cptr(c.MATRIX, matAt(pad.addr(0x3C0))));
             scratch.rotation.vx = holder.?.unk0.pitch;
             scratch.rotation.vy = holder.?.unk0.facing;
@@ -93,7 +62,7 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
                 scratch.rotation.vx = obj.unk24;
                 scratch.rotation.vy = obj.unk26;
                 scratch.rotation.vz = psx.conv(i16, obj.unk28);
-                stlvnl(@as(*[3]i32, @ptrFromInt(pad.addr(0x3D4))));
+                stlvnl(@as(*[3]i32, @ptrFromInt(pad.addr(0x3D4))), &mac);
                 _ = c.RotMatrixYXZ_gte(psx.cptr(c.SVECTOR, svAt(pad.addr(0x3E0))), psx.cptr(c.MATRIX, matAt(pad.addr(0x3C0))));
                 c.func_800B196C(psx.cptr(c.MATRIX, cam), psx.cptr(c.MATRIX, matAt(pad.addr(0x3C0))));
                 // CompMatrixLV called through the two-argument form (m0 = m0 * m1), as the C does.
@@ -105,13 +74,13 @@ pub fn func_800B1A68(object: ?*v.D_800F45E0_t, camera: ?*v.MATRIX) callconv(.c) 
                 break :composed;
             }
             matAt(pad.addr(0x3C0)).* = @as(*v.MATRIX, @ptrCast(&obj.unk6C[4])).*;
-            stlvnl(@as(*[3]i32, @ptrFromInt(pad.addr(0x3D4))));
+            stlvnl(@as(*[3]i32, @ptrFromInt(pad.addr(0x3D4))), &mac);
         } else {
             const pose: *v.SVECTOR = @ptrCast(&obj.unk6C[5]);
             scratch.rotation.vx = pose.vx;
             scratch.rotation.vy = pose.vy;
             scratch.rotation.vz = pose.vz;
-            stlvnl(&scratch.matrix.t);
+            stlvnl(&scratch.matrix.t, &mac);
             scratch.rotation.vx = psx.conv(i16, @as(c_int, scratch.rotation.vx) +% obj.unk24);
             scratch.rotation.vy = psx.conv(i16, @as(c_int, scratch.rotation.vy) +% obj.unk26);
             scratch.rotation.vz = psx.conv(i16, @as(c_int, scratch.rotation.vz) +% psx.conv(i16, obj.unk28));

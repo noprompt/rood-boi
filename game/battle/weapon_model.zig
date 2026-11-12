@@ -1,6 +1,7 @@
 //! Weapon model transform: the weapon's bone matrices and its drawing
 //! (pc/src/game/BATTLE/BATTLE.PRG/49268.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const pad = @import("common").pad;
 const v = @import("views_49268");
 const c = @import("c_49268");
@@ -58,30 +59,18 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
         psx.put(&scratch.parent, psx.byteAt(v.MATRIX, w, @as(isize, parentOffset +% 0x20)));
 
         const parent = psx.get(scratch.parent).?;
-        c.CTC2(psx.byteAt(c_uint, parent, 0).*, 0);
-        c.CTC2(psx.byteAt(c_uint, parent, 4).*, 1);
-        c.CTC2(psx.byteAt(c_uint, parent, 8).*, 2);
-        c.CTC2(psx.byteAt(c_uint, parent, 12).*, 3);
-        c.CTC2(psx.byteAt(c_uint, parent, 16).*, 4);
-        c.CTC2(psx.byteAt(c_uint, parent, 20).*, 5);
-        c.CTC2(psx.byteAt(c_uint, parent, 24).*, 6);
-        c.CTC2(psx.byteAt(c_uint, parent, 28).*, 7);
+        const view = gte.viewOf(parent, gte.no_screen);
 
         const length: c_int = psx.byteAt(u16, psx.get(scratch.model).?, (parentBone << 4) +% 0x40).*;
         scratch.translation.vy = 0;
         scratch.translation.vz = 0;
         scratch.translation.vx = psx.conv(i16, -%length);
-        c.MTC2(psx.fieldAt(c_uint, &scratch.translation, 0).*, 0);
-        c.MTC2(psx.fieldAt(c_uint, &scratch.translation, 4).*, 1);
-        _ = c.doCOP2(0x0480012);
+        gte.transformTo(&scratch.matrix.t, &view, &scratch.translation);
 
         const rotation = psx.byteAt(v.weaponRotation, w, i << 3);
         scratch.rotation.vx = rotation.rotation.vx;
         scratch.rotation.vy = rotation.rotation.vy;
         scratch.rotation.vz = rotation.rotation.vz;
-        psx.fieldAt(c_uint, &scratch.matrix.t, 0).* = c.MFC2(25);
-        psx.fieldAt(c_uint, &scratch.matrix.t, 4).* = c.MFC2(26);
-        psx.fieldAt(c_uint, &scratch.matrix.t, 8).* = c.MFC2(27);
         psx.fieldAt(c_int, &scratch.rotation, 0).* &= 0x0FFF0FFF;
         psx.fieldAt(c_int, &scratch.rotation.vz, 0).* &= 0xFFF;
 

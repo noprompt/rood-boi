@@ -67,11 +67,14 @@ fn mapStep(delta: c_int, dy: c_int) c_int {
 }
 
 /// orig: pc_map_rtps (pc/src/map_view.c)
-fn mapRtps(xy: c_uint, z: c_int) c_uint {
-    c.MTC2(xy, 0);
-    c.MTC2(@bitCast(z), 1);
-    gte.rtps();
-    return c.MFC2(14);
+/// A point (an x/y word and a z) projected through the frame's view.
+fn mapProject(view: *const gte.View, xy: c_uint, z: c_int) gte.Result {
+    const point = [3]i16{ psx.conv(i16, xy), psx.conv(i16, xy >> 16), psx.conv(i16, z) };
+    return gte.project(view, &point);
+}
+
+fn mapRtps(view: *const gte.View, xy: c_uint, z: c_int) c_uint {
+    return @bitCast(mapProject(view, xy, z).sxy);
 }
 
 /// orig: pc_map_row (pc/src/map_view.c)
@@ -188,6 +191,7 @@ fn spanRow(spans: [*]i16, row: c_int) [*]i16 {
 /// emitted as LINE_F2 packets along its right edge.
 pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callconv(.c) void {
     const state = v.g.D_800EB9B8().*.?;
+    const view = gte.frame(); // the camera's view func_800C02A8 set for this frame
     const grid: [*]u8 = @ptrFromInt(pad.addr(0) + 0x88);
     const rows: [*]u8 = @ptrFromInt(pad.addr(0) + 0xdc);
     const edges: [*]u8 = @ptrFromInt(pad.addr(0) + 0x1bc);
@@ -287,12 +291,12 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
         const e = psx.at(edges, i);
         if (e.* == 0) continue;
         const t0: c_uint = outline[@intCast(i)];
-        var t2: c_int = @bitCast(mapRtps(((@as(c_uint, @bitCast(base_x)) +% (t0 & 0xf) *% 128) & 0xffff) | y_hi, @bitCast(@as(c_uint, @bitCast(base_z)) +% ((t0 << 3) & 0x780))));
+        var t2: c_int = @bitCast(mapRtps(&view, ((@as(c_uint, @bitCast(base_x)) +% (t0 & 0xf) *% 128) & 0xffff) | y_hi, @bitCast(@as(c_uint, @bitCast(base_z)) +% ((t0 << 3) & 0x780))));
         const z2: c_int = @bitCast(((t0 >> 5) & 0x780) +% @as(c_uint, @bitCast(base_z)));
         const xy2: c_uint = ((@as(c_uint, @bitCast(base_x)) +% ((t0 >> 1) & 0x780)) & 0xffff) | y_hi;
         var t1: c_int = t2 >> 16;
         t2 = @bitCast(@as(c_uint, @bitCast(t2)) << 16);
-        var t3: c_int = @bitCast(mapRtps(xy2, z2));
+        var t3: c_int = @bitCast(mapRtps(&view, xy2, z2));
         e.* = 0;
         t2 +%= 0x8000;
         var t5: c_int = t3 >> 16;
@@ -366,12 +370,12 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
         var t0: c_uint = outline[@intCast(i)];
         if (a2 & 0x80 != 0) t0 = ((t0 >> 8) | (t0 << 8)) & 0xffff;
         const y_lo: c_uint = @as(c_uint, @bitCast(y -% t9)) << 16;
-        var t2: c_int = @bitCast(mapRtps(((@as(c_uint, @bitCast(base_x)) +% (t0 & 0xf) *% 128) & 0xffff) | y_lo, @bitCast(@as(c_uint, @bitCast(base_z)) +% ((t0 << 3) & 0x780))));
+        var t2: c_int = @bitCast(mapRtps(&view, ((@as(c_uint, @bitCast(base_x)) +% (t0 & 0xf) *% 128) & 0xffff) | y_lo, @bitCast(@as(c_uint, @bitCast(base_z)) +% ((t0 << 3) & 0x780))));
         const z2: c_int = @bitCast(((t0 >> 5) & 0x780) +% @as(c_uint, @bitCast(base_z)));
         const xy2: c_uint = ((@as(c_uint, @bitCast(base_x)) +% ((t0 >> 1) & 0x780)) & 0xffff) | y_lo;
         var t1: c_int = t2 >> 16;
         t2 = @bitCast(@as(c_uint, @bitCast(t2)) << 16);
-        var t3: c_int = @bitCast(mapRtps(xy2, z2));
+        var t3: c_int = @bitCast(mapRtps(&view, xy2, z2));
         t9 = t2 >> 16;
         t2 +%= 0x8000;
         var t5: c_int = t3 >> 16;
@@ -422,16 +426,10 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
             const bits: c_int = @as(c_int, 0x38847780) >> @intCast(a2 & 31);
             const cx: c_int = (origin_x >> 7) +% col -% 4;
             const cz: c_int = (origin_z >> 7) +% row -% 4;
-            c.MTC2(@as(c_uint, @bitCast(((cx +% (bits & 1)) << 7) & 0xffff)) | y_hi, 0);
-            c.MTC2(@bitCast((cz +% ((bits >> 1) & 1)) << 7), 1);
-            c.MTC2(@as(c_uint, @bitCast(((cx +% ((bits >> 2) & 1)) << 7) & 0xffff)) | y_hi, 2);
-            c.MTC2(@bitCast((cz +% ((bits >> 3) & 1)) << 7), 3);
-            c.MTC2(@as(c_uint, @bitCast(((cx +% ((bits >> 4) & 1)) << 7) & 0xffff)) | y_hi, 4);
-            c.MTC2(@bitCast((cz +% ((bits >> 5) & 1)) << 7), 5);
-            gte.rtpt();
-            points[0] = c.MFC2(12);
-            points[1] = c.MFC2(13);
-            points[2] = c.MFC2(14);
+            // RTPT: three vertices (an x/y word and a z each).
+            points[0] = @bitCast(mapProject(&view, @as(c_uint, @bitCast(((cx +% (bits & 1)) << 7) & 0xffff)) | y_hi, @bitCast((cz +% ((bits >> 1) & 1)) << 7)).sxy);
+            points[1] = @bitCast(mapProject(&view, @as(c_uint, @bitCast(((cx +% ((bits >> 2) & 1)) << 7) & 0xffff)) | y_hi, @bitCast((cz +% ((bits >> 3) & 1)) << 7)).sxy);
+            points[2] = @bitCast(mapProject(&view, @as(c_uint, @bitCast(((cx +% ((bits >> 4) & 1)) << 7) & 0xffff)) | y_hi, @bitCast((cz +% ((bits >> 5) & 1)) << 7)).sxy);
             points[3] = points[0];
             top = @as(i16, @bitCast(@as(u16, @truncate(points[0] >> 16))));
             var bottom: c_int = top;
@@ -497,8 +495,9 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
             const ss: c_int = v.g.D_800EA818()[@intCast(i)];
             const dx: c_int = (ax *% cc +% az *% ss +% 0x800) >> 12;
             const dz: c_int = (bx *% cc +% bz *% ss +% 0x800) >> 12;
-            points[@intCast(i *% 2)] = mapRtps((@as(c_uint, @bitCast(origin_x +% dx)) & 0xffff) | y_hi, origin_z +% dz);
-            points[@intCast(i *% 2 +% 1)] = @bitCast(@as(c_int, @bitCast(c.MFC2(19))) >> 2);
+            const projected = mapProject(&view, (@as(c_uint, @bitCast(origin_x +% dx)) & 0xffff) | y_hi, origin_z +% dz);
+            points[@intCast(i *% 2)] = @bitCast(projected.sxy);
+            points[@intCast(i *% 2 +% 1)] = @bitCast(@as(c_int, @bitCast(projected.sz)) >> 2);
             const sy: c_int = @as(i16, @bitCast(@as(u16, @truncate(points[@intCast(i *% 2)] >> 16))));
             if (sy < top) {
                 top = sy;

@@ -90,18 +90,14 @@ pub fn func_800C1DC4(arg0: ?*v.D_800EB9B8_unk990) callconv(.c) void {
     if (row.unk1 != 0) {
         y +%= 4;
         c.func_800C02A8();
-        const sv: [*]const u8 = @ptrCast(&row.unk8);
-        c.MTC2(@as(*align(1) const c_uint, @ptrCast(sv)).*, 0);
-        c.MTC2(@as(*align(1) const c_uint, @ptrCast(sv + 4)).*, 1);
+        const frame = common.gte.frame();
 
         // PC_GTE_UNNARROWED: the projection is anchored while it runs.
         v.g.pc_gte_anchored().* +%= 1;
-        _ = c.doCOP2(0x0180001);
+        const projected = common.gte.project(&frame, &row.unk8);
         v.g.pc_gte_anchored().* -%= 1;
 
-        sxy = @bitCast(c.MFC2(14));
-        const otz: c_int = @bitCast(c.MFC2(7));
-        _ = otz;
+        sxy = projected.sxy;
 
         var pcLine: v.pc_classic_target_line = undefined;
         pcLine.row = arg0;

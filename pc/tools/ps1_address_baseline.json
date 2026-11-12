@@ -5,10 +5,10 @@
  "guest_pointer_field": 8,
  "guest_pointer_access": 38,
  "address_as_integer": 218,
- "zig_raw_memory": 1016,
+ "zig_raw_memory": 983,
  "gte_state_machine": 16,
  "gte_sdk_calls": 7,
- "gte_register_users": 306,
+ "gte_register_users": 231,
  "gpu_packet_writes": 75,
  "lift_bridge": 13
 }

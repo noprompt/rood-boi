@@ -10,4 +10,5 @@ pub fn func_800C02A8() callconv(.c) void {
     const matrix: *v.MATRIX = common.view.at(v.MATRIX, common.view.matrix_offset);
     c.SetRotMatrix(psx.cptr(c.MATRIX, matrix));
     c.SetTransMatrix(psx.cptr(c.MATRIX, matrix));
+    common.gte.setFrame(matrix);
 }

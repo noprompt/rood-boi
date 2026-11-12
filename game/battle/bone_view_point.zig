@@ -1,5 +1,6 @@
 //! A point on a battle actor's bone, relative to the camera, through the GTE (pc/src/game/BATTLE/BATTLE.PRG/38C1C.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const v = @import("views_38C1C");
 const c = @import("c_38C1C");
 
@@ -45,25 +46,9 @@ pub fn boneViewPoint(actorId: c_int, bone_in: c_int, result: [*c]c_ushort, endpo
         local.vx = psx.conv(i16, @divTrunc(-%arm.unk0, 2));
     }
 
-    // gte_SetRotMatrix, gte_SetTransMatrix: the PsyCross register sequence.
-    const m = matrix.?;
-    c.CTC2(psx.byteAt(c_uint, m, 0).*, 0);
-    c.CTC2(psx.byteAt(c_uint, m, 4).*, 1);
-    c.CTC2(psx.byteAt(c_uint, m, 8).*, 2);
-    c.CTC2(psx.byteAt(c_uint, m, 12).*, 3);
-    c.CTC2(psx.byteAt(c_uint, m, 16).*, 4);
-    c.CTC2(psx.byteAt(c_uint, m, 20).*, 5);
-    c.CTC2(psx.byteAt(c_uint, m, 24).*, 6);
-    c.CTC2(psx.byteAt(c_uint, m, 28).*, 7);
-    // gte_ldv0
-    c.MTC2(psx.byteAt(c_uint, &local, 0).*, 0);
-    c.MTC2(psx.byteAt(c_uint, &local, 4).*, 1);
-    // gte_rtv0tr2
-    _ = c.doCOP2(0x0480012);
-    // gte_stlvnl
-    transformed.vx = @bitCast(c.MFC2(25));
-    transformed.vy = @bitCast(c.MFC2(26));
-    transformed.vz = @bitCast(c.MFC2(27));
+    // gte_SetRotMatrix, gte_SetTransMatrix, gte_ldv0, gte_rtv0tr2, gte_stlvnl as a value.
+    const view = gte.viewOf(matrix.?, gte.no_screen);
+    gte.transformTo(&transformed, &view, &local);
 
     result[0] = psx.conv(c_ushort, transformed.vx);
     result[1] = psx.conv(c_ushort, transformed.vy);

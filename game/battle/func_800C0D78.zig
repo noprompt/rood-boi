@@ -29,9 +29,8 @@ pub fn func_800C0D78() callconv(.c) void {
     }) {
         shape.* = d.unk0[i];
         c.func_800C02A8();
-        gte.ldv0(&shape.unk8);
-        gte.rtps2();
-        gte.stszotz(&d.unk20);
+        const frame = gte.frame();
+        @as(*align(1) c_uint, @ptrCast(&d.unk20)).* = gte.project(&frame, &shape.unk8).otz; // gte_stszotz: a whole word, as the macro stores it
 
         const typ: c_int = switch (@as(c_int, shape.unk0)) {
             1 => 0,
