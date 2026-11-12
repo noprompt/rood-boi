@@ -305,7 +305,7 @@ extern int D_800F19C8;
 extern u_short D_800F4B20;
 extern u_short D_800F4B28[];
 extern D_800F4B30_t D_800F4B30[];
-extern char D_800F4B70[];
+extern unsigned char D_800F4B70[17];
 extern D_800F4B88_t D_800F4B88;
 extern char D_800F4B8B;
 extern char D_800F4BA0;

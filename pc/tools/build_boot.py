@@ -727,6 +727,8 @@ build_stamp = Stamp(root, out, {
     "debug_compress": debug_compress,
     "nrd": [nrd and nrd["libraries"], win_nrd and win_nrd["libraries"]], "toolchain": toolchain,
     "glslang": [glslang_libraries, win_glslang_libraries],
+    # every variable this script (or a tool it imports) reads that changes what is built: a changed one rebuilds
+    "env": {k: os.environ.get(k) for k in ("CC", "CXX", "CFLAGS", "CXXFLAGS", "ROOD_NO_ZIG", "ROOD_ZIG", "ROOD_NRD")},
 })
 stamp_trees = [("include", None), ("config", None), ("build", None), ("pc/src", None),
                ("pc/include", None), ("pc/shaders", None), ("pc/third_party", None), ("tools/etc", ".py"),
@@ -2287,6 +2289,13 @@ def lp64_native_imports():
         return bool(infos) and any(info.get("size") == 0 for _, info in infos) and not any(
             info.get("pointer") or info.get("pointer_words") or (info.get("element") or {}).get("pointer")
             or not (info.get("ps1_size") or obj.stem.endswith("_zig")) for obj, info in infos)
+    def packet_storage(name):
+        """Taking the address of GPU packet and ordering-table storage hands it to the GPU's links (24 bits of a
+        guest RAM address): that, and nothing else about an address being taken, keeps an import in guest RAM."""
+        types = " ".join(str(info.get("type")) for _, info in declarations.get(declared_name(name), []))
+        # (named: a block the code reaches by arithmetic from a neighbour's label, func_8008E19C: D_800E85A0 - 0x58, which holds
+        # these two inside it, is a packet built in pieces under four names)
+        return name in ("D_800F4CD0", "D_800E856C", "D_800E8594") or bool(re.search(r"\b(P_CODE|POLY_\w+|TILE\w*|SPRT\w*|LINE_\w+|DR_\w+|DRAWENV|DISPENV|DMA\w*)\b", types))
     sorted_data = sorted(data, key=lambda n: addresses[n])
     next_address = {}
     for i, n in enumerate(sorted_data):
@@ -2327,12 +2336,19 @@ def lp64_native_imports():
                 pinned[name] = "in an overlay slot the restart does not cover (effect plug-ins, menus, ENDING), or shared across overlays"
             elif pointed_into(start, end):
                 pinned[name] = "a pointer word in a game file points into it"
-            elif name in taken_names and not unsized:
-                pinned[name] = "its address is taken (lea, data relocation, owned Zig other than X().*)"
+            elif name in taken_names and not unsized and packet_storage(name):
+                pinned[name] = "GPU packet or ordering-table storage whose address is taken (the GPU links 24 bits of a guest RAM address)"
             elif any(a < end and b > start and who != name for a, b, who in covers):
                 pinned[name] = "overlaps another import"
             else:
                 candidates[name] = (start, size, (group_name, in_exe, in_battle, in_ending), unsized)
+    # A packet is written in pieces under several names (a P_CODE word, then its body): what touches packet storage
+    # is packet storage too.
+    packets = [(addresses[n], addresses[n] + max(complete_size(n), 4)) for n in data if packet_storage(n)]
+    for name in [n for n in candidates if any(
+            start <= addresses[n] + candidates[n][1] and addresses[n] <= end for start, end in packets)]:
+        pinned[name] = "touches GPU packet or ordering-table storage"
+        del candidates[name]
     # An unsized array may run into what follows it: it moves only together with the next import (one region,
     # the layout kept), and an import after an array that stays moves with it or not at all.
     changed = True
@@ -2361,9 +2377,9 @@ def lp64_native_imports():
     extended_to = None
     for name in sorted(candidates, key=lambda n: addresses[n]):
         start, size, kind, unsized = candidates[name]
-        if unsized or extended_to == start:
+        if unsized or name in taken_names or extended_to == start:
             following = next_address[name]
-            if following is not None and following - start <= 0x10000:
+            if following is not None and following - start <= 0x100000:
                 size = max(size, following - start)
                 candidates[name] = (start, size, kind, unsized)
             extended_to = start + size

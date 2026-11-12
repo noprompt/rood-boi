@@ -519,7 +519,7 @@ accessors.
 - Counts (`pc/tools/ps1_address_baseline.json`, 2026-11-10): `ps1_address` 7, `scratchpad` 52,
   `unnamed_symbol` 20594, `zig_raw_memory` 1036 (mostly in `game/battle`), `address_as_integer` 230.
 - `pc/tools/build_boot.py` (`imports.ld`); `game/ownership.toml`; `game/common/psx.zig`.
-- 956 data imports in the 64-bit build (`lp64_imports.json`): 257 native, 699 pinned (see below).
+- 956 data imports in the 64-bit build (`lp64_imports.json`): 463 native, 493 pinned (see below).
 
 **Status.** Fully PS1-shaped in addressing; native in logic. Since 2026-11-10 `ps1_address` is 7 (from
 60): what is left is the RAM base (`ROOD_GUEST_RAM_BASE`, `psx.guest_ram_base`), the heap
@@ -534,37 +534,38 @@ The build gives a data import (a global the C only declares) one of two homes: n
 `native_imports.c`, no PS1 address) or pinned (`imports.ld`: the address the original had, inside the
 fixed RAM). `pc/build/boot64/lp64_imports.json` (written by `build_boot.py --arch 64`) lists each
 import's address, users, declared types and, for a pinned one, `pinned`: the first reason it stays.
-956 data imports: 257 native (117 hold pointers, which the LP64 mover widens; 146 are plain data the
-mover moves too: scalars and tables, an unsized array of plain elements together with what follows it), 699 pinned.
+956 data imports: 463 native (117 hold pointers, which the LP64 mover widens; 346 are plain data the
+mover moves too: scalars, structs and tables, an unsized array of plain elements together with what follows it), 493 pinned.
 
 | Where (PS1 address range) | Pinned | Native |
 |---|---|---|
-| main program (`0x80010000-0x80068800`) | 96 | 56 |
-| BATTLE and ENDING slot (`0x80068800-0x800F9800`) | 446 | 201 |
+| main program (`0x80010000-0x80068800`) | 61 | 91 |
+| BATTLE and ENDING slot (`0x80068800-0x800F9800`) | 275 | 372 |
 | main menu and effect plug-in slot (`0x800F9800-0x80102800`) | 157 | 0 |
 | submenu slot (`0x80102800-0x8010C000`) | 0 | 0 |
 
-Why the 699 are pinned (each counted once, in this order; `lp64_imports.json` says which):
+Why the 493 are pinned (each counted once, in this order; `lp64_imports.json` says which):
 - 11 hold pointers or a type whose layout differs (psx_ptr structs, tables of function or data pointers
   that are not moved natively): T13 has to widen them first. (Before 2026-11-11 this count held every
   unsized array, 206 of them: a table declared `u_char x[]` is plain data whose extent is the only unknown.)
-- 221 have their address taken: an `lea` or a data relocation in an object, or owned Zig using the
-  accessor other than as `X().*`. A native copy is fine for most (a pointer argument), but two kinds of
-  user need guest RAM: GPU packets and ordering-table entries (links are 24 bits of a RAM address, see
-  `next_packet` in `boot_runtime.c`) and DMA/CD destinations. D_800F4CD0 is declared `u_long` and is the
-  start of the ordering-table pages; declared sizes cannot be trusted for these. Unsized arrays are not
-  held back by this: indexing one takes its address.
-- 28 have an incomplete type or are over 256 bytes; 148 + 8 are unsized arrays whose run (to the next
-  import, and through every import after it that is moved) ends at an import that stays at its address:
-  the array may run into it. An unsized array moves only together with the imports that follow it, as one
-  native region with the guest layout (each region starts at the guest address's alignment: a member keeps
-  its low address bits), each member after an array extended to the next import (the bytes between labels are
-  read through the table's base). An import declared with different sizes (D_800E909C: `u_char []` here,
-  `func_800AAE9C_t [][28]` there; 12 imports) stays: the labels after it lie inside a larger table, and
-  moving it with the extent of the next label dropped Ashley's mouth texture in the story scenes.
+- 12 are GPU packet or ordering-table storage whose address is taken, or touch it (the GPU links 24 bits of a
+  RAM address, `next_packet` in `boot_runtime.c`; D_800F4CD0 starts the ordering-table pages; the two P_CODE
+  words and their bodies; D_800E856C and D_800E8594, inside a block func_8008E19C reaches as D_800E85A0 - 0x58).
+  Any other import whose address is taken may move: a native copy is a pointer like the guest one (the
+  address is below 4 GB), the region keeps the guest layout, and a taken import extends to the next import
+  because its declared size cannot be trusted (ENDING's image blobs are declared as their 20-byte header).
+- 28 have an incomplete type or are over 256 bytes; 76 + 23 are unsized arrays, or imports after one, whose
+  run (to the next import, and through every import after it that is moved) ends at an import that stays at
+  its address: the array may run into it. An unsized array moves only together with the imports that follow
+  it, as one native region with the guest layout (each region starts at the guest address's alignment: a
+  member keeps its low address bits), each member after an array extended to the next import (the bytes
+  between labels are read through the table's base). An import declared with different sizes (D_800E909C:
+  `u_char []` here, `func_800AAE9C_t [][28]` there; 11 imports) stays: the labels after it lie inside a larger
+  table, and moving it with the extent of the next label dropped Ashley's mouth texture in the story scenes.
 - 157 are in a slot whose restart is not wired (effect plug-in and main menu data, ENDING), or are
-  shared between the main program and an overlay; 82 overlap or sit inside another import; 18 share an
-  address with another name; 14 are pointed at by a word of a game file.
+  shared between the main program and an overlay; 143 overlap or sit inside another import (a member of a
+  larger declaration: the next lever); 18 share an address with another name; 14 are pointed at by a word
+  of a game file.
 
 What the original data really points into (a scan of every PRG, BIN and the main program for words
 that fall in an import's range): 116 imports are pointed at by game data and must stay at their
