@@ -79,6 +79,14 @@ KEY = 0x2468ACE1
 GAMETIME = bytes([0, 45, 23, 1])  # vs_main_gametime: 1:23:45
 # _applyLoadedSaveFile's blocks: vs_main_scoredata .. vs_main_inventoryIndices (one span of main's data)
 SPAN = (0x8005FEA0, 0x80061AE0)
+# The span's globals in the PS1 layout (offsets from SPAN[0]); read by symbol, as a global that moved out of guest RAM is not at its
+# guest address: the bytes are concatenated in the PS1's order, so an offset in the span is still the PS1 offset.
+SPAN_GLOBALS = (("vs_main_scoredata", 0x8005FEA0), ("vs_main_actionsLearned", 0x8005FFB8), ("vs_main_mapStatus", 0x8005FFD8),
+                ("vs_main_settings", 0x80060020), ("vs_main_artsStatus", 0x80060040), ("D_80060064", 0x80060064),
+                ("D_80060068", 0x80060068), ("vs_main_inventory", 0x80060168), ("D_80061068", 0x80061068),
+                ("vs_main_gametime", 0x80061074), ("D_80061078", 0x80061078), ("vs_main_stateFlags", 0x80061598),
+                ("vs_main_inventoryIndices", 0x800619D8))
+GAMETIME_AT = 0x80061074 - SPAN[0]  # vs_main_gametime's offset in the span
 
 
 _menu7 = None
@@ -169,7 +177,8 @@ class Session:
         return struct.unpack("<h", self.g.read(items + 6 * self.g.layout("menuItem_size", 64) + 20, 2))[0] if items else None
 
     def span(self):
-        return self.g.read(SPAN[0], SPAN[1] - SPAN[0])
+        ends = [a for _, a in SPAN_GLOBALS[1:]] + [SPAN[1]]
+        return b"".join(self.g.read(self.sym[name], end - a) for (name, a), end in zip(SPAN_GLOBALS, ends))
 
     def exit_state(self):
         g = self.g
@@ -606,7 +615,7 @@ def run(cards, out, cases, check, shots):
                                                                      f"screen (data {u.get('data')}, shell {u['visible']})")
                 s.g.run(400)
                 spans[name] = s.span()
-                got = spans[name][s.sym["vs_main_gametime"] - SPAN[0] + 3]
+                got = spans[name][GAMETIME_AT + 3]
                 check(got == hours, f"5: {name}: file 2 loaded (play time hours {got}, file 2's {hours})")
                 hashes[name] = s.g.call("snapshot", action="hash")
                 s.g.call("snapshot", action="save", path=str((out / f"{name}.snap").resolve()))
@@ -700,7 +709,7 @@ def errors(session, cf, fixtures, base, check):
     e.wait_phase("wait")
     d = e.data()
     ram1 = e.span()
-    gt = e.sym["vs_main_gametime"] - SPAN[0]
+    gt = GAMETIME_AT
     diff = [r for r in changed_ranges(ram0, ram1) if not (r[0] >= gt and r[1] <= gt + 4)]
     check(d["msg"] == "file_corrupt" and not diff and e.card2.read_bytes() == c0,
           f"6: a corrupt save: refused ({d['msg']}), RAM (play time aside) and the card unchanged {diff[:4]}")

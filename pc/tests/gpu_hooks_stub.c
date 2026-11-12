@@ -1,6 +1,7 @@
 /* No-op hardware-rasterizer and GTE-log hooks for gpu_probe, which tests the
  * CPU rasterizer in boot_runtime.c without the OpenGL path. */
 void pc_hw_mark(int x0, int y0, int x1, int y1) { (void)x0, (void)y0, (void)x1, (void)y1; }
+void pc_hw_mark_raster(int x0, int y0, int x1, int y1) { (void)x0, (void)y0, (void)x1, (void)y1; }
 int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage,
     unsigned clut, unsigned window, const int* clip, int mask_set, int mask_check)
 {

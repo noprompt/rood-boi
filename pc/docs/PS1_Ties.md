@@ -159,14 +159,21 @@ special-casing. Widescreen is done by narrowing projection and anchoring packets
 - `pc/docs/Native_Rendering.md`; `pc/docs/Vulkan_Renderer.md` (Vulkan is the default renderer; OpenGL
   is frozen as a fallback).
 
-**Status.** Partly native. Room, characters and drop shadows are native; screen-space geometry,
-the effect plugins, most 2D and all text under the classic UI are packets.
+**Status.** Largely items and native lists (2026-11-12 survey, `pc/docs/plans/2026-11-12-t4-survey.md`): ENDING, MENUF's leaves,
+MENU 0/4/5/7/8/9/D/E, MAINMENU, about 33 effect plug-ins, SCREFF2, battle text, sprites, tiles and stat bars draw as typed
+items (`pc/src/draw_items.c`, `pc/docs/plans/2026-11-08-frames-as-data.md`); the room, characters and shadows are native
+lists with reference packets. What remains as packets: the 3D packet builders (actor, room, particle), the 2D tail
+(HUD claim emitters, text-box rows, sky, shadows, lines) and `DR_MOVE`. 12 packet and ordering-table imports stay pinned
+in guest RAM (`D_800F4CD0`, `D_800E856C`, `D_800E8594`, `D_800E85BC`, `D_800E9C00`, `D_800E9C08`, `D_800E9C0C`,
+`D_800F1A68`, `D_800F1A78`, `vs_battle_mapCompletionFlags`, `vs_main_drawEnv`, `vs_main_dispEnv`).
 
 **To replace.** Very large. The code that writes packets is spread through every overlay
 (`pc/src/game/BATTLE`, `EFFECT`, `MENU`, `TITLE`, `ENDING`, the packet macros in the shared headers).
 Each user must emit typed draw items with explicit sort keys instead. The room and character path shows
 the pattern; the remaining work is the long tail. The doc `Native_Rendering.md` lists the effect
 plugins as not done.
+
+**Plan.** `pc/docs/plans/2026-11-12-t4-survey.md` (slices S0 and S1 done; S3a before S2).
 
 **Depends on.** T13 and T14 (packets are built through guest pointers and a scratchpad cursor).
 
@@ -199,6 +206,11 @@ still VRAM pixels and the CPU copy of VRAM is still kept exact.
 animation as data) would remove both the VRAM array and the CPU rasterizer. That means every
 `LoadImage` caller (and the texture-page and CLUT fields in every packet and native mesh) naming an asset
 rather than a VRAM position.
+
+**Plan.** `pc/docs/plans/2026-11-12-t5-vram-survey.md`: first an ordered VRAM transfer stream queued with each frame, a
+game-side transfer-only mirror and fences for the few readers of the rendered frame (S0 digest, S1 completeness, S2 renderer-side
+VRAM from the stream, S3 fences); retiring the CPU rasterizer comes after and is cleanup. The stream is also what lets the
+game loop leave `VSync` (T1).
 
 **Depends on.** T4 (packets name texture pages and CLUTs by VRAM position).
 

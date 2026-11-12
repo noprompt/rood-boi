@@ -26,7 +26,7 @@ control) and new are compared action by action. Where the new build records them
 functions and counted against all of the build's (the coverage the frames cover).
 Slow (several minutes); its actions are the spells' effect plugins, not every one.
 
-    python3 pc/tools/build_compare.py OLD_BINARY --menus [ending,menuf] [--menu-sample N] [--claims off] [--aspect 16:9] [--new-env K=V]
+    python3 pc/tools/build_compare.py OLD_BINARY --menus [ending,menuf] [--vram-stream] [--menu-sample N] [--claims off] [--aspect 16:9] [--new-env K=V]
 
 The menus' lane: the screens the classic UI draws, reached by the routes classic_parity.py tours them by (the
 save room's game, the classic look: the shipped plugins on, so rood.classic's claims draw what they claim;
@@ -521,6 +521,16 @@ def hashed(g, out, sample, hashes):
             if state["t"] % sample == 0:
                 g.screenshot(str(shot))
                 hashes.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:12])
+                if os.environ.get("BUILD_COMPARE_VRAM_STREAM"):  # --vram-stream: the VRAM stream's running digest (RPC vram_stream) with the picture
+                    hashes[-1] += ":" + g.call("vram_stream")["total"]["hash"][:10]
+                if os.environ.get("BUILD_COMPARE_REPLAY"):  # the interpolated frame's target (RPC gpu_dump replay) with the picture: the screenshot shows the game's own frame
+                    g.call("gpu_dump", path=str(out / "replay.ppm"), replay=True)
+                    hashes[-1] += ":" + hashlib.sha256((out / "replay.ppm").read_bytes()).hexdigest()[:10]
+                    keep_replay = os.environ.get("BUILD_COMPARE_REPLAY_KEEP")  # (a directory: the replay target and the live target of the samples named in BUILD_COMPARE_REPLAY_AT, for looking at a difference)
+                    if keep_replay and len(hashes) - 1 in {int(i) for i in os.environ.get("BUILD_COMPARE_REPLAY_AT", "").split(",") if i}:
+                        pathlib.Path(keep_replay).mkdir(parents=True, exist_ok=True)
+                        g.call("gpu_dump", path=str(pathlib.Path(keep_replay) / f"live-{len(hashes) - 1}.ppm"), replay=False)
+                        (pathlib.Path(keep_replay) / f"replay-{len(hashes) - 1}.ppm").write_bytes((out / "replay.ppm").read_bytes())
                 keep = os.environ.get("BUILD_COMPARE_KEEP")  # (a directory: every sampled frame kept, for looking at a difference)
                 if keep:
                     pathlib.Path(keep).mkdir(parents=True, exist_ok=True)
@@ -965,9 +975,14 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
             hashed(g, out, sample, hashes)
             SCENES[name](g, cp, rood_rpc.symbols())
             text = g.call("ui_text") if renderer != "null" else {}  # ui_text's word-level drawing: small-capital words and the status words drawn
+            try:
+                stream_info = g.call("vram_stream")  # (the renderer's replay counters and the fences the game waited at; a build without them has none)
+                stats = {**(stream_info.get("renderer") or {}), "fences": stream_info.get("fences")}
+            except Exception:
+                stats = None
         finally:
             g.close()
-        results[name] = {"hashes": hashes, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
+        results[name] = {"hashes": hashes, "renderer": stats, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
                          "status_glyphs": (text.get("status") or {}).get("glyphs") if isinstance(text.get("status"), dict) else text.get("status_glyphs")}
     print("RESULT" + json.dumps(results))
 
@@ -1231,6 +1246,7 @@ def main():
     parser.add_argument("new", nargs="?", default=str(ROOT / "pc/build/boot64/rood_battle_probe"))
     parser.add_argument("--card", default=str(ROOT / "pc/build/test-card1.mcd"))
     parser.add_argument("--seconds", type=int, default=30)
+    parser.add_argument("--vram-stream", action="store_true", help="--menus: each sampled frame also carries the VRAM stream's running digest (RPC vram_stream; both builds need it)")
     parser.add_argument("--casts", nargs="?", const="spells", help="the wider lane: cast every spell (spells[,arts])")
     parser.add_argument("--cast-limit", type=int, default=0, help="--casts: stop after this many actions")
     parser.add_argument("--old-width", type=int, default=4, help="bytes of a pointer in OLD's drop nodes")
@@ -1252,6 +1268,8 @@ def main():
     parser.add_argument("--play-menus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.vram_stream:
+        os.environ["BUILD_COMPARE_VRAM_STREAM"] = "1"
     if args.play:
         return play(args.old, args.seconds, args.card, args.out, args.width)
     if args.play_audio:

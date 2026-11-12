@@ -28,6 +28,7 @@ extern void pc_engine_vsync(void) __attribute__((weak));
 const uint16_t* pc_native_vram(void) { return vram; }
 /* Hardware rasterizer mirror (gpu_hw.c); no-ops until a GL context exists. */
 extern void pc_hw_mark(int, int, int, int);
+extern void pc_hw_mark_raster(int, int, int, int);
 extern int pc_hw_triangle(const int*, const int*, const int*, unsigned, unsigned, unsigned,
     unsigned, const int*, int, int);
 extern void pc_hw_rect(int, int, int, int, int, int, unsigned, unsigned, unsigned, unsigned,
@@ -139,14 +140,257 @@ void pc_store_image_debug(int x, int y, int w, int h, const void* caller)
     if (debug)
         fprintf(stderr, "[sync] StoreImage %d,%d %dx%d from %p\n", x, y, w, h, caller);
 }
+/* The VRAM stream's digest (T5 S0, pc/docs/plans/2026-11-12-t5-vram-survey.md): every event that changes or reads VRAM
+ * through a command (upload, readback, fill, copy) hashed with its rectangle, its payload and the number of draw packets
+ * walked before it in the frame. The digest of a frame and the running one are what RPC vram_stream replies and
+ * build_compare --stream folds into each sampled frame: two builds that feed the renderer the same writes in the same
+ * order against the same draws agree. Host state, empty after a restore (a snapshot cuts at the vsync boundary). */
+static struct {
+    uint64_t frame, total, last;
+    unsigned events, total_events, last_events, draws, frames;
+} stream __attribute__((section(".data.rood_host"))) = { 0xcbf29ce484222325ull, 0xcbf29ce484222325ull, 0xcbf29ce484222325ull };
+static void stream_mix(const void* data, size_t bytes)
+{
+    const unsigned char* p = data;
+    for (size_t i = 0; i < bytes; i++) {
+        stream.frame = (stream.frame ^ p[i]) * 0x100000001b3ull;
+        stream.total = (stream.total ^ p[i]) * 0x100000001b3ull;
+    }
+}
+static void stream_event(int kind, int x, int y, int w, int h, const void* payload, size_t bytes)
+{
+    int head[7] = { kind, x, y, w, h, (int)stream.draws, (int)bytes };
+    stream_mix(head, sizeof head);
+    if (payload && bytes)
+        stream_mix(payload, bytes);
+    ++stream.events, ++stream.total_events;
+}
+/* T5 S3: the points where the game waits for the renderer. The CPU rasterizer and StoreImage read VRAM that only the GPU target
+ * holds (gpu_hw.c: stale rectangles); the call copies the target back (pc_hw_syncs counts the copies). Each one that copied is a
+ * fence event in the stream (kind 6: why, and the rectangle), counted by cause: 1 StoreImage, 2 a sprite sampling the frame
+ * being drawn. They are the whole of the game-to-renderer read-back (S1's feedback list: the display-area bands of the frame
+ * readers in TITLE 22C.c, MENU5 4D8.c and MENU7 260.c are StoreImage's); what a renderer on its own thread waits at. */
+extern int pc_hw_syncs __attribute__((weak));
+static unsigned fence_counts[3] __attribute__((section(".data.rood_host")));
+static int fence_syncs(void) { return &pc_hw_syncs ? pc_hw_syncs : 0; }
+static void fence_event(int cause, int before, int x, int y, int w, int h)
+{
+    if (fence_syncs() == before)
+        return;
+    stream_event(6, x, y, w, h, &cause, sizeof cause);
+    ++fence_counts[cause];
+}
+/* Each vsync (pc_tick, before the RPC poll): the completed frame's digest is latched. */
+static void vcheck_vsync(void);
+static void stream_vsync(void)
+{
+    vcheck_vsync();
+    stream.last = stream.frame, stream.last_events = stream.events;
+    stream.frame = 0xcbf29ce484222325ull, stream.events = 0, stream.draws = 0, ++stream.frames;
+}
+/* ROOD_VRAM_STREAM_CHECK=1 (T5 S1): the completeness proof of the stream. A shadow array is built from the stream's commands
+ * alone (upload, fill, copy; the draws never touch it) and compared with native VRAM each vsync over every pixel the CPU has not
+ * touched since a command last wrote it. `taint` marks the pixels the rasterizer wrote (pixel()) or the GPU read-back replaced
+ * (gpu_hw.c pixels_to_vram -> pc_vram_taint), carried by copies and cleared by uploads and fills. An untainted pixel that differs
+ * is a writer the stream does not have; the rasterizer sampling a tainted texel or CLUT entry is render-to-texture or frame
+ * feedback, counted with the first one's tpage and CLUT. Debug only: 3 MB and a pass of 512 K pixels a vsync. */
+static struct {
+    int on, rebase;
+    uint16_t* shadow;
+    uint8_t* taint;
+    unsigned long long bad_pixels, feedback;
+    unsigned checked, bad_frames, feedback_frames;
+    int first_bad[6], first_feedback[4];
+    unsigned long long rv_miss, rv_raster, rv_miss_cell[128], rv_raster_cell[128]; /* renderer VRAM (gpu_hw.c, T5 S2) against the game's: untainted / tainted pixels that differ, summed over vsyncs */
+    unsigned long long fb_cell[128], bad_cell[128]; /* by 64x64 block of VRAM: cell = y / 64 * 16 + x / 64 */
+    unsigned long long fb_tpage[256];               /* feedback samples by the sampling primitive's tpage (low 8 bits) */
+} vcheck __attribute__((section(".data.rood_host"))) = { -1 };
+static int vcheck_on(void)
+{
+    if (vcheck.on < 0) {
+        vcheck.on = getenv("ROOD_VRAM_STREAM_CHECK") != NULL;
+        if (vcheck.on) {
+            vcheck.shadow = malloc(sizeof vram);
+            vcheck.taint = calloc(1024 * 512, 1);
+            memcpy(vcheck.shadow, vram, sizeof vram);
+        }
+    }
+    return vcheck.on;
+}
+/* A state restore or a GPU read-back replaced VRAM from outside the commands: the shadow starts again from it. */
+void pc_vram_stream_rebase(void)
+{
+    if (vcheck_on())
+        vcheck.rebase = 1;
+}
+/* gpu_hw.c copied the GPU target's picture into native VRAM (the stale areas): not the stream's, so not compared. */
+void pc_vram_taint(int x0, int y0, int x1, int y1)
+{
+    if (vcheck_on())
+        for (int y = y0; y < y1; y++)
+            memset(vcheck.taint + y * 1024 + x0, 1, (size_t)(x1 - x0));
+}
+static void vcheck_sample(int index, unsigned tpage_now, unsigned clut_now)
+{
+    if (!vcheck.on || !vcheck.taint[index])
+        return;
+    ++vcheck.fb_cell[(index >> 10) / 64 * 16 + (index & 1023) / 64], ++vcheck.fb_tpage[tpage_now & 255];
+    if (!vcheck.feedback++)
+        vcheck.first_feedback[0] = (int)tpage_now, vcheck.first_feedback[1] = (int)clut_now,
+        vcheck.first_feedback[2] = index & 1023, vcheck.first_feedback[3] = index >> 10;
+}
+static void vcheck_write(int x, int y, int w, int h, const uint16_t* source, int kind, const int* extra)
+{
+    if (!vcheck_on() || w <= 0 || h <= 0)
+        return;
+    uint16_t* sh = vcheck.shadow;
+    uint8_t* tn = vcheck.taint;
+    if (kind == 1) { /* upload: the rectangle as given (pc_vram_transfer checked its bounds) */
+        for (int row = 0; row < h; row++) {
+            memcpy(sh + (y + row) * 1024 + x, source + (size_t)row * w, (size_t)w * 2);
+            memset(tn + (y + row) * 1024 + x, 0, (size_t)w);
+        }
+    } else if (kind == 3 || kind == 4) { /* fill (ClearImage's aligned fill wraps; the exact rectangle clips) */
+        uint16_t color = (uint16_t)((extra[0] >> 3) | ((extra[1] >> 3) << 5) | ((extra[2] >> 3) << 10));
+        if (kind == 3) {
+            x &= 0x3f0, y &= 0x1ff, w = ((w & 0x3ff) + 0xf) & ~0xf, h &= 0x1ff;
+            for (int row = 0; row < h; row++)
+                for (int col = 0; col < w; col++) {
+                    int i = ((y + row) & 511) * 1024 + ((x + col) & 1023);
+                    sh[i] = color, tn[i] = 0;
+                }
+        } else {
+            int x0 = x < 0 ? 0 : x, y0 = y < 0 ? 0 : y, x1 = x + w > 1024 ? 1024 : x + w, y1 = y + h > 512 ? 512 : y + h;
+            for (int row = y0; row < y1; row++)
+                for (int col = x0; col < x1; col++)
+                    sh[row * 1024 + col] = color, tn[row * 1024 + col] = 0;
+        }
+    }
+}
+static void vcheck_copy(unsigned sx, unsigned sy, unsigned dx, unsigned dy, unsigned w, unsigned h)
+{
+    if (!vcheck_on())
+        return;
+    for (unsigned y = 0; y < h; ++y)
+        for (unsigned x = 0; x < w; x += 16) {
+            uint16_t block[16];
+            uint8_t taints[16];
+            unsigned count = w - x < 16 ? w - x : 16;
+            for (unsigned j = 0; j < count; ++j) {
+                int i = ((sy + y) & 511) * 1024 + ((sx + x + j) & 1023);
+                block[j] = vcheck.shadow[i], taints[j] = vcheck.taint[i];
+            }
+            for (unsigned j = 0; j < count; ++j) {
+                int i = ((dy + y) & 511) * 1024 + ((dx + x + j) & 1023);
+                if (!mask_check || !(vcheck.shadow[i] & 0x8000))
+                    vcheck.shadow[i] = block[j] | (mask_set ? 0x8000 : 0), vcheck.taint[i] = taints[j];
+            }
+        }
+}
+static void vcheck_vsync(void)
+{
+    if (!vcheck_on())
+        return;
+    if (vcheck.rebase) { /* a restore: start again from native VRAM */
+        memcpy(vcheck.shadow, vram, sizeof vram);
+        memset(vcheck.taint, 0, 1024 * 512);
+        vcheck.rebase = 0;
+        return;
+    }
+    int box[4] = { 1024, 512, -1, -1 };
+    unsigned long long bad = 0;
+    for (int i = 0; i < 1024 * 512; i++)
+        if (!vcheck.taint[i] && vcheck.shadow[i] != vram[i]) {
+            ++bad;
+            int x = i & 1023, y = i >> 10;
+            ++vcheck.bad_cell[y / 64 * 16 + x / 64];
+            box[0] = x < box[0] ? x : box[0], box[1] = y < box[1] ? y : box[1];
+            box[2] = x > box[2] ? x : box[2], box[3] = y > box[3] ? y : box[3];
+        }
+    {
+        extern const uint16_t* pc_hw_renderer_vram(void) __attribute__((weak));
+        const uint16_t* rv = pc_hw_renderer_vram ? pc_hw_renderer_vram() : NULL;
+        for (int i = 0; rv && i < 1024 * 512; i++)
+            if (rv[i] != vram[i]) {
+                int c = (i >> 10) / 64 * 16 + (i & 1023) / 64;
+                if (vcheck.taint[i])
+                    ++vcheck.rv_raster, ++vcheck.rv_raster_cell[c];
+                else
+                    ++vcheck.rv_miss, ++vcheck.rv_miss_cell[c];
+            }
+    }
+    ++vcheck.checked;
+    if (bad) {
+        if (!vcheck.bad_frames++)
+            vcheck.first_bad[0] = (int)stream.frames, memcpy(vcheck.first_bad + 1, box, sizeof box), vcheck.first_bad[5] = (int)bad;
+        vcheck.bad_pixels += bad;
+        memcpy(vcheck.shadow, vram, sizeof vram); /* one report per cause, not one per frame after it */
+    }
+    const char* path = getenv("ROOD_VRAM_STREAM_CHECK_OUT"); /* the cell tables, rewritten every 60 vsyncs (a lane reads the last) */
+    FILE* f = path && vcheck.checked % 60 == 0 ? fopen(path, "w") : NULL;
+    if (f) {
+        fprintf(f, "{\"frames\":%u,\"bad_pixels\":%llu,\"feedback\":%llu,\"bad_cell\":{", vcheck.checked, vcheck.bad_pixels, vcheck.feedback);
+        for (int c = 0, n = 0; c < 128; c++)
+            if (vcheck.bad_cell[c])
+                fprintf(f, "%s\"%d,%d\":%llu", n++ ? "," : "", c % 16 * 64, c / 16 * 64, vcheck.bad_cell[c]);
+        fprintf(f, "},\"rv_miss\":%llu,\"rv_raster\":%llu,\"rv_miss_cell\":{", vcheck.rv_miss, vcheck.rv_raster);
+        for (int c = 0, n = 0; c < 128; c++)
+            if (vcheck.rv_miss_cell[c])
+                fprintf(f, "%s\"%d,%d\":%llu", n++ ? "," : "", c % 16 * 64, c / 16 * 64, vcheck.rv_miss_cell[c]);
+        fprintf(f, "},\"rv_raster_cell\":{");
+        for (int c = 0, n = 0; c < 128; c++)
+            if (vcheck.rv_raster_cell[c])
+                fprintf(f, "%s\"%d,%d\":%llu", n++ ? "," : "", c % 16 * 64, c / 16 * 64, vcheck.rv_raster_cell[c]);
+        fprintf(f, "},\"fb_cell\":{");
+        for (int c = 0, n = 0; c < 128; c++)
+            if (vcheck.fb_cell[c])
+                fprintf(f, "%s\"%d,%d\":%llu", n++ ? "," : "", c % 16 * 64, c / 16 * 64, vcheck.fb_cell[c]);
+        fprintf(f, "},\"fb_tpage\":{");
+        for (int c = 0, n = 0; c < 256; c++)
+            if (vcheck.fb_tpage[c])
+                fprintf(f, "%s\"%d\":%llu", n++ ? "," : "", c, vcheck.fb_tpage[c]);
+        fprintf(f, "}}\n");
+        fclose(f);
+    }
+}
+/* RPC vram_stream: {frames, frame: {events, hash} (the last completed frame), total: {events, hash}}. */
+int pc_vram_stream_json(char* out, int size)
+{
+    extern unsigned long long pc_hw_raster_refreshed __attribute__((weak));
+    extern struct { unsigned long long replays, rewritten, unwritten, fell_back, valid, invalid_overlap, invalid_count; } pc_hw_stats __attribute__((weak));
+    int n = snprintf(out, (size_t)size,
+        "{\"frames\":%u,\"frame\":{\"events\":%u,\"hash\":\"%016llx\"},\"total\":{\"events\":%u,\"hash\":\"%016llx\"},"
+        "\"check\":{\"on\":%d,\"frames\":%u,\"bad_frames\":%u,\"bad_pixels\":%llu,\"first_bad\":[%d,%d,%d,%d,%d,%d],"
+        "\"feedback_samples\":%llu,\"first_feedback\":[%d,%d,%d,%d]},\"fences\":{\"store\":%u,\"texture\":%u}}",
+        stream.frames, stream.last_events, (unsigned long long)stream.last, stream.total_events,
+        (unsigned long long)stream.total, vcheck.on > 0, vcheck.checked, vcheck.bad_frames, vcheck.bad_pixels,
+        vcheck.first_bad[0], vcheck.first_bad[1], vcheck.first_bad[2], vcheck.first_bad[3], vcheck.first_bad[4],
+        vcheck.first_bad[5], vcheck.feedback, vcheck.first_feedback[0], vcheck.first_feedback[1],
+        vcheck.first_feedback[2], vcheck.first_feedback[3], fence_counts[1], fence_counts[2]);
+    if (n > 2 && &pc_hw_stats && n + 220 < size) { /* + "renderer": the replay statistics (gpu_hw.c) */
+        n -= 1;
+        n += snprintf(out + n, (size_t)(size - n),
+            ",\"renderer\":{\"raster_bands\":%llu,\"replays\":%llu,\"rewritten\":%llu,\"unwritten\":%llu,\"fell_back\":%llu,"
+            "\"valid\":%llu,\"invalid_overlap\":%llu,\"invalid_count\":%llu}}",
+            pc_hw_raster_refreshed, pc_hw_stats.replays, pc_hw_stats.rewritten, pc_hw_stats.unwritten, pc_hw_stats.fell_back,
+            pc_hw_stats.valid, pc_hw_stats.invalid_overlap, pc_hw_stats.invalid_count);
+    }
+    return n;
+}
 void pc_vram_transfer(int x, int y, int w, int h, void* data, int write)
 {
     if (x < 0 || y < 0 || w < 0 || h < 0 || x + w > 1024 || y + h > 512) {
         fprintf(stderr, "VRAM transfer: %d,%d %dx%d\n", x, y, w, h);
         pc_unimplemented("VRAM rectangle out of bounds");
     }
-    if (!write && pc_hw_sync_store)
+    stream_event(write ? 1 : 2, x, y, w, h, write ? data : NULL, write ? (size_t)w * (size_t)h * 2 : 0);
+    if (write)
+        vcheck_write(x, y, w, h, data, 1, NULL);
+    if (!write && pc_hw_sync_store) {
+        int before = fence_syncs();
         pc_hw_sync_store(x, y, w, h); /* StoreImage */
+        fence_event(1, before, x, y, w, h);
+    }
     if (write && pc_hw_before_write)
         pc_hw_before_write(x, y, w, h);
     for (int row = 0; row < h; row++) {
@@ -165,6 +409,8 @@ void pc_vram_transfer(int x, int y, int w, int h, void* data, int write)
  * Out-of-range requests are logged once, not rejected. */
 void pc_vram_clear(int x, int y, int w, int h, int r, int g, int b)
 {
+    stream_event(3, x, y, w, h, (int[]) { r, g, b }, 3 * sizeof(int));
+    vcheck_write(x, y, w, h, NULL, 3, (int[]) { r, g, b });
     static int reported;
     if ((x < 0 || y < 0 || w < 0 || h < 0 || x + w > 1024 || y + h > 512) && !reported++)
         fprintf(stderr, "[gpu] VRAM fill %d,%d %dx%d wraps (hardware fill semantics)\n", x, y,
@@ -194,6 +440,8 @@ void pc_vram_clear(int x, int y, int w, int h, int r, int g, int b)
  * ClearImage draws one for areas that aren't 64-pixel aligned). */
 void pc_vram_rect(int x, int y, int w, int h, int r, int g, int b)
 {
+    stream_event(4, x, y, w, h, (int[]) { r, g, b }, 3 * sizeof(int));
+    vcheck_write(x, y, w, h, NULL, 4, (int[]) { r, g, b });
     int x0 = x < 0 ? 0 : x, y0 = y < 0 ? 0 : y;
     int x1 = x + w > 1024 ? 1024 : x + w, y1 = y + h > 512 ? 512 : y + h;
     if (x1 <= x0 || y1 <= y0)
@@ -734,6 +982,8 @@ static void pixel(int x, int y, uint16_t color, int semi)
     uint16_t* dst = &vram[y * 1024 + x];
     if (mask_check && (*dst & 0x8000))
         return;
+    if (vcheck.on > 0)
+        vcheck.taint[y * 1024 + x] = 1;
     if (semi) {
         int output = 0;
         for (int ch = 0; ch < 3; ch++) {
@@ -765,6 +1015,12 @@ static uint16_t texture(int u, int v, unsigned clut)
     unsigned maskx = (texture_window & 31) * 8, masky = ((texture_window >> 5) & 31) * 8;
     u = ((u & ~maskx) | (((texture_window >> 10) & 31) * 8 & maskx)) & 255;
     v = ((v & ~masky) | (((texture_window >> 15) & 31) * 8 & masky)) & 255;
+    if (vcheck.on > 0) {
+        int column = (tpage >> 7 & 3) == 0 ? u / 4 : (tpage >> 7 & 3) == 1 ? u / 2 : u;
+        vcheck_sample(((ty + v) & 511) * 1024 + ((tx + column) & 1023), tpage, clut);
+        if ((tpage >> 7 & 3) < 2)
+            vcheck_sample(((clut >> 6) & 511) * 1024 + ((clut & 63) * 16 & 1023), tpage, clut);
+    }
     switch ((tpage >> 7) & 3) {
     case 0:
         val =
@@ -841,6 +1097,8 @@ static void commands(uint32_t* p, unsigned n)
             unsigned dx = p[i + 2] & 1023, dy = (p[i + 2] >> 16) & 511;
             unsigned w = ((p[i + 3] - 1) & 1023) + 1;
             unsigned h = (((p[i + 3] >> 16) - 1) & 511) + 1;
+            stream_event(5, (int)dx, (int)dy, (int)w, (int)h, (int[]) { (int)sx, (int)sy }, 2 * sizeof(int));
+            vcheck_copy(sx, sy, dx, dy, w, h);
             if (pc_hw_stale_copy)
                 pc_hw_stale_copy((int)sx, (int)sy, (int)dx, (int)dy, (int)w, (int)h);
             if (pc_hw_before_write)
@@ -934,9 +1192,10 @@ static void commands(uint32_t* p, unsigned n)
                 uv += (unsigned)pc_button_roles_texels(vram, tpage, uv >> 16, (int)(uv & 255), (int)((uv >> 8) & 255),
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1);
             if (tex && pc_hw_sync_texture) {
-                int clip[4] = { clip_x, clip_y, clip_w, clip_h };
+                int clip[4] = { clip_x, clip_y, clip_w, clip_h }, before = fence_syncs();
                 pc_hw_sync_texture(tpage, uv >> 16, texture_window, uv & 255, (uv >> 8) & 255,
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1, clip);
+                fence_event(2, before, (int)(uv & 255), (int)((uv >> 8) & 255), (int)w, (int)h);
             }
             {
                 int clip[4] = { clip_x, clip_y, clip_w, clip_h };
@@ -965,7 +1224,7 @@ static void commands(uint32_t* p, unsigned n)
                     i += words;
                     continue;
                 }
-                pc_hw_mark(x, y, x + (int)w - 1, y + (int)h - 1);
+                pc_hw_mark_raster(x, y, x + (int)w - 1, y + (int)h - 1);
             }
             uint64_t cost = pc_cost_begin();
             pc_cost_count(PC_COUNT_RASTER_PX, w * h);
@@ -1154,6 +1413,7 @@ static void draw_packet(void* data, int chain)
     int hide2d = chain == 1 && &pc_photo_hide_game2d && pc_photo_hide_game2d && &pc_photo_game2d_slots, hidden = 0;
     for (unsigned links = 0; links < 100000; links++) {
         uint32_t tag = *p;
+        ++stream.draws;
         if (chain == 1)
             ot_layers_note(p);
         uint32_t t_list;
@@ -1284,6 +1544,7 @@ static void tick_frame_work(void);
 void pc_tick(void)
 {
     ++vsyncs;
+    stream_vsync();
     pc_cost_vsync();
     if (pc_state_diff_vsync)
         pc_state_diff_vsync(); /* compare the completed frame before RPC changes */

@@ -97,7 +97,7 @@ static void triangle(
         pc_cost_count(PC_COUNT_SKIPPED_PX, (unsigned)((maxx - minx + 1) * (maxy - miny + 1)));
         return;
     }
-    pc_hw_mark(minx, miny, maxx, maxy);
+    pc_hw_mark_raster(minx, miny, maxx, maxy);
     uint64_t cost = pc_cost_begin();
     pc_cost_count(PC_COUNT_RASTER_PX, (unsigned)((maxx - minx + 1) * (maxy - miny + 1)));
     int tl0 = top_left(&b, &c), tl1 = top_left(&c, &a), tl2 = top_left(&a, &b);

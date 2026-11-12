@@ -42,6 +42,7 @@ from PIL import Image
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "pc/tools"))
 sys.path.insert(0, str(ROOT / "pc/tests"))
+import rood_rpc  # noqa: E402
 from rood_rpc import Game  # noqa: E402
 import golden_frames as gf  # noqa: E402
 
@@ -67,8 +68,9 @@ def defaults(args):
     return {**gf.DEFAULTS, "widescreen": args.widescreen, **shadows, **json.loads(args.graphics)}
 
 
-ACTORS = 0x800F4538  # D_800F4538: the battle actors (pointers)
-BLENDED_BUILDERS = 0x800E8FC0  # D_800E8FC0: every actor through the blended builders
+ACTORS = "D_800F4538"  # the battle actors (pointers); a global, read by its symbol (it is not at its PS1 address)
+BLENDED_BUILDERS = "D_800E8FC0"  # every actor through the blended builders
+PTR = 8 if os.environ.get("ROOD_ARCH") == "64" else 4  # a pointer in the game's arrays
 
 
 def fade_scene(game, out, mode, shots, stats, args):
@@ -76,9 +78,10 @@ def fade_scene(game, out, mode, shots, stats, args):
     def read(address, length):
         r = game.call("read", address=address, length=length)
         return bytes.fromhex(r["hex"] if isinstance(r, dict) else r)
-    pointers = read(ACTORS, 16)
-    actors = [int.from_bytes(pointers[i:i + 4], "little") for i in range(4, 16, 4)]
-    game.call("write", address=BLENDED_BUILDERS, hex="01")
+    sym = rood_rpc.symbols()
+    pointers = read(sym[ACTORS], PTR * 4)
+    actors = [int.from_bytes(pointers[i:i + PTR], "little") for i in range(PTR, PTR * 4, PTR)]
+    game.call("write", address=sym[BLENDED_BUILDERS], hex="01")
     for blend in (3, 8):  # B-F, B+F
         for a in actors:
             if a:
@@ -101,7 +104,7 @@ def fade_scene(game, out, mode, shots, stats, args):
         shots[f"fade-interpolated{i}"] = gf.capture(game, out / f"fade-interpolated{i}-{mode}.png")
     stats["fade-interpolated"] = game.call("render_stats")
     game.call("graphics", **defaults(args))
-    game.call("write", address=BLENDED_BUILDERS, hex="00")
+    game.call("write", address=rood_rpc.symbols()[BLENDED_BUILDERS], hex="00")
 
 
 def capture_all(args, out, mode):

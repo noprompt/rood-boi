@@ -1049,6 +1049,23 @@ static void own_apply(void);
 static const uint16_t* native_vram;
 /* The CPU's VRAM (textures and CLUTs as the game loaded them). */
 const uint16_t* pc_hw_native_vram(void) { return native_vram; }
+/* The renderer's VRAM (T5 S2): what the stream's commands (upload, fill, copy: each applied at its event, from the game's
+ * array as that command left it) and the GPU read-backs (sync_kinds) have made, and nothing else. The sampled copy, the UI
+ * text and upscale lookups and the replays' undo read this array, not the game's: pixels only the CPU rasterizer wrote are
+ * not in it unless a read-back brought them. ROOD_VRAM_RENDERER=native samples the game's array again (the comparison). */
+static uint16_t rvram[1024 * 512];
+static const uint16_t* renderer_vram;
+const uint16_t* pc_hw_renderer_vram(void) { return rvram; }
+static void rvram_apply(int x, int y, int w, int h)
+{
+    if (!native_vram)
+        return;
+    for (int row = 0; row < h; row++)
+        for (int col = 0; col < w; col++) {
+            size_t i = (size_t)((y + row) & 511) * 1024 + (size_t)((x + col) & 1023);
+            rvram[i] = native_vram[i];
+        }
+}
 
 static const char* draw_vertex_source =
     "#version 330 core\n"
@@ -1379,6 +1396,11 @@ void pc_hw_init(const uint16_t* vram)
     if (setting && pc_settings_env_override)
         pc_settings_env_override("internal_resolution"); /* not saved as the user's (project_settings.cpp) */
     native_vram = vram;
+    memcpy(rvram, vram, sizeof rvram);
+    {
+        const char* which = getenv("ROOD_VRAM_RENDERER");
+        renderer_vram = which && !strcmp(which, "native") ? vram : rvram;
+    }
 #ifdef ROOD_VULKAN
     if (pc_vk_on()) {
         if (!pc_vk_hw_init(pc_hw_scale, sizeof(hw_vertex)))
@@ -1618,6 +1640,36 @@ void pc_hw_mark(int x0, int y0, int x1, int y1)
         pc_emissive_vram_dirty(tiles);
     }
 }
+/* What the CPU rasterizer drew (pc_hw_mark_raster) is not a stream event: the renderer takes it from the game's array when it
+ * next reads those bands (raster_refresh), the one place the renderer's VRAM still reads the game's. T5 S3 replaces it with
+ * a fence (S1's feedback list: the display-area bands). `pc_hw_raster_refreshed` counts the bands taken. */
+static uint32_t raster_bands[16];
+unsigned long long pc_hw_raster_refreshed;
+/* Replay statistics (RPC vram_stream "renderer"): frames drawn as interpolated, batches redrawn with undone writes, batches
+ * that fell back to B's pixels, recordings finished valid / invalidated by writes. */
+struct { unsigned long long replays, rewritten, unwritten, fell_back, valid, invalid_overlap, invalid_count; } pc_hw_stats;
+void pc_hw_mark_raster(int x0, int y0, int x1, int y1)
+{
+    if (pc_hw_active)
+        bands_for(x0, y0, x1, y1, raster_bands);
+    pc_hw_mark(x0, y0, x1, y1);
+}
+static void raster_refresh(const uint32_t want[16])
+{
+    if (!native_vram)
+        return;
+    for (int c = 0; c < 16; c++) {
+        uint32_t bands = want[c] & raster_bands[c];
+        for (int b = 0; bands; b++, bands >>= 1)
+            if (bands & 1) {
+                for (int row = 0; row < 16; row++)
+                    memcpy(rvram + (size_t)(b * 16 + row) * 1024 + c * 64, native_vram + (size_t)(b * 16 + row) * 1024 + c * 64,
+                        64 * sizeof *rvram);
+                ++pc_hw_raster_refreshed;
+            }
+        raster_bands[c] &= ~want[c];
+    }
+}
 /* The sampled copy of VRAM: `bands` (dirty_bands' layout) from `vram`
  * (1024 x 512 halfwords), as one copy per run of bands in a column, all in
  * one call. */
@@ -1672,7 +1724,8 @@ static void upload_tiles(uint32_t tiles)
 {
     uint32_t bands[16] = { 0 };
     bands_of_tiles(tiles, bands);
-    upload_bands_from(native_vram, bands);
+    raster_refresh(bands);
+    upload_bands_from(renderer_vram, bands);
     for (int c = 0; c < 16; c++)
         dirty_bands[c] &= ~bands[c];
     dirty_tiles = tiles_of_bands(dirty_bands);
@@ -1680,7 +1733,8 @@ static void upload_tiles(uint32_t tiles)
 /* `bands` from native VRAM, dirty or not (a replay drew its own copy there). */
 static void upload_bands(const uint32_t bands[16])
 {
-    upload_bands_from(native_vram, bands);
+    raster_refresh(bands);
+    upload_bands_from(renderer_vram, bands);
     for (int c = 0; c < 16; c++)
         dirty_bands[c] &= ~bands[c];
     dirty_tiles = tiles_of_bands(dirty_bands);
@@ -1702,7 +1756,8 @@ static void upload_dirty(const uint32_t want[16])
         bands[c] = want[c] & dirty_bands[c];
         dirty_bands[c] &= ~bands[c];
     }
-    upload_bands_from(native_vram, bands);
+    raster_refresh(bands);
+    upload_bands_from(renderer_vram, bands);
     dirty_tiles = tiles_of_bands(dirty_bands);
 }
 /* The bands an own copy left (the target's, not native VRAM) are dirty again. */
@@ -2495,7 +2550,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
             distance = 1;
         } else if (ui && textured && !(depth[0] | depth[1] | depth[2])) {
             int u1 =bounds[2] > bounds[0] ? bounds[2] - 1 : bounds[0], v1 = bounds[3] > bounds[1] ? bounds[3] - 1 : bounds[1];
-            int found = pc_ui_upscale_lookup(native_vram, tpage, clut, window, bounds[0], bounds[1], u1, v1, pc_hw_scale,
+            int found = pc_ui_upscale_lookup(renderer_vram, tpage, clut, window, bounds[0], bounds[1], u1, v1, pc_hw_scale,
                 ui_offset);
             if (found < 0) {
                 /* The atlas is full: draw what uses it, then start it afresh
@@ -2503,7 +2558,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
                 flush();
                 pc_ui_upscale_reset();
                 forget_recordings();
-                found = pc_ui_upscale_lookup(native_vram, tpage, clut, window, bounds[0], bounds[1], u1, v1, pc_hw_scale,
+                found = pc_ui_upscale_lookup(renderer_vram, tpage, clut, window, bounds[0], bounds[1], u1, v1, pc_hw_scale,
                     ui_offset);
             }
             if (found > 0)
@@ -2804,7 +2859,7 @@ static void text_run_flush(void)
     pc_hw_suppress = 0;
     /* Each glyph in its cell (ui_text_layout glyph), then as lines (line). */
     for (int mode = PC_UI_TEXT_LAYOUT_GLYPH; mode <= PC_UI_TEXT_LAYOUT_LINE; mode++) {
-        pc_ui_text_layout_run(native_vram, infos, count, pc_hw_scale, mode, quads);
+        pc_ui_text_layout_run(renderer_vram, infos, count, pc_hw_scale, mode, quads);
         triangle_tag = mode == PC_UI_TEXT_LAYOUT_LINE ? TEXT_TAG_LINE : TEXT_TAG_CELL;
         text_emit(count, quads);
     }
@@ -2867,7 +2922,7 @@ int pc_hw_text_quad(const float* xy, const int* uv, const int* rgb, unsigned cod
     if (uv[2] != u0 + 12 || uv[3] != v0 || uv[4] != u0 || uv[5] != v0 + 12 || uv[6] != u0 + 12 || uv[7] != v0 + 12)
         return 0; /* not a whole cell, upright */
     float k = (x1 - x0) / 12.0f;
-    if (fabsf((y1 - y0) / 12.0f - k) > 0.01f * k || !pc_ui_text_piece(native_vram, tpage, clut, u0, v0, 12, 12))
+    if (fabsf((y1 - y0) / 12.0f - k) > 0.01f * k || !pc_ui_text_piece(renderer_vram, tpage, clut, u0, v0, 12, 12))
         return 0;
     pc_ui_text_piece_info info = { x0, y0, k, u0, v0, 12, tpage, clut, { clip[0], clip[1], clip[2], clip[3] } };
     text_piece_add(&info, 0, (unsigned)(rgb[0] | rgb[1] << 8 | rgb[2] << 16), code, window, mask_set, mask_check);
@@ -2884,8 +2939,8 @@ static int status_rect(int x, int y, int w, int h, int u, int v, unsigned rgb, u
 {
     pc_ui_text_quad q;
     const void* command = &pc_gpu_command ? pc_gpu_command : NULL;
-    if (!pc_ui_text_status_quad(native_vram, command, u, v, w, h, tpage, clut, &q)
-        && !pc_ui_text_word_quad(native_vram, command, u, v, w, h, tpage, clut, &q))
+    if (!pc_ui_text_status_quad(renderer_vram, command, u, v, w, h, tpage, clut, &q)
+        && !pc_ui_text_word_quad(renderer_vram, command, u, v, w, h, tpage, clut, &q))
         return 0;
     triangle_tag = TEXT_TAG_GLYPH;
     rect_triangles(x, y, w, h, u, v, rgb, code, tpage, clut, window, clip, mask_set, mask_check);
@@ -2921,7 +2976,7 @@ void pc_hw_rect(int x, int y, int w, int h, int u, int v, unsigned rgb, unsigned
         && status_rect(x, y, w, h, u, v, rgb, code, tpage, clut, window, clip, mask_set, mask_check))
         return;
     if (!text_emitting && pc_hw_active && !pc_hw_suppress && (code & 4) && pc_ui_text_layout_on(pc_hw_scale)
-        && pc_ui_text_piece(native_vram, tpage, clut, u, v, w, h)) {
+        && pc_ui_text_piece(renderer_vram, tpage, clut, u, v, w, h)) {
         pc_ui_text_piece_info info = { (float)x, (float)y, 1.0f, u, v, h, tpage, clut,
             { clip[0], clip[1], clip[2], clip[3] } };
         text_piece_add(&info, 1, rgb, code, window, mask_set, mask_check);
@@ -3192,6 +3247,7 @@ void pc_hw_fill(int x, int y, int w, int h, int r, int g, int b)
 {
     if (!pc_hw_active || w <= 0 || h <= 0)
         return;
+    rvram_apply(x, y, w, h); /* the stream's fill event */
     flush();
     overlay_bake_rect(x, y, x + w, y + h);
     record_fill(x, y, w, h, r, g, b);
@@ -3372,6 +3428,7 @@ void pc_hw_upload(int x, int y, int w, int h)
 {
     if (!pc_hw_active || w <= 0 || h <= 0)
         return;
+    rvram_apply(x, y, w, h); /* the stream's upload event */
     flush();
     overlay_bake_rect(x, y, x + w, y + h);
     if (ms_scope == target_fbo)
@@ -3425,6 +3482,7 @@ void pc_hw_copy(int sx, int sy, int dx, int dy, int w, int h)
 {
     if (!pc_hw_active || w <= 0 || h <= 0)
         return;
+    rvram_apply(dx, dy, w, h); /* the stream's copy event */
     flush();
     overlay_bake_rect(sx, sy, sx + w, sy + h); /* what it reads */
     overlay_bake_rect(dx, dy, dx + w, dy + h);
@@ -3529,8 +3587,11 @@ void pc_hw_detail_view(int on)
  * Refill the target from it (what was drawn at the internal resolution
  * shows at native resolution until the game draws it again) and forget
  * what was recorded for the previous frame (interpolation). */
+extern void pc_vram_taint(int, int, int, int); /* boot_runtime.c */
+extern void pc_vram_stream_rebase(void);
 void pc_hw_resync(void)
 {
+    pc_vram_stream_rebase();
     if (!pc_hw_active)
         return;
     flush();
@@ -4465,7 +4526,9 @@ static void sync_kinds(int x, int y, int w, int h, int kinds)
             ms_end_over(x0, y0, x1 - x0, y1 - y0);
         static unsigned char pixels[1024 * 512 * 4];
         read_native_pixels(target_fbo, x0, y0, x1, y1, pixels);
-        pixels_to_vram(pixels, x0, y0, x1, y1, (uint16_t*)(uintptr_t)native_vram);
+    pixels_to_vram(pixels, x0, y0, x1, y1, (uint16_t*)(uintptr_t)native_vram);
+        rvram_apply(x0, y0, x1 - x0, y1 - y0); /* the read-back is the renderer's too */
+        pc_vram_taint(x0, y0, x1, y1); /* ROOD_VRAM_STREAM_CHECK: not the stream's */
         mark_dirty(x0, y0, x1 - 1, y1 - 1); /* the sampled copy follows */
         pc_ui_upscale_tiles_changed(tiles_for(x0, y0, x1 - 1, y1 - 1));
         pc_emissive_vram_dirty(tiles_for(x0, y0, x1 - 1, y1 - 1));
@@ -4642,7 +4705,21 @@ int pc_present_rate = 1;
 float pc_present_phase;
 #define MAX_RECORDED_VERTICES (3 * MAX_VERTICES)
 #define MAX_RECORDED_OPS 4096
-#define WRITE_KEEP 4096 /* VRAM halfwords a write may replace and be undone (op_rewritten) */
+#define WRITE_KEEP 65536 /* VRAM halfwords a write may replace and be undone (op_rewritten) */
+/* The stream's writes (LoadImage, VRAM copies), in order, each with the VRAM it replaced: a recording holds the position
+ * of its first write (wfirst) and how many it saw. A ring: an entry is gone once WLOG_ENTRIES newer ones or WLOG_ARENA
+ * halfwords of newer old data exist (then its write cannot be undone: the batch keeps B's pixels, as for a write too large). */
+#define WLOG_ENTRIES 8192
+#define WLOG_ARENA (1u << 22)
+typedef struct {
+    int rect[5]; /* x, y, w, h, ops its recording had drawn before it */
+    int kept;
+    uint64_t start; /* where its old data starts, in halfwords since the first write */
+} write_entry;
+static write_entry wlog[WLOG_ENTRIES];
+static uint16_t wold[WLOG_ARENA];
+static uint64_t wcount, wused; /* writes logged; halfwords of old data logged */
+
 #define MATCH_SLOTS 131072
 typedef struct {
     float world[9];
@@ -4668,11 +4745,7 @@ typedef struct {
     recorded_triangle triangles[MAX_RECORDED_VERTICES / 3];
     recorded_op ops[MAX_RECORDED_OPS];
     int vertex_count, triangle_count, op_count, overflow, writes;
-    int write_rects[16][5]; /* x, y, w, h, ops drawn before it */
-    /* What each small write replaced (pc_hw_before_write), so a replayed
-     * batch whose texels or CLUT it rewrote samples them as it drew. */
-    uint8_t write_kept[16];
-    uint16_t write_old[16][WRITE_KEEP];
+    uint64_t wfirst; /* position in the write log of this recording's first write (what each replaced is kept there) */
     float r[3][3], t[3], h, ofx, ofy;
     int widescreen, valid;
     float fade, fade_rect[4]; /* a screen fade's amount (0..1; record_fade) and where it covers */
@@ -4680,6 +4753,15 @@ typedef struct {
     uint32_t slots[MATCH_SLOTS]; /* surface -> start of its run in by_surface + 1 */
     int by_surface[MAX_RECORDED_VERTICES / 3], grouped; /* keyed triangles sorted by surface */
 } recording;
+/* Write `i` of `rec` (the recording's i-th), or NULL when it has left the log. */
+static const write_entry* write_at(const recording* rec, int i)
+{
+    uint64_t n = rec->wfirst + (uint64_t)i;
+    const write_entry* e = &wlog[n % WLOG_ENTRIES];
+    if (wcount - n > WLOG_ENTRIES || wused - e->start > WLOG_ARENA)
+        return NULL;
+    return e;
+}
 /* Three slots: the frame being recorded, the newest finished frame (B)
  * and the one before it (A). */
 static recording recordings[3];
@@ -4944,8 +5026,11 @@ static int op_rewritten(const recording* b, int o, const recording* later)
         const recording* rec = pass ? later : b;
         if (!rec)
             continue;
-        for (int i = 0; i < rec->writes && i < 16; i++) {
-            const int* w = rec->write_rects[i];
+        for (int i = 0; i < rec->writes; i++) {
+            const write_entry* e = write_at(rec, i);
+            if (!e)
+                return 1; /* (gone from the log: it may have hit; replay_unwrite then keeps B's pixels) */
+            const int* w = e->rect;
             if (rec == b && w[4] <= o)
                 continue; /* written before it drew */
             if (write_hits(w, op->texels) || write_hits(w, op->cluts))
@@ -5005,8 +5090,13 @@ void pc_hw_before_write(int x, int y, int w, int h)
     if (!pc_hw_active || !native_vram || w <= 0 || h <= 0 || w * h > WRITE_KEEP || x < 0 || y < 0 || x + w > 1024
         || y + h > 512)
         return;
+    {
+        uint32_t bands[16] = { 0 };
+        bands_for(x, y, x + w - 1, y + h - 1, bands);
+        raster_refresh(bands);
+    }
     for (int row = 0; row < h; row++)
-        memcpy(pending_old + row * w, native_vram + (size_t)(y + row) * 1024 + x, (size_t)w * sizeof *pending_old);
+        memcpy(pending_old + row * w, renderer_vram + (size_t)(y + row) * 1024 + x, (size_t)w * sizeof *pending_old);
     pending_write[0] = x, pending_write[1] = y, pending_write[2] = w, pending_write[3] = h;
     pending_kept = 1;
 }
@@ -5017,13 +5107,16 @@ static void record_write(int x, int y, int w, int h)
     int kept = pending_kept && pending_write[0] == x && pending_write[1] == y && pending_write[2] == w
         && pending_write[3] == h;
     pending_kept = 0;
-    if (rec->writes < 16) {
-        int* q = rec->write_rects[rec->writes];
-        q[0] = x, q[1] = y, q[2] = w, q[3] = h, q[4] = rec->op_count;
-        rec->write_kept[rec->writes] = (uint8_t)kept;
-        if (kept)
-            memcpy(rec->write_old[rec->writes], pending_old, (size_t)(w * h) * sizeof *pending_old);
+    write_entry* e = &wlog[wcount % WLOG_ENTRIES];
+    e->rect[0] = x, e->rect[1] = y, e->rect[2] = w, e->rect[3] = h, e->rect[4] = rec->op_count;
+    e->kept = kept;
+    e->start = wused;
+    if (kept) {
+        for (size_t k = 0; k < (size_t)(w * h); k++)
+            wold[(wused + k) % WLOG_ARENA] = pending_old[k];
+        wused += (uint64_t)(w * h);
     }
+    ++wcount;
     ++rec->writes;
 }
 static const recorded_triangle* sort_base;
@@ -5100,16 +5193,23 @@ static void finish_recording(recording* rec)
     /* A write matters when it lands on what this frame already drew (it is
      * then part of the picture the replay cannot redraw); tiny ones (sync
      * pixels) never matter. */
-    for (int i = 0; i < rec->writes && i < 16 && rec->valid; i++)
-        for (int k = 0; k < rec->write_rects[i][4] && rec->write_rects[i][2] * rec->write_rects[i][3] >= 64; k++) {
-            const int *a = rec->write_rects[i], *c = rec->ops[k].clip;
+    for (int i = 0; i < rec->writes && rec->valid; i++) {
+        const write_entry* e = write_at(rec, i);
+        if (!e) {
+            rec->valid = 0;
+            ++pc_hw_stats.invalid_count;
+            break;
+        }
+        for (int k = 0; k < e->rect[4] && e->rect[2] * e->rect[3] >= 64; k++) {
+            const int *a = e->rect, *c = rec->ops[k].clip;
             if (a[0] < c[0] + c[2] && c[0] < a[0] + a[2] && a[1] < c[1] + c[3] && c[1] < a[1] + a[3]) {
                 rec->valid = 0;
+                ++pc_hw_stats.invalid_overlap;
                 break;
             }
         }
-    if (rec->writes > 16)
-        rec->valid = 0;
+    }
+    pc_hw_stats.valid += rec->valid;
     if (!recording_camera(rec, rec->r, rec->t, &rec->h, &rec->ofx, &rec->ofy))
         rec->valid = 0;
     rec->widescreen = pc_gte_widescreen;
@@ -5324,11 +5424,16 @@ static int op_feedback(const recording* b, int o)
 static uint16_t replay_vram[1024 * 512];
 static void replay_vram_from_native(uint32_t tiles)
 {
+    {
+        uint32_t bands[16] = { 0 };
+        bands_of_tiles(tiles, bands);
+        raster_refresh(bands);
+    }
     for (int tile = 0; tile < 32; tile++)
         if (tiles & (1u << tile)) {
             int x = (tile & 15) * 64, y = (tile >> 4) * 256;
             for (int row = 0; row < 256; row++)
-                memcpy(replay_vram + (y + row) * 1024 + x, native_vram + (y + row) * 1024 + x,
+                memcpy(replay_vram + (y + row) * 1024 + x, renderer_vram + (y + row) * 1024 + x,
                     64 * sizeof *replay_vram);
         }
 }
@@ -5375,15 +5480,16 @@ static uint32_t replay_unwrite(const recording* b, int o, const recording* later
         const recording* rec = pass ? b : later;
         if (!rec)
             continue;
-        if (rec->writes > 16)
-            return 0;
         for (int i = rec->writes - 1; i >= 0; i--) {
-            const int* w = rec->write_rects[i];
+            const write_entry* e = write_at(rec, i);
+            if (!e)
+                return 0;
+            const int* w = e->rect;
             if (rec == b && w[4] <= o)
                 break; /* written before it drew */
             if (!write_hits(w, op->texels) && !write_hits(w, op->cluts))
                 continue;
-            if (!rec->write_kept[i])
+            if (!e->kept)
                 return 0;
             tiles |= tiles_for(w[0], w[1], w[0] + w[2] - 1, w[1] + w[3] - 1);
         }
@@ -5396,14 +5502,15 @@ static uint32_t replay_unwrite(const recording* b, int o, const recording* later
         if (!rec)
             continue;
         for (int i = rec->writes - 1; i >= 0; i--) {
-            const int* w = rec->write_rects[i];
+            const write_entry* e = write_at(rec, i);
+            const int* w = e->rect;
             if (rec == b && w[4] <= o)
                 break;
             if (!write_hits(w, op->texels) && !write_hits(w, op->cluts))
                 continue;
             for (int row = 0; row < w[3]; row++)
-                memcpy(replay_vram + (size_t)(w[1] + row) * 1024 + w[0], rec->write_old[i] + row * w[2],
-                    (size_t)w[2] * sizeof *replay_vram);
+                for (int col = 0; col < w[2]; col++)
+                    replay_vram[(size_t)(w[1] + row) * 1024 + w[0] + col] = wold[(e->start + (uint64_t)(row * w[2] + col)) % WLOG_ARENA];
         }
     }
     upload_tiles_from(replay_vram, tiles);
@@ -5458,7 +5565,10 @@ static void replay_frame(const recording* a, const recording* b, float t)
             continue;
         }
         uint32_t unwritten = 0;
-        if (op_rewritten(b, o, recording_now()) && !(unwritten = replay_unwrite(b, o, recording_now()))) {
+        int rewritten = op_rewritten(b, o, recording_now());
+        pc_hw_stats.rewritten += rewritten;
+        if (rewritten && !(unwritten = replay_unwrite(b, o, recording_now()))) {
+            ++pc_hw_stats.fell_back;
             /* Its texels changed since and cannot be undone: B's own pixels
              * where it drew (with everything B drew over them later: the
              * later batches draw there again, translucent ones twice). */
@@ -5471,6 +5581,7 @@ static void replay_frame(const recording* a, const recording* b, float t)
                 copy_to_replay(x0, y0, x1, y1);
             continue;
         }
+        pc_hw_stats.unwritten += unwritten != 0;
         if (op->fill) {
             fill_target(replay.fbo, op->clip[0], op->clip[1], op->clip[2], op->clip[3], op->first, op->count,
                 op->blend);
@@ -5838,7 +5949,7 @@ static void close_frame(unsigned vsync)
         arrival[newest] = vsync;
         recording_index = 3 - previous - newest;
         recording* next = recording_now();
-        next->vertex_count = next->triangle_count = next->op_count = next->overflow = next->writes = 0;
+        next->vertex_count = next->triangle_count = next->op_count = next->overflow = next->writes = 0, next->wfirst = wcount;
         next->fade = 0;
         next->menu_model = 0;
         next->valid = 0;
@@ -5936,6 +6047,7 @@ static GLuint hw_target(void)
     if (drawn_slot != newest || drawn_vsync != vsync || drawn_arrival != arrival[newest]
         || drawn_phase != pc_present_phase || force_replay) {
         force_replay = 0;
+        ++pc_hw_stats.replays;
         replay_frame(a, b, t);
         ms_end();
         drawn_slot = newest, drawn_vsync = vsync, drawn_arrival = arrival[newest], drawn_phase = pc_present_phase;
@@ -6021,7 +6133,7 @@ static void forget_recordings(void)
     presenting_replay = 0;
     for (int i = 0; i < 3; i++) {
         recording* rec = &recordings[i];
-        rec->vertex_count = rec->triangle_count = rec->op_count = rec->overflow = rec->writes = 0;
+        rec->vertex_count = rec->triangle_count = rec->op_count = rec->overflow = rec->writes = 0, rec->wfirst = wcount;
         rec->valid = rec->menu_model = 0;
     }
 }

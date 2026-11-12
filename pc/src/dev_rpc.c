@@ -3163,6 +3163,15 @@ static void handle_method(int fd, const char* request)
             sfx_other = 0;
         }
         reply(fd, id, result);
+    } else if (!strcmp(method, "vram_stream")) {
+        /* The VRAM stream's digest (boot_runtime.c, T5 S0): the last completed frame's and the running one. */
+        extern int pc_vram_stream_json(char*, int) __attribute__((weak));
+        if (!pc_vram_stream_json) {
+            fail(fd, id, -32000, "no VRAM stream in this build");
+            return;
+        }
+        pc_vram_stream_json(result, (int)sizeof result);
+        reply(fd, id, result);
     } else if (!strcmp(method, "perf")) {
         /* GPU time per presented frame since the last {reset: true} (ROOD_PERF=1). */
         int flag = 0;
