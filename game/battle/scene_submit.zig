@@ -78,7 +78,6 @@ pub fn func_8008AC78() callconv(.c) void {
     if (v.g.D_800F1CD4().* <= 0) return;
 
     c.func_8008B590(psx.cptr(c.MATRIX, &rotation), 0x800 -% view().camera.angles.vy);
-    c.SetRotMatrix(psx.cptr(c.MATRIX, &rotation));
     // The map's drawing areas and frame are draw items placed at the table's slot 5 (the packets AddPrim linked there): the
     // first area is the other buffer's whole one, the second the map's window.
     const mapPackets: ?*anyopaque = psx.get(scratch().unk0);
@@ -98,7 +97,8 @@ pub fn func_8008AC78() callconv(.c) void {
     c.vs_battle_getGeomOffset(psx.cptr(c.vs_battle_geomOffset, &savedOffset));
     c.vs_battle_setGeomOffset(psx.cptr(c.vs_battle_geomOffset, &mapOffset));
     v.g.pc_gte_anchored().* = 1;
-    c.func_80098F8C(psx.cptr(c.vs_battle_scene, psx.get(v.g.vs_battle_roomData().sectionF).?));
+    const mapView = @import("common").gte.viewOf(&rotation, @import("common").gte.screenCurrent());
+    c.func_80098F8C(psx.cptr(c.vs_battle_scene, psx.get(v.g.vs_battle_roomData().sectionF).?), @ptrCast(&mapView));
     v.g.pc_gte_anchored().* = 0;
     c.vs_battle_setGeomOffset(psx.cptr(c.vs_battle_geomOffset, &savedOffset));
     c.SetRotMatrix(psx.cptr(c.MATRIX, &view().viewMatrix));

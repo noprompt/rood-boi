@@ -155,6 +155,7 @@ extern fn vs_gte_run4(view: *const View, v: *const [4][3]i16, caller: ?*const an
 extern fn vs_gte_nclip(sxy0: c_uint, sxy1: c_uint, sxy2: c_uint) callconv(.c) c_int;
 extern fn vs_gte_avsz3(zsf3: c_int, sz1: c_uint, sz2: c_uint, sz3: c_uint) callconv(.c) c_uint;
 extern fn vs_gte_op0(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir3: c_uint, mac: *[3]c_int) callconv(.c) void;
+extern fn SetGeomOffset(ofx: c_int, ofy: c_int) callconv(.c) void;
 extern fn vs_gte_screen_current() callconv(.c) Screen;
 
 /// For a transform or a rotation, which do not project.
@@ -225,6 +226,11 @@ pub fn nclipOf(a: c_uint, b: c_uint, third: c_uint) c_int {
 /// AVSZ3 of three depth words, scaled by the game's current ZSF3 (OTZ as MFC2 reads it).
 pub fn avsz3Of(a: c_uint, b: c_uint, third: c_uint) c_uint {
     return vs_gte_avsz3(vs_gte_screen_current().zsf3, a, b, third);
+}
+
+/// SetGeomOffset: the screen offset in pixels (the registers and the screen record).
+pub fn setGeomOffset(ofx: c_int, ofy: c_int) void {
+    SetGeomOffset(ofx, ofy);
 }
 
 /// OP: the outer product of the rotation diagonal (raw CTC2 values) and IR (raw MTC2 values), MAC1-3.

@@ -11,7 +11,7 @@ void func_8008CEB0(void);
 void func_80090EEC(void);
 void func_8008B1FC(void*);
 void func_8008B590(MATRIX*, int);
-void func_80098F8C(vs_battle_scene*);
+void func_80098F8C(vs_battle_scene*, const vs_gte_view*);
 /* Widescreen: the area map is anchored to the right edge of the screen
  * (gpu_hw.c); its rooms are projected without the GTE's Hor+ narrowing so
  * they scale with their frame and stay inside it at every rotation. */

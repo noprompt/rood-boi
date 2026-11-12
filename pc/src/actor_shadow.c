@@ -7,7 +7,7 @@
 #include "draw_items.h"
 #include <sys/types.h>
 #include <libgte.h>
-#include <inline_c.h>
+#include "gte_value.h"
 extern int func_800A6EE8(SVECTOR*, int, int, int);
 extern MATRIX* RotMatrixYXZ_gte(SVECTOR*, MATRIX*);
 extern MATRIX* func_800B196C(MATRIX*, MATRIX*);
@@ -103,28 +103,19 @@ transform:;
         *(unsigned*)&actor->unk0.unk30, /* unk30 and unk32 */
         (((size * (unsigned short)actor->unk0.unk2C) >> 12) * scale_x) >> 12, 0 };
     func_800B396C(&rotation, &scale);
-    SetRotMatrix(camera);
-    SetTransMatrix(camera);
-    MTC2(
-        *(unsigned short*)(scratch + 0x3b0) | ((unsigned)(unsigned short)floor << 16), 0);
-    MTC2(*(unsigned*)(scratch + 0x3b4), 1);
-    gte_rt();
-    rotation.t[0] = MFC2(25);
-    rotation.t[1] = MFC2(26);
-    rotation.t[2] = MFC2(27);
-    SetRotMatrix(&rotation);
-    SetTransMatrix(&rotation);
+    vs_gte_screen screen = vs_gte_screen_current();
+    vs_gte_view camera_view = vs_gte_view_of(camera, screen);
+    SVECTOR origin = { *(short*)(scratch + 0x3b0), (short)floor, (short)*(unsigned*)(scratch + 0x3b4), 0 };
+    vs_gte_transform_to((VECTOR*)rotation.t, &camera_view, &origin);
+    vs_gte_view view = vs_gte_view_of(&rotation, screen);
     unsigned* xy = (unsigned*)(scratch + 0x370);
     unsigned* depth = (unsigned*)(scratch + 0x3b8);
     for (unsigned i = 0; i < 18; i += 3) {
         for (unsigned j = 0; j < 3; ++j) {
-            MTC2(D_800E9A68[i + j] & 0xffff, j * 2);
-            MTC2(D_800E9A68[i + j] >> 16, j * 2 + 1);
-        }
-        gte_rtpt();
-        for (unsigned j = 0; j < 3; ++j) {
-            xy[i + j] = MFC2(12 + j);
-            depth[i + j] = MFC2(17 + j);
+            SVECTOR vertex = { (short)(D_800E9A68[i + j] & 0xffff), 0, (short)(D_800E9A68[i + j] >> 16), 0 };
+            vs_gte_result r = vs_gte_project(&view, &vertex);
+            xy[i + j] = r.sxy;
+            depth[i + j] = r.sz;
         }
     }
     *(unsigned*)&actor->unk6FC.vx = xy[0];
@@ -165,13 +156,11 @@ transform:;
             if ((offset & 3) || offset >= 72)
                 pc_unimplemented("shadow vertex offset");
             indices[j] = offset >> 2;
-            MTC2(xy[indices[j]], 12 + j);
             if (depth[indices[j]] < nearest)
                 nearest = depth[indices[j]];
         }
-        gte_nclip();
         unsigned bucket = (nearest >> 2) - 2;
-        if ((int)MFC2(24) > 0 || bucket >= 0x7c0)
+        if (vs_gte_nclip(xy[indices[0]], xy[indices[1]], xy[indices[2]]) > 0 || bucket >= 0x7c0)
             continue;
         /* The triangle as a draw item (a semi-transparent Gouraud one in the mode B-F), placed in its bucket by a marker. */
         int first_item = pc_frame_count();

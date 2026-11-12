@@ -3,7 +3,9 @@
  * midpoint subdivision of near, large polygons (func_80097AEC/CF0/F70). */
 #include <sys/types.h>
 #include <libgte.h>
-#include <inline_c.h>
+#include "gte_value.h"
+#include <inline_c.h> /* the Zig ports of this unit (tint_room_packets) still use its MTC2/CTC2/doCOP2 */
+
 extern void pc_unimplemented(const char*);
 extern int pc_room_quad_visible(const unsigned[4]);
 extern int pc_room_depth_bucket(unsigned, int);
@@ -30,17 +32,9 @@ static void decode_vertices(
             z + ((unsigned)(int)delta[2] << shift), 0 };
     }
 }
-static unsigned pack_xy(SVECTOR* v)
-{
-    return (unsigned short)v->vx | ((unsigned)(unsigned short)v->vy << 16);
-}
 static int projected_area(unsigned a, unsigned b, unsigned c)
 {
-    MTC2(a, 12);
-    MTC2(b, 13);
-    MTC2(c, 14);
-    gte_nclip();
-    return MFC2(24);
+    return vs_gte_nclip(a, b, c);
 }
 /* Subdivision vertex record, laid out as the original 0x14-byte scratchpad
  * records: model XYZ, UV, colour word, projected XY and depth. */
@@ -59,6 +53,7 @@ typedef struct {
     unsigned code; /* 0x1F8003B8: polygon code bits */
     unsigned tpage; /* 0x1F8003BC */
     unsigned clut; /* 0x1F8003C0 */
+    const vs_gte_view* view; /* the group's matrix and the projection */
 } RoomSubdivision;
 
 /* func_80097F70: byte colour/UV averages, arithmetic-shift XYZ midpoints.
@@ -77,23 +72,19 @@ static void midpoint(const RoomVertex* a, const RoomVertex* b, RoomVertex* m)
     m->u = (a->u + b->u) >> 1;
     m->v = (a->v + b->v) >> 1;
 }
-static void load_vertex(const RoomVertex* v, int slot)
+static void project1(const vs_gte_view* view, RoomVertex* v)
 {
-    MTC2((unsigned short)v->x | ((unsigned)(unsigned short)v->y << 16), slot * 2);
-    MTC2(v->z, slot * 2 + 1);
+    SVECTOR vertex = { v->x, v->y, v->z, 0 };
+    vs_gte_result r = vs_gte_project(view, &vertex);
+    v->sxy = r.sxy;
+    v->sz = r.sz;
 }
-static void project3(RoomVertex* a, RoomVertex* b, RoomVertex* c)
+/* RTPT: the three projections. */
+static void project3(const vs_gte_view* view, RoomVertex* a, RoomVertex* b, RoomVertex* c)
 {
-    load_vertex(a, 0);
-    load_vertex(b, 1);
-    load_vertex(c, 2);
-    gte_rtpt();
-    a->sxy = MFC2(12);
-    b->sxy = MFC2(13);
-    c->sxy = MFC2(14);
-    a->sz = MFC2(17);
-    b->sz = MFC2(18);
-    c->sz = MFC2(19);
+    project1(view, a);
+    project1(view, b);
+    project1(view, c);
 }
 /* Leaf submission shared by func_80097AEC/CF0 at depth zero. Leaves skip the
  * backface and distance-UV tests of the top level, as in the original. */
@@ -147,7 +138,7 @@ static void subdivide_triangle(
     midpoint(a, b, &ab);
     midpoint(c, b, &cb);
     midpoint(c, a, &ca);
-    project3(&ab, &cb, &ca);
+    project3(s->view, &ab, &cb, &ca);
     --level;
     subdivide_triangle(s, level, a, &ab, &ca);
     subdivide_triangle(s, level, &cb, &ab, b);
@@ -170,10 +161,10 @@ static void subdivide_quad(RoomSubdivision* s, int level, RoomVertex* a,
     midpoint(a, b, &ab);
     midpoint(c, b, &cb);
     midpoint(d, b, &db);
-    project3(&ab, &cb, &db);
+    project3(s->view, &ab, &cb, &db);
     midpoint(d, c, &dc);
     midpoint(a, c, &ac);
-    project3(&dc, &ac, &db);
+    project3(s->view, &dc, &ac, &db);
     --level;
     subdivide_quad(s, level, a, &ab, &ac, &cb);
     subdivide_quad(s, level, b, &ab, &db, &cb);
@@ -188,10 +179,10 @@ static void subdivide_quad(RoomSubdivision* s, int level, RoomVertex* a,
  * polygon vertex from the projected values and the packed polygon words. */
 static unsigned* subdivide_polygon(const unsigned* poly, const SVECTOR* vertex,
     const unsigned* xy, const unsigned* sz, int quad, int level, unsigned* packet,
-    unsigned* ot, unsigned gp, unsigned* limit)
+    unsigned* ot, unsigned gp, unsigned* limit, const vs_gte_view* view)
 {
     RoomSubdivision s = { packet, ot, limit, (int)gp >> 16, poly[3] & 0xfe000000,
-        poly[7] & 0xffff0000, poly[6] & 0xffff0000 };
+        poly[7] & 0xffff0000, poly[6] & 0xffff0000, view };
     RoomVertex v[4];
     unsigned uv[4] = { poly[6], poly[7], (poly[4] >> 24) | ((poly[5] >> 24) << 8),
         quad ? (poly[8] >> 24) | ((poly[9] >> 24) << 8) : 0 };
@@ -222,7 +213,7 @@ extern unsigned* pc_room_native_translucent(unsigned index, unsigned* packet, un
 extern void pc_room_render_rules(int* near_bucket, int* far_bucket, int* lod_bucket);
 static int native __attribute__((used));
 unsigned* pc_room_group_packets(unsigned* geometry, unsigned* packet, unsigned* ot,
-    unsigned gp, unsigned mode, unsigned* limit)
+    unsigned gp, unsigned mode, unsigned* limit, const vs_gte_view* view)
 {
     unsigned triangles = geometry[0], quads = geometry[1];
     unsigned* poly = geometry + 2;
@@ -235,23 +226,19 @@ unsigned* pc_room_group_packets(unsigned* geometry, unsigned* packet, unsigned* 
         SVECTOR vertex[4];
         unsigned xy[4], sz[4];
         decode_vertices(poly, gp & 31, vertex, quad);
-        MTC2(pack_xy(&vertex[0]), 0);
-        MTC2(vertex[0].vz, 1);
-        MTC2(pack_xy(&vertex[1]), 2);
-        MTC2(vertex[1].vz, 3);
-        MTC2(pack_xy(&vertex[2]), 4);
-        MTC2(vertex[2].vz, 5);
-        gte_rtpt();
-        xy[0] = MFC2(12);
-        xy[1] = MFC2(13);
-        xy[2] = xy[3] = MFC2(14);
-        sz[0] = MFC2(17);
-        sz[1] = MFC2(18);
-        sz[2] = MFC2(19);
+        vs_gte_result p0 = vs_gte_project(view, &vertex[0]);
+        vs_gte_result p1 = vs_gte_project(view, &vertex[1]);
+        vs_gte_result p2 = vs_gte_project(view, &vertex[2]);
+        xy[0] = p0.sxy;
+        xy[1] = p1.sxy;
+        xy[2] = xy[3] = p2.sxy;
+        sz[0] = p0.sz;
+        sz[1] = p1.sz;
+        sz[2] = p2.sz;
         unsigned depth = sz[0], z = sz[1];
         if (z > depth)
             depth = z;
-        z = MFC2(19);
+        z = p2.sz;
         if (z > depth)
             depth = z;
         int area = projected_area(xy[0], xy[1], xy[2]);
@@ -260,11 +247,9 @@ unsigned* pc_room_group_packets(unsigned* geometry, unsigned* packet, unsigned* 
         if (!quad && area < 0)
             area = -area;
         if (quad) {
-            MTC2(pack_xy(&vertex[3]), 0);
-            MTC2(vertex[3].vz, 1);
-            gte_rtps();
-            xy[3] = MFC2(14);
-            z = sz[3] = MFC2(19);
+            vs_gte_result p3 = vs_gte_project(view, &vertex[3]);
+            xy[3] = p3.sxy;
+            z = sz[3] = p3.sz;
             if (z > depth)
                 depth = z;
             if (area < 0 && !(poly[3] & 0x01000000)) {
@@ -278,7 +263,7 @@ unsigned* pc_room_group_packets(unsigned* geometry, unsigned* packet, unsigned* 
         if ((mode & 1) && (unsigned)area >= 0x200
             && (int)((gp >> 13) & 3) - (int)(depth >> 9) > 0) {
             packet = subdivide_polygon(poly, vertex, xy, sz, quad,
-                (int)((gp >> 13) & 3) - (int)(depth >> 9), packet, ot, gp, limit);
+                (int)((gp >> 13) & 3) - (int)(depth >> 9), packet, ot, gp, limit, view);
             if (native && (poly[3] & 0x02000000) && pc_room_native_translucent) {
                 /* One marker for the whole polygon, where its farthest
                  * leaves can be (the leaves' packets are not drawn). */
@@ -401,5 +386,5 @@ static unsigned* chain(unsigned* packet, unsigned* head, unsigned words)
  * points of interest, the 0x10 kind blinking with D_800F1CDC bit 5) or an
  * 8x8 icon when their state flag is clear. Filled shapes and lines link into
  * OT[5], markers into OT[4]; each list ends with a 0xE100020C draw mode. */
-void func_80098F8C(void* rooms);
+void func_80098F8C(void* rooms, const vs_gte_view* view); /* view: the map's rotation and projection; its translation is set to (0, 0, 0x100) */
 

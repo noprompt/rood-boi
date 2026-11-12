@@ -3,6 +3,10 @@
 #include "psx/gtereg.h"
 #include "../gte/PsyX_GTE.h"
 
+/* ROOD: the projection registers (OFX, OFY, H, DQA, DQB, ZSF3, ZSF4) are mirrored into the game's screen record
+ * (pc/src/gte_value.cpp) when they are written, so the value functions never read the registers. */
+extern void rood_gte_screen_written(int reg);
+
 unsigned int MFC2(int reg)
 {
 	switch (reg) {
@@ -142,6 +146,8 @@ void CTC2(unsigned int value, int reg) {
 	}
 
 	gteRegs.CP2C.p[reg].d = value;
+	if (reg >= 24 && reg <= 30)
+		rood_gte_screen_written(reg);
 }
 
 void CTC2_S(int value, int reg) {
@@ -164,6 +170,8 @@ void CTC2_S(int value, int reg) {
 	}
 
 	gteRegs.CP2C.p[reg].sd = value;
+	if (reg >= 24 && reg <= 30)
+		rood_gte_screen_written(reg);
 }
 
 unsigned int CFC2(int reg)

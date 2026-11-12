@@ -21,3 +21,8 @@ SDK `long`; with host longs `*flag |= _flag` was an 8-byte store into a 4-byte s
 The registers are reached through `gte_cur` (`gtereg.h`): `gte_global` is the game's
 register set, and a value call (`pc/src/gte_value.cpp`) points `gte_cur` at a private
 set for its duration. `gte_cur` and the per-operation scratch are per thread on ELF.
+
+The projection registers (OFX, OFY, H, DQA, DQB, ZSF3, ZSF4) are mirrored into the game's screen record
+(`pc/src/gte_value.cpp`) where they are written: `CTC2`/`CTC2_S` (`INLINE_C.C`) and `SetGeomOffset`/`SetGeomScreen`
+(`LIBGTE.C`) call `rood_gte_screen_written`. The value functions and `vs_gte_screen_current` read the record, never the
+registers. A new writer of those registers must call it too.

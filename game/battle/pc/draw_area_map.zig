@@ -23,7 +23,7 @@ fn chain(packet: [*]c_uint, head: *c_uint, words: c_uint) [*]c_uint {
 /// Draws the area map: `rooms` is a count then 12-byte entries (visible flag,
 /// geometry); the current room gets filled shapes, edge lines and markers,
 /// every room its outline lines.
-pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
+pub fn drawAreaMap(rooms: [*]c_uint, camera: *const gte.View) callconv(.c) void {
     const table = rooms;
     const count: c_uint = table[0];
     const scratch = common.scratch.get();
@@ -33,9 +33,8 @@ pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
     var shapes: c_uint = ot[5];
     var markers: c_uint = ot[4];
     const blink: c_uint = v.g.D_800F1CDC().*;
-    c.CTC2(0, 5);
-    c.CTC2(0, 6);
-    c.CTC2(0x100, 7);
+    var view = camera.*;
+    view.t = .{ 0, 0, 0x100 };
     var room: c_uint = 0;
     while (room < count) : (room +%= 1) {
         const entry = advance(table, 1 +% @as(usize, room) *% 3);
@@ -50,16 +49,11 @@ pub fn drawAreaMap(rooms: [*]c_uint) callconv(.c) void {
             data += 6;
             out += 3;
         }) {
-            c.MTC2(data[0], 0);
-            c.MTC2(data[1], 1);
-            c.MTC2(data[2], 2);
-            c.MTC2(data[3], 3);
-            c.MTC2(data[4], 4);
-            c.MTC2(data[5], 5);
-            gte.rtpt();
-            out[0] = c.MFC2(12);
-            out[1] = c.MFC2(13);
-            out[2] = c.MFC2(14);
+            // RTPT: three vertices, each an x/y word and a z word.
+            for (0..3) |k| {
+                const point = [3]i16{ psx.conv(i16, data[2 * k]), psx.conv(i16, data[2 * k] >> 16), psx.conv(i16, data[2 * k + 1]) };
+                out[k] = @bitCast(gte.project(&view, &point).sxy);
+            }
         }
         const base: [*]c_uint = @ptrFromInt(@intFromPtr(table) +% entry[1]);
         data = @ptrFromInt(@intFromPtr(base) +% @as(usize, @bitCast(@as(isize, 1 +% vertices *% 2))) *% 4);

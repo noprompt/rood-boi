@@ -52,19 +52,19 @@ static inline vs_gte_view vs_gte_view_at(const MATRIX* m, const VECTOR* t, vs_gt
 static inline __attribute__((always_inline)) vs_gte_result vs_gte_project(
     const vs_gte_view* view, const SVECTOR* v)
 {
-    return vs_gte_run(VS_GTE_RTPS, view, &v->vx, VS_GTE_CALLER);
+    return vs_gte_run(VS_GTE_RTPS, view, (const short*)v, VS_GTE_CALLER);
 }
 
 static inline __attribute__((always_inline)) vs_gte_result vs_gte_transform(
     const vs_gte_view* view, const SVECTOR* v)
 {
-    return vs_gte_run(VS_GTE_RTV0TR, view, &v->vx, VS_GTE_CALLER);
+    return vs_gte_run(VS_GTE_RTV0TR, view, (const short*)v, VS_GTE_CALLER);
 }
 
 static inline __attribute__((always_inline)) vs_gte_result vs_gte_rotate(
     const vs_gte_view* view, const SVECTOR* v)
 {
-    return vs_gte_run(VS_GTE_RTV0, view, &v->vx, VS_GTE_CALLER);
+    return vs_gte_run(VS_GTE_RTV0, view, (const short*)v, VS_GTE_CALLER);
 }
 
 /* Transform or rotate v and store the result as a vector (gte_stlvnl): its pad is
@@ -72,7 +72,7 @@ static inline __attribute__((always_inline)) vs_gte_result vs_gte_rotate(
 static inline __attribute__((always_inline)) void vs_gte_transform_to(
     VECTOR* out, const vs_gte_view* view, const SVECTOR* v)
 {
-    vs_gte_result r = vs_gte_run(VS_GTE_RTV0TR, view, &v->vx, VS_GTE_CALLER);
+    vs_gte_result r = vs_gte_run(VS_GTE_RTV0TR, view, (const short*)v, VS_GTE_CALLER);
     out->vx = r.mac[1];
     out->vy = r.mac[2];
     out->vz = r.mac[3];
@@ -81,7 +81,7 @@ static inline __attribute__((always_inline)) void vs_gte_transform_to(
 static inline __attribute__((always_inline)) void vs_gte_rotate_to(
     VECTOR* out, const vs_gte_view* view, const SVECTOR* v)
 {
-    vs_gte_result r = vs_gte_run(VS_GTE_RTV0, view, &v->vx, VS_GTE_CALLER);
+    vs_gte_result r = vs_gte_run(VS_GTE_RTV0, view, (const short*)v, VS_GTE_CALLER);
     out->vx = r.mac[1];
     out->vy = r.mac[2];
     out->vz = r.mac[3];

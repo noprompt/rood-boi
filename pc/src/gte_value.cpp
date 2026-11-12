@@ -9,6 +9,26 @@
 
 extern "C" const void* pc_gte_caller;
 
+/* The projection the game has set (SetGeomOffset, SetGeomScreen, InitGeom): kept in step with the registers by
+ * rood_gte_screen_written (psycross CTC2), and what the value functions read. Game state, with the registers. */
+static vs_gte_screen frame_screen;
+
+extern "C" void rood_gte_screen_written(int reg)
+{
+    /* Only writes to the game's own registers: a value call's private set is not the game's. */
+    if (gte_cur != &gte_global)
+        return;
+    switch (reg) {
+    case 24: frame_screen.ofx = gte_global.CP2C.p[24].sd; break;
+    case 25: frame_screen.ofy = gte_global.CP2C.p[25].sd; break;
+    case 26: frame_screen.h = gte_global.CP2C.p[26].sw.l; break;
+    case 27: frame_screen.dqa = gte_global.CP2C.p[27].sw.l; break;
+    case 28: frame_screen.dqb = gte_global.CP2C.p[28].sd; break;
+    case 29: frame_screen.zsf3 = gte_global.CP2C.p[29].sw.l; break;
+    case 30: frame_screen.zsf4 = gte_global.CP2C.p[30].sw.l; break;
+    }
+}
+
 static void load_view(GTERegisters& regs, const vs_gte_view* view)
 {
     int i;
@@ -142,13 +162,5 @@ extern "C" void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir
 
 extern "C" vs_gte_screen vs_gte_screen_current(void)
 {
-    vs_gte_screen s;
-    s.ofx = gte_global.CP2C.p[24].sd;
-    s.ofy = gte_global.CP2C.p[25].sd;
-    s.h = gte_global.CP2C.p[26].sw.l;
-    s.dqa = gte_global.CP2C.p[27].sw.l;
-    s.dqb = gte_global.CP2C.p[28].sd;
-    s.zsf3 = gte_global.CP2C.p[29].sw.l;
-    s.zsf4 = gte_global.CP2C.p[30].sw.l;
-    return s;
+    return frame_screen;
 }

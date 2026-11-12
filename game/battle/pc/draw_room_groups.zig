@@ -2,6 +2,7 @@
 const c = @import("c_room_geometry");
 const v = @import("views_room_geometry");
 const common = @import("common");
+const gte = common.gte;
 const psx = common.psx;
 
 /// The view's facing word (cutaway direction mask, first-person bit).
@@ -83,8 +84,7 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
         } else if (kept == 0) continue;
         const gp: c_uint = (flags & 0xffff6000) | (if (flags & 0x800 != 0) @as(c_uint, 0) else 3);
         const matrix: [*c]c.MATRIX = @ptrCast(@alignCast(group + 0x20));
-        c.SetRotMatrix(matrix);
-        c.SetTransMatrix(matrix);
+        const view = gte.viewOf(matrix, gte.screenCurrent());
         const geometry_offset: c_uint = @as(*align(1) const c_uint, @ptrCast(group + 0x1c)).*;
         const geometry: [*c]c_uint = @ptrCast(@alignCast(data + geometry_offset));
         if (record) v.g.drawn_groups()[i] = 1; // record: count <= 4096
@@ -94,7 +94,7 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
             }
             psx.weak(NativeGroup, "pc_room_native_group").?(group, gp);
         }
-        packet = @ptrCast(@alignCast(c.pc_room_group_packets(geometry, packet, ot, gp, mode, limit)));
+        packet = @ptrCast(@alignCast(c.pc_room_group_packets(geometry, packet, ot, gp, mode, limit, @ptrCast(&view))));
     }
     v.g.translucent_only().* = 0;
     if (record) {
