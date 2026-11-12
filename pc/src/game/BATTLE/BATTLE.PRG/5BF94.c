@@ -22,7 +22,6 @@
 #include "build/assets/BATTLE/BATTLE.PRG/statusStrings.h"
 #include "vs_string.h"
 #include "gpu.h"
-#include "vs_inline_c.h"
 #include <memory.h>
 #include <libetc.h>
 #include <rand.h>

@@ -3,7 +3,7 @@
  * PsyCross's GTE (the same arithmetic, flags, widescreen narrowing and
  * projection log as the register interface) and reads the results back.
  * gte_cur is pointed at the private set for the call, so the game's
- * registers (gte_global) stay as they were. */
+ * scratch registers stay as they were. */
 #include "psx/gtereg.h"
 #include "gte_value_core.h"
 
@@ -16,16 +16,16 @@ static vs_gte_screen frame_screen;
 extern "C" void rood_gte_screen_written(int reg)
 {
     /* Only writes to the game's own registers: a value call's private set is not the game's. */
-    if (gte_cur != &gte_global)
+    if (gte_cur)
         return;
     switch (reg) {
-    case 24: frame_screen.ofx = gte_global.CP2C.p[24].sd; break;
-    case 25: frame_screen.ofy = gte_global.CP2C.p[25].sd; break;
-    case 26: frame_screen.h = gte_global.CP2C.p[26].sw.l; break;
-    case 27: frame_screen.dqa = gte_global.CP2C.p[27].sw.l; break;
-    case 28: frame_screen.dqb = gte_global.CP2C.p[28].sd; break;
-    case 29: frame_screen.zsf3 = gte_global.CP2C.p[29].sw.l; break;
-    case 30: frame_screen.zsf4 = gte_global.CP2C.p[30].sw.l; break;
+    case 24: frame_screen.ofx = gte_scratch.CP2C.p[24].sd; break;
+    case 25: frame_screen.ofy = gte_scratch.CP2C.p[25].sd; break;
+    case 26: frame_screen.h = gte_scratch.CP2C.p[26].sw.l; break;
+    case 27: frame_screen.dqa = gte_scratch.CP2C.p[27].sw.l; break;
+    case 28: frame_screen.dqb = gte_scratch.CP2C.p[28].sd; break;
+    case 29: frame_screen.zsf3 = gte_scratch.CP2C.p[29].sw.l; break;
+    case 30: frame_screen.zsf4 = gte_scratch.CP2C.p[30].sw.l; break;
     }
 }
 
@@ -192,6 +192,67 @@ extern "C" void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir
     gte_cur = saved;
     for (int i = 0; i < 3; ++i)
         mac[i] = (int)regs.CP2D.p[25 + i].d;
+}
+
+/* SetGeomOffset and SetGeomScreen: the record is set; the registers are not written. */
+extern "C" void rood_gte_screen_set(int reg, int value)
+{
+    switch (reg) {
+    case 24: frame_screen.ofx = value; break;
+    case 25: frame_screen.ofy = value; break;
+    case 26: frame_screen.h = (short)value; break;
+    }
+}
+
+extern "C" {
+void MTC2(unsigned int value, int reg);
+void CTC2(unsigned int value, int reg);
+unsigned int MFC2(int reg);
+unsigned int CFC2(int reg);
+int doCOP2(int op);
+}
+
+static_assert(sizeof(GTERegisters) <= sizeof(vs_gte_ctx), "vs_gte_ctx holds the registers");
+
+/* One instruction on a context's registers: gte_cur is the context for its duration. */
+#define ON_CTX(ctx, expression) \
+    do { \
+        GTERegisters* saved_ = gte_cur; \
+        gte_cur = (GTERegisters*)(ctx); \
+        expression; \
+        gte_cur = saved_; \
+    } while (0)
+
+extern "C" void vs_gte_ctx_init(vs_gte_ctx* ctx)
+{
+    __builtin_memset(ctx, 0, sizeof(GTERegisters));
+}
+
+extern "C" void vs_gte_mtc2(vs_gte_ctx* ctx, int reg, unsigned value) { ON_CTX(ctx, MTC2(value, reg)); }
+extern "C" void vs_gte_ctc2(vs_gte_ctx* ctx, int reg, unsigned value) { ON_CTX(ctx, CTC2(value, reg)); }
+extern "C" unsigned vs_gte_mfc2(vs_gte_ctx* ctx, int reg)
+{
+    unsigned value;
+    ON_CTX(ctx, value = MFC2(reg));
+    return value;
+}
+extern "C" unsigned vs_gte_cfc2(vs_gte_ctx* ctx, int reg)
+{
+    unsigned value;
+    ON_CTX(ctx, value = CFC2(reg));
+    return value;
+}
+extern "C" void vs_gte_cop2(vs_gte_ctx* ctx, int op) { ON_CTX(ctx, doCOP2(op)); }
+
+/* ApplyMatrixLV (the SDK routine, on a register set of its own): the long vector rotated by a matrix. */
+extern "C" void* ApplyMatrixLV(void* m, void* v0, void* v1);
+extern "C" void vs_gte_apply_matrix_lv(void* m, void* v0, void* v1)
+{
+    GTERegisters regs = {};
+    GTERegisters* saved = gte_cur;
+    gte_cur = &regs;
+    ApplyMatrixLV(m, v0, v1);
+    gte_cur = saved;
 }
 
 extern "C" int rood_screen_ofx(void)

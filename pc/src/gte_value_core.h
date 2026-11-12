@@ -70,6 +70,23 @@ void vs_gte_light_transform(const unsigned llm[5], const unsigned bk[3], const s
 unsigned vs_gte_dpcs(unsigned far_color, unsigned rgbc, unsigned ir0);
 void vs_gte_op0(unsigned r11, unsigned r22, unsigned r33, unsigned ir1, unsigned ir2, unsigned ir3, int mac[3]);
 
+/* ApplyMatrixLV: the long vector v0 (VECTOR) rotated by the matrix m (MATRIX) into v1 (VECTOR; may be v0), on registers of
+ * its own. */
+void vs_gte_apply_matrix_lv(void* m, void* v0, void* v1);
+
+/* A register context of its own, for code that works the coprocessor's registers directly (loads, one operation, reads
+ * back) as scratch: each use makes one with vs_gte_ctx_init, so no state is shared between uses or threads. The calls
+ * are the instructions' (MTC2, CTC2, MFC2, CFC2, COP2) on the context's registers. */
+typedef struct {
+    unsigned char opaque[1024] __attribute__((aligned(16)));
+} vs_gte_ctx;
+void vs_gte_ctx_init(vs_gte_ctx* ctx);
+void vs_gte_mtc2(vs_gte_ctx* ctx, int reg, unsigned value);
+void vs_gte_ctc2(vs_gte_ctx* ctx, int reg, unsigned value);
+unsigned vs_gte_mfc2(vs_gte_ctx* ctx, int reg);
+unsigned vs_gte_cfc2(vs_gte_ctx* ctx, int reg);
+void vs_gte_cop2(vs_gte_ctx* ctx, int op);
+
 /* The projection the game has set so far (SetGeomOffset, SetGeomScreen): the
  * one piece of GTE state left global, until the camera holds it. */
 vs_gte_screen vs_gte_screen_current(void);

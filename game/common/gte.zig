@@ -1,128 +1,7 @@
-//! The GTE macros as the PC build runs them (PORTING.md §8): one function per
-//! `gte_*` macro, doing PsyCross's calls (pc/third_party/psycross/include/psx/
-//! inline_c.h, plus pc/src/game/include/vs_inline_c.h for the `*2` variants) in the
-//! same order, with the same register numbers and the same 32-bit loads and
-//! stores. The registers are host state (`gteRegs`), compared by shadow mode.
-//! Add a macro here when a port first needs it, copied from the header.
-
-extern fn MTC2(value: c_uint, reg: c_int) callconv(.c) void;
-extern fn CTC2(value: c_uint, reg: c_int) callconv(.c) void;
-extern fn MFC2(reg: c_int) callconv(.c) c_uint;
-extern fn doCOP2(op: c_int) callconv(.c) c_int;
-
-/// `*(uint*)((char*)(r0)+off)`: the macros' unaligned-safe 32-bit load.
-inline fn load32(r0: anytype, comptime off: usize) c_uint {
-    const p: *align(1) const c_uint = @ptrFromInt(@intFromPtr(r0) + off);
-    return p.*;
-}
-
-/// `*(uint*)((char*)(r0)+off) = value`.
-inline fn store32(r0: anytype, comptime off: usize, value: c_uint) void {
-    const p: *align(1) c_uint = @ptrFromInt(@intFromPtr(r0) + off);
-    p.* = value;
-}
-
-/// gte_SetRotMatrix: the rotation part of a MATRIX into control registers 0-4.
-pub inline fn SetRotMatrix(r0: anytype) void {
-    CTC2(load32(r0, 0), 0);
-    CTC2(load32(r0, 4), 1);
-    CTC2(load32(r0, 8), 2);
-    CTC2(load32(r0, 12), 3);
-    CTC2(load32(r0, 16), 4);
-}
-
-/// gte_SetTransMatrix: a MATRIX's translation `t` into control registers 5-7.
-pub inline fn SetTransMatrix(r0: anytype) void {
-    CTC2(load32(r0, 20), 5);
-    CTC2(load32(r0, 24), 6);
-    CTC2(load32(r0, 28), 7);
-}
-
-/// gte_ldv0: VXY0, VZ0 from an SVECTOR.
-pub inline fn ldv0(r0: anytype) void {
-    MTC2(load32(r0, 0), 0);
-    MTC2(load32(r0, 4), 1);
-}
-
-/// gte_rtv0tr2 (vs_inline_c.h): gte_rtv0tr on the PC.
-pub inline fn rtv0tr2() void {
-    _ = doCOP2(0x0480012);
-}
-
-/// gte_stlvnl: MAC1-3 (data registers 25-27) into three 32-bit words.
-pub inline fn stlvnl(r0: anytype) void {
-    store32(r0, 0, MFC2(25));
-    store32(r0, 4, MFC2(26));
-    store32(r0, 8, MFC2(27));
-}
-
-/// gte_rtps: perspective transformation of V0.
-pub inline fn rtps() void {
-    _ = doCOP2(0x0180001);
-}
-
-/// gte_rtps2 (vs_inline_c.h): gte_rtps on the PC.
-pub inline fn rtps2() void {
-    rtps();
-}
-
-/// gte_rtpt: perspective transformation of V0-V2.
-pub inline fn rtpt() void {
-    _ = doCOP2(0x0280030);
-}
-
-/// gte_nclip: normal clipping (the sign of the screen triangle's area into MAC0).
-pub inline fn nclip() void {
-    _ = doCOP2(0x01400006);
-}
-
-/// gte_avsz3: the average of SZ1-SZ3 into OTZ.
-pub inline fn avsz3() void {
-    _ = doCOP2(0x0158002D);
-}
-
-/// gte_stsxy (USE_PGXP=0): SXY2 (data register 14) into a 32-bit word.
-pub inline fn stsxy(r0: anytype) void {
-    store32(r0, 0, MFC2(14));
-}
-
-/// gte_stotz: OTZ (data register 7) into a 32-bit word.
-pub inline fn stotz(r0: anytype) void {
-    store32(r0, 0, MFC2(7));
-}
-
-/// gte_stszotz: SZ3 (data register 19) >> 2 into a 32-bit word.
-pub inline fn stszotz(r0: anytype) void {
-    store32(r0, 0, MFC2(19) >> 2);
-}
-
-/// gte_stopz: MAC0 (data register 24) into a 32-bit word.
-pub inline fn stopz(r0: anytype) void {
-    store32(r0, 0, MFC2(24));
-}
-
-/// gte_ldsxy3: SXY0-SXY2 through three pointers (PsyCross's takes pointers;
-/// the PS1 macro takes values), loaded in the macro's order 12, 14, 13.
-pub inline fn ldsxy3(r0: anytype, r1: anytype, r2: anytype) void {
-    MTC2(load32(r0, 0), 12);
-    MTC2(load32(r2, 0), 14);
-    MTC2(load32(r1, 0), 13);
-}
-
-/// gte_nclip2 (vs_inline_c.h): gte_nclip on the PC.
-pub inline fn nclip2() void {
-    nclip();
-}
-
-/// gte_zrtr (vs_inline_c.h): the translation (control registers 5-7) zeroed.
-pub inline fn zrtr() void {
-    CTC2(0, 5);
-    CTC2(0, 6);
-    CTC2(0, 7);
-}
-
-// The GTE's maths as values (pc/src/gte_value_core.h, gte_value.h): a view and a vector in, the registers'
-// results out, on a private register set (the game's registers are not read or changed).
+//! The GTE's maths as values: the Zig side of pc/src/gte_value_core.h. A view (rotation, translation, projection) and a
+//! vector in, what the registers would hold out, on a private register set (the SDK's PsyCross arithmetic, flags and
+//! saturation); a register context of its own (`Ctx`) for code that works the coprocessor's registers directly as scratch;
+//! the frame view the battle's camera owns. Nothing here reads or changes shared register state: there is none.
 
 /// vs_gte_screen: OFX and OFY as the registers hold them (16.16), H, DQA, DQB.
 pub const Screen = extern struct { ofx: c_int, ofy: c_int, h: c_int, dqa: c_int, dqb: c_int, zsf3: c_int, zsf4: c_int };
@@ -158,6 +37,13 @@ extern fn vs_gte_op0(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_
 extern fn SetGeomOffset(ofx: c_int, ofy: c_int) callconv(.c) void;
 extern fn vs_gte_light_transform(llm: *const [5]c_uint, bk: *const [3]c_uint, v: *const [3]i16, ir: *[3]i16) callconv(.c) void;
 extern fn vs_gte_dpcs(far_color: c_uint, rgbc: c_uint, ir0: c_uint) callconv(.c) c_uint;
+extern fn vs_gte_ctx_init(ctx: *Ctx) callconv(.c) void;
+extern fn vs_gte_mtc2(ctx: *Ctx, reg: c_int, value: c_uint) callconv(.c) void;
+extern fn vs_gte_ctc2(ctx: *Ctx, reg: c_int, value: c_uint) callconv(.c) void;
+extern fn vs_gte_mfc2(ctx: *Ctx, reg: c_int) callconv(.c) c_uint;
+extern fn vs_gte_cfc2(ctx: *Ctx, reg: c_int) callconv(.c) c_uint;
+extern fn vs_gte_cop2(ctx: *Ctx, op: c_int) callconv(.c) void;
+extern fn vs_gte_apply_matrix_lv(m: *anyopaque, v0: *anyopaque, v1: *anyopaque) callconv(.c) void;
 extern fn vs_gte_screen_current() callconv(.c) Screen;
 
 /// For a transform or a rotation, which do not project.
@@ -230,6 +116,32 @@ pub fn avsz3Of(a: c_uint, b: c_uint, third: c_uint) c_uint {
     return vs_gte_avsz3(vs_gte_screen_current().zsf3, a, b, third);
 }
 
+/// A register context of its own (vs_gte_ctx): for code that works the coprocessor's registers directly as scratch.
+pub const Ctx = extern struct {
+    bytes: [1024]u8 align(16),
+
+    pub fn init() Ctx {
+        var ctx: Ctx = undefined;
+        vs_gte_ctx_init(&ctx);
+        return ctx;
+    }
+    pub fn mtc2(ctx: *Ctx, reg: c_int, value: c_uint) void {
+        vs_gte_mtc2(ctx, reg, value);
+    }
+    pub fn ctc2(ctx: *Ctx, reg: c_int, value: c_uint) void {
+        vs_gte_ctc2(ctx, reg, value);
+    }
+    pub fn mfc2(ctx: *Ctx, reg: c_int) c_uint {
+        return vs_gte_mfc2(ctx, reg);
+    }
+    pub fn cfc2(ctx: *Ctx, reg: c_int) c_uint {
+        return vs_gte_cfc2(ctx, reg);
+    }
+    pub fn cop2(ctx: *Ctx, op: c_int) void {
+        vs_gte_cop2(ctx, op);
+    }
+};
+
 /// DPCS: the colour word faded toward `far_color` (each channel) by `ir0`; RGB2 as MFC2 reads it.
 pub fn dpcsOf(far_color: c_uint, rgbc: c_uint, ir0: c_uint) c_uint {
     return vs_gte_dpcs(far_color, rgbc, ir0);
@@ -262,6 +174,11 @@ pub inline fn applyMatrixSV(out: anytype, m: anytype, vec: anytype) void {
     const r = vs_gte_run(RTV0, &view, @ptrCast(vec), @ptrFromInt(@returnAddress()));
     const o: *align(1) [3]i16 = @ptrCast(out);
     o.* = r.ir;
+}
+
+/// ApplyMatrixLV: a long vector rotated by a MATRIX's rotation (v0 and v1 may be the same).
+pub fn applyMatrixLV(m: anytype, v0: anytype, v1: anytype) void {
+    vs_gte_apply_matrix_lv(@ptrCast(m), @ptrCast(v0), @ptrCast(v1));
 }
 
 /// ApplyMatrix: the vector rotated by a MATRIX's rotation, MAC1-3 stored as a vector.

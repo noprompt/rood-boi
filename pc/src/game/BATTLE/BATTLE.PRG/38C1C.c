@@ -2,7 +2,6 @@
 #include "3A1A0.h"
 #include <libgpu.h>
 #include <inline_c.h>
-#include "vs_inline_c.h"
 #include <abs.h>
 #ifdef ROOD_PC
 #include "pc/src/psx_types.h"

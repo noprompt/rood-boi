@@ -1,6 +1,7 @@
 //! The event camera's state handed to the renderer (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const std = @import("std");
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const pad = @import("common").pad;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -65,8 +66,8 @@ pub fn applyCameraState() callconv(.c) void {
         rotation.vx = 0;
         rotation.vy = psx.conv(i16, c._atan2FixedPoint(lookAt.vx -% position.vx, lookAt.vz -% position.vz));
         _ = c.RotMatrix_gte(psx.cptr(c.SVECTOR, rotation), psx.cptr(c.MATRIX, matrix));
-        _ = c.ApplyMatrixLV(psx.cptr(c.MATRIX, matrix), cv(v1), cv(v1));
-        _ = c.ApplyMatrixLV(psx.cptr(c.MATRIX, matrix), cv(v2), cv(v2));
+        gte.applyMatrixLV(matrix, v1, v1);
+        gte.applyMatrixLV(matrix, v2, v2);
         _ = c._vectorAdd(cv(&lookAt), cv(&lookAt), cv(v1));
         _ = c._vectorAdd(cv(&position), cv(&position), cv(v2));
     }

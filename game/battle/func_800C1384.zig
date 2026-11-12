@@ -57,9 +57,7 @@ pub fn func_800C1384(shape: ?*v.func_800C1564_t, position: [*c]c_ushort, angled:
         const cur: usize = @intCast(i);
         const next: usize = @intCast((i +% 1) & 3);
         // The ROOD_PC branch: PsyCross's gte_ldsxy3 loads through pointers.
-        gte.ldsxy3(&polygon.corners[4], &polygon.corners[cur], &polygon.corners[next]);
-        gte.nclip2();
-        gte.stopz(&polygon.clip);
+        polygon.clip = gte.nclipOf(@bitCast(polygon.corners[4]), @bitCast(polygon.corners[cur]), @bitCast(polygon.corners[next]));
         if (polygon.clip < 0) {
             return 0;
         }

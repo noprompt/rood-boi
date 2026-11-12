@@ -9,7 +9,6 @@
 #include <memory.h>
 #include <stddef.h>
 #include <inline_c.h>
-#include "vs_inline_c.h"
 #include "pc/src/psx_types.h"
 
 typedef struct {

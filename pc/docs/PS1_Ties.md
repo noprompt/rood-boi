@@ -42,7 +42,7 @@ path exists next to the PS1 one), **native**.
 | T4 | GPU packets and ordering tables built in RAM, then walked | Draw order and effects follow PS1 rules; widescreen and 2D compromises | partly | very large | T13, T14 |
 | T5 | Textures and palettes live in a 1024 x 512 16-bit VRAM; a CPU rasterizer still runs | Texture size, 256-colour limits, palette animation | partly | large | T4 |
 | T6 | 320 x 224 display area, never-cleared frame buffer, 4:3 assumptions | Widescreen is a set of fixes on a 4:3 game | partly | large | T4, T7 |
-| T7 | The GTE (3D maths coprocessor) as a global register state machine | Nothing directly | partly | very large | none (but blocks T1) |
+| T7 | The GTE (3D maths coprocessor) as a global register state machine | Nothing directly | native (no shared register state) | done | none |
 | T8 | 2D, text and effects drawn as packets (the classic UI, most effect plugins) | Original look; steps at 30; no real hi-res UI unless the modern layer is on | partly | very large | T4, T5 |
 | T9 | Disc read by sector number from a raw disc image, through the PS1 load queue | "NOW LOADING" and load times of the original design; needs the user's disc image | PS1 | large | T10, T12 |
 | T10 | Overlays: fixed RAM slots, statics reset on load, entry by long jump | Nothing directly (loading screens exist because of it) | PS1 | large | T9, T12 |
@@ -240,78 +240,34 @@ by that camera, is the real fix. It rides on T4 and T7.
 
 **Depends on.** T4, T7.
 
-## T7. The GTE as a global register machine
+## T7. The GTE as a global register machine (done)
 
-**What it is.** The PS1's 3D coprocessor is run as a software library (PsyCross's GTE, MIT) with the
-registers as one global state. Game code loads vertices, runs an operation, and stores results through
-macros (`gte_ldv0`, `gte_rtps`, `gte_nclip` and so on). Battle's Zig code does the same through
-`game/common/gte.zig`, which calls the same functions in the same order. Results must keep the GTE's
-fixed-point rounding and flags, because some game logic and the renderer's culling and ordering depend
-on them.
+**What it was.** The PS1's 3D coprocessor ran as a software library (PsyCross's GTE, MIT) on one global register set:
+game code loaded a matrix and a vector, ran an operation, and read results back, so a view set in one function was
+consumed in another (and the renderer and game could not run on separate threads).
 
-**Player feels.** Nothing directly.
+**What it is now.** No shared register state. The arithmetic is still PsyCross's, bit for bit (rounding, saturation,
+FLAG), behind explicit inputs and outputs:
+- *Values* (`pc/src/gte_value_core.h`, `gte_value.h`, `game/common/gte.zig`): a view (rotation, translation, projection) and
+  a vector in, the registers' results out, on a private register set: project, transform, rotate, RotAverage4, NCLIP,
+  AVSZ3, OP, DPCS, the light-matrix MVMVA, ApplyMatrix(SV/LV).
+- *The frame view* (`vs_frame_view`, set where the battle's camera is set): what the registers' rotation and translation
+  used to carry from the frame start to its consumers. A consumer takes a view from its caller, or the frame's.
+- *The projection* (OFX, OFY, H, DQA, DQB, ZSF3, ZSF4) is the screen record in `gte_value.cpp`, set by SetGeomOffset,
+  SetGeomScreen and the CTC2 entry point; nothing reads the registers for it.
+- *Scratch.* Code that works the coprocessor directly (the ports of the hand-written routines, the SDK's own math
+  routines) uses a register context of its own (`vs_gte_ctx`, `gte.Ctx`, one per call) or the calling thread's scratch
+  set (`gte_scratch`, `gte_cur` NULL): no state is kept in it between uses.
 
-**Evidence.**
-- `pc/third_party/psycross/src/gte` and its `ROOD-NOTES.md`; `pc/include/inline_c.h`.
-- `game/common/gte.zig` ("the registers are host state").
-- Hand-written GTE routines: `pc/src/battle_gte.c`.
-- A text count (by grep, 2026-11-08) of `gte_*(` uses: 432 in `pc/src/game`, 11 in the Zig sources.
-- Widescreen reads and changes GTE results (`pc/src/widescreen.h`).
+**Evidence.** `pc/third_party/psycross/ROOD-NOTES.md`; `pc/tests/gte_value_probe.c` (the value functions against the
+register sequences they replaced); the `T7` commits of branch gte-t7.
 
-**Status.** Partly native: the arithmetic is native, the interface is the PS1's.
+**Status.** Native. The lints that counted the machine (`gte_state_machine`, `gte_sdk_calls`, `gte_register_users`) went
+to 0 and were removed.
 
-**To replace.** Very large in total, because the uses are scattered through BATTLE, EFFECT and ENDING.
-It can be done in pieces: each user switches to explicit input and output values, while the old state
-machine remains for the rest. Float maths must not be substituted blindly (rounding is relied on).
-
-**Depends on.** Nothing, but it must go before any renderer thread (T1), since the global state is
-single-owner.
-
-**T7 plan (2026-11-10).**
-
-*State.* One `GTERegisters` (`gte_global`, `psx/gtereg.h`): the control file (rotation R, translation TR,
-OFX/OFY/H/DQA/DQB, FLAG) and the data file (V0-V2, IR0-3, MAC0-3, SXY/SZ FIFOs, OTZ). Operations reach it
-through the thread-local `gte_cur`; a value call (`pc/src/gte_value.cpp`, `vs_gte_run`) points `gte_cur` at
-a private set, so the game's registers are untouched. Beside the registers, three plain globals are part of
-the machine: `pc_gte_widescreen` and `pc_gte_anchored` (the projection narrowing, `widescreen.h`) and
-`pc_gte_caller` (what the projection log attributes a projection to).
-
-*Already values.* `vs_gte_view` (rotation, translation, screen) plus a vector in, `vs_gte_result` out, for
-RTPS, RTV0TR and RTV0 (`gte_value.h`); the EFFECT plugins, two sound-pan projections and the actor bone
-transforms use them. What is left on the registers, by who reads them:
-
-1. *Set and consumed in the same function* (easy: a local view): ENDING's phantom-pain wave, MENU9's camera
-   matrix, the Zig `RotTrans`/`ApplyRotMatrix`/`ApplyMatrixLV` calls on a matrix just built
-   (`func_800D2ADC`, `func_800D2A38`, `func_800D197C`, `func_800BD2B8`, `func_80090434`, ...).
-2. *Set in one function, consumed in another* (the hard case; the view becomes a value the first function
-   returns or stores and the second takes): MENU5's map (`_setCamera` sets, `_renderRoom` projects), battle's
-   `battle_exec`, `scene_submit`, `room_shadows`, `draw_room_groups`, `room_group_matrices` (SetRotMatrix and
-   SetTransMatrix, then RotTransPers/RotAverage4 through the frame's draw functions), and the host render
-   files that read the registers the battle code left (`room_geometry.c`, `weapon_packets.c`,
-   `actor_shadow.c`, `actor_packets.c`, `actor_vertices.c`, `screff2_warp.c`, `scene_capture.c`,
-   `gameplay_walls.c`, `room_native.c`: about 90 `CTC2/MTC2/MFC2/doCOP2` uses). These need the camera to own
-   a `vs_gte_view` (T4/T6), so they go last.
-3. *The projection itself* (OFX, OFY, H): `SetGeomOffset`/`SetGeomScreen` (7 sites in the game's C, 3 in
-   battle's Zig, `vs_battle_set/getGeomOffset`) are the one piece every view reads. It stays a single
-   global, `vs_gte_screen_current()`, until the camera holds it; a view built after the offset is changed
-   must take the screen at projection time (MENU5 does).
-4. *Ops that use the registers as scratch* (`VectorNormal`, `SquareRoot12`, `OuterProduct0`, `ScaleMatrix`,
-   `CompMatrix`, the battle `weighted_sum`, `squared_component_sum`, `scale_matrix_columns`): pure maths
-   with no state worth keeping; they become value functions on their operands with the same saturation
-   and FLAG (nothing reads the FLAG after them: to be confirmed per caller).
-5. *The SDK* (`boot_sdk.c`, 88 uses, and `battle_gte.c`): the register interface itself; it stays until
-   the callers above are gone, then becomes the private-set implementation of the value calls.
-
-*Order.* (a) the C overlays: ENDING, MENU5, MENU9, TITLE (smallest, reachable by `--menus` routes);
-(b) the Zig single-function callers (1 above), one file per commit; (c) projection state: the screen as
-an explicit input; (d) the camera-held view (2 above), battle's frame by subsystem (room, actors, weapons,
-shadows), each with its host render reader; (e) the pure-maths ops (4); (f) retire the global set. The
-lint (`gte_state_machine`, `gte_sdk_calls`) counts the game's C only; the Zig `c.SetRotMatrix`-style calls and
-the host files are not in it yet, and a rule for them goes with step (b).
-
-*Proof for each step.* `build_compare.py` against the commit before (fight frames, casts, `--menus`
-routes the change can reach), the lint, and the projection-log smokes. FLAG, saturation and rounding are
-those of the same PsyCross code, so a value call and the register sequence must agree bit for bit.
+**Left over.** The SDK routines that work the registers as scratch (RotMatrix, VectorNormal, CompMatrix, ...) are still
+PsyCross's register code; a future thread that calls them uses its own scratch set. The projection narrowing
+(`pc_gte_widescreen`) and the projection log are still globals (T4).
 
 ## T8. 2D, text and effects as packets
 

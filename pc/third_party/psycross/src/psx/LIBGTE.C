@@ -41,6 +41,7 @@ inline int fst_max(int a, int b)
 
 /* ROOD: the projection registers are mirrored into the game's screen record (pc/src/gte_value.cpp). */
 extern void rood_gte_screen_written(int reg);
+extern void rood_gte_screen_set(int reg, int value);
 
 void InitGeom()
 {
@@ -55,16 +56,14 @@ void InitGeom()
 
 void SetGeomOffset(int ofx, int ofy)
 {
-	C2_OFX = (ofx << 16);
-	C2_OFY = (ofy << 16);
-	rood_gte_screen_written(24);
-	rood_gte_screen_written(25);
+	/* ROOD: the projection is the game's screen record (pc/src/gte_value.cpp), not the registers. */
+	rood_gte_screen_set(24, ofx << 16);
+	rood_gte_screen_set(25, ofy << 16);
 }
 
 void SetGeomScreen(int h)
 {
-	C2_H = h;
-	rood_gte_screen_written(26);
+	rood_gte_screen_set(26, h);
 }
 
 void SetRotMatrix(MATRIX* m)

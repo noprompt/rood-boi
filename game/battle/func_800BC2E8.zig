@@ -1,6 +1,7 @@
 //! The event camera's command (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c): one move of the look-at point or the eye.
 const std = @import("std");
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const pad = @import("common").pad;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -189,7 +190,7 @@ pub fn func_800BC2E8(script: [*c]u8, _: c_short) callconv(.c) c_int {
             scratch.rotation2.vy = psx.byteAt(i16, camera(), 0x1DA).*;
             _ = c.RotMatrix_gte(psx.cptr(c.SVECTOR, rotation2), psx.cptr(c.MATRIX, matrix));
             _ = c._setVectorImm(cv(v1), script + 4);
-            _ = c.ApplyMatrixLV(psx.cptr(c.MATRIX, matrix), cv(v1), cv(v1));
+            gte.applyMatrixLV(matrix, v1, v1);
             c.func_800A190C(scratch.value, script[3], psx.cptr(c.SVECTOR, rotation2), 2);
             _ = c._vectorAdd(cv(&cur.position), cv(sVectorToFixedPointVector(v2, rotation2)), cv(v1));
             if (camera().unk1E8 != 0x2000) {

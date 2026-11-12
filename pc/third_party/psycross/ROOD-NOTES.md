@@ -18,9 +18,9 @@ does not use them. Its `long*` GTE out-parameters (`RotTrans`, `RotTransSV`,
 (`libgte.h`: `int` under `ROOD_PC_LP64`, else `long`), matching the game's 32-bit
 SDK `long`; with host longs `*flag |= _flag` was an 8-byte store into a 4-byte slot.
 
-The registers are reached through `gte_cur` (`gtereg.h`): `gte_global` is the game's
-register set, and a value call (`pc/src/gte_value.cpp`) points `gte_cur` at a private
-set for its duration. `gte_cur` and the per-operation scratch are per thread on ELF.
+The registers are reached through `gte_cur` (`gtereg.h`): a value call (`pc/src/gte_value.cpp`) points it at a
+private set for its duration, and otherwise (NULL) the operations use the thread's scratch set `gte_scratch`: there is
+no shared register state. `gte_cur`, `gte_scratch` and the per-operation scratch are per thread on ELF.
 
 The projection registers (OFX, OFY, H, DQA, DQB, ZSF3, ZSF4) are mirrored into the game's screen record
 (`pc/src/gte_value.cpp`) where they are written: `CTC2`/`CTC2_S` (`INLINE_C.C`) and `SetGeomOffset`/`SetGeomScreen`

@@ -1,6 +1,7 @@
 //! A look-at view matrix (pc/src/game/BATTLE/BATTLE.PRG/5BF94.c).
 const common = @import("common");
 const psx = common.psx;
+const gte = common.gte;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
 
@@ -29,7 +30,7 @@ pub fn func_800D197C(position: ?*v.VECTOR, target: ?*v.VECTOR, view_arg: ?*v.MAT
     view.m[2][0] = psx.conv(i16, forward.vx);
     view.m[2][1] = psx.conv(i16, forward.vy);
     view.m[2][2] = psx.conv(i16, forward.vz);
-    _ = c.ApplyMatrixLV(@ptrCast(view), @ptrCast(position), @ptrCast(&translation));
+    gte.applyMatrixLV(view, position, &translation);
     view.t[0] = -%translation.vx;
     view.t[1] = -%translation.vy;
     view.t[2] = -%translation.vz;

@@ -20,9 +20,7 @@ class Ps1AddressLintTest(unittest.TestCase):
         for rule, text in [("ps1_address", "p = 0x80010000;"), ("scratchpad", "p = 0x1F800004;"),
                            ("unnamed_symbol", "D_800F4910 = func_80070CAC();"), ("guest_pointer_field", "psx_ptr(int) p;"),
                            ("guest_pointer_access", "psx_get(p->next)"), ("address_as_integer", "psx_to_int(u_int, p)"),
-                           ("zig_raw_memory", "psx.byteAt(u32, p, 4)"),
-                           ("gte_state_machine", "gte_ldv0(&v);"), ("gte_sdk_calls", "SetRotMatrix(&m);"),
-                           ("gte_register_users", "c.SetRotMatrix(&m);"), ("gte_register_users", "gte.rtps2();"), ("gte_register_users", "c.CTC2(x, 5);")]:
+                           ("zig_raw_memory", "psx.byteAt(u32, p, 4)")]:
             self.assertTrue(lint.RULES[rule].search(text), rule)
         self.assertFalse(lint.RULES["ps1_address"].search("x = 0x8001;"))
 

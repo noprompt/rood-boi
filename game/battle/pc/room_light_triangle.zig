@@ -2,14 +2,16 @@
 const c = @import("c_room_lighting");
 const gte = @import("common").gte;
 
+
 /// orig: light_area (pc/src/room_lighting.c)
 /// Signed area of the screen triangle (a, b, third): MAC0 of GTE NCLIP.
 fn lightArea(a: c_uint, b: c_uint, third: c_uint) c_int {
-    c.MTC2(a, 12);
-    c.MTC2(b, 13);
-    c.MTC2(third, 14);
-    gte.nclip();
-    return @bitCast(c.MFC2(24));
+    var ctx = gte.Ctx.init(); // this call's own registers
+    ctx.mtc2(12, a);
+    ctx.mtc2(13, b);
+    ctx.mtc2(14, third);
+    ctx.cop2(0x01400006); // gte_nclip
+    return @bitCast(ctx.mfc2(24));
 }
 
 /// orig: func_80098C3C (pc/src/room_lighting.c)

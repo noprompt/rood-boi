@@ -1,5 +1,6 @@
 //! The event camera's per-frame move of one point (pc/src/game/BATTLE/BATTLE.PRG/4A0A8.c).
 const psx = @import("common").psx;
+const gte = @import("common").gte;
 const pad = @import("common").pad;
 const v = @import("views_4A0A8");
 const c = @import("c_4A0A8");
@@ -113,7 +114,7 @@ pub fn func_800BCA8C(arg: ?*v.D_800F4BA4_t2, _: ?*v.D_800F4BA4_t2) callconv(.c) 
             scratch.v1.vz = radius +% fixedPointMult(cam.delta, grow);
             scratch.v1.vx = 0;
             scratch.v1.vy = 0;
-            _ = c.ApplyMatrixLV(psx.cptr(c.MATRIX, matrix), cv(v1), cv(v1));
+            gte.applyMatrixLV(matrix, v1, v1);
             if (mode == 4) {
                 const height = cam.aux.vy;
                 const rise = eased(cam, cam.ease3);

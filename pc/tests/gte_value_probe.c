@@ -19,6 +19,14 @@ extern int puts(const char* text);
 extern int memcmp(const void* a, const void* b, __SIZE_TYPE__ size);
 extern int pc_gte_widescreen;
 
+/* (vs_gte_apply_matrix_lv calls the SDK routine, which is not part of this probe.) */
+VECTOR* ApplyMatrixLV(MATRIX* m, VECTOR* v0, VECTOR* v1)
+{
+    (void)m;
+    (void)v0;
+    return v1;
+}
+
 static unsigned long long rng = 0x9e3779b97f4a7c15ull;
 static unsigned next(void)
 {
@@ -108,10 +116,10 @@ static void ops_round(int mode)
     int vmac[3];
     GTERegisters junk;
     for (i = 0; i < 32; ++i) {
-        gte_global.CP2D.p[i].d = next();
-        gte_global.CP2C.p[i].d = next();
+        gte_scratch.CP2D.p[i].d = next();
+        gte_scratch.CP2C.p[i].d = next();
     }
-    junk = gte_global;
+    junk = gte_scratch;
     /* nclip: MTC2 12..14, gte_nclip, MFC2(24). */
     MTC2(a, 12), MTC2(b, 13), MTC2(c, 14);
     gte_nclip();
@@ -267,13 +275,13 @@ int main(void)
             s.dqb = pick32(mode);
             /* Junk in the global registers: a value call must not read it. */
             for (i = 0; i < 32; ++i) {
-                gte_global.CP2D.p[i].d = next();
-                gte_global.CP2C.p[i].d = next();
+                gte_scratch.CP2D.p[i].d = next();
+                gte_scratch.CP2C.p[i].d = next();
             }
-            before = gte_global;
+            before = gte_scratch;
             view = vs_gte_view_of(&m, s);
             r = vs_gte_project(&view, &v);
-            CHECK(memcmp(&before, &gte_global, sizeof before) == 0, "project changed the global registers");
+            CHECK(memcmp(&before, &gte_scratch, sizeof before) == 0, "project changed the global registers");
             load_old(&m, &s, &v);
             gte_rtps();
             compare("rtps", &r, 1, &m, &v);

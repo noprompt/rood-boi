@@ -8,14 +8,6 @@
 #include "pc/src/game/SLUS_010.40/main.h"
 #include <inline_c.h>
 extern void pc_unimplemented(const char*);
-#define gte_ctc2(reg, value) CTC2((value), (reg))
-#define gte_mtc2(reg, value) MTC2((value), (reg))
-#define gte_mfc2(reg, value) ((value) = (int)MFC2(reg))
-#define gte_mfc2_b(reg, value) gte_mfc2(reg, value)
-#define gte_lwc2(reg, ptr) MTC2(*(unsigned*)(ptr), (reg))
-#define gte_mvmva2_b(sf, mx, v, cv, lm) gte_mvmva(sf, mx, v, cv, lm)
-#define gte_rtv0tr2() gte_rtv0tr()
-#define gte_rtps2() gte_rtps()
 typedef struct func_800D6E44_t {
     struct func_800D6E44_t* previous;
     struct func_800D6E44_t* next;

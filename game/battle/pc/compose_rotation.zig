@@ -1,13 +1,18 @@
 //! Rotation composition (D2: 32154.s / 4B16C.s; oracle pc/src/boot_sdk.c).
 const c = @import("c_boot_sdk");
 const psx = @import("common").psx;
+const gte = @import("common").gte;
+
 
 /// orig: compose_rotation (pc/src/boot_sdk.c)
 /// Rotates the columns (2, 1, 0) of a copy of `b` by the rotation of `a` through the
 /// GTE (RTV0), storing the rotation into `result` and leaving its translation.
 fn composeRotation(a: [*c]c.MATRIX, b: [*c]c.MATRIX, result: [*c]c.MATRIX) [*c]c.MATRIX {
+    var ctx = gte.Ctx.init(); // this call's own registers
     const right: c.MATRIX = b.*;
-    c.SetRotMatrix(a);
+    // gte_SetRotMatrix: the rotation's five words.
+    const words: *align(1) const [5]c_uint = @ptrCast(a);
+    for (words, 0..) |word, reg| ctx.ctc2(@intCast(reg), word);
     var column: usize = 3;
     while (column > 0) {
         column -= 1;
@@ -15,12 +20,12 @@ fn composeRotation(a: [*c]c.MATRIX, b: [*c]c.MATRIX, result: [*c]c.MATRIX) [*c]c
         const vy: c_uint = psx.conv(u16, right.m[1][column]);
         const vz: c_uint = psx.conv(u16, right.m[2][column]);
         // gte_ldv0 on the stack SVECTOR { x, y, z, 0 }: its two words.
-        c.MTC2(vx | (vy << 16), 0);
-        c.MTC2(vz, 1);
-        _ = c.doCOP2(0x0486012); // gte_rtv0
-        result.*.m[0][column] = psx.conv(i16, c.MFC2(9));
-        result.*.m[1][column] = psx.conv(i16, c.MFC2(10));
-        result.*.m[2][column] = psx.conv(i16, c.MFC2(11));
+        ctx.mtc2(0, vx | (vy << 16));
+        ctx.mtc2(1, vz);
+        ctx.cop2(0x0486012); // gte_rtv0
+        result.*.m[0][column] = psx.conv(i16, ctx.mfc2(9));
+        result.*.m[1][column] = psx.conv(i16, ctx.mfc2(10));
+        result.*.m[2][column] = psx.conv(i16, ctx.mfc2(11));
     }
     return result;
 }

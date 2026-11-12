@@ -32,16 +32,6 @@ RULES = {
     "guest_pointer_access": re.compile(r"\bpsx_(?:get|set|set_raw|copy|add|postinc|load|store)\("),
     "address_as_integer": re.compile(r"\bpsx_to_(?:int|ptr)\(|\bpsx\.(?:addr|rawOf)\("),
     "zig_raw_memory": re.compile(r"\bpsx\.(?:byteAt|fieldAt)\(|@ptrFromInt\((?!@returnAddress\(\)\))"),  # (a caller's address, not memory)
-    # The GTE as a global register machine (PS1_Ties.md T7): the game's code only.
-    "gte_state_machine": re.compile(r"\bgte_[A-Za-z0-9_]+\("),
-    # The libgte calls that run on the same registers underneath.
-    "gte_sdk_calls": re.compile(r"\b(?:SetRotMatrix|SetTransMatrix|ApplyRotMatrix|ApplyMatrix|RotTransPers[34]?|"
-                                r"RotTrans|RotTransSV|RotAverage4|RotAverageNclip4|SetGeomOffset|SetGeomScreen)\("),
-    # The same machine reached from outside the game's C (T7 plan): the Zig ports (c.SetRotMatrix, c.CTC2, gte.rtps, ...) and
-    # the host files that load and read the registers. The GTE value functions (gte_value.h, game/common/gte.zig) are the way out.
-    "gte_register_users": re.compile(r"\bgte\.(?:ldv0|rtv0tr2|stlvnl|rtps2?|rtpt|nclip2?|avsz3|stsxy|stotz|stszotz|stopz|ldsxy3|"
-                                     r"SetRotMatrix|SetTransMatrix|zrtr)\(|\b(?:SetRotMatrix|SetTransMatrix|ApplyRotMatrix|ApplyMatrix\w*|"
-                                     r"RotTrans\w*|RotAverage\w*|SetGeomOffset|SetGeomScreen|CTC2|MTC2|MFC2|CFC2|doCOP2)\("),
     # GPU packets written by hand (PS1_Ties.md T4): the libgpu macros and calls that build a packet or link it into an
     # ordering table, GP0 command words written as hex (the tag in the top byte, after | = ? or :, not read back
     # with == or case), and packets written field by field and linked by hand. DrawSync and the draw environment are not packets.
@@ -60,12 +50,10 @@ RULES = {
     "lift_bridge": re.compile(r"\bPC_LIFT\s*\(|\bpc_lift_(?:begin|end|at)\s*\(|\bpc_frame_add_packets\s*\(|\bpc_frame_lift_words\b"),
 }
 # Rules that count only under a path (the others count in every tree).
-ONLY_UNDER = {"gte_state_machine": "pc/src/game/", "gte_sdk_calls": "pc/src/game/"}
+ONLY_UNDER = {}
 # Rules that leave out paths: the SDK's own libgpu and the walker that draws the packets (they are what the game's
 # packets are for, T16), and the typed items' lowering to packets (it goes when a renderer takes items directly).
-SKIP_FOR = {# the game's C is counted by gte_state_machine and gte_sdk_calls; the SDK's own implementation and the value functions are the machine
-            "gte_register_users": ("pc/src/game/", "pc/src/boot_sdk.c", "pc/src/gte_value.cpp", "game/common/gte.zig"),
-            "gpu_packet_writes": ("pc/src/game/SLUS_010.40/libgpu/", "pc/src/boot_sdk.c", "pc/src/boot_runtime.c",
+SKIP_FOR = {"gpu_packet_writes": ("pc/src/game/SLUS_010.40/libgpu/", "pc/src/boot_sdk.c", "pc/src/boot_runtime.c",
                                   "pc/src/boot_polygons.inc", "pc/src/boot_lines.inc", "pc/src/gpu_hw.c",
                                   "pc/src/draw_items.c",
                                   # not GPU packets: the SPU's registers and volume words, the movie library's data words,

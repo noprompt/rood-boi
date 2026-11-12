@@ -10,8 +10,8 @@
 
 
 
-GTERegisters gte_global;
-GTE_THREAD GTERegisters* gte_cur = &gte_global;
+GTE_THREAD GTERegisters gte_scratch;
+GTE_THREAD GTERegisters* gte_cur = 0;
 
 /* ROOD: widescreen projection and a log of projected screen positions.
  * pc_gte_widescreen scales projected X about the screen centre by 3/4 (16:9 Hor+); the

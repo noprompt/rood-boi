@@ -2,7 +2,7 @@
  * This is an overlay-specific native entry, never a guest function pointer. */
 #include <sys/types.h>
 #include <libgte.h>
-#include <inline_c.h>
+#include "gte_value_core.h"
 #include "view_state.h"
 #include "draw_items.h"
 #include "pc/src/game/GIM/SCREFF2.PRG/0.h"
@@ -20,13 +20,15 @@ static unsigned* warp_link(unsigned address)
 static unsigned warped_position(unsigned xy, const unsigned short* factors)
 {
     int x = (short)xy - 160, y = (short)(xy >> 16) - 112;
-    MTC2(x, 9);
-    MTC2(y, 10);
-    gte_sqr0();
-    unsigned distance = MFC2(25) + MFC2(26), radius = 0;
-    MTC2(distance, 30);
+    vs_gte_ctx ctx; /* this call's own registers */
+    vs_gte_ctx_init(&ctx);
+    vs_gte_mtc2(&ctx, 9, x);
+    vs_gte_mtc2(&ctx, 10, y);
+    vs_gte_cop2(&ctx, 0x0A00428); /* gte_sqr0 */
+    unsigned distance = vs_gte_mfc2(&ctx, 25) + vs_gte_mfc2(&ctx, 26), radius = 0;
+    vs_gte_mtc2(&ctx, 30, distance);
     if (distance) {
-        unsigned leading = MFC2(31) & ~1u;
+        unsigned leading = vs_gte_mfc2(&ctx, 31) & ~1u;
         /* Preserve this routine's MIPS variable arithmetic shift, including
          * its masked shift count for tiny nonzero radii. */
         int index = ((int)distance >> ((24 - leading) & 31)) - 64;

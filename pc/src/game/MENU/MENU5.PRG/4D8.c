@@ -558,7 +558,6 @@ static int _loadArmFile(void)
 
     _snapMapToRoom(vs_battle_sceneBuffer, _currentRoomIndex);
     SetFogNear(768, vs_main_projectionDistance);
-    SetFarColor(0, 0, 0);
     _setMenuItemMapName((char*)&_mapNames[_mapNames[_currentScene]], 1);
 
     return 1;
@@ -584,7 +583,6 @@ static int _menuManager(void)
     int roomIndex;
     int new_var2;
 
-    SetFarColor(0, 0, 0);
 
     _mapLabelY = 188;
     roomIndex = _currentRoomIndex;
@@ -1223,6 +1221,12 @@ static void _renderMap(vs_battle_scene* scene)
     vs_battle_setGeomOffset(&prevOffset);
 }
 
+/* DpqColor with the far colour black (the map set it to 0, 0, 0): the colour faded toward black by `p` (GTE DPCS). */
+static void _dpqColor(CVECTOR* in, int p, CVECTOR* out)
+{
+    *(unsigned*)out = vs_gte_dpcs(0, *(unsigned*)in, (unsigned)p);
+}
+
 static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
 {
     CVECTOR colorIn;
@@ -1289,13 +1293,13 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
             sp38 = var_s1[var_s3[2]][2];
         }
 
-        DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
         c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut0);
         c1 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        DpqColor(&colorIn, var_s1[var_s3[2]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[2]][3], &colorOut0);
         c2 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         vs_menu_g3(sp38, 0, 0, c0, vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1]), c1,
@@ -1329,16 +1333,16 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
         }
 
         /* (the corners in the packet's order: the third and fourth swapped) */
-        DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
         c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut0);
         c1 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        DpqColor(&colorIn, var_s1[var_s3[3]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[3]][3], &colorOut0);
         c2 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
-        DpqColor(&colorIn, var_s1[var_s3[2]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[2]][3], &colorOut0);
         c3 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
 
         vs_menu_g4(sp38, 0, 0, c0, vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1]), c1,
@@ -1371,8 +1375,8 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
         colorIn.r = 0;
         colorIn.b = 0xFF;
 
-        DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
-        DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
+        _dpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
         c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
         c1 = vs_getRGB888(colorOut1.r, colorOut1.g, colorOut1.b);
 
@@ -1391,8 +1395,8 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
             colorIn.g = 0xFF;
             colorIn.r = 0;
             colorIn.b = 0x80;
-            DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
-            DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
+            _dpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
+            _dpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
             c0 = vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b);
             c1 = vs_getRGB888(colorOut1.r, colorOut1.g, colorOut1.b);
         }
@@ -1422,8 +1426,8 @@ static int _renderRoom(int roomIndex, void* roomData, int arg2, int arg3)
         colorIn.r = 0;
         colorIn.b = 0x80;
 
-        DpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
-        DpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
+        _dpqColor(&colorIn, var_s1[var_s3[0]][3], &colorOut0);
+        _dpqColor(&colorIn, var_s1[var_s3[1]][3], &colorOut1);
 
         vs_menu_line_g(sp38, 0, 0, 1, vs_getRGB888(colorOut0.r, colorOut0.g, colorOut0.b),
             vs_getXY(var_s1[var_s3[0]][0], var_s1[var_s3[0]][1]), vs_getRGB888(colorOut1.r, colorOut1.g, colorOut1.b),
