@@ -28,13 +28,13 @@ sys.path.insert(0, str(ROOT / "pc/tools"))
 from rood_rpc import OUT  # noqa: E402
 from checkpoints import launch_at  # noqa: E402
 
-# ENDING.PRG's data in guest RAM (build/data/ENDING/ENDING.PRG.elf).
-CREDITS_DONE = 0x800DC188  # u8: the credits loop ends
-CREDITS_FRAMES = 0x800DC18C
-RANK = 0x800DC1F0
-SCORE = 0x800DC1F8
-MAP_COMPLETION = 0x800DC1FC  # percent
-RANK_SCREEN_STEP = 0x800DC20C  # the MISSION COMPLETE animation's frame
+# ENDING.PRG's data, by name (the build puts each where it lives: its PS1 address or a native region).
+CREDITS_DONE = "D_800DC188"  # u8: the credits loop ends
+CREDITS_FRAMES = "D_800DC18C"
+RANK = "_rank__ending"
+SCORE = "_score__ending"
+MAP_COMPLETION = "_mapCompletion__ending"  # percent
+RANK_SCREEN_STEP = "D_800DC20C"  # the MISSION COMPLETE animation's frame
 
 
 def mean(path):
@@ -77,8 +77,8 @@ def main():
         text = log()
         return "[UNIMPLEMENTED]" in text or "[crash]" in text
 
-    def u32(address):
-        return int.from_bytes(game.read(address, 4), "little")
+    def u32(name):
+        return int.from_bytes(game.read_symbol(name, 4), "little")
 
     def screen(name):
         path = out / f"{name}.png"
@@ -109,7 +109,7 @@ def main():
         if not check(screen(f"pass{n}-credits") > 30, f"pass {n}: credits on screen"):
             return None
         game.press("start", vsyncs=4, settle=200)
-        check(game.read(CREDITS_DONE, 1) == b"\x01", f"pass {n}: Start skips the credits")
+        check(game.read_symbol(CREDITS_DONE, 1) == b"\x01", f"pass {n}: Start skips the credits")
         for _ in range(60):
             game.run(30)
             if crashed() or u32(RANK_SCREEN_STEP) > 0x120:

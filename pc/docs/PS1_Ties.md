@@ -519,7 +519,7 @@ accessors.
 - Counts (`pc/tools/ps1_address_baseline.json`, 2026-11-10): `ps1_address` 7, `scratchpad` 52,
   `unnamed_symbol` 20594, `zig_raw_memory` 1036 (mostly in `game/battle`), `address_as_integer` 230.
 - `pc/tools/build_boot.py` (`imports.ld`); `game/ownership.toml`; `game/common/psx.zig`.
-- 956 data imports in the 64-bit build (`lp64_imports.json`): 463 native, 493 pinned (see below).
+- 956 data imports in the 64-bit build (`lp64_imports.json`): 655 native, 301 pinned (see below).
 
 **Status.** Fully PS1-shaped in addressing; native in logic. Since 2026-11-10 `ps1_address` is 7 (from
 60): what is left is the RAM base (`ROOD_GUEST_RAM_BASE`, `psx.guest_ram_base`), the heap
@@ -534,27 +534,29 @@ The build gives a data import (a global the C only declares) one of two homes: n
 `native_imports.c`, no PS1 address) or pinned (`imports.ld`: the address the original had, inside the
 fixed RAM). `pc/build/boot64/lp64_imports.json` (written by `build_boot.py --arch 64`) lists each
 import's address, users, declared types and, for a pinned one, `pinned`: the first reason it stays.
-956 data imports: 463 native (117 hold pointers, which the LP64 mover widens; 346 are plain data the
-mover moves too: scalars, structs and tables, an unsized array of plain elements together with what follows it), 493 pinned.
+956 data imports: 655 native (117 hold pointers, which the LP64 mover widens; 538 are plain data the
+mover moves too: scalars, structs and tables, an unsized array of plain elements together with what follows it,
+imports whose extents cross as one region), 301 pinned (139 of them in the plug-in slot, placed in
+`pc_plugin_slot` by the link, so 162 stay at a PS1 address).
 
 | Where (PS1 address range) | Pinned | Native |
 |---|---|---|
-| main program (`0x80010000-0x80068800`) | 61 | 91 |
-| BATTLE and ENDING slot (`0x80068800-0x800F9800`) | 275 | 372 |
+| main program (`0x80010000-0x80068800`) | 26 | 126 |
+| BATTLE and ENDING slot (`0x80068800-0x800F9800`) | 118 | 529 |
 | main menu and effect plug-in slot (`0x800F9800-0x80102800`) | 157 | 0 |
 | submenu slot (`0x80102800-0x8010C000`) | 0 | 0 |
 
-Why the 493 are pinned (each counted once, in this order; `lp64_imports.json` says which):
+Why the 301 are pinned (each counted once, in this order; `lp64_imports.json` says which):
 - 11 hold pointers or a type whose layout differs (psx_ptr structs, tables of function or data pointers
   that are not moved natively): T13 has to widen them first. (Before 2026-11-11 this count held every
   unsized array, 206 of them: a table declared `u_char x[]` is plain data whose extent is the only unknown.)
-- 12 are GPU packet or ordering-table storage whose address is taken, or touch it (the GPU links 24 bits of a
+- 13 are GPU packet or ordering-table storage whose address is taken, or touch it (the GPU links 24 bits of a
   RAM address, `next_packet` in `boot_runtime.c`; D_800F4CD0 starts the ordering-table pages; the two P_CODE
   words and their bodies; D_800E856C and D_800E8594, inside a block func_8008E19C reaches as D_800E85A0 - 0x58).
   Any other import whose address is taken may move: a native copy is a pointer like the guest one (the
   address is below 4 GB), the region keeps the guest layout, and a taken import extends to the next import
   because its declared size cannot be trusted (ENDING's image blobs are declared as their 20-byte header).
-- 28 have an incomplete type or are over 256 bytes; 76 + 23 are unsized arrays, or imports after one, whose
+- 28 have an incomplete type or are over 128 KB; 58 + 22 are unsized arrays, or imports after one, whose
   run (to the next import, and through every import after it that is moved) ends at an import that stays at
   its address: the array may run into it. An unsized array moves only together with the imports that follow
   it, as one native region with the guest layout (each region starts at the guest address's alignment: a
@@ -562,10 +564,16 @@ Why the 493 are pinned (each counted once, in this order; `lp64_imports.json` sa
   between labels are read through the table's base). An import declared with different sizes (D_800E909C:
   `u_char []` here, `func_800AAE9C_t [][28]` there; 11 imports) stays: the labels after it lie inside a larger
   table, and moving it with the extent of the next label dropped Ashley's mouth texture in the story scenes.
-- 157 are in a slot whose restart is not wired (effect plug-in and main menu data, ENDING), or are
-  shared between the main program and an overlay; 143 overlap or sit inside another import (a member of a
-  larger declaration: the next lever); 18 share an address with another name; 14 are pointed at by a word
-  of a game file.
+- 121 are in the plug-in slot: the link places each in `pc_plugin_slot` (see T10), not at its PS1 address.
+  2 are shared between BATTLE, INITBTL and the program (one object over several overlays: INITBTL's
+  image is small and sits at the start of the slot, so its load resets none of the data past it; BATTLE's
+  load restarts the shared data as it does the rest, and INITBTL's code writes its starting values itself).
+  ENDING's data
+  restarts with ENDING.PRG (`pc_overlay_statics`) and is all native but 13 pointer, packet or
+  pointed-at imports. 14 overlap or sit inside a pinned import; 18 share an address with another name; 14 are
+  pointed at by a word of a game file. Imports whose extents cross move as one region (the guest layout kept),
+  unless one of them stays; overlays that are never loaded together (TITLE's and BATTLE's data share
+  addresses) do not count as overlapping.
 
 What the original data really points into (a scan of every PRG, BIN and the main program for words
 that fall in an import's range): 116 imports are pointed at by game data and must stay at their

@@ -2202,7 +2202,7 @@ def lp64_native_imports():
     # stays pinned when anything could still reach it by address: another import inside, at or around it
     # (an incomplete array before it may run into it), a pointer word in any overlay file, a user that
     # would see it from the wrong overlay. T10/T15 (pc/docs/PS1_Ties.md).
-    PLAIN_MAX = 0x100
+    PLAIN_MAX = 0x20000
     def address_taken(obj):
         """Imports an object uses other than by a PC-relative load or store: its address is taken (lea, an
         absolute or GOT reference, a relocation in data). Declared types lie about size (D_800F4CD0 is a u_long
@@ -2289,6 +2289,10 @@ def lp64_native_imports():
         return bool(infos) and any(info.get("size") == 0 for _, info in infos) and not any(
             info.get("pointer") or info.get("pointer_words") or (info.get("element") or {}).get("pointer")
             or not (info.get("ps1_size") or obj.stem.endswith("_zig")) for obj, info in infos)
+    # ENDING's wave table D_800DBB28[4][16] (D4.c, the Phantom Pain wave) is read at [i + 1][j + 1], one row and one column
+    # past its end: the 16 bytes after it are D_800DBB68..6C and the credits' text pointers, and the picture of the
+    # credits shows what those bytes hold. The table and the three variables stay in guest RAM with them.
+    OVERRUN = {"D_800DBB28", "D_800DBB68", "D_800DBB6A", "D_800DBB6C"}
     def packet_storage(name):
         """Taking the address of GPU packet and ordering-table storage hands it to the GPU's links (24 bits of a
         guest RAM address): that, and nothing else about an address being taken, keeps an import in guest RAM."""
@@ -2296,6 +2300,11 @@ def lp64_native_imports():
         # (named: a block the code reaches by arithmetic from a neighbour's label, func_8008E19C: D_800E85A0 - 0x58, which holds
         # these two inside it, is a packet built in pieces under four names)
         return name in ("D_800F4CD0", "D_800E856C", "D_800E8594") or bool(re.search(r"\b(P_CODE|POLY_\w+|TILE\w*|SPRT\w*|LINE_\w+|DR_\w+|DRAWENV|DISPENV|DMA\w*)\b", types))
+    def unrelated(name, other):
+        """Two imports of overlays that are never loaded together (TITLE's and BATTLE's data share addresses):
+        their extents may cross without being one object."""
+        a, b = users.get(name, set()), users.get(other, set())
+        return bool(a) and bool(b) and not a & b and not (a | b) & {"main"}
     sorted_data = sorted(data, key=lambda n: addresses[n])
     next_address = {}
     for i, n in enumerate(sorted_data):
@@ -2304,6 +2313,7 @@ def lp64_native_imports():
             j += 1
         next_address[n] = addresses[sorted_data[j]] if j < len(sorted_data) else None
     candidates = {}  # import -> (start, size, class of its place, unsized)
+    overlaps = {}  # candidate -> the imports its extent crosses
     for name in sorted(data - moved):
         start = addresses[name]
         group_name = groups[name] or ""
@@ -2317,7 +2327,9 @@ def lp64_native_imports():
         else:
             size = complete_size(name)
         end = start + size
-        if len({info.get("ps1_size") for obj, info in declarations.get(declared_name(name), []) if not obj.stem.endswith("_zig")}) > 1:
+        if name in OVERRUN:
+            pinned[name] = "read past its end by the code, into neighbours that must stay where they are"
+        elif len({info.get("ps1_size") for obj, info in declarations.get(declared_name(name), []) if not obj.stem.endswith("_zig")}) > 1:
             # Declared as different things (D_800E909C: u_char [] here, func_800AAE9C_t [][28] there): the bytes are
             # a table of the larger kind, whose extent the labels after it do not mark.
             pinned[name] = "declared with different sizes: its extent is not the next label's"
@@ -2329,19 +2341,30 @@ def lp64_native_imports():
             pinned[name] = "another name at its address"
         else:
             in_exe = end <= 0x80068800
-            in_battle = 0x80068800 <= start and end <= battle_end and not group_name and not keys & {"ending", "init", "main"}
+            in_battle = 0x80068800 <= start and end <= battle_end and not group_name and not keys & {"ending", "main"}
             in_ending = group_name == "ending" and end <= 0x80068800 + len(ending_image)
-            in_battle_bss = battle_end <= start and end <= 0x800F9800 and not group_name and not keys & {"ending", "init", "main"}
-            if not (in_exe or in_battle or in_ending or in_battle_bss):
-                pinned[name] = "in an overlay slot the restart does not cover (effect plug-ins, menus, ENDING), or shared across overlays"
+            in_battle_bss = battle_end <= start and end <= 0x800F9800 and not group_name and not keys & {"ending", "main"}
+            if 0x800F9800 <= start < 0x80102800:
+                pinned[name] = "in the plug-in slot: the link places it in pc_plugin_slot, not at its PS1 address"
+            elif not (in_exe or in_battle or in_ending or in_battle_bss):
+                pinned[name] = "shared between BATTLE, INITBTL and the program or menus (one object over several overlays)"
             elif pointed_into(start, end):
                 pinned[name] = "a pointer word in a game file points into it"
             elif name in taken_names and not unsized and packet_storage(name):
                 pinned[name] = "GPU packet or ordering-table storage whose address is taken (the GPU links 24 bits of a guest RAM address)"
-            elif any(a < end and b > start and who != name for a, b, who in covers):
-                pinned[name] = "overlaps another import"
             else:
                 candidates[name] = (start, size, (group_name, in_exe, in_battle, in_ending), unsized)
+                overlaps[name] = [who for a, b, who in covers if a < end and b > start and who != name and not unrelated(name, who)]
+    # Imports whose extents cross (members of a larger declaration, or neighbours declared wider than their labels)
+    # are one object: they move together, in one region, or not at all.
+    changed = True
+    while changed:
+        changed = False
+        for name in sorted(candidates):
+            if any(who not in candidates for who in overlaps[name]):
+                pinned[name] = "overlaps another import"
+                del candidates[name]
+                changed = True
     # A packet is written in pieces under several names (a P_CODE word, then its body): what touches packet storage
     # is packet storage too.
     packets = [(addresses[n], addresses[n] + max(complete_size(n), 4)) for n in data if packet_storage(n)]
@@ -2389,8 +2412,8 @@ def lp64_native_imports():
     spans = []
     for name in sorted(candidates, key=lambda n: addresses[n]):
         start, size, kind, _ = candidates[name]
-        if spans and spans[-1][4] == kind and spans[-1][1] == start:
-            spans[-1][1] = start + size
+        if spans and spans[-1][4] == kind and spans[-1][1] >= start:
+            spans[-1][1] = max(spans[-1][1], start + size)
             spans[-1][2].append(name)
         else:
             spans.append([start, start + size, [name], kind[0], kind])
