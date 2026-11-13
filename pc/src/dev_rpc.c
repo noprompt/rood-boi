@@ -441,6 +441,7 @@
  * pc/tools/rood_rpc.py is the client (CLI, Python API and a stdin/stdout
  * JSON-RPC bridge); it resolves symbol names to addresses with nm. */
 #define _GNU_SOURCE
+#include "draw_items.h" /* pc_frame_view_last: it was called undeclared, returning int */
 #include "psx_types.h"
 #include <errno.h>
 #include <fcntl.h>
@@ -451,6 +452,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+#include "hw_meter.h"
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -1972,6 +1974,20 @@ static void handle_method(int fd, const char* request)
         }
         pc_occlusion_json(result, (int)sizeof result);
         reply(fd, id, result);
+    } else if (!strcmp(method, "present_stats")) {
+        /* The presents the service made: counts, per second, and the time between them (mean, deviation, min, max over the
+         * last 600); {reset: true} starts again. */
+        extern int pc_present_stats_json(char*, int) __attribute__((weak));
+        extern void pc_present_stats_reset(void) __attribute__((weak));
+        if (!pc_present_stats_json) {
+            fail(fd, id, -32000, "no presenter");
+            return;
+        }
+        int reset = 0;
+        if (params && bool_value(member(params, "reset"), &reset) && reset && pc_present_stats_reset)
+            pc_present_stats_reset();
+        pc_present_stats_json(result, (int)sizeof result);
+        reply(fd, id, result);
     } else if (!strcmp(method, "graphics")) {
         static const char* const denoiser_names[3] = { "raw", "filter", "nrd" };
         double real_emissive;
@@ -1982,6 +1998,9 @@ static void handle_method(int fd, const char* request)
         extern int pc_present_rate __attribute__((weak));
         if (params && number_value(member(params, "present_rate"), &n) && &pc_present_rate && n >= 0 && n <= 8)
             pc_present_rate = (int)n;
+        extern int pc_present_pacing __attribute__((weak)); /* boot_window.c: 0 classic, 1 display */
+        if (params && number_value(member(params, "present_pacing"), &n) && &pc_present_pacing && n >= 0 && n <= 1)
+            pc_present_pacing = (int)n;
         if (params && number_value(member(params, "scale"), &n) && pc_hw_set_scale)
             pc_hw_set_scale((int)n);
         if (params && number_value(member(params, "filter"), &n) && n >= 0 && n <= 2)
@@ -2636,10 +2655,10 @@ static void handle_method(int fd, const char* request)
                 fail(fd, id, -32602, "render needs [tpage, clut, u0, v0, u1, v1] in a page, factor 1-16 and path");
                 return;
             }
-            extern const uint16_t* pc_hw_native_vram(void);
+            extern const uint16_t* pc_renderer_vram(void);
             rw = (r[4] - r[2] + 1) * (int)factor, rh = (r[5] - r[3] + 1) * (int)factor;
             uint32_t* texels = malloc((size_t)rw * rh * sizeof *texels);
-            const uint16_t* vram = pc_hw_native_vram();
+            const uint16_t* vram = pc_renderer_vram();
             rendered = texels && vram
                     && pc_ui_text_render(vram, (unsigned)r[0], (unsigned)r[1], r[2], r[3], r[4], r[5], (int)factor,
                         texels);
@@ -2835,10 +2854,10 @@ static void handle_method(int fd, const char* request)
         int m[6];
         if (mask_param
             && sscanf(mask_param, " [ %d , %d , %d , %d , %d , %d ]", &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]) == 6) {
-            extern const uint16_t* pc_hw_native_vram(void);
+            extern const uint16_t* pc_renderer_vram(void);
             static unsigned char bits[256 * 256];
-            int n = pc_hw_native_vram()
-                      ? pc_button_prompts_mask(pc_hw_native_vram(), 12, 223u << 6 | 944 / 16, m[0], m[1], m[2], m[3], m[4],
+            int n = pc_renderer_vram()
+                      ? pc_button_prompts_mask(pc_renderer_vram(), 12, 223u << 6 | 944 / 16, m[0], m[1], m[2], m[3], m[4],
                             m[5], bits)
                       : 0;
             int w = n ? (m[2] - m[0] + 1) * m[4] : 0, h = w ? n / w : 0;
@@ -2876,13 +2895,8 @@ static void handle_method(int fd, const char* request)
                 fail(fd, id, -32602, "poke needs [x, y, w, h, value] inside VRAM");
                 return;
             }
-            extern const uint16_t* pc_hw_native_vram(void);
-            extern void pc_hw_upload(int x, int y, int w, int h);
-            uint16_t* vram = (uint16_t*)(uintptr_t)pc_hw_native_vram();
-            for (int y = r[1]; vram && y < r[1] + r[3]; y++)
-                for (int x = r[0]; x < r[0] + r[2]; x++)
-                    vram[y * 1024 + x] = (uint16_t)r[4];
-            pc_hw_upload(r[0], r[1], r[2], r[3]);
+            extern void pc_vram_poke(int x, int y, int w, int h, unsigned value); /* a stream upload (boot_runtime.c) */
+            pc_vram_poke(r[0], r[1], r[2], r[3], (unsigned)r[4]);
         }
         /* {mask: PATH}: where magnified 2D was drawn since the last mask
          * (1024 x 512 PGM). */
@@ -3172,6 +3186,16 @@ static void handle_method(int fd, const char* request)
         }
         pc_vram_stream_json(result, (int)sizeof result);
         reply(fd, id, result);
+    } else if (!strcmp(method, "hw_meter")) {
+        /* The renderer hook meter (hw_meter.h, T1 plan R0; ROOD_HW_METER=1): every pc_hw_* hook's calls, those made inside the
+         * draw walk and from other threads, per-frame rates, time (with ROOD_PERF=1), what the return-value hooks answered and
+         * why, and the previous frame's calls in order. {reset: true} zeroes the counts. */
+        int flag = 0;
+        if (params)
+            bool_value(member(params, "reset"), &flag);
+        static char meter[200000];
+        pc_hw_meter_json(meter, (int)sizeof meter, flag);
+        reply(fd, id, meter);
     } else if (!strcmp(method, "perf")) {
         /* GPU time per presented frame since the last {reset: true} (ROOD_PERF=1). */
         int flag = 0;

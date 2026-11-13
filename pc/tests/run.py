@@ -231,6 +231,14 @@ def suites(args, mode="egl"):
               note="probe GI: converges, energy vs path traced, stable, no wall leak, light/room changes"),
         Suite("interpolation_smoke", [PY, str(TESTS / "interpolation_smoke.py")], 180,
               note="interpolated frames move the camera (opening pan)"),
+        Suite("stack_selftest_smoke", [PY, str(TESTS / "stack_selftest_smoke.py")], 180,
+              note="the present-thread stack switch (context code) runs and returns"),
+        Suite("present_pacing_smoke", [PY, str(TESTS / "present_pacing_smoke.py")], 600,
+              note="present_pacing display/classic: phase-locked images per field at 60/90/140 Hz and VRR"),
+        Suite("present_canary_smoke", [PY, str(TESTS / "present_canary_smoke.py")], 900,
+              note="scramble canary: the presenter reads only the frame header, not live game state"),
+        Suite("render_jitter_smoke", [PY, str(TESTS / "render_jitter_smoke.py")], 1500,
+              note="renderer-thread readiness: the same pictures under render jitter (3 routes x 3 seeds)"),
         *([Suite("interp_menu_2d_smoke", [PY, str(TESTS / "interp_menu_2d_smoke.py"), "--card", str(args.save)],
                  600, note="16:9, interpolation on (present_rate 1 and 3): original Status, Equip affinity "
                            "and card list in-between images keep the game's 2D (no stray glyphs or lines, no "

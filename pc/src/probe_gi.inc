@@ -111,15 +111,15 @@ extern int pc_probe_lights_base(float position[][4], float color[][4], float dir
 /* Is the probe field wanted this frame? */
 static int probe_wanted(void)
 {
-    return pc_gi_method == PC_GI_PROBES && pc_lights_enabled;
+    return PC_PH_GET(gi_method, pc_gi_method) == PC_GI_PROBES && pc_lights_enabled;
 }
 /* Fit the grid to the room (room_lo/hi already set); 1 when it changed
  * (new resources and a reset). */
 static int probe_fit(void)
 {
-    float spacing = pc_probe_spacing < 16 ? 16 : pc_probe_spacing > 4096 ? 4096 : pc_probe_spacing;
-    int budget = pc_probe_budget < 8 ? 8 : pc_probe_budget > 16384 ? 16384 : pc_probe_budget;
-    int serial = pc_scene_serial();
+    float spacing = PC_PH_GET(probe_spacing, pc_probe_spacing) < 16 ? 16 : PC_PH_GET(probe_spacing, pc_probe_spacing) > 4096 ? 4096 : PC_PH_GET(probe_spacing, pc_probe_spacing);
+    int budget = PC_PH_GET(probe_budget, pc_probe_budget) < 8 ? 8 : PC_PH_GET(probe_budget, pc_probe_budget) > 16384 ? 16384 : PC_PH_GET(probe_budget, pc_probe_budget);
+    int serial = pc_ph_scene_serial();
     if (serial == probe.serial && spacing == probe.fitted_spacing && budget == probe.fitted_budget)
         return 0;
     float extent[3];
@@ -221,7 +221,7 @@ static int probe_begin(probe_volume_ubo* v, probe_trace_ubo* t, int root)
     h = probe_hash(h, probe.right, sizeof probe.right);
     h = probe_hash(h, probe.up, sizeof probe.up);
     h = probe_hash(h, probe.shadows, sizeof probe.shadows);
-    float amounts[5] = { pc_gi_baked_bounce, pc_emitter_light, (float)pc_gi_bounces, (float)pc_glow_shadows, pc_light_size };
+    float amounts[5] = { PC_PH_GET(gi_baked_bounce, pc_gi_baked_bounce), PC_PH_GET(emitter_light, pc_emitter_light), (float)PC_PH_GET(gi_bounces, pc_gi_bounces), (float)PC_PH_GET(glow_shadows, pc_glow_shadows), PC_PH_GET(light_size, pc_light_size) };
     h = probe_hash(h, amounts, sizeof amounts);
     gather_env();
     h = probe_hash(h, &env_now, sizeof env_now); /* the sun and sky */
@@ -246,10 +246,10 @@ static int probe_begin(probe_volume_ubo* v, probe_trace_ubo* t, int root)
         flags |= PV_FRONT_CCW;
     probe_rotation();
     /* Hysteresis: a running mean until the history is as long as the setting's. */
-    float h_setting = pc_probe_hysteresis < 0 ? 0 : pc_probe_hysteresis > 0.995f ? 0.995f : pc_probe_hysteresis;
+    float h_setting = PC_PH_GET(probe_hysteresis, pc_probe_hysteresis) < 0 ? 0 : PC_PH_GET(probe_hysteresis, pc_probe_hysteresis) > 0.995f ? 0.995f : PC_PH_GET(probe_hysteresis, pc_probe_hysteresis);
     float h_mean = 1.0f - 1.0f / (float)(probe.converged + 1);
     float hysteresis = h_mean < h_setting ? h_mean : h_setting;
-    int rays = pc_probe_rays < 8 ? 8 : pc_probe_rays > PROBE_MAX_RAYS ? PROBE_MAX_RAYS : pc_probe_rays;
+    int rays = PC_PH_GET(probe_rays, pc_probe_rays) < 8 ? 8 : PC_PH_GET(probe_rays, pc_probe_rays) > PROBE_MAX_RAYS ? PROBE_MAX_RAYS : PC_PH_GET(probe_rays, pc_probe_rays);
     float smallest = fminf(probe.spacing[0], fminf(probe.spacing[1], probe.spacing[2]));
     float largest = fmaxf(probe.spacing[0], fmaxf(probe.spacing[1], probe.spacing[2]));
     float diagonal = sqrtf((room_hi[0] - room_lo[0]) * (room_hi[0] - room_lo[0])
@@ -266,8 +266,8 @@ static int probe_begin(probe_volume_ubo* v, probe_trace_ubo* t, int root)
     v->spacing[3] = largest;
     v->counts[3] = probe.columns;
     v->info[0] = probe.probes, v->info[1] = rays, v->info[2] = (int)probe.updates, v->info[3] = flags;
-    v->bias[0] = pc_probe_normal_bias * smallest;
-    v->bias[1] = pc_probe_view_bias * smallest;
+    v->bias[0] = PC_PH_GET(probe_normal_bias, pc_probe_normal_bias) * smallest;
+    v->bias[1] = PC_PH_GET(probe_view_bias, pc_probe_view_bias) * smallest;
     v->bias[2] = fminf(diagonal * 1.5f + 64.0f, 16384.0f);
     v->bias[3] = 50.0f; /* depth sharpness */
     v->blend[0] = hysteresis;
@@ -277,7 +277,7 @@ static int probe_begin(probe_volume_ubo* v, probe_trace_ubo* t, int root)
      * noise of dim texels crosses any useful threshold (frame-to-frame
      * flicker); light changes reset the convergence instead (light hash). */
     v->blend[2] = 0.0f;
-    v->blend[3] = pc_gi_bounces >= 2 ? 1.0f : 0.0f; /* multi-bounce through the field */
+    v->blend[3] = PC_PH_GET(gi_bounces, pc_gi_bounces) >= 2 ? 1.0f : 0.0f; /* multi-bounce through the field */
     memcpy(v->flicker, probe.flicker, sizeof v->flicker);
     v->bvh[0] = root, v->bvh[1] = -1, v->bvh[2] = probe.count;
     v->relocate[0] = 0.3f * smallest; /* closest front face */
@@ -299,10 +299,10 @@ static int probe_begin(probe_volume_ubo* v, probe_trace_ubo* t, int root)
     memcpy(t->room_hi, room_hi, sizeof room_hi);
     t->i0[0] = probe.count, t->i0[1] = 1, t->i0[3] = 1;
     t->i1[0] = 1, t->i1[1] = emitter_count, t->i1[3] = 1;
-    t->i2[0] = pc_glow_shadows, t->i2[1] = 2, t->i2[3] = (int)probe.updates;
+    t->i2[0] = PC_PH_GET(glow_shadows, pc_glow_shadows), t->i2[1] = 2, t->i2[3] = (int)probe.updates;
     t->i3[0] = (int)pc_glow_casts;
-    t->f0[0] = pc_light_size, t->f0[1] = pc_gi_baked_bounce, t->f0[2] = pc_emitter_light, t->f0[3] = pc_contact_radius;
-    t->f1[0] = pc_baked_ambient;
+    t->f0[0] = PC_PH_GET(light_size, pc_light_size), t->f0[1] = PC_PH_GET(gi_baked_bounce, pc_gi_baked_bounce), t->f0[2] = PC_PH_GET(emitter_light, pc_emitter_light), t->f0[3] = PC_PH_GET(contact_radius, pc_contact_radius);
+    t->f1[0] = PC_PH_GET(baked_ambient, pc_baked_ambient);
     t->env = env_now;
     return flags;
 }
@@ -316,7 +316,7 @@ static void probe_end(void)
 /* Something to bounce: dynamic lights, glow light or baked bounce. */
 static int probe_has_light(void)
 {
-    return light_count || (emitter_count && pc_emitter_light > 0) || pc_gi_baked_bounce > 0 || gather_env();
+    return light_count || (emitter_count && pc_emitter_light > 0) || PC_PH_GET(gi_baked_bounce, pc_gi_baked_bounce) > 0 || gather_env();
 }
 
 /* ---- OpenGL 4.3 compute (ptgi.c's BVH: the room part, root room_root) ---- */
@@ -476,7 +476,7 @@ void pc_probe_gl_update(void)
     if (probe.fresh || !probe_wanted() || !init() || !update_scene())
         return;
     update_emitters();
-    pc_scene_bounds(room_lo, room_hi);
+    pc_ph_scene_bounds(room_lo, room_hi);
     gather_lights();
     probe_gl_update();
 }
@@ -560,7 +560,7 @@ static void probe_size(int which, int* w, int* h)
 void pc_probe_get_stats(pc_probe_stats* out)
 {
     memset(out, 0, sizeof *out);
-    out->valid = probe.has_data && probe.serial == pc_scene_serial();
+    out->valid = probe.has_data && probe.serial == pc_ph_scene_serial();
     out->backend = probe.backend;
     for (int k = 0; k < 3; k++) {
         out->counts[k] = probe.counts[k];
@@ -568,7 +568,7 @@ void pc_probe_get_stats(pc_probe_stats* out)
         out->spacing[k] = probe.spacing[k];
     }
     out->probes = probe.probes;
-    out->rays = pc_probe_rays < 8 ? 8 : pc_probe_rays > PROBE_MAX_RAYS ? PROBE_MAX_RAYS : pc_probe_rays;
+    out->rays = PC_PH_GET(probe_rays, pc_probe_rays) < 8 ? 8 : PC_PH_GET(probe_rays, pc_probe_rays) > PROBE_MAX_RAYS ? PROBE_MAX_RAYS : PC_PH_GET(probe_rays, pc_probe_rays);
     out->updates = probe.updates;
     out->converged = probe.converged;
     out->rebuilds = probe.rebuilds;
@@ -614,7 +614,7 @@ int pc_probe_dump(const char* path)
     if (f) {
         fprintf(f, "rood-probe-dump %d %d %d %d %d %d %d %d %u %u %.3f %.3f %.3f %.3f %.3f %.3f %d %d %d %d\n",
             probe.counts[0], probe.counts[1], probe.counts[2], probe.probes,
-            pc_probe_rays < 8 ? 8 : pc_probe_rays > PROBE_MAX_RAYS ? PROBE_MAX_RAYS : pc_probe_rays, probe.columns,
+            PC_PH_GET(probe_rays, pc_probe_rays) < 8 ? 8 : PC_PH_GET(probe_rays, pc_probe_rays) > PROBE_MAX_RAYS ? PROBE_MAX_RAYS : PC_PH_GET(probe_rays, pc_probe_rays), probe.columns,
             probe.rows, probe.backend, probe.updates, probe.converged, probe.origin[0], probe.origin[1], probe.origin[2],
             probe.spacing[0], probe.spacing[1], probe.spacing[2], w[0], h[0], w[1], h[1]);
         int order[4] = { 2, 0, 1, 3 };
@@ -634,7 +634,7 @@ int pc_probe_snapshot(float (*position)[4], float (*color)[4], int max, const fl
 {
     static float *data, *irradiance;
     static int calls, size;
-    if (!probe.has_data || !probe.probes || probe.serial != pc_scene_serial())
+    if (!probe.has_data || !probe.probes || probe.serial != pc_ph_scene_serial())
         return 0;
     int n = probe.probes < max ? probe.probes : max;
     int iw, ih;

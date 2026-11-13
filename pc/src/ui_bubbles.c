@@ -45,6 +45,7 @@
 
 extern int pc_hw_scale, pc_hw_active, pc_ui_subpixel;
 extern void pc_hw_set_2d(int is_2d);
+#include "hw_cmd.h"
 
 int pc_ui_bubbles = PC_UI_BUBBLES_ORIGINAL;
 float pc_ui_bubble_outline = 1.0f;
@@ -649,7 +650,7 @@ void pc_ui_bubble_packet(int index, const void* packet, int draw_x, int draw_y, 
     unsigned* drawn = shadow ? &B->shadow_drawn : &B->main_drawn;
     if (*drawn != ot_serial) {
         *drawn = ot_serial;
-        pc_hw_set_2d(1);
+        pc_hwc_set_2d(1);
         if (shadow)
             draw_shadow(B, draw_x, draw_y, clip);
         else {

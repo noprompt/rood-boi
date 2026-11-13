@@ -40,7 +40,7 @@ from PIL import Image
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "pc/tools"))
-from rood_rpc import OUT, Game  # noqa: E402
+from rood_rpc import OUT, Game, symbols  # noqa: E402
 
 failures = []
 
@@ -152,15 +152,25 @@ def run(label, card, shots, extra_env, gpu):
                 check(new <= max(32, inside // 50),
                       f"{label} menu: magnified pixels keep the nearest picture's colours ({new} of {inside} new)")
 
-                # Warm cache: a still menu adds no regions.
+                # Warm cache: a still menu adds no regions once its glyphs are cached. The menus show the play
+                # time and a digit that changes is a new glyph (a region), not a cache miss: the clock is stopped
+                # at its limit (100 hours, where vs_main_gametimeUpdate stops counting). The menu's pieces appear
+                # over the first seconds (the clock's digits, the cursor's states): the cache must reach a window
+                # that adds nothing, within a few, and then hold.
                 game.call("graphics", ui_upscale="mmpx")
+                game.write(symbols()["vs_main_gametime"], bytes([0, 0, 0, 100]))
                 game.run(30)
-                before = game.call("ui_upscale")
-                game.run(60)
-                after = game.call("ui_upscale")
+                windows = 0
+                while True:
+                    before = game.call("ui_upscale")
+                    game.run(60)
+                    after = game.call("ui_upscale")
+                    windows += 1
+                    if after["misses"] == before["misses"] or windows >= 8:
+                        break
                 check(after["misses"] == before["misses"] and after["hits"] > before["hits"],
-                      f"{label}: warm cache, {after['hits'] - before['hits']} hits and "
-                      f"{after['misses'] - before['misses']} misses in 60 vsyncs; "
+                      f"{label}: warm cache after {windows} windows, {after['hits'] - before['hits']} hits and "
+                      f"{after['misses'] - before['misses']} misses in the last 60 vsyncs; "
                       f"{after['frame_lookups']} lookups, {after['frame_ms']:.3f} ms a frame")
 
                 # A cached region's texture page changes (as LoadImage would).

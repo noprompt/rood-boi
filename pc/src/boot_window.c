@@ -4,12 +4,18 @@
  * it, else X11 (SDL_VIDEO_DRIVER=wayland or x11 chooses explicitly). */
 #define _POSIX_C_SOURCE 200809L
 #include <SDL3/SDL.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "boot_controller.h"
+#include "frame_cost.h"
+#include "present_service.h"
+#include "present_header.h"
+#include "render_jitter.h"
+extern void pc_jitter(int) __attribute__((weak)); /* render_jitter.c (the R4 harness) */
 #include "camera_stick.h"
 #include "button_prompts.h"
 #include "ui/ui_settings.h" /* binding capture: PC_UI_CAPTURE_* */
@@ -302,8 +308,16 @@ int pc_window_stick(float out[2])
     }
     return pc_input_stick(out, valid);
 }
+static long long field_start_ns; /* monotonic: when this game field's tick finished its pacing (the frame is presented from here) */
+static long long now_ns(void)
+{
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return t.tv_sec * 1000000000LL + t.tv_nsec;
+}
 void pc_window_tick(void)
 {
+    long long paced_start = 0;
     if (!window)
         return;
     window_mode_apply(); /* a switch asked for since the last tick (pc_window_mode_set) */
@@ -430,7 +444,9 @@ void pc_window_tick(void)
         else
             clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &deadline, NULL);
         clock_gettime(CLOCK_MONOTONIC, &woke);
+        paced_start = deadline.tv_sec * 1000000000LL + deadline.tv_nsec; /* the field's ideal start, not when the sleep returned */
     }
+    field_start_ns = paced_start ? paced_start : now_ns(); /* this field began */
 }
 extern int pc_display_rgb24;
 extern int pc_display_masked __attribute__((weak)); /* boot_sdk.c SetDispMask */
@@ -444,7 +460,10 @@ void pc_window_frame(const uint16_t* vram, int x, int y, int w, int h)
     }
 #ifdef ROOD_VULKAN
     if (pc_vk_on()) {
+        pc_present_header_fill(); /* the game-owned values the presenter reads (present_header.h) */
+        pc_present_enter();
         pc_vk_present(vram, x, y, w, h);
+        pc_present_leave();
         pc_material_graph_poll(); /* the node graphs' generated include, when they changed */
         pc_shader_reload_poll(); /* between frames: shader hot reload */
         return;
@@ -742,7 +761,13 @@ void pc_fullscreen_mode_choose(const char* value)
 }
 const char* pc_fullscreen_mode_setting(void) { return mode_want; }
 
-int pc_vsync_get(void) { return vsync_on; }
+/* settings present_pacing: 0 classic (the frame loop sleeps to 59.94 Hz deadlines, in-betweens at k/n of a field), 1 display (the
+ * display's vblank paces the presents, the in-between's phase is the real time since the field began). The game's own stepping
+ * is the same either way (deadlines). Display pacing needs the swap to wait for the refresh, so it turns the presenters' vsync
+ * on; in fast mode (tests, no pacing) it does nothing. */
+int pc_present_pacing;
+static double sim_hz(void);
+int pc_vsync_get(void) { return vsync_on || (pc_present_pacing == 1 && !fast && sim_hz() <= 0); }
 void pc_vsync_set(int on) { vsync_on = on != 0; } /* the presenters follow at their next present */
 
 /* Images per vsync (pc_present_rate): 0 "Match display" is the display's refresh over 59.94 Hz; with vsync on
@@ -762,6 +787,237 @@ int pc_window_present_rate(void)
     if (vsync_on && rate > display_rate())
         rate = display_rate();
     return rate < 1 ? 1 : rate > 8 ? 8 : rate;
+}
+extern float pc_present_phase __attribute__((weak));
+extern int pc_hw_interpolate __attribute__((weak));
+extern int pc_hw_active __attribute__((weak));
+extern void pc_hw_sync(int, int, int, int) __attribute__((weak));
+/* Present statistics (RPC present_stats). An image is noted as (field, phase): it shows the game frame of that field blended to that
+ * fraction of the field (0 up to 1), so its time on the game's clock is field + phase fields. Intervals between presents are real
+ * time; spacing between images is that game-clock time, which is what motion follows (even spacing is even motion). */
+#define STAT_RING 600
+typedef struct {
+    long long field;
+    float phase;
+} image_note;
+static struct {
+    long long at[STAT_RING], first, last;
+    image_note note[STAT_RING];
+    unsigned long long presents, fields, extras, violations, per_field[9];
+    int in_field; /* images of the current field so far */
+} stats;
+static void stat_present(long long field, float phase)
+{
+    long long t = now_ns();
+    if (!stats.presents)
+        stats.first = t;
+    image_note* n = &stats.note[stats.presents % STAT_RING];
+    if (stats.presents) {
+        const image_note* was = &stats.note[(stats.presents - 1) % STAT_RING];
+        if ((double)(field - was->field) + (double)(phase - was->phase) <= 0)
+            ++stats.violations; /* an image shown no later than the one before it */
+    }
+    n->field = field, n->phase = phase;
+    stats.at[stats.presents++ % STAT_RING] = stats.last = t;
+    ++stats.in_field;
+}
+static long long field_counter; /* game fields presented since the start (the statistics' counts restart; this does not) */
+static void stat_field_begin(void)
+{
+    ++field_counter;
+    if (stats.fields)
+        ++stats.per_field[stats.in_field > 8 ? 8 : stats.in_field];
+    stats.in_field = 0;
+    ++stats.fields;
+}
+int pc_present_stats_json(char* out, int size)
+{
+    int n = stats.presents < STAT_RING ? (int)stats.presents : STAT_RING;
+    double sum = 0, sq = 0, lo = 1e18, hi = 0, gsum = 0, gsq = 0, glo = 1e18, ghi = 0;
+    int count = 0;
+    for (int i = 1; i < n; i++) {
+        unsigned long long a = stats.presents - (unsigned long long)n + (unsigned)i - 1, b = a + 1;
+        double d = (double)(stats.at[b % STAT_RING] - stats.at[a % STAT_RING]) / 1e6;
+        const image_note *na = &stats.note[a % STAT_RING], *nb = &stats.note[b % STAT_RING];
+        double g = ((double)(nb->field - na->field) + (double)(nb->phase - na->phase)) * (double)FIELD_NS / 1e6;
+        sum += d, sq += d * d, gsum += g, gsq += g * g, ++count;
+        lo = d < lo ? d : lo, hi = d > hi ? d : hi, glo = g < glo ? g : glo, ghi = g > ghi ? g : ghi;
+    }
+    double mean = count ? sum / count : 0, var = count ? sq / count - mean * mean : 0;
+    double gmean = count ? gsum / count : 0, gvar = count ? gsq / count - gmean * gmean : 0;
+    double seconds = stats.presents > 1 ? (double)(stats.last - stats.first) / 1e9 : 0;
+    unsigned long long closed = 0, images = 0;
+    for (int k = 1; k <= 8; k++)
+        closed += stats.per_field[k], images += stats.per_field[k] * (unsigned)k;
+    int used = snprintf(out, (size_t)size,
+        "{\"pacing\":%d,\"sim_hz\":%.2f,\"presents\":%llu,\"fields\":%llu,\"presents_per_second\":%.2f,\"fields_per_second\":%.2f,"
+        "\"interval_ms\":{\"mean\":%.3f,\"stddev\":%.3f,\"min\":%.3f,\"max\":%.3f},"
+        "\"image_spacing_ms\":{\"mean\":%.3f,\"stddev\":%.3f,\"min\":%.3f,\"max\":%.3f},\"order_violations\":%llu,"
+        "\"images_per_field\":{\"mean\":%.3f,\"counts\":[%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu]},\"display_hz\":%.2f,\"recent\":[",
+        pc_present_pacing, sim_hz(), stats.presents, stats.fields, seconds > 0 ? (double)stats.presents / seconds : 0,
+        seconds > 0 ? (double)stats.fields / seconds : 0, mean, var > 0 ? sqrt(var) : 0, count ? lo : 0, hi, gmean,
+        gvar > 0 ? sqrt(gvar) : 0, count ? glo : 0, ghi, stats.violations, closed ? (double)images / (double)closed : 0,
+        stats.per_field[1], stats.per_field[2], stats.per_field[3], stats.per_field[4], stats.per_field[5], stats.per_field[6],
+        stats.per_field[7], stats.per_field[8],
+        window && SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window))
+            ? SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window))->refresh_rate : 0.0f);
+    int recent = n < 48 ? n : 48;
+    for (int i = 0; i < recent && used < size - 64; i++) {
+        const image_note* k = &stats.note[(stats.presents - (unsigned long long)recent + (unsigned)i) % STAT_RING];
+        used += snprintf(out + used, (size_t)(size - used), "%s[%lld,%.5f]", i ? "," : "", k->field, k->phase);
+    }
+    used += snprintf(out + used, (size_t)(size - used), "]}");
+    return used;
+}
+void pc_present_stats_reset(void) { memset(&stats, 0, sizeof stats); }
+
+/* The display's vblanks, as the presents see them (display pacing). Real: each present returns on the swap, which anchors a grid of
+ * the observed interval (a running average of the intervals between presents: a variable refresh rate or a compositor moves it and
+ * the grid follows). Simulated (ROOD_PRESENT_SIM_HZ=hz[:variation], for tests): a fake clock steps vblank to vblank, nothing
+ * waits; with a variation (a fraction) each interval is that much longer or shorter by a seeded random amount, as a VRR display's. */
+static long long vb_anchor_ns;
+static double vb_interval_ns;
+static double sim_hz_value = -1, sim_variation;
+static long long sim_next_ns; /* the next simulated vblank on the game's clock (field 0 starts at 0) */
+static unsigned sim_rng = 12345;
+static double sim_hz(void)
+{
+    if (sim_hz_value < 0) {
+        const char* v = getenv("ROOD_PRESENT_SIM_HZ");
+        sim_hz_value = v ? atof(v) : 0;
+        const char* c = v ? strchr(v, ':') : NULL;
+        sim_variation = c ? atof(c + 1) : 0;
+    }
+    return sim_hz_value;
+}
+static double sim_random(void) /* -1 to 1 */
+{
+    sim_rng = sim_rng * 1664525u + 1013904223u;
+    return (double)(sim_rng >> 8) / (double)(1 << 23) - 1.0;
+}
+static long long sim_step(void) { return (long long)(1e9 / sim_hz_value * (1.0 + sim_variation * sim_random())); }
+static long long sim_vblank_after(long long t_ns) /* the first simulated vblank at or after t that is not spent */
+{
+    if (!sim_next_ns)
+        sim_next_ns = sim_step();
+    while (sim_next_ns < t_ns)
+        sim_next_ns += sim_step();
+    return sim_next_ns;
+}
+static long long real_vblank_next(long long now)
+{
+    double interval = vb_interval_ns;
+    if (interval <= 0) {
+        const SDL_DisplayMode* m = window ? SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window)) : NULL;
+        interval = m && m->refresh_rate > 1 ? 1e9 / m->refresh_rate : (double)FIELD_NS;
+    }
+    if (!vb_anchor_ns)
+        return now + (long long)interval;
+    long long k = (long long)((double)(now - vb_anchor_ns) / interval);
+    return vb_anchor_ns + (long long)((double)(k < 0 ? 0 : k + 1) * interval);
+}
+static void real_vblank_seen(void)
+{
+    long long now = now_ns();
+    if (vb_anchor_ns) {
+        double gap = (double)(now - vb_anchor_ns);
+        if (vb_interval_ns <= 0) {
+            vb_interval_ns = gap > 2e6 && gap < 5e7 ? gap : (double)FIELD_NS / 2;
+            vb_anchor_ns = now;
+            return;
+        }
+        /* A phase-locked grid: the swap's return time jitters (a wake-up late or early), the display's vblanks do not. The grid point
+         * this return belongs to moves by a tenth of the error, and the interval follows the observed spacing slowly (a variable
+         * refresh rate or a compositor changes it and the grid follows within a few presents). */
+        double n = gap / vb_interval_ns;
+        long long whole = (long long)(n + 0.5);
+        if (whole < 1)
+            whole = 1;
+        long long predicted = vb_anchor_ns + (long long)((double)whole * vb_interval_ns);
+        double error = (double)(now - predicted);
+        if (whole == 1 && gap > 0.6 * vb_interval_ns && gap < 1.6 * vb_interval_ns)
+            vb_interval_ns = 0.95 * vb_interval_ns + 0.05 * gap;
+        if (error > 0.5 * vb_interval_ns || error < -0.5 * vb_interval_ns || whole > 4) { /* lost the grid (a stall): take this one */
+            vb_anchor_ns = now;
+            return;
+        }
+        vb_anchor_ns = predicted + (long long)(0.1 * error);
+        return;
+    }
+    vb_anchor_ns = now;
+}
+/* Display pacing's images for this game field (the frame just drawn is the field's): one for each vblank that falls inside it (at
+ * least one), each blended to the real time its vblank puts it on screen over the field's length, so a refresh that is not a whole
+ * multiple of the field (90 Hz: 1, 2, 1, 2 images; 144 Hz: 2, 3, 2, 3, 2) moves evenly. The first image is placed the same way
+ * (its vblank follows the field's start by up to a refresh). `limit` caps the images (images per vsync). */
+static void present_display_images(const pc_present_request* r, int limit, int blend)
+{
+    int sim = sim_hz() > 0;
+    long long field = field_counter - 1, start = sim ? field * FIELD_NS : field_start_ns, end = start + FIELD_NS;
+    for (int k = 0; k < (blend ? limit : 1); k++) {
+        long long shown = sim ? sim_vblank_after(start) : real_vblank_next(now_ns());
+        if (sim && shown >= end && k > 0)
+            break;
+        if (!sim && k > 0 && shown >= end)
+            break;
+        float phase = blend ? (float)((double)(shown - start) / (double)FIELD_NS) : 0.0f;
+        phase = phase < 0 ? 0 : phase > 0.999f ? 0.999f : phase;
+        if (pc_jitter)
+            pc_jitter(k ? PC_JITTER_FRACTION : PC_JITTER_PRESENT);
+        if (&pc_present_phase)
+            pc_present_phase = phase;
+        uint64_t cost = pc_cost_begin();
+        pc_window_frame(r->vram, r->x, r->y, r->w, r->h);
+        if (!k)
+            pc_cost_end(PC_COST_PRESENT, cost);
+        stat_present(field, phase);
+        if (k)
+            ++stats.extras;
+        if (sim) {
+            if (shown < end)
+                sim_next_ns += sim_step(); /* (this vblank is spent) */
+        } else
+            real_vblank_seen();
+    }
+    if (&pc_present_phase)
+        pc_present_phase = 0;
+}
+/* The present service (present_service.h), inline: what a vsync's tick used to do itself. */
+void pc_present_post(const pc_present_request* r)
+{
+    if (r->kind == PC_PRESENT_SYNC) {
+        if (pc_hw_sync)
+            pc_hw_sync(r->x, r->y, r->w, r->h);
+        return;
+    }
+    stat_field_begin();
+    int interp = &pc_present_phase && &pc_hw_interpolate && &pc_hw_active && pc_hw_interpolate && pc_hw_active;
+    if (pc_present_pacing == 1 && (sim_hz() > 0 || (!fast && !fast_forward_held() && !charge_hidden))) {
+        int limit = &pc_present_rate && pc_present_rate > 0 ? (pc_present_rate > 8 ? 8 : pc_present_rate) : 8;
+        present_display_images(r, limit, interp);
+        return;
+    }
+    if (pc_jitter)
+        pc_jitter(PC_JITTER_PRESENT);
+    uint64_t cost = pc_cost_begin();
+    pc_window_frame(r->vram, r->x, r->y, r->w, r->h);
+    pc_cost_end(PC_COST_PRESENT, cost);
+    stat_present(field_counter - 1, 0.0f);
+    /* More images per vsync (frame interpolation at its fractions): present_rate, its "match display" and the vsync cap. */
+    int rate = pc_window_present_rate();
+    if (interp && rate > 1) {
+        rate = rate > 8 ? 8 : rate;
+        for (int k = 1; k < rate; k++) {
+            pc_window_wait_fraction(k, rate);
+            if (pc_jitter)
+                pc_jitter(PC_JITTER_FRACTION);
+            pc_present_phase = (float)k / (float)rate;
+            pc_window_frame(r->vram, r->x, r->y, r->w, r->h);
+            stat_present(field_counter - 1, pc_present_phase);
+            ++stats.extras;
+        }
+        pc_present_phase = 0;
+    }
 }
 
 int pc_window_remember_get(void) { return remember_on; }

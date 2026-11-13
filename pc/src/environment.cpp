@@ -60,7 +60,7 @@ typedef struct {
 extern char D_800F1DC8 __attribute__((weak));
 extern unsigned char D_800F1DC9 __attribute__((weak));
 extern vs_battle_backgroundLayout* D_800F1DCC __attribute__((weak));
-const uint16_t* pc_native_vram(void);
+const uint16_t* pc_renderer_vram(void);
 }
 
 int pc_env_global = 1;
@@ -135,7 +135,7 @@ GameSky game_sky()
         const vs_battle_backgroundLayout* layout = D_800F1DCC;
         if ((unsigned)(layout->width - 1) >= 31 || (unsigned)(layout->height - 1) >= 31)
             return g;
-        const uint16_t* vram = pc_native_vram();
+        const uint16_t* vram = pc_renderer_vram();
         float rows[32][3] = {};
         int filled[32] = {};
         for (int r = 0; r < layout->height; r++) {
@@ -196,7 +196,7 @@ GameSky game_sky()
     } else if (D_800F1DC6) {
         /* func_8008EC48: a 320 x 240 POLY_FT4 at u,v 248..249 of tpage 0x11 (4-bit, texture
          * page x 64, y 256) through CLUT 0x38B1 (x 784, y 226), tinted 128 + 4 x D_800F1BB0. */
-        const uint16_t* vram = pc_native_vram();
+        const uint16_t* vram = pc_renderer_vram();
         float texel[3] = { 0, 0, 0 };
         int seen = 0;
         for (int v = 248; v < 250; v++)

@@ -29,6 +29,7 @@
 #include "lights_internal.h"
 #include "platform.h"
 #include "environment_internal.h"
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 extern unsigned pc_vsync_count(void) __attribute__((weak));
@@ -1256,6 +1257,7 @@ extern "C" int pc_post_event_id(void) { return event_now; }
 
 extern "C" void pc_post_frame_get(pc_post_frame* out)
 {
+    PC_PRESENT_GUARD("pc_post_frame_get");
     rood_lights::track_room(); /* the room's `post` items */
     unsigned vsync = pc_vsync_count ? pc_vsync_count() : 0;
     static unsigned last_vsync;

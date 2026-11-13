@@ -197,7 +197,7 @@ static int probe_vk_device_buffer(vk_buffer* b, const void* data, VkDeviceSize b
 }
 static int probe_vk_bvh(void)
 {
-    int serial = pc_scene_serial(), room_count;
+    int serial = pc_ph_scene_serial(), room_count;
     if (serial == pvk.bvh_serial)
         return pvk.bvh_triangles > 0;
     const scene_triangle* room = pc_scene_triangle_data(&room_count);
@@ -279,9 +279,9 @@ static int probe_vk_gi_images(int w, int h)
 static int probe_vk_surface(vk_descriptors* d, int x, int y, int w, int h, int replay)
 {
     float r[3][3], tr[3], hh, ox, oy, inverse[3][3];
-    if (getenv("ROOD_PROBE_PER_PIXEL") || !pc_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_scene_camera_inverse(inverse))
+    if (getenv("ROOD_PROBE_PER_PIXEL") || !pc_ph_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_ph_scene_camera_inverse(inverse))
         return 0;
-    float res = pc_gi_resolution < 0.25f ? 0.25f : pc_gi_resolution > 4 ? 4 : pc_gi_resolution;
+    float res = pc_ph()->gi_resolution < 0.25f ? 0.25f : pc_ph()->gi_resolution > 4 ? 4 : pc_ph()->gi_resolution;
     int gw = (int)(w * res + 0.5f), gh = (int)(h * res + 0.5f);
     if (gw < 1 || gh < 1 || !probe_vk_gi_images(gw, gh))
         return 0;
@@ -293,7 +293,7 @@ static int probe_vk_surface(vk_descriptors* d, int x, int y, int w, int h, int r
     s->rect[0] = x, s->rect[1] = y, s->rect[2] = w, s->rect[3] = h;
     s->scale[0] = pc_hw_scale;
     s->gi_scale[0] = (float)gw / w, s->gi_scale[1] = (float)gh / h;
-    s->projection[0] = hh * (pc_gte_widescreen ? 0.75f : 1.0f), s->projection[1] = hh;
+    s->projection[0] = hh * (pc_ph()->gte_widescreen ? 0.75f : 1.0f), s->projection[1] = hh;
     s->screen_offset[0] = ox, s->screen_offset[1] = oy;
     for (int col = 0; col < 3; col++)
         for (int row = 0; row < 3; row++) {
@@ -338,7 +338,7 @@ int pc_vk_probes_update(int x, int y, int w, int h, int replay)
     int traced = vrt.state > 0 && vrt.updates != pvk.seen_updates;
     if (!traced) {
         update_emitters();
-        pc_scene_bounds(room_lo, room_hi);
+        pc_ph_scene_bounds(room_lo, room_hi);
         gather_lights();
     }
     pvk.seen_updates = vrt.updates;

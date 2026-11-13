@@ -2,9 +2,10 @@
  * none: headless runs render offscreen and only read frames back), and the
  * present passes of gl_present.c (lighting, haze, depth of field, FXAA, the
  * developer overlay) drawn into a window-sized image, then copied to the
- * swapchain. Settings are gl_present.c's (pc_gl_filter, pc_post_*, ...). */
+ * swapchain. Settings are gl_present.c's (pc_ph()->gl_filter, pc_post_*, ...). */
 #define _POSIX_C_SOURCE 200809L
 #include "vk_hw.h"
+#include "present_header.h" /* the game-owned values the presenter reads (T1 R4a) */
 #include "light_list.h"
 #include "environment.h"
 #include "atmosphere.h"
@@ -25,16 +26,12 @@ int pc_vk_shadows_sun(const float dir[3], float matrix[16], float light[4], floa
 #include <string.h>
 
 extern int pc_display_masked __attribute__((weak)); /* boot_sdk.c SetDispMask */
-extern int pc_display_rgb24, pc_hw_active, pc_hw_scale, pc_gte_widescreen, pc_hw_perspective;
-extern int pc_gl_filter, pc_gl_aspect, pc_gl_show_depth, pc_gl_view_mode;
-extern int pc_gl_view[4], pc_gl_display[4], pc_gl_inset[4];
+extern int pc_hw_active, pc_hw_scale, pc_hw_perspective, pc_gte_widescreen; /* (pc_gte_widescreen: the init's env override only; the presenter reads the header) */
+extern int pc_gl_view[4], pc_gl_display[4];
 static pc_post_frame post_frame; /* this present's resolved post profile (post.h) */
 static int post_hdr; /* the present shader's post bit 8: HDR out, the grade pass tone maps */
 static int post_grade_on; /* the grade pass runs this present (emissive texels may exceed 1: post bit 32) */
-extern float pc_shadow_softness, pc_normal_smoothing, pc_lights_baked;
 void pc_baked_shadow_params(float out[5]); /* lights.cpp */
-extern int pc_rt_shadows, pc_gi_enabled, pc_gi_debug, pc_baked_shadows_active;
-extern float pc_gi_strength, pc_fog_density, pc_fog_anisotropy, pc_light_size;
 extern void pc_scene_bounds(float lo[3], float hi[3]);
 extern char pc_present_capture[400];
 extern int pc_present_burst;
@@ -614,14 +611,13 @@ static void begin_single(const vk_image* image, int x, int y, int w, int h)
  * brightness.frag. The pipelines are made on first use: the curve's, and
  * the downsample and native-VRAM passes into the 16-bit format (the other
  * passes have theirs already). */
-extern int pc_present_brightness;
 extern float pc_present_brightness_factor(void);
 static VkPipelineLayout brightness_layout;
 static VkPipeline brightness_pipeline, downsample_to_view, vram_to_view;
 static int brightness_on(int view_w, int view_h)
 {
     static int state; /* 0 not yet, 1 ready, -1 failed */
-    if (pc_present_brightness == 50 || state < 0 || view_w <= 0 || view_h <= 0)
+    if (pc_ph()->present_brightness == 50 || state < 0 || view_w <= 0 || view_h <= 0)
         return 0;
     if (!state) {
         VkShaderModule vs = VK_SHADER(fullscreen_vert),
@@ -665,22 +661,24 @@ static VkImageView backdrop_fill(present_ubo* u)
 {
     float rgba[4] = { 0, 0, 0, 1 };
     int mode = 0;
-    if (pc_hw_present_menu_model && pc_hw_present_menu_model() && pc_ui_menu_backdrop && pc_ui_menu_backdrop(rgba))
+    if (pc_hw_present_menu_model && pc_hw_present_menu_model() && pc_ph()->menu_backdrop_ok) {
+        memcpy(rgba, pc_ph()->menu_backdrop, sizeof rgba);
         mode = backdrop_valid ? 2 : 1;
+    }
     if (mode == 1)
         rgba[3] = 1;
     memcpy(u->backdrop_color, rgba, sizeof rgba);
     u->backdrop[0] = mode;
     u->backdrop[1] = pc_hw_present_menu_studio && pc_hw_present_menu_studio(); /* scaled.frag menu_studio */
-    pc_menu_light light; /* the rig as data (theme.json "menu_model_light"; RPC graphics menu_light) */
-    if (!pc_ui_menu_model_light || !pc_ui_menu_model_light(&light))
+    pc_menu_light light = pc_ph()->menu_light; /* the rig as data (theme.json "menu_model_light"; RPC graphics menu_light) */
+    if (!pc_ph()->menu_light_ok)
         pc_ui_menu_model_light_defaults(&light);
     pc_menu_light_pack(&light, u->studio);
     return mode == 2 ? backdrop.image.view : vk_hw.dummy_color.view;
 }
 static void backdrop_keep(int view_x, int view_y, int view_w, int view_h)
 {
-    if (!pc_ui_menu_active || !pc_ui_menu_active()) {
+    if (!pc_ph()->menu_active) {
         backdrop_valid = 0;
         if (backdrop.image.image) { /* the menu closed: give the picture's memory back */
             vk_image_destroy_later(&backdrop.image);
@@ -716,7 +714,7 @@ static void brightness_draw(int view_x, int view_y, int view_w, int view_h)
     struct {
         int origin[2];
         float factor, unused;
-    } push = { { view_x, view_y }, pc_present_brightness_factor(), 0 };
+    } push = { { view_x, view_y }, powf(2.5f, (pc_ph()->present_brightness - 50) / 50.0f), 0 };
     vkCmdPushConstants(cmd, brightness_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
         sizeof push, &push);
     vkCmdDraw(cmd, 3, 1, 0, 0);
@@ -727,15 +725,15 @@ static void brightness_draw(int view_x, int view_y, int view_w, int view_h)
 /* The game image's rectangle in the window (as gl_present.c's update_view). */
 static void update_view(int* out_w, int* out_h)
 {
-    int area_x = pc_gl_inset[0], area_y = pc_gl_inset[1];
-    int area_w = window_w - pc_gl_inset[0] - pc_gl_inset[2], area_h = window_h - pc_gl_inset[1] - pc_gl_inset[3];
+    int area_x = pc_ph()->gl_inset[0], area_y = pc_ph()->gl_inset[1];
+    int area_w = window_w - pc_ph()->gl_inset[0] - pc_ph()->gl_inset[2], area_h = window_h - pc_ph()->gl_inset[1] - pc_ph()->gl_inset[3];
     if (area_w < 64 || area_h < 48)
         area_x = area_y = 0, area_w = window_w, area_h = window_h;
     int view_w = area_w, view_h = area_h;
-    if (pc_gl_aspect == 0 || pc_gl_aspect == 2) {
+    if (pc_ph()->gl_aspect == 0 || pc_ph()->gl_aspect == 2) {
         /* 4:3, or 16:9 when the GTE projects widescreen (Hor+); movie frames
          * (24-bit display) are 4:3 pictures: pillarboxed in widescreen. */
-        int wide = pc_gte_widescreen && !pc_display_rgb24;
+        int wide = pc_ph()->gte_widescreen && !pc_ph()->display_rgb24;
         int aw = wide ? 16 : 4, ah = wide ? 9 : 3;
         view_h = area_w * ah / aw;
         if (view_h > area_h) {
@@ -743,7 +741,7 @@ static void update_view(int* out_w, int* out_h)
             view_w = area_h * aw / ah;
         }
         int base_w = wide ? 427 : 320;
-        if (pc_gl_aspect == 2 && view_w >= base_w && view_h >= 240) {
+        if (pc_ph()->gl_aspect == 2 && view_w >= base_w && view_h >= 240) {
             int n = view_w / base_w < view_h / 240 ? view_w / base_w : view_h / 240;
             view_w = base_w * n;
             view_h = 240 * n;
@@ -764,9 +762,9 @@ static void fill_present_ubo(present_ubo* u, int x, int y, int w, int h, int vie
     memset(u, 0, sizeof *u);
     u->rect[0] = x, u->rect[1] = y, u->rect[2] = w, u->rect[3] = h;
     const pc_post_frame* pf = &post_frame;
-    u->i0[0] = pc_hw_scale, u->i0[1] = pc_gl_filter, u->i0[2] = pc_gl_show_depth;
+    u->i0[0] = pc_hw_scale, u->i0[1] = pc_ph()->gl_filter, u->i0[2] = pc_ph()->gl_show_depth;
     /* 16: emissive texels in the shade target (emissive.h); 32: the grade pass runs (they may exceed 1 for bloom). */
-    u->i0[3] = pf->flags | post_hdr | (pc_emissive_active() ? 16 : 0) | (post_grade_on ? 32 : 0);
+    u->i0[3] = pf->flags | post_hdr | (pc_ph()->emissive_active ? 16 : 0) | (post_grade_on ? 32 : 0);
     u->view[0] = (float)view_w, u->view[1] = (float)view_h;
     u->f0[0] = pf->focus_sz;
     u->f0[1] = pf->dof_radius * view_h / 720.0f;
@@ -782,13 +780,14 @@ static void fill_present_ubo(present_ubo* u, int x, int y, int w, int h, int vie
     static int wants[PC_LIGHTS_MAX], slots[PC_LIGHTS_MAX];
     float hh, ox, oy;
     int count = 0;
-    if (pc_scene_projection(&hh, &ox, &oy)) {
-        count = pc_lights_list(present_lights, PC_LIGHTS_MAX);
+    if (pc_ph_scene_projection(&hh, &ox, &oy)) { /* the picture's projection (the renderer's choice, applied now) */
+        count = pc_ph()->light_count;
+        memcpy(present_lights, pc_ph()->lights, (size_t)count * sizeof *present_lights);
         for (int i = 0; i < count; ++i) {
             memcpy(lw[i], present_lights[i].world, sizeof lw[i]);
             wants[i] = present_lights[i].info[0];
         }
-        if (gi && pc_rt_shadows)
+        if (gi && pc_ph()->rt_shadows)
             for (int i = 0; i < count; i++)
                 slots[i] = wants[i] ? -2 : -1;
         else { /* no traced visibility: shadow maps (vk_shadows.c) for the most important casters */
@@ -796,7 +795,7 @@ static void fill_present_ubo(present_ubo* u, int x, int y, int w, int h, int vie
             pc_vk_shadows_update(count, (const float(*)[4])lw, wants, slots);
         }
         float r[3][3], t[3], a, b, r_inverse[3][3];
-        if (pc_scene_camera_get(r, t, &hh, &a, &b) && pc_scene_camera_inverse(r_inverse)) {
+        if (pc_ph_scene_camera_get(r, t, &hh, &a, &b) && pc_ph_scene_camera_inverse(r_inverse)) {
             for (int col = 0; col < 3; col++)
                 for (int row = 0; row < 3; row++) {
                     u->inverse_rotation[col][row] = r_inverse[row][col];
@@ -804,50 +803,49 @@ static void fill_present_ubo(present_ubo* u, int x, int y, int w, int h, int vie
                 }
             u->camera_translation[0] = t[0], u->camera_translation[1] = t[1], u->camera_translation[2] = t[2];
         }
-        pc_scene_projection(&hh, &ox, &oy);
-        u->projection[0] = hh * (pc_gte_widescreen ? 0.75f : 1.0f);
+        pc_ph_scene_projection(&hh, &ox, &oy);
+        u->projection[0] = hh * (pc_ph()->gte_widescreen ? 0.75f : 1.0f);
         u->projection[1] = hh;
         u->screen_offset[0] = ox, u->screen_offset[1] = oy;
     }
     for (int i = 0; i < count; i++)
         present_lights[i].info[0] = slots[i];
     present_light_count = count;
-    u->i1[0] = pc_gl_view_mode;
+    u->i1[0] = pc_ph()->gl_view_mode;
     u->i1[1] = count;
-    u->i1[2] = gi ? (pc_gi_enabled ? (pc_gi_debug == 1 ? 2 : 1) : 0) | (pc_rt_shadows ? 4 : 0)
-                  | (pc_gi_debug == 2 ? 8 : 0) | (pc_baked_shadows_active || pc_lighting_ao_traced() ? 16 : 0)
-                  | (pc_gi_debug == 3 ? 32 : 0)
+    u->i1[2] = gi ? (pc_ph()->gi_enabled ? (pc_ph()->gi_debug == 1 ? 2 : 1) : 0) | (pc_ph()->rt_shadows ? 4 : 0)
+                  | (pc_ph()->gi_debug == 2 ? 8 : 0) | (pc_ph()->baked_shadows_active || pc_ph()->ao_traced ? 16 : 0)
+                  | (pc_ph()->gi_debug == 3 ? 32 : 0)
                   : 0;
     u->i2[0] = gi_w, u->i2[1] = gi_h;
-    u->f0[3] = pc_lighting_baked_scale(pc_lights_baked, count);
+    u->f0[3] = pc_ph()->baked_scale;
     {
-        float b[5];
-        pc_baked_shadow_params(b);
+        const float* b = pc_ph()->baked_shadow;
         for (int i = 0; i < 4; i++)
             u->baked_shadow[0][i] = b[i];
         u->baked_shadow[1][0] = b[4];
     }
-    u->f1[0] = pc_gi_strength;
-    u->f1[1] = gi ? pc_fog_density : 0;
-    u->f1[2] = pc_shadow_softness;
-    u->f1[3] = pc_normal_smoothing;
+    u->f1[0] = pc_ph()->gi_strength;
+    u->f1[1] = gi ? pc_ph()->fog_density : 0;
+    u->f1[2] = pc_ph()->shadow_softness;
+    u->f1[3] = pc_ph()->normal_smoothing;
     if (gi) {
         u->room_lo[0] = lo[0], u->room_lo[1] = lo[1], u->room_lo[2] = lo[2];
         u->room_hi[0] = hi[0], u->room_hi[1] = hi[1], u->room_hi[2] = hi[2];
     } else {
-        pc_scene_bounds(u->room_lo, u->room_hi); /* the unshadowed haze fills the room too */
+        memcpy(u->room_lo, pc_ph()->room_lo, sizeof u->room_lo), memcpy(u->room_hi, pc_ph()->room_hi, sizeof u->room_hi); /* the unshadowed haze fills the room too */
     }
     /* Lighting quality: haze Low (set after the froxel haze binds), AO, shadow map filter. */
-    u->quality0[1] = pc_fog_anisotropy;
-    u->quality0[2] = pc_ao_radius;
-    u->quality0[3] = pc_ao_strength;
-    u->quality1[0] = pc_shadow_map_filter;
-    u->quality1[1] = pc_lighting_ssao(gi);
-    u->quality1[2] = pc_haze_debug; /* the haze alone (atmosphere.h) */
-    u->quality2[0] = pc_light_size;
+    u->quality0[1] = pc_ph()->fog_anisotropy;
+    u->quality0[2] = pc_ph()->ao_radius;
+    u->quality0[3] = pc_ph()->ao_strength;
+    u->quality1[0] = pc_ph()->shadow_map_filter;
+    u->quality1[1] = pc_ph()->ssao[gi ? 1 : 0];
+    u->quality1[2] = pc_ph()->haze_debug; /* the haze alone (atmosphere.h) */
+    u->quality2[0] = pc_ph()->light_size;
     /* The sun and sky: the trace weighs a shadow-casting sun into the visibility. */
     u->env_mode[2] = pc_env_gpu_get(&u->env);
-    u->env_mode[0] = gi && pc_rt_shadows && u->env.sun_col[3] > 0.5f ? -2 : -1;
+    u->env_mode[0] = gi && pc_ph()->rt_shadows && u->env.sun_col[3] > 0.5f ? -2 : -1;
     if (u->env_mode[0] == -1 && u->env.sun_col[3] > 0.5f
         && pc_vk_shadows_sun(u->env.sun_dir, u->sun_matrix, u->sun_light, u->sun_tile))
         u->env_mode[0] = 0; /* no traced visibility: the sun's shadow map */
@@ -931,7 +929,7 @@ extern void pc_photo_capture_pixels(const unsigned char* rgba, int w, int h, int
     __attribute__((weak));
 static void photo_capture(void)
 {
-    if (!pc_photo_capture_wanted || !pc_photo_capture_wanted() || pc_gl_view[2] <= 0 || pc_gl_view[3] <= 0)
+    if (!pc_ph()->photo_wanted || pc_gl_view[2] <= 0 || pc_gl_view[3] <= 0)
         return;
     int x = pc_gl_view[0], y = pc_gl_view[1], w = pc_gl_view[2], h = pc_gl_view[3];
     if (x < 0 || y < 0 || x + w > (int)window_image.width || y + h > (int)window_image.height)
@@ -1032,7 +1030,7 @@ static void present_to_swapchain(void)
 
 void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
 {
-    pc_lighting_sync(); /* lighting quality: first-run preset, Custom on changes */
+    /* (lighting quality's sync ran in the header's fill, on the game thread) */
     sync_swapchain(); /* a resize or window mode switch: the frame boundary */
     if (!ensure_window_image()) {
         vk_frame_submit(VK_NULL_HANDLE, 0, VK_NULL_HANDLE);
@@ -1046,10 +1044,10 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
     if (pc_hw_active)
         pc_hw_set_display(x, y, w, h);
     unsigned target = pc_hw_active ? pc_hw_target() : 0;
-    pc_post_frame_get(&post_frame); /* the post profile for this present */
+    post_frame = pc_ph()->post; /* the post profile for this present */
     /* 24-bit display (movie frames): the scaled target only holds 15-bit
      * pixels, so present native VRAM. */
-    if (pc_display_rgb24)
+    if (pc_ph()->display_rgb24)
         target = 0;
     /* An interpolated frame may come from another area of the target (the
      * off-screen buffer the game shows next). */
@@ -1074,25 +1072,25 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
             float lo[3] = { 0, 0, 0 }, hi[3] = { 0, 0, 0 };
             VkImageView gi_views[4] = { vk_hw.dummy_color.view, vk_hw.dummy_color.view, vk_hw.dummy_color.view,
                 vk_hw.dummy_color.view };
-            if (!pc_gl_show_depth && pc_vk_gi_update && pc_vk_gi_update(x, y, w, h, replay)) {
+            if (!pc_ph()->gl_show_depth && pc_vk_gi_update && pc_vk_gi_update(x, y, w, h, replay)) {
                 gi = 1;
                 pc_vk_gi_bind(gi_views, &gi_w, &gi_h, lo, hi);
             }
-            int probes = !pc_gl_show_depth && pc_vk_probes_update ? pc_vk_probes_update(x, y, w, h, replay) : 0;
+            int probes = !pc_ph()->gl_show_depth && pc_vk_probes_update ? pc_vk_probes_update(x, y, w, h, replay) : 0;
             if (probes == 3) /* the field at GI resolution, in place of a traced result */
                 pc_vk_probes_gi_bind(gi_views, &gi_w, &gi_h);
-            int fogvol = !pc_gl_show_depth && pc_vk_fogvol_update ? pc_vk_fogvol_update(x, y, w, h, replay, gi) : 0;
-            int particles = !pc_gl_show_depth && pc_vk_particles_update ? pc_vk_particles_update(x, y, w, h, gi) : 0;
+            int fogvol = !pc_ph()->gl_show_depth && pc_vk_fogvol_update ? pc_vk_fogvol_update(x, y, w, h, replay, gi) : 0;
+            int particles = !pc_ph()->gl_show_depth && pc_vk_particles_update ? pc_vk_particles_update(x, y, w, h, gi) : 0;
             /* The post chain (antialias.h): the lit image -> [FXAA | SMAA] -> [depth of field blur]
              * -> [supersampling's downsample] -> the window. The lit image is view-sized, or with
              * supersampling as large as the display area at the internal resolution. */
             int lit_w = view_w, lit_h = view_h, ssaa = 0;
-            if (pc_aa_ssaa > 1.0f && w * pc_hw_scale > view_w && h * pc_hw_scale > view_h)
+            if (pc_ph()->aa_ssaa > 1.0f && w * pc_hw_scale > view_w && h * pc_hw_scale > view_h)
                 ssaa = 1, lit_w = w * pc_hw_scale, lit_h = h * pc_hw_scale;
-            int post = pc_gl_aa == PC_AA_FXAA || (pc_gl_aa == PC_AA_SMAA && smaa_ready()) ? pc_gl_aa : PC_AA_OFF;
-            int blur = !pc_gl_show_depth && (post_frame.flags & 3);
+            int post = pc_ph()->gl_aa == PC_AA_FXAA || (pc_ph()->gl_aa == PC_AA_SMAA && smaa_ready()) ? pc_ph()->gl_aa : PC_AA_OFF;
+            int blur = !pc_ph()->gl_show_depth && (post_frame.flags & 3);
             /* The post stack's grade pass (post.h): only when an effect is on; never on the depth view. */
-            int grade = !pc_gl_show_depth && post_frame.grade && post_vk_ready();
+            int grade = !pc_ph()->gl_show_depth && post_frame.grade && post_vk_ready();
             pc_post_active_grade = grade;
             if (!grade)
                 pc_post_active_bloom = 0;
@@ -1128,20 +1126,20 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
              * rgb is the probe field (no traced result); 2 shows it alone. With probes a traced result's
              * rgb is the field (or zero, per pixel), plus the glows. */
             pu->i1[2] |= (gi || probes == 3 ? 128 : 0) | (probes == 1 ? 64 : 0) | (probes == 3 ? 256 : 0)
-                       | (probes && pc_gi_debug == 1 ? 2 : 0) | (probes && gi && pc_gi_debug != 1 ? 1 : 0);
+                       | (probes && pc_ph()->gi_debug == 1 ? 2 : 0) | (probes && gi && pc_ph()->gi_debug != 1 ? 1 : 0);
             VkImageView medium_view = pc_vk_medium_texture(); /* before the pass begins: may upload */
             /* The room's medium every frame (whatever the haze path: scaled.frag reads its void switch
              * and the interior for haze_debug 2); haze Low (or High where nothing traced it this frame)
              * marches it per pixel, unshadowed but for the sun's map. */
-            int medium_any = !pc_gl_show_depth
-                && pc_medium_gpu_get(&pu->medium, pc_lighting_low_haze_density(0), pu->room_lo, pu->room_hi);
+            int medium_any = !pc_ph()->gl_show_depth
+                && pc_medium_gpu_get(&pu->medium, pc_ph()->low_haze, pu->room_lo, pu->room_hi);
             pu->quality0[0] = !pu->haze_grid[3] && medium_any
                 /* the uniform haze alone with nothing to light it would only darken: as before, none */
                 && (present_light_count > 0 || pu->env_mode[2] || pc_medium_has_fog());
             /* The sky's ambient term where neither the path tracer nor the probes trace the sky. */
-            pu->env_mode[1] = pu->env.zenith[3] > 0.5f && !(gi && pc_gi_enabled) && !probes;
+            pu->env_mode[1] = pu->env.zenith[3] > 0.5f && !(gi && pc_ph()->gi_enabled) && !probes;
             /* The depth of field's focus probe (post.h focus_probe): the depth around its point, read back. */
-            if (post_frame.focus_probe && !pc_gl_show_depth)
+            if (post_frame.focus_probe && !pc_ph()->gl_show_depth)
                 vk_dof_probe(&post_frame, t->depth.view, x, y, w, h);
             int stage = 0;
             const vk_image* input = stage_begin(stage, stages, lit_w, lit_h, view_x, view_y, view_w, view_h);
@@ -1166,7 +1164,7 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
             VkImageView fogvol_light = vk_hw.dummy_color.view, fogvol_aux = vk_hw.dummy_color.view;
             if (fogvol && pc_vk_fogvol_bind(&fogvol_light, &fogvol_aux, pu->fogvol, pu->fogvol_scale))
                 pu->fogvol[2] = 1;
-            pu->fogvol[3] = pc_gl_show_depth ? 0 : pc_fog_volume_debug; /* (nothing drawn: black, clear) */
+            pu->fogvol[3] = pc_ph()->gl_show_depth ? 0 : pc_ph()->fog_volume_debug; /* (nothing drawn: black, clear) */
             vk_descriptors_image(&d, 18, fogvol_light, vk.nearest);
             vk_descriptors_image(&d, 19, fogvol_aux, vk.nearest);
             vk_descriptors_image(&d, 20, backdrop_fill(pu), vk.linear); /* the menu's model view (above) */
@@ -1178,17 +1176,17 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
             vk_descriptors_image(&d, 22, particle_colours, vk.nearest);
             /* Material response (emissive.h): the material target, and the traced reflections when bound. */
             VkImageView reflect_view = vk_hw.dummy_color.view;
-            pu->material[0] = pc_specular_strength < 0 ? 0 : pc_specular_strength > 4 ? 4 : pc_specular_strength;
-            pu->material[1] = pc_roughness_bias < -1 ? -1 : pc_roughness_bias > 1 ? 1 : pc_roughness_bias;
-            pu->material2[0] = pc_bump_strength < 0 ? 0 : pc_bump_strength > 4 ? 4 : pc_bump_strength;
-            pu->material2[1] = pc_bump_occlusion < 0 ? 0 : pc_bump_occlusion > 1 ? 1 : pc_bump_occlusion;
-            pu->material2[2] = pc_env_specular < 0 ? 0 : pc_env_specular > 1 ? 1 : pc_env_specular;
-            pu->material2[3] = pc_baked_energy < 0 ? 0 : pc_baked_energy > 1 ? 1 : pc_baked_energy;
-            pu->material3[0] = pc_relief_baked < 0 ? 0 : pc_relief_baked > 4 ? 4 : pc_relief_baked;
-            pu->material3[1] = pc_relief_indirect < 0 ? 0 : pc_relief_indirect > 4 ? 4 : pc_relief_indirect;
-            pu->material3[2] = pc_relief_reach < 0 ? 0 : pc_relief_reach > 4096 ? 4096 : pc_relief_reach;
-            pu->material3[3] = pc_relief_overhead < 0 ? 0 : pc_relief_overhead > 1 ? 1 : pc_relief_overhead;
-            pu->material[2] = !pc_gl_show_depth && pc_material_active() ? 1.0f : 0.0f;
+            pu->material[0] = pc_ph()->specular_strength < 0 ? 0 : pc_ph()->specular_strength > 4 ? 4 : pc_ph()->specular_strength;
+            pu->material[1] = pc_ph()->roughness_bias < -1 ? -1 : pc_ph()->roughness_bias > 1 ? 1 : pc_ph()->roughness_bias;
+            pu->material2[0] = pc_ph()->bump_strength < 0 ? 0 : pc_ph()->bump_strength > 4 ? 4 : pc_ph()->bump_strength;
+            pu->material2[1] = pc_ph()->bump_occlusion < 0 ? 0 : pc_ph()->bump_occlusion > 1 ? 1 : pc_ph()->bump_occlusion;
+            pu->material2[2] = pc_ph()->env_specular < 0 ? 0 : pc_ph()->env_specular > 1 ? 1 : pc_ph()->env_specular;
+            pu->material2[3] = pc_ph()->baked_energy < 0 ? 0 : pc_ph()->baked_energy > 1 ? 1 : pc_ph()->baked_energy;
+            pu->material3[0] = pc_ph()->relief_baked < 0 ? 0 : pc_ph()->relief_baked > 4 ? 4 : pc_ph()->relief_baked;
+            pu->material3[1] = pc_ph()->relief_indirect < 0 ? 0 : pc_ph()->relief_indirect > 4 ? 4 : pc_ph()->relief_indirect;
+            pu->material3[2] = pc_ph()->relief_reach < 0 ? 0 : pc_ph()->relief_reach > 4096 ? 4096 : pc_ph()->relief_reach;
+            pu->material3[3] = pc_ph()->relief_overhead < 0 ? 0 : pc_ph()->relief_overhead > 1 ? 1 : pc_ph()->relief_overhead;
+            pu->material[2] = !pc_ph()->gl_show_depth && pc_material_active() ? 1.0f : 0.0f;
             if (pu->material[2] > 0 && gi && pc_vk_reflect_bind && pc_vk_reflect_bind(&reflect_view))
                 pu->material[3] = 1;
             vk_descriptors_image(&d, 23, t->material.view, vk.nearest);
@@ -1211,7 +1209,7 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
             } else if (post == PC_AA_SMAA) {
                 const vk_image* source = input;
                 smaa_push push = { { 1.0f / lit_w, 1.0f / lit_h, (float)lit_w, (float)lit_h }, { x, y, w, h },
-                    { pc_hw_scale, pc_aa_geometry_edges && !pc_gl_show_depth, 0, 0 } };
+                    { pc_hw_scale, pc_ph()->aa_geometry_edges && !pc_ph()->gl_show_depth, 0, 0 } };
                 /* 1: edges (the reference discards pixels without any: cleared first). */
                 begin_single(&smaa_edges, 0, 0, lit_w, lit_h);
                 cmd = vk_cmd();
@@ -1277,13 +1275,13 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
                 vk_descriptors_image(&d, 0, source->view, vk.linear);
                 vk_descriptors_push(&d, VK_PIPELINE_BIND_POINT_GRAPHICS, downsample_layout);
                 downsample_push push = { { (float)lit_w, (float)lit_h }, { (float)view_w, (float)view_h },
-                    pc_aa_downsample };
+                    pc_ph()->aa_downsample };
                 vkCmdPushConstants(cmd, downsample_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                     sizeof push, &push);
                 vkCmdDraw(cmd, 3, 1, 0, 0);
             }
             /* The modern menu's backdrop: keep this picture of the world (backdrop_keep, above). */
-            if (!pc_gl_show_depth)
+            if (!pc_ph()->gl_show_depth)
                 backdrop_keep(view_x, view_y, view_w, view_h);
             /* Text held back for the window's resolution (gpu_hw.c ui_text_overlay), over the picture, before
              * the brightness curve (into the chain's last image, its view as the viewport). */
@@ -1313,7 +1311,7 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
                 vk_descriptors d = { 0 };
                 vk_descriptors_image(&d, 0, present_vram.view, vk.nearest);
                 vk_descriptors_push(&d, VK_PIPELINE_BIND_POINT_GRAPHICS, vram_layout);
-                int push[8] = { x, y, w, h, pc_display_rgb24, 0, 0, 0 };
+                int push[8] = { x, y, w, h, pc_ph()->display_rgb24, 0, 0, 0 };
                 vkCmdPushConstants(cmd, vram_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
                     sizeof push, push);
                 vkCmdDraw(cmd, 3, 1, 0, 0);
@@ -1324,7 +1322,9 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
     }
 overlay:
     photo_capture();
+    pc_present_canary_pause(1); /* the overlay builds its panels from the live settings and edits them: the game thread's work */
     pc_overlay_frame(window_w, window_h);
+    pc_present_canary_pause(0);
     {
         vk_attachments a = { .colors = { window_image.view }, .color_count = 1, .width = window_w, .height = window_h };
         vk_begin_rendering(&a);

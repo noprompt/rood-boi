@@ -26,6 +26,7 @@
 #include "material_graph.h"
 #include "frame_cost.h" /* ROOD_PERF: texels hashed */
 #include "editor_undo.h"
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 float pc_emissive = 1.0f;
@@ -48,7 +49,17 @@ float pc_relief_reach = 96.0f;
 float pc_relief_overhead = 0.6f;
 int pc_auto_height_preview = 0;
 const uint16_t* pc_native_vram(void);
+const uint16_t* pc_hw_emissive_vram(int renderer_side) __attribute__((weak));
 int pc_hw_present_all_lists(uint32_t* lists, int max) __attribute__((weak));
+}
+/* The VRAM the emissive matching and sampling read (T1 R4d): the renderer's own copy (gpu_hw.c), never the game's array. The
+ * frame's sync (pc_emissive_sync, run by the renderer) reads it as it is; any other reader (the lights' sampling on the game
+ * side, the editors) has the commands pending applied first so the copy is current: those are the readers the scene block
+ * (R4b) replaces. */
+static bool in_renderer_sync;
+static const uint16_t* emissive_vram(void)
+{
+    return pc_hw_emissive_vram ? pc_hw_emissive_vram(in_renderer_sync) : pc_native_vram();
 }
 
 using prefab::Json;
@@ -144,7 +155,7 @@ struct Md5 {
 
 uint16_t vram_at(int x, int y)
 {
-    const uint16_t* v = pc_native_vram();
+    const uint16_t* v = emissive_vram();
     return v ? v[(y & 511) * 1024 + (x & 1023)] : 0;
 }
 /* Texel (u, v) of a page: its colour and CLUT index (16-bit pages: the colour). */
@@ -932,8 +943,19 @@ uint32_t tiles_of(unsigned page, const uint8_t box[4])
 
 /* ---------------------------------------------------------------- scopes */
 
+/* The room the frame is drawn in, a frame value the game side sends (hw_cmd.c pc_hwc_frame_room); until one arrives (a build
+ * with no renderer records) the game's own state is read. */
+static int frame_room[3], frame_room_known;
+extern "C" void pc_emissive_frame_room(int valid, int zone, int room)
+{
+    frame_room[0] = valid, frame_room[1] = zone, frame_room[2] = room, frame_room_known = 1;
+}
 bool current_room(int* zone, int* room)
 {
+    if (frame_room_known) {
+        *zone = frame_room[1], *room = frame_room[2];
+        return frame_room[0] != 0;
+    }
     struct pc_dev_state s;
     memset(&s, 0, sizeof s);
     if (pc_dev_state)
@@ -1308,7 +1330,7 @@ std::vector<std::array<float, 9>> texture_triangles(const std::string& clut, con
 /* A use's CLUT (16 or 256 entries; none at 16 bits) as runs of halfwords. */
 template <typename F> static void clut_runs(const Use& u, F run)
 {
-    const uint16_t* vram = pc_native_vram();
+    const uint16_t* vram = emissive_vram();
     int depth = (int)((u.page >> 7) & 3);
     if (!vram || depth >= 2)
         return;
@@ -1323,7 +1345,7 @@ template <typename F> static void clut_runs(const Use& u, F run)
  * the rows of its texels, then the CLUT (16 or 256 entries; none at 16 bits). */
 template <typename F> static void texel_runs(const Use& u, F run)
 {
-    const uint16_t* vram = pc_native_vram();
+    const uint16_t* vram = emissive_vram();
     if (!vram)
         return;
     int tx = (int)(u.page & 15) * 64, ty = (int)((u.page >> 4) & 1) * 256, depth = (int)((u.page >> 7) & 3);
@@ -1340,7 +1362,7 @@ template <typename F> static void texel_runs(const Use& u, F run)
 }
 template <typename F> static void use_vram(const Use& u, F run)
 {
-    if (!pc_native_vram())
+    if (!emissive_vram())
         return;
     texel_runs(u, run);
     clut_runs(u, run);
@@ -1367,7 +1389,7 @@ static bool vram_unchanged(const Use& u)
  * then its key (of their indices) is the same. */
 static bool texels_unchanged(const Use& u)
 {
-    if (u.seen.empty() || !pc_native_vram())
+    if (u.seen.empty() || !emissive_vram())
         return false;
     size_t at = 0;
     bool same = true;
@@ -1582,7 +1604,7 @@ static std::vector<uint16_t> clut_colours(unsigned tpage, unsigned clut)
 {
     std::vector<uint16_t> out;
     int depth = (int)((tpage >> 7) & 3);
-    if (depth >= 2 || !pc_native_vram())
+    if (depth >= 2 || !emissive_vram())
         return out;
     int cx = (int)(clut & 63) * 16, cy = (int)((clut >> 6) & 511), n = depth == 0 ? 16 : 256;
     out.resize((size_t)n);
@@ -2184,7 +2206,15 @@ static void apply_scopes(bool all)
     scope_pending.clear();
 }
 
+static int emissive_sync_body(int* row0, int* row1);
 extern "C" int pc_emissive_sync(int* row0, int* row1)
+{
+    in_renderer_sync = true;
+    int on = emissive_sync_body(row0, row1);
+    in_renderer_sync = false;
+    return on;
+}
+static int emissive_sync_body(int* row0, int* row1)
 {
     ensure_loaded();
     float strength = std::clamp(pc_emissive, 0.0f, 4.0f);
@@ -2305,7 +2335,7 @@ extern "C" int pc_emissive_pending(void)
         return 1;
     return loaded && (applied_generation != catalog_generation || (strength > 0) != marks_on);
 }
-extern "C" int pc_emissive_active(void) { return any_marks && pc_emissive > 0; }
+extern "C" int pc_emissive_active(void) { PC_PRESENT_GUARD("pc_emissive_active"); return any_marks && pc_emissive > 0; }
 extern "C" int pc_material_rows(const uint8_t** planes, int* row0, int* row1)
 {
     if (material_planes.empty())

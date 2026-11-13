@@ -11,9 +11,10 @@
 
 static inline const char* pc_path_join(const char* variable, const char* fallback, const char* name)
 {
-    /* A few rotating buffers so one call can take two paths (rename). */
-    static char buffers[4][512];
-    static int next;
+    /* A few rotating buffers so one call can take two paths (rename). Host scratch (paths from the environment): not game
+     * state, so not in a save state or its hash. */
+    static char buffers[4][512] __attribute__((section(".data.rood_host")));
+    static int next __attribute__((section(".data.rood_host")));
     char* out = buffers[next++ & 3];
     const char* dir = getenv(variable);
     snprintf(out, sizeof buffers[0], "%s/%s", dir && *dir ? dir : fallback, name);

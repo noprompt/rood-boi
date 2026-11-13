@@ -62,7 +62,7 @@ extern int pc_hw_scale_setting;
 extern int pc_hw_scale_auto; /* gpu_hw.c: internal_resolution auto */
 extern int pc_gl_filter, pc_gl_aspect, pc_gte_widescreen, pc_hw_perspective, pc_gl_show_depth;
 extern int pc_hw_subpixel, pc_hw_interpolate, pc_hw_texture_filter, pc_interp_skeleton,
-    pc_interp_holds, pc_interp_uv, pc_present_rate;
+    pc_interp_holds, pc_interp_uv, pc_present_rate, pc_present_pacing;
 unsigned pc_vsync_count(void);
 unsigned pc_battle_frame_count(void);
 void pc_rpc_set_paused(int paused);
@@ -825,6 +825,14 @@ static void graphics_panel()
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Present in-betweens at fractions of a vsync (2: 120 fps, 4: 240 fps);\n"
                                   "the game keeps its own rate");
+            ImGui::SetNextItemWidth(120);
+            ImGui::Combo("Present pacing", &pc_present_pacing, "Classic\0Display\0");
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Classic: the frame loop sleeps to 59.94 Hz deadlines and the in-betweens wait\n"
+                                  "for fractions of a vsync. Display: the display's refresh paces the presents\n"
+                                  "(vsync on) and each in-between is placed by the real time it will be shown;\n"
+                                  "as many as the display's rate fits (images per vsync caps them). The game\n"
+                                  "steps at its own rate either way");
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Poses the game holds for 1-3 frames between changes (animations\n"
                                   "stepping below the frame rate) blend across the hold (one frame of lag)");

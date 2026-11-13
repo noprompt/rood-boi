@@ -30,6 +30,7 @@
 #include "../oracle.h"
 #include "../host_format.h"
 #include <libetc.h>
+#include "../present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 static int shell_open; /* the shell owns the top level (ticks in func_800C930C(0)) */
 static int closing;    /* the shell closed the menu; set until currentMenu is 0x3F */
@@ -684,6 +685,7 @@ int pc_ui_menu_top(void)
 
 int pc_ui_menu_active(void)
 {
+    PC_PRESENT_GUARD("pc_ui_menu_active");
     if (pc_oracle_classic && pc_oracle_classic())
         return 0;
     return shell_open;

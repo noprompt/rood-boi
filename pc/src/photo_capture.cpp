@@ -21,6 +21,7 @@
 #endif
 
 #include "platform.h"
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 namespace {
 using photo::contains;
@@ -149,6 +150,7 @@ extern "C" int pc_photo_capture_result_get(int id, pc_photo_capture_result* out)
  * frame drawn after the hidden layers last changed. */
 extern "C" int pc_photo_capture_wanted(void)
 {
+    PC_PRESENT_GUARD("pc_photo_capture_wanted");
     if (captures.empty() || !photo::settled())
         return 0;
     if (!photo::paused() && photo::game_frames() - photo::hide_changed_frame() < 2)
@@ -157,6 +159,7 @@ extern "C" int pc_photo_capture_wanted(void)
 }
 extern "C" void pc_photo_capture_pixels(const unsigned char* rgba, int w, int h, int stride, int bottom_up)
 {
+    PC_PRESENT_GUARD("pc_photo_capture_pixels");
     if (captures.empty())
         return;
     Capture c = captures.front();

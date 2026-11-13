@@ -22,6 +22,7 @@
 #include "room_editor.h"
 #include "occlusion.h" /* fading what hides the characters in play */
 #include "emissive.h"
+#include "hw_cmd.h" /* the emissive matcher's inputs travel as records (T1 R4d) */
 #include "gl_shaders.h" /* PC_GLSL_EMISSIVE (pc/shaders/vulkan/emissive.glsl) */
 /* gpu_hw.c: the emissive slot map is current (its OpenGL texture); the shaders read it. */
 int pc_hw_emissive(unsigned* texture);
@@ -305,7 +306,7 @@ void render_mesh_destroy(render_mesh mesh)
     mesh_slot* slot = lookup(mesh);
     if (!slot)
         return;
-    pc_emissive_mesh_gone(mesh);
+    pc_hwc_emissive_mesh_gone(mesh);
 #ifdef ROOD_VULKAN
     if (pc_vk_on())
         pc_vk_mesh_destroy(slot->vbo);
@@ -873,7 +874,7 @@ void render_list_add(uint32_t id, const render_instance* instance)
     if (!list->rules.effects) {
         mesh_slot* slot = lookup(instance->mesh);
         if (slot && slot->cpu)
-            pc_emissive_note_instance(instance->mesh, slot->cpu, slot->polygons, instance->override, instance->tpage,
+            pc_hwc_emissive_note(instance->mesh, slot->cpu, slot->polygons, instance->override, instance->tpage,
                 instance->clut);
     }
     list_instance* in = &list->instances[list->count++];

@@ -93,6 +93,7 @@ void pc_emissive_note_instance(uint32_t mesh, const void* polygons, int count, i
     unsigned clut);
 /* render.c: the mesh is gone (its uses go with it). */
 void pc_emissive_mesh_gone(uint32_t mesh);
+void pc_emissive_frame_room(int valid, int zone, int room); /* hw_cmd.c: the room the frame is drawn in */
 /* Scopes (pc/docs/Emissive.md): room_native.c built a mesh of the current
  * room's geometry block at byte `offset` of the room data (polygon i lies at
  * offset + 8 + 32 i, quads 40 bytes each after the triangles);

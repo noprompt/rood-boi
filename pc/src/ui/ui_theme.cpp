@@ -12,6 +12,7 @@
 
 #include "ui/menu_light_fields.h"
 #include "ui/ui_tint.h"
+#include "../present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" float pc_ui_menu_opacity; // project_settings.cpp: settings ui_menu_opacity
 /* Looks at the theme file (twice a second at most; RPC status polls.theme): a
@@ -536,6 +537,7 @@ void score_json(std::string& j)
 // view): the ground colour (0..1) and its alpha, the menu's opacity. 1 when there is one.
 extern "C" int pc_ui_menu_backdrop(float rgba[4])
 {
+    PC_PRESENT_GUARD("pc_ui_menu_backdrop");
     unsigned c = ui::theme().ground; // 0xAABBGGRR
     for (int i = 0; i < 4; ++i)
         rgba[i] = (float)((c >> (8 * i)) & 0xFF) / 255.0f;

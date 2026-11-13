@@ -22,6 +22,7 @@
 
 #include "imgui.h"
 #include "imgui_internal.h" /* ImHashStr, OpenPopupEx: opening the toolbar's combo by request */
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 void pc_settings_env_override(const char* key) __attribute__((weak)); /* project_settings.cpp */
@@ -441,6 +442,7 @@ extern "C" void pc_lighting_apply_preset(int preset)
 
 extern "C" void pc_lighting_sync(void)
 {
+    PC_PRESENT_GUARD("pc_lighting_sync");
     /* Legacy switches written elsewhere (RPC gi / rt_shadows, ROOD_GI=0). */
     if (last_gi_enabled >= 0 && pc_gi_enabled != last_gi_enabled)
         pc_gi_method = pc_gi_enabled ? PC_GI_PATH : (pc_gi_method == PC_GI_PATH ? PC_GI_OFF : pc_gi_method);
@@ -509,12 +511,14 @@ extern "C" float pc_lighting_traced_haze_density(void)
 }
 extern "C" float pc_lighting_low_haze_density(int traced_haze)
 {
+    PC_PRESENT_GUARD("pc_lighting_low_haze_density");
     if (pc_haze_quality == PC_HAZE_LOW || (pc_haze_quality == PC_HAZE_HIGH && !traced_haze))
         return pc_lights_enabled ? pc_fog_density : 0.0f;
     return 0.0f;
 }
 extern "C" int pc_lighting_ao_traced(void)
 {
+    PC_PRESENT_GUARD("pc_lighting_ao_traced");
     if (!pc_ao || pc_ao_radius <= 0 || pc_ao_strength <= 0)
         return 0;
     pc_lighting_caps_t c = caps_now();
@@ -522,12 +526,14 @@ extern "C" int pc_lighting_ao_traced(void)
 }
 extern "C" int pc_lighting_ssao(int traced_this_frame)
 {
+    PC_PRESENT_GUARD("pc_lighting_ssao");
     if (!pc_ao || pc_ao_radius <= 0 || pc_ao_strength <= 0)
         return 0;
     return !(traced_this_frame && pc_lighting_ao_traced());
 }
 extern "C" float pc_lighting_baked_scale(float room_baked, int light_count)
 {
+    PC_PRESENT_GUARD("pc_lighting_baked_scale");
     if (!pc_lights_enabled)
         return 1.0f; /* Original: the PS1's baked light as it is */
     return light_count || room_baked != 1.0f ? room_baked : 1.0f;

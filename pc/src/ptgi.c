@@ -17,6 +17,7 @@
  * Needs OpenGL 4.3 compute (pc_gl_compute); the game view simply has no
  * indirect light without it. */
 #define _POSIX_C_SOURCE 200809L
+#include "present_header.h" /* the present frame header: the Vulkan GI code reads its settings there (T1 R4b) */
 #include "gl_api.h"
 #include "scene_capture.h"
 #include <math.h>
@@ -69,7 +70,7 @@ float pc_fog_anisotropy = 0.35f;
 float pc_fog_glow = 0.3f;
 /* The captured room's bounds (the haze fills them only). */
 static float room_lo[3], room_hi[3];
-void pc_scene_bounds(float lo[3], float hi[3]);
+void pc_ph_scene_bounds(float lo[3], float hi[3]);
 void pc_gi_room_bounds(float lo[3], float hi[3])
 {
     memcpy(lo, room_lo, sizeof room_lo);
@@ -286,12 +287,12 @@ static int room_uv_serial = -1;
 int pc_rt_uv_updates; /* triangle records whose UVs were rewritten (RPC uv_effects) */
 static void update_room_uvs(const scene_triangle* room, int room_count)
 {
-    int serial = pc_scene_uv_serial();
+    int serial = pc_ph_scene_uv_serial();
     if (serial == room_uv_serial || !room_position || room_count != room_triangles || !room_sorted)
         return;
     room_uv_serial = serial;
     int count;
-    const int* animated = pc_scene_animated(&count);
+    const int* animated = pc_ph_scene_animated(&count);
     for (int n = 0; n < count; n++) {
         int i = animated[n];
         if (i < 0 || i >= room_triangles)
@@ -319,7 +320,7 @@ static int update_scene(void)
     const scene_triangle* room = pc_scene_triangle_data(&room_count);
     const float* casters = pc_hw_casters(&caster_count, &caster_serial);
     const caster_surface* surfaces = pc_hw_caster_surfaces();
-    int serial = pc_scene_serial();
+    int serial = pc_ph_scene_serial();
     if (serial == built_scene)
         update_room_uvs(room, room_count);
     if (serial == built_scene && caster_serial == built_casters && (uploaded || !triangle_buffer))
@@ -360,7 +361,7 @@ static int update_scene(void)
                 room_position[order[i]] = i;
         }
         built_scene = serial;
-        room_uv_serial = pc_scene_uv_serial(); /* (the capture's UVs are this serial's) */
+        room_uv_serial = pc_ph_scene_uv_serial(); /* (the capture's UVs are this serial's) */
     }
     built_casters = caster_serial;
     triangle_count = room_triangles;
@@ -432,11 +433,11 @@ static float emitter_pos[MAX_EMITTERS][4], emitter_col[MAX_EMITTERS][4];
 static float emitter_shape[MAX_EMITTERS][4]; /* a column glow's half axis and radius (0: a sphere; glows.c) */
 static float emitter_shadow[MAX_EMITTERS][4]; /* a column's shadows: core radius, baked weight, clear radius (glows.c) */
 static int emitter_count;
-extern const uint16_t* pc_native_vram(void);
+extern const uint16_t* pc_renderer_vram(void);
 extern const float* pc_hw_emissives(int* count, const void** surfaces);
 static uint16_t vram_texel(unsigned u, unsigned v, unsigned tpage, unsigned clut)
 {
-    const uint16_t* vram = pc_native_vram();
+    const uint16_t* vram = pc_renderer_vram();
     unsigned tx = (tpage & 15) * 64, ty = ((tpage >> 4) & 1) * 256, depth = (tpage >> 7) & 3;
     unsigned cx = (clut & 63) * 16, cy = (clut >> 6) & 511;
     u &= 255, v &= 255;
@@ -514,7 +515,7 @@ static int by_float_desc(const void* a, const void* b)
 }
 static void estimate_baked_lights(void)
 {
-    int serial = pc_scene_serial(), count;
+    int serial = pc_ph_scene_serial(), count;
     if (serial == baked_serial)
         return;
     baked_serial = serial;
@@ -1810,7 +1811,7 @@ static GLuint run(gi_context* c, const float to_image[16], const float eye[3], f
         /* The room's medium (atmosphere.h): haze High only. */
         static pc_medium_gpu medium;
         int on = pc_haze_quality == PC_HAZE_HIGH
-            && pc_medium_gpu_get(&medium, pc_lighting_traced_haze_density(), room_lo, room_hi);
+            && pc_medium_gpu_get(&medium, pc_ph_lighting_traced_haze_density(), room_lo, room_hi);
         medium.v[5][0] = medium.v[5][1] = medium.v[5][2] = 0; /* the march traces the sky */
         gl_Uniform1f(U(pr, "fog_density"), on ? 1.0f : 0.0f);
         gl_Uniform4fv(U(pr, "medium_"), PC_MEDIUM_VEC4S, &medium.v[0][0]);
@@ -1911,7 +1912,7 @@ static int ready(void)
     if (!(pc_gi_enabled || pc_rt_shadows || pc_baked_shadows) || !pc_lights_enabled || !init() || !update_scene())
         return 0;
     update_emitters();
-    pc_scene_bounds(room_lo, room_hi);
+    pc_ph_scene_bounds(room_lo, room_hi);
     int lights = gather_lights();
     gather_env();
     pc_baked_shadows_active = pc_baked_shadows && (emitter_count || pc_contact_radius > 0);
@@ -2023,7 +2024,7 @@ static int gi_display_size[2];
 GLuint pc_gi_update(int x, int y, int w, int h)
 {
     float r[3][3], t[3], hh, ox, oy, inverse[3][3];
-    if (w <= 0 || h <= 0 || !ready() || !pc_scene_camera_get(r, t, &hh, &ox, &oy) || !pc_scene_camera_inverse(inverse))
+    if (w <= 0 || h <= 0 || !ready() || !pc_ph_scene_camera_get(r, t, &hh, &ox, &oy) || !pc_ph_scene_camera_inverse(inverse))
         return 0;
     gi_display_size[0] = w, gi_display_size[1] = h;
     gi_context* c = &game_context;
@@ -2038,7 +2039,7 @@ GLuint pc_gi_update(int x, int y, int w, int h)
         cadence_since = (unsigned)pc_gi_cadence_interval(); /* traced now, not the last result */
     }
     cadence_read();
-    if (c->result && c->result_scene == pc_scene_serial() && (int)++cadence_since < pc_gi_cadence_interval()) {
+    if (c->result && c->result_scene == pc_ph_scene_serial() && (int)++cadence_since < pc_gi_cadence_interval()) {
         ++cadence_reused;
         probe_gl_update();
         return c->result; /* the last result, with the surfaces it was traced for */
@@ -2090,7 +2091,7 @@ GLuint pc_gi_update(int x, int y, int w, int h)
     for (int k = 0; k < 3; k++)
         eye[k] = -(inverse[k][0] * t[0] + inverse[k][1] * t[1] + inverse[k][2] * t[2]);
     c->result = run(c, to_image, eye, 1.0f / (hh * (float)gh / (float)h)); /* GI pixels per unit of X/Z: H scaled */
-    c->result_scene = pc_scene_serial();
+    c->result_scene = pc_ph_scene_serial();
     cadence_mark(0);
     probe_gl_update(); /* gi_method probes: the probe field (probe_gi.inc) */
     return c->result;
@@ -2136,7 +2137,7 @@ int pc_gi_probe(float u, float v, float out[8])
 int pc_gi_probe_world(const float p[3], float out[8], float uv[2])
 {
     float r[3][3], t[3], hh, ox, oy, v[3];
-    if (gi_display_size[0] <= 0 || !pc_scene_camera_get(r, t, &hh, &ox, &oy))
+    if (gi_display_size[0] <= 0 || !pc_ph_scene_camera_get(r, t, &hh, &ox, &oy))
         return 0;
     for (int i = 0; i < 3; i++)
         v[i] = r[i][0] * p[0] + r[i][1] * p[1] + r[i][2] * p[2] + t[i];
@@ -2161,7 +2162,7 @@ int pc_gi_scene_cpu(void)
 #endif
     if (!update_scene())
         return 0;
-    return triangle_count > 0 && node_count > 0 && built_scene == pc_scene_serial(); /* this room's */
+    return triangle_count > 0 && node_count > 0 && built_scene == pc_ph_scene_serial(); /* this room's */
 }
 /* Editor inspector: the nearest triangle a ray from o along d (unit) hits
  * before tmax, against the scene the path tracer uses (texture cut-outs

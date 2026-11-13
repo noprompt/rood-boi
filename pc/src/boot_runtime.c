@@ -1,10 +1,14 @@
 #define _GNU_SOURCE
 #include "audio.h"
 #include "view_state.h"
+#include "present_service.h"
+#include "render_jitter.h"
 #include "pc_paths.h"
 #include "psx_types.h"
 #include "platform.h" /* pc_replace_file */
 #include "frame_cost.h" /* ROOD_PERF sections */
+#include "hw_meter.h"
+#include "hw_cmd.h" /* the walk records the renderer calls that need no answer (T1 R1) */ /* ROOD_HW_METER: the renderer hooks counted (T1 plan R0) */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,10 +29,31 @@ extern void pc_snapshot_resume_if_requested(void) __attribute__((weak)); /* snap
  * library before the first call into it; reload it at a vsync. */
 extern void pc_engine_start(void) __attribute__((weak));
 extern void pc_engine_vsync(void) __attribute__((weak));
-const uint16_t* pc_native_vram(void) { return vram; }
+const uint16_t* pc_native_vram(void) { return vram; } /* the game's array: the hardware init's mirror source, snapshots */
+/* The VRAM the renderer's readers (lighting, environment, path tracing, the text and prompt tools) see: the renderer's own copy
+ * when the hardware renderer runs (gpu_hw.c, T5 S2), else the game's array (the CPU rasterizer owns VRAM). T1 R2. */
+extern int pc_hw_active __attribute__((weak));
+extern const uint16_t* pc_hw_renderer_vram(void) __attribute__((weak));
+const uint16_t* pc_renderer_vram(void)
+{
+    return &pc_hw_active && pc_hw_active && pc_hw_renderer_vram ? pc_hw_renderer_vram() : vram;
+}
+/* RPC vram poke: a rectangle set to one value, as a stream upload (the game's array, the event, the renderer's copy). */
+void pc_vram_transfer(int x, int y, int w, int h, void* data, int write);
+void pc_vram_poke(int x, int y, int w, int h, unsigned value)
+{
+    uint16_t* rows = malloc((size_t)w * (size_t)h * sizeof *rows);
+    if (!rows)
+        return;
+    for (int i = 0; i < w * h; i++)
+        rows[i] = (uint16_t)value;
+    pc_vram_transfer(x, y, w, h, rows, 1);
+    free(rows);
+}
 /* Hardware rasterizer mirror (gpu_hw.c); no-ops until a GL context exists. */
-extern void pc_hw_mark(int, int, int, int);
-extern void pc_hw_mark_raster(int, int, int, int);
+/* The R4 harness (render_jitter.h): ROOD_RENDER_JITTER seeds sleeps where the game hands work to the renderer side. */
+extern int pc_jitter_json(char*, int) __attribute__((weak));
+extern void pc_jitter(int) __attribute__((weak));
 extern int pc_hw_triangle(const int*, const int*, const int*, unsigned, unsigned, unsigned,
     unsigned, const int*, int, int);
 extern void pc_hw_rect(int, int, int, int, int, int, unsigned, unsigned, unsigned, unsigned,
@@ -50,14 +75,9 @@ extern void pc_hw_set_2d(int);
 extern void pc_hw_set_bounds(int, int, int, int, unsigned, unsigned, const int*, const int*);
 extern void pc_hw_set_room(int);
 extern void pc_hw_set_packet(const void*);
-extern int pc_hw_current_is_room(void) __attribute__((weak)); /* gpu_hw.c (absent in the GPU probe) */
 extern int pc_hw_room_depth(const void*, const unsigned*, int, int*) __attribute__((weak)); /* absent in unit probes */
 extern int pc_ui_precise_lookup(int, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
 extern int pc_ui_precise_find(int, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
-/* ui_text_layout line (gpu_hw.c): scaled glyph quads laid out with their lines. */
-extern int pc_hw_text_quad(const float*, const int*, const int*, unsigned, unsigned, unsigned, unsigned, const int*,
-    int, int) __attribute__((weak));
-extern void pc_hw_text_piece_done(void) __attribute__((weak));
 /* ui_text.c: battle number popups at the UI text scale. */
 extern int pc_ui_text_popup_place(const uint32_t*, const uint32_t* (*)(const uint32_t*), float*) __attribute__((weak));
 extern int pc_ui_text_popup_place_item(int, float*) __attribute__((weak));
@@ -196,6 +216,8 @@ static void fence_event(int cause, int before, int x, int y, int w, int h)
 {
     if (fence_syncs() == before)
         return;
+    if (pc_jitter)
+        pc_jitter(PC_JITTER_FENCE);
     stream_event(6, x, y, w, h, &cause, sizeof cause);
     ++fence_counts[cause];
 }
@@ -203,6 +225,8 @@ static void fence_event(int cause, int before, int x, int y, int w, int h)
 static void vcheck_vsync(void);
 static void stream_vsync(void)
 {
+    pc_hwc_raster_post(); /* the frame's last rasterized rectangles */
+    PC_HWC_SYNC(); /* (the renderer has it before the frame is presented) */
     vcheck_vsync();
     stream.last = stream.frame, stream.last_events = stream.events;
     stream.frame = 0xcbf29ce484222325ull, stream.events = 0, stream.draws = 0, ++stream.frames;
@@ -375,7 +399,7 @@ static void vcheck_vsync(void)
 /* RPC vram_stream: {frames, frame: {events, hash} (the last completed frame), total: {events, hash}}. */
 int pc_vram_stream_json(char* out, int size)
 {
-    extern unsigned long long pc_hw_raster_refreshed __attribute__((weak));
+    extern unsigned long long pc_hw_raster_posted __attribute__((weak));
     extern struct { unsigned long long replays, rewritten, unwritten, fell_back, valid, invalid_overlap, invalid_count; } pc_hw_stats __attribute__((weak));
     int n = snprintf(out, (size_t)size,
         "{\"frames\":%u,\"frame\":{\"events\":%u,\"hash\":\"%016llx\"},\"total\":{\"events\":%u,\"hash\":\"%016llx\"},"
@@ -386,13 +410,18 @@ int pc_vram_stream_json(char* out, int size)
         vcheck.first_bad[0], vcheck.first_bad[1], vcheck.first_bad[2], vcheck.first_bad[3], vcheck.first_bad[4],
         vcheck.first_bad[5], vcheck.feedback, vcheck.first_feedback[0], vcheck.first_feedback[1],
         vcheck.first_feedback[2], vcheck.first_feedback[3], fence_counts[1], fence_counts[2]);
-    if (n > 2 && &pc_hw_stats && n + 220 < size) { /* + "renderer": the replay statistics (gpu_hw.c) */
+    if (n > 2 && &pc_hw_stats && n + 280 < size) { /* + "renderer": the replay statistics (gpu_hw.c) */
         n -= 1;
         n += snprintf(out + n, (size_t)(size - n),
-            ",\"renderer\":{\"raster_bands\":%llu,\"replays\":%llu,\"rewritten\":%llu,\"unwritten\":%llu,\"fell_back\":%llu,"
+            ",\"renderer\":{\"raster_posted\":%llu,\"replays\":%llu,\"rewritten\":%llu,\"unwritten\":%llu,\"fell_back\":%llu,"
             "\"valid\":%llu,\"invalid_overlap\":%llu,\"invalid_count\":%llu}}",
-            pc_hw_raster_refreshed, pc_hw_stats.replays, pc_hw_stats.rewritten, pc_hw_stats.unwritten, pc_hw_stats.fell_back,
+            pc_hw_raster_posted, pc_hw_stats.replays, pc_hw_stats.rewritten, pc_hw_stats.unwritten, pc_hw_stats.fell_back,
             pc_hw_stats.valid, pc_hw_stats.invalid_overlap, pc_hw_stats.invalid_count);
+    }
+    if (n > 2 && pc_jitter_json && n + 160 < size) { /* + "jitter" (render_jitter.c) */
+        n -= 1;
+        n += pc_jitter_json(out + n, size - n);
+        out[n++] = '}', out[n] = 0;
     }
     return n;
 }
@@ -407,11 +436,14 @@ void pc_vram_transfer(int x, int y, int w, int h, void* data, int write)
         vcheck_write(x, y, w, h, data, 1, NULL);
     if (!write && pc_hw_sync_store) {
         int before = fence_syncs();
-        pc_hw_sync_store(x, y, w, h); /* StoreImage */
+        pc_hwc_raster_post();
+        pc_hwc_fence_store(x, y, w, h); /* StoreImage: the renderer has everything before it, and the pixels are in VRAM when it returns */
         fence_event(1, before, x, y, w, h);
     }
-    if (write && pc_hw_before_write)
-        pc_hw_before_write(x, y, w, h);
+    if (write && pc_hw_before_write) {
+        pc_hwc_raster_post(); /* (what the write replaces includes the rectangles rasterized so far) */
+        pc_hwc_before_write(x, y, w, h);
+    }
     for (int row = 0; row < h; row++) {
         void* vp = vram + (y + row) * 1024 + x;
         void* dp = (uint16_t*)data + row * w;
@@ -420,8 +452,10 @@ void pc_vram_transfer(int x, int y, int w, int h, void* data, int write)
         else
             memcpy(dp, vp, (size_t)w * 2);
     }
-    if (write)
+    if (write) {
+        pc_hwc_raster_post();
         pc_hw_upload(x, y, w, h);
+    }
 }
 /* GPU fill (GP0 0x02) as the hardware does it: x is rounded down to 16
  * pixels, the width rounded up to 16, both wrapped to VRAM (1024 x 512).
@@ -450,7 +484,8 @@ void pc_vram_clear(int x, int y, int w, int h, int r, int g, int b)
         int pw = part & 1 ? x + w - 1024 : (x + w > 1024 ? 1024 - x : w);
         int ph = part & 2 ? y + h - 512 : (y + h > 512 ? 512 - y : h);
         if (pw > 0 && ph > 0) {
-            pc_hw_mark(px, py, px + pw - 1, py + ph - 1);
+            pc_hwc_mark(px, py, px + pw - 1, py + ph - 1);
+            pc_hwc_raster_post();
             pc_hw_fill(px, py, pw, ph, r, g, b);
         }
     }
@@ -471,7 +506,8 @@ void pc_vram_rect(int x, int y, int w, int h, int r, int g, int b)
         for (int col = x0; col < x1; col++)
             vram[row * 1024 + col] = color;
     pc_cost_end(PC_COST_RASTER, cost);
-    pc_hw_mark(x0, y0, x1 - 1, y1 - 1);
+    pc_hwc_mark(x0, y0, x1 - 1, y1 - 1);
+    pc_hwc_raster_post();
     pc_hw_fill(x0, y0, x1 - x0, y1 - y0, r, g, b);
 }
 static void copy_file(const char* from, const char* to)
@@ -591,6 +627,19 @@ static void pc_present_now(void)
 }
 /* Debug aid: `kill -USR1 <pid>` prints the native call stack; resolve the
  * addresses with pc/tools/where.sh. */
+/* ROOD_STACK_SELFTEST=1: libc calls made on the game's stack, from the game's entry and from the host tick the game calls (the
+ * string, number and sort routines the host uses: SIMD versions that fault when the stack is misaligned). */
+static void stack_selftest(const char* where)
+{
+    char text[64] = "seed:2500:350", number[32];
+    volatile unsigned long long sink = 0;
+    sink += (unsigned long long)(uintptr_t)strchr(text, ':') + strlen(text) + strtoull("123", NULL, 10);
+    snprintf(number, sizeof number, "%f %d", 1.5, (int)sink);
+    float v[4] = { 3, 1, 2, 4 };
+    qsort(v, 4, sizeof v[0], (int (*)(const void*, const void*))strcmp);
+    memcpy(text, number, 8);
+    fprintf(stderr, "[stack] selftest at %s: rsp %% 16 = %lu, ok (%s)\n", where, (unsigned long)((uintptr_t)__builtin_frame_address(0) % 16), number);
+}
 static void pc_dump_stack(int sig)
 {
     void* frames[64];
@@ -730,8 +779,15 @@ static void run_game_on_low_stack(void)
     tib->StackLimit = limit;
 }
 #else
-static ucontext_t game_context, host_context;
-static void run_game(void) { vs_main_exec(); }
+/* The switch between the host and the game's stack: host state (the registers and stack addresses of this process), not the
+ * game's, so not in a save state or its hash. */
+static ucontext_t game_context __attribute__((section(".data.rood_host"))), host_context __attribute__((section(".data.rood_host")));
+static void run_game(void)
+{
+    if (getenv("ROOD_STACK_SELFTEST"))
+        stack_selftest("game entry");
+    vs_main_exec();
+}
 /* The game's stack at a fixed address (both word sizes), reserved in main
  * before the window: a save state (snapshot.c) holds the game's stack and
  * resumes it in a new process, where every saved frame pointer and return
@@ -783,6 +839,14 @@ static void run_game_on_low_stack(void)
     game_context.uc_stack.ss_size = GAME_STACK_SIZE;
     game_context.uc_link = &host_context;
     makecontext(&game_context, run_game, 0);
+#ifdef __x86_64__
+    /* The game starts with the callee-saved registers the host had (a host stack address in rbp, host values in r12-r15). They
+     * would travel into the game's frames and into the jump buffers the game takes (pc_title_jump, pc_battle_jump: their
+     * frame-pointer word), which are game state: a save state then differs from run to run by host addresses. The game
+     * starts from zeroed ones. */
+    game_context.uc_mcontext.gregs[REG_RBP] = game_context.uc_mcontext.gregs[REG_R12] = 0;
+    game_context.uc_mcontext.gregs[REG_R13] = game_context.uc_mcontext.gregs[REG_R14] = game_context.uc_mcontext.gregs[REG_R15] = 0;
+#endif
     swapcontext(&host_context, &game_context);
 }
 #endif
@@ -1018,8 +1082,12 @@ static void stream_trace_record(uint32_t tag, const int* v, int n)
         fprintf(stderr, "\n");
     }
 }
+/* The digest is in call order: the renderer's own notes (gpu_hw.c pc_stream_note: the packet's attributes, a triangle's result) enter it
+ * when it applies the records, so every digest event of the walk first applies what is pending (PC_HWC_SYNC): the order, and the
+ * state the notes read, are the original's. While the digest is on this applies the walk's records at each of its events. */
 static void stream_flush_pending(void)
 {
+    PC_HWC_SYNC();
     for (int k = 0; k < 6; k++)
         if (stream_state_mask >> k & 1) {
             digest_mix(stream_state[k]);
@@ -1041,6 +1109,7 @@ static void stream_record(uint32_t tag, const int* v, int n)
 {
     if (!pc_stream_on)
         return;
+    PC_HWC_SYNC();
     stream_flush_pending();
     stream_trace_record(tag, v, n);
     digest_mix(0x5e5e0000u | tag);
@@ -1053,6 +1122,7 @@ static void stream_defer(int kind, uint32_t tag, const int* v, int n)
 {
     if (!pc_stream_on)
         return;
+    PC_HWC_SYNC();
     stream_deferred[kind].set = 1, stream_deferred[kind].tag = tag, stream_deferred[kind].n = n > 12 ? 12 : n;
     memcpy(stream_deferred[kind].v, v, (size_t)stream_deferred[kind].n * sizeof *v);
 }
@@ -1078,6 +1148,7 @@ static void stream_close(unsigned vsync)
 int pc_stream_read(int on, int reset, unsigned* closed, uint64_t* chain, unsigned* vs, unsigned* words, unsigned* records,
     uint64_t* digests, int max)
 {
+    PC_HWC_SYNC();
     if (on >= 0)
         pc_stream_on = on != 0;
     if (reset) {
@@ -1294,6 +1365,7 @@ static void commands(uint32_t* p, unsigned n)
 {
     unsigned i = 0;
     if (pc_stream_on) {
+        PC_HWC_SYNC();
         if (stream_trace >= 0 && (unsigned)stream_trace == vsyncs + 1) { /* (ROOD_STREAM_TRACE: the words too) */
             fprintf(stderr, "[stream %u] words %u:", vsyncs + 1, n);
             for (unsigned k = 0; k < n && k < 16; k++)
@@ -1330,9 +1402,11 @@ static void commands(uint32_t* p, unsigned n)
             stream_event(5, (int)dx, (int)dy, (int)w, (int)h, (int[]) { (int)sx, (int)sy }, 2 * sizeof(int));
             vcheck_copy(sx, sy, dx, dy, w, h);
             if (pc_hw_stale_copy)
-                pc_hw_stale_copy((int)sx, (int)sy, (int)dx, (int)dy, (int)w, (int)h);
-            if (pc_hw_before_write)
-                pc_hw_before_write((int)dx, (int)dy, (int)w, (int)h);
+                pc_hwc_stale_copy((int)sx, (int)sy, (int)dx, (int)dy, (int)w, (int)h);
+            if (pc_hw_before_write) {
+                pc_hwc_raster_post();
+                pc_hwc_before_write((int)dx, (int)dy, (int)w, (int)h);
+            }
             for (unsigned y = 0; y < h; ++y)
                 for (unsigned x = 0; x < w; x += 16) {
                     uint16_t block[16];
@@ -1346,7 +1420,8 @@ static void commands(uint32_t* p, unsigned n)
                             *dst = block[j] | (mask_set ? 0x8000 : 0);
                     }
                 }
-            pc_hw_mark(dx, dy, dx + w - 1, dy + h - 1);
+            pc_hwc_mark(dx, dy, dx + w - 1, dy + h - 1);
+            pc_hwc_raster_post();
             pc_hw_copy(sx, sy, dx, dy, w, h);
             i += 4;
             continue;
@@ -1423,17 +1498,19 @@ static void commands(uint32_t* p, unsigned n)
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1);
             if (tex && pc_hw_sync_texture) {
                 int clip[4] = { clip_x, clip_y, clip_w, clip_h }, before = fence_syncs();
-                pc_hw_sync_texture(tpage, uv >> 16, texture_window, uv & 255, (uv >> 8) & 255,
+                pc_hwc_raster_post();
+                pc_hwc_fence_texture(tpage, uv >> 16, texture_window, uv & 255, (uv >> 8) & 255,
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1, clip);
                 fence_event(2, before, (int)(uv & 255), (int)((uv >> 8) & 255), (int)w, (int)h);
             }
             {
                 int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-                pc_hw_set_2d(1); /* sprites and tiles are screen-space */
+                pc_hwc_set_2d(1); /* sprites and tiles are screen-space */
                 int texels[4] = { (int)(uv & 255), (int)((uv >> 8) & 255), (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1 };
-                pc_hw_set_bounds(x, y, x + (int)w, y + (int)h, code, tpage, tex ? texels : NULL, clip);
+                pc_hwc_set_bounds(x, y, x + (int)w, y + (int)h, code, tpage, tex ? texels : NULL, clip);
                 pc_gpu_command = GUEST(p + i);
-                pc_hw_rect(x, y, (int)w, (int)h, uv & 255, (uv >> 8) & 255, p[i] & 0xffffff, code,
+                pc_hwc_raster_post();
+                pc_hwc_rect(x, y, (int)w, (int)h, uv & 255, (uv >> 8) & 255, p[i] & 0xffffff, code,
                     tpage, uv >> 16, texture_window, clip, mask_set, mask_check);
                 pc_gpu_command = NULL;
             }
@@ -1454,7 +1531,7 @@ static void commands(uint32_t* p, unsigned n)
                     i += words;
                     continue;
                 }
-                pc_hw_mark_raster(x, y, x + (int)w - 1, y + (int)h - 1);
+                pc_hwc_mark_raster(x, y, x + (int)w - 1, y + (int)h - 1);
             }
             uint64_t cost = pc_cost_begin();
             pc_cost_count(PC_COUNT_RASTER_PX, w * h);
@@ -1660,15 +1737,24 @@ void pc_draw_packet(void* data, int chain)
         ot_layers_begin(data);
     if (chain == 1 && pc_hw_ot_native_area && render_is_marker && ot_has_native()) {
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-        pc_hw_ot_native_area(clip);
+        pc_hwc_ot_native_area(clip);
     }
+    pc_hw_meter_walk(1);
     draw_packet(data, chain);
+    PC_HWC_SYNC();
+    pc_hw_meter_walk(0);
     if (chain)
         ot_scene = NULL, ot_front = 0;
     pc_cost_end(PC_COST_DRAW, cost);
 }
 /* A packet lowered from a draw item (draw_items.c): drawn as one member of an ordering table. */
-void pc_draw_item_packet(void* packet) { draw_packet(packet, 2); }
+void pc_draw_item_packet(void* packet)
+{
+    pc_hw_meter_walk(1);
+    draw_packet(packet, 2);
+    PC_HWC_SYNC();
+    pc_hw_meter_walk(0);
+}
 /* The photo mode's hidden game 2D (photo.cpp, rood.ui.hide{game2d}): in the field's ordering tables
  * (D_80055C80, 0x822 entries each, drawn from the far end), the packets linked at entries below
  * pc_photo_game2d_slots (the HUD, text and window layer: vs_scratch.unk4 is entry 18, the game's 2D
@@ -1778,10 +1864,10 @@ static void draw_packet(void* data, int chain)
         int marker_first, marker_count;
         int item_marker = pc_frame_marker && pc_frame_marker(p, &marker_first, &marker_count);
         int stream_was = pc_stream_on;
+        PC_HWC_SYNC(); /* (the renderer's notes of the packets before are the digest's before the flag changes) */
         if (item_marker)
             pc_stream_on = 0;
-        if (pc_hw_set_attr)
-            pc_hw_set_attr(attr, draw_x, display_w);
+        pc_hwc_set_attr(attr, draw_x, display_w);
         if (pc_ui_bubble_packet) {
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
             pc_ui_bubble_packet(attr->bubble, p, draw_x, draw_y, clip);
@@ -1794,14 +1880,16 @@ static void draw_packet(void* data, int chain)
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
             { int v[8] = { (int)p[2], draw_x, draw_y, clip[0], clip[1], clip[2], clip[3], (int)texture_window | (int)mask_set << 24 };
               stream_record(3, v, 8); }
-            pc_hw_native_marker(p[2], draw_x, draw_y, clip, texture_window, (int)mask_set);
+            pc_hwc_native_marker(p[2], draw_x, draw_y, clip, texture_window, (int)mask_set);
         }
         {
             int run, run_count;
             if (pc_frame_marker && pc_frame_marker(p, &run, &run_count)) {
                 intptr_t mine = key_delta;
+                PC_HWC_SYNC();
                 pc_stream_on = stream_was;
                 pc_frame_draw_run(run, run_count);
+                PC_HWC_SYNC();
                 pc_stream_on = 0;
                 key_delta = mine;
             }
@@ -1812,12 +1900,13 @@ static void draw_packet(void* data, int chain)
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
             { int v[9] = { (int)list, first, count, draw_x, draw_y, clip[0], clip[1], clip[2], clip[3] };
               stream_record(4, v, 9); }
-            pc_hw_native_translucent(list, first, count, draw_x, draw_y, clip, texture_window, (int)mask_set);
+            pc_hwc_native_translucent(list, first, count, draw_x, draw_y, clip, texture_window, (int)mask_set);
         }
         pc_gpu_immediate = !chain;
         drawing_tag = chain ? p : NULL; /* (the frame's copy: what follows it is the frame's next entry) */
         walk_precise = en ? attr->precise : -2;
         commands(p + 1, tag >> 24);
+        PC_HWC_SYNC();
         pc_stream_on = stream_was;
         walk_precise = -2;
         drawing_tag = NULL;
@@ -1860,7 +1949,7 @@ unsigned pc_battle_frame_count(void) { return battle_frames; }
 int pc_capture_display(const char* path, int* width, int* height)
 {
     if (pc_hw_sync)
-        pc_hw_sync(display_x, display_y, display_w, display_h);
+        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
     FILE* f = fopen(path, "wb");
     if (!f)
         return -1;
@@ -1877,12 +1966,6 @@ int pc_capture_display(const char* path, int* width, int* height)
 }
 /* Present the current frame again (paused developer view). */
 void pc_window_redraw(void) { pc_window_frame(vram, display_x, display_y, display_w, display_h); }
-extern int pc_present_rate __attribute__((weak));
-extern int pc_window_present_rate(void) __attribute__((weak)); /* boot_window.c */
-extern float pc_present_phase __attribute__((weak));
-extern int pc_hw_interpolate __attribute__((weak));
-extern int pc_hw_active __attribute__((weak));
-extern void pc_window_wait_fraction(int k, int n) __attribute__((weak));
 /* Battle charging skip (charge_skip.c): this vsync judged (before its pacing),
  * and whether it is presented. */
 extern void pc_charge_skip_vsync(void) __attribute__((weak));
@@ -1897,8 +1980,12 @@ static void tick_frame_work(void);
 void pc_tick(void)
 {
     ++vsyncs;
+    if (vsyncs == 2 && getenv("ROOD_STACK_SELFTEST"))
+        stack_selftest("the host tick");
     stream_close(vsyncs);
     stream_vsync();
+    pc_hw_meter_vsync();
+    pc_hwc_frame_room();
     pc_cost_vsync();
     if (pc_state_diff_vsync)
         pc_state_diff_vsync(); /* compare the completed frame before RPC changes */
@@ -1943,22 +2030,8 @@ static void tick_frame_work(void)
             pc_hw_skip_present();
         return;
     }
-    uint64_t cost = pc_cost_begin();
-    pc_window_frame(vram, display_x, display_y, display_w, display_h);
-    pc_cost_end(PC_COST_PRESENT, cost);
-    /* More images per vsync (frame interpolation at its fractions). */
-    /* (pc_window_present_rate: present_rate, its "match display" and the vsync cap) */
-    int rate = pc_window_present_rate ? pc_window_present_rate() : &pc_present_rate ? pc_present_rate : 1;
-    if (&pc_present_phase && pc_window_wait_fraction && &pc_hw_interpolate && &pc_hw_active
-        && rate > 1 && pc_hw_interpolate && pc_hw_active) {
-        rate = rate > 8 ? 8 : rate;
-        for (int k = 1; k < rate; k++) {
-            pc_window_wait_fraction(k, rate);
-            pc_present_phase = (float)k / (float)rate;
-            pc_window_frame(vram, display_x, display_y, display_w, display_h);
-        }
-        pc_present_phase = 0;
-    }
+    /* The images of this vsync, and its fractions when interpolating, are the present service's (present_service.h). */
+    pc_present_post(&(pc_present_request) { PC_PRESENT_FRAME, vram, display_x, display_y, display_w, display_h });
 }
 
 /* What the game is in, for host features that only belong in play (post.h:
@@ -1990,7 +2063,7 @@ void pc_finish_room_checkpoint(void)
     display_h = clip_h;
     pc_present_now();
     if (pc_hw_sync) {
-        pc_hw_sync(display_x, display_y, display_w, display_h);
+        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
         pc_present_now();
     }
     if (pc_replace_file(pc_out_path("loading.ppm"), pc_out_path("room-checkpoint.ppm"))) {
@@ -2086,7 +2159,7 @@ void pc_battle_frame_complete(void)
         display_h = clip_h;
         pc_present_now();
         if (pc_hw_sync) {
-        pc_hw_sync(display_x, display_y, display_w, display_h);
+        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
         pc_present_now();
     }
     if (pc_replace_file(pc_out_path("loading.ppm"), pc_out_path("battle-checkpoint.ppm"))) {
@@ -2109,7 +2182,7 @@ void pc_battle_frame_complete(void)
     display_h = clip_h;
     pc_present_now();
     if (pc_hw_sync) {
-        pc_hw_sync(display_x, display_y, display_w, display_h);
+        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
         pc_present_now();
     }
     if (pc_replace_file(pc_out_path("loading.ppm"), pc_out_path("opening-checkpoint.ppm"))) {

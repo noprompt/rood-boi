@@ -1188,20 +1188,24 @@ for source, name in sources:
             pc_unit_statics(source, name, obj, pre, win_pre)
     objects.append(obj)
     game_objects.append(obj)
+# The host's own C (pc/src) declares what it calls: an implicit declaration returns int, which on a 64-bit build cuts a returned
+# pointer to 32 bits and sign-extends it (a missing <string.h> made strchr crash this way). GCC 14+ makes it an error, and the
+# decompiled game's -fpermissive above relaxes it for the game's C only; the host's is held to it.
+host_strict = ["-Werror=implicit-function-declaration"]
 for name in ["runtime", "window", "controller", "gamepad"]:
     obj = out / (name + ".o")
-    if compile_object(["gcc", *flags, *sdl_flags, "-c", f"pc/src/boot_{name}.c", "-o", str(obj)], f"pc/src/boot_{name}.c") \
+    if compile_object(["gcc", *flags, *host_strict, *sdl_flags, "-c", f"pc/src/boot_{name}.c", "-o", str(obj)], f"pc/src/boot_{name}.c") \
             and name in STATE_HOST_UNITS:
         state_sections(obj)
     objects.append(obj)
-for name in ["ownership", "audio_libspu", "audio_output", "input_record", "cd_drive", "xa_audio", "mdec", "memory_card", "dev_rpc", "charge_skip", "camera_stick", "analog_move", "gl_present", "gpu_hw", "render", "render_state", "draw_items", "room_native", "gameplay_walls", "occlusion", "room_effects", "actor_native", "effect_native", "scene_capture", "floor_grid", "shadows", "ptgi", "glows", "overlay_statics", "ui_upscale", "antialias", "ui_text", "button_prompts", "ui_bubbles", "ui_emotes", "room_catalog", "fast_travel_rules", "ui/item_names", "ui/vs_encode", "ui/manual_parse", "ui/manual_cache", "ui/data_plan", "ui/score_format", "ui/score_nav", "ui/mon_parse", "ui/score_mon", "snapshot", "state_diff", "state_rewind", "savestate_slots", "frame_cost", "display_confirm", "quit_options", "ui/option_actions", "ui/options_nav", "ui/option_style", "ui/option_peek", "host_format", "classic/classic_parity"] + (["vk_core", "vk_shader_lookup", "vk_hw", "vk_present", "vk_shadows"] if arch64 else []) \
+for name in ["ownership", "audio_libspu", "audio_output", "input_record", "cd_drive", "xa_audio", "mdec", "memory_card", "dev_rpc", "charge_skip", "camera_stick", "analog_move", "gl_present", "gpu_hw", "render", "render_state", "draw_items", "room_native", "gameplay_walls", "occlusion", "room_effects", "actor_native", "effect_native", "scene_capture", "floor_grid", "shadows", "ptgi", "glows", "overlay_statics", "ui_upscale", "antialias", "ui_text", "button_prompts", "ui_bubbles", "ui_emotes", "room_catalog", "fast_travel_rules", "ui/item_names", "ui/vs_encode", "ui/manual_parse", "ui/manual_cache", "ui/data_plan", "ui/score_format", "ui/score_nav", "ui/mon_parse", "ui/score_mon", "snapshot", "state_diff", "state_rewind", "savestate_slots", "frame_cost", "render_jitter", "present_header", "hw_meter", "hw_cmd", "display_confirm", "quit_options", "ui/option_actions", "ui/options_nav", "ui/option_style", "ui/option_peek", "host_format", "classic/classic_parity"] + (["vk_core", "vk_shader_lookup", "vk_hw", "vk_present", "vk_shadows"] if arch64 else []) \
         + (["engine_host", "engine_reload"] if engine_library else []):
     obj = out / (name.replace("/", "_") + ".o")
     # ui_text rasterizes fonts with the stb_truetype that Dear ImGui vendors.
     extra = ["-Ipc/third_party/imgui"] if name == "ui_text" else []
     if name == "ownership" and not ZIG:
         extra = ["-DROOD_NO_OWNED"]  # no game_core object: no ABI to check
-    if compile_object(["gcc", *flags, *sdl_flags, *extra, "-c", f"pc/src/{name}.c", "-o", str(obj)], f"pc/src/{name}.c") \
+    if compile_object(["gcc", *flags, *host_strict, *sdl_flags, *extra, "-c", f"pc/src/{name}.c", "-o", str(obj)], f"pc/src/{name}.c") \
             and name in STATE_HOST_UNITS:
         state_sections(obj)
     objects.append(obj)

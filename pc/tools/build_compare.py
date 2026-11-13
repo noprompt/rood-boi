@@ -101,7 +101,7 @@ def start(card, out, name):
     """A game in the fight's room, scripts off, the settings the comparison needs."""
     from checkpoints import launch_at
     g = launch_at("save_room", card=card, fast=True, log=out / f"{name}.log", extra_env={
-        "ROOD_GI": "0", "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
+        "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
         "ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs")})
     g.call("graphics", interpolate=False)
     g.call("room_goto", zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
@@ -212,7 +212,7 @@ def play_casts(binary, card, out, kinds, limit):
     (out / "prefabs").mkdir()
     (out / "lighting").mkdir()
     env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs"),
-           "ROOD_LIGHTING": str(out / "lighting"), "ROOD_GI": "0", "ROOD_INTERPOLATE": "0", "ROOD_AUDIO": "none", "ROOD_OUT": str(out)}
+           "ROOD_LIGHTING": str(out / "lighting"), "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_INTERPOLATE": "0", "ROOD_AUDIO": "none", "ROOD_OUT": str(out)}
     os.environ.pop("ROOD_SETTINGS", None)
     card_copy = out / "card1.mcd"
     card_copy.write_bytes(pathlib.Path(card).read_bytes())
@@ -1024,7 +1024,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     lines.update(kv.split(" ", 1) for kv in settings_lines)
     settings.write_text("".join(f"{k} {v}\n" for k, v in lines.items()))
     env = {"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(out / "plugins"), "ROOD_PLUGIN_DATA": str(out / "plugin_data"),
-           "ROOD_GI": "0", "ROOD_AUDIO": "none", "ROOD_WINDOW": "1280x720" if aspect == "16:9" else "960x720", "ROOD_LIGHTS": str(out / "lights"),
+           "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_AUDIO": "none", "ROOD_WINDOW": "1280x720" if aspect == "16:9" else "960x720", "ROOD_LIGHTS": str(out / "lights"),
            "ROOD_PREFABS": str(out / "prefabs"), "ROOD_OUT": str(out)}
     env.update(kv.split("=", 1) for kv in extra_env)
     if renderer == "null":  # (the CPU reference frame: no GPU, the original drawing; quicker and the manual opens)
@@ -1048,13 +1048,28 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
             try:
                 stream_info = g.call("vram_stream")  # (the renderer's replay counters and the fences the game waited at; a build without them has none)
                 stats = {**(stream_info.get("renderer") or {}), "fences": stream_info.get("fences")}
+                if os.environ.get("BUILD_COMPARE_SNAPSHOT"):  # (a directory: the end state saved, for snapshot_diff.py)
+                    pathlib.Path(os.environ["BUILD_COMPARE_SNAPSHOT"]).mkdir(parents=True, exist_ok=True)
+                    g.call("snapshot", action="save", path=str(pathlib.Path(os.environ["BUILD_COMPARE_SNAPSHOT"]) / f"{name}-{os.getpid()}.snap"))
+                final = {"snapshot": g.call("snapshot", action="hash"), "stream": stream_info["total"]["hash"],
+                         "jitter": stream_info.get("jitter")}  # (the end state: the game's, the VRAM stream's; the harness's counters)
             except Exception:
-                stats = None
+                stats, final = None, None
         finally:
             g.close()
-        results[name] = {"hashes": hashes, "stream": taken[1], "renderer": stats, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
+        results[name] = {"hashes": hashes, "stream": taken[1], "renderer": stats, "final": final, "word_glyphs": text.get("word_glyphs"), "regions": (text.get("regions"), text.get("failed")), "gi": gi_lines(out / f"{name}.log"), "item_words": text.get("item_words"),
                          "status_glyphs": (text.get("status") or {}).get("glyphs") if isinstance(text.get("status"), dict) else text.get("status_glyphs")}
     print("RESULT" + json.dumps(results))
+
+
+def gi_lines(path):
+    """The path tracer's own log lines in a route's game log: [ready, glows lines]; both 0 when ROOD_GI=0 (the positive control that
+    BUILD_COMPARE_GI=1 ran with it on)."""
+    try:
+        text = pathlib.Path(path).read_text(errors="ignore")
+    except OSError:
+        return [-1, -1]
+    return [text.count("[gi] path-traced global illumination ready"), text.count("[gi] ") - text.count("[gi] path-traced global illumination ready")]
 
 
 def env_of(binary, args):
@@ -1108,14 +1123,18 @@ def compare_menus(args):
     for name in names:
         a, b, c = first[name]["hashes"], control[name]["hashes"], new[name]["hashes"]
         words = [(r[name]["word_glyphs"], r[name]["status_glyphs"]) for r in (first, control, new)]
+        regions = [r[name]["regions"] for r in (first, control, new)]  # ui_text regions drawn from a font / fell back: the layout path ran
         noise, changed = differing({"frames": a}, {"frames": b}), differing({"frames": a}, {"frames": c})
         print(f"{name}: {len(a)} frames ({len(set(a))} distinct, every {args.menu_sample} vsyncs); control {len(noise)} differ; "
               f"old against new {len(changed)} differ{f' (first at frame {changed[0]})' if changed else ''}")
         print(f"{name}: ui_text word / status glyphs drawn: old {words[0]}, control {words[1]}, new {words[2]}"
               f", of the new's, found among draw items: {new[name]['item_words']}{'' if words[0] == words[2] else '  DIFFERENT'}")
+        print(f"{name}: [gi] log lines (ready, other): old {first[name]['gi']}, control {control[name]['gi']}, new {new[name]['gi']}")
+        print(f"{name}: ui_text regions drawn (regions, failed): old {regions[0]}, control {regions[1]}, new {regions[2]}"
+              f"{'' if regions[0] == regions[2] else '  DIFFERENT'}")
         if noise:
             code = 2
-        elif (changed or words[0] != words[2]) and code == 0:
+        elif (changed or regions[0] != regions[2] or words[0] != words[2]) and code == 0:
             code = 1
         if STREAM:
             v = stream_verdict(name, first[name]["stream"], control[name]["stream"], new[name]["stream"])
@@ -1292,7 +1311,7 @@ def play_audio(binary, card, out):
     from checkpoints import launch_at
     out = pathlib.Path(out)
     g = launch_at("save_room", card=card, fast=True, log=out / "audio.log", audio=f"wav:{out / 'audio.wav'}", extra_env={
-        "ROOD_GI": "0", "ROOD_INTERPOLATE": "0", "ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs")})
+        "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_INTERPOLATE": "0", "ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs")})
     try:
         g.call("room_goto", zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
         for _ in range(80):

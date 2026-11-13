@@ -52,6 +52,7 @@ broad = ["rpc_smoke", "golden_frames", "room_smoke", "opening_smoke", "scene_smo
 # post, presentation): the suites that compare pictures of each kind.
 render = ["golden_frames", "room_smoke", "opening_smoke", "scene_smoke", "title_fade_smoke", "transition_fade_smoke",
           "widescreen_smoke", "widescreen_scene_smoke", "interpolation_smoke", "coplanar_order_smoke",
+          "present_pacing_smoke", "present_canary_smoke", "stack_selftest_smoke",
           "flipped_sprite_smoke", "ui_text_smoke", "ui_lines_smoke", "ui_upscale_smoke", "text_fade_smoke",
           "hud_label_solid_smoke", "aa_smoke", "post_smoke", "gi_smoke", "emissive_smoke", "material_smoke",
           "texture_animation_smoke", "photo_full_room_smoke", "rpc_smoke"]
@@ -196,6 +197,13 @@ paths = ["pc/src/gpu_hw.c", "pc/src/render.*", "pc/src/render_gl.h", "pc/src/gl_
          "pc/shaders/vulkan/scaled.frag", "pc/shaders/vulkan/downsample.*", "pc/shaders/vulkan/brightness.*",
          "pc/third_party/glslang/*"]
 suites = ["@render"]
+
+# ---- the present frame header, canary, guards, service and jitter harness ----
+[[rule]]
+paths = ["pc/src/present_*", "pc/src/render_jitter.*", "pc/src/hw_cmd.*", "pc/src/boot_window.c",
+         "pc/src/vk_present.c", "pc/src/stack_selftest.*"]
+suites = ["present_pacing_smoke", "present_canary_smoke", "stack_selftest_smoke", "render_jitter_smoke",
+          "interpolation_smoke"]
 
 # ---- scene capture (the room in world space for lighting) ----
 [[rule]]

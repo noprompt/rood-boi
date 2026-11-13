@@ -48,7 +48,7 @@ static void photo_gl_copy(GLuint from, GLuint to, int colors)
 /* Cheap request-time work: retain the selected target and its view until
  * the host poll can allocate/copy outside a budgeted Lua callback. */
 int pc_hw_photo_prepare(void)
-{
+{ PC_HW_METER(photo_prepare);
     render_camera view = {0};
     if (!pc_hw_active || photo_picture)
         return 0;
@@ -59,7 +59,7 @@ int pc_hw_photo_prepare(void)
     return 1;
 }
 void pc_hw_photo_drop(void)
-{
+{ PC_HW_METER(photo_drop);
     photo_preparing = 0;
 #ifdef ROOD_VULKAN
     if (photo_picture && photo_picture->vulkan)
@@ -83,7 +83,7 @@ void pc_hw_photo_drop(void)
     render_photo_drop();
 }
 int pc_hw_photo_mark(void)
-{
+{ PC_HW_METER(photo_mark);
     if (photo_picture) {
 #ifdef ROOD_VULKAN
         if (photo_picture->vulkan != !!pc_vk_on())
@@ -156,7 +156,7 @@ int pc_hw_photo_mark(void)
     return 1;
 }
 int pc_hw_photo_restore(void)
-{
+{ PC_HW_METER(photo_restore);
     if (!photo_picture || !pc_hw_active || photo_picture->scale != pc_hw_scale)
         return 0;
 #ifdef ROOD_VULKAN

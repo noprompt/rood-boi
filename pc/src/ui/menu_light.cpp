@@ -15,6 +15,7 @@
 #include "light_prefabs.h"
 #include "platform.h"
 #include "ui/ui_theme.h"
+#include "../present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 namespace ui {
 
@@ -316,6 +317,7 @@ bool menu_light_replace_block(const std::string& text, const pc_menu_light& l, s
 
 extern "C" int pc_ui_menu_model_light(pc_menu_light* out)
 {
+    PC_PRESENT_GUARD("pc_ui_menu_model_light");
     *out = ui::current();
     return 1;
 }

@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 /* ---- GL entry points (gl_api.h), resolved through SDL_GL_GetProcAddress ---- */
 #define DEFINE(ret, name, args) ret(*gl_##name) args;
@@ -1349,7 +1350,7 @@ static int downsample_ready(void)
 int pc_present_brightness = 50;
 int pc_brightness_get(void) { return pc_present_brightness; }
 void pc_brightness_set(int value) { pc_present_brightness = value < 0 ? 0 : value > 100 ? 100 : value; }
-float pc_present_brightness_factor(void) { return powf(2.5f, (pc_present_brightness - 50) / 50.0f); }
+float pc_present_brightness_factor(void) { PC_PRESENT_GUARD("pc_present_brightness_factor"); return powf(2.5f, (pc_present_brightness - 50) / 50.0f); }
 static const char* brightness_fragment_source =
     "#version 330 core\n"
     "out vec4 color;\n"

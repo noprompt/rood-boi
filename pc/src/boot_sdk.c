@@ -358,10 +358,12 @@ void DrawPrim(void* p)
 /* Each drawn ordering table ends a frame for the GTE's projection log
  * (widescreen 2D/3D classification in the hardware rasterizer). */
 extern void pc_gte_new_generation(void);
+extern void pc_hwc_frame_room(void); /* hw_cmd.c */
 extern void pc_hw_begin_ot(void) __attribute__((weak));
 extern void pc_hw_end_ot(void) __attribute__((weak));
 void DrawOTag(u_long* p)
 {
+    pc_hwc_frame_room(); /* (the room this frame is drawn in: emissive scopes) */
     if (pc_hw_begin_ot)
         pc_hw_begin_ot();
     pc_draw_packet(p, 1);

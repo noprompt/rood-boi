@@ -88,7 +88,7 @@ int pc_vk_particles_update(int x, int y, int w, int h, int traced)
      * motes (GI and the traced shadows off); without ray queries none, and a mote in light
      * only takes no light from a source that casts shadows (particles_main.glsl). */
     int rt = 0, room = 0;
-    if (vpt.rt && !pc_particles_untraced) {
+    if (vpt.rt && !pc_ph()->particles_untraced) {
         if (traced && vrt.tlas)
             rt = 1;
         else if (pc_scene_triangle_data(&room) && room && vrt_init() && vrt_scene() && vrt.tlas)

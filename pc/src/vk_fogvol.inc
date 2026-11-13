@@ -124,13 +124,13 @@ static int vfv_images(int w, int h)
 int pc_vk_fogvol_update(int x, int y, int w, int h, int replay, int traced)
 {
     vfv.on = 0;
-    if (!pc_fog_volume_render || w <= 0 || h <= 0)
+    if (!pc_ph()->fog_volume_render || w <= 0 || h <= 0)
         return 0;
     static pc_medium_gpu medium;
     static pc_fogvol_gpu record;
     pc_fogvol_info info;
     float lo[3], hi[3];
-    pc_scene_bounds(lo, hi);
+    pc_ph_scene_bounds(lo, hi);
     int count = pc_fogvol_gpu_get(&medium, &record, &info, lo, hi);
     if (count <= 0) {
         vfv.valid = 0, vfv.grids_new = 1; /* volumes coming back start fresh */
@@ -139,10 +139,10 @@ int pc_vk_fogvol_update(int x, int y, int w, int h, int replay, int traced)
     if (!vfv_init())
         return 0;
     float r[3][3], tr[3], hh, ox, oy, inverse[3][3];
-    if (!pc_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_scene_camera_inverse(inverse))
+    if (!pc_ph_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_ph_scene_camera_inverse(inverse))
         return 0;
-    float hx = hh * (pc_gte_widescreen ? 0.75f : 1.0f);
-    float res = pc_fog_volume_resolution < 0.125f ? 0.125f : pc_fog_volume_resolution > 1 ? 1 : pc_fog_volume_resolution;
+    float hx = hh * (pc_ph()->gte_widescreen ? 0.75f : 1.0f);
+    float res = pc_ph()->fog_volume_resolution < 0.125f ? 0.125f : pc_ph()->fog_volume_resolution > 1 ? 1 : pc_ph()->fog_volume_resolution;
     int mw = (int)(w * pc_hw_scale * res + 0.5f), mh = (int)(h * pc_hw_scale * res + 0.5f);
     mw = mw < 1 ? 1 : mw, mh = mh < 1 ? 1 : mh;
     if (!vfv_images(mw, mh))
@@ -150,8 +150,8 @@ int pc_vk_fogvol_update(int x, int y, int w, int h, int replay, int traced)
     vfv.scale[0] = (float)mw / w, vfv.scale[1] = (float)mh / h;
     /* A new room (capture): no history from the last one. */
     static int serial = -1;
-    if (pc_scene_serial() != serial) {
-        serial = pc_scene_serial();
+    if (pc_ph_scene_serial() != serial) {
+        serial = pc_ph_scene_serial();
         vfv.valid = 0, vfv.grids_new = 1;
     }
     /* What restarts the light grid: a new grid, a volume's change, a light changing slot. */
@@ -216,7 +216,7 @@ int pc_vk_fogvol_update(int x, int y, int w, int h, int replay, int traced)
     vfv_march_ubo* mu = ms.data;
     memset(mu, 0, sizeof *mu);
     mu->size[0] = mw, mu->size[1] = mh, mu->size[2] = (int)vfv.frame;
-    mu->size[3] = pc_fog_volume_steps < 4 ? 4 : pc_fog_volume_steps > 256 ? 256 : pc_fog_volume_steps;
+    mu->size[3] = pc_ph()->fog_volume_steps < 4 ? 4 : pc_ph()->fog_volume_steps > 256 ? 256 : pc_ph()->fog_volume_steps;
     mu->rect[0] = x, mu->rect[1] = y, mu->rect[2] = w, mu->rect[3] = h;
     mu->scale[0] = (float)pc_hw_scale, mu->scale[1] = vfv.scale[0], mu->scale[2] = vfv.scale[1], mu->scale[3] = FV_GRID;
     mu->projection[0] = hx, mu->projection[1] = hh, mu->projection[2] = ox, mu->projection[3] = oy;
@@ -241,7 +241,7 @@ int pc_vk_fogvol_update(int x, int y, int w, int h, int replay, int traced)
     vfv_temporal_ubo* tu = ts.data;
     memset(tu, 0, sizeof *tu);
     tu->size[0] = mw, tu->size[1] = mh, tu->size[2] = vfv.valid;
-    tu->params[0] = pc_fog_volume_history < 0.01f ? 0.01f : pc_fog_volume_history > 1 ? 1 : pc_fog_volume_history;
+    tu->params[0] = pc_ph()->fog_volume_history < 0.01f ? 0.01f : pc_ph()->fog_volume_history > 1 ? 1 : pc_ph()->fog_volume_history;
     tu->params[1] = vfv.scale[0], tu->params[2] = vfv.scale[1], tu->params[3] = 64;
     memcpy(tu->projection, mu->projection, sizeof tu->projection);
     memcpy(tu->inverse_rotation, mu->inverse_rotation, sizeof tu->inverse_rotation);

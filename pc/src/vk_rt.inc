@@ -337,7 +337,7 @@ static VkAccelerationStructureGeometryKHR vrt_geometry(VkDeviceAddress triangles
 /* A room triangle no ray can pass: untextured, or no clear (0) or, when
  * semi-transparent, translucent (STP) texel among those its UVs cover (as
  * rt_common.glsl surface_texel samples them). */
-extern const uint16_t* pc_hw_native_vram(void);
+extern const uint16_t* pc_hw_renderer_vram(void);
 static int vrt_vram_texel(const uint16_t* vram, int u, int v, unsigned tpage, unsigned clut)
 {
 #define VRT_FETCH(x, y) vram[((y) & 511) * 1024 + ((x) & 1023)]
@@ -449,12 +449,12 @@ static int* vrt_room_map;
 static int vrt_room_map_count, vrt_uv_serial = -1;
 static void vrt_room_uvs(const scene_triangle* room, int room_count)
 {
-    int serial = pc_scene_uv_serial();
+    int serial = pc_ph_scene_uv_serial();
     if (serial == vrt_uv_serial || !vrt_room_map || room_count != vrt_room_map_count || !vrt.room_tris.buffer)
         return;
     vrt_uv_serial = serial;
     int count;
-    const int* animated = pc_scene_animated(&count);
+    const int* animated = pc_ph_scene_animated(&count);
     int open = 0;
     for (int n = 0; n < count; n++) {
         int i = animated[n], g = i < room_count ? vrt_room_map[i] : -1;
@@ -485,7 +485,7 @@ static int vrt_room(void)
 {
     int room_count;
     const scene_triangle* room = pc_scene_triangle_data(&room_count);
-    int serial = pc_scene_serial();
+    int serial = pc_ph_scene_serial();
     int recheck = vrt.room_serial == serial && vrt.room_checks == 1 && vrt.frame - vrt.room_frame >= 60;
     if (serial == vrt.room_serial && room_count == vrt.room_count && !recheck) {
         vrt_room_uvs(room, room_count);
@@ -505,7 +505,7 @@ static int vrt_room(void)
     }
     room_triangles = triangle_count;
     /* Opaque first (stable within each part). */
-    const uint16_t* vram = pc_hw_native_vram();
+    const uint16_t* vram = pc_hw_renderer_vram();
     gpu_triangle* sorted = malloc((size_t)(room_triangles ? room_triangles : 1) * sizeof *sorted);
     if (!sorted)
         return 0;
@@ -529,7 +529,7 @@ static int vrt_room(void)
     free(vrt_room_map);
     vrt_room_map = where; /* (room triangle i is scene triangle i) */
     vrt_room_map_count = where ? room_triangles : 0;
-    vrt_uv_serial = pc_scene_uv_serial(); /* the records have this serial's UVs */
+    vrt_uv_serial = pc_ph_scene_uv_serial(); /* the records have this serial's UVs */
     VkDeviceSize bytes = (VkDeviceSize)(room_triangles ? room_triangles : 1) * sizeof(gpu_triangle);
     vk_buffer_destroy_later(&vrt.room_tris);
     if (!vk_buffer_create(&vrt.room_tris, bytes,
@@ -892,13 +892,13 @@ static void vrt_haze_dispatch(VkPipeline pipeline, VkPipelineLayout layout, vk_d
 static void vrt_haze(vk_slice trace_ubo)
 {
     vrt.haze_on = 0;
-    if (pc_haze_quality != PC_HAZE_HIGH) /* lighting quality: haze High */
+    if (pc_ph()->haze_quality != PC_HAZE_HIGH) /* lighting quality: haze High */
         return;
     static pc_medium_gpu medium;
-    if (!pc_medium_gpu_get(&medium, pc_lighting_traced_haze_density(), room_lo, room_hi))
+    if (!pc_medium_gpu_get(&medium, pc_ph_lighting_traced_haze_density(), room_lo, room_hi))
         return;
     medium.v[5][0] = medium.v[5][1] = medium.v[5][2] = 0; /* rt_haze.comp traces the sky (occluded) */
-    int cell = pc_haze_cell < 1 ? 1 : pc_haze_cell > 16 ? 16 : pc_haze_cell;
+    int cell = pc_ph()->haze_cell < 1 ? 1 : pc_ph()->haze_cell > 16 ? 16 : pc_ph()->haze_cell;
     int gx = (vrt.display[0] + cell - 1) / cell, gy = (vrt.display[1] + cell - 1) / cell;
     if (gx < 1 || gy < 1)
         return;
@@ -943,7 +943,7 @@ static void vrt_haze(vk_slice trace_ubo)
         for (int row = 0; row < 3; row++)
             hu->inverse_rotation[col][row] = vrt.cam_inverse[row][col];
     memcpy(hu->camera_translation, vrt.cam_tr, sizeof vrt.cam_tr);
-    hu->camera_translation[3] = pc_haze_history;
+    hu->camera_translation[3] = pc_ph()->haze_history;
     memcpy(hu->previous_rotation, vrt.haze_previous_rotation, sizeof hu->previous_rotation);
     memcpy(hu->previous_projection, vrt.haze_previous_projection, sizeof hu->previous_projection);
     hu->previous_range[0] = vrt.haze_previous_range[0], hu->previous_range[1] = vrt.haze_previous_range[1];
@@ -975,7 +975,7 @@ static void vrt_haze(vk_slice trace_ubo)
     memcpy(iu->camera_translation, vrt.cam_tr, sizeof vrt.cam_tr);
     memcpy(iu->room_lo, room_lo, 3 * sizeof(float));
     memcpy(iu->room_hi, room_hi, 3 * sizeof(float));
-    iu->room_lo[3] = pc_lighting_traced_haze_density();
+    iu->room_lo[3] = pc_ph_lighting_traced_haze_density();
     iu->medium = medium;
     vk_descriptors_buffer(&d, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, is.buffer, is.offset, sizeof *iu);
     vk_descriptors_storage_image(&d, 1, vrt.haze_scatter[out].view);
@@ -1083,7 +1083,7 @@ static int vrt_nrd(const float eye[3], int result, int result_extra)
         lights = vrt_hash(lights, l->pattern_dir, sizeof l->pattern_dir);
         lights = vrt_hash(lights, l->pattern_cdf, sizeof l->pattern_cdf);
     }
-    float amounts[4] = { pc_gi_baked_bounce, pc_emitter_light, (float)pc_gi_bounces, (float)pc_nrd_glow };
+    float amounts[4] = { pc_ph()->gi_baked_bounce, pc_ph()->emitter_light, (float)pc_ph()->gi_bounces, (float)pc_ph()->nrd_glow };
     lights = vrt_hash(lights, amounts, sizeof amounts);
     lights = vrt_hash(lights, &env_now, sizeof env_now); /* the sun and sky */
     float moved = 0, facing = 0;
@@ -1091,7 +1091,7 @@ static int vrt_nrd(const float eye[3], int result, int result_extra)
         moved += (eye[k] - vrt.nrd.eye[k]) * (eye[k] - vrt.nrd.eye[k]);
         facing += e[2][k] * vrt.nrd.forward[k];
     }
-    int serial = pc_scene_serial();
+    int serial = pc_ph_scene_serial();
     int cut = moved > 256.0f * 256.0f || facing < 0.8f;
     int reset = !vrt.nrd.valid || !vrt.nrd.denoised || vrt.nrd.serial != serial || vrt.nrd.lights != lights || cut
         || vrt.nrd.size[0] != vrt.size[0] || vrt.nrd.size[1] != vrt.size[1];
@@ -1107,7 +1107,7 @@ static int vrt_nrd(const float eye[3], int result, int result_extra)
     const float scale = 1.0f; /* radiance scale into NRD (1: RELAX was scale-invariant here, 1..256 tried) */
     struct {
         float eye_range[4], forward[4], scale[4];
-    } push = { { eye[0], eye[1], eye[2], range }, { e[2][0], e[2][1], e[2][2], pc_nrd_glow ? 1.0f : 0.0f },
+    } push = { { eye[0], eye[1], eye[2], range }, { e[2][0], e[2][1], e[2][2], pc_ph()->nrd_glow ? 1.0f : 0.0f },
         { scale, 0, 0, 0 } };
     vkCmdPushConstants(vk_cmd(), vrt.nrd_in_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof push, &push);
     vrt_dispatch(vrt.nrd_in, vrt.nrd_in_layout, &d);
@@ -1126,7 +1126,7 @@ static int vrt_nrd(const float eye[3], int result, int result_extra)
     f.denoising_range = range;
     f.frame_index = reset ? 0 : vrt.nrd.frame + 1;
     f.reset = reset;
-    f.max_frames = pc_nrd_max_frames;
+    f.max_frames = pc_ph()->nrd_max_frames;
     if (!vk_nrd_denoise(&f)) {
         vrt.nrd.denoised = 0;
         return 0;
@@ -1140,7 +1140,7 @@ static int vrt_nrd(const float eye[3], int result, int result_extra)
         int with_glow;
         float inverse_scale;
         int unused[2];
-    } out_push = { pc_nrd_glow != 0, 1.0f / scale, { 0, 0 } };
+    } out_push = { pc_ph()->nrd_glow != 0, 1.0f / scale, { 0, 0 } };
     vkCmdPushConstants(vk_cmd(), vrt.nrd_out_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof out_push, &out_push);
     vrt_dispatch(vrt.nrd_out, vrt.nrd_out_layout, &d);
     memcpy(vrt.nrd.view, view, sizeof view);
@@ -1182,7 +1182,7 @@ static void vrt_trace_descriptors(vk_descriptors* d, vk_slice ubo)
 }
 static void vrt_reflect(vk_slice trace_ubo, float footprint)
 {
-    if (!pc_material_active() || pc_reflection_bounces <= 0) {
+    if (!pc_material_active() || pc_ph()->reflection_bounces <= 0) {
         vrt.reflect_valid = 0;
         vrt.reflect_result = 0;
         return;
@@ -1199,7 +1199,7 @@ static void vrt_reflect(vk_slice trace_ubo, float footprint)
     t->params[0] = footprint;
     t->params[1] = 16.0f; /* history on fully rough surfaces (4 on mirrors) */
     t->params[2] = (float)(vrt.history_valid && vrt.reflect_valid);
-    t->params[3] = pc_roughness_bias;
+    t->params[3] = pc_ph()->roughness_bias;
     int old = VRT_REFLECT_A + vrt.reflect_current, out = VRT_REFLECT_A + (vrt.reflect_current ^ 1);
     vk_descriptors f = { 0 };
     vk_descriptors_buffer(&f, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, fubo.buffer, fubo.offset, sizeof *t);
@@ -1253,30 +1253,30 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     memcpy(u->room_lo, room_lo, sizeof room_lo);
     memcpy(u->room_hi, room_hi, sizeof room_hi);
     u->i0[0] = vrt_light_count;
-    u->i0[1] = pc_gi_enabled; /* gi_method path only (probes: vk_probes.inc) */
-    u->i0[2] = pc_rt_shadows;
-    u->i0[3] = pc_gi_bounces < 1 ? 1 : pc_gi_bounces > 4 ? 4 : pc_gi_bounces;
-    u->i1[0] = pc_gi_rays < 1 ? 1 : pc_gi_rays > 16 ? 16 : pc_gi_rays;
+    u->i0[1] = pc_ph()->gi_enabled; /* gi_method path only (probes: vk_probes.inc) */
+    u->i0[2] = pc_ph()->rt_shadows;
+    u->i0[3] = pc_ph()->gi_bounces < 1 ? 1 : pc_ph()->gi_bounces > 4 ? 4 : pc_ph()->gi_bounces;
+    u->i1[0] = pc_ph()->gi_rays < 1 ? 1 : pc_ph()->gi_rays > 16 ? 16 : pc_ph()->gi_rays;
     u->i1[1] = emitter_count;
-    u->i1[2] = pc_baked_shadows;
-    u->i1[3] = pc_shadow_samples < 1 ? 1 : pc_shadow_samples > 8 ? 8 : pc_shadow_samples;
-    u->i2[0] = pc_glow_shadows;
+    u->i1[2] = pc_ph()->baked_shadows;
+    u->i1[3] = pc_ph()->shadow_samples < 1 ? 1 : pc_ph()->shadow_samples > 8 ? 8 : pc_ph()->shadow_samples;
+    u->i2[0] = pc_ph()->glow_shadows;
     u->i3[0] = (int)pc_glow_casts;
-    u->i2[1] = pc_fog_steps < 2 ? 2 : pc_fog_steps > 64 ? 64 : pc_fog_steps;
-    u->i2[2] = pc_gi_trace_debug;
+    u->i2[1] = pc_ph()->fog_steps < 2 ? 2 : pc_ph()->fog_steps > 64 ? 64 : pc_ph()->fog_steps;
+    u->i2[2] = pc_ph()->gi_trace_debug;
     u->i2[3] = (int)++vrt.frame;
-    u->f0[0] = pc_light_size;
-    u->f0[1] = pc_gi_baked_bounce;
-    u->f0[2] = pc_emitter_light;
-    u->f0[3] = pc_contact_radius;
-    u->f1[0] = pc_baked_ambient;
+    u->f0[0] = pc_ph()->light_size;
+    u->f0[1] = pc_ph()->gi_baked_bounce;
+    u->f0[2] = pc_ph()->emitter_light;
+    u->f0[3] = pc_ph()->contact_radius;
+    u->f1[0] = pc_ph()->baked_ambient;
     u->f1[1] = 0; /* haze: the froxel volume (vrt_haze), not per pixel */
-    u->f1[2] = pc_fog_anisotropy;
-    u->f1[3] = pc_fog_glow;
-    u->f2[0] = pc_lighting_ao_traced() ? pc_ao_radius : 0.0f;
-    u->f2[1] = pc_ao_strength;
-    u->f2[2] = pc_roughness_bias; /* the reflections (rt_reflect.comp) */
-    u->f2[3] = (float)(pc_reflection_bounces < 0 ? 0 : pc_reflection_bounces > 2 ? 2 : pc_reflection_bounces);
+    u->f1[2] = pc_ph()->fog_anisotropy;
+    u->f1[3] = pc_ph()->fog_glow;
+    u->f2[0] = pc_ph_lighting_ao_traced() ? pc_ph()->ao_radius : 0.0f;
+    u->f2[1] = pc_ph()->ao_strength;
+    u->f2[2] = pc_ph()->roughness_bias; /* the reflections (rt_reflect.comp) */
+    u->f2[3] = (float)(pc_ph()->reflection_bounces < 0 ? 0 : pc_ph()->reflection_bounces > 2 ? 2 : pc_ph()->reflection_bounces);
     u->env = env_now;
     vk_descriptors d = { 0 };
     vrt_trace_descriptors(&d, ubo);
@@ -1296,9 +1296,9 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     vrt_temporal_ubo* t = tubo.data;
     memcpy(t->previous_to_image, vrt.previous_to_image, sizeof t->previous_to_image);
     t->params[0] = footprint;
-    t->params[1] = pc_gi_denoise ? pc_shadow_history : 1.0f;
+    t->params[1] = pc_ph()->gi_denoise ? pc_ph()->shadow_history : 1.0f;
     t->params[2] = (float)vrt.history_valid;
-    t->params[3] = pc_gi_denoise ? fminf(pc_shadow_motion_history, t->params[1]) : 1.0f;
+    t->params[3] = pc_ph()->gi_denoise ? fminf(pc_ph()->shadow_motion_history, t->params[1]) : 1.0f;
     vk_descriptors_buffer(&d, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, tubo.buffer, tubo.offset, sizeof *t);
     int old_moments = VRT_MOMENTS_A + vrt.history_current, out_moments = VRT_MOMENTS_A + (vrt.history_current ^ 1);
     int temporal_images[16] = { RAW, POSITION, NORMAL, out, RAW_EXTRA, out_extra, SIGNATURE, old, POSITION_OLD,
@@ -1318,7 +1318,7 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     /* 3: a-trous filtering of the accumulated light (display only). */
     vrt.result = out;
     vrt.result_extra = out_extra;
-    if (!pc_gi_denoise) {
+    if (!pc_ph()->gi_denoise) {
         vrt.nrd.denoised = 0;
         return;
     }
@@ -1344,7 +1344,7 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     vrt.result = source;
     vrt.result_extra = source_extra;
     /* NRD for the indirect light (when there is any to denoise). */
-    if (pc_gi_denoise >= 2 && pc_gi_enabled && vrt_nrd_usable())
+    if (pc_ph()->gi_denoise >= 2 && pc_gi_enabled && vrt_nrd_usable())
         vrt_nrd(eye, vrt.result, vrt.result_extra);
     else
         vrt.nrd.denoised = 0;
@@ -1369,34 +1369,34 @@ int pc_vk_gi_update(int x, int y, int w, int h, int replay)
     if (!checked++ && setting && *setting == '0')
         pc_gi_enabled = pc_rt_shadows = pc_baked_shadows = 0; /* as ptgi.c's init() */
     pc_baked_shadows_active = 0; /* until this frame's trace */
-    int ao = pc_lighting_ao_traced(); /* lighting quality: AO traced with the GI rays */
-    if (w <= 0 || h <= 0 || !(pc_gi_enabled || pc_rt_shadows || pc_baked_shadows || ao) || !pc_lights_enabled
+    int ao = pc_ph_lighting_ao_traced(); /* lighting quality: AO traced with the GI rays */
+    if (w <= 0 || h <= 0 || !(pc_ph()->gi_enabled || pc_ph()->rt_shadows || pc_ph()->baked_shadows || ao) || !pc_ph()->lights_enabled
         || !vrt_init())
         return 0;
     float r[3][3], tr[3], hh, ox, oy, inverse[3][3];
-    if (!pc_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_scene_camera_inverse(inverse))
+    if (!pc_ph_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_ph_scene_camera_inverse(inverse))
         return 0;
     int room_count;
     if (!pc_scene_triangle_data(&room_count) || !room_count)
         return 0;
     /* As ptgi.c's ready(): emitters, lights; nothing to do without them. */
     update_emitters();
-    pc_scene_bounds(room_lo, room_hi);
+    pc_ph_scene_bounds(room_lo, room_hi);
     gather_lights();
-    vrt_light_count = pc_lights_list(vrt_light_list, PC_LIGHTS_MAX);
-    int lights = vrt_light_count || (pc_gi_baked_bounce > 0 && pc_gi_enabled);
+    vrt_light_count = pc_ph_lights_list(vrt_light_list, PC_LIGHTS_MAX);
+    int lights = vrt_light_count || (pc_ph()->gi_baked_bounce > 0 && pc_gi_enabled);
     gather_env(); /* the room's sun and sky: the passes run for them alone too */
-    pc_baked_shadows_active = pc_baked_shadows && (emitter_count || pc_contact_radius > 0);
-    if (!(lights || pc_baked_shadows_active || (emitter_count && pc_emitter_light > 0) || ao || env_active))
+    pc_baked_shadows_active = pc_ph()->baked_shadows && (emitter_count || pc_ph()->contact_radius > 0);
+    if (!(lights || pc_ph()->baked_shadows_active || (emitter_count && pc_emitter_light > 0) || ao || env_active))
         return 0;
     vk_section("gi scene");
     if (!vrt_scene())
         return 0;
-    float res = pc_gi_resolution < 0.25f ? 0.25f : pc_gi_resolution > 4 ? 4 : pc_gi_resolution;
+    float res = pc_ph()->gi_resolution < 0.25f ? 0.25f : pc_ph()->gi_resolution > 4 ? 4 : pc_ph()->gi_resolution;
     int gw = (int)(w * res + 0.5f), gh = (int)(h * res + 0.5f);
     gi_display_size[0] = w, gi_display_size[1] = h; /* pc_gi_probe_world (ptgi.c) */
     vrt_images(gw, gh);
-    float hx = hh * (pc_gte_widescreen ? 0.75f : 1.0f);
+    float hx = hh * (pc_ph()->gte_widescreen ? 0.75f : 1.0f);
     /* Surfaces from the G-buffer. */
     const vk_target* target = replay ? &vk_hw.replay : &vk_hw.live;
     vk_slice ubo = vk_arena(sizeof(vrt_surface_ubo), vk.properties.limits.minUniformBufferOffsetAlignment);

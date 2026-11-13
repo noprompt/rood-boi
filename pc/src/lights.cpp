@@ -54,6 +54,7 @@ bool pc_particles_viewport(const float view[16], const float projection[16], con
 #include "editor_colour.h"
 #include "environment_internal.h"
 #include "particles_internal.h"
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 int pc_scene_camera_get(float rotation[3][3], float translation[3], float* h, float* ofx, float* ofy);
@@ -120,6 +121,7 @@ float pc_baked_shadow_level = 0.8f, pc_baked_shadow_curve = 1.5f, pc_baked_shado
 /* The present passes' parameters: level (0: off), curve, sky, indirect, lights. */
 void pc_baked_shadow_params(float out[5])
 {
+    PC_PRESENT_GUARD("pc_baked_shadow_params");
     float v[5] = { pc_baked_shadow_level, pc_baked_shadow_curve, pc_baked_shadow_sky, pc_baked_shadow_indirect,
         pc_baked_shadow_lights };
     const float hi[5] = { 4.0f, 8.0f, 1.0f, 1.0f, 1.0f };
@@ -420,6 +422,7 @@ extern "C" void pc_lights_set_dropped(int n);
 extern "C" int pc_lights_view(float position[][4], float color[][4], float direction[][4],
     float world[][4], int shadows[], float extent_right[][4], float extent_up[][4], int max)
 {
+    PC_PRESENT_GUARD("pc_lights_view");
     track_room();
     pc_lights_shadows_active = 0;
     float r[3][3], t[3], h, ox, oy;
@@ -1857,6 +1860,7 @@ int pc_lights_budget = 0;
 }
 extern "C" int pc_lights_list(pc_light_gpu* out, int max)
 {
+    PC_PRESENT_GUARD("pc_lights_list");
     track_room();
     pc_lights_shadows_active = 0;
     if (pc_lights_budget > 0 && max > pc_lights_budget)
@@ -1998,6 +2002,7 @@ extern "C" int pc_lights_list(pc_light_gpu* out, int max)
 /* Shadow maps for the most important shadow casters only (light_list.h). */
 extern "C" void pc_lights_shadow_pick(int count, int* wants, int slots)
 {
+    PC_PRESENT_GUARD("pc_lights_shadow_pick");
     if ((int)output_keys.size() != count)
         return;
     int casters = 0;

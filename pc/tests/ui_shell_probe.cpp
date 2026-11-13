@@ -23,6 +23,13 @@
 #include <string>
 #include <vector>
 
+/* The present header's live-read guard (present_header.c), off: the probe has no presenter. */
+extern "C" {
+int pc_present_guard_on, pc_present_inside, pc_present_paused;
+void pc_present_violation(const char*) {}
+}
+
+
 int pc_ui_menus = 1;
 extern "C" float pc_ui_menu_opacity;
 float pc_ui_menu_opacity = 0.94f; // project_settings.cpp (ui_theme.cpp theme())

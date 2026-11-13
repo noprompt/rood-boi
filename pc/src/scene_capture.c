@@ -27,6 +27,7 @@ extern pc_matrix* RotMatrixYXZ_gte(pc_svector*, pc_matrix*);
 #include "scene_capture.h"
 #include "room_effects.h"
 #include "floor_grid.h"
+#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 /* The game's room (vs_battle_roomData, BATTLE 146C.h _mpdRoomSection):
  * unk0 is 1 while a room is loaded (func_8008AB80, func_8008ABF0),
@@ -435,6 +436,7 @@ int pc_scene_game_camera(float rotation[3][3], float translation[3], float* h, f
  * from the picture's depth through it. */
 int pc_scene_camera_get(float rotation[3][3], float translation[3], float* h, float* ofx, float* ofy)
 {
+    PC_PRESENT_GUARD("pc_scene_camera_get");
     if (!pc_scene_game_camera(rotation, translation, h, ofx, ofy))
         return 0;
     if (pc_hw_view_camera && pc_hw_view_camera(rotation, translation, h, ofx, ofy))
@@ -447,6 +449,7 @@ int pc_scene_camera_get(float rotation[3][3], float translation[3], float* h, fl
 }
 /* Inverse of a camera's 3x3 (its rows carry different scales: X is
  * stretched for the display's pixel aspect, so R^T / s^2 is not enough). */
+int pc_scene_invert_camera(const float r[3][3], float inverse[3][3]);
 static int invert_camera(const float r[3][3], float inverse[3][3])
 {
     float c[3][3] = {
@@ -462,8 +465,10 @@ static int invert_camera(const float r[3][3], float inverse[3][3])
             inverse[i][j] = c[i][j] / det;
     return 1;
 }
+int pc_scene_invert_camera(const float r[3][3], float inverse[3][3]) { return invert_camera(r, inverse); } /* (present_header.c) */
 int pc_scene_camera_inverse(float inverse[3][3])
 {
+    PC_PRESENT_GUARD("pc_scene_camera_inverse");
     float r[3][3], t[3], h, ofx, ofy;
     return pc_scene_camera_get(r, t, &h, &ofx, &ofy) && invert_camera(r, inverse);
 }
@@ -479,6 +484,7 @@ int pc_scene_game_projection(float* h, float* ofx, float* ofy)
 }
 int pc_scene_projection(float* h, float* ofx, float* ofy)
 {
+    PC_PRESENT_GUARD("pc_scene_projection");
     float r[3][3], t[3];
     if (!camera_valid || camera_h <= 0)
         return 0;
@@ -487,6 +493,7 @@ int pc_scene_projection(float* h, float* ofx, float* ofy)
 int pc_scene_serial(void) { return scene_serial; }
 void pc_scene_bounds(float lo[3], float hi[3])
 {
+    PC_PRESENT_GUARD("pc_scene_bounds");
     /* Cached per capture: the present passes ask every frame. */
     static float cached_lo[3], cached_hi[3];
     static int cached_serial = -1, cached_count = -1;

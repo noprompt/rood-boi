@@ -66,11 +66,12 @@ static void triangle(
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
         int depth[3] = { a.z, b.z, c.z };
         float precise[6] = { a.fx, a.fy, b.fx, b.fy, c.fx, c.fy };
-        pc_hw_set_depth(depth);
-        pc_hw_set_precise(precise);
+        pc_hwc_set_depth(depth);
+        pc_hwc_set_precise(precise);
         /* Covered by a native draw without reference packets: only the
          * hardware target gets it (gpu_hw.c keeps the area stale). */
-        if (pc_hw_triangle(xy, uv, rgb, code, tpage, clut, texture_window, clip, mask_set, mask_check))
+        pc_hwc_raster_post();
+        if (pc_hwc_triangle(xy, uv, rgb, code, tpage, clut, texture_window, clip, mask_set, mask_check))
             return;
     }
     if (minx < clip_x)
@@ -97,7 +98,7 @@ static void triangle(
         pc_cost_count(PC_COUNT_SKIPPED_PX, (unsigned)((maxx - minx + 1) * (maxy - miny + 1)));
         return;
     }
-    pc_hw_mark_raster(minx, miny, maxx, maxy);
+    pc_hwc_mark_raster(minx, miny, maxx, maxy);
     uint64_t cost = pc_cost_begin();
     pc_cost_count(PC_COUNT_RASTER_PX, (unsigned)((maxx - minx + 1) * (maxy - miny + 1)));
     int tl0 = top_left(&b, &c), tl1 = top_left(&c, &a), tl2 = top_left(&a, &b);
@@ -193,7 +194,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
      * anyway, it borrows another vertex's candidates for the choice below
      * and then takes the others' mean depth, rather than the whole polygon
      * dropping to 2D (unlit, black under the lighting) for a frame. */
-    int room = (pc_hw_current_is_room ? pc_hw_current_is_room() : 0), room_sz[4];
+    int room = pc_hwc_cur_room(), room_sz[4];
     unsigned packet_xy[4];
     for (int i = 0; i < count; ++i)
         packet_xy[i] = (unsigned)(uint16_t)screen[i][0] | ((unsigned)(uint16_t)screen[i][1] << 16);
@@ -310,7 +311,8 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
             v0 = vertex[i].v < v0 ? vertex[i].v : v0, v1 = vertex[i].v > v1 ? vertex[i].v : v1;
         }
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-        pc_hw_sync_texture(tpage, clut, texture_window, u0, v0, u1, v1, clip);
+        pc_hwc_raster_post();
+        pc_hwc_fence_texture(tpage, clut, texture_window, u0, v0, u1, v1, clip);
     }
     /* ui_text: a battle number popup's digit at the UI text scale (ui_text.c; scale 1: unchanged). */
     if (!projected && textured && count == 4 && drawing_tag && drawing_tag + 1 == p && pc_ui_text_popup_place) {
@@ -335,13 +337,13 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         }
         stream_record(0x103, v, n);
     }
-    pc_hw_set_2d(!projected);
+    pc_hwc_set_2d(!projected);
     if (!projected && narrowed_2d((const int (*)[2])screen, count))
-        pc_hw_set_narrowed();
+        pc_hwc_set_narrowed();
     if (!projected && textured) {
         int xy[6] = { vertex[0].x, vertex[0].y, vertex[1].x, vertex[1].y, vertex[2].x, vertex[2].y };
         int uv[6] = { vertex[0].u, vertex[0].v, vertex[1].u, vertex[1].v, vertex[2].u, vertex[2].v };
-        pc_hw_set_flipped_uv(xy, uv);
+        pc_hwc_set_flipped_uv(xy, uv);
     }
     if (!projected) {
         /* Widescreen: 2D standing for the whole screen draws over the full view. */
@@ -355,15 +357,15 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
             texels[2] = vertex[i].u > texels[2] ? vertex[i].u : texels[2];
             texels[3] = vertex[i].v > texels[3] ? vertex[i].v : texels[3];
         }
-        pc_hw_set_bounds(x0, y0, x1, y1, code, tpage, textured ? texels : NULL, clip);
+        pc_hwc_set_bounds(x0, y0, x1, y1, code, tpage, textured ? texels : NULL, clip);
     }
-    pc_hw_set_room(room);
-    pc_hw_set_packet(GUEST(p));
+    pc_hwc_set_room(room);
+    pc_hwc_set_packet(GUEST(p));
     /* ui_text_layout line: a scaled glyph cell (a zooming talk bubble's
      * text) is laid out with its line (gpu_hw.c); its triangles below are
      * then the original, drawn while the layout is off. */
     int text_piece = 0;
-    if (!projected && textured && count == 4 && pc_hw_text_quad) {
+    if (!projected && textured && count == 4) {
         float fxy[8];
         int fuv[8];
         if (!(pc_ui_precise_find && pc_ui_precise_find(precise_slot_for(p), packet_xy, count, fxy)))
@@ -375,14 +377,17 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         }
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
         pc_gpu_command = GUEST(p);
-        text_piece = pc_hw_text_quad(fxy, fuv, vertex[0].color, code, tpage, clut, texture_window, clip, mask_set,
+        pc_hwc_raster_post(); /* (what the CPU drew so far is in the renderer's VRAM before it samples for the quad) */
+        text_piece = pc_hwc_text_quad(fxy, fuv, vertex[0].color, code, tpage, clut, texture_window, clip, mask_set,
             mask_check);
         pc_gpu_command = NULL;
     }
     triangle(vertex[0], vertex[1], vertex[2], code, clut);
     if (count == 4)
         triangle(vertex[1], vertex[2], vertex[3], code, clut);
-    if (text_piece)
-        pc_hw_text_piece_done();
+    if (text_piece) {
+        pc_hwc_raster_post(); /* (the quad's own rasterized rectangles reach the renderer before it draws the piece) */
+        pc_hwc_text_piece_done();
+    }
     return words;
 }

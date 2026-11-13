@@ -1,0 +1,159 @@
+/* The present side's frame header (T1 R4a, pc/docs/plans/2026-11-12-t1-renderer-thread.md section 9): the game-owned values the presenter
+ * (vk_present.c, post_vk.inc) reads, copied on the game thread when a present is requested (pc_present_header_fill, from
+ * pc_window_frame) so the presenter reads only the copy (pc_ph()->name). A renderer thread then needs nothing of the game's state
+ * for them. ROOD_PRESENT_CANARY=1 proves it: while the presenter runs, every live variable below holds poison (restored after), so a
+ * read that bypassed the header shows as garbage, loudly and at once; the overlay's panel build runs outside it (it edits the live
+ * settings, which is the game thread's work: R4c).
+ *
+ * Each entry: (field, the live variable). */
+#ifndef PC_PRESENT_HEADER_H
+#define PC_PRESENT_HEADER_H
+#include "light_list.h"
+#include "post.h"
+#include "ui/menu_light.h"
+#define PC_PH_INTS(X) \
+    X(aa_downsample, pc_aa_downsample) \
+    X(aa_geometry_edges, pc_aa_geometry_edges) \
+    X(baked_shadows_active, pc_baked_shadows_active) \
+    X(display_rgb24, pc_display_rgb24) \
+    X(fog_volume_debug, pc_fog_volume_debug) \
+    X(gi_debug, pc_gi_debug) \
+    X(gi_enabled, pc_gi_enabled) \
+    X(gl_aa, pc_gl_aa) \
+    X(gl_aspect, pc_gl_aspect) \
+    X(gl_filter, pc_gl_filter) \
+    X(gl_show_depth, pc_gl_show_depth) \
+    X(gl_view_mode, pc_gl_view_mode) \
+    X(gte_widescreen, pc_gte_widescreen) \
+    X(haze_debug, pc_haze_debug) \
+    X(present_brightness, pc_present_brightness) \
+    X(rt_shadows, pc_rt_shadows) \
+    X(shadow_map_filter, pc_shadow_map_filter) \
+    X(baked_shadows, pc_baked_shadows) \
+    X(fog_steps, pc_fog_steps) \
+    X(gi_bounces, pc_gi_bounces) \
+    X(gi_denoise, pc_gi_denoise) \
+    X(gi_rays, pc_gi_rays) \
+    X(gi_trace_debug, pc_gi_trace_debug) \
+    X(glow_shadows, pc_glow_shadows) \
+    X(nrd_glow, pc_nrd_glow) \
+    X(nrd_max_frames, pc_nrd_max_frames) \
+    X(probe_budget, pc_probe_budget) \
+    X(probe_rays, pc_probe_rays) \
+    X(probe_show, pc_probe_show) \
+    X(shadow_samples, pc_shadow_samples) \
+    X(fog_volume_render, pc_fog_volume_render) \
+    X(fog_volume_shadows, pc_fog_volume_shadows) \
+    X(fog_volume_steps, pc_fog_volume_steps) \
+    X(haze_cell, pc_haze_cell) \
+    X(reflection_bounces, pc_reflection_bounces) \
+    X(gi_method, pc_gi_method) \
+    X(haze_quality, pc_haze_quality) \
+    X(lights_enabled, pc_lights_enabled) \
+    X(particles_untraced, pc_particles_untraced)
+#define PC_PH_FLOATS(X) \
+    X(aa_ssaa, pc_aa_ssaa) \
+    X(ao_radius, pc_ao_radius) \
+    X(ao_strength, pc_ao_strength) \
+    X(baked_energy, pc_baked_energy) \
+    X(bump_occlusion, pc_bump_occlusion) \
+    X(bump_strength, pc_bump_strength) \
+    X(env_specular, pc_env_specular) \
+    X(fog_anisotropy, pc_fog_anisotropy) \
+    X(fog_density, pc_fog_density) \
+    X(gi_strength, pc_gi_strength) \
+    X(light_size, pc_light_size) \
+    X(lights_baked, pc_lights_baked) \
+    X(normal_smoothing, pc_normal_smoothing) \
+    X(relief_baked, pc_relief_baked) \
+    X(relief_indirect, pc_relief_indirect) \
+    X(relief_overhead, pc_relief_overhead) \
+    X(relief_reach, pc_relief_reach) \
+    X(roughness_bias, pc_roughness_bias) \
+    X(shadow_softness, pc_shadow_softness) \
+    X(specular_strength, pc_specular_strength) \
+    X(baked_ambient, pc_baked_ambient) \
+    X(contact_radius, pc_contact_radius) \
+    X(emitter_light, pc_emitter_light) \
+    X(fog_glow, pc_fog_glow) \
+    X(gi_baked_bounce, pc_gi_baked_bounce) \
+    X(gi_resolution, pc_gi_resolution) \
+    X(haze_history, pc_haze_history) \
+    X(probe_hysteresis, pc_probe_hysteresis) \
+    X(probe_normal_bias, pc_probe_normal_bias) \
+    X(probe_spacing, pc_probe_spacing) \
+    X(probe_view_bias, pc_probe_view_bias) \
+    X(shadow_history, pc_shadow_history) \
+    X(shadow_motion_history, pc_shadow_motion_history) \
+    X(fog_volume_history, pc_fog_volume_history) \
+    X(fog_volume_resolution, pc_fog_volume_resolution)
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct {
+#define PC_PH_INT_FIELD(f, live) int f;
+#define PC_PH_FLOAT_FIELD(f, live) float f;
+    PC_PH_INTS(PC_PH_INT_FIELD)
+    PC_PH_FLOATS(PC_PH_FLOAT_FIELD)
+#undef PC_PH_INT_FIELD
+#undef PC_PH_FLOAT_FIELD
+    int gl_inset[4];
+    /* the scene (scene_capture.c): projection, camera and its inverse, the room's bounds */
+    /* The GTE camera of the frame the game is building (no overrides): the picture's camera is the renderer's to decide while it presents (the
+     * newest frame or an interpolated one: gpu_hw.c), so pc_ph_scene_camera_get applies that to this at the call, as the live one did. */
+    int projection_ok, game_camera_ok;
+    float game_r[3][3], game_t[3], game_h, game_ofx, game_ofy;
+    float room_lo[3], room_hi[3];
+    /* the lights (lights.cpp): the list in world space and the baked shadow's parameters */
+    int light_count;
+    pc_light_gpu lights[PC_LIGHTS_MAX];
+    float baked_shadow[5];
+    /* the menu (ui/): active, its backdrop, the model's light */
+    int menu_active, menu_backdrop_ok, menu_light_ok;
+    float menu_backdrop[4];
+    pc_menu_light menu_light;
+    /* the post profile for this present, photo capture and emissive flags, lighting quality's answers */
+    pc_post_frame post;
+    int photo_wanted, emissive_active, ao_traced, ssao[2];
+    float low_haze, baked_scale, traced_haze;
+    /* scene_capture.c's serials and the animated triangles' indices (the room's UV effects) */
+    int scene_serial, scene_uv_serial, animated_count, animated_overflow;
+    int animated[4096];
+    /* every light of the list whatever the projection (the Vulkan trace's), and the full count */
+    int light_count_all;
+    pc_light_gpu lights_all[PC_LIGHTS_MAX];
+} pc_present_header;
+extern pc_present_header pc_present_header_now; /* the header of the present in progress */
+#define pc_ph() (&pc_present_header_now)
+void pc_present_header_fill(void); /* the game thread, at a present request */
+/* The scene getters the GI code calls: inside a present the header's, outside (the editors, RPC dumps) the live ones. */
+void pc_ph_scene_bounds(float lo[3], float hi[3]);
+int pc_ph_scene_camera_get(float rotation[3][3], float translation[3], float* h, float* ofx, float* ofy);
+int pc_ph_scene_camera_inverse(float inverse[3][3]);
+int pc_ph_scene_projection(float* h, float* ofx, float* ofy);
+int pc_ph_scene_serial(void);
+int pc_ph_scene_uv_serial(void);
+const int* pc_ph_scene_animated(int* count);
+int pc_ph_lights_list(pc_light_gpu* out, int max);
+int pc_ph_lighting_ao_traced(void);
+float pc_ph_lighting_traced_haze_density(void);
+void pc_present_enter(void);       /* the presenter begins: with the canary on, the live variables hold poison */
+void pc_present_leave(void);       /* ... and ends: they are restored */
+void pc_present_canary_pause(int on); /* 1: the live values back for a stretch of game-thread work inside the present (the overlay's build), 0: poison again */
+extern int pc_present_inside;
+/* A value the present reads from its header, and anything outside a present (the editors, RPC dumps: the game thread's own calls) from the live variable. */
+#define PC_PH_GET(field, live) (pc_present_inside ? pc_present_header_now.field : (live))
+/* Call guard (ROOD_PRESENT_CANARY_CALLS=1): a function that reads game-owned state, called while the presenter runs and not through the
+ * header, is reported (once per name, with a count at exit; ROOD_PRESENT_CANARY_ABORT=1 aborts at the first). Put PC_PRESENT_GUARD("name")
+ * first in such a function. The header's own fill (before the presenter) is outside it. */
+extern int pc_present_guard_on, pc_present_paused;
+void pc_present_violation(const char* what);
+#define PC_PRESENT_GUARD(what) \
+    do { \
+        if (pc_present_guard_on && pc_present_inside && !pc_present_paused) \
+            pc_present_violation(what); \
+    } while (0)
+#ifdef __cplusplus
+}
+#endif
+#endif

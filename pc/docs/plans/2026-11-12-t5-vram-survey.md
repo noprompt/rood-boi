@@ -156,3 +156,10 @@ S3: the game-to-renderer read-backs are the fences, now stream events (kind 6: c
 section 7 only `texture` ever copies back (map 2, storage 2, manual 1, setup 13, score 8; everything else 0) and `store`
 never does: the TITLE / MENU5 / MENU7 frame readers read native VRAM the CPU rasterizer already holds. The fences a renderer
 thread must wait at are these two calls plus the `raster_refresh` bands.
+
+S3b: the CPU rasterizer's output is posted as events. `pc_hw_mark_raster` notes each primitive's rectangle when it starts;
+the game calls `pc_hw_raster_post` before its next renderer hook (draw, upload, fill, copy, read-back, `pc_hw_before_write`) and at
+each vsync, which copies the finished rectangles from the game's array into the renderer's (`rvram_apply`). `raster_refresh`
+stays as a net and counts what it still has to take (`raster_late`, RPC `vram_stream` "renderer"; 0 on title, 1 on map at the end of
+the run). The rasterizer is not rare: hundreds of rectangles a frame (map: 714K posts in 2940 frames), each a row copy of its
+bounding box. At every vsync the renderer's VRAM equals the game's array on all pixels (`rv_raster` 0).
