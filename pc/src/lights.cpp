@@ -54,7 +54,7 @@ bool pc_particles_viewport(const float view[16], const float projection[16], con
 #include "editor_colour.h"
 #include "environment_internal.h"
 #include "particles_internal.h"
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 int pc_scene_camera_get(float rotation[3][3], float translation[3], float* h, float* ofx, float* ofy);
@@ -2000,6 +2000,20 @@ extern "C" int pc_lights_list(pc_light_gpu* out, int max)
     return n;
 }
 /* Shadow maps for the most important shadow casters only (light_list.h). */
+/* What the last gather decided about each light it listed, for the renderer's shadow pick (present_header.c): the key (a 64-bit hash of
+ * the light's string key, 0 for none), its importance, and the lights frame. Returns how many. */
+extern "C" int pc_lights_output(unsigned long long* keys, float* importance, int max, unsigned* frame)
+{
+    int n = (int)output_keys.size() < max ? (int)output_keys.size() : max;
+    for (int i = 0; i < n; i++) {
+        unsigned long long h = output_keys[i].empty() ? 0 : 1469598103934665603ull;
+        for (unsigned char c : output_keys[i])
+            h = (h ^ c) * 1099511628211ull;
+        keys[i] = h, importance[i] = output_importance[i];
+    }
+    *frame = lights_frame;
+    return n;
+}
 extern "C" void pc_lights_shadow_pick(int count, int* wants, int slots)
 {
     PC_PRESENT_GUARD("pc_lights_shadow_pick");

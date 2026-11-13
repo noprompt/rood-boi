@@ -1044,7 +1044,21 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
         try:
             hashed(g, out, sample, hashes, taken)
             SCENES[name](g, cp, rood_rpc.symbols())
-            text = g.call("ui_text") if renderer != "null" else {}  # ui_text's word-level drawing: small-capital words and the status words drawn
+            text = g.call("ui_text") if renderer != "null" else {}
+            try:
+                if renderer != "null":
+                    for call in (("emissive", {"action": "uses", "keys": True}), ("emissive", {"action": "texel", "u": 1, "v": 1, "tpage": 12, "clut": 0}), ("emissive", {"action": "lights"}), ("material", {})):  # the editors' readers once, for the counters
+                        try:
+                            g.call(call[0], **call[1])
+                        except Exception:
+                            pass
+                published = g.call("emissive", action="published") if renderer != "null" else None
+                try:
+                    published["check"] = g.call("emissive", action="published_check")  # each published reader against the live state, same inputs
+                except Exception:
+                    pass  # the emissive reads served from the published copy
+            except Exception:
+                published = None  # ui_text's word-level drawing: small-capital words and the status words drawn
             try:
                 stream_info = g.call("vram_stream")  # (the renderer's replay counters and the fences the game waited at; a build without them has none)
                 stats = {**(stream_info.get("renderer") or {}), "fences": stream_info.get("fences")}
@@ -1057,7 +1071,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
                 stats, final = None, None
         finally:
             g.close()
-        results[name] = {"hashes": hashes, "stream": taken[1], "renderer": stats, "final": final, "word_glyphs": text.get("word_glyphs"), "regions": (text.get("regions"), text.get("failed")), "gi": gi_lines(out / f"{name}.log"), "item_words": text.get("item_words"),
+        results[name] = {"hashes": hashes, "stream": taken[1], "renderer": stats, "final": final, "word_glyphs": text.get("word_glyphs"), "regions": (text.get("regions"), text.get("failed")), "gi": gi_lines(out / f"{name}.log"), "published": published, "item_words": text.get("item_words"),
                          "status_glyphs": (text.get("status") or {}).get("glyphs") if isinstance(text.get("status"), dict) else text.get("status_glyphs")}
     print("RESULT" + json.dumps(results))
 
@@ -1129,6 +1143,8 @@ def compare_menus(args):
               f"old against new {len(changed)} differ{f' (first at frame {changed[0]})' if changed else ''}")
         print(f"{name}: ui_text word / status glyphs drawn: old {words[0]}, control {words[1]}, new {words[2]}"
               f", of the new's, found among draw items: {new[name]['item_words']}{'' if words[0] == words[2] else '  DIFFERENT'}")
+        if new[name].get("published"):
+            print(f"{name}: emissive reads from the published copy (new): {new[name]['published']}")
         print(f"{name}: [gi] log lines (ready, other): old {first[name]['gi']}, control {control[name]['gi']}, new {new[name]['gi']}")
         print(f"{name}: ui_text regions drawn (regions, failed): old {regions[0]}, control {regions[1]}, new {regions[2]}"
               f"{'' if regions[0] == regions[2] else '  DIFFERENT'}")

@@ -22,7 +22,7 @@
 
 #include "imgui.h"
 #include "imgui_internal.h" /* ImHashStr, OpenPopupEx: opening the toolbar's combo by request */
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 void pc_settings_env_override(const char* key) __attribute__((weak)); /* project_settings.cpp */

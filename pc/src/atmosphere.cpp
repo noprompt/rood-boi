@@ -43,6 +43,7 @@
 #include "lights_internal.h"
 #include "platform.h"
 #include "scene_capture.h"
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 extern int pc_lights_enabled;
@@ -833,6 +834,7 @@ static void fog_preview(void)
 
 extern "C" int pc_medium_gpu_get(pc_medium_gpu* out, float haze_density, const float room_lo[3], const float room_hi[3])
 {
+    PC_PRESENT_GUARD("pc_medium_gpu_get");
     memset(out, 0, sizeof *out);
     float(*m)[4] = out->v;
     m[PC_MEDIUM_FLOW][0] = pc_fog_detail_wind;
@@ -1074,6 +1076,7 @@ int fogvol_drawn;
 extern "C" int pc_fogvol_gpu_get(pc_medium_gpu* medium, pc_fogvol_gpu* out, pc_fogvol_info* info, const float room_lo[3],
     const float room_hi[3])
 {
+    PC_PRESENT_GUARD("pc_fogvol_gpu_get");
     memset(out, 0, sizeof *out);
     if (info)
         memset(info, 0, sizeof *info);
@@ -1222,6 +1225,7 @@ extern "C" int pc_fogvol_gpu_get(pc_medium_gpu* medium, pc_fogvol_gpu* out, pc_f
 
 extern "C" unsigned pc_medium_hash(void)
 {
+    PC_PRESENT_GUARD("pc_medium_hash");
     lighting::State s;
     rood_atmo::add_items(s);
     unsigned h = 2166136261u;

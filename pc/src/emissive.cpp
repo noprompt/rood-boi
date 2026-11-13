@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <algorithm>
+#include <atomic>
 #include <array>
 #include <memory>
 #include <unordered_map>
@@ -26,7 +27,7 @@
 #include "material_graph.h"
 #include "frame_cost.h" /* ROOD_PERF: texels hashed */
 #include "editor_undo.h"
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 float pc_emissive = 1.0f;
@@ -52,13 +53,52 @@ const uint16_t* pc_native_vram(void);
 const uint16_t* pc_hw_emissive_vram(int renderer_side) __attribute__((weak));
 int pc_hw_present_all_lists(uint32_t* lists, int max) __attribute__((weak));
 }
-/* The VRAM the emissive matching and sampling read (T1 R4d): the renderer's own copy (gpu_hw.c), never the game's array. The
- * frame's sync (pc_emissive_sync, run by the renderer) reads it as it is; any other reader (the lights' sampling on the game
- * side, the editors) has the commands pending applied first so the copy is current: those are the readers the scene block
- * (R4b) replaces. */
+/* The emissive state the game side samples (T1 R4d): the renderer publishes it once per frame at the end of its sync (a copy of
+ * what the sampling reads: the slot map's changed rows, the VRAM it matched against, the uses that carry a content key) and the
+ * game reads the last published copy; no call into the renderer, no commands applied. The renderer's own code (the sync) reads
+ * the live state. Before the first publication the game side reads the live state as before. */
 static bool in_renderer_sync;
+/* RPC emissive {action: published_check} reads both ways (the live state, then the published copy) to compare them. */
+static bool force_live;
+/* Reads the game side served from the published copy (RPC emissive {action: published}: the positive control that it is used). */
+struct PublishedStats {
+    unsigned long long texel, key_texel, emission, slot, vram, use_list, palette_list, material_at, material_list, counts;
+};
+static PublishedStats pub_stats;
+struct Published {
+    bool ready = false, any_marks = false, any_object_lights = false;
+    std::vector<uint16_t> vram;
+    std::vector<uint8_t> map;
+    std::vector<uint8_t> planes; /* the material planes (material_at) */
+    int marked_uses = 0, marked_cells = 0, scope_overflow = 0, material_cells = 0;
+    uint32_t marked_pages = 0;
+    std::vector<emissive::MapProblem> problems;
+    std::vector<emissive::MaterialUse> material_list;
+    /* The palette slots as the renderer tracked them (palette_variants, palette_identity): the one owner is the sync. */
+    struct Palette {
+        std::string key, identity;
+        std::vector<std::string> variants;
+    };
+    std::unordered_map<uint32_t, Palette> palettes;
+    uint32_t map_generation = 1;
+    int scope_zone = -1, scope_room = -1;
+};
+static std::atomic<uint32_t> pub_light_dirty; /* VRAM tiles changed since the game side last looked (the lights' caches) */
+/* One use as the game side reads it (use_list, palette_list, key_texel, the editors); the catalog entry is its index. */
+struct UseLite {
+    std::string key, mat_id;
+    unsigned page, clut;
+    uint8_t box[4];
+    int entry, refs;
+    bool mat_found;
+};
+static Published pub;
+static std::vector<UseLite> pub_uses;
+static bool use_pub() { return pub.ready && !in_renderer_sync && !force_live; }
 static const uint16_t* emissive_vram(void)
 {
+    if (use_pub())
+        return ++pub_stats.vram, pub.vram.data();
     return pc_hw_emissive_vram ? pc_hw_emissive_vram(in_renderer_sync) : pc_native_vram();
 }
 
@@ -830,6 +870,13 @@ uint32_t applied_generation, dirty_tiles;
 float applied_strength = -1;
 bool marks_changed = true, params_changed = true, any_marks, marks_on;
 std::vector<uint8_t> the_map(PC_EMISSIVE_MAP_W * PC_EMISSIVE_MAP_H);
+/* The slot map the sampling reads: the live one in the renderer's sync, else the published copy. */
+static const uint8_t* map_src()
+{
+    if (use_pub())
+        return ++pub_stats.slot, pub.map.data();
+    return the_map.data();
+}
 int dirty_row0 = 0, dirty_row1 = PC_EMISSIVE_MAP_H; /* the first upload clears the GPU image */
 uint32_t map_generation = 1;
 int marked_uses, marked_cells;
@@ -1015,6 +1062,9 @@ bool mesh_detail(uint32_t mesh, int* kind, unsigned* offset, unsigned* tris, uns
     *kind = m.kind, *offset = m.offset, *tris = m.tris, *total = m.total, *model = m.model;
     return true;
 }
+/* (the published readers' switches: before model_key, outside what emissive_metadata_test extracts) */
+static bool published() { return use_pub(); }
+static bool published_count(unsigned long long& counter) { return published() ? (++counter, true) : false; }
 std::string model_key(uint32_t model)
 {
     char text[16];
@@ -1032,26 +1082,32 @@ bool parse_model_key(const std::string& s, uint32_t* model)
 const std::vector<UseInfo> use_list(bool compute_keys)
 {
     std::vector<UseInfo> out;
-    for (auto& [k, u] : uses) {
+    auto add = [&](unsigned page, unsigned clut, const uint8_t* box, const std::string& key, int entry, int refs) {
         UseInfo i;
-        i.page = u.page, i.clut = u.clut;
-        memcpy(i.box, u.box, 4);
-        i.key = u.key;
+        i.page = page, i.clut = clut;
+        memcpy(i.box, box, 4);
+        i.key = key;
         if (compute_keys && i.key.empty())
-            i.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
-        i.entry = u.entry >= 0 && u.entry < (int)catalog().entries.size() ? catalog().entries[u.entry].id : "";
-        i.refs = u.refs;
+            i.key = content_key(page, clut, box[0], box[1], box[2], box[3]);
+        i.entry = entry >= 0 && entry < (int)catalog().entries.size() ? catalog().entries[entry].id : "";
+        i.refs = refs;
         out.push_back(i);
-    }
+    };
+    if (published_count(pub_stats.use_list))
+        for (const UseLite& u : pub_uses)
+            add(u.page, u.clut, u.box, u.key, u.entry, u.refs);
+    else
+        for (auto& [k, u] : uses)
+            add(u.page, u.clut, u.box, u.key, u.entry, u.refs);
     std::sort(out.begin(), out.end(), [](const UseInfo& a, const UseInfo& b) {
         return std::make_tuple(a.page, a.clut, a.box[1], a.box[0], a.box[3], a.box[2])
             < std::make_tuple(b.page, b.clut, b.box[1], b.box[0], b.box[3], b.box[2]);
     });
     return out;
 }
-int marked_use_count() { return marked_uses; }
-int marked_cell_count() { return marked_cells; }
-int scope_overflow_count() { return scope_overflow; }
+int marked_use_count() { return published_count(pub_stats.counts) ? pub.marked_uses : marked_uses; }
+int marked_cell_count() { return published() ? pub.marked_cells : marked_cells; }
+int scope_overflow_count() { return published() ? pub.scope_overflow : scope_overflow; }
 
 /* Is texture-space texel (x, y) inside the entry's shapes (no shapes: the
  * whole texture)? */
@@ -1974,13 +2030,17 @@ static void check_materials()
         fprintf(stderr, "[materials] check: %d writes, %d mismatched\n", checks, mismatched);
 }
 
-uint32_t map_serial() { return map_generation; }
-const uint8_t* map_data() { return the_map.data(); }
-std::vector<MaterialUse> material_use_list() { return material_list; }
+uint32_t map_serial() { return use_pub() ? pub.map_generation : map_generation; }
+const uint8_t* map_data() { return map_src(); }
+std::vector<MaterialUse> material_use_list() { return published_count(pub_stats.material_list) ? pub.material_list : material_list; }
 std::string palette_identity(unsigned tpage, unsigned clut)
 {
     if (((tpage >> 7) & 3) >= 2)
         return "";
+    if (use_pub()) { /* the renderer owns the palette slots: a slot it has not tracked is its colours' key alone */
+        auto it = pub.palettes.find((uint32_t)((tpage >> 7) & 3) << 16 | (clut & 0xffff));
+        return it != pub.palettes.end() ? it->second.identity : clut_key(tpage, clut);
+    }
     sync_palette_room();
     return palette_identity_of(palette_slot(tpage, clut, clut_colours(tpage, clut)));
 }
@@ -1989,6 +2049,19 @@ std::vector<std::string> palette_variants(unsigned tpage, unsigned clut)
     std::vector<std::string> out;
     if (((tpage >> 7) & 3) >= 2)
         return out;
+    if (use_pub()) {
+        auto it = pub.palettes.find((uint32_t)((tpage >> 7) & 3) << 16 | (clut & 0xffff));
+        if (it == pub.palettes.end()) {
+            out.push_back(clut_key(tpage, clut));
+            return out;
+        }
+        /* (the slot's own key now first, then its variants: the live slot's key is what its colours are now) */
+        out.push_back(clut_key(tpage, clut));
+        for (const std::string& v : it->second.variants)
+            if (v != out[0])
+                out.push_back(v);
+        return out;
+    }
     sync_palette_room();
     const PaletteKey& k = palette_slot(tpage, clut, clut_colours(tpage, clut));
     out.push_back(k.key);
@@ -2018,37 +2091,43 @@ std::vector<std::string> pick_palettes(const std::string& clut_key, unsigned tpa
 std::vector<PaletteInfo> palette_list()
 {
     std::map<uint32_t, PaletteInfo> by_slot;
-    for (const auto& kv : uses) {
-        const Use& u = kv.second;
-        int depth = (u.page >> 7) & 3;
-        if (u.key.empty() || depth >= 2)
-            continue;
-        uint32_t slot = (uint32_t)depth << 16 | u.clut;
+    auto add = [&](unsigned page, unsigned clut, const std::string& key, bool mat_found, const std::string& mat_id) {
+        int depth = (page >> 7) & 3;
+        if (key.empty() || depth >= 2)
+            return;
+        uint32_t slot = (uint32_t)depth << 16 | clut;
         PaletteInfo& p = by_slot[slot];
         if (p.uses++ == 0) {
-            p.depth = depth, p.clut = u.clut, p.key = clut_key(u.page, u.clut);
-            p.identity = palette_identity(u.page, u.clut);
-            p.variants = (int)palette_variants(u.page, u.clut).size();
+            p.depth = depth, p.clut = clut, p.key = clut_key(page, clut);
+            p.identity = palette_identity(page, clut);
+            p.variants = (int)palette_variants(page, clut).size();
         }
-        if (u.mat_found && p.entry.empty())
-            p.entry = u.mat_id;
-    }
+        if (mat_found && p.entry.empty())
+            p.entry = mat_id;
+    };
+    if (published_count(pub_stats.palette_list))
+        for (const UseLite& u : pub_uses)
+            add(u.page, u.clut, u.key, u.mat_found, u.mat_id);
+    else
+        for (const auto& kv : uses)
+            add(kv.second.page, kv.second.clut, kv.second.key, kv.second.mat_found, kv.second.mat_id);
     std::vector<PaletteInfo> out;
     for (auto& kv : by_slot)
         out.push_back(kv.second);
     return out;
 }
-int material_cell_count() { return material_cells; }
+int material_cell_count() { return published() ? pub.material_cells : material_cells; }
 bool material_at(unsigned u, unsigned v, unsigned tpage, int out[PC_MATERIAL_PLANES])
 {
-    if (material_planes.empty())
+    const std::vector<uint8_t>& planes = published_count(pub_stats.material_at) ? pub.planes : material_planes;
+    if (planes.empty())
         return false;
     int tx = (int)(tpage & 15) * 64, ty = (int)((tpage >> 4) & 1) * 256;
     int depth = std::min((int)((tpage >> 7) & 3), 2);
     size_t at = (size_t)(ty + (int)(v & 255)) * PC_EMISSIVE_MAP_W + ((tx * 4 + (int)((u & 255) << depth)) & 4095);
     size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
     for (int i = 0; i < PC_MATERIAL_PLANES; i++)
-        out[i] = material_planes[i * plane + at];
+        out[i] = planes[i * plane + at];
     return out[1] || out[2] || out[3];
 }
 
@@ -2207,10 +2286,45 @@ static void apply_scopes(bool all)
 }
 
 static int emissive_sync_body(int* row0, int* row1);
+/* Publish what the game side samples (the changed map rows, the VRAM, the keyed uses). */
+namespace { bool any_object_lights(); }
+static void publish(int r0, int r1)
+{
+    if (!pub.ready) {
+        pub.map = the_map;
+        pub.vram.assign(1024 * 512, 0);
+        r0 = 0, r1 = 0;
+    } else if (r1 > r0)
+        memcpy(&pub.map[(size_t)r0 * PC_EMISSIVE_MAP_W], &the_map[(size_t)r0 * PC_EMISSIVE_MAP_W], (size_t)(r1 - r0) * PC_EMISSIVE_MAP_W);
+    if (const uint16_t* v = emissive_vram())
+        memcpy(pub.vram.data(), v, 1024 * 512 * sizeof(uint16_t));
+    pub.any_marks = any_marks;
+    pub.any_object_lights = any_object_lights();
+    pub.marked_uses = marked_uses, pub.marked_cells = marked_cells, pub.scope_overflow = scope_overflow;
+    pub.material_cells = material_cells, pub.marked_pages = marked_pages;
+    pub.problems = problems;
+    pub.map_generation = map_generation, pub.scope_zone = scope_zone, pub.scope_room = scope_room;
+    pub.palettes.clear();
+    for (const auto& kv : palette_keys)
+        pub.palettes[kv.first] = { kv.second.key, palette_identity_of(kv.second), kv.second.variants };
+    pub_light_dirty |= light_dirty_tiles;
+    light_dirty_tiles = 0;
+    if (material_dirty || pub.planes.size() != material_planes.size())
+        pub.planes = material_planes;
+    pub.material_list = material_list;
+    pub_uses.clear();
+    pub_uses.reserve(uses.size());
+    for (const auto& item : uses) {
+        const Use& u = item.second;
+        pub_uses.push_back({ u.key, u.mat_id, u.page, u.clut, { u.box[0], u.box[1], u.box[2], u.box[3] }, u.entry, u.refs, u.mat_found });
+    }
+    pub.ready = true;
+}
 extern "C" int pc_emissive_sync(int* row0, int* row1)
 {
     in_renderer_sync = true;
     int on = emissive_sync_body(row0, row1);
+    publish(*row0, *row1);
     in_renderer_sync = false;
     return on;
 }
@@ -2356,16 +2470,16 @@ int slot_at(unsigned u, unsigned v, unsigned tpage)
 {
     int tx = (int)(tpage & 15) * 64, ty = (int)((tpage >> 4) & 1) * 256;
     int depth = std::min((int)((tpage >> 7) & 3), 2);
-    return the_map[(size_t)(ty + (int)(v & 255)) * PC_EMISSIVE_MAP_W + ((tx * 4 + (int)((u & 255) << depth)) & 4095)];
+    return map_src()[(size_t)(ty + (int)(v & 255)) * PC_EMISSIVE_MAP_W + ((tx * 4 + (int)((u & 255) << depth)) & 4095)];
 }
 int amount_at(unsigned u, unsigned v, unsigned tpage)
 {
     int tx = (int)(tpage & 15) * 64, ty = (int)((tpage >> 4) & 1) * 256;
     int depth = std::min((int)((tpage >> 7) & 3), 2);
-    return the_map[(size_t)(PC_EMISSIVE_AMOUNT_ROW + ty + (int)(v & 255)) * PC_EMISSIVE_MAP_W
+    return map_src()[(size_t)(PC_EMISSIVE_AMOUNT_ROW + ty + (int)(v & 255)) * PC_EMISSIVE_MAP_W
         + ((tx * 4 + (int)((u & 255) << depth)) & 4095)];
 }
-std::vector<MapProblem> map_problems() { return problems; }
+std::vector<MapProblem> map_problems() { return published() ? pub.problems : problems; }
 } // namespace emissive
 
 /* ---------------------------------------------------------------- lights */
@@ -2441,13 +2555,14 @@ int emission_at(unsigned u, unsigned v, unsigned tpage, unsigned clut, int s, fl
     const Catalog& c = catalog();
     if (s <= 0 || s > (int)c.entries.size())
         return 0;
+    pub_stats.emission += published();
     const Entry& e = c.entries[(size_t)s - 1];
     unsigned index = 0;
     uint16_t t = texel(u, v, tpage, clut, &index);
     if (!t || !e.enabled || !filters_pass(e.mask, index, t, (tpage >> 7) & 3))
         return 0;
     /* As the shader: the strength byte (the setting folded in). */
-    const uint8_t* p = &the_map[(size_t)512 * PC_EMISSIVE_MAP_W + (size_t)s * 64];
+    const uint8_t* p = &map_src()[(size_t)512 * PC_EMISSIVE_MAP_W + (size_t)s * 64];
     float k = p[3] / 63.75f * amount_at(u, v, tpage) / 255.0f;
     if (k <= 0)
         return 0;
@@ -2499,7 +2614,8 @@ void light_rgb(const TriangleLight& t, float rgb[3])
 
 extern "C" int pc_emissive_texel(unsigned u, unsigned v, unsigned tpage, unsigned clut, float rgb[3], float* light)
 {
-    if (!any_marks)
+    pub_stats.texel += use_pub();
+    if (!(use_pub() ? pub.any_marks : any_marks))
         return 0;
     int s = slot_at(u, v, tpage);
     float e[3];
@@ -2515,17 +2631,27 @@ extern "C" int pc_emissive_texel(unsigned u, unsigned v, unsigned tpage, unsigne
 extern "C" int pc_emissive_key_texel(const char* key, float u, float v, float rgb[3])
 {
     if (rgb) rgb[0] = rgb[1] = rgb[2] = 0;
-    if (!key || !*key || !std::isfinite(u) || !std::isfinite(v) || !any_marks)
+    pub_stats.key_texel += use_pub();
+    if (!key || !*key || !std::isfinite(u) || !std::isfinite(v) || !(use_pub() ? pub.any_marks : any_marks))
         return 0;
     /* Uses have already been matched by the frame's emissive sync. Avoid
      * allocating a use_list for every sample of every rect-light cell. */
-    for (const auto& item : uses) {
-        const Use& use = item.second;
-        if (use.refs <= 0 || use.key != key) continue;
+    auto sample = [&](const auto& use) {
         int w = use.box[2] - use.box[0] + 1, h = use.box[3] - use.box[1] + 1;
         unsigned x = use.box[0] + std::min(w - 1, (int)(std::clamp(u, 0.0f, 1.0f) * w));
         unsigned y = use.box[1] + std::min(h - 1, (int)(std::clamp(v, 0.0f, 1.0f) * h));
         return pc_emissive_texel(x, y, use.page, use.clut, rgb, nullptr);
+    };
+    if (use_pub()) {
+        for (const UseLite& use : pub_uses)
+            if (use.refs > 0 && use.key == key)
+                return sample(use);
+        return 0;
+    }
+    for (const auto& item : uses) {
+        const Use& use = item.second;
+        if (use.refs <= 0 || use.key != key) continue;
+        return sample(use);
     }
     return 0;
 }
@@ -2573,21 +2699,24 @@ void scene_uv(const scene_triangle* t, float uv[6])
 }
 bool room_allows(const scene_triangle* t, const Entry& e)
 {
-    return scope_allows(e, scope_zone, scope_room, SURFACE_ROOM, t->polygon, 0);
+    return scope_allows(e, use_pub() ? pub.scope_zone : scope_zone, use_pub() ? pub.scope_room : scope_room, SURFACE_ROOM, t->polygon, 0);
 }
 void refresh_lights()
 {
     int scene = pc_scene_serial(), uvs = pc_scene_uv_serial();
-    uint32_t map = map_generation;
+    uint32_t map = use_pub() ? pub.map_generation : map_generation;
     /* Emission again where the texels changed: VRAM under them (palette
-     * and VRAM animations) or their UVs (room texture effects). */
-    if (light_dirty_tiles) {
+     * and VRAM animations) or their UVs (room texture effects). The renderer's dirty tiles reach this side through the
+     * published block (taken here, once). */
+    uint32_t dirty = use_pub() ? pub_light_dirty.exchange(0) : light_dirty_tiles;
+    if (!use_pub())
+        light_dirty_tiles = 0;
+    if (dirty) {
         for (RoomLight& l : room_lights)
-            if (l.tiles & light_dirty_tiles)
+            if (l.tiles & dirty)
                 l.fresh = false;
         for (auto it = object_cache.begin(); it != object_cache.end();)
-            it = it->second.tiles & light_dirty_tiles ? object_cache.erase(it) : std::next(it);
-        light_dirty_tiles = 0;
+            it = it->second.tiles & dirty ? object_cache.erase(it) : std::next(it);
     }
     if (uvs != lights_uv) {
         lights_uv = uvs;
@@ -2845,13 +2974,15 @@ bool any_object_lights()
 extern "C" int pc_emissive_object_lights(void* fragments, int max)
 {
     pc_glow_fragment* out = (pc_glow_fragment*)fragments;
-    if (!any_marks || !pc_hw_present_all_lists || !any_object_lights())
+    if (!any_marks || !pc_hw_present_all_lists || !(published() ? pub.any_object_lights : any_object_lights()))
         return 0;
     refresh_lights(); /* VRAM changes drop cached areas */
-    if (object_cache_map != map_generation || object_cache_zone != scope_zone || object_cache_room != scope_room
+    int zone_now = use_pub() ? pub.scope_zone : scope_zone, room_now = use_pub() ? pub.scope_room : scope_room;
+    uint32_t map_now = use_pub() ? pub.map_generation : map_generation;
+    if (object_cache_map != map_now || object_cache_zone != zone_now || object_cache_room != room_now
         || object_cache.size() > 65536) {
         object_cache.clear();
-        object_cache_map = map_generation, object_cache_zone = scope_zone, object_cache_room = scope_room;
+        object_cache_map = map_now, object_cache_zone = zone_now, object_cache_room = room_now;
     }
     uint32_t lists[64];
     int n = pc_hw_present_all_lists(lists, 64);
@@ -2942,7 +3073,7 @@ std::vector<SurfaceUse> surface_uses(const std::string& id)
 {
     std::vector<SurfaceUse> out;
     int index = index_of(id);
-    if (index < 0 || !any_marks)
+    if (index < 0 || !(published() ? pub.any_marks : any_marks))
         return out;
     std::unordered_map<uint64_t, size_t> at;
     UsesSearch s = { index + 1, &catalog().entries[(size_t)index], &out, &at };
@@ -2950,7 +3081,7 @@ std::vector<SurfaceUse> surface_uses(const std::string& id)
     const scene_triangle* tris = pc_scene_triangle_data(&count);
     for (int i = 0; i < count; i++) {
         const scene_triangle* t = &tris[i];
-        if (!(marked_pages & (1u << (t->tpage & 31))))
+        if (!((published() ? pub.marked_pages : marked_pages) & (1u << (t->tpage & 31))))
             continue;
         float uv[6], w[9];
         for (int j = 0; j < 3; j++) {
@@ -2967,3 +3098,128 @@ std::vector<SurfaceUse> surface_uses(const std::string& id)
     return out;
 }
 } // namespace emissive
+
+extern "C" void pc_emissive_published_json(char* out, int size)
+{
+    snprintf(out, (size_t)size,
+        "{\"ready\":%d,\"texel\":%llu,\"key_texel\":%llu,\"emission\":%llu,\"slot_map\":%llu,\"vram\":%llu,\"use_list\":%llu,"
+        "\"palette_list\":%llu,\"material_at\":%llu,\"material_list\":%llu,\"counts\":%llu}",
+        pub.ready, pub_stats.texel, pub_stats.key_texel, pub_stats.emission, pub_stats.slot, pub_stats.vram, pub_stats.use_list,
+        pub_stats.palette_list, pub_stats.material_at, pub_stats.material_list, pub_stats.counts);
+}
+
+/* The equivalence test of the published readers (RPC emissive {action: published_check}): each reader answers the same inputs from
+ * the live state and from the published copy, and the answers are compared. `checked` counts the comparisons a reader made (a
+ * reader with none is untested by this scene), `differ` those that did not agree. Run it where the renderer has just synced
+ * (between frames): the copy is then the live state's. */
+extern "C" void pc_emissive_published_check_json(char* out, int size)
+{
+    struct Tally {
+        const char* name;
+        long checked = 0, differ = 0;
+    } t[] = { { "use_list" }, { "palette_list" }, { "material_use_list" }, { "material_at" }, { "counts" }, { "key_texel" }, { "texel" },
+        { "palette_variants" }, { "map_problems" }, { "map_serial" } };
+    enum { USE_LIST, PALETTE_LIST, MATERIAL_LIST, MATERIAL_AT, COUNTS, KEY_TEXEL, TEXEL, VARIANTS, PROBLEMS, SERIAL };
+    auto both = [&](auto&& read) { /* (live, published) */
+        force_live = true;
+        auto a = read();
+        force_live = false;
+        auto b = read();
+        return std::make_pair(a, b);
+    };
+    if (!pub.ready) {
+        snprintf(out, (size_t)size, "{\"ready\":false}");
+        return;
+    }
+    /* Publish now, as the sync does (with the pending commands applied): the copy is the live state's at this moment, so what is
+     * compared is the readers, not the copy's age (it is a frame old by design). */
+    force_live = true;
+    (void)emissive_vram();
+    force_live = false;
+    in_renderer_sync = true;
+    publish(0, PC_EMISSIVE_MAP_H);
+    in_renderer_sync = false;
+    {
+        auto [a, b] = both([] { return use_list(true); });
+        ++t[USE_LIST].checked;
+        bool same = a.size() == b.size();
+        for (size_t i = 0; same && i < a.size(); i++)
+            same = a[i].page == b[i].page && a[i].clut == b[i].clut && !memcmp(a[i].box, b[i].box, 4) && a[i].key == b[i].key
+                && a[i].entry == b[i].entry && a[i].refs == b[i].refs;
+        t[USE_LIST].differ += !same;
+        t[USE_LIST].checked += (long)a.size();
+    }
+    {
+        auto [a, b] = both([] { return palette_list(); });
+        ++t[PALETTE_LIST].checked;
+        bool same = a.size() == b.size();
+        for (size_t i = 0; same && i < a.size(); i++)
+            same = a[i].depth == b[i].depth && a[i].clut == b[i].clut && a[i].key == b[i].key && a[i].identity == b[i].identity
+                && a[i].variants == b[i].variants && a[i].uses == b[i].uses && a[i].entry == b[i].entry;
+        t[PALETTE_LIST].differ += !same;
+        t[PALETTE_LIST].checked += (long)a.size();
+    }
+    std::vector<MaterialUse> mats;
+    {
+        auto [a, b] = both([] { return material_use_list(); });
+        mats = a;
+        ++t[MATERIAL_LIST].checked;
+        bool same = a.size() == b.size();
+        for (size_t i = 0; same && i < a.size(); i++)
+            same = a[i].key == b[i].key && a[i].entry == b[i].entry && a[i].page == b[i].page && a[i].clut == b[i].clut
+                && !memcmp(a[i].box, b[i].box, 4);
+        t[MATERIAL_LIST].differ += !same;
+        t[MATERIAL_LIST].checked += (long)a.size();
+    }
+    for (const MaterialUse& u : mats) { /* the cells of every use with a material (a sample of each box) */
+        for (int y = u.box[1]; y <= u.box[3]; y += 3)
+            for (int x = u.box[0]; x <= u.box[2]; x += 3) {
+                int a[PC_MATERIAL_PLANES] = {}, b[PC_MATERIAL_PLANES] = {};
+                force_live = true;
+                bool ra = material_at((unsigned)x, (unsigned)y, u.page, a);
+                force_live = false;
+                bool rb = material_at((unsigned)x, (unsigned)y, u.page, b);
+                ++t[MATERIAL_AT].checked;
+                t[MATERIAL_AT].differ += ra != rb || memcmp(a, b, sizeof a) != 0;
+            }
+    }
+    {
+        auto [a, b] = both([] { return std::make_tuple(marked_use_count(), marked_cell_count(), scope_overflow_count(), material_cell_count()); });
+        ++t[COUNTS].checked, t[COUNTS].differ += a != b;
+        auto [pa, pb] = both([] { return map_problems().size(); });
+        ++t[PROBLEMS].checked, t[PROBLEMS].differ += pa != pb;
+        auto [sa, sb] = both([] { return map_serial(); });
+        ++t[SERIAL].checked, t[SERIAL].differ += sa != sb;
+    }
+    for (const UseLite& u : pub_uses) { /* every keyed use: its texels and its key's lookup, and its palette's variants */
+        if (u.refs > 0 && !u.key.empty())
+            for (float f : { 0.0f, 0.3f, 0.7f, 1.0f }) {
+                float ra[3], rb[3];
+                force_live = true;
+                int a = pc_emissive_key_texel(u.key.c_str(), f, 1.0f - f, ra);
+                force_live = false;
+                int b = pc_emissive_key_texel(u.key.c_str(), f, 1.0f - f, rb);
+                ++t[KEY_TEXEL].checked;
+                t[KEY_TEXEL].differ += a != b || memcmp(ra, rb, sizeof ra) != 0;
+            }
+        for (int k = 0; k < 4; k++) {
+            unsigned x = u.box[0] + (unsigned)(u.box[2] - u.box[0]) * (unsigned)(k & 1), y = u.box[1] + (unsigned)(u.box[3] - u.box[1]) * (unsigned)(k >> 1);
+            float ra[3] = {}, rb[3] = {}, la = 0, lb = 0;
+            force_live = true;
+            int a = pc_emissive_texel(x, y, u.page, u.clut, ra, &la);
+            force_live = false;
+            int b = pc_emissive_texel(x, y, u.page, u.clut, rb, &lb);
+            ++t[TEXEL].checked;
+            t[TEXEL].differ += a != b || memcmp(ra, rb, sizeof ra) != 0 || la != lb;
+        }
+        auto [va, vb] = both([&] { return palette_variants(u.page, u.clut); });
+        ++t[VARIANTS].checked, t[VARIANTS].differ += va != vb;
+    }
+    int used = snprintf(out, (size_t)size, "{\"ready\":true");
+    long differ = 0;
+    for (const Tally& x : t) {
+        used += snprintf(out + used, (size_t)size - (size_t)used, ",\"%s\":[%ld,%ld]", x.name, x.checked, x.differ);
+        differ += x.differ;
+    }
+    snprintf(out + used, (size_t)size - (size_t)used, ",\"differ\":%ld}", differ);
+}

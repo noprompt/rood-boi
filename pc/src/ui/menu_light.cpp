@@ -15,7 +15,7 @@
 #include "light_prefabs.h"
 #include "platform.h"
 #include "ui/ui_theme.h"
-#include "../present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "../present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 namespace ui {
 

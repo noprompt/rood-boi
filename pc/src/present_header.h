@@ -11,6 +11,9 @@
 #include "light_list.h"
 #include "post.h"
 #include "ui/menu_light.h"
+#include "environment.h"
+#include "scene_capture.h"
+#include "atmosphere.h"
 #define PC_PH_INTS(X) \
     X(aa_downsample, pc_aa_downsample) \
     X(aa_geometry_edges, pc_aa_geometry_edges) \
@@ -120,8 +123,26 @@ typedef struct {
     int scene_serial, scene_uv_serial, animated_count, animated_overflow;
     int animated[4096];
     /* every light of the list whatever the projection (the Vulkan trace's), and the full count */
+    /* the last gather's keys and importance (lights.cpp pc_lights_output): the renderer's shadow pick reads them */
+    int out_count;
+    unsigned long long out_keys[PC_LIGHTS_MAX];
+    float out_importance[PC_LIGHTS_MAX];
+    unsigned lights_frame;
     int light_count_all;
     pc_light_gpu lights_all[PC_LIGHTS_MAX];
+    /* the world lights the CPU-side GI gathers (lights.cpp pc_lights_world, at most 16) and the environment's record (environment.cpp) */
+    int world_light_count, world_light_shadows[16], env_active;
+    float world_lights[5][16][4];
+    pc_env_gpu env;
+    /* the atmosphere (atmosphere.cpp, environment.cpp, probe_overlay.cpp): the medium at the two hazes the presenter asks for (scene bounds), the
+     * fog volumes, the change hashes, the probes' base lights; a call with other arguments falls back to the live function (a guard hit) */
+    unsigned medium_hash, env_hash;
+    int medium_traced_ok, medium_low_ok, fogvol_count, probe_light_count;
+    pc_medium_gpu medium_traced, medium_low, fogvol_medium;
+    pc_fogvol_gpu fogvol;
+    pc_fogvol_info fogvol_info;
+    float probe_lights[5][16][4];
+    int probe_light_shadows[16];
 } pc_present_header;
 extern pc_present_header pc_present_header_now; /* the header of the present in progress */
 #define pc_ph() (&pc_present_header_now)
@@ -135,6 +156,20 @@ int pc_ph_scene_serial(void);
 int pc_ph_scene_uv_serial(void);
 const int* pc_ph_scene_animated(int* count);
 int pc_ph_lights_list(pc_light_gpu* out, int max);
+/* Shadow maps for the most important casters (the renderer's: its hysteresis state is its own; the inputs are the header's). */
+void pc_ph_lights_shadow_pick(int count, int* wants, int slots);
+/* The captured room's triangles: inside a present the renderer's copy (copied when the capture's serial changes, its animated triangles'
+ * UVs when the UV serial does; ROOD_PRESENT_CANARY_TRIANGLES=1 compares it with the live array at every fill and reports a difference). */
+const scene_triangle* pc_ph_scene_triangle_data(int* count);
+int pc_ph_lights_world(float position[][4], float color[][4], float direction[][4], float extent_right[][4], float extent_up[][4],
+    int shadows[], int max);
+int pc_ph_env_gpu_get(pc_env_gpu* out);
+int pc_ph_medium_gpu_get(pc_medium_gpu* out, float haze_density, const float room_lo[3], const float room_hi[3]);
+int pc_ph_fogvol_gpu_get(pc_medium_gpu* medium, pc_fogvol_gpu* out, pc_fogvol_info* info, const float room_lo[3], const float room_hi[3]);
+unsigned pc_ph_medium_hash(void);
+unsigned pc_ph_env_hash(void);
+int pc_ph_probe_lights_base(float position[][4], float color[][4], float direction[][4], float extent_right[][4], float extent_up[][4],
+    int shadows[], int max);
 int pc_ph_lighting_ao_traced(void);
 float pc_ph_lighting_traced_haze_density(void);
 void pc_present_enter(void);       /* the presenter begins: with the canary on, the live variables hold poison */
@@ -143,16 +178,7 @@ void pc_present_canary_pause(int on); /* 1: the live values back for a stretch o
 extern int pc_present_inside;
 /* A value the present reads from its header, and anything outside a present (the editors, RPC dumps: the game thread's own calls) from the live variable. */
 #define PC_PH_GET(field, live) (pc_present_inside ? pc_present_header_now.field : (live))
-/* Call guard (ROOD_PRESENT_CANARY_CALLS=1): a function that reads game-owned state, called while the presenter runs and not through the
- * header, is reported (once per name, with a count at exit; ROOD_PRESENT_CANARY_ABORT=1 aborts at the first). Put PC_PRESENT_GUARD("name")
- * first in such a function. The header's own fill (before the presenter) is outside it. */
-extern int pc_present_guard_on, pc_present_paused;
-void pc_present_violation(const char* what);
-#define PC_PRESENT_GUARD(what) \
-    do { \
-        if (pc_present_guard_on && pc_present_inside && !pc_present_paused) \
-            pc_present_violation(what); \
-    } while (0)
+#include "present_guard.h"
 #ifdef __cplusplus
 }
 #endif

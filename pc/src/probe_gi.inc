@@ -170,9 +170,7 @@ static float probe_luminance(const float c[3]) { return 0.299f * c[0] + 0.587f *
  * traced, the current ones (gather_lights: lp, lc) as a per-light scale. */
 static void probe_lights(void)
 {
-    int n = pc_probe_lights_base
-        ? pc_probe_lights_base(probe.pos, probe.col, probe.dir, probe.right, probe.up, probe.shadows, 16)
-        : -1;
+    int n = pc_ph_probe_lights_base(probe.pos, probe.col, probe.dir, probe.right, probe.up, probe.shadows, 16);
     int matched = n == light_count;
     for (int i = 0; matched && i < n; i++) /* the same lights in the same order (jitter moves them a little) */
         matched = fabsf(probe.pos[i][3] - lp[i][3]) < 1e-3f && fabsf(probe.col[i][3] - lc[i][3]) < 1e-3f;

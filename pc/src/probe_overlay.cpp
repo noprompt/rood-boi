@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "lights_internal.h"
 #include "probe_gi.h"
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 int pc_lights_world(float position[][4], float color[][4], float direction[][4], float extent_right[][4],
@@ -20,6 +21,7 @@ extern int pc_gi_bounces;
 int pc_probe_lights_base(float position[][4], float color[][4], float direction[][4], float right[][4], float up[][4],
     int shadows[], int max)
 {
+    PC_PRESENT_GUARD("pc_probe_lights_base");
     int saved = rood_lights::animate;
     rood_lights::animate = 0;
     int n = pc_lights_world(position, color, direction, right, up, shadows, max);

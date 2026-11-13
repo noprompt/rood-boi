@@ -12,7 +12,7 @@
 
 #include "ui/menu_light_fields.h"
 #include "ui/ui_tint.h"
-#include "../present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "../present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" float pc_ui_menu_opacity; // project_settings.cpp: settings ui_menu_opacity
 /* Looks at the theme file (twice a second at most; RPC status polls.theme): a

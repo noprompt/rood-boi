@@ -27,7 +27,7 @@ extern pc_matrix* RotMatrixYXZ_gte(pc_svector*, pc_matrix*);
 #include "scene_capture.h"
 #include "room_effects.h"
 #include "floor_grid.h"
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 /* The game's room (vs_battle_roomData, BATTLE 146C.h _mpdRoomSection):
  * unk0 is 1 while a room is loaded (func_8008AB80, func_8008ABF0),

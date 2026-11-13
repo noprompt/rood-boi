@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 /* ---- GL entry points (gl_api.h), resolved through SDL_GL_GetProcAddress ---- */
 #define DEFINE(ret, name, args) ret(*gl_##name) args;

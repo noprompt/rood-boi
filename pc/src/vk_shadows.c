@@ -4,6 +4,7 @@
  * SLOTS rows of six 512 x 512 faces (GL cube-face orientations, so the
  * present pass picks the face and texel exactly as a GL cube lookup).
  * A slot is redrawn only when the room, the casters or the light changed. */
+#include <stdlib.h>
 #include "vk_hw.h"
 #include "vk_shaders.h"
 #include <math.h>

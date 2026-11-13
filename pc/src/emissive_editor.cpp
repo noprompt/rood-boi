@@ -1725,6 +1725,8 @@ extern "C" void pc_emissive_panel(void)
  * last pick} | remove {id} | save | reload | export {id} | texel {u, v,
  * tpage, clut} | duplicate {id} (a copy in the user layer) | select {id}
  * (the panel's entry) | ui (the entry editor's buttons, the confirm)}. */
+extern "C" void pc_emissive_published_json(char* out, int size);
+extern "C" void pc_emissive_published_check_json(char* out, int size);
 extern "C" int pc_emissive_rpc(const char* params_text, char* out, int size)
 {
     Json params;
@@ -1744,6 +1746,16 @@ extern "C" int pc_emissive_rpc(const char* params_text, char* out, int size)
     };
     if (const Json* s = params.get("strength"); s && s->type == Json::Number)
         pc_emissive = (float)std::clamp(s->number, 0.0, 4.0);
+    if (action == "published") { /* the reads the game side served from the renderer's published copy (emissive.cpp) */
+        char text[512];
+        pc_emissive_published_json(text, sizeof text);
+        return snprintf(out, (size_t)size, "%s", text);
+    }
+    if (action == "published_check") { /* each published reader against the live state, on the same inputs (emissive.cpp) */
+        static char text[2048];
+        pc_emissive_published_check_json(text, sizeof text);
+        return snprintf(out, (size_t)size, "%s", text);
+    }
     if (action == "list")
         return reply(list_json(), out, size);
     if (action == "uses") {

@@ -20,6 +20,7 @@
 #include "lights_internal.h"
 #include "particles_internal.h"
 #include "scene_capture.h"
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 extern int pc_lights_enabled;
@@ -418,6 +419,7 @@ extern "C" int pc_env_open_sky(void)
 
 extern "C" int pc_env_gpu_get(pc_env_gpu* out)
 {
+    PC_PRESENT_GUARD("pc_env_gpu_get");
     memset(out, 0, sizeof *out);
     rood_lights::track_room(); /* the current room's items */
     if (!pc_env_global || !pc_lights_enabled)
@@ -561,6 +563,7 @@ static int drop_hidden(int x, int y, int z)
 
 extern "C" unsigned pc_env_hash(void)
 {
+    PC_PRESENT_GUARD("pc_env_hash");
     pc_env_gpu e;
     pc_env_gpu_get(&e);
     const unsigned char* b = (const unsigned char*)&e;

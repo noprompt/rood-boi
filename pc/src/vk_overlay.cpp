@@ -69,15 +69,39 @@ extern "C" void pc_vk_overlay_new_frame(void)
         ImGui_ImplVulkan_NewFrame();
 }
 
-/* The UI built this frame (ImGui::Render already ran), inside a rendering
- * scope on the window image. */
-extern "C" void pc_vk_overlay_render(VkCommandBuffer cmd)
+/* The UI built for this present (T1 R4c): the game thread builds it (pc_overlay_build, from the present's header fill: the panels read
+ * and edit live game state) and hands the renderer a copy of the draw data (ImDrawList::CloneOutput; the texture update list stays
+ * the context's), so the presenter reads nothing of the UI's own state. */
+static ImDrawData snapshot;
+static bool snapshot_ready;
+extern "C" void pc_vk_overlay_snapshot(void)
 {
+    for (ImDrawList* list : snapshot.CmdLists)
+        IM_DELETE(list);
+    snapshot.Clear();
+    snapshot_ready = false;
     if (!ready || !ImGui::GetCurrentContext())
         return;
     ImDrawData* data = ImGui::GetDrawData();
     if (!data || !data->Valid)
         return;
+    snapshot.Valid = true;
+    snapshot.FrameCount = data->FrameCount;
+    snapshot.TotalIdxCount = data->TotalIdxCount, snapshot.TotalVtxCount = data->TotalVtxCount;
+    snapshot.DisplayPos = data->DisplayPos, snapshot.DisplaySize = data->DisplaySize, snapshot.FramebufferScale = data->FramebufferScale;
+    snapshot.OwnerViewport = data->OwnerViewport;
+    snapshot.Textures = data->Textures;
+    for (const ImDrawList* list : data->CmdLists)
+        snapshot.CmdLists.push_back(list->CloneOutput()); /* (not AddDrawList: it checks the writer's pointers, a clone has none) */
+    snapshot_ready = true;
+}
+
+/* The UI built for this present (pc_vk_overlay_snapshot), inside a rendering scope on the window image. */
+extern "C" void pc_vk_overlay_render(VkCommandBuffer cmd)
+{
+    if (!ready || !snapshot_ready)
+        return;
+    ImDrawData* data = &snapshot;
     VkViewport viewport = { 0, 0, data->DisplaySize.x, data->DisplaySize.y, 0, 1 };
     vkCmdSetViewport(cmd, 0, 1, &viewport);
     ImGui_ImplVulkan_RenderDrawData(data, cmd);

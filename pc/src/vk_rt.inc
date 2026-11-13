@@ -484,7 +484,7 @@ static void vrt_room_uvs(const scene_triangle* room, int room_count)
 static int vrt_room(void)
 {
     int room_count;
-    const scene_triangle* room = pc_scene_triangle_data(&room_count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&room_count);
     int serial = pc_ph_scene_serial();
     int recheck = vrt.room_serial == serial && vrt.room_checks == 1 && vrt.frame - vrt.room_frame >= 60;
     if (serial == vrt.room_serial && room_count == vrt.room_count && !recheck) {
@@ -895,7 +895,7 @@ static void vrt_haze(vk_slice trace_ubo)
     if (pc_ph()->haze_quality != PC_HAZE_HIGH) /* lighting quality: haze High */
         return;
     static pc_medium_gpu medium;
-    if (!pc_medium_gpu_get(&medium, pc_ph_lighting_traced_haze_density(), room_lo, room_hi))
+    if (!pc_ph_medium_gpu_get(&medium, pc_ph_lighting_traced_haze_density(), room_lo, room_hi))
         return;
     medium.v[5][0] = medium.v[5][1] = medium.v[5][2] = 0; /* rt_haze.comp traces the sky (occluded) */
     int cell = pc_ph()->haze_cell < 1 ? 1 : pc_ph()->haze_cell > 16 ? 16 : pc_ph()->haze_cell;
@@ -905,7 +905,7 @@ static void vrt_haze(vk_slice trace_ubo)
     /* What the in-scattered light depends on besides the camera (the sun,
      * where the medium can be): history restarts when it changes. */
     static unsigned last_hash;
-    unsigned hash = pc_medium_hash() * 31u + pc_env_hash();
+    unsigned hash = pc_ph_medium_hash() * 31u + pc_ph_env_hash();
     if (hash != last_hash)
         vrt.haze_valid = 0, last_hash = hash;
     if (gx != vrt.haze_grid[0] || gy != vrt.haze_grid[1] || vrt.haze_grid[2] != HAZE_SLICES) {
@@ -1377,7 +1377,7 @@ int pc_vk_gi_update(int x, int y, int w, int h, int replay)
     if (!pc_ph_scene_camera_get(r, tr, &hh, &ox, &oy) || !pc_ph_scene_camera_inverse(inverse))
         return 0;
     int room_count;
-    if (!pc_scene_triangle_data(&room_count) || !room_count)
+    if (!pc_ph_scene_triangle_data(&room_count) || !room_count)
         return 0;
     /* As ptgi.c's ready(): emitters, lights; nothing to do without them. */
     update_emitters();

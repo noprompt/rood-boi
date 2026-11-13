@@ -31,6 +31,12 @@ extern int pc_ui_menu_model_light(pc_menu_light* out) __attribute__((weak));
 extern int pc_photo_capture_wanted(void) __attribute__((weak));
 extern int pc_emissive_active(void);
 extern void pc_lighting_sync(void);
+extern int pc_particles_gpu_snapshot(void);
+extern int pc_lights_output(unsigned long long* keys, float* importance, int max, unsigned* frame);
+extern int pc_probe_lights_base(float position[][4], float color[][4], float direction[][4], float extent_right[][4], float extent_up[][4],
+    int shadows[], int max) __attribute__((weak));
+extern int pc_lights_world(float position[][4], float color[][4], float direction[][4], float extent_right[][4], float extent_up[][4],
+    int shadows[], int max);
 extern int pc_lighting_ao_traced(void);
 extern float pc_lighting_traced_haze_density(void);
 extern int pc_scene_serial(void), pc_scene_uv_serial(void);
@@ -125,6 +131,13 @@ static void catalogue(void)
 #undef PC_PH_ADD
     add("gl_inset", pc_gl_inset, sizeof pc_gl_inset);
 }
+extern void pc_overlay_build(void) __attribute__((weak));
+static void pc_overlay_build_hook(void)
+{
+    if (pc_overlay_build)
+        pc_overlay_build();
+}
+static void scene_triangles_update(void);
 void pc_present_header_fill(void)
 {
     pc_present_header* h = &pc_present_header_now;
@@ -140,6 +153,7 @@ void pc_present_header_fill(void)
     pc_scene_bounds(h->room_lo, h->room_hi);
     /* the lights */
     h->light_count = h->projection_ok ? pc_lights_list(h->lights, PC_LIGHTS_MAX) : 0;
+    h->out_count = pc_lights_output(h->out_keys, h->out_importance, PC_LIGHTS_MAX, &h->lights_frame); /* (straight after the list the pick goes by) */
     pc_baked_shadow_params(h->baked_shadow);
     /* the menu */
     h->menu_active = pc_ui_menu_active && pc_ui_menu_active();
@@ -164,6 +178,129 @@ void pc_present_header_fill(void)
             memcpy(h->animated, animated, (size_t)h->animated_count * sizeof *h->animated);
     }
     h->light_count_all = pc_lights_list(h->lights_all, PC_LIGHTS_MAX);
+    pc_particles_gpu_snapshot(); /* the particles' game-thread half (particles.cpp) */
+    memset(h->world_light_shadows, 0, sizeof h->world_light_shadows);
+    h->world_light_count = pc_lights_world(h->world_lights[0], h->world_lights[1], h->world_lights[2], h->world_lights[3], h->world_lights[4],
+        h->world_light_shadows, 16);
+    h->env_active = pc_env_gpu_get(&h->env);
+    scene_triangles_update();
+    /* the atmosphere */
+    h->medium_traced_ok = pc_medium_gpu_get(&h->medium_traced, h->traced_haze, h->room_lo, h->room_hi);
+    h->medium_low_ok = pc_medium_gpu_get(&h->medium_low, h->low_haze, h->room_lo, h->room_hi);
+    h->fogvol_count = pc_fogvol_gpu_get(&h->fogvol_medium, &h->fogvol, &h->fogvol_info, h->room_lo, h->room_hi);
+    h->medium_hash = pc_medium_hash(), h->env_hash = pc_env_hash();
+    pc_overlay_build_hook(); /* last: the UI reads and edits the live settings after the values above were copied, as the present's own overlay did */
+    memset(h->probe_light_shadows, 0, sizeof h->probe_light_shadows);
+    h->probe_light_count = pc_probe_lights_base
+        ? pc_probe_lights_base(h->probe_lights[0], h->probe_lights[1], h->probe_lights[2], h->probe_lights[3], h->probe_lights[4],
+              h->probe_light_shadows, 16)
+        : -1;
+}
+int pc_ph_medium_gpu_get(pc_medium_gpu* out, float density, const float room_lo[3], const float room_hi[3])
+{
+    const pc_present_header* p = &pc_present_header_now;
+    if (pc_present_inside && !memcmp(room_lo, p->room_lo, sizeof p->room_lo) && !memcmp(room_hi, p->room_hi, sizeof p->room_hi)) {
+        if (density == p->traced_haze)
+            return *out = p->medium_traced, p->medium_traced_ok;
+        if (density == p->low_haze)
+            return *out = p->medium_low, p->medium_low_ok;
+    }
+    return pc_medium_gpu_get(out, density, room_lo, room_hi);
+}
+int pc_ph_fogvol_gpu_get(pc_medium_gpu* medium, pc_fogvol_gpu* out, pc_fogvol_info* info, const float room_lo[3], const float room_hi[3])
+{
+    const pc_present_header* p = &pc_present_header_now;
+    if (pc_present_inside && !memcmp(room_lo, p->room_lo, sizeof p->room_lo) && !memcmp(room_hi, p->room_hi, sizeof p->room_hi)) {
+        *medium = p->fogvol_medium, *out = p->fogvol;
+        if (info)
+            *info = p->fogvol_info;
+        return p->fogvol_count;
+    }
+    return pc_fogvol_gpu_get(medium, out, info, room_lo, room_hi);
+}
+unsigned pc_ph_medium_hash(void) { return pc_present_inside ? pc_present_header_now.medium_hash : pc_medium_hash(); }
+unsigned pc_ph_env_hash(void) { return pc_present_inside ? pc_present_header_now.env_hash : pc_env_hash(); }
+int pc_ph_probe_lights_base(float position[][4], float color[][4], float direction[][4], float extent_right[][4], float extent_up[][4],
+    int shadows[], int max)
+{
+    if (!pc_probe_lights_base)
+        return -1;
+    if (!pc_present_inside || max != 16)
+        return pc_probe_lights_base(position, color, direction, extent_right, extent_up, shadows, max);
+    const pc_present_header* p = &pc_present_header_now;
+    memcpy(position, p->probe_lights[0], sizeof p->probe_lights[0]), memcpy(color, p->probe_lights[1], sizeof p->probe_lights[1]);
+    memcpy(direction, p->probe_lights[2], sizeof p->probe_lights[2]), memcpy(extent_right, p->probe_lights[3], sizeof p->probe_lights[3]);
+    memcpy(extent_up, p->probe_lights[4], sizeof p->probe_lights[4]);
+    memcpy(shadows, p->probe_light_shadows, sizeof p->probe_light_shadows);
+    return p->probe_light_count;
+}
+static scene_triangle* tri_copy;
+static int tri_count, tri_capacity, tri_serial = -1, tri_uv_serial = -1;
+static void scene_triangles_update(void)
+{
+    int count = 0;
+    const scene_triangle* live = pc_scene_triangle_data(&count);
+    int serial = pc_scene_serial(), uv = pc_scene_uv_serial();
+    if (!live || count <= 0) {
+        tri_count = 0, tri_serial = -1;
+        return;
+    }
+    if (serial != tri_serial || count != tri_count) {
+        if (count > tri_capacity) {
+            free(tri_copy);
+            tri_capacity = count + count / 4;
+            tri_copy = malloc((size_t)tri_capacity * sizeof *tri_copy);
+        }
+        memcpy(tri_copy, live, (size_t)count * sizeof *live);
+        tri_count = count, tri_serial = serial, tri_uv_serial = uv;
+    } else if (uv != tri_uv_serial) {
+        int n = 0;
+        const int* animated = pc_scene_animated(&n);
+        for (int k = 0; animated && k < n; k++)
+            if (animated[k] >= 0 && animated[k] < count)
+                tri_copy[animated[k]] = live[animated[k]];
+        tri_uv_serial = uv;
+    }
+    static int verify = -1;
+    if (verify < 0)
+        verify = getenv("ROOD_PRESENT_CANARY_TRIANGLES") != NULL;
+    if (verify && memcmp(tri_copy, live, (size_t)count * sizeof *live)) {
+        int first = 0, diffs = 0;
+        for (int i = 0; i < count; i++)
+            if (memcmp(&tri_copy[i], &live[i], sizeof *live)) {
+                if (!diffs++)
+                    first = i;
+            }
+        fprintf(stderr, "[present-canary] the scene triangles' copy differs from the live array in %d of %d (first %d; serial %d, uv %d)\n", diffs, count,
+            first, serial, uv);
+        memcpy(tri_copy, live, (size_t)count * sizeof *live); /* (report once per change) */
+    }
+}
+const scene_triangle* pc_ph_scene_triangle_data(int* count)
+{
+    if (!pc_present_inside)
+        return pc_scene_triangle_data(count);
+    *count = tri_count;
+    return tri_count ? tri_copy : NULL;
+}
+int pc_ph_lights_world(float position[][4], float color[][4], float direction[][4], float extent_right[][4], float extent_up[][4],
+    int shadows[], int max)
+{
+    if (!pc_present_inside || max != 16)
+        return pc_lights_world(position, color, direction, extent_right, extent_up, shadows, max);
+    const pc_present_header* p = &pc_present_header_now;
+    memcpy(position, p->world_lights[0], sizeof p->world_lights[0]), memcpy(color, p->world_lights[1], sizeof p->world_lights[1]);
+    memcpy(direction, p->world_lights[2], sizeof p->world_lights[2]), memcpy(extent_right, p->world_lights[3], sizeof p->world_lights[3]);
+    memcpy(extent_up, p->world_lights[4], sizeof p->world_lights[4]);
+    memcpy(shadows, p->world_light_shadows, sizeof p->world_light_shadows);
+    return p->world_light_count;
+}
+int pc_ph_env_gpu_get(pc_env_gpu* out)
+{
+    if (!pc_present_inside)
+        return pc_env_gpu_get(out);
+    *out = pc_present_header_now.env;
+    return pc_present_header_now.env_active;
 }
 void pc_ph_scene_bounds(float lo[3], float hi[3])
 {
@@ -214,6 +351,52 @@ const int* pc_ph_scene_animated(int* count)
         return pc_scene_animated(count);
     *count = pc_present_header_now.animated_count;
     return pc_present_header_now.animated;
+}
+/* Shadow maps for the most important casters only (the renderer's copy of lights.cpp's pick: the same choice, its hysteresis state here). */
+/* Shadow maps for the most important casters only: the renderer's copy of lights.cpp's pick (tests/shadow_pick_test.py runs the two on the
+ * same random frames), its hysteresis state here. */
+void pc_ph_lights_shadow_pick(int count, int* wants, int slots)
+{
+    static struct {
+        unsigned long long keys[16];
+        int count;
+        unsigned frame;
+    } kept;
+    const pc_present_header* p = &pc_present_header_now;
+    if (p->out_count != count || slots > 16)
+        return;
+    int casters = 0;
+    for (int i = 0; i < count; i++)
+        casters += wants[i] != 0;
+    if (casters <= slots)
+        return;
+    static int order[PC_LIGHTS_MAX];
+    static float score[PC_LIGHTS_MAX];
+    int n = 0;
+    for (int i = 0; i < count; i++) {
+        score[i] = 0;
+        if (wants[i]) {
+            order[n++] = i;
+            int was = 0;
+            for (int k = 0; p->out_keys[i] && k < kept.count; k++)
+                was |= kept.keys[k] == p->out_keys[i];
+            score[i] = p->out_importance[i] * (was ? 1.5f : 1.0f);
+        }
+    }
+    for (int a = 1; a < n; a++) { /* a stable sort, best first */
+        int v = order[a], b = a - 1;
+        while (b >= 0 && score[order[b]] < score[v])
+            order[b + 1] = order[b], --b;
+        order[b + 1] = v;
+    }
+    for (int k = slots; k < n; k++)
+        wants[order[k]] = 0;
+    if (kept.frame != p->lights_frame) {
+        kept.frame = p->lights_frame;
+        kept.count = 0;
+        for (int k = 0; k < slots && k < n; k++)
+            kept.keys[kept.count++] = p->out_keys[order[k]];
+    }
 }
 int pc_ph_lights_list(pc_light_gpu* out, int max)
 {

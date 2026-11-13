@@ -91,7 +91,7 @@ int pc_vk_particles_update(int x, int y, int w, int h, int traced)
     if (vpt.rt && !pc_ph()->particles_untraced) {
         if (traced && vrt.tlas)
             rt = 1;
-        else if (pc_scene_triangle_data(&room) && room && vrt_init() && vrt_scene() && vrt.tlas)
+        else if (pc_ph_scene_triangle_data(&room) && room && vrt_init() && vrt_scene() && vrt.tlas)
             rt = 2;
     }
     pu->info2[3] = rt != 0;

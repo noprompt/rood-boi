@@ -2439,6 +2439,21 @@ extern "C" int pc_photo_hide_overlay(void) __attribute__((weak));
 extern "C" int pc_photo_hide_hud(void) __attribute__((weak));
 extern "C" void pc_photo_format_draw(void) __attribute__((weak));
 
+/* The Vulkan overlay, built on the game thread for the present about to be requested (present_header.c, after the header's values are
+ * copied): the window's size as the last present left it, and a copy of the draw data for the renderer. */
+extern "C" void pc_vk_window_size(int* w, int* h);
+extern "C" void pc_vk_overlay_snapshot(void);
+extern "C" void pc_overlay_frame(int width, int height);
+extern "C" void pc_overlay_build(void)
+{
+#ifdef ROOD_VULKAN
+    int w = 0, h = 0;
+    pc_vk_window_size(&w, &h);
+    if (w > 0 && h > 0)
+        pc_overlay_frame(w, h);
+    pc_vk_overlay_snapshot();
+#endif
+}
 extern "C" void pc_overlay_frame(int width, int height)
 {
     if (!active)

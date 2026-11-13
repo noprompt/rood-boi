@@ -84,6 +84,7 @@ static VkExtent2D swapchain_extent; /* its images' size: the window image's whil
 /* stale: recreate the swapchain at the next frame's start (a size change,
  * OUT_OF_DATE or SUBOPTIMAL). window_w/h: the window image's size. */
 static int swapchain_stale, window_w, window_h;
+void pc_vk_window_size(int* w, int* h) { *w = window_w, *h = window_h; } /* what the overlay is built for (T1 R4c) */
 static int swapchain_vsync; /* the swapchain waits for the refresh (FIFO): settings vsync when it was made */
 extern int pc_vsync_get(void); /* boot_window.c */
 extern unsigned pc_window_presents; /* gl_present.c: images that reached the window (RPC status) */
@@ -791,7 +792,7 @@ static void fill_present_ubo(present_ubo* u, int x, int y, int w, int h, int vie
             for (int i = 0; i < count; i++)
                 slots[i] = wants[i] ? -2 : -1;
         else { /* no traced visibility: shadow maps (vk_shadows.c) for the most important casters */
-            pc_lights_shadow_pick(count, wants, pc_vk_shadows_slots());
+            pc_ph_lights_shadow_pick(count, wants, pc_vk_shadows_slots());
             pc_vk_shadows_update(count, (const float(*)[4])lw, wants, slots);
         }
         float r[3][3], t[3], a, b, r_inverse[3][3];
@@ -844,7 +845,7 @@ static void fill_present_ubo(present_ubo* u, int x, int y, int w, int h, int vie
     u->quality1[2] = pc_ph()->haze_debug; /* the haze alone (atmosphere.h) */
     u->quality2[0] = pc_ph()->light_size;
     /* The sun and sky: the trace weighs a shadow-casting sun into the visibility. */
-    u->env_mode[2] = pc_env_gpu_get(&u->env);
+    u->env_mode[2] = pc_ph_env_gpu_get(&u->env);
     u->env_mode[0] = gi && pc_ph()->rt_shadows && u->env.sun_col[3] > 0.5f ? -2 : -1;
     if (u->env_mode[0] == -1 && u->env.sun_col[3] > 0.5f
         && pc_vk_shadows_sun(u->env.sun_dir, u->sun_matrix, u->sun_light, u->sun_tile))
@@ -1132,7 +1133,7 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
              * and the interior for haze_debug 2); haze Low (or High where nothing traced it this frame)
              * marches it per pixel, unshadowed but for the sun's map. */
             int medium_any = !pc_ph()->gl_show_depth
-                && pc_medium_gpu_get(&pu->medium, pc_ph()->low_haze, pu->room_lo, pu->room_hi);
+                && pc_ph_medium_gpu_get(&pu->medium, pc_ph()->low_haze, pu->room_lo, pu->room_hi);
             pu->quality0[0] = !pu->haze_grid[3] && medium_any
                 /* the uniform haze alone with nothing to light it would only darken: as before, none */
                 && (present_light_count > 0 || pu->env_mode[2] || pc_medium_has_fog());
@@ -1322,9 +1323,7 @@ void pc_vk_present(const uint16_t* vram, int x, int y, int w, int h)
     }
 overlay:
     photo_capture();
-    pc_present_canary_pause(1); /* the overlay builds its panels from the live settings and edits them: the game thread's work */
-    pc_overlay_frame(window_w, window_h);
-    pc_present_canary_pause(0);
+    /* (the overlay was built on the game thread, with the header: pc_overlay_build; its draw data is the copy below) */
     {
         vk_attachments a = { .colors = { window_image.view }, .color_count = 1, .width = window_w, .height = window_h };
         vk_begin_rendering(&a);

@@ -21,7 +21,7 @@
 #endif
 
 #include "platform.h"
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 namespace {
 using photo::contains;

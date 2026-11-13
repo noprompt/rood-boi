@@ -200,7 +200,7 @@ static int probe_vk_bvh(void)
     int serial = pc_ph_scene_serial(), room_count;
     if (serial == pvk.bvh_serial)
         return pvk.bvh_triangles > 0;
-    const scene_triangle* room = pc_scene_triangle_data(&room_count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&room_count);
     pvk.bvh_serial = serial;
     pvk.bvh_triangles = 0;
     triangle_count = 0;
@@ -332,7 +332,7 @@ int pc_vk_probes_update(int x, int y, int w, int h, int replay)
     if (!probe_wanted() || !probe_vk_init())
         return 0;
     int room_count;
-    if (!pc_scene_triangle_data(&room_count) || !room_count)
+    if (!pc_ph_scene_triangle_data(&room_count) || !room_count)
         return 0;
     /* Lights and emitters: the path-traced update's when it ran this frame. */
     int traced = vrt.state > 0 && vrt.updates != pvk.seen_updates;

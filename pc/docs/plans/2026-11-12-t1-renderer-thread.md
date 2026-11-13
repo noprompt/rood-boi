@@ -328,3 +328,73 @@ Left, from the call guards (`ROOD_PRESENT_CANARY_CALLS=1 ROOD_PRESENT_CANARY_TRA
   (atmosphere and environment modules' GPU inputs, built from game-thread settings), `pc_scene_triangle_data` (the captured room: a
   by-value record when its serial changes), `pc_probe_lights_base`, `pc_vk_movers` (render.c, R4d's);
 - `gte_widescreen`, read by the renderer's own record-time and replay code (the adopted frame's header).
+
+### R4b status (particles, world lights, environment, the captured room)
+
+Also done, through the frame header: the particles' game-thread half (`pc_particles_gpu_snapshot`, gathered at the fill at a placeholder
+display size; the presenter's `pc_particles_gpu_frame(w, h, ...)` takes the copy and sets its own size), the CPU-side GI's world lights
+(`pc_lights_world`, at most 16) and the environment record (`pc_env_gpu_get`), and the captured room's triangles (a renderer-side copy,
+refreshed when the scene serial changes, and its animated triangles' UVs when the UV serial does; `ROOD_PRESENT_CANARY_TRIANGLES=1`
+compares it with the live array at every fill: no difference on platforms and story with GI on). The particle pass could not be exercised
+here (no emitter draws in the headless rooms tried), so its proof is the hashes and the guards, not a drawn mote.
+
+Left inside the present, from the guards: `pc_medium_gpu_get` (atmosphere; reads the room's floor grid and bounds, two calls with
+different densities), `pc_lights_shadow_pick` (stateful), `pc_glows_update`, `pc_fogvol_gpu_get`, `pc_medium_hash`/`pc_env_hash`,
+`pc_probe_lights_base`, and the emissive functions (R4d's).
+
+### R4b-4 (the atmosphere)
+
+Done: the medium at the two hazes the presenter asks for (traced and low, at the scene bounds), the fog volumes, the medium and environment
+change hashes, the probes' base lights and the presenter's environment record come from the header (`pc_ph_medium_gpu_get` and the others
+match the call's arguments against what the fill computed, and fall back to the live function, which the guards then report, when they
+differ: none did on platforms or story with GI on). Guards now list only the emissive functions (R4d), `pc_lights_shadow_pick` and
+`pc_glows_update` (ptgi's emitter update) as reads of game state inside the present.
+
+### R4c (the overlay and editors)
+
+Done: the developer overlay, the editors, the modern menus' ImGui drawing and the HUD panels (everything `pc_overlay_frame` builds) are built on the game
+thread, from the present's header fill (`pc_overlay_build`, last in the fill: the panels read and edit the live settings after the header copied
+them, as the present's own overlay did), at the window size the last present left. The renderer gets a copy of the draw data
+(`ImDrawList::CloneOutput` per list; `pc_vk_overlay_snapshot`), which `pc_vk_overlay_render` draws; the presenter calls nothing of the UI.
+Effects of the move: a panel that shows a render result (the render timings, the presented view's rectangle) shows the last present's, one frame
+older; a window resize shows the UI built for the old size scaled for one frame. Left for R4e: ImGui's texture updates (`draw_data->Textures`,
+the font atlas and the user textures the backend uploads inside RenderDrawData) still point into the context, and the backend's descriptor sets are made
+on whichever thread builds the UI: the renderer thread must run the texture updates from a queued copy, or ImGui's own texture requests become
+records.
+
+## 10. R4e review: what stands between here and the thread (2026-11-13)
+
+State of the present: the call guards (`ROOD_PRESENT_CANARY_CALLS=1`) list one live read of game state inside the presenter and everything it
+runs, with GI on: `pc_emissive_active` (R4d's snapshot, not yet merged). Everything else the presenter and the GI, probe, fog-volume,
+particle and overlay code needed is in the frame header, copied on the game thread (settings, scene, lights, atmosphere, the particles'
+and the shadow pick's inputs, the captured room, the UI's draw data). Canary level 1 poisons the settings and the proofs are 0 differ.
+
+What R4e still has to settle, in the order I would do it:
+
+1. **The emissive snapshot** (R4d, `t1-r1` d237ed62b and its next commit), and **ptgi's `update_emitters`** with `pc_glows_update`: it builds the
+   glows from the room's triangles, the emissive lights and the renderer's effect lists, then `pc_glows_update` (stable ids, smoothing,
+   the editor's overrides: game-side state) turns them into the emitter arrays. It is a producer step: run it at the header fill and carry the
+   emitter arrays (`emitter_pos/col/shape/shadow`, `emitter_count`) in the header; the renderer-side lists it reads (`pc_hw_emissives`) are
+   then the walk's records. Blocked on the emissive snapshot.
+2. **VRAM events carry their payload.** `rvram_apply` copies an upload, fill or copy from the game's array when the renderer applies the
+   record, which is the same moment on one thread. On a thread the record must carry the pixels (as the raster post does); the read-back
+   fences (`sync_store`, `sync_texture`, `pc_hw_sync` for captures) become request and reply. The stream already names every such event
+   (kind 1 to 6), so the payloads are the stream's.
+3. **Game-thread callers of the renderer's internals**: the RPC dumps (`pc_hw_dump`, `pc_hw_redraw`, the `gpu_*` RPCs), the editors
+   (`pc_hw_native_texture`, `pc_hw_casters`, `pc_hw_caster_surfaces`, `pc_hw_present_all_lists`), photo mode (`pc_hw_photo_*`, `pc_hw_resync`),
+   the engine reload and the save-state restore (`pc_hw_resync`), the settings that set `pc_hw_*` globals (scale, subpixel, perspective,
+   texture filter, interpolate). Each becomes a request on the mailbox (with a reply where it returns something) or a header setting.
+4. **ImGui's texture updates** (R4c's note): the backend uploads the font atlas and user textures inside `RenderDrawData`; the texture list
+   must travel with the draw data (a copy of the pending updates), and descriptor sets are made on the renderer thread.
+5. **`gte_widescreen`** and the other values the renderer's record-time and replay code read live (`gpu_hw.c`): the adopted frame's header
+   (T4's frame value) carries them per frame.
+6. **The window.** SDL events and pacing stay on the game thread; the swapchain, its resize and the present move with the Vulkan context
+   (the R5 present service and its pacing then run on the renderer thread, `present_stats` read through a request). A resize is a message.
+7. **Snapshot, rewind, photo, engine reload**: `fence_all` (drain the mailbox and the GPU) before capture, then a `resync` request after restore;
+   the renderer's own state (the write log, recordings, caches) is host state and is rebuilt by `pc_hw_resync`.
+8. **The gate**: `render_jitter_smoke` with the noise at real thread scheduling (the points are the mailbox's), the replay lanes, the
+   canaries (poison at level 2 once `gte_widescreen` moves), and the full state hash. Plus a TSan build of the mailbox itself.
+
+Size, with the emissive snapshot landed: items 2 and 3 are the bulk (about 2 weeks: they touch every renderer entry point the game
+calls), 4 to 6 about a week, 7 and 8 a few days. Risk: the Vulkan context moving threads (queue and device are fine; ImGui's
+backend and the swapchain are the checks) and shutdown ordering.

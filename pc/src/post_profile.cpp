@@ -29,7 +29,7 @@
 #include "lights_internal.h"
 #include "platform.h"
 #include "environment_internal.h"
-#include "present_header.h" /* PC_PRESENT_GUARD (T1 R4a) */
+#include "present_guard.h" /* PC_PRESENT_GUARD (T1 R4a) */
 
 extern "C" {
 extern unsigned pc_vsync_count(void) __attribute__((weak));

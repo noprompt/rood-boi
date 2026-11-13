@@ -1,6 +1,7 @@
 // The port's particle system (particles.h, particles_internal.h; pc/docs/Particles.md):
 // the room's emitters (lighting items, their assets resolved), the frame the
 // renderers draw, OpenGL's CPU path, RPC particles.
+#include "present_header.h"
 #include "particles.h"
 #include "particles_internal.h"
 
@@ -472,9 +473,36 @@ extern "C" int pc_particles_cpu_frame(int w, int h, const uint32_t** keys, const
     *keys = cpu_keys.data(), *colours = cpu_colours.data(), *count = n;
     return 1;
 }
+/* The game thread's half of this present's motes (T1 R4b): the emitters, the room, the lights, the environment, gathered when the present
+ * is requested (present_header.c, before the presenter runs) at a placeholder display size; pc_particles_gpu_frame then hands the presenter
+ * this copy with its own size. Returns the motes (0: none). */
+static Frame snapshot;
+static int snapshot_motes = -1;
+extern "C" int pc_particles_gpu_snapshot(void)
+{
+    snapshot_motes = gather(snapshot, 1, 1) ? snapshot.motes : 0;
+    return snapshot_motes;
+}
 extern "C" int pc_particles_gpu_frame(int w, int h, pc_particles_gpu* out, pc_light_gpu* lights, int max, int* light_count)
 {
     auto start = std::chrono::steady_clock::now();
+    if (pc_present_inside && snapshot_motes >= 0 && w > 0 && h > 0) {
+        if (!snapshot_motes) {
+            stats.motes = 0, stats.path = "off";
+            return 0;
+        }
+        frame = snapshot; /* (the rest of the pass reads `frame`) */
+        frame.w = w, frame.h = h;
+        frame.gpu.info[2] = w, frame.gpu.info[3] = h;
+        *out = frame.gpu;
+        int n = std::min(frame.light_count, max);
+        memcpy(lights, frame.lights.data(), (size_t)n * sizeof(pc_light_gpu));
+        *light_count = n;
+        out->info2[0] = n;
+        stats.motes = frame.motes;
+        perf_add(start);
+        return frame.motes;
+    }
     if (!gather(frame, w, h)) {
         stats.motes = 0, stats.path = "off";
         return 0;

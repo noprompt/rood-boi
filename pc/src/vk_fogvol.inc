@@ -131,7 +131,7 @@ int pc_vk_fogvol_update(int x, int y, int w, int h, int replay, int traced)
     pc_fogvol_info info;
     float lo[3], hi[3];
     pc_ph_scene_bounds(lo, hi);
-    int count = pc_fogvol_gpu_get(&medium, &record, &info, lo, hi);
+    int count = pc_ph_fogvol_gpu_get(&medium, &record, &info, lo, hi);
     if (count <= 0) {
         vfv.valid = 0, vfv.grids_new = 1; /* volumes coming back start fresh */
         return 0;

@@ -317,7 +317,7 @@ static void update_room_uvs(const scene_triangle* room, int room_count)
 static int update_scene(void)
 {
     int room_count, caster_count, caster_serial;
-    const scene_triangle* room = pc_scene_triangle_data(&room_count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&room_count);
     const float* casters = pc_hw_casters(&caster_count, &caster_serial);
     const caster_surface* surfaces = pc_hw_caster_surfaces();
     int serial = pc_ph_scene_serial();
@@ -520,7 +520,7 @@ static void estimate_baked_lights(void)
         return;
     baked_serial = serial;
     baked_count = 0;
-    const scene_triangle* tris = pc_scene_triangle_data(&count);
+    const scene_triangle* tris = pc_ph_scene_triangle_data(&count);
     if (!count)
         return;
     float* lum = malloc((size_t)count * 3 * sizeof *lum);
@@ -744,7 +744,7 @@ static int flame_samples(const scene_triangle* t, int steps, int relative, float
 int pc_gi_flame_near(const float p[3], float radius, float out[4])
 {
     int count;
-    const scene_triangle* room = pc_scene_triangle_data(&count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&count);
     enum { MAX_NEAR = 8192 };
     static float near[MAX_NEAR][4];
     int n = 0;
@@ -790,7 +790,7 @@ int pc_gi_flame_near(const float p[3], float radius, float out[4])
 int pc_gi_flames(float out[][4], int max)
 {
     int count;
-    const scene_triangle* room = pc_scene_triangle_data(&count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&count);
     enum { MAX_SAMPLES = 4096 };
     static float sp[MAX_SAMPLES][4];
     int n = 0;
@@ -833,7 +833,7 @@ int pc_gi_flames(float out[][4], int max)
 int pc_gi_fixture_triangles(const float p[3], float radius, float (*out)[9], int max)
 {
     int count, n = 0;
-    const scene_triangle* room = pc_scene_triangle_data(&count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&count);
     for (int i = 0; i < count && n < max; i++) {
         int near = 0, far = 0; /* a corner close by, none beyond 3 radii (not the wall around it) */
         for (int j = 0; j < 3; j++) {
@@ -862,7 +862,7 @@ static void update_emitters(void)
     enum { MAX_GLOWS = 8192 };
     static glow glows[MAX_GLOWS];
     int n = 0, room_count, effect_count;
-    const scene_triangle* room = pc_scene_triangle_data(&room_count);
+    const scene_triangle* room = pc_ph_scene_triangle_data(&room_count);
     for (int i = 0; i < room_count; i++) {
         const scene_triangle* t = &room[i];
         unsigned mode = (t->tpage >> 5) & 3;
@@ -1746,13 +1746,13 @@ static pc_env_gpu env_now;
 static int env_active;
 static int gather_env(void)
 {
-    env_active = pc_env_gpu_get(&env_now);
+    env_active = pc_ph_env_gpu_get(&env_now);
     return env_active;
 }
 static int gather_lights(void)
 {
     memset(light_shadows, 0, sizeof light_shadows);
-    light_count = pc_lights_world(lp, lc, ld, lr, lu, light_shadows, 16);
+    light_count = pc_ph_lights_world(lp, lc, ld, lr, lu, light_shadows, 16);
     return light_count || (pc_gi_baked_bounce > 0 && pc_gi_enabled);
 }
 
@@ -1811,7 +1811,7 @@ static GLuint run(gi_context* c, const float to_image[16], const float eye[3], f
         /* The room's medium (atmosphere.h): haze High only. */
         static pc_medium_gpu medium;
         int on = pc_haze_quality == PC_HAZE_HIGH
-            && pc_medium_gpu_get(&medium, pc_ph_lighting_traced_haze_density(), room_lo, room_hi);
+            && pc_ph_medium_gpu_get(&medium, pc_ph_lighting_traced_haze_density(), room_lo, room_hi);
         medium.v[5][0] = medium.v[5][1] = medium.v[5][2] = 0; /* the march traces the sky */
         gl_Uniform1f(U(pr, "fog_density"), on ? 1.0f : 0.0f);
         gl_Uniform4fv(U(pr, "medium_"), PC_MEDIUM_VEC4S, &medium.v[0][0]);
