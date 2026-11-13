@@ -329,7 +329,6 @@ static int shadow_count, shadowing;
 /* A claim's draws as draw items (the game's own were: classic_finish): placed in the ordering table by markers
  * (a frame that has one) or not (items alone); `depth` the slot the command draws at, in words from vs_scratch.unk4. */
 static int emit_items, emit_placed, emit_depth;
-int claim_items_dropped; /* commands left out of a frame with no table because they are not items (a claim to convert) */
 /* vs_scratch.unk8 from unk4, in bytes: the battle's own table's 16 words before it, and a frame of items alone has
  * neither pointer set. */
 static int unk8_offset(void)
@@ -1458,7 +1457,7 @@ static int restyle = 1; /* text reported to ui_text (not for the parity gate's s
 /* (the collection is scratch of one command: host-owned, so the parity gate's state proof does not see it)
  * A claim command whose packets are only words (a rectangle, a gradient, a quad, a window, a plate, a raw packet) is made as draw
  * items without a packet in memory: its words are collected here (collecting), in the order they would have been linked, and decoded
- * to items (pc_frame_add_packets, as pc_lift_end does for a printer's packets). When the decoder will not take them the command is
+ * to items (pc_frame_add_packets). When the decoder will not take them the command is
  * made again as packets. */
 enum { COLLECT_WORDS = 2048, COLLECT_PACKETS = 64 };
 static int collecting __attribute__((section(".data.rood_host")));
@@ -1917,72 +1916,17 @@ static int bridged(int type)
     return 0;
 }
 static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed);
-/* Packets a printer writes, lifted to draw items: pc_lift_begin returns the word the printer links its packets at (give
- * it as the printer's `ot`); pc_lift_end turns what was written into items at `depth`, placed by a marker linked at
- * `ot` (when `placed`: the frame has a table) or alone, and gives the packets' memory back; ui_text's reports are
- * held meanwhile and made by the items (pc_text_defer). When the words are not items (the decoder: a primitive with no
- * draw mode before it, other commands) the packets are linked into `ot` as written, and a frame with no table drops
- * them (counted). Returns 1 when items were made. The printers stay the game's, shared with battle. */
-static u_long lift_head = 0x00FFFFFF;
-static const unsigned* lift_mark;
-static int lift_type = -1; /* (the claim command being lifted: the test mode's log) */
-void* pc_lift_begin(void)
+/* Whether the packets in [from, to) are all item markers (the command made items, no raw GP0 words). */
+static int only_markers(const u_long* from, const u_long* to)
 {
-    lift_mark = packet_cursor();
-    lift_head = 0x00FFFFFF;
-    if (pc_text_defer)
-        pc_text_defer();
-    return &lift_head;
-}
-static int lift_end(int depth, int placed, void* ot_in);
-int pc_lift_end(int depth, int placed, void* ot_in)
-{
-    int made = lift_end(depth, placed, ot_in);
-    lift_mark = NULL, lift_head = 0x00FFFFFF; /* (scratch: the state proofs see none of it) */
-    return made;
-}
-static int lift_end(int depth, int placed, void* ot_in)
-{
-    u_long *ot = ot_in, *end = packet_cursor();
-    unsigned words[256];
-    int n = 0, first = -1, count = 0, ok = 1;
-    pc_classic_walker guest = pc_classic_guest();
-    const unsigned *tag, *mark = lift_mark;
-    for (tag = guest.resolve(lift_head, NULL); tag && ok; tag = guest.resolve(tag[0], NULL)) {
-        unsigned len = tag[0] >> 24;
-        if (tag < mark || tag >= (const unsigned*)end || n + (int)len > 256)
-            ok = 0;
-        else {
-            memcpy(words + n, tag + 1, len * sizeof *words);
-            n += (int)len;
-        }
+    const unsigned* p = (const unsigned*)from;
+    while (p < (const unsigned*)to) {
+        unsigned len = p[0] >> 24;
+        if (len == 0 || p + 1 + len > (const unsigned*)to || p[1] != 0x00495449u)
+            return 0;
+        p += 1 + len;
     }
-    if (ok && n && (count = pc_frame_add_packets(depth, words, n, &first)) > 0
-        && (!pc_text_defer_items || pc_text_defer_items(first, count))) {
-        pc_classic_items_note(1, lift_type);
-        /* (given back: the items hold what the packets did; a marker takes the first words) */
-        vs_scratch.unk0 = placed ? (u_long*)pc_frame_place(first, count, (unsigned*)ot, (unsigned*)mark) : (u_long*)mark;
-        return 1;
-    }
-    if (first >= 0 && pc_frame_count() > first && count > 0) /* (the items made, their reports not: given back) */
-        pc_frame_rewind(first);
-    if (pc_text_defer_packets)
-        pc_text_defer_packets();
-    pc_classic_items_note(0, lift_type);
-    if (!placed) { /* (a frame of items alone has no table to link them in: left out) */
-        ++claim_items_dropped;
-        vs_scratch.unk0 = (u_long*)mark;
-        return 0;
-    }
-    if (lift_head != 0x00FFFFFF) { /* (as the packets: the chain's last links to what the slot held) */
-        unsigned* last = (unsigned*)guest.resolve(lift_head, NULL);
-        while (last && (last[0] & 0xFFFFFF) != 0xFFFFFF)
-            last = (unsigned*)guest.resolve(last[0], NULL);
-        if (last)
-            last[0] = (last[0] & 0xFF000000) | (ot[0] & 0xFFFFFF);
-        ot[0] = lift_head & 0xFFFFFF;
-    }
-    return 0;
+    return 1;
 }
 static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
 {
@@ -2011,15 +1955,22 @@ static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int 
                 return;
             }
         }
+        pc_classic_items_note(0, c->type);
         break; /* (the decoder would not: as packets, as before) */
     }
     default:
         break;
     }
-    lift_type = c->type;
-    emit_command_packets(c, pc_lift_begin(), kind, shadowed);
-    pc_lift_end(emit_depth, emit_placed, ot);
-    lift_type = -1;
+    {
+        /* (the printers make items and place them at `ot` by markers themselves; a frame of items alone has no table: the
+         * markers link into a scratch head and are given back, the items stay, drawn by their order) */
+        u_long head = 0x00FFFFFF, *mark = packet_cursor();
+        emit_command_packets(c, emit_placed ? ot : &head, kind, shadowed);
+        if (pc_classic_force_items())
+            pc_classic_items_note(only_markers(mark, packet_cursor()), c->type); /* (the test mode's log: ROOD_CLASSIC_ITEMS) */
+        if (!emit_placed)
+            vs_scratch.unk0 = mark;
+    }
 }
 static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
 {

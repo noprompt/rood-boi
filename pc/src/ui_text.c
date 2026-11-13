@@ -1498,48 +1498,11 @@ static void glyph_now(void* const* commands, int count, int glyph, int x, int y,
     }
 }
 
-/* ---- status words held back while a claim's packets are being turned into draw items ----
- * Glyphs are reported as the printers set them (by their items' command words). A status word is reported by its
- * packets; when they become items it is made again by the items' (pc_text_defer_items), or by the packets' own if they
- * stay packets (pc_text_defer_packets). */
-#define DEFERRED 512
-static struct {
-    const void *first, *end;
-    int typeset_set;
-    pc_text_typeset typeset;
-} deferred[DEFERRED];
-static int defer_on, defer_count, defer_overflow;
-static void status_now(const void* first, const void* end, const pc_text_typeset* typeset);
-
 void pc_text_glyph(void* const* commands, int count, int glyph, int x, int y, int next_x, int advance)
 {
     glyph_now(commands, count, glyph, x, y, next_x, advance);
 }
-
-void pc_text_defer(void) { defer_on = 1, defer_count = 0, defer_overflow = 0; }
-
-/* The held reports made by the items [first, first + count): 1 when done. */
-int pc_text_defer_items(int first, int count)
-{
-    if (defer_overflow)
-        return 0;
-    defer_on = 0;
-    for (int k = 0; k < defer_count; k++)
-        pc_text_status_items(first, count, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
-    memset(deferred, 0, (size_t)defer_count * sizeof deferred[0]); /* (scratch: the state proofs see none of it) */
-    defer_count = 0;
-    return 1;
-}
-
-/* The held reports made as they were, by the packets (they stay packets). */
-void pc_text_defer_packets(void)
-{
-    defer_on = 0;
-    for (int k = 0; k < defer_count && !defer_overflow; k++)
-        status_now(deferred[k].first, deferred[k].end, deferred[k].typeset_set ? &deferred[k].typeset : NULL);
-    memset(deferred, 0, (size_t)defer_count * sizeof deferred[0]);
-    defer_count = 0;
-}
+static void status_now(const void* first, const void* end, const pc_text_typeset* typeset);
 
 int pc_ui_text_piece_call(const void* command, pc_ui_text_piece_info* info)
 {
@@ -2157,17 +2120,6 @@ static long status_glyphs_drawn; /* glyph quads handed to gpu_hw (RPC) */
 void pc_text_status(const void* first, const void* end) { pc_text_status_typeset(first, end, NULL); }
 void pc_text_status_typeset(const void* first, const void* end, const pc_text_typeset* typeset)
 {
-    if (defer_on) {
-        if (defer_count < DEFERRED) {
-            memset(&deferred[defer_count], 0, sizeof deferred[0]);
-            deferred[defer_count].first = first, deferred[defer_count].end = end;
-            if (typeset)
-                deferred[defer_count].typeset = *typeset, deferred[defer_count].typeset_set = 1;
-            ++defer_count;
-        } else
-            defer_overflow = 1;
-        return;
-    }
     status_now(first, end, typeset);
 }
 static void status_now(const void* first, const void* end, const pc_text_typeset* typeset)

@@ -496,6 +496,10 @@ def suites(args, mode="egl"):
                       "screen at 16:9), hot-reloaded (timed), the REPL, place as data (the gate sees dx), the same "
                       "picture as the game's")]
           if args.save.exists() else []),
+        *([Suite("classic_claims_items_smoke", [PY, str(TESTS / "classic_claims_items_smoke.py"), "--card", str(args.save)], 900,
+                 note="every claim command rood.classic draws is taken as draw items on the menu and screen routes "
+                      "(ROOD_CLASSIC_ITEMS=1 logs each command type once): none left as packets")]
+          if args.save.exists() else []),
         Suite("lua_imgui_smoke", [PY, str(TESTS / "lua_imgui_smoke.py")], 300,
               note="Lua developer windows: rood.imgui behind the dev.tools grant, Window menu entries, values "
                    "round-tripping, rood.dev.rpc, keys, a failing or unbalanced draw shown failed with the overlay "

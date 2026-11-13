@@ -157,13 +157,7 @@ void pc_text_status(const void* first, const void* end);
 /* The same with a classic draw's typography (pc/src/classic/typeset.h: the plugin's look
  * table decides; NULL or fields not set: the defaults, ui_text_edge_margin, ui_text_word_space). */
 void pc_text_status_typeset(const void* first, const void* end, const pc_text_typeset* typeset);
-/* A claim's packets turned into draw items (pc/src/hud/hud_bridge.c emit_command): the reports the printers make while
- * their packets are written (pc_text_status) are held (pc_text_defer), then made by the items [first, first + count)
- * (pc_text_defer_items) or by the packets when they stay packets (pc_text_defer_packets). Glyphs are reported at once,
- * by their items' command words (pc_text_glyph). */
-void pc_text_defer(void);
-int pc_text_defer_items(int first, int count);
-void pc_text_defer_packets(void);
+/* Glyphs are reported as the printers set them, by their items' command words (pc_text_glyph). */
 /* The same for the draw items [first, first + count) (draw_items.h). */
 void pc_text_status_items(int first, int count, const pc_text_typeset* typeset);
 /* gpu_hw.c: whether the sprite whose command word is at `command` (texels u,

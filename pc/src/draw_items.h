@@ -145,18 +145,9 @@ const void* pc_frame_command(int index);
 int pc_frame_command_item(const void* command);
 /* The address of item `index`'s lowered packet (where the draw puts it; the key of anchors and interpolation). */
 const void* pc_frame_packet(int index);
-/* Lifting a packet printer's output to items (pc/src/hud/hud_bridge.c: the classic claims' commands): the game's printers keep
- * writing packets for the claims that call them; pc_lift_begin returns the word they link at, pc_lift_end turns what they wrote
- * into items placed at `ot` (a marker) or alone. A printer that adds items itself writes nothing to lift. */
-void* pc_lift_begin(void);
-int pc_lift_end(int depth, int placed, void* ot);
 /* Whether `packet` is a marker (pc_frame_place) and the run of items it places. */
 int pc_frame_marker(const unsigned* packet, int* first, int* count);
 int pc_frame_run_pages(int first, int count, unsigned current, int (*wanted)(unsigned page));
-/* A packet printer's last step: the packet's words (no tag) as items, placed at `ot_entry` by a marker taken from `cursor`.
- * Returns the cursor past the marker, or NULL when the words are not items (pc_frame_add_packets): the printer then
- * writes the packet as it always did. The printers (shared with battle) keep their signatures and slots. */
-unsigned* pc_frame_lift_words(const unsigned* words, int n, unsigned* ot_entry, unsigned* cursor);
 /* The item indices [*first, *end) of the markers that lie in [start, end) of packet memory (a site whose statement
  * added items by printers that place them with markers: its item range, whoever called it); 0 when none. */
 int pc_frame_marker_range(const void* start, const void* end, int* first, int* last);

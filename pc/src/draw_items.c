@@ -366,12 +366,6 @@ int pc_frame_packet_words(int index, unsigned* out, int max)
     return n;
 }
 
-unsigned* pc_frame_lift_words(const unsigned* words, int n, unsigned* ot_entry, unsigned* cursor)
-{
-    int first, count = pc_frame_add_packets(0, words, n, &first);
-    return count > 0 ? pc_frame_place(first, count, ot_entry, cursor) : NULL;
-}
-
 void pc_frame_restyle(int first, int count, int mode, int clut, int semi)
 {
     for (int i = first; i < first + count && i < pc_item_frame.count; i++) {
