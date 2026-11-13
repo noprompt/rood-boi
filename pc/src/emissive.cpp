@@ -848,6 +848,7 @@ struct Use {
      * row by row, then the CLUT's): an unmatched use is hashed again only
      * when this changed (same VRAM, same keys, same result). */
     std::vector<uint16_t> seen;
+    size_t seen_texels = 0; /* how many of `seen` are its texels' (the rest: its CLUT's) */
     /* Its material (write_materials), kept while nothing it depends on
      * changed: the entry that matched (resolved for material_serial from key
      * mat_key and the palette's colours mat_clut), and the cells it writes
@@ -859,6 +860,7 @@ struct Use {
     materials::Surface mat_value;
     uint32_t mat_serial = 0, stamped = 0;
     bool mat_found = false, listed = false;
+    bool mat_palette = true; /* its resolve read the palette (an entry names a CLUT): else a CLUT change cannot change it */
     MaterialUse info;
     std::shared_ptr<const MaterialStamp> stamp;
 };
@@ -920,6 +922,7 @@ uint32_t light_pages, marked_pages; /* bit per texture page (tpage & 31): a ligh
  * specular, metal; emissive.h PC_MATERIAL_*), cell for cell like the slots. */
 std::vector<uint8_t> material_planes;
 bool materials_changed = true, any_material, material_dirty = true;
+bool material_recheck; /* some use's palette grew a variant: update_materials resolves the uses again */
 uint32_t applied_material_catalog, applied_material_maps;
 int material_zone = -1, material_room = -1, material_on = -1;
 float applied_relief[3] = { -1, -1, -1 }; /* the estimate's switch, strength, preview the planes have */
@@ -970,6 +973,7 @@ struct Resolved {
 std::unordered_map<std::string, Resolved> resolved;
 uint32_t resolved_serial;
 int material_row0 = 0, material_row1 = 512; /* rows of each plane changed since the upload */
+int pub_row0 = 0, pub_row1 = 512; /* ... and since the published copy was made (publish) */
 
 uint64_t use_key(unsigned page, unsigned clut, const uint8_t box[4])
 {
@@ -1426,7 +1430,15 @@ template <typename F> static void use_vram(const Use& u, F run)
 static void remember_vram(Use& u)
 {
     u.seen.clear();
-    use_vram(u, [&](const uint16_t* p, int n) { u.seen.insert(u.seen.end(), p, p + n); });
+    texel_runs(u, [&](const uint16_t* p, int n) { u.seen.insert(u.seen.end(), p, p + n); });
+    u.seen_texels = u.seen.size();
+    clut_runs(u, [&](const uint16_t* p, int n) { u.seen.insert(u.seen.end(), p, p + n); });
+}
+/* Only its CLUT again (its texels are the ones `seen` holds: a palette animation changes no texel). */
+static void remember_clut(Use& u)
+{
+    u.seen.resize(u.seen_texels);
+    clut_runs(u, [&](const uint16_t* p, int n) { u.seen.insert(u.seen.end(), p, p + n); });
 }
 static bool vram_unchanged(const Use& u)
 {
@@ -1471,6 +1483,38 @@ static void note_material(const Use& u)
     memcpy(a.box, u.box, 4);
     material_areas.push_back(a);
 }
+/* The enabled entries' matches by content key, as (entry, match) in catalog order (made again when the catalog changed):
+ * match_use looks its key up instead of comparing it with every match. `palette`: some match of the key names a CLUT. */
+struct KeyMatches {
+    std::vector<std::pair<int, int>> at;
+    bool palette = false;
+};
+static const KeyMatches& key_index_lookup(const Catalog& c, const std::string& key)
+{
+    static std::unordered_map<std::string, KeyMatches> index;
+    static uint32_t made_for;
+    static const Catalog* made_from;
+    static const KeyMatches none;
+    if (made_for != catalog_generation || made_from != &c) {
+        index.clear();
+        made_for = catalog_generation, made_from = &c;
+        for (size_t i = 0; i < c.entries.size(); i++) {
+            if (!c.entries[i].enabled)
+                continue;
+            for (size_t k = 0; k < c.entries[i].match.size(); k++) {
+                KeyMatches& m = index[c.entries[i].match[k].key];
+                m.at.push_back({ (int)i, (int)k });
+                m.palette = m.palette || !c.entries[i].match[k].clut.empty();
+            }
+        }
+    }
+    auto it = index.find(key);
+    return it == index.end() ? none : it->second;
+}
+static const std::vector<std::pair<int, int>>& key_matches(const Catalog& c, const std::string& key)
+{
+    return key_index_lookup(c, key).at;
+}
 static void match_use(Use& u)
 {
     u.state = 1;
@@ -1484,14 +1528,18 @@ static void match_use(Use& u)
         return;
     }
     std::string was = u.key;
-    if (u.key.empty() || !texels_unchanged(u)) { /* (only its CLUT changed: a palette animation) */
+    bool kept = !u.key.empty() && texels_unchanged(u); /* (else only its CLUT changed: a palette animation) */
+    if (!kept) {
         u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
         pc_cost_count(PC_COUNT_HASHED, (unsigned)((w1 + 1) * (h1 + 1)));
     } else if (material_check() && u.key != content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]))
         fprintf(stderr, "[materials] check: a kept key differs\n");
     if (u.key != was && materials::catalog_has_size(w1 + 1, h1 + 1))
         note_material(u); /* (the material planes: update_materials) */
-    remember_vram(u);
+    if (kept)
+        remember_clut(u);
+    else
+        remember_vram(u);
     const Catalog& c = catalog();
     /* A match's palette (`clut`): the colours now, or any variant the use's
      * CLUT slot has shown this room (pc/docs/Materials.md "Animated
@@ -1499,26 +1547,19 @@ static void match_use(Use& u)
     std::string ck;
     std::vector<std::string> variants;
     bool have_variants = false;
-    for (size_t i = 0; i < c.entries.size(); i++) {
-        const Entry& e = c.entries[i];
-        if (!e.enabled)
-            continue;
-        for (size_t k = 0; k < e.match.size(); k++) {
-            const Match& m = e.match[k];
-            if (m.key != u.key)
-                continue;
-            if (!m.clut.empty()) {
-                if (ck.empty())
-                    ck = clut_key(u.page, u.clut);
-                if (ck != m.clut) {
-                    if (!have_variants)
-                        variants = palette_variants(u.page, u.clut), have_variants = true;
-                    if (std::find(variants.begin(), variants.end(), m.clut) == variants.end())
-                        continue;
-                }
+    for (const std::pair<int, int>& at : key_matches(c, u.key)) { /* (entry, match) in catalog order */
+        const Match& m = c.entries[(size_t)at.first].match[(size_t)at.second];
+        if (!m.clut.empty()) {
+            if (ck.empty())
+                ck = clut_key(u.page, u.clut);
+            if (ck != m.clut) {
+                if (!have_variants)
+                    variants = palette_variants(u.page, u.clut), have_variants = true;
+                if (std::find(variants.begin(), variants.end(), m.clut) == variants.end())
+                    continue;
             }
-            u.entry = (int)i, u.item = (int)k; /* the last matching entry wins */
         }
+        u.entry = at.first, u.item = at.second; /* the last matching entry wins */
     }
 }
 
@@ -1698,8 +1739,17 @@ static void track_palettes()
             if (at != k.variants.end())
                 k.frames[(size_t)(at - k.variants.begin())]++;
         }
-        if (in.first->second && !u.key.empty())
-            note_material(u), u.state = 0;
+        if (in.first->second && !u.key.empty()) {
+            /* (only a use an emissive entry of a palette variant can match is matched again; only one whose size a material
+             * entry names, and that reads the palette, has cells that may change) */
+            bool emissive = key_index_lookup(catalog(), u.key).palette;
+            bool material = materials::catalog_has_size(u.box[2] - u.box[0] + 1, u.box[3] - u.box[1] + 1)
+                && materials::catalog_needs_clut(u.key);
+            if (material)
+                u.mat_serial = 0, material_recheck = true; /* (resolved again by update_materials: it notes the cells only if they changed) */
+            if (emissive)
+                u.state = 0;
+        }
     }
 }
 /* A use's material entry (by content key, size, palette and room), from its
@@ -1710,7 +1760,8 @@ static void track_palettes()
 static bool resolve_material(Use& u, bool fresh, bool* changed)
 {
     *changed = false;
-    if (!fresh && u.mat_serial == material_serial && u.mat_key == u.key && clut_unchanged(u))
+    if (!fresh && u.mat_serial == material_serial && u.mat_key == u.key
+        && ((!u.mat_found && !u.mat_palette) || clut_unchanged(u))) /* (a use no palette entry can match ignores its CLUT) */
         return u.mat_found;
     int w = u.box[2] - u.box[0] + 1, h = u.box[3] - u.box[1] + 1;
     std::vector<uint16_t> clut;
@@ -1718,8 +1769,10 @@ static bool resolve_material(Use& u, bool fresh, bool* changed)
     if (resolved_serial != material_serial)
         resolved.clear(), resolved_serial = material_serial;
     Resolved fresh_one, *r = &fresh_one;
+    u.mat_palette = false;
     if (materials::catalog_has_size(w, h)) {
         bool palette = materials::catalog_needs_clut(u.key); /* (palette entries too) */
+        u.mat_palette = palette;
         const PaletteKey* k = palette ? &palette_key(u, clut) : nullptr;
         std::string id = u.key + (char)(w - 1) + (char)(h - 1);
         if (k)
@@ -1938,6 +1991,7 @@ static void write_materials(bool fresh = false)
     any_material = false;
     material_areas.clear();
     material_row0 = 0, material_row1 = 512;
+    pub_row0 = 0, pub_row1 = 512;
     material_on = pc_specular != 0;
     if (!material_on)
         return;
@@ -1981,6 +2035,8 @@ static void update_materials()
         int row0 = (int)((a.page >> 4) & 1) * 256 + a.box[1];
         material_row0 = std::min(material_row0, row0);
         material_row1 = std::max(material_row1, row0 + a.box[3] - a.box[1] + 1);
+        pub_row0 = std::min(pub_row0, row0);
+        pub_row1 = std::max(pub_row1, row0 + a.box[3] - a.box[1] + 1);
     }
     for (Use* u : order) {
         bool meets = false;
@@ -2309,8 +2365,16 @@ static void publish(int r0, int r1)
         pub.palettes[kv.first] = { kv.second.key, palette_identity_of(kv.second), kv.second.variants };
     pub_light_dirty |= light_dirty_tiles;
     light_dirty_tiles = 0;
-    if (material_dirty || pub.planes.size() != material_planes.size())
+    if (pub.planes.size() != material_planes.size()) {
         pub.planes = material_planes;
+        pub_row0 = 512, pub_row1 = 0;
+    } else if (pub_row1 > pub_row0) { /* (only the rows of each plane that changed: the planes are 14 MB) */
+        const size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
+        for (int k = 0; k < PC_MATERIAL_PLANES; k++)
+            memcpy(&pub.planes[k * plane + (size_t)pub_row0 * PC_EMISSIVE_MAP_W], &material_planes[k * plane + (size_t)pub_row0 * PC_EMISSIVE_MAP_W],
+                (size_t)(pub_row1 - pub_row0) * PC_EMISSIVE_MAP_W);
+        pub_row0 = 512, pub_row1 = 0;
+    }
     pub.material_list = material_list;
     pub_uses.clear();
     pub_uses.reserve(uses.size());
@@ -2411,7 +2475,8 @@ static int emissive_sync_body(int* row0, int* row1)
             || materials::generation() != applied_material_maps || relief_changed())
             materials_changed = true;
     }
-    if (materials_changed || !material_areas.empty()) {
+    if (materials_changed || material_recheck || !material_areas.empty()) {
+        material_recheck = false;
         if (materials_changed)
             write_materials();
         else
