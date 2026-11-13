@@ -50,10 +50,10 @@ extern void pc_hw_set_2d(int);
 extern void pc_hw_set_bounds(int, int, int, int, unsigned, unsigned, const int*, const int*);
 extern void pc_hw_set_room(int);
 extern void pc_hw_set_packet(const void*);
-extern int pc_hw_is_room_packet(const void*);
+extern int pc_hw_current_is_room(void) __attribute__((weak)); /* gpu_hw.c (absent in the GPU probe) */
 extern int pc_hw_room_depth(const void*, const unsigned*, int, int*) __attribute__((weak)); /* absent in unit probes */
-extern int pc_ui_precise_lookup(const void*, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
-extern int pc_ui_precise_find(const void*, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
+extern int pc_ui_precise_lookup(int, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
+extern int pc_ui_precise_find(int, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
 /* ui_text_layout line (gpu_hw.c): scaled glyph quads laid out with their lines. */
 extern int pc_hw_text_quad(const float*, const int*, const int*, unsigned, unsigned, unsigned, unsigned, const int*,
     int, int) __attribute__((weak));
@@ -65,7 +65,26 @@ extern int pc_frame_command_item(const void*) __attribute__((weak));
 /* Room polygon depths from room_geometry.c (1) or the projection log (0). */
 int pc_room_exact_depth = 1;
 /* Widescreen HUD anchoring of the packet about to draw (gpu_hw.c). */
-extern void pc_hw_anchor_packet(const void*, int, int) __attribute__((weak));
+#include "gpu_attr.h"
+extern void pc_hw_resolve(const void*, pc_hw_attr*) __attribute__((weak)); /* gpu_hw.c (absent in unit probes) */
+extern void pc_hw_set_attr(const pc_hw_attr*, int, int) __attribute__((weak));
+extern int pc_ui_bubble_find(const void*) __attribute__((weak)); /* ui_bubbles.c */
+extern int pc_ui_precise_slot(const void*) __attribute__((weak)); /* ui_upscale.c */
+static void attr_none(pc_hw_attr* a)
+{
+    *a = (pc_hw_attr) { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 };
+}
+/* Everything the walk asks about the packet whose tag word is at `tag`, settled once (the registries are keyed by address). */
+static void resolve_attr(const void* tag, pc_hw_attr* a)
+{
+    attr_none(a);
+    if (pc_hw_resolve)
+        pc_hw_resolve(tag, a);
+    if (pc_ui_bubble_find)
+        a->bubble = (short)pc_ui_bubble_find(tag);
+    if (pc_ui_precise_slot)
+        a->precise = (short)pc_ui_precise_slot((const uint32_t*)tag + 1); /* (a glyph's command follows its tag) */
+}
 extern int pc_gte_projected(int, int);
 extern int pc_gte_projected_depth(int, int, int*);
 extern void pc_hw_set_depth(const int*);
@@ -950,6 +969,131 @@ void pc_display_size(int* w, int* h)
     *w = display_w;
     *h = display_h;
 }
+/* The stream digest (T4 slice S0, pc/docs/plans/2026-11-12-t4-survey.md): FNV-1a over every word the walk hands to
+ * commands(), a record for each native marker draw (list, run, clip, offset) and each draw or display environment set,
+ * closed at every vsync into a ring. Two builds that describe each frame the same way give the same digests,
+ * whatever builds the description (packets, items, native lists): the meter of the drawing-list migration. Read over
+ * the dev RPC `stream` (dev_rpc.c); `on` 0 stops hashing. */
+enum { stream_ring_size = 256 };
+typedef struct {
+    unsigned vsync, words, records;
+    uint64_t digest;
+} stream_frame;
+/* (the digest and the adopted table are the host's: not saved state, which would restore another process's heap pointers) */
+#define PC_HOST __attribute__((section(".data.rood_host")))
+static stream_frame stream_ring[stream_ring_size] PC_HOST;
+static unsigned stream_closed PC_HOST;
+static uint64_t stream_acc PC_HOST = 1469598103934665603ull, stream_chain PC_HOST = 1469598103934665603ull;
+static unsigned stream_words PC_HOST, stream_records PC_HOST;
+int pc_stream_on PC_HOST = 1;
+static void digest_mix(uint32_t w)
+{
+    for (int i = 0; i < 4; i++) {
+        stream_acc = (stream_acc ^ (w & 0xff)) * 1099511628211ull;
+        w >>= 8;
+    }
+}
+static unsigned vsyncs;
+static int stream_trace PC_HOST = -2; /* ROOD_STREAM_TRACE=V: the records of the frame closed at vsync V, on stderr (to find where two builds part) */
+/* What does not change the picture by itself waits until something draws, so that how a producer splits its commands into packets
+ * (a draw mode and a texture window as one packet or two, a packet that sets state and nothing else) does not show: the state
+ * words (GP0 E1 to E6, the last of each code, hashed in code order: they commute) and the hardware path's per-packet notes
+ * (the last of each kind) are hashed just before the next primitive word, no-op words never. */
+static uint32_t stream_state[6] PC_HOST, stream_current[6] PC_HOST; /* (waiting; the GPU's own) */
+static unsigned stream_state_mask PC_HOST, stream_known PC_HOST;
+enum { stream_deferred_kinds = 2 };
+static struct {
+    int set, n;
+    uint32_t tag;
+    int v[12];
+} stream_deferred[stream_deferred_kinds] PC_HOST;
+static void stream_trace_record(uint32_t tag, const int* v, int n)
+{
+    if (stream_trace == -2)
+        stream_trace = getenv("ROOD_STREAM_TRACE") ? atoi(getenv("ROOD_STREAM_TRACE")) : -1;
+    if (stream_trace >= 0 && (unsigned)stream_trace == vsyncs + 1) {
+        fprintf(stderr, "[stream %u] tag %x:", vsyncs + 1, tag);
+        for (int i = 0; i < n && i < 12; i++)
+            fprintf(stderr, " %x", v[i]);
+        fprintf(stderr, "\n");
+    }
+}
+static void stream_flush_pending(void)
+{
+    for (int k = 0; k < 6; k++)
+        if (stream_state_mask >> k & 1) {
+            digest_mix(stream_state[k]);
+            if (stream_trace >= 0 && (unsigned)stream_trace == vsyncs + 1)
+                fprintf(stderr, "[stream %u] state %08x\n", vsyncs + 1, stream_state[k]);
+        }
+    stream_state_mask = 0;
+    for (int k = 0; k < stream_deferred_kinds; k++)
+        if (stream_deferred[k].set) {
+            stream_trace_record(stream_deferred[k].tag, stream_deferred[k].v, stream_deferred[k].n);
+            digest_mix(0x5e5e0000u | stream_deferred[k].tag);
+            for (int i = 0; i < stream_deferred[k].n; i++)
+                digest_mix((uint32_t)stream_deferred[k].v[i]);
+            ++stream_records;
+            stream_deferred[k].set = 0;
+        }
+}
+static void stream_record(uint32_t tag, const int* v, int n)
+{
+    if (!pc_stream_on)
+        return;
+    stream_flush_pending();
+    stream_trace_record(tag, v, n);
+    digest_mix(0x5e5e0000u | tag);
+    for (int i = 0; i < n; i++)
+        digest_mix((uint32_t)v[i]);
+    ++stream_records;
+}
+/* A note that waits for the next primitive (kind 0: the packet's anchor, opacity and screen; 1: its bubble's suppression). */
+static void stream_defer(int kind, uint32_t tag, const int* v, int n)
+{
+    if (!pc_stream_on)
+        return;
+    stream_deferred[kind].set = 1, stream_deferred[kind].tag = tag, stream_deferred[kind].n = n > 12 ? 12 : n;
+    memcpy(stream_deferred[kind].v, v, (size_t)stream_deferred[kind].n * sizeof *v);
+}
+/* The hardware path's decisions about a packet (gpu_hw.c: anchor, opacity, coverage, bubbles, text placement): what the
+ * words alone do not say, so the digest sees them too. */
+void pc_stream_note(unsigned tag, const int* v, int n)
+{
+    if (tag == 3)
+        stream_defer(0, 0x103, v, n);
+    else
+        stream_record(0x100 | tag, v, n);
+}
+static void stream_close(unsigned vsync)
+{
+    stream_flush_pending();
+    stream_known = 0; /* (a frame's digest stands alone: the state the GPU was left in is not part of it) */
+    stream_frame* f = &stream_ring[stream_closed++ % stream_ring_size];
+    f->vsync = vsync, f->words = stream_words, f->records = stream_records, f->digest = stream_acc;
+    stream_chain = (stream_chain ^ stream_acc) * 1099511628211ull;
+    stream_acc = 1469598103934665603ull, stream_words = stream_records = 0;
+}
+/* The ring, oldest first (at most `max`), the chain over every closed frame, and how many frames closed. */
+int pc_stream_read(int on, int reset, unsigned* closed, uint64_t* chain, unsigned* vs, unsigned* words, unsigned* records,
+    uint64_t* digests, int max)
+{
+    if (on >= 0)
+        pc_stream_on = on != 0;
+    if (reset) {
+        stream_closed = 0, stream_chain = 1469598103934665603ull, stream_acc = 1469598103934665603ull;
+        stream_words = stream_records = 0;
+    }
+    int n = stream_closed < stream_ring_size ? (int)stream_closed : stream_ring_size;
+    if (n > max)
+        n = max;
+    for (int i = 0; i < n; i++) {
+        const stream_frame* f = &stream_ring[(stream_closed - (unsigned)n + (unsigned)i) % stream_ring_size];
+        vs[i] = f->vsync, words[i] = f->words, records[i] = f->records, digests[i] = f->digest;
+    }
+    *closed = stream_closed, *chain = stream_chain;
+    return n;
+}
 void pc_display_env(int x, int y, int w, int h)
 {
     if (w <= 0 || h <= 0 || w > 1024 || h > 512)
@@ -960,6 +1104,7 @@ void pc_display_env(int x, int y, int w, int h)
     display_y = y;
     display_w = w;
     display_h = h;
+    { int v[4] = { x, y, w, h }; stream_record(1, v, 4); }
     if (frames)
         pc_present();
 }
@@ -972,6 +1117,7 @@ void pc_draw_env(int x, int y, int w, int h, int ox, int oy, int tp)
     draw_x = ox;
     draw_y = oy;
     tpage = tp;
+    { int v[7] = { x, y, w, h, ox, oy, tp }; stream_record(2, v, 7); }
 }
 static int clamp5(int x) { return x < 0 ? 0 : x > 31 ? 31 : x; }
 static void pixel(int x, int y, uint16_t color, int semi)
@@ -1047,17 +1193,30 @@ int pc_gpu_immediate;
  * single packets) and the one linked after a packet (NULL at the end or
  * outside guest memory): ui_text.c reads a popup number's following digits. */
 static const uint32_t* drawing_tag;
+/* The sub-pixel corners recorded for the command being drawn (ui_upscale.c): the slot the table's adoption found for its packet
+ * (an adopted table's first command), -2 to ask by the command's address (a packet drawn where it lies). */
+static int walk_precise PC_HOST = -2;
+static int precise_slot_for(const uint32_t* p);
+/* The walk's key for a packet it reads a copy of: the copy's address is not the registries' (key_delta: guest - copy; 0 for
+ * a single packet drawn where it lies). */
+static intptr_t key_delta PC_HOST;
+#define GUEST(q) ((const void*)((uintptr_t)(q) + (uintptr_t)key_delta))
+
+static const uint32_t* frame_next_packet(const uint32_t* tag);
+static const uint32_t* guest_packet(unsigned link);
+/* The packet linked after `tag`: in an adopted table, the frame's next entry; for a packet drawn where it lies, its own link
+ * (a lowered draw item's ends the chain). */
 static const uint32_t* next_packet(const uint32_t* tag)
 {
-    unsigned next = tag[0] & 0xffffff;
-    if (next == 0xffffff)
+    const uint32_t* next = frame_next_packet(tag);
+    if (next)
+        return next == (const uint32_t*)1 ? NULL : next;
+    unsigned link = tag[0] & 0xffffff;
+    if (link == 0xffffff)
         return NULL;
-    if (next < 0x200000)
-        return (const uint32_t*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
-    if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
-        return (const uint32_t*)(uintptr_t)next;
-    return NULL;
+    return guest_packet(link);
 }
+/* (which sparse register of guest memory a link names: the 32-bit build also followed native addresses) */
 static int round_px(float v)
 {
     int i = (int)v;
@@ -1070,9 +1229,80 @@ extern int pc_button_roles_texels(const uint16_t* vram, unsigned tpage, unsigned
 #include "boot_polygons.inc"
 #include "boot_lines.inc"
 
+/* The words a packet hands the GPU, into the digest. Only what the GPU ignores is left out: a textured primitive with the raw
+ * bit (code bit 0) is not modulated, so its colour bytes are never read (in an old packet they were whatever the memory held,
+ * an item sets none); a modulated textured primitive keeps its colour. The top halves of a polygon's third and fourth texel
+ * words are padding the GPU does not read either. */
+static void stream_commands(const uint32_t* p, unsigned n)
+{
+    unsigned i = 0;
+    while (i < n) {
+        unsigned code = p[i] >> 24, len = 1;
+        if (code >= 0xe1 && code <= 0xe6) { /* a state word: waits (the last of its code) until something draws; one that sets
+                                              * what the GPU already has is no change and is left out */
+            unsigned k = code - 0xe1;
+            if (!(stream_known & 1u << k) || stream_current[k] != p[i]) {
+                stream_state[k] = p[i], stream_state_mask |= 1u << k;
+                stream_current[k] = p[i], stream_known |= 1u << k;
+            }
+            ++i;
+            continue;
+        }
+        if (code == 0) { /* a no-op word */
+            ++i;
+            continue;
+        }
+        stream_flush_pending();
+        if ((code & 0xe0) == 0x20) { /* polygons */
+            unsigned v = code & 8 ? 4 : 3, tex = code >> 2 & 1, shade = code >> 4 & 1;
+            len = 1 + v * (1 + tex) + (shade ? v - 1 : 0);
+        } else if ((code & 0xe0) == 0x60) { /* sprites and rectangles */
+            len = 2 + (code >> 2 & 1) + ((code & 0x18) == 0);
+        }
+        if (len > n - i)
+            len = n - i;
+        if ((code & 0xe0) == 0x20 && (code & 4) && stream_known & 1u) { /* a textured polygon's own page word (its second corner's texel word) sets the GPU's page bits */
+            unsigned at = 4 + (code >> 4 & 1);
+            if (at < len)
+                stream_current[0] = (stream_current[0] & ~0x1ffu) | ((p[i + at] >> 16) & 0x1ffu);
+        }
+        int raw_textured = ((code & 0xe0) == 0x20 || (code & 0xe0) == 0x60) && (code & 4) && (code & 1);
+        /* (a line's command byte uses bits 4 (shaded), 3 (poly-line) and 1 (semi-transparent) only: line_command, boot_lines.inc) */
+        digest_mix(raw_textured ? p[i] & 0xff000000u : (code >= 0x40 && code <= 0x5f) ? p[i] & ~0x05000000u : p[i]);
+        for (unsigned k = 1; k < len; k++) {
+            uint32_t w = p[i + k];
+            /* (the second to fourth corners' colour words of a shaded polygon have no code: their top bytes are leftovers) */
+            if ((code & 0xe0) == 0x20 && (code & 0x10)) {
+                unsigned tex = code >> 2 & 1, corners = code & 8 ? 4 : 3;
+                for (unsigned c = 1; c < corners; c++)
+                    if (k == (tex ? 3 : 2) * c)
+                        w &= 0xffffffu;
+            }
+            /* (the third and fourth corners' texel words have nothing in their top halves: the packet memory's leftovers) */
+            if ((code & 0xe0) == 0x20 && (code & 4)) {
+                unsigned shade = code >> 4 & 1, corners = code & 8 ? 4 : 3;
+                for (unsigned c = 2; c < corners; c++)
+                    if (k == 2 + (2 + shade) * c)
+                        w &= 0xffffu;
+            }
+            digest_mix(w);
+        }
+        i += len;
+    }
+}
 static void commands(uint32_t* p, unsigned n)
 {
     unsigned i = 0;
+    if (pc_stream_on) {
+        if (stream_trace >= 0 && (unsigned)stream_trace == vsyncs + 1) { /* (ROOD_STREAM_TRACE: the words too) */
+            fprintf(stderr, "[stream %u] words %u:", vsyncs + 1, n);
+            for (unsigned k = 0; k < n && k < 16; k++)
+                fprintf(stderr, " %08x", p[k]);
+            fprintf(stderr, "\n");
+        }
+        stream_commands(p, n);
+        stream_words += n;
+    }
     while (i < n) {
         unsigned code = p[i] >> 24;
         if (code == 0xe1) {
@@ -1202,7 +1432,7 @@ static void commands(uint32_t* p, unsigned n)
                 pc_hw_set_2d(1); /* sprites and tiles are screen-space */
                 int texels[4] = { (int)(uv & 255), (int)((uv >> 8) & 255), (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1 };
                 pc_hw_set_bounds(x, y, x + (int)w, y + (int)h, code, tpage, tex ? texels : NULL, clip);
-                pc_gpu_command = p + i;
+                pc_gpu_command = GUEST(p + i);
                 pc_hw_rect(x, y, (int)w, (int)h, uv & 255, (uv >> 8) & 255, p[i] & 0xffffff, code,
                     tpage, uv >> 16, texture_window, clip, mask_set, mask_check);
                 pc_gpu_command = NULL;
@@ -1264,9 +1494,11 @@ extern int render_translucent_marker(const uint32_t*, uint32_t*, int*, int*) __a
 extern void pc_hw_native_translucent(uint32_t, int, int, int, int, const int*, unsigned, int) __attribute__((weak));
 /* Vector talk bubbles (ui_bubbles.c): their packets are drawn here as on the
  * PS1 but left out of the hardware target, which draws the shapes instead. */
-extern void pc_ui_bubble_packet(const void*, int, int, const int*) __attribute__((weak));
+extern void pc_ui_bubble_packet(int, const void*, int, int, const int*) __attribute__((weak));
 extern int pc_hw_suppress __attribute__((weak)); /* gpu_hw.c: the packet is left out of the hardware picture */
 extern int pc_frame_drawing_hidden __attribute__((weak)); /* draw_items.c */
+extern int pc_frame_drawing_anchor __attribute__((weak)), pc_frame_drawing_opacity __attribute__((weak));
+extern const float* pc_frame_drawing_span __attribute__((weak));
 /* Typed draw items (draw_items.c) placed in the ordering table by marker packets: drawn where the marker is. */
 extern int pc_frame_marker(const uint32_t*, int*, int*) __attribute__((weak));
 extern void pc_frame_draw_run(int, int) __attribute__((weak));
@@ -1274,25 +1506,111 @@ extern int pc_frame_run_pages(int, int, unsigned, int (*)(unsigned)) __attribute
 /* gpu_hw.c: the ordering table about to be drawn holds native draws, and
  * starts in drawing area `clip` (x, y, w, h). */
 extern void pc_hw_ot_native_area(const int*) __attribute__((weak));
-/* Whether the ordering table from `p` holds a native draw (render.c marker):
- * only the table's own packets decide (guest data, the same in a game
- * resumed from a save state). */
-static int ot_has_native(const uint32_t* p)
+/* The ordering table of a DrawOTag, adopted: every packet on its chain copied, once, at the start of the walk (T4 slice S1,
+ * pc/docs/plans/2026-11-12-t4-survey.md). The walk then reads this frame, not the guest memory the game built it in: what
+ * a packet is (its words), where it came from (`guest`, the key the address-keyed registries and readers still use until
+ * they take attributes) and what the layers said about it are all settled here. */
+typedef struct {
+    uintptr_t guest;  /* the packet's address in guest memory (a key: the registries of gpu_hw.c, ui_text and the bubbles) */
+    uint32_t off;     /* where its tag word is in `words` */
+    uint8_t front;    /* its layer: 1 linked in front of the scene's slots (menus, HUD: 2D whatever its vertices), 0 in the scene */
+    uint8_t g2d_known; /* photo mode: the entry is an ordering table slot of a frame (game2d_entry) */
+    uint8_t g2d_hidden; /* photo mode: the game's 2D is hidden here (the last slot seen lies below the hidden ones) */
+    pc_hw_attr attr;  /* the hardware path's ranges it lies in (gpu_hw.c pc_hw_resolve) */
+} walk_entry;
+static struct {
+    walk_entry* entry;
+    unsigned count, capacity;
+    uint32_t* words;
+    size_t used, word_capacity;
+    int end; /* how the chain ended: 0 at its end, 1 on a link outside mapped memory, 2 it did not (a cycle) */
+} frame PC_HOST = { 0 };
+static const uint32_t* guest_packet(unsigned link)
 {
+    if (link < 0x200000)
+        return (const uint32_t*)(uintptr_t)(link | ROOD_GUEST_RAM_BASE);
+    if (sizeof(void*) == 4 && link >= 0x400000 && link < 0x1000000)
+        return (const uint32_t*)(uintptr_t)link;
+    return NULL;
+}
+static int game2d_entry(const uint32_t* p, int* hidden);
+static int ot_layers_note_of(const uint32_t* p, int front);
+static void adopt(const void* head, int photo)
+{
+    const uint32_t* p = head;
+    frame.count = 0, frame.used = 0, frame.end = 2;
+    int front = 0, hidden = 0; /* (the layers are positions in the table: settled here, as the walk reaches each entry) */
     for (unsigned links = 0; links < 100000; links++) {
+        uint32_t tag = *p;
+        unsigned len = tag >> 24;
+        if (frame.count == frame.capacity) {
+            frame.capacity = frame.capacity ? frame.capacity * 2 : 4096;
+            frame.entry = realloc(frame.entry, frame.capacity * sizeof *frame.entry);
+        }
+        if (frame.used + 1 + len > frame.word_capacity) {
+            frame.word_capacity = (frame.used + 1 + len) * 2 + 65536;
+            frame.words = realloc(frame.words, frame.word_capacity * sizeof *frame.words);
+        }
+        if (!frame.entry || !frame.words)
+            pc_unimplemented("out of memory adopting an ordering table");
+        walk_entry* e = &frame.entry[frame.count++];
+        memset(e, 0, sizeof *e);
+        e->guest = (uintptr_t)p;
+        e->off = (uint32_t)frame.used;
+        memcpy(frame.words + frame.used, p, (1 + (size_t)len) * sizeof *p);
+        frame.used += 1 + len;
+        e->front = (uint8_t)(front = ot_layers_note_of(p, front));
+        resolve_attr(p, &e->attr);
+        if (photo) {
+            e->g2d_known = (uint8_t)game2d_entry(p, &hidden);
+            e->g2d_hidden = (uint8_t)hidden;
+        }
+        unsigned next = tag & 0xffffff;
+        if (next == 0xffffff) {
+            frame.end = 0;
+            return;
+        }
+        p = guest_packet(next);
+        if (!p) {
+            frame.end = 1;
+            return;
+        }
+    }
+}
+/* The entry after the one whose tag word is `tag` (a pointer into the frame's words): its tag, 1 for none, NULL when `tag` is
+ * not in the frame. */
+static const uint32_t* frame_next_packet(const uint32_t* tag)
+{
+    if (!frame.count || tag < frame.words || tag >= frame.words + frame.used)
+        return NULL;
+    uint32_t off = (uint32_t)(tag - frame.words);
+    unsigned lo = 0, hi = frame.count;
+    while (lo < hi) {
+        unsigned mid = (lo + hi) / 2;
+        if (frame.entry[mid].off < off)
+            lo = mid + 1;
+        else
+            hi = mid;
+    }
+    if (lo >= frame.count || frame.entry[lo].off != off)
+        return NULL;
+    return lo + 1 < frame.count ? frame.words + frame.entry[lo + 1].off : (const uint32_t*)1;
+}
+static int precise_slot_for(const uint32_t* p)
+{
+    if (walk_precise == -2)
+        return pc_ui_precise_slot ? pc_ui_precise_slot(GUEST(p)) : -1;
+    return drawing_tag && drawing_tag + 1 == p ? walk_precise : -1;
+}
+/* Whether the adopted table holds a native draw (render.c marker). */
+static int ot_has_native(void)
+{
+    for (unsigned i = 0; i < frame.count; i++) {
+        const uint32_t* p = frame.words + frame.entry[i].off;
         uint32_t list;
         int first, count;
         if (render_is_marker(p) || (render_translucent_marker && render_translucent_marker(p, &list, &first, &count)))
             return 1;
-        unsigned next = p[0] & 0xffffff;
-        if (next == 0xffffff)
-            return 0;
-        if (next < 0x200000)
-            p = (const uint32_t*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
-        else if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
-            p = (const uint32_t*)(uintptr_t)next;
-        else
-            return 0;
     }
     return 0;
 }
@@ -1322,17 +1640,25 @@ static void ot_layers_begin(const void* top)
 }
 /* An ordering table's own entry (a link word in its array: ClearOTagR's
  * tags, no command words) tells the layer of the packets linked after it. */
-static void ot_layers_note(const uint32_t* p)
+/* The layer of the entries after `p` (ot_layers_begin: the scene's base): an ordering table entry (a link word, no command words)
+ * tells the layer of the packets linked after it. */
+static int ot_layers_note_of(const uint32_t* p, int front)
 {
     if (ot_scene && (*p >> 24) == 0 && p <= ot_top && p >= ot_scene - 32)
-        ot_front = p < ot_scene;
+        return p < ot_scene;
+    return front;
 }
+extern int pc_photo_hide_game2d __attribute__((weak));
+extern int pc_photo_game2d_slots __attribute__((weak));
 void pc_draw_packet(void* data, int chain)
 {
     uint64_t cost = pc_cost_begin();
-    if (chain)
+    if (chain == 1) {
         ot_layers_begin(data);
-    if (chain && pc_hw_ot_native_area && render_is_marker && ot_has_native(data)) {
+        adopt(data, &pc_photo_hide_game2d && pc_photo_hide_game2d && &pc_photo_game2d_slots);
+    } else if (chain)
+        ot_layers_begin(data);
+    if (chain == 1 && pc_hw_ot_native_area && render_is_marker && ot_has_native()) {
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
         pc_hw_ot_native_area(clip);
     }
@@ -1409,75 +1735,102 @@ static int mode_packet(const uint32_t* p)
  * typed draw item lowered to (draw_items.c), drawn as a member of an ordering table. */
 static void draw_packet(void* data, int chain)
 {
-    uint32_t* p = data;
     int hide2d = chain == 1 && &pc_photo_hide_game2d && pc_photo_hide_game2d && &pc_photo_game2d_slots, hidden = 0;
-    for (unsigned links = 0; links < 100000; links++) {
+    unsigned count_entries = chain == 1 ? frame.count : 1;
+    intptr_t outer_delta = key_delta;
+    for (unsigned at = 0; at < count_entries; at++) {
+        const walk_entry* en = chain == 1 ? &frame.entry[at] : NULL;
+        uint32_t* p = en ? frame.words + en->off : data;
+        const uint32_t* guest = en ? (const uint32_t*)en->guest : p;
+        int last = at + 1 == count_entries;
         uint32_t tag = *p;
+        key_delta = (intptr_t)((uintptr_t)guest - (uintptr_t)p);
+        if (en)
+            ot_front = en->front;
         ++stream.draws;
-        if (chain == 1)
-            ot_layers_note(p);
         uint32_t t_list;
         int t_first, t_count;
         int run_first, run_count;
         int world2d_run = hide2d && pc_frame_marker && pc_frame_marker(p, &run_first, &run_count)
             && pc_frame_run_pages(run_first, run_count, (unsigned)tpage, battle_page);
-        if (hide2d && !game2d_entry(p, &hidden) && (world2d_run || ((hidden || world2d_packet(p))
+        hidden = en ? en->g2d_hidden : 0;
+        if (hide2d && !en->g2d_known && (world2d_run || ((hidden || world2d_packet(p))
             && !(render_is_marker && render_is_marker(p))
             && !(render_translucent_marker && render_translucent_marker(p, &t_list, &t_first, &t_count))
             && !mode_packet(p)))) {
-            unsigned next = tag & 0xffffff;
-            if (next == 0xffffff)
-                return;
-            if (next < 0x200000)
-                p = (void*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
-            else if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
-                p = (void*)(uintptr_t)next;
-            else
-                return;
+            if (last && frame.end != 2)
+                break; /* (the chain ended, or left mapped memory: a skipped packet says nothing of it) */
             continue;
         }
-        if (pc_hw_anchor_packet)
-            pc_hw_anchor_packet(p, draw_x, display_w);
+        pc_hw_attr single;
+        const pc_hw_attr* attr = en ? &en->attr : (resolve_attr(guest, &single), &single);
+        if (!en && chain == 2 && &pc_frame_drawing_anchor) {
+            /* a draw item carries its own anchor and opacity (draw_items.c), not a range of the arena's addresses */
+            if (pc_frame_drawing_anchor >= 0)
+                single.anchor = pc_frame_drawing_anchor & ~0x20, single.exact = (pc_frame_drawing_anchor & 0x20) != 0;
+            if (pc_frame_drawing_opacity >= 0)
+                single.opacity = (short)pc_frame_drawing_opacity;
+            if (&pc_frame_drawing_span && pc_frame_drawing_span)
+                single.has_span = 1, memcpy(single.span_shape, pc_frame_drawing_span, sizeof single.span_shape);
+        }
+        /* An item marker is not a GPU packet: what it places is hashed as the items are lowered and drawn, so a run's index
+         * (which moves when a producer becomes items) and its packet's own notes are not part of the digest. */
+        int marker_first, marker_count;
+        int item_marker = pc_frame_marker && pc_frame_marker(p, &marker_first, &marker_count);
+        int stream_was = pc_stream_on;
+        if (item_marker)
+            pc_stream_on = 0;
+        if (pc_hw_set_attr)
+            pc_hw_set_attr(attr, draw_x, display_w);
         if (pc_ui_bubble_packet) {
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-            pc_ui_bubble_packet(p, draw_x, draw_y, clip);
+            pc_ui_bubble_packet(attr->bubble, p, draw_x, draw_y, clip);
+            int suppressed = &pc_hw_suppress ? pc_hw_suppress : 0;
+            stream_defer(1, 0x104, &suppressed, 1);
         }
         if (chain == 2 && pc_frame_drawing_hidden && &pc_hw_suppress) /* a draw item the hardware picture leaves out (a rain drop room geometry hides) */
             pc_hw_suppress = 1;
         if (render_is_marker && pc_hw_native_marker && render_is_marker(p)) {
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
+            { int v[8] = { (int)p[2], draw_x, draw_y, clip[0], clip[1], clip[2], clip[3], (int)texture_window | (int)mask_set << 24 };
+              stream_record(3, v, 8); }
             pc_hw_native_marker(p[2], draw_x, draw_y, clip, texture_window, (int)mask_set);
         }
         {
             int run, run_count;
-            if (pc_frame_marker && pc_frame_marker(p, &run, &run_count))
+            if (pc_frame_marker && pc_frame_marker(p, &run, &run_count)) {
+                intptr_t mine = key_delta;
+                pc_stream_on = stream_was;
                 pc_frame_draw_run(run, run_count);
+                pc_stream_on = 0;
+                key_delta = mine;
+            }
         }
         uint32_t list;
         int first, count;
         if (render_translucent_marker && pc_hw_native_translucent && render_translucent_marker(p, &list, &first, &count)) {
             int clip[4] = { clip_x, clip_y, clip_w, clip_h };
+            { int v[9] = { (int)list, first, count, draw_x, draw_y, clip[0], clip[1], clip[2], clip[3] };
+              stream_record(4, v, 9); }
             pc_hw_native_translucent(list, first, count, draw_x, draw_y, clip, texture_window, (int)mask_set);
         }
         pc_gpu_immediate = !chain;
-        drawing_tag = chain ? p : NULL;
+        drawing_tag = chain ? p : NULL; /* (the frame's copy: what follows it is the frame's next entry) */
+        walk_precise = en ? attr->precise : -2;
         commands(p + 1, tag >> 24);
+        pc_stream_on = stream_was;
+        walk_precise = -2;
         drawing_tag = NULL;
         pc_gpu_immediate = 0;
         unsigned next = tag & 0xffffff;
         if (!chain || next == 0xffffff)
-            return;
-        /* Links are the low 24 bits of a guest RAM address (0x80000000). The
-         * 32-bit build also follows native addresses below 16 MB; the 64-bit
-         * build links only guest memory (its native code is not placed). */
-        if (next < 0x200000)
-            p = (void*)(uintptr_t)(next | ROOD_GUEST_RAM_BASE);
-        else if (sizeof(void*) == 4 && next >= 0x400000 && next < 0x1000000)
-            p = (void*)(uintptr_t)next;
-        else
+            break;
+        if (last && frame.end == 1)
             pc_unimplemented("ordering table pointer outside mapped memory");
     }
-    pc_unimplemented("ordering table cycle");
+    key_delta = outer_delta;
+    if (chain == 1 && frame.end == 2)
+        pc_unimplemented("ordering table cycle");
 }
 
 extern int pc_title_input_ready; /* (below) */
@@ -1544,6 +1897,7 @@ static void tick_frame_work(void);
 void pc_tick(void)
 {
     ++vsyncs;
+    stream_close(vsyncs);
     stream_vsync();
     pc_cost_vsync();
     if (pc_state_diff_vsync)

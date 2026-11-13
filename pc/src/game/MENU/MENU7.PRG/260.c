@@ -30,7 +30,6 @@ static int _pcNoDraw;
 static int _pcFramed;
 static unsigned _pcGated;
 static int _pcRun;
-#define DrawPrim(p) ((void)(_pcNoDraw ? (++_pcGated, 0) : (DrawPrim(p), 0)))
 #define vs_battle_renderTextRaw(s, xy, ot)                                                       \
     ((void)(_pcNoDraw ? (++_pcGated, 0) : (vs_battle_renderTextRaw(s, xy, ot), 0)))
 #define vs_mainmenu_setInformationMessage(s)                                                     \

@@ -33,7 +33,7 @@ save room's game, the classic look: the shipped plugins on, so rood.classic's cl
 --claims off leaves the game's own drawing), with the display hashed every N vsyncs (default 10) through
 everything each route does. Old, old again (the control) and new are compared route by route. The routes are
 SCENES below: a new screen's route is one function there, or one of classic_parity.py's tours wrapped as the others are. Routes:
-mainmenu, manual, levelled, items, magic, arts, abilities, status, score, map, data (MENU7's SAVE and LOAD file menus), setup, loot,
+mainmenu, manual, levelled, buff (the HUD buff rows), emote_arrow (the off-screen emote arrow and the balloons), items, magic, arts, abilities, status, score, map, data (MENU7's SAVE and LOAD file menus), setup, loot,
 storage, ending, menuf, dialogue (the talk bubble's every shape: first_bubble), title (its menu and its file menu's copy) and gameover
 (MENU7's game over LOAD). opening_events (the opening played through, the scanlines forced on) and script_<zone>_<room> (a room's own event script, for the rooms with a door into them) and platforms (the platform shadows of rooms 9-5, 15-7, 24-2, 25-2, 32-0) and story_<scene id> (a story scene of pc/assets/cutscenes/story.json played as the cutscene player plays it, from the title: the rooms and events no warp reaches; the wipes, the screen effect, its border).
 """
@@ -112,6 +112,37 @@ def start(card, out, name):
     return g
 
 
+STREAM = os.environ.get("BUILD_COMPARE_STREAM") == "1"  # --stream: every vsync's drawing digest (RPC stream) is kept and compared
+
+
+def stream_take(g, taken):
+    """The digests of the frames closed since the last call (`taken`: [closed so far, digests]); a build without the RPC
+    leaves them None."""
+    if not STREAM or taken[1] is None:
+        return
+    try:
+        r = g.call("stream", count=256)
+    except Exception:
+        taken[1] = None
+        return
+    missed = r["closed"] - taken[0] - len(r["frames"])
+    new = r["closed"] - taken[0] - max(missed, 0)
+    if missed > 0:
+        taken[1].append("gap")  # more frames closed than the ring holds: a hole the comparison must not hide
+    taken[1] += [[f[0], f[3]] for f in r["frames"][len(r["frames"]) - new:]] if new else []
+    taken[0] = r["closed"]
+
+
+def stream_start(g):
+    taken = [0, []]
+    if STREAM:
+        try:
+            g.call("stream", reset=True, on=True)
+        except Exception:
+            taken[1] = None
+    return taken
+
+
 def play(binary, seconds, card, out, width):
     """In a process of its own (ROOD_BINARY is read at import): the hashes, the casts and the drops, as JSON on stdout."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
@@ -128,8 +159,10 @@ def play(binary, seconds, card, out, width):
             pass
         g.call("skip_charging", reset=True)
         frames, states = [], []
+        taken = stream_start(g)
         for _ in range(seconds * 4):
             g.run(15)
+            stream_take(g, taken)
             shot = out / "frame.ppm"
             g.screenshot(str(shot))
             frames.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:16])
@@ -151,7 +184,7 @@ def play(binary, seconds, card, out, width):
     finally:
         g.close()
     casts = [e for e in (entry.split(":") for entry in ended.split()) if len(e) >= 4 and int(e[0]) != 0 and e[2] == "1"]
-    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops, "states": states, "sites": sites}))
+    print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops, "states": states, "sites": sites, "stream": taken[1]}))
 
 
 DRIVE_CRASHES = {}  # action id -> why the driver skips it (none: a valid id does not crash)
@@ -506,7 +539,7 @@ def play_casts(binary, card, out, kinds, limit):
 MENU_SAMPLE = 10  # vsyncs between display hashes in a menu route
 
 
-def hashed(g, out, sample, hashes):
+def hashed(g, out, sample, hashes, taken=None):
     """g.run in steps that end on multiples of `sample` vsyncs, the display hashed at each: the hashes are the
     route's, whatever the route waits on (classic_parity.py's tours run a vsync at a time and press buttons)."""
     run, shot, state = g.run, out / "frame.ppm", {"t": 0}
@@ -518,6 +551,8 @@ def hashed(g, out, sample, hashes):
             run(step)
             state["t"] += step
             left -= step
+            if taken is not None:
+                stream_take(g, taken)
             if state["t"] % sample == 0:
                 g.screenshot(str(shot))
                 hashes.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:12])
@@ -628,12 +663,46 @@ def tour(name):
     return scene
 
 
+def hud_tour(name):
+    """classic_parity.py's tour_<name>(g, check, counters) (the HUD buff rows): its RPC shows and waits, hashed; every check passes."""
+    def scene(g, cp, symbols):
+        import collections
+        getattr(cp, f"tour_{name}")(g, lambda ok, *args, **kwargs: True, lambda kind: collections.defaultdict(int))
+    return scene
+
+
+def scene_emote_arrow(g, cp, symbols):
+    """The off-screen emote arrow (func_80095C18's kind 4, whose edge arrow is func_8009651C's shadow quad): at the opening
+    (first_bubble) an actor shows the arrow emote and is moved through a grid of places around and beyond the view
+    (classic_parity.py's OFFSETS), its position written each vsync; also every balloon emote once (the text-box icons)."""
+    import struct
+    kinds_at, sides_at = symbols["D_800F2260"], symbols["D_800F2274"]
+    g.write(symbols["D_800F2270"], bytes(2))
+    g.run(200)  # (the bubble's zoom)
+    actors = cp.emote_actors(g)
+    if not actors:
+        return
+    for kind in (1, 2, 3, 5, 6, 7):
+        g.write(kinds_at, bytes([0] + [kind] * 15))
+        g.write(sides_at, struct.pack("<I", 0xFFFF if kind & 1 else 0))
+        g.run(6)
+    i, at = actors[0]
+    x0, y0, z0 = struct.unpack("<hhh", g.read(at, 6))
+    g.write(kinds_at, bytes([0] + [4 if a == i else 0 for a in range(1, 16)]))
+    clamp = lambda v: max(-32768, min(32767, v))
+    for dx, dy, dz in cp.OFFSETS:
+        for _ in range(4):
+            g.write(at, struct.pack("<hhh", clamp(x0 + dx), clamp(y0 + dy), clamp(z0 + dz)))
+            g.run(1)
+    g.write(at, struct.pack("<hhh", x0, y0, z0))
+
+
 STORY_ROUTES = ("room-001-00-s000", "room-003-00-s000", "evt-0001", "evt-0002", "room-010-00-s000", "room-034-00-s034", "room-032-17-s038",
                 "evt-0069", "evt-0036", "evt-0038")  # the story scenes whose drawers no room_goto route reaches
 STORY_SETTLE = {"evt-0069": 30}  # vsyncs run before a scene is sampled
 STORY_WARPS = ("room-034-00-s034", "room-032-17-s038")  # the scenes with a border, played again with the screen warp set
 STORY_SCALED = ("room-001-00-s000",)  # the scenes with GIM images, played again with them drawn at another scale
-CHECKPOINT = {"dialogue": "first_bubble", "title": "title", "opening": "title", "opening_events": "title", **{f"story_{i}": "title" for i in STORY_ROUTES}, **{f"story_{i}_warp": "title" for i in STORY_WARPS}, **{f"story_{i}_scaled": "title" for i in STORY_SCALED}}  # (the routes that do not start in the save room)
+CHECKPOINT = {"dialogue": "first_bubble", "emote_arrow": "first_bubble", "title": "title", "opening": "title", "opening_events": "title", **{f"story_{i}": "title" for i in STORY_ROUTES}, **{f"story_{i}_warp": "title" for i in STORY_WARPS}, **{f"story_{i}_scaled": "title" for i in STORY_SCALED}}  # (the routes that do not start in the save room)
 
 
 def scene_dialogue(g, cp, symbols):
@@ -931,7 +1000,7 @@ def scene_gameover(g, cp, symbols):
 
 
 SCENES = {"levelled": scene_levelled, "ending": scene_ending, "menuf": scene_menuf, "mainmenu": scene_mainmenu, "manual": scene_manual,
-          "score": tour("score"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items"),
+          "score": tour("score"), "emote_arrow": scene_emote_arrow, "buff": hud_tour("buff"), "map": tour("map"), "status": tour("status"), "setup": tour("setup"), "items": tour("items"),
           "magic": tour("magic"), "arts": tour("arts"), "abilities": tour("abilities"), "data": tour("data"),
           "loot": tour("loot"), "storage": tour("storage"), "dialogue": scene_dialogue, "title": scene_title,
           "gameover": scene_gameover, "damage": popups(1), "damage_x2": popups(2), "actor_word_x2": parity_tour("actor_word", 2),
@@ -965,14 +1034,15 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     results = {}
     for name in names:
         card_copy = out / f"card-{name}.mcd"
-        if name in ("dialogue", "opening", "opening_events") or name.startswith("story_"):  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
+        if name in ("dialogue", "emote_arrow", "opening", "opening_events") or name.startswith("story_"):  # (no card: the title's cursor then rests on New Game, the checkpoint's way in)
             card_copy = out / "no-card.mcd"
         else:
             card_copy.write_bytes(pathlib.Path(card).read_bytes())
         g = launch_at(CHECKPOINT.get(name, "save_room"), card=str(card_copy), fast=True, log=out / f"{name}.log", extra_env=env)
         hashes = []
+        taken = stream_start(g)
         try:
-            hashed(g, out, sample, hashes)
+            hashed(g, out, sample, hashes, taken)
             SCENES[name](g, cp, rood_rpc.symbols())
             text = g.call("ui_text") if renderer != "null" else {}  # ui_text's word-level drawing: small-capital words and the status words drawn
             try:
@@ -982,7 +1052,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
                 stats = None
         finally:
             g.close()
-        results[name] = {"hashes": hashes, "renderer": stats, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
+        results[name] = {"hashes": hashes, "stream": taken[1], "renderer": stats, "word_glyphs": text.get("word_glyphs"), "item_words": text.get("item_words"),
                          "status_glyphs": (text.get("status") or {}).get("glyphs") if isinstance(text.get("status"), dict) else text.get("status_glyphs")}
     print("RESULT" + json.dumps(results))
 
@@ -1004,6 +1074,30 @@ def run_menus(binary, args, names):
     return json.loads(lines[-1][6:])
 
 
+def stream_verdict(label, a, b, c):
+    """--stream: old, old again (control) and new per-vsync digests. Returns 0 same, 1 new differs, 2 a
+    build has no stream (it proves nothing); prints the first differing vsync."""
+    if a is None or b is None or c is None:
+        print(f"{label}: stream: a build has no `stream` RPC (OLD must be built from a tree that has it); nothing compared")
+        return 2
+    holes = [x.count("gap") for x in (a, b, c)]  # (a step longer than the ring held: those vsyncs are unread, not compared)
+    a, b, c = ([e for e in x if e != "gap"] for x in (a, b, c))
+    # (by the game's vsync number: where the runs' first reading falls can differ by a vsync, and the game draws every second one.
+    # A vsync where the control (old against old again) differs is noise of the build itself, not compared: it is counted and listed.)
+    da, db, dc = dict(a), dict(b), dict(c)
+    both = sorted(set(da) & set(db) & set(dc))
+    noisy = [v for v in both if da[v] != db[v]]
+    changed = next((v for v in both if v not in noisy and da[v] != dc[v]), None)
+    common = len(both)
+    print(f"{label}: stream {len(a)} vsyncs{f' ({holes} holes)' if any(holes) else ''} ({len({d for _, d in a})} distinct digests, {common} in all three runs); "
+          f"control differs at {len(noisy)} vsyncs{f' (first {noisy[0]})' if noisy else ''}; old against new "
+          f"{'same' if changed is None else f'differs at vsync {changed}'}")
+    if common < len(a) // 2:
+        print(f"{label}: stream: the runs overlap in too few vsyncs to prove anything")
+        return 2
+    return 0 if changed is None else 1
+
+
 def compare_menus(args):
     names = [n for n in args.menus.split(",") if n]
     unknown = [n for n in names if n not in SCENES]
@@ -1023,6 +1117,9 @@ def compare_menus(args):
             code = 2
         elif (changed or words[0] != words[2]) and code == 0:
             code = 1
+        if STREAM:
+            v = stream_verdict(name, first[name]["stream"], control[name]["stream"], new[name]["stream"])
+            code = 2 if v == 2 or code == 2 else (code or v)
     if code == 2:
         print("build_compare: the control differs, so this proves nothing")
     return code
@@ -1120,6 +1217,9 @@ def compare_rooms(args):
             code = 2
         elif (changed or first["casts"] != new["casts"]) and code == 0:
             code = 1
+        if STREAM:
+            v = stream_verdict(f"room {room}", first.get("stream"), control.get("stream"), new.get("stream"))
+            code = 2 if v == 2 or code == 2 else (code or v)
     if sites:
         ran, calls, fran, fall, pran, pall = coverage(args.new, sorted(sites))
         print(f"effect polygon call sites run: {ran} of {calls}; functions {fran} of {fall}; plugins {pran} of {pall}")
@@ -1264,10 +1364,15 @@ def main():
     parser.add_argument("--renderer", choices=["vulkan", "null"], default="vulkan", help="--menus: null hashes the CPU reference frame (the original drawing, no GPU; no ui_text)")
     parser.add_argument("--setting", action="append", default=[], metavar="'KEY VALUE'", help="--menus: a settings.cfg line (ui_text original)")
     parser.add_argument("--aspect", choices=["4:3", "16:9"], default="4:3", help="--menus: the display's aspect")
+    parser.add_argument("--stream", action="store_true", help="also compare every vsync's drawing digest (RPC stream: the words the walk draws, native marker draws, environments); fight, --rooms and --menus lanes. OLD must have the RPC")
     parser.add_argument("--rooms", help="the fight in each of these rooms, zone,room;zone,room")
     parser.add_argument("--play-menus", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--out", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.stream:
+        os.environ["BUILD_COMPARE_STREAM"] = "1"
+        global STREAM
+        STREAM = True
     if args.vram_stream:
         os.environ["BUILD_COMPARE_VRAM_STREAM"] = "1"
     if args.play:
@@ -1286,6 +1391,9 @@ def main():
         return compare_casts(args)
     first, control, new = run(args.old, args, args.old_width), run(args.old, args, args.old_width), run(args.new, args, args.new_width)
     noise, changed = differing(first, control), differing(first, new)
+    stream = stream_verdict("fight", first.get("stream"), control.get("stream"), new.get("stream")) if STREAM else 0
+    if stream == 2:
+        return 2
     print(f"control (old against old): {len(noise)} of {len(first['frames'])} frames differ")
     print(f"old against new: {len(changed)} of {len(first['frames'])} frames differ{f' (first at {changed[0] / 4:.2f} s)' if changed else ''}")
     print(f"casts: old {len(first['casts'])}, new {len(new['casts'])}; the same: {first['casts'] == new['casts']}")
@@ -1304,7 +1412,7 @@ def main():
     if not first["drops"]:
         print("build_compare: no enemy dropped anything")
         return 2
-    verdict = 0 if not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] and state_changed is None else 1
+    verdict = 0 if not stream and not changed and first["casts"] == new["casts"] and first["drops"] == new["drops"] and state_changed is None else 1
     if args.audio == "on":
         sound = compare_audio(args)
         verdict = verdict or sound

@@ -1,6 +1,7 @@
 /* Packet capture and the parity gate (classic_parity.h; plan
  * pc/docs/plans/2026-10-20-classic-ui-in-lua.md §3). */
 #include "classic_parity.h"
+#include "../draw_items.h" /* (an item's own anchor) */
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -21,6 +22,7 @@ extern int pc_frame_order(int first, int count, int unplaced, int* out, int max)
 extern int pc_frame_lower(int index, unsigned words[3][16], int lengths[3]) __attribute__((weak));
 extern int pc_frame_suppress(int first, int end) __attribute__((weak));
 extern const void* pc_frame_packet(int index) __attribute__((weak));
+extern pc_item* pc_frame_item(int index) __attribute__((weak)); /* (absent in classic_parity_probe, as the others) */
 
 static const char* const KIND_NAMES[PC_CLASSIC_KINDS] = { "", "status", "chain", "buff", "damage", "", "", "",
     "gauges", "figure", "status_icons", "battle_mode", "ability_icons", "actor_word", "timer", "emote", "text_frame", "text_band", "box_text", "image", "target_row", "target_line", "target_marker", "menu_background", "menu_command", "menu_row", "menu_cursor", "menu_tabs", "option_value", "items_category", "items_status_button", "equip_stats", "dp_pp_bars", "gem_slots", "stat_page", "ok_mark", "storage_buttons", "storage_counts", "loot_capacities", "discard_count", "rename_grid", "rename_box", "file_menu", "file_element", "menuf", "menuf_load", "status_panel" }; /* (hud.h's travel, notice, name_window: not the classic layer's) */
@@ -151,7 +153,11 @@ static int item_packets(const pc_classic_walker* walker, const unsigned* tag, co
             p->words = (unsigned char)lengths[j];
             memcpy(p->w, words[j], (size_t)lengths[j] * sizeof words[j][0]);
             normalise(p);
-            p->anchor = (signed char)(walker->anchor && pc_frame_packet ? walker->anchor(pc_frame_packet(order[k]), walker->user) : 0);
+            {   /* (an item carries its own anchor: pc_frame_anchor; else the walker's, by its lowered packet's address) */
+                const pc_item* held = pc_frame_item ? pc_frame_item(order[k]) : NULL;
+                p->anchor = (signed char)(held && (held->flags & PC_ITEM_ANCHORED) ? held->anchor & 0x1f
+                        : walker->anchor && pc_frame_packet ? walker->anchor(pc_frame_packet(order[k]), walker->user) : 0);
+            }
             p->at = (unsigned short)(tag ? ((const char*)tag - (const char*)lo) / 4 : 0);
         }
     }

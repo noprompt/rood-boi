@@ -74,7 +74,9 @@ int pc_ui_upscale_verify(long* mismatches, long* foreign);
  * order, VRAM pixels before the drawing offset), and their lookup for a
  * packet whose whole-pixel corners are xy[] (x | y << 16). */
 void pc_ui_precise_quad(const void* packet, const float* corners);
-int pc_ui_precise_lookup(const void* packet, const unsigned* xy, int count, float* corners);
+int pc_ui_precise_slot(const void* packet);
+int pc_ui_precise_lookup(int slot, const unsigned* xy, int count, float* corners);
+int pc_ui_precise_find(int slot, const unsigned* xy, int count, float* corners);
 /* Where magnified 2D was drawn (VRAM pixels), accumulated until written
  * as a 1024 x 512 PGM (255: drawn) by pc_ui_upscale_mask, which clears it. */
 void pc_ui_upscale_note(float x0, float y0, float x1, float y1);

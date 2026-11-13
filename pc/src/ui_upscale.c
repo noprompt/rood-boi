@@ -1061,32 +1061,34 @@ void pc_ui_precise_quad(const void* packet, const float* corners)
 }
 /* The recorded corners whatever pc_ui_subpixel is (ui_text_layout line
  * places scaled glyphs from them). */
-int pc_ui_precise_find(const void* packet, const unsigned* xy, int count, float* corners)
+/* The slot holding the recorded corners of the command at `packet`, -1 none (the address carries no recorded glyph). */
+int pc_ui_precise_slot(const void* packet)
 {
-    if (count != 4)
-        return 0;
     unsigned s = (unsigned)(((uintptr_t)packet >> 2) * 2654435761u) & (PRECISE_SLOTS - 1);
-    if (precise[s].packet != (uintptr_t)packet)
+    return precise[s].packet == (uintptr_t)packet ? (int)s : -1;
+}
+int pc_ui_precise_find(int slot, const unsigned* xy, int count, float* corners)
+{
+    if (count != 4 || slot < 0)
         return 0;
     for (int i = 0; i < 4; i++)
-        if (precise[s].xy[i] != xy[i])
+        if (precise[slot].xy[i] != xy[i])
             return 0;
-    memcpy(corners, precise[s].f, sizeof precise[s].f);
+    memcpy(corners, precise[slot].f, sizeof precise[slot].f);
     return 1;
 }
-int pc_ui_precise_lookup(const void* packet, const unsigned* xy, int count, float* corners)
+int pc_ui_precise_lookup(int slot, const unsigned* xy, int count, float* corners)
 {
     if (!pc_ui_subpixel || count != 4)
         return 0;
-    unsigned s = (unsigned)(((uintptr_t)packet >> 2) * 2654435761u) & (PRECISE_SLOTS - 1);
     if (debug > 2)
-        fprintf(stderr, "[ui] 2D quad %p: %s\n", packet, precise[s].packet == (uintptr_t)packet ? "recorded" : "not recorded");
-    if (precise[s].packet != (uintptr_t)packet)
+        fprintf(stderr, "[ui] 2D quad: %s\n", slot >= 0 ? "recorded" : "not recorded");
+    if (slot < 0)
         return 0;
     for (int i = 0; i < 4; i++)
-        if (precise[s].xy[i] != xy[i])
+        if (precise[slot].xy[i] != xy[i])
             return 0;
-    memcpy(corners, precise[s].f, sizeof precise[s].f);
+    memcpy(corners, precise[slot].f, sizeof precise[slot].f);
     ++stats.precise;
     for (int i = 0; i < 8; i++)
         if (corners[i] != floorf(corners[i])) {

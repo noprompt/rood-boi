@@ -4,6 +4,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = common.sprite_item;
 
 const AnchorPackets = *const fn (?*anyopaque, ?*anyopaque, c_int) callconv(.c) void;
 
@@ -27,31 +28,9 @@ pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
             }
         }
     } else if (v.g.D_800F1DC6().* != 0) {
-        const raw: *align(4) anyopaque = @alignCast(psx.get(scratch.unk0).?);
-        var prim: *v.POLY_FT4 = @ptrCast(raw);
-
-        const tag: *v.P_TAG = @ptrCast(prim);
-        psx.setBits(tag, "len", 9);
-        tag.code = 0x2c;
-
-        prim.x0 = 0;
-        prim.y0 = 0;
-        prim.x1 = 320;
-        prim.y1 = 0;
-        prim.x2 = 0;
-        prim.y2 = 240;
-        prim.x3 = 320;
-        prim.y3 = 240;
-
-        prim.u0 = 248;
-        prim.v0 = 248;
-        prim.u1 = 249;
-        prim.v1 = 248;
-        prim.u2 = 248;
-        prim.v2 = 249;
-        prim.u3 = 249;
-        prim.v3 = 249;
-
+        // The full-screen flash: one textured quad (a single texel of the page, stretched), modulated by the flash colour, as a draw
+        // item at the far slot of the table.
+        var rgb: c_int = undefined;
         const b = v.g.D_800F1BB0();
         if (b.unk6 != 0) {
             var red: c_int = 128 +% (@as(c_int, b.unk0) *% 4);
@@ -60,22 +39,14 @@ pub fn func_8008EC48(arg0: ?*v.VECTOR) callconv(.c) void {
             red = @as(c_int, psx.conv(i16, c.vs_battle_clamp(psx.conv(i16, red), 0, 255)));
             green = @as(c_int, psx.conv(i16, c.vs_battle_clamp(psx.conv(i16, green), 0, 255)));
             blue = @as(c_int, psx.conv(i16, c.vs_battle_clamp(psx.conv(i16, blue), 0, 255)));
-            prim.r0 = psx.conv(u8, red);
-            prim.g0 = psx.conv(u8, green);
-            prim.b0 = psx.conv(u8, blue);
+            rgb = (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0xFF) << 16);
         } else {
-            prim.r0 = 128;
-            prim.g0 = 128;
-            prim.b0 = 128;
+            rgb = 0x808080;
         }
-        prim.tpage = 0x11;
-        prim.clut = 0x38B1;
-
+        const xy = [4]c_int{ 0, 320, 240 << 16, 320 | (240 << 16) };
+        const uv = [4]c_int{ 248 | (248 << 8), 249 | (248 << 8), 248 | (249 << 8), 249 | (249 << 8) };
         const ot: ?*anyopaque = @ptrFromInt(@as(usize, psx.rawOf(scratch.unk4) +% 0x1FFC));
-        const cur = prim;
-        prim = @ptrFromInt(@intFromPtr(prim) +% @sizeOf(v.POLY_FT4));
-        c.AddPrim(ot, cur);
-        psx.put(&scratch.unk0, prim);
+        _ = sprite_item.ft4(ot, false, false, 0x11, 0x38B1, rgb, &xy, &uv);
     } else {
         var angles: *v.VECTOR = undefined;
         if (arg0) |given| {

@@ -36,7 +36,6 @@ pub const func_800D65D8 = @import("func_800D65D8.zig");
 pub const func_800D6448 = @import("func_800D6448.zig");
 pub const func_800D6CF0 = @import("func_800D6CF0.zig");
 pub const func_800D4778 = @import("func_800D4778.zig");
-pub const insert_tpage = @import("insert_tpage.zig");
 pub const r_memzero = @import("r_memzero.zig");
 pub const func_800D6298 = @import("func_800D6298.zig");
 pub const func_800D6310 = @import("func_800D6310.zig");

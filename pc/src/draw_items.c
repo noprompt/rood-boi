@@ -269,7 +269,6 @@ int pc_frame_sites(int on, int reset, const void*** list, int* peak_items)
 
 #define STRIDE 20 /* words per item in the packet arena: a mode packet (2) and the primitive (at most 15) */
 static uint32_t* arena;
-extern void pc_hw_anchor_packets(const void* start, const void* end, int anchor) __attribute__((weak));
 
 const void* pc_frame_packet(int index)
 {
@@ -401,19 +400,46 @@ int pc_frame_command_item(const void* command)
     return (int)((size_t)(at - arena) / STRIDE);
 }
 
+/* The anchor (and opacity) an item draws with are its own fields: a range of items sets them on its items, the innermost range
+ * (the fewest items) winning, as the smallest range of packets did. They used to be ranges of the item arena's addresses in
+ * the hardware path's tables, which outlived the frame whose items they named. */
+extern int pc_hw_item_anchor(int anchor) __attribute__((weak));
 void pc_frame_anchor(int first, int end, int anchor)
 {
-    if (pc_hw_anchor_packets && end > first && pc_frame_packet(first))
-        pc_hw_anchor_packets(pc_frame_packet(first), (const char*)pc_frame_packet(end - 1) + STRIDE * sizeof *arena, anchor);
+    if (end <= first) /* (an empty range records nothing: not even what a muted one reports) */
+        return;
+    int a = pc_hw_item_anchor ? pc_hw_item_anchor(anchor) : -1;
+    if (a < 0)
+        return;
+    for (int i = first; i < end && i < pc_item_frame.count; i++) {
+        pc_item* it = &pc_item_frame.item[i];
+        if (!(it->flags & PC_ITEM_ANCHORED) || end - first < it->anchor_span) {
+            it->flags |= PC_ITEM_ANCHORED;
+            it->anchor = (unsigned char)a;
+            it->anchor_span = end - first;
+        }
+    }
 }
 
-/* Items [first, end) drawn at `opacity` (16.16: 0x10000 opaque), as the packets of a range were (gpu_hw.c pc_hw_opacity_packets). */
-extern void pc_hw_opacity_packets(const void* start, const void* end, int opacity) __attribute__((weak));
+/* Items [first, end) drawn at `opacity` (16.16: 0x10000 opaque), as the packets of a range were (the last range to name an item wins). */
 int pc_frame_drawing_hidden; /* the item being drawn is PC_ITEM_HW_HIDDEN (boot_runtime.c) */
+const float* pc_frame_drawing_span; /* the item being drawn's fill shape (boot_runtime.c), NULL none */
+int pc_frame_drawing_anchor = -1, pc_frame_drawing_opacity = -1; /* the item being drawn's anchor and opacity (boot_runtime.c), -1 none */
+void pc_frame_span(int item, int length, float top_left, float top_right, float bottom_left, float bottom_right)
+{
+    pc_item* it = item >= 0 && item < pc_item_frame.count ? &pc_item_frame.item[item] : NULL;
+    if (!it)
+        return;
+    it->flags |= PC_ITEM_SPAN;
+    it->span[0] = (float)length, it->span[1] = top_left, it->span[2] = top_right, it->span[3] = bottom_left, it->span[4] = bottom_right;
+}
 void pc_frame_opacity(int first, int end, int opacity)
 {
-    if (pc_hw_opacity_packets && end > first && pc_frame_packet(first))
-        pc_hw_opacity_packets(pc_frame_packet(first), (const char*)pc_frame_packet(end - 1) + STRIDE * sizeof *arena, opacity);
+    for (int i = first; i < end && i < pc_item_frame.count; i++) {
+        pc_item* it = &pc_item_frame.item[i];
+        it->flags |= PC_ITEM_OPACITY;
+        it->opacity = (unsigned short)(opacity <= 0 ? 0 : opacity >= 0x10000 ? 256 : opacity >> 8);
+    }
 }
 
 static uint32_t rgb_word(const pc_item* it, int i)
@@ -434,7 +460,8 @@ static unsigned lower(const pc_item* it, uint32_t* p)
         p[n++] = 0xe1000000u | (it->kind == PC_ITEM_LINE ? it->mode & 0x1ffu : 0u);
     switch (it->kind) {
     case PC_ITEM_MODE_SET:
-        p[n++] = 0xe1000000u | it->mode;
+        if (it->mode != PC_ITEM_INHERIT) /* (INHERIT: a texture window alone) */
+            p[n++] = 0xe1000000u | it->mode;
         break;
     case PC_ITEM_MASK:
         p[n++] = 0xe6000000u | (it->x[0] ? 1u : 0u);
@@ -598,6 +625,9 @@ static void draw_run(int first, int count)
         const pc_item* it = &pc_item_frame.item[index];
         uint32_t* at = arena + (size_t)index * STRIDE;
         int textured_poly = it->kind == PC_ITEM_POLY && (it->flags & PC_ITEM_TEXTURED);
+        pc_frame_drawing_anchor = it->flags & PC_ITEM_ANCHORED ? it->anchor : -1;
+        pc_frame_drawing_opacity = it->flags & PC_ITEM_OPACITY ? it->opacity : -1;
+        pc_frame_drawing_span = it->flags & PC_ITEM_SPAN ? it->span : NULL;
         if ((it->flags & PC_ITEM_WINDOW) && it->tw != window) {
             at[18] = 0x01ffffffu; /* one word: GP0 E2, the texture window */
             at[19] = 0xe2000000u | (it->tw & 0xfffffu);
@@ -610,7 +640,7 @@ static void draw_run(int first, int count)
             mode = it->before;
             pc_draw_item_packet(at);
         }
-        if (it->kind == PC_ITEM_MODE_SET)
+        if (it->kind == PC_ITEM_MODE_SET && it->mode != PC_ITEM_INHERIT)
             mode = it->mode; /* (its packet is the mode) */
         if (it->kind == PC_ITEM_AREA || it->kind == PC_ITEM_MODE_SET || it->kind == PC_ITEM_MASK) {
             /* (a state: no draw mode of its own) */
@@ -628,6 +658,8 @@ static void draw_run(int first, int count)
         pc_frame_drawing_hidden = (it->flags & PC_ITEM_HW_HIDDEN) != 0; /* (boot_runtime.c draw_packet leaves it out of the hardware picture) */
         pc_draw_item_packet(at + 2);
         pc_frame_drawing_hidden = 0;
+        pc_frame_drawing_anchor = pc_frame_drawing_opacity = -1;
+        pc_frame_drawing_span = NULL;
         if (it->flags & PC_ITEM_AFTER)
             mode = it->after; /* (left set after it) */
     }

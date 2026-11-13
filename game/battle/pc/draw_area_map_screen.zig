@@ -6,7 +6,8 @@ const pad = @import("common").pad;
 const psx = common.psx;
 const gte = @import("common").gte;
 
-const SpanShape = *const fn (?*const anyopaque, c_int, f32, f32, f32, f32) callconv(.c) void;
+const SpanShape = *const fn (c_int, c_int, f32, f32, f32, f32) callconv(.c) void;
+const sprite_item = common.sprite_item;
 const AnchorPackets = *const fn (?*const anyopaque, ?*const anyopaque, c_int) callconv(.c) void;
 
 /// orig: pc_map_partner (pc/src/map_view.c)
@@ -32,7 +33,7 @@ fn mapPartner(row: c_int, x0: c_int, x1: c_int) c_int {
 /// orig: pc_map_span_shapes (pc/src/map_view.c)
 /// Joins each emitted row to the rows above and below for the hardware renderer.
 fn mapSpanShapes() void {
-    const shape = psx.weak(SpanShape, "pc_hw_span_shape") orelse return;
+    const shape = psx.weak(SpanShape, "pc_frame_span") orelse return;
     const emitted = v.g.pc_map_emitted();
     var i: c_int = 0;
     while (i < v.g.pc_map_emitted_count().*) : (i +%= 1) {
@@ -50,7 +51,7 @@ fn mapSpanShapes() void {
             edge[side][0] = @as(f32, @floatFromInt(@as(c_int, partner.x0) -% x0)) * 0.5;
             edge[side][1] = @as(f32, @floatFromInt(@as(c_int, partner.x1) -% x1)) * 0.5;
         }
-        shape(entry.packet, x1 -% x0, edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
+        shape(entry.item, x1 -% x0, edge[0][0], edge[0][1], edge[1][0], edge[1][1]);
     }
 }
 
@@ -199,7 +200,6 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
     const spans: [*]i16 = @ptrCast(@alignCast(&state.spans));
     const points: [*]c_uint = @ptrCast(@alignCast(edges));
     const grid_words: [*]c_uint = @ptrCast(@alignCast(grid));
-    var packet: [*]c_uint = undefined;
     const y: c_int = origin.vy;
     var k: c_int = undefined;
     var row: c_int = undefined;
@@ -552,8 +552,7 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
     }
 
     // Walk the right side downwards and emit the spans left of it.
-    packet = @ptrCast(@alignCast(common.scratch.get().unk0.?));
-    const first_packet = packet;
+    const first_packet = common.scratch.get().unk0.?; // (the markers the rows' items link are in [first_packet, the cursor))
     v.g.pc_map_emitted_count().* = 0;
     index = (top_index +% 1) & 31;
     while (true) {
@@ -606,22 +605,17 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
                                 from = xy0;
                                 last = true;
                             }
-                            packet[0] = (ot_slot.* & 0xffffff) | 0x04000000;
-                            packet[1] = 0xe1000220;
-                            packet[2] = color;
-                            packet[3] = from;
-                            packet[4] = (w >> 16) | row_y;
+                            // A flat semi-transparent line in the draw mode 0x220, as a draw item at the slot of its depth.
+                            const item = sprite_item.lineMode(ot_slot, true, @bitCast(color & 0xffffff), @bitCast(from), @bitCast((w >> 16) | row_y), 0x220);
                             const emitted_count = v.g.pc_map_emitted_count();
                             if (emitted_count.* < 1024) {
                                 const entry = &v.g.pc_map_emitted()[@intCast(emitted_count.*)]; // < PC_MAP_EMITTED
-                                entry.packet = @ptrCast(packet);
+                                entry.item = item;
                                 entry.row = psx.conv(i16, t1);
                                 entry.x0 = psx.conv(i16, from);
                                 entry.x1 = psx.conv(i16, w >> 16);
                                 emitted_count.* +%= 1;
                             }
-                            ot_slot.* = psx.addr(packet) & 0xffffff;
-                            packet += 5;
                             if (last) break;
                         }
                         n -%= 2;
@@ -636,9 +630,8 @@ pub fn drawAreaMapScreen(origin: *c.SVECTOR, m: *c.MATRIX, scale: c_int) callcon
         }
         index = (index +% 1) & 31;
     }
-    common.scratch.get().unk0 = packet;
     // Widescreen: the spans are made from the narrowed projections: drawn
     // where they are (gpu_hw.c), not compressed as screen furniture.
-    if (psx.weak(AnchorPackets, "pc_hw_anchor_packets")) |anchor| anchor(first_packet, packet, c.PC_ANCHOR_PROJECTED);
+    if (psx.weak(AnchorPackets, "pc_hw_anchor_packets")) |anchor| anchor(first_packet, common.scratch.get().unk0.?, c.PC_ANCHOR_PROJECTED);
     mapSpanShapes();
 }

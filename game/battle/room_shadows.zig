@@ -5,6 +5,7 @@ const psx = @import("common").psx;
 const gte = @import("common").gte;
 const v = @import("views_146C");
 const c = @import("c_146C");
+const sprite_item = @import("common").sprite_item;
 
 /// The scene's view.
 fn view() *v.vs_view_t {
@@ -52,7 +53,6 @@ pub fn func_8008CEB0() callconv(.c) void {
         var shade: c_int = @divTrunc(height -% altitude, 2);
         if (shade >= 224) shade = 223;
         shade = 255 -% shade;
-        var prim: *v.POLY_F4 = @ptrCast(@alignCast(psx.get(scratch().unk0).?));
         const half: c_int = 32 +% @divTrunc(shade, 8);
         vertices[0].vx = psx.conv(i16, @divTrunc(object.unkA8, 4096) -% half);
         vertices[0].vy = psx.conv(i16, height);
@@ -67,23 +67,12 @@ pub fn func_8008CEB0() callconv(.c) void {
         vertices[3].vy = psx.conv(i16, height);
         vertices[3].vz = psx.conv(i16, @divTrunc(object.unkB0, 4096) +% half);
         const average = gte.average4(&camera, &vertices[0], &vertices[1], &vertices[2], &vertices[3]);
-        // The four screen words go to the packet's x0/y0 .. x3/y3 words.
-        @as(*align(1) c_int, @ptrCast(&prim.x0)).* = average.sxy[0];
-        @as(*align(1) c_int, @ptrCast(&prim.x1)).* = average.sxy[1];
-        @as(*align(1) c_int, @ptrCast(&prim.x2)).* = average.sxy[2];
-        @as(*align(1) c_int, @ptrCast(&prim.x3)).* = average.sxy[3];
         const depth: c_int = @intCast(average.otz);
         if (depth > 4 and depth < 2048) {
-            const tag: *v.P_TAG = @ptrCast(prim);
-            psx.setBits(tag, "len", 5); // setPolyF4
-            tag.code = 0x28;
-            tag.code = tag.code | 0x02; // setSemiTrans(prim, 1)
-            prim.r0 = psx.conv(u8, @divTrunc(shade, 2) +% 16);
-            prim.g0 = psx.conv(u8, @divTrunc(shade, 2) +% 16);
-            prim.b0 = psx.conv(u8, @divTrunc(shade, 2) +% 16);
-            c.AddPrim(otEntry(depth), prim);
-            prim = psx.at(prim, 1);
-            psx.put(&scratch().unk0, prim);
+            // The square: a flat semi-transparent quad (setPolyF4, setSemiTrans) of the four screen words, a draw item at the slot of its depth.
+            const grey: c_int = @divTrunc(shade, 2) +% 16;
+            const xy = [4]c_int{ average.sxy[0], average.sxy[1], average.sxy[2], average.sxy[3] };
+            sprite_item.flat(otEntry(depth), 4, true, (grey & 0xFF) | ((grey & 0xFF) << 8) | ((grey & 0xFF) << 16), &xy);
             c.pc_insert_tpage(depth, 64);
             if (psx.weak(ShadowNative, "pc_platform_shadow_native")) |native| {
                 const centre = [3]c_int{ @divTrunc(object.unkA8, 4096), height, @divTrunc(object.unkB0, 4096) };

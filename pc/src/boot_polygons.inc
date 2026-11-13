@@ -193,11 +193,11 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
      * anyway, it borrows another vertex's candidates for the choice below
      * and then takes the others' mean depth, rather than the whole polygon
      * dropping to 2D (unlit, black under the lighting) for a frame. */
-    int room = pc_hw_is_room_packet(p), room_sz[4];
+    int room = (pc_hw_current_is_room ? pc_hw_current_is_room() : 0), room_sz[4];
     unsigned packet_xy[4];
     for (int i = 0; i < count; ++i)
         packet_xy[i] = (unsigned)(uint16_t)screen[i][0] | ((unsigned)(uint16_t)screen[i][1] << 16);
-    int exact = room && pc_room_exact_depth && pc_gte_log && pc_hw_room_depth && pc_hw_room_depth(p, packet_xy, count, room_sz);
+    int exact = room && pc_room_exact_depth && pc_gte_log && pc_hw_room_depth && pc_hw_room_depth(GUEST(p), packet_xy, count, room_sz);
     if (exact) {
         /* Room geometry: the depths room_geometry.c recorded with the
          * packet; the log only lends the unrounded position of a projection
@@ -298,7 +298,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
     /* 2D text glyphs placed between whole pixels (ui_upscale.c, ui_subpixel):
      * the hardware path draws them where the game put them before rounding. */
     float corners[8];
-    if (!projected && textured && pc_ui_precise_lookup && pc_ui_precise_lookup(p, packet_xy, count, corners))
+    if (!projected && textured && pc_ui_precise_lookup && pc_ui_precise_lookup(precise_slot_for(p), packet_xy, count, corners))
         for (int i = 0; i < count; ++i) {
             vertex[i].fx = corners[i * 2] + draw_x;
             vertex[i].fy = corners[i * 2 + 1] + draw_y;
@@ -317,7 +317,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         float placed[8]; /* (as the packet's: without the drawing offset) */
         for (int i = 0; i < 4; ++i)
             placed[i * 2] = vertex[i].fx - draw_x, placed[i * 2 + 1] = vertex[i].fy - draw_y;
-        int item = pc_frame_command_item ? pc_frame_command_item(p) : -1; /* (a draw item's quad: its group is the popup) */
+        int item = pc_frame_command_item ? pc_frame_command_item(GUEST(p)) : -1; /* (a draw item's quad: its group is the popup) */
         if (item >= 0 && pc_ui_text_popup_place_item ? pc_ui_text_popup_place_item(item, placed)
                                                      : pc_ui_text_popup_place(drawing_tag, next_packet, placed))
             for (int i = 0; i < 4; ++i) {
@@ -325,6 +325,15 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
                 vertex[i].fx = placed[i * 2], vertex[i].fy = placed[i * 2 + 1];
                 vertex[i].x = round_px(placed[i * 2]), vertex[i].y = round_px(placed[i * 2 + 1]);
             }
+    }
+    {   /* (the digest: where the vertices end up, after ui_text's popup placement and precise corners) */
+        int v[16], n = 0;
+        for (int i = 0; i < count; ++i) {
+            float fx = vertex[i].fx, fy = vertex[i].fy;
+            v[n++] = vertex[i].x, v[n++] = vertex[i].y;
+            memcpy(&v[n++], &fx, sizeof fx), memcpy(&v[n++], &fy, sizeof fy);
+        }
+        stream_record(0x103, v, n);
     }
     pc_hw_set_2d(!projected);
     if (!projected && narrowed_2d((const int (*)[2])screen, count))
@@ -349,7 +358,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         pc_hw_set_bounds(x0, y0, x1, y1, code, tpage, textured ? texels : NULL, clip);
     }
     pc_hw_set_room(room);
-    pc_hw_set_packet(p);
+    pc_hw_set_packet(GUEST(p));
     /* ui_text_layout line: a scaled glyph cell (a zooming talk bubble's
      * text) is laid out with its line (gpu_hw.c); its triangles below are
      * then the original, drawn while the layout is off. */
@@ -357,7 +366,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
     if (!projected && textured && count == 4 && pc_hw_text_quad) {
         float fxy[8];
         int fuv[8];
-        if (!(pc_ui_precise_find && pc_ui_precise_find(p, packet_xy, count, fxy)))
+        if (!(pc_ui_precise_find && pc_ui_precise_find(precise_slot_for(p), packet_xy, count, fxy)))
             for (int i = 0; i < 4; ++i)
                 fxy[i * 2] = (float)vertex[i].x - draw_x, fxy[i * 2 + 1] = (float)vertex[i].y - draw_y;
         for (int i = 0; i < 4; ++i) {
@@ -365,7 +374,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
             fuv[i * 2] = vertex[i].u, fuv[i * 2 + 1] = vertex[i].v;
         }
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-        pc_gpu_command = p;
+        pc_gpu_command = GUEST(p);
         text_piece = pc_hw_text_quad(fxy, fuv, vertex[0].color, code, tpage, clut, texture_window, clip, mask_set,
             mask_check);
         pc_gpu_command = NULL;

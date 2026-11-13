@@ -302,9 +302,13 @@ unsigned* pc_platform_shadow_native(int index, const int centre[3], int shade, u
  * once its first marker draws. */
 void pc_platform_shadows_end(const void* start, const void* end)
 {
-    if (pc_hw_effect_packets)
-        pc_hw_effect_packets(start, end, platform_serial == render_frame_serial() ? platform_list : 0,
-            RENDER_EFFECTS_SHADOWS);
+    if (pc_hw_effect_packets) {
+        const void *lo, *hi;
+        uint32_t list = platform_serial == render_frame_serial() ? platform_list : 0;
+        pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SHADOWS);
+        if (pc_frame_marker_span(start, end, &lo, &hi)) /* (the squares are draw items: their lowered packets) */
+            pc_hw_effect_packets(lo, hi, list, RENDER_EFFECTS_SHADOWS);
+    }
 }
 
 /* ---- particles ---- */

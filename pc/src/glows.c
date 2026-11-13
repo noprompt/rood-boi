@@ -117,7 +117,7 @@ static uint32_t next_id;
 typedef struct {
     float centre[3], area, size;
     float strength; /* light scale: the 96-unit pieces it spans (see build_groups) */
-    uint32_t tag;
+    uint32_t signature;
     int animated, triangles;
     float seeds[64][3]; /* those pieces' seeds */
     /* Its column (fit_column): centre, half axis and radius (> 0 its side,
@@ -335,13 +335,13 @@ static void build_groups(void)
                     continue;
                 memset(&groups[g], 0, sizeof groups[g]);
                 memcpy(groups[g].centre, c, sizeof c); /* the seed, until the members average it */
-                groups[g].tag = 2166136261u;
+                groups[g].signature = 2166136261u;
                 group_count++;
             }
             done[b] = 1;
             triangle_group[glowing[b]] = g;
             /* tag: the members' polygon offsets (the same every visit) */
-            groups[g].tag = (groups[g].tag ^ (t->polygon * 2 + t->quad)) * 16777619u;
+            groups[g].signature = (groups[g].signature ^ (t->polygon * 2 + t->quad)) * 16777619u;
             groups[g].triangles++;
             for (int i = 0; i < animated_count; i++)
                 groups[g].animated |= animated[i] == glowing[b];
@@ -957,7 +957,7 @@ int pc_glows_update(const pc_glow_fragment* fragments, int count, const float (*
         solo_id = 0;
         snap = 1;
         for (int g = 0; g < group_count; g++) {
-            track* t = new_track(PC_GLOW_ORIGIN_ROOM << 28 | (groups[g].tag & 0x0fffffffu), g, groups[g].centre);
+            track* t = new_track(PC_GLOW_ORIGIN_ROOM << 28 | (groups[g].signature & 0x0fffffffu), g, groups[g].centre);
             if (t)
                 t->size = t->obs_size = groups[g].size;
         }

@@ -1,6 +1,8 @@
 //! Draws one line primitive (G-style line with a fixed colour) into the
 //! ordering table at its depth (pc/src/game/BATTLE/BATTLE.PRG/573B8.c).
-const psx = @import("common").psx;
+const common = @import("common");
+const psx = common.psx;
+const sprite_item = common.sprite_item;
 const v = @import("views_573B8");
 
 /// orig: func_800C0990 (pc/src/game/BATTLE/BATTLE.PRG/573B8.c)
@@ -50,16 +52,11 @@ pub fn func_800C0990(start: ?*v.SVECTOR, end: ?*v.SVECTOR, color: c_uint, intens
         intensity = 63;
     }
 
-    const prim: [*]align(1) u32 = @ptrCast(psx.get(v.g.vs_scratch().unk0).?);
+    // A flat line (the code byte of `color`: 0x40, or 0x42 for a semi-transparent one) in the default draw mode, `intensity` scaling
+    // the packed colour as the C does (the product's overflow into the code byte is the game's).
     const ot_base: [*]align(1) u32 = @ptrCast(psx.get(v.g.vs_scratch().unk4).?);
     const ot = ot_base + @as(usize, @intCast(depth));
-    var link: u32 = ot[0];
-    link &= 0xFFFFFF;
-    prim[1] = 0xE1000200;
-    prim[3] = (psx.conv(c_uint, ay) & 0xFFFF) | (psx.conv(c_uint, ax) << 16);
-    prim[0] = link | 0x04000000;
-    prim[2] = ((((color << 8) >> 8) *% psx.conv(c_uint, intensity)) | ((color >> 24) << 24));
-    prim[4] = @as(*align(1) u32, @ptrCast(e)).*;
-    ot[0] = (psx.addr(prim) << 8) >> 8;
-    psx.put(&v.g.vs_scratch().unk0, @as(*anyopaque, @ptrCast(prim + 5)));
+    const word: u32 = ((((color << 8) >> 8) *% psx.conv(c_uint, intensity)) | ((color >> 24) << 24));
+    const start_xy: c_int = @bitCast((psx.conv(c_uint, ay) & 0xFFFF) | (psx.conv(c_uint, ax) << 16));
+    _ = sprite_item.lineMode(ot, (word >> 24) & 2 != 0, @bitCast(word & 0xFFFFFF), start_xy, @as(*align(1) c_int, @ptrCast(e)).*, 0x200);
 }

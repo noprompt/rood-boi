@@ -69,23 +69,15 @@ pub fn renderMenuItem(menuItem: ?*v.vs_battle_menuItem_t) callconv(.c) void {
             w | 0xC0000,
         );
 
-        const prim: [*c]c_uint = @ptrCast(@alignCast(v.g.vs_scratch().unk0));
-        const primAddr: u32 = psx.addr(prim);
-
-        prim[0] = (scratch[0] & 0xFFFFFF) | 0x0A000000;
-        prim[1] = tpage(c.ditheringOn);
-        prim[2] = bits((c.primPolyG4 << 24) | topColor);
-        prim[3] = bits(x) | (bits(y) << 16);
-        prim[4] = bits(bottomColor);
-        prim[5] = bits((x +% w) & 0xFFFF) | (bits(y) << 16);
-        prim[6] = bits(topColor);
-        prim[7] = bits(x) | (bits(y +% 12) << 16);
-        prim[8] = bits(bottomColor);
-        prim[9] = bits((x +% w) & 0xFFFF) | (bits(y +% 12) << 16);
-        prim[10] = tpage(c.ditheringOff);
-
-        scratch[0] = (primAddr << 8) >> 8;
-        v.g.vs_scratch().unk0 = prim + 11;
+        // The row's gradient: a shaded quad, dithered on for it and off after, as a draw item at the row's slot.
+        const rgb = [4]c_int{ topColor & 0xFFFFFF, bottomColor & 0xFFFFFF, topColor & 0xFFFFFF, bottomColor & 0xFFFFFF };
+        const corners = [4]c_int{
+            @bitCast(bits(x) | (bits(y) << 16)),
+            @bitCast(bits((x +% w) & 0xFFFF) | (bits(y) << 16)),
+            @bitCast(bits(x) | (bits(y +% 12) << 16)),
+            @bitCast(bits((x +% w) & 0xFFFF) | (bits(y +% 12) << 16)),
+        };
+        sprite_item.g4After(scratch, @bitCast(tpage(c.ditheringOn)), @bitCast(tpage(c.ditheringOff)), &rgb, &corners);
 
         if (psx.get(m.subText)) |subText| {
             c.vs_battle_renderTextRaw(

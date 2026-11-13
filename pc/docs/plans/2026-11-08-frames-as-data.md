@@ -150,3 +150,17 @@ vsyncs through the whole credits (27 431 frames), through MISSION COMPLETE, its 
 every vsync through MISSION COMPLETE and its fade-out; old against old is the control. All identical.
 Not covered: 16:9, `present_rate` above 1 (interpolation), the OpenGL renderer, ui_text scales other than 1.
 `ps1_address_lint` `gpu_packet_writes` counts packet construction (see `ps1_address_lint.py`).
+
+## Open items (2026-11-12)
+
+- **Resolved: the `story_evt-0001` flake (vsync 3085 and 3087).** Two causes, both host state a restore left behind: the hardware
+  path's pending range tables (fixed first) and, for the rest, the scene capture's camera: the rain's hidden-drop test eyes the
+  scene from "the camera of the frame the game is building", which after a rewind is the abandoned timeline's, whichever frame
+  that was (a coin toss between runs). `pc_hw_resync` (every restore) now forgets the pending tables, the held-back text pieces and
+  the scene camera (`pc_scene_forget_camera`), as a game resumed in a new process starts without them. Twelve runs agree at all
+  2903 vsyncs. Found with `ROOD_STREAM_TRACE=V` on two runs that parted.
+- **The digest ignores only what the GPU ignores**: the colour of a raw textured primitive and the padding in the top halves of a
+  polygon's third and fourth texel words (`stream_commands`, boot_runtime.c). An item marker's own words and notes are left out
+  (a run's index moves when a producer becomes items); what it places is hashed as it is lowered and drawn.
+- **S3a** (packet printers to items): the fixed-width glyph printer, the text-box rows and the unit shadow quad are items;
+  the HUD claim emitters (`hud_bridge.c`) and the `pc_lift_*` path are next; S3b waits for the 3D-maths batch.

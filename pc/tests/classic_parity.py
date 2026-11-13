@@ -4297,13 +4297,14 @@ def run_ending(out, card, env, check, waivers):
             g.press(button, vsyncs=3, settle=settle)
 
         def step():
-            return int.from_bytes(g.read(RANK_SCREEN_STEP, 4), "little")
+            return int.from_bytes(g.read_symbol(RANK_SCREEN_STEP, 4) if isinstance(RANK_SCREEN_STEP, str) else g.read(RANK_SCREEN_STEP, 4), "little")
 
         g.call("classic", parity=True, reset=True)
         check(g.call("ending")["requested"], "the ending: requested from the field")
         g.run(1200)
         g.press("start", vsyncs=4, settle=200)
-        check(g.read(CREDITS_DONE, 1) == b"\x01", "the ending: Start skips the credits")
+        check((g.read_symbol(CREDITS_DONE, 1) if isinstance(CREDITS_DONE, str) else g.read(CREDITS_DONE, 1)) == b"\x01",
+              "the ending: Start skips the credits")
         before = frames()
         g.until(lambda: step() > 0x120, step=30, guard=1800, what="the MISSION COMPLETE screen")
         g.run(60)

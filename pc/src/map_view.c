@@ -34,7 +34,7 @@ extern void pc_hw_span_shape(const void* packet, int length, float top_left, flo
     float bottom_right) __attribute__((weak));
 #define PC_MAP_EMITTED 1024
 static struct {
-    const unsigned* packet;
+    int item; /* the line's draw item */
     short row, x0, x1; /* x1 inclusive */
 } pc_map_emitted[PC_MAP_EMITTED] __attribute__((used));
 static int pc_map_emitted_count __attribute__((used));

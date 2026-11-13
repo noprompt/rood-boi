@@ -58,7 +58,7 @@ pub fn shaded(ot: ?*anyopaque, verts: c_int, semi: bool, rgb: []const c_int, xy:
     psx.weak(Shaded, "vs_battle_shadedItem").?(ot, verts, @intFromBool(semi), rgb.ptr, xy.ptr);
 }
 
-/// SetDrawMode's DR_MODE at `ot`: the draw mode (E1 bits) and the texture window (E2's 20 bits).
+/// SetDrawMode's DR_MODE at `ot`: the draw mode (E1 bits; -1: none) and the texture window (E2's 20 bits).
 pub fn drawModeWindow(ot: ?*anyopaque, e1: c_int, window: c_int) void {
     psx.weak(DrawModeWindow, "vs_battle_drawModeItem").?(ot, e1, window);
 }
@@ -117,4 +117,26 @@ const Before = *const fn (c_int, c_int) callconv(.c) void;
 /// The textured item is drawn after the draw mode `e1` (GP0 E1) is set, as the packet that began with that word drew: its dither and display bits.
 pub fn before(item: c_int, e1: c_int) void {
     psx.weak(Before, "vs_battle_itemBefore").?(item, e1);
+}
+
+const Gt4Plain = *const fn (?*anyopaque, c_int, c_int, c_int, [*]const c_int, [*]const c_int, [*]const c_int) callconv(.c) c_int;
+
+/// A textured Gouraud quad at `ot` (a GT4 packet): its page word and CLUT, the colour, place (x low, y high) and texels (u low, v high)
+/// of each corner.
+pub fn gt4Plain(ot: ?*anyopaque, semi: bool, tpage: c_int, clut: c_int, rgb: []const c_int, xy: []const c_int, uv: []const c_int) c_int {
+    return psx.weak(Gt4Plain, "vs_battle_gt4PlainItem").?(ot, @intFromBool(semi), tpage, clut, rgb.ptr, xy.ptr, uv.ptr);
+}
+
+const LineMode = *const fn (?*anyopaque, c_int, c_int, c_int, c_int, c_int) callconv(.c) c_int;
+
+/// A flat line at `ot`, in the draw mode `e1` (the E1 word set before it).
+pub fn lineMode(ot: ?*anyopaque, semi: bool, rgb: c_int, xy0: c_int, xy1: c_int, e1: c_int) c_int {
+    return psx.weak(LineMode, "vs_battle_lineModeItem").?(ot, @intFromBool(semi), rgb, xy0, xy1, e1);
+}
+
+const G4After = *const fn (?*anyopaque, c_int, c_int, [*]const c_int, [*]const c_int) callconv(.c) void;
+
+/// A shaded quad at `ot` drawn in the draw mode `e1`, the mode `after` (GP0 E1 words) left set: a colour and a place (x low, y high) per corner.
+pub fn g4After(ot: ?*anyopaque, e1: c_int, after: c_int, rgb: []const c_int, xy: []const c_int) void {
+    psx.weak(G4After, "vs_battle_g4AfterItem").?(ot, e1, after, rgb.ptr, xy.ptr);
 }

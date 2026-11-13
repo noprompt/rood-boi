@@ -41,8 +41,11 @@ extern int pc_fog_state_size(void) __attribute__((weak));
 extern void pc_fog_state_save(void*) __attribute__((weak));
 extern int pc_fog_state_load(const void*, int) __attribute__((weak));
 extern void pc_cd_restored(void) __attribute__((weak));
+extern void pc_scene_camera_state_save(void*) __attribute__((weak)); /* scene_capture.c: the camera of the moment */
+extern void pc_scene_camera_state_load(const void*) __attribute__((weak));
 extern void pc_cd_release(void) __attribute__((weak));
 extern void pc_hw_resync(void) __attribute__((weak));
+extern void pc_hw_forget_timeline(void) __attribute__((weak)); /* gpu_hw.c: the host held for the frame the game was in */
 extern void pc_photo_state_replaced(void) __attribute__((weak));
 extern void pc_input_rewound(void) __attribute__((weak));
 #define MAX_RANGES 170
@@ -52,6 +55,7 @@ extern void pc_input_rewound(void) __attribute__((weak));
 #define PHOTO_SLOT 1
 static struct rewind_mark {
     int valid, count, spu_size, fog_size;
+    char camera[256];
     snap_context context;
     pc_state_range ranges[MAX_RANGES];
     char *memory, *stack, *spu, *fog;
@@ -132,6 +136,7 @@ __attribute__((noinline)) int pc_snapshot_mark_slot(int slot, char* error, int s
     if (pc_sound_unlock)
         pc_sound_unlock();
     if (mark.fog_size) pc_fog_state_save(mark.fog);
+    if (pc_scene_camera_state_save) pc_scene_camera_state_save(mark.camera);
     mark.sp = sp;
     memcpy(mark.stack, (void*)sp, mark.stack_bytes);
     mark.bytes = bytes + mark.stack_bytes + (size_t)mark.spu_size + (size_t)mark.fog_size;
@@ -190,12 +195,14 @@ static __attribute__((noreturn)) void restore(void)
     if (pc_sound_unlock)
         pc_sound_unlock();
     if (mark.fog_size) pc_fog_state_load(mark.fog, mark.fog_size);
+    if (pc_scene_camera_state_load) pc_scene_camera_state_load(mark.camera);
     if (pc_cd_restored) pc_cd_restored();
     if (pc_input_rewound) pc_input_rewound();
     /* The photo mode's slot keeps the hardware target (the render's picture: photo.cpp resyncs before
      * the next one and at resume) and the RPC as it is (photo.cpp knows it landed). */
     if (restoring != PHOTO_SLOT) {
         if (pc_photo_state_replaced) pc_photo_state_replaced();
+        if (pc_hw_forget_timeline) pc_hw_forget_timeline();
         if (pc_hw_resync) pc_hw_resync();
         pc_rpc_rewound();
     }

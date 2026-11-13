@@ -156,6 +156,53 @@ int vs_battle_ft4Item(unsigned* ot, int raw, int semi, int tpage, int clut, int 
     }
     return place(ot, cursor, first);
 }
+/* A textured Gouraud quad (GT4), opaque or semi-transparent: the page word and CLUT it names, `rgb`, `xy` and `uv` per corner (colours
+ * 0xBBGGRR, places x low and y high, texels u low and v high). */
+int vs_battle_gt4PlainItem(unsigned* ot, int semi, int tpage, int clut, const int* rgb, const int* xy, const int* uv)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_POLY, 0);
+    if (it) {
+        it->verts = 4, it->flags = (unsigned short)(PC_ITEM_TEXTURED | PC_ITEM_SHADED | (semi ? PC_ITEM_SEMI : 0));
+        it->mode = (unsigned short)tpage, it->clut = (unsigned short)clut;
+        for (int i = 0; i < 4; i++) {
+            it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+            it->u[i] = (unsigned char)uv[i], it->v[i] = (unsigned char)(uv[i] >> 8);
+            it->rgb[i][0] = (unsigned char)rgb[i], it->rgb[i][1] = (unsigned char)(rgb[i] >> 8), it->rgb[i][2] = (unsigned char)(rgb[i] >> 16);
+        }
+    }
+    return place(ot, cursor, first);
+}
+/* A shaded quad (POLY_G4) drawn in the E1 word `mode`, the E1 word `after` left as the draw mode (colours 0xBBGGRR, corners x low, y high). */
+void vs_battle_g4AfterItem(unsigned* ot, int mode, int after, const int* rgb, const int* xy)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_POLY, 0);
+    if (it) {
+        it->verts = 4, it->flags = PC_ITEM_SHADED | PC_ITEM_AFTER;
+        it->mode = (unsigned short)(mode & 0x3fff), it->after = (unsigned short)(after & 0x3fff);
+        for (int i = 0; i < 4; i++) {
+            it->x[i] = (short)xy[i], it->y[i] = (short)(xy[i] >> 16);
+            it->rgb[i][0] = (unsigned char)rgb[i], it->rgb[i][1] = (unsigned char)(rgb[i] >> 8), it->rgb[i][2] = (unsigned char)(rgb[i] >> 16);
+        }
+    }
+    place(ot, cursor, first);
+}
+/* A flat line drawn in the E1 word `mode` (its draw mode set before it, as the packet that held both did). */
+int vs_battle_lineModeItem(unsigned* ot, int semi, int rgb, int xy0, int xy1, int mode)
+{
+    unsigned* cursor = cursor_get();
+    int first = pc_frame_count();
+    pc_item* it = pc_frame_add(PC_ITEM_LINE, 0);
+    if (it) {
+        it->flags = semi ? PC_ITEM_SEMI : 0, it->mode = (unsigned short)(mode & 0x3fff);
+        it->x[0] = (short)xy0, it->y[0] = (short)(xy0 >> 16), it->x[1] = (short)xy1, it->y[1] = (short)(xy1 >> 16);
+        it->rgb[0][0] = (unsigned char)rgb, it->rgb[0][1] = (unsigned char)(rgb >> 8), it->rgb[0][2] = (unsigned char)(rgb >> 16);
+    }
+    return place(ot, cursor, first);
+}
 /* A shaded line (LINE_G2) between two points, semi-transparent when `semi`; returns the item. */
 int vs_battle_lineItem(unsigned* ot, int semi, int rgb0, int xy0, int rgb1, int xy1)
 {
@@ -216,7 +263,7 @@ void vs_battle_drawModeItem(unsigned* ot, int e1, int window)
     int first = pc_frame_count();
     pc_item* it = pc_frame_add(PC_ITEM_MODE_SET, 0);
     if (it) {
-        it->mode = (unsigned short)(e1 & 0x3fff);
+        it->mode = e1 == -1 ? PC_ITEM_INHERIT : (unsigned short)(e1 & 0x3fff); /* (-1: the texture window alone, no draw mode word) */
         if (window != -1)
             it->flags |= PC_ITEM_WINDOW, it->tw = (unsigned)window & 0xfffffu;
     }

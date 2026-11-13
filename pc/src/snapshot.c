@@ -339,6 +339,8 @@ extern int pc_fog_state_load(const void* in, int size) __attribute__((weak));
 extern void pc_cd_restored(void) __attribute__((weak));   /* cd_drive.c: reopen the disc */
 extern void pc_cd_release(void) __attribute__((weak));    /* cd_drive.c: close it before a load */
 extern void pc_hw_resync(void) __attribute__((weak));     /* gpu_hw.c: the target from native VRAM */
+extern void pc_hw_forget_timeline(void) __attribute__((weak)); /* gpu_hw.c: what the host held for the frame the game was in */
+extern void pc_scene_forget_camera(void) __attribute__((weak)); /* scene_capture.c */
 extern void pc_photo_state_replaced(void) __attribute__((weak));
 extern void pc_rpc_restored(void) __attribute__((weak));  /* dev_rpc.c: listen, paused */
 extern void pc_rpc_set_paused(int value) __attribute__((weak));
@@ -887,6 +889,10 @@ static char* apply(prepared* p, const char* path, int replay_log, size_t* stack_
         pc_cd_restored();
     if (pc_photo_state_replaced)
         pc_photo_state_replaced();
+    if (pc_hw_forget_timeline)
+        pc_hw_forget_timeline();
+    if (pc_scene_forget_camera)
+        pc_scene_forget_camera(); /* (a resumed state keeps no camera: the next frame sets it) */
     if (pc_hw_resync)
         pc_hw_resync();
     return stack_image;

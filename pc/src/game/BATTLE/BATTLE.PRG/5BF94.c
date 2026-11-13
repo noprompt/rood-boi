@@ -823,7 +823,6 @@ u_int vs_battle_keystreamBits(int value);
 
 void vs_battle_addTile(u_long* before, int rgb0, int xy, int wh);
 
-void vs_battle_insertTpage(int tpage, u_long* before);
 
 int vs_battle_drawCursor(int animStep, int position);
 

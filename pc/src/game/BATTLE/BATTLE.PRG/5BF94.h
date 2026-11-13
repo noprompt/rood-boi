@@ -637,12 +637,10 @@ int vs_battle_drawCursor(int animStep, int position);
 u_int vs_battle_keystreamBits(int value);
 int vs_battle_decreaseMiscCount(int);
 void vs_battle_addTile(u_long* before, int rgb0, int xy, int wh);
-void vs_battle_insertTpage(int arg0, u_long* arg1);
 vs_battle_textBox* vs_battle_getTextBox(int arg0);
 void vs_battle_initTextBox(
     int id, int flags, int x, int y, int w, int h, int centerX, int centerY);
 int vs_battle_dismissTextBox(int);
-void vs_battle_insertTpage(int, u_long*);
 void vs_battle_renderImage(int xy, void* buffer, int wh);
 void func_800CE64C(void);
 int func_800CEEBC(void);

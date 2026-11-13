@@ -324,6 +324,32 @@ int pc_scene_triangle_at(const float p[3], float slack)
     return best;
 }
 
+/* A restored game (a rewind, a resumed state): the camera of the frame before it is the abandoned timeline's, whatever frame that
+ * was. Whatever asks the game's camera (the rain's hidden drops) then finds none until the next frame sets it, as in a new process. */
+void pc_scene_forget_camera(void) { camera_valid = 0; }
+/* A mark keeps the camera of its moment (state_rewind.c): a rewind puts it back (the frame it lands in sets it only later). */
+typedef struct {
+    float rotation[3][3], translation[3], h, ofx, ofy;
+    unsigned facing;
+    int valid;
+} camera_state;
+int pc_scene_camera_state_size(void) { return (int)sizeof(camera_state); }
+void pc_scene_camera_state_save(void* out)
+{
+    camera_state s = { .h = camera_h, .ofx = camera_ofx, .ofy = camera_ofy, .facing = camera_facing, .valid = camera_valid };
+    memcpy(s.rotation, camera_rotation, sizeof s.rotation);
+    memcpy(s.translation, camera_translation, sizeof s.translation);
+    memcpy(out, &s, sizeof s);
+}
+void pc_scene_camera_state_load(const void* in)
+{
+    camera_state s;
+    memcpy(&s, in, sizeof s);
+    memcpy(camera_rotation, s.rotation, sizeof s.rotation);
+    memcpy(camera_translation, s.translation, sizeof s.translation);
+    camera_h = s.h, camera_ofx = s.ofx, camera_ofy = s.ofy, camera_facing = s.facing, camera_valid = s.valid;
+}
+
 /* Called each frame with the camera view matrix (0x1F800014) in effect. */
 void pc_scene_camera(const void* view)
 {

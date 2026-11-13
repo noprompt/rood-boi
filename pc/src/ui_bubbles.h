@@ -54,7 +54,8 @@ void pc_bubble_frame(int id, const unsigned* flags, const short* rect, const voi
 /* boot_runtime.c: a GPU packet is about to be drawn (draw offset, drawing
  * area); sets pc_hw_suppress for a vector bubble's packets and draws the
  * bubble's shapes in their place. */
-void pc_ui_bubble_packet(const void* packet, int draw_x, int draw_y, const int* clip);
+int pc_ui_bubble_find(const void* packet);
+void pc_ui_bubble_packet(int index, const void* packet, int draw_x, int draw_y, const int* clip);
 /* A new ordering table (pc_hw_begin_ot). */
 void pc_ui_bubbles_frame(void);
 

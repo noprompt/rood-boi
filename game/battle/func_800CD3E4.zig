@@ -100,7 +100,7 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
         sprite_item.lineFlat(ot + 2, false, 0x303030, psx.at(points, n).*, psx.at(points, v_).*);
         n = n + 1;
     }
-    c.vs_battle_insertTpage(@bitCast(@as(c_uint, 0xE2000000)), ot + 2);
+    sprite_item.drawModeWindow(ot + 2, -1, 0); // the texture window reset (GP0 E2) alone
     flip = box.brightness;
     flip = flip | (flip << 8) | (flip << 16);
     n = 0;
@@ -149,7 +149,7 @@ pub fn func_800CD3E4(index: c_int) callconv(.c) void {
             if (psx.weak(BubbleShadow, "vs_battle_bubbleShadow")) |shadow_item| shadow_item(ot + 1, verts_n, &shadow);
         }
     }
-    c.vs_battle_addTile(ot + 2, @bitCast(@as(c_uint, 0xE1000017)), @bitCast(@as(c_uint, 0xE2000318)), 0);
+    sprite_item.drawModeWindow(ot + 2, 0x17, 0x318); // the draw mode (GP0 E1) and the 64-texel tile window (E2) the frame leaves set
     // ROOD_PC: the talk bubble's frame.
     if (psx.weak(BubbleFrame, "pc_bubble_frame")) |hook| hook(index, @ptrCast(&box.unk0), @ptrCast(&box.unk24), shape, frame_start, psx.get(scratch.unk0));
 }

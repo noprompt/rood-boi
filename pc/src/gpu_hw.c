@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "render_gl.h"
+#include "gpu_attr.h"
+extern void pc_stream_note(unsigned tag, const int* v, int n);
 #include "glow_overrides.h"
 #include "ui_upscale.h" /* 2D / UI texture magnification (MMPX) */
 #include "ui_text.h"    /* 2D / UI: glyphs drawn from fonts (ui_text) */
@@ -111,7 +113,7 @@ static int primitive_uv_shift[2]; /* pc_hw_set_flipped_uv */
 /* Widescreen placement kinds of packet ranges (widescreen.h PC_ANCHOR_*, low bits). */
 enum { PC_ANCHOR_NONE, PC_ANCHOR_LEFT, PC_ANCHOR_RIGHT, PC_ANCHOR_FILL, PC_ANCHOR_SCENE, PC_ANCHOR_COVER,
     PC_ANCHOR_PROJECTED };
-static int primitive_anchor; /* of the packet being drawn (pc_hw_anchor_packet) */
+static int primitive_anchor; /* of the packet being drawn (pc_hw_set_attr) */
 static int primitive_opacity = 256; /* of the packet being drawn (pc_hw_opacity_packets): 0..256 */
 void pc_hw_set_2d(int is_2d)
 {
@@ -478,12 +480,11 @@ void pc_hw_native_room_packets(const void* start, const void* end, uint32_t list
 }
 /* The packet's covered polygons: 1 opaque ones, 2 also semi-transparent
  * ones, 0 none. */
-static int native_covered(uintptr_t p)
+static int native_covered(int range)
 {
-    for (int i = 0; i < active_native_count; i++)
-        if (p >= active_native[i].start && p < active_native[i].end)
-            return !active_native[i].drawn ? 0 : active_native[i].translucent ? 2 : 1;
-    return 0;
+    if (range < 0 || range >= active_native_count)
+        return 0;
+    return !active_native[range].drawn ? 0 : active_native[range].translucent ? 2 : 1;
 }
 /* Object packet ranges (actor_native.c: one per model drawn by
  * func_800B3CF0/func_800B4594, with the native list built from the same
@@ -527,21 +528,21 @@ void pc_hw_effect_packets(const void* start, const void* end, uint32_t list, int
     }
 }
 /* The object range holding packet `p`, or NULL. */
-static object_range* object_range_of(uintptr_t p)
+static int object_range_index(uintptr_t p)
 {
     if (!active_object_count)
-        return NULL;
+        return -1;
     if (last_object_range < active_object_count) {
         object_range* r = &active_objects[last_object_range];
         if (p >= r->start && p < r->end)
-            return r;
+            return last_object_range;
     }
     for (int i = 0; i < active_object_count; i++)
         if (p >= active_objects[i].start && p < active_objects[i].end) {
             last_object_range = i;
-            return &active_objects[i];
+            return i;
         }
-    return NULL;
+    return -1;
 }
 /* Native lists drawn in this ordering table. */
 #define MAX_DRAWN_LISTS 256
@@ -603,7 +604,7 @@ static void report_other(void)
             other_callers[i].mode == 4 ? "opaque" : (const char*[]) { "B/2+F/2", "B+F", "B-F", "B+F/4" }[other_callers[i].mode]);
     other_caller_count = 0;
 }
-int pc_hw_is_room_packet(const void* p)
+static int room_packet(const void* p)
 {
     for (int i = 0; i < active_count; i++)
         if ((uintptr_t)p >= active_ranges[i][0] && (uintptr_t)p < active_ranges[i][1])
@@ -611,6 +612,10 @@ int pc_hw_is_room_packet(const void* p)
     return 0;
 }
 
+/* The attributes of the packet being drawn (pc_hw_set_attr, once per packet), and those of the last polygon (pc_hw_set_packet:
+ * what native_covered and the object ranges are asked about). */
+static pc_hw_attr cur_attr = { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 }, poly_attr = { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 };
+int pc_hw_current_is_room(void) { return cur_attr.room; }
 /* Widescreen HUD anchoring: packet ranges of screen furniture that hugs a
  * screen edge (the status display at the left, the area map at the right),
  * recorded while an OT is built and made active at its DrawOTag like the room
@@ -684,6 +689,26 @@ void pc_hw_anchor_packets(const void* start, const void* end, int anchor)
         r->anchor = anchor;
         r->exact = exact;
     }
+}
+/* The anchor a draw item in a range anchored `anchor` carries (draw_items.c pc_frame_anchor): the same filters as a range of
+ * packets has, then the value the draw uses (PC_ANCHOR_*, with 0x20 for exact); -1 when the range records nothing (muted, or
+ * its kind is off). An item holds it as a field, so no range of the item arena's addresses is kept. */
+int pc_hw_item_anchor(int anchor)
+{
+    if (pc_hw_anchor_muted) {
+        pc_hw_anchor_muted_as = pc_hw_anchor_recorded(anchor);
+        return -1;
+    }
+    int exact = (anchor & 0x20) != 0;
+    anchor &= ~0x20;
+    if (anchor & 0x10) {
+        if (!layout_enabled())
+            return -1;
+        anchor &= 0x0f;
+    }
+    if ((anchor == PC_ANCHOR_SCENE || anchor == PC_ANCHOR_COVER) && !scene_enabled())
+        return -1;
+    return anchor | (exact ? 0x20 : 0);
 }
 /* What a range anchored `anchor` records (pc/src/classic: a classic draw's
  * anchor, compared with the game's): 0 (centred) when it records nothing. */
@@ -799,27 +824,58 @@ static const span_shape* span_shape_of(uintptr_t packet)
 }
 /* The next primitives come from GPU packet `p`, drawn with the screen at
  * VRAM X screen_x..screen_x + screen_w (drawing offset, display width). */
-static uintptr_t anchor_packet; /* the packet pc_hw_anchor_packet was last told of */
-void pc_hw_anchor_packet(const void* p, int screen_x, int screen_w)
+extern void pc_stream_note(unsigned tag, const int* v, int n);
+/* The attributes of the packet whose tag word is at `p` (guest memory for a table's packets, the lowered arena for items):
+ * the room, native, object, anchor, opacity and span ranges it lies in. */
+void pc_hw_resolve(const void* p, pc_hw_attr* a)
 {
-    uintptr_t best = UINTPTR_MAX;
-    anchor_packet = (uintptr_t)p;
-    primitive_anchor = PC_ANCHOR_NONE;
-    primitive_exact = 0;
+    uintptr_t best = UINTPTR_MAX, at = (uintptr_t)p;
+    a->room = (unsigned char)room_packet(p);
+    a->native = -1;
+    for (int i = 0; i < active_native_count && a->native < 0; i++)
+        if (at >= active_native[i].start && at < active_native[i].end)
+            a->native = (short)i;
+    a->object = (short)object_range_index(at);
+    a->anchor = PC_ANCHOR_NONE;
+    a->exact = 0;
     for (int i = 0; i < active_anchor_count; i++) {
         const anchor_range* r = &active_anchors[i];
-        if ((uintptr_t)p >= r->start && (uintptr_t)p < r->end && r->end - r->start < best) {
+        if (at >= r->start && at < r->end && r->end - r->start < best) {
             best = r->end - r->start;
-            primitive_anchor = r->anchor;
-            primitive_exact = r->exact;
+            a->anchor = r->anchor;
+            a->exact = (unsigned char)r->exact;
         }
     }
-    primitive_opacity = 256;
+    a->opacity = 256;
     for (int i = 0; i < active_opacity_count; i++)
-        if ((uintptr_t)p >= active_opacities[i].start && (uintptr_t)p < active_opacities[i].end)
-            primitive_opacity = active_opacities[i].opacity;
+        if (at >= active_opacities[i].start && at < active_opacities[i].end)
+            a->opacity = (short)active_opacities[i].opacity;
+    a->span = -1;
+    for (int i = 0; i < active_span_count; i++)
+        if (active_spans[i].packet == at) {
+            a->span = (short)i;
+            break;
+        }
+}
+/* The next primitives come from the packet with these attributes, drawn with the screen at VRAM X screen_x..screen_x +
+ * screen_w (drawing offset, display width). */
+void pc_hw_set_attr(const pc_hw_attr* a, int screen_x, int screen_w)
+{
+    cur_attr = *a;
+    primitive_anchor = a->anchor;
+    primitive_exact = a->exact;
+    primitive_opacity = a->opacity;
     anchor_left = (float)screen_x;
     anchor_right = (float)(screen_x + screen_w);
+    float span_note[6] = { 0 };
+    if (a->has_span)
+        memcpy(span_note, a->span_shape, sizeof a->span_shape), span_note[5] = 1;
+    else if (a->span >= 0 && a->span < active_span_count)
+        span_note[0] = (float)active_spans[a->span].length, span_note[1] = active_spans[a->span].top[0], span_note[2] = active_spans[a->span].top[1],
+        span_note[3] = active_spans[a->span].bottom[0], span_note[4] = active_spans[a->span].bottom[1], span_note[5] = 1;
+    int note[11] = { primitive_anchor, primitive_exact, primitive_opacity, screen_x, screen_w };
+    memcpy(note + 5, span_note, sizeof span_note); /* (the row's fill shape too: how an upscaled scanline fill joins its neighbours) */
+    pc_stream_note(3, note, 11);
 }
 /* Anchored line quads: their final X (pc_hw_line), for the next triangle. */
 static float line_x[3];
@@ -953,7 +1009,7 @@ void pc_hw_begin_ot(void)
     active_span_count = pending_span_count;
     pending_span_count = 0;
     qsort(active_spans, (size_t)active_span_count, sizeof *active_spans, compare_span_shapes);
-    anchor_packet = 0;
+    cur_attr.span = -1;
     primitive_anchor = PC_ANCHOR_NONE;
     primitive_exact = 0;
     primitive_opacity = 256;
@@ -2385,7 +2441,21 @@ static int free_camera_afterimage(const int* uv, unsigned code, unsigned tpage, 
     ++pc_hw_afterimages_skipped;
     return 1;
 }
+extern void pc_stream_note(unsigned tag, const int* v, int n);
+static int hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage,
+    unsigned clut, unsigned window, const int* clip, int mask_set, int mask_check);
+/* (the digest, boot_runtime.c, also takes what this decides about the triangle: whether it is left to a native draw, and
+ * the counters that say why; and the anchor and opacity it draws with) */
 int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage,
+    unsigned clut, unsigned window, const int* clip, int mask_set, int mask_check)
+{
+    int r = hw_triangle(xy, uv, rgb, code, tpage, clut, window, clip, mask_set, mask_check);
+    int v[4] = { r, primitive_anchor | primitive_exact << 8, primitive_opacity, pc_hw_suppress };
+    pc_stream_note(1, v, 4);
+    pc_stream_note(2, (const int*)&packet_stats, (int)(sizeof packet_stats / sizeof(int)));
+    return r;
+}
+static int hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage,
     unsigned clut, unsigned window, const int* clip, int mask_set, int mask_check)
 {
     if (text_piece_count && !text_emitting)
@@ -2404,7 +2474,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
         ui = 0; /* rects and lines carry no packet; 2D or not (no projection log) */
         /* Room polygons that a native list draws (opaque ones at the list,
          * semi-transparent ones at their translucent markers). */
-        int covered = active_native_count ? native_covered(current_packet) : 0;
+        int covered = active_native_count ? native_covered(poly_attr.native) : 0;
         if (covered > ((code & 2) ? 1 : 0)) {
             if (code & 2)
                 ++packet_stats.skipped_translucent_triangles;
@@ -2423,7 +2493,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
     } else if (!primitive_room || !current_packet) {
         /* Object polygons (characters, weapons, props) that a native list
          * drew (whether or not the projection log made them 3D). */
-        object_range* range = active_object_count ? object_range_of(current_packet) : NULL;
+        object_range* range = active_object_count && poly_attr.object >= 0 ? &active_objects[poly_attr.object] : NULL;
         if (range)
             ui = 0; /* characters, props, drop shadows, effects */
         if (range && range->effects) {
@@ -2843,6 +2913,7 @@ static void text_run_flush(void)
     int was_shift[2] = { primitive_uv_shift[0], primitive_uv_shift[1] };
     float was_span[2] = { primitive_span[0], primitive_span[1] };
     uintptr_t was_packet = current_packet;
+    pc_hw_attr was_poly = poly_attr, was_cur = cur_attr;
     int was_line_x = has_line_x, was_exact = has_exact, was_cover_exact = exact_cover;
     int was_depth = has_pending_depth, was_precise = has_pending_precise;
     float saved_line_x[3], saved_exact[6], saved_precise[6];
@@ -2870,6 +2941,7 @@ static void text_run_flush(void)
     primitive_uv_shift[0] = was_shift[0], primitive_uv_shift[1] = was_shift[1];
     primitive_span[0] = was_span[0], primitive_span[1] = was_span[1];
     current_packet = was_packet;
+    poly_attr = was_poly, cur_attr = was_cur;
     has_line_x = was_line_x, has_exact = was_exact, exact_cover = was_cover_exact;
     has_pending_depth = was_depth, has_pending_precise = was_precise;
     memcpy(line_x, saved_line_x, sizeof saved_line_x);
@@ -3151,7 +3223,17 @@ void pc_hw_line(int x0, int y0, int x1, int y1, unsigned c0, unsigned c1, int se
         return;
     }
     /* A scanline fill's row (pc_hw_span_shape). */
-    const span_shape* shape = pc_hw_scale > 1 && y0 == y1 && active_span_count ? span_shape_of(anchor_packet) : NULL;
+    span_shape item_shape;
+    const span_shape* shape = NULL;
+    if (pc_hw_scale > 1 && y0 == y1) {
+        if (cur_attr.has_span) { /* a draw item's own shape */
+            item_shape.packet = 0, item_shape.length = (int)cur_attr.span_shape[0];
+            item_shape.top[0] = cur_attr.span_shape[1], item_shape.top[1] = cur_attr.span_shape[2];
+            item_shape.bottom[0] = cur_attr.span_shape[3], item_shape.bottom[1] = cur_attr.span_shape[4];
+            shape = &item_shape;
+        } else if (active_span_count && cur_attr.span >= 0)
+            shape = &active_spans[cur_attr.span];
+    }
     if (shape && shape->length == (x1 > x0 ? x1 - x0 : x0 - x1)) {
         pc_hw_set_packet(NULL);
         float left = (float)(x0 < x1 ? x0 : x1), right = (float)(x0 > x1 ? x0 : x1) + 1.0f, y = (float)y0;
@@ -3589,6 +3671,25 @@ void pc_hw_detail_view(int on)
  * what was recorded for the previous frame (interpolation). */
 extern void pc_vram_taint(int, int, int, int); /* boot_runtime.c */
 extern void pc_vram_stream_rebase(void);
+/* The ranges the game registered while building a frame wait in the pending tables for that frame's DrawOTag. A restored
+ * state (a rewind, a photo render's return) does not own what the abandoned timeline registered: a game resumed in a new
+ * process starts with none, and a rewind in this one must too, or a range of a frame that is gone can match a packet of the
+ * replayed one (which of them is still there depends on timing: story_evt-0001 differed run to run from vsync 3085). */
+extern void pc_ui_bubbles_forget_pending(void) __attribute__((weak));
+static void forget_pending(void)
+{
+    pending_count = pending_native_count = pending_object_count = pending_anchor_count = pending_opacity_count = pending_span_count = 0;
+    if (pc_ui_bubbles_forget_pending)
+        pc_ui_bubbles_forget_pending();
+}
+/* A restored game (snapshot.c's resume or load, state_rewind.c's rewind): what the host held for the frame the game was in
+ * belongs to the timeline that is gone. The photo mode's own resyncs are not this: it renders again from the moment it holds,
+ * and the ranges of that frame (a hidden actor's) are what its renders need. */
+void pc_hw_forget_timeline(void)
+{
+    forget_pending();
+    text_piece_count = 0; /* (the last table's held-back text: it would draw into the replayed frame) */
+}
 void pc_hw_resync(void)
 {
     pc_vram_stream_rebase();
@@ -4869,6 +4970,7 @@ static float present_blend = 1.0f; /* the replay's t while presenting_replay */
 void pc_hw_set_packet(const void* packet)
 {
     current_packet = (uintptr_t)packet;
+    poly_attr = cur_attr;
 }
 static recording* recording_now(void) { return &recordings[recording_index]; }
 /* The frame being drawn has a screen fade of this amount (the largest). */

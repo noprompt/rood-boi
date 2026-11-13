@@ -3183,6 +3183,31 @@ static void handle_method(int fd, const char* request)
         }
         pc_perf_json(result, (int)sizeof result, flag);
         reply(fd, id, result);
+    } else if (!strcmp(method, "stream")) {
+        /* The drawing stream digest (boot_runtime.c, T4 slice S0): {on, reset, count}; replies how many frames closed,
+         * the chain over all of them and the last `count` (default 64, at most 256) frames' vsync, words, records and
+         * digest, oldest first. Two builds that describe each frame the same way agree on every one. */
+        extern int pc_stream_read(int, int, unsigned*, uint64_t*, unsigned*, unsigned*, unsigned*, uint64_t*, int);
+        static unsigned vs[256], words[256], records[256];
+        static uint64_t digests[256];
+        int on = -1, reset = 0, want = 64, n, used;
+        unsigned closed;
+        uint64_t chain;
+        long long count;
+        if (params) {
+            bool_value(member(params, "on"), &on);
+            bool_value(member(params, "reset"), &reset);
+            if (number_value(member(params, "count"), &count) && count >= 0 && count <= 256)
+                want = (int)count;
+        }
+        n = pc_stream_read(on, reset, &closed, &chain, vs, words, records, digests, want);
+        used = snprintf(result, sizeof result, "{\"closed\":%u,\"chain\":\"%016llx\",\"frames\":[", closed,
+            (unsigned long long)chain);
+        for (int i = 0; i < n && used < (int)sizeof result - 96; i++)
+            used += snprintf(result + used, sizeof result - used, "%s[%u,%u,%u,\"%016llx\"]", i ? "," : "", vs[i], words[i],
+                records[i], (unsigned long long)digests[i]);
+        snprintf(result + used, sizeof result - used, "]}");
+        reply(fd, id, result);
     } else if (!strcmp(method, "effect_sites")) {
         /* Effect polygon call sites that ran (draw_items.c): {on, reset}; replies the return addresses
          * (pc/tools/build_compare.py maps them to plugin functions) and the most items a frame held. */

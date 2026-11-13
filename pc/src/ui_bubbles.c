@@ -269,6 +269,8 @@ static int check_packets(bubble* B, const segments* seg, const polygons* poly)
             ++fills;
         } else if (len == 3 && code == 0xE1) {
             B->window = (p[2] >> 24) == 0xE2 ? p[2] & 0xFFFFF : 0;
+        } else if (len == 1 && code == 0xE2 && (p[1] & 0xFFFFF)) { /* (the same pair as a draw mode item: its window packet, then its mode) */
+            B->window = p[1] & 0xFFFFF;
         }
         /* vs_battle_insertTpage's packet is two words; its tag says
          * sizeof(sizeof(int)) / 4 words, 2 in the 64-bit build. */
@@ -427,6 +429,7 @@ void pc_bubble_frame(int id, const unsigned* flags_word, const short* rect, cons
         ++pending_count;
 }
 
+void pc_ui_bubbles_forget_pending(void) { pending_count = 0; }
 void pc_ui_bubbles_frame(void)
 {
     memcpy(active, pending, (size_t)pending_count * sizeof *active);
@@ -621,34 +624,41 @@ static void note_drawn(const bubble* B)
         last_drawn[last_drawn_count++] = *B;
 }
 
-void pc_ui_bubble_packet(const void* packet, int draw_x, int draw_y, const int* clip)
+/* The bubble whose packets (or whose draw items' lowered packets) hold the packet at `packet`: the first valid one, -1 none.
+ * Asked once per packet when an ordering table is adopted (boot_runtime.c); the draw is then given the index. */
+int pc_ui_bubble_find(const void* packet)
 {
-    pc_hw_suppress = 0;
-    if (pc_ui_bubbles != PC_UI_BUBBLES_VECTOR || !pc_hw_active)
-        return;
     uintptr_t at = (uintptr_t)packet;
     for (int i = 0; i < active_count; i++) {
-        bubble* B = &active[i];
-        if (!B->valid || ((at < B->start || at >= B->end) && (at < B->item_start || at >= B->item_end)))
-            continue;
-        const uint32_t* p = packet;
-        unsigned len = p[0] >> 24, code = len ? p[1] >> 24 : 0;
-        int shadow = len == 12 && (code == 0x20 || code == 0x28);
-        unsigned* drawn = shadow ? &B->shadow_drawn : &B->main_drawn;
-        if (*drawn != ot_serial) {
-            *drawn = ot_serial;
-            pc_hw_set_2d(1);
-            if (shadow)
-                draw_shadow(B, draw_x, draw_y, clip);
-            else {
-                draw_main(B, draw_x, draw_y, clip);
-                ++stats.drawn;
-                note_drawn(B);
-            }
-        }
-        pc_hw_suppress = 1;
-        return;
+        const bubble* B = &active[i];
+        if (B->valid && ((at >= B->start && at < B->end) || (at >= B->item_start && at < B->item_end)))
+            return i;
     }
+    return -1;
+}
+/* A packet of bubble `index` (pc_ui_bubble_find; -1: none) is about to be drawn; `packet` holds its words (tag first). */
+void pc_ui_bubble_packet(int index, const void* packet, int draw_x, int draw_y, const int* clip)
+{
+    pc_hw_suppress = 0;
+    if (pc_ui_bubbles != PC_UI_BUBBLES_VECTOR || !pc_hw_active || index < 0 || index >= active_count)
+        return;
+    bubble* B = &active[index];
+    const uint32_t* p = packet;
+    unsigned len = p[0] >> 24, code = len ? p[1] >> 24 : 0;
+    int shadow = len == 12 && (code == 0x20 || code == 0x28);
+    unsigned* drawn = shadow ? &B->shadow_drawn : &B->main_drawn;
+    if (*drawn != ot_serial) {
+        *drawn = ot_serial;
+        pc_hw_set_2d(1);
+        if (shadow)
+            draw_shadow(B, draw_x, draw_y, clip);
+        else {
+            draw_main(B, draw_x, draw_y, clip);
+            ++stats.drawn;
+            note_drawn(B);
+        }
+    }
+    pc_hw_suppress = 1;
 }
 
 void pc_ui_bubbles_get_stats(pc_ui_bubbles_stats* s)
