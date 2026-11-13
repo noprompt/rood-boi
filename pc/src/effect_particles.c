@@ -53,10 +53,11 @@ _Static_assert(__builtin_offsetof(func_800D6E44_t, sprite) == __builtin_offsetof
 extern u_char D_80040A14[];
 /* Native particles (effect_native.c; absent in unit probes). */
 extern void pc_particles_native_begin(void) __attribute__((weak));
-extern void pc_particles_native_node(unsigned* start, unsigned* end, int first, int tiles, const int view[3], int sz,
-    unsigned xy, int bucket, int layered, const void* node, int age, unsigned source) __attribute__((weak));
+extern int pc_particles_native_takes(int tiles, int bucket, int layered, int sz) __attribute__((weak));
+extern void pc_particles_native_node(int tiles, const int* page_clut, const int* rgb, const int* xy, const int* uv,
+    const int view[3], int sz, unsigned xy_centre, int bucket, const void* node, int age, unsigned source) __attribute__((weak));
+extern void pc_particles_native_items(unsigned* start, unsigned* end) __attribute__((weak));
 extern unsigned* pc_particles_native_end(unsigned* packet, unsigned* ot) __attribute__((weak));
-extern int pc_frame_count(void); /* draw_items.c: the first index of the node's tile items */
 
 void func_800D6E44(void* head);
 

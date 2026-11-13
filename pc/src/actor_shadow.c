@@ -17,10 +17,11 @@ extern unsigned D_800E9A68[], D_800E9AD4[];
 extern void pc_unimplemented(const char*);
 /* Native drop shadows (effect_native.c; absent in unit probes): the kept
  * triangles (index into D_800E9AD4, ordering-table bucket) of this shadow,
- * whose packets are [start, end); returns the new packet pointer. */
+ * at packet `start`; returns the packet pointer past its markers, NULL when it takes none (the triangles are then draw items). */
 extern unsigned* pc_shadow_native(const void* actor, const void* matrix, int light, const unsigned char* faces,
-    const unsigned short* buckets, int count, unsigned* start, unsigned* end, unsigned* ot, const unsigned* disc,
+    const unsigned short* buckets, int count, unsigned* start, unsigned* ot, const unsigned* disc,
     const unsigned* disc_faces) __attribute__((weak));
+extern void pc_shadow_items(const void* start, const void* end) __attribute__((weak));
 /* Drop-shadow mode (lights panel): 0 auto, 1 original, 2 contact only, 3
  * off. Auto: off while the path tracer shadows the baked light around
  * characters (ptgi.c), contact-only while a light casts real shadows, else
@@ -138,6 +139,8 @@ transform:;
     unsigned* start = packet;
     unsigned char kept[24];
     unsigned short kept_bucket[24];
+    unsigned kept_colour[24][2];
+    unsigned char kept_index[24][3];
     int kept_count = 0;
     int base_light = light;
     for (unsigned i = 0; i < 24; ++i) {
@@ -162,24 +165,37 @@ transform:;
         unsigned bucket = (nearest >> 2) - 2;
         if (vs_gte_nclip(xy[indices[0]], xy[indices[1]], xy[indices[2]]) > 0 || bucket >= 0x7c0)
             continue;
-        /* The triangle as a draw item (a semi-transparent Gouraud one in the mode B-F), placed in its bucket by a marker. */
-        int first_item = pc_frame_count();
-        pc_item* item = pc_frame_add(PC_ITEM_POLY, 0);
-        if (item) {
-            item->verts = 3, item->flags = PC_ITEM_SHADED | PC_ITEM_SEMI, item->mode = 0x640;
-            unsigned colours[3] = { center, edge, edge };
-            for (int j = 0; j < 3; ++j) {
-                item->x[j] = (short)xy[indices[j]], item->y[j] = (short)(xy[indices[j]] >> 16);
-                item->rgb[j][0] = (unsigned char)colours[j], item->rgb[j][1] = (unsigned char)(colours[j] >> 8),
-                item->rgb[j][2] = (unsigned char)(colours[j] >> 16);
-            }
-        }
-        packet = pc_frame_place(first_item, pc_frame_count() - first_item, ot + bucket, packet);
         kept[kept_count] = (unsigned char)i;
-        kept_bucket[kept_count++] = (unsigned short)bucket;
+        kept_bucket[kept_count] = (unsigned short)bucket;
+        kept_colour[kept_count][0] = center, kept_colour[kept_count][1] = edge;
+        for (unsigned j = 0; j < 3; ++j)
+            kept_index[kept_count][j] = (unsigned char)indices[j];
+        ++kept_count;
     }
-    if (pc_shadow_native)
-        packet = pc_shadow_native(actor, &rotation, base_light, kept, kept_bucket, kept_count, start, packet, ot,
-            D_800E9A68, D_800E9AD4);
+    /* The native list takes the kept triangles (no draw items); when it does not, they are items, each a semi-transparent Gouraud
+     * triangle in the mode B-F placed in its bucket by a marker. */
+    unsigned* native = pc_shadow_native ? pc_shadow_native(actor, &rotation, base_light, kept, kept_bucket, kept_count, start, ot,
+                                              D_800E9A68, D_800E9AD4)
+                                        : NULL;
+    if (native)
+        packet = native;
+    else {
+        for (int k = 0; k < kept_count; ++k) {
+            int first_item = pc_frame_count();
+            pc_item* item = pc_frame_add(PC_ITEM_POLY, 0);
+            if (item) {
+                item->verts = 3, item->flags = PC_ITEM_SHADED | PC_ITEM_SEMI, item->mode = 0x640;
+                unsigned colours[3] = { kept_colour[k][0], kept_colour[k][1], kept_colour[k][1] };
+                for (int j = 0; j < 3; ++j) {
+                    item->x[j] = (short)xy[kept_index[k][j]], item->y[j] = (short)(xy[kept_index[k][j]] >> 16);
+                    item->rgb[j][0] = (unsigned char)colours[j], item->rgb[j][1] = (unsigned char)(colours[j] >> 8),
+                    item->rgb[j][2] = (unsigned char)(colours[j] >> 16);
+                }
+            }
+            packet = pc_frame_place(first_item, pc_frame_count() - first_item, ot + kept_bucket[k], packet);
+        }
+        if (pc_shadow_items)
+            pc_shadow_items(start, packet);
+    }
     vs_scratch.unk0 = packet;
 }

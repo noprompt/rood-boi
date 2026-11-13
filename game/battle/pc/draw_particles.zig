@@ -6,7 +6,11 @@ const gte = @import("common").gte;
 const sprite_item = @import("common").sprite_item;
 
 const NativeBegin = *const fn () callconv(.c) void;
-const NativeNode = *const fn ([*c]c_uint, [*c]c_uint, c_int, c_int, [*c]const c_int, c_int, c_uint, c_int, c_int, ?*const anyopaque, c_int, c_uint) callconv(.c) void;
+const NativeTakes = *const fn (c_int, c_int, c_int, c_int) callconv(.c) c_int;
+const NativeNode = *const fn (c_int, [*]const c_int, [*]const c_int, [*]const c_int, [*]const c_int, [*c]const c_int, c_int, c_uint, c_int, ?*const anyopaque, c_int, c_uint) callconv(.c) void;
+const NativeItems = *const fn ([*c]c_uint, [*c]c_uint) callconv(.c) void;
+/// The most tiles of a node the native list takes (effect_native.c: the same limit).
+const max_node_tiles = 32;
 const NativeEnd = *const fn ([*c]c_uint, [*c]c_uint) callconv(.c) [*c]c_uint;
 
 /// A tile corner: the x/y word at `offset`, z zero (the sprite's rotation has no z terms).
@@ -123,10 +127,6 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
             8 => depth = -11,
             else => {},
         }
-        // The node's tiles are draw items (one marker each at its slot, where the packets linked): the packets' end bracket
-        // and the first item's index are what the native path reads them by.
-        const node_start: [*c]c_uint = @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?));
-        const node_first: c_int = c.pc_frame_count();
         if (node.flags & 0x10000 != 0) {
             x = ((x +% (node.dx >> 5)) & 0xFFFF) +% ((y +% (node.dy >> 5)) << 16);
             z +%= node.dz >> 5;
@@ -162,6 +162,18 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
         const background: [3]c_uint = .{ @bitCast(short(a)), @bitCast(a >> 16), 0 }; // BK: the centre's screen position
         a >>= 16;
         const indices = psx.get(node.sprite.unk1C).?;
+        // The node's tiles go to the native list when it takes them (no packets, no items: it reads the tiles' words); otherwise
+        // they are draw items (one marker each at its slot, where the packets linked), the markers' range [start, end) noted after.
+        const layered = mode >= 5 and mode <= 8;
+        const native = if (psx.weak(NativeTakes, "pc_particles_native_takes")) |takes|
+            takes(indices.unk0, depth, @intFromBool(layered), centre_sz) != 0
+        else
+            false;
+        const node_start: [*c]c_uint = @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?));
+        var page_clut: [max_node_tiles]c_int = undefined;
+        var tile_rgb: [max_node_tiles]c_int = undefined;
+        var tile_xy: [max_node_tiles * 4]c_int = undefined;
+        var tile_uv: [max_node_tiles * 4]c_int = undefined;
         // block1Data + dataIndex: an address only until the tiles are read.
         var tile: [*]u8 = @ptrFromInt(@intFromPtr(psx.get(v.g.D_800F569C().*.?.block1Data)) +% @as(usize, indices.dataIndex) * @sizeOf(v.pFileBlock1Data));
         a = projection_scale;
@@ -224,16 +236,27 @@ pub fn drawParticles(head: ?*v.func_800D6E44_t) callconv(.c) void {
             xy[3] = (@as(c_int, c3[0]) & 0xFFFF) +% (@as(c_int, c3[1]) << 16);
             // The tile: a textured quad with its page (the high half of its first word) and CLUT, semi-transparent by the CLUT's top
             // bit; the colour word's command byte is the packet's (the item's colour is its low three bytes).
-            const item = sprite_item.ft4(@ptrCast(otSlot(depth)), false, y & 0x8000 != 0, y >> 16, y & 0xFFFF, rgb, &xy, &uv);
-            sprite_item.bracketed(item);
+            if (native) {
+                const k: usize = @intCast(index);
+                page_clut[k] = y;
+                tile_rgb[k] = rgb;
+                @memcpy(tile_xy[k * 4 ..][0..4], &xy);
+                @memcpy(tile_uv[k * 4 ..][0..4], &uv);
+            } else {
+                const item = sprite_item.ft4(@ptrCast(otSlot(depth)), false, y & 0x8000 != 0, y >> 16, y & 0xFFFF, rgb, &xy, &uv);
+                sprite_item.bracketed(item);
+            }
         }
-        if (psx.weak(NativeNode, "pc_particles_native_node")) |native_node| {
-            // The node's particle system for glows (glows.c): its sprite
-            // script and table, and the matrix it is attached to.
-            const attached = node.flags & 0x20000 != 0;
-            const source: c_uint = (psx.rawOf(node.sprite.unk18) *% 2654435761) ^ (@as(c_uint, node.sprite.unk16) << 8) ^
-                (if (attached) 0x10000 +% @as(c_uint, node.matrixIndex) else 0);
-            native_node(node_start, @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?)), node_first, indices.unk0, &view, centre_sz, centre_xy, depth, @intFromBool(mode >= 5 and mode <= 8), node, node.curves.fields.age, (source & 0x07ffffff) | (if (attached) @as(c_uint, 0x08000000) else 0) | 1); // attached: glows.c
+        if (native) {
+            if (psx.weak(NativeNode, "pc_particles_native_node")) |native_node| {
+                // The node's particle system for glows (glows.c): its sprite script and table, and the matrix it is attached to.
+                const attached = node.flags & 0x20000 != 0;
+                const source: c_uint = (psx.rawOf(node.sprite.unk18) *% 2654435761) ^ (@as(c_uint, node.sprite.unk16) << 8) ^
+                    (if (attached) 0x10000 +% @as(c_uint, node.matrixIndex) else 0);
+                native_node(indices.unk0, &page_clut, &tile_rgb, &tile_xy, &tile_uv, &view, centre_sz, centre_xy, depth, node, node.curves.fields.age, (source & 0x07ffffff) | (if (attached) @as(c_uint, 0x08000000) else 0) | 1); // attached: glows.c
+            }
+        } else if (psx.weak(NativeItems, "pc_particles_native_items")) |items| {
+            items(node_start, @ptrCast(@alignCast(psx.get(v.g.vs_scratch().unk0).?)));
         }
     }
     if (psx.weak(NativeEnd, "pc_particles_native_end")) |native_end| {

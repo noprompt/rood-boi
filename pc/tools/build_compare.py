@@ -211,7 +211,8 @@ def play_casts(binary, card, out, kinds, limit):
     out = pathlib.Path(out)
     (out / "prefabs").mkdir()
     (out / "lighting").mkdir()
-    env = {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs"),
+    env = {"ROOD_PERF": "1"} if os.environ.get("BUILD_COMPARE_PERF") else {}
+    env |= {"ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs"),
            "ROOD_LIGHTING": str(out / "lighting"), "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_INTERPOLATE": "0", "ROOD_AUDIO": "none", "ROOD_OUT": str(out)}
     os.environ.pop("ROOD_SETTINGS", None)
     card_copy = out / "card1.mcd"
@@ -260,6 +261,9 @@ def play_casts(binary, card, out, kinds, limit):
             g = self.g
             hashes = []
             self.last_states = []
+            perf = os.environ.get("BUILD_COMPARE_PERF")  # ROOD_PERF's game-thread time per vsync through the action
+            if perf:
+                g.call("perf", reset=True)
             for i in range(soak.WATCHDOG // SAMPLE):
                 g.run(SAMPLE)
                 shot = out / "frame.ppm"
@@ -279,6 +283,10 @@ def play_casts(binary, card, out, kinds, limit):
                     self.last_states.append(None)
                 if i > 2 and self.mode_now()[0] == 1:
                     break
+            if perf:
+                sections = g.call("perf").get("cpu_sections", {})
+                print(f"build_compare: perf {what}: {len(hashes) * SAMPLE} vsyncs, game {sections.get('game')} ms/vsync, "
+                      f"draw {sections.get('draw')}", file=sys.stderr, flush=True)
             g.run(4)
             return hashes
 

@@ -1455,8 +1455,29 @@ extern void pc_text_glyph(void* const* commands, int count, int glyph, int x, in
 static int restyle = 1; /* text reported to ui_text (not for the parity gate's shadow packets) */
 
 /* n words after a tag at the packet pointer, linked at the head of ot. */
+/* (the collection is scratch of one command: host-owned, so the parity gate's state proof does not see it)
+ * A claim command whose packets are only words (a rectangle, a gradient, a quad, a window, a plate, a raw packet) is made as draw
+ * items without a packet in memory: its words are collected here (collecting), in the order they would have been linked, and decoded
+ * to items (pc_frame_add_packets, as pc_lift_end does for a printer's packets). When the decoder will not take them the command is
+ * made again as packets. */
+enum { COLLECT_WORDS = 2048, COLLECT_PACKETS = 64 };
+static int collecting __attribute__((section(".data.rood_host")));
+static u_long collect_words[COLLECT_WORDS] __attribute__((section(".data.rood_host")));
+static struct {
+    int offset, n;
+} collected[COLLECT_PACKETS] __attribute__((section(".data.rood_host")));
+static int collected_count __attribute__((section(".data.rood_host"))), collect_used __attribute__((section(".data.rood_host"))), collect_overflow __attribute__((section(".data.rood_host")));
 static u_long* packet(u_long* ot, int n)
 {
+    if (collecting) {
+        if (collected_count >= COLLECT_PACKETS || collect_used + n > COLLECT_WORDS) {
+            collect_overflow = 1;
+            return collect_words; /* (scratch: the command is made again as packets) */
+        }
+        collected[collected_count].offset = collect_used, collected[collected_count++].n = n;
+        collect_used += n;
+        return collect_words + collected[collected_count - 1].offset;
+    }
     u_long* p = packet_cursor();
     p[0] = (*ot & 0xFFFFFF) | ((u_long)n << 24);
     *ot = (psx_to_int(u_long, p) << 8) >> 8;
@@ -1969,6 +1990,32 @@ static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int 
         emit_command_packets(c, ot, kind, shadowed);
         return;
     }
+    switch (c->type) {
+    case PC_HUD_CMD_PACKET: case PC_HUD_CMD_RECT: case PC_HUD_CMD_GRADIENT: case PC_HUD_CMD_QUAD: case PC_HUD_CMD_WINDOW:
+    case PC_HUD_CMD_PLATE: {
+        /* only words: made as items directly */
+        u_long* mark = packet_cursor();
+        int first = -1, count = 0, k, n = 0;
+        static unsigned words[COLLECT_WORDS] __attribute__((section(".data.rood_host")));
+        collecting = 1, collected_count = collect_used = collect_overflow = 0;
+        emit_command_packets(c, ot, kind, shadowed);
+        collecting = 0;
+        if (!collect_overflow) {
+            for (k = collected_count - 1; k >= 0; --k) { /* (the chain's order: the last made first) */
+                memcpy(words + n, collect_words + collected[k].offset, (size_t)collected[k].n * sizeof *words);
+                n += collected[k].n;
+            }
+            if (n && (count = pc_frame_add_packets(emit_depth, words, n, &first)) > 0) {
+                pc_classic_items_note(1, c->type);
+                vs_scratch.unk0 = emit_placed ? (u_long*)pc_frame_place(first, count, (unsigned*)ot, (unsigned*)mark) : mark;
+                return;
+            }
+        }
+        break; /* (the decoder would not: as packets, as before) */
+    }
+    default:
+        break;
+    }
     lift_type = c->type;
     emit_command_packets(c, pc_lift_begin(), kind, shadowed);
     pc_lift_end(emit_depth, emit_placed, ot);
@@ -2027,16 +2074,13 @@ static void emit_command_packets(const pc_hud_classic_cmd* c, u_long* ot, int ki
             button_background_packets(ot, c->x, c->y, c->w, c->h);
             break;
         case PC_HUD_CMD_PACKET: {
-            u_long* p = packet_cursor();
             int words[15] = { c->a, c->b, c->c, c->d };
             int k, n = c->w < 1 ? 1 : c->w > 15 ? 15 : c->w;
             if (n > 4 && c->text)
                 memcpy(words + 4, c->text, (size_t)(n - 4) * sizeof words[0]);
-            p[0] = ((u_long)n << 24) | (ot[0] & 0xFFFFFF);
+            u_long* p = packet(ot, n);
             for (k = 0; k < n; ++k)
-                p[1 + k] = (u_long)(unsigned)words[k];
-            ot[0] = (psx_to_int(u_long, p) << 8) >> 8;
-            vs_scratch.unk0 = p + 1 + n;
+                p[k] = (u_long)(unsigned)words[k];
             break;
         }
         case PC_HUD_CMD_FONT_TEXT: {

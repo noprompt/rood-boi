@@ -37,6 +37,8 @@ int func_80099514(unsigned x, unsigned z, unsigned layer);
 /* The packet cursor, and the table's default slot, as the items' markers use them. */
 static unsigned* cursor_get(void) { return vs_scratch.unk0; }
 static void cursor_set(unsigned* cursor) { vs_scratch.unk0 = cursor; }
+/* The free packet space the items' markers are made at (effect_native.c's fallback reads where its items left it). */
+unsigned* vs_battle_itemCursor(void) { return cursor_get(); }
 
 /* The sprite as an item (game/spriteItem.h): the packet's fields, the marker where it linked. */
 int vs_battle_spriteItem(unsigned* ot, int brightness, int xy, int wh, int mode, int uv_clut)

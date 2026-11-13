@@ -116,9 +116,10 @@ static struct {
 } shadow_records[SHADOW_RECORDS];
 
 unsigned* pc_shadow_native(const void* actor, const void* matrix, int light, const unsigned char* faces,
-    const unsigned short* buckets, int count, unsigned* start, unsigned* end, unsigned* ot, const unsigned* disc,
+    const unsigned short* buckets, int count, unsigned* start, unsigned* ot, const unsigned* disc,
     const unsigned* disc_faces)
 {
+    unsigned* end = start;
     D_800E9A68 = disc;
     D_800E9AD4 = disc_faces;
     uint32_t list = 0;
@@ -188,13 +189,21 @@ unsigned* pc_shadow_native(const void* actor, const void* matrix, int light, con
                 }
         }
     }
-    if (pc_hw_effect_packets) {
-        const void *lo, *hi;
+    if (!list)
+        return NULL;
+    if (pc_hw_effect_packets)
         pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SHADOWS);
-        if (pc_frame_marker_span(start, end, &lo, &hi)) /* (the triangles are draw items: their lowered packets) */
-            pc_hw_effect_packets(lo, hi, list, RENDER_EFFECTS_SHADOWS);
-    }
     return end;
+}
+/* A drop shadow's triangles that are draw items (the list did not take them): markers [start, end), drawn as they are. */
+void pc_shadow_items(const void* start, const void* end)
+{
+    const void *lo, *hi;
+    if (!pc_hw_effect_packets)
+        return;
+    pc_hw_effect_packets(start, end, 0, RENDER_EFFECTS_SHADOWS);
+    if (pc_frame_marker_span(start, end, &lo, &hi))
+        pc_hw_effect_packets(lo, hi, 0, RENDER_EFFECTS_SHADOWS);
 }
 
 /* ---- moving platforms' shadows (room_shadows.inc, func_8008CEB0) ---- */
@@ -360,10 +369,9 @@ static void place_now(const void* node, int age, const float world[3])
             return;
         }
 }
-/* Packet ranges of the native nodes (consecutive nodes merged). */
-#define MAX_RANGES 64
-static unsigned* ranges[MAX_RANGES][2];
-static int range_count;
+extern int vs_battle_ft4Item(unsigned* ot, int raw, int semi, int tpage, int clut, int rgb, const int* xy, const int* uv);
+extern void vs_battle_itemBracket(int item);
+extern unsigned* vs_battle_itemCursor(void);
 static int collecting;
 static uint32_t camera_serial = ~0u;
 static int camera_ok;
@@ -382,7 +390,7 @@ static void effect_items(const void* start, const void* end, uint32_t list)
 /* func_800D6E44 starts its walk. */
 void pc_particles_native_begin(void)
 {
-    sprite_count = node_count = range_count = 0;
+    sprite_count = node_count = 0;
     collecting = pc_native_effects && pc_hw_active;
     /* A new frame: this frame's places replace the last frame's (the walk
      * runs once per frame; a frame without it forgets them). */
@@ -396,29 +404,41 @@ void pc_particles_native_begin(void)
         places_serial = serial;
     }
 }
-/* One node's tiles: `tiles` draw items from index `first` (textured quads, each placed by a marker at its bucket's head:
- * the markers are the packets [start, end)); its centre at view-space `view` (GTE units, depth `sz`), projected
- * to screen position `xy` (packed); linked at ordering-table index `bucket` (`layered`: one of the fixed layers,
- * which stays drawn as the items). */
-void pc_particles_native_node(unsigned* start, unsigned* end, int first, int tiles, const int view[3], int sz, unsigned xy,
-    int bucket, int layered, const void* node, int age, unsigned source)
+/* A node whose tiles are not drawn natively (or whose walk is not native): its tiles are draw items, placed by the markers
+ * [start, end) at its slot, drawn as they are. */
+void pc_particles_native_items(unsigned* start, unsigned* end) { effect_items(start, end, 0); }
+
+/* Tiles of one node the native list takes: no draw items are made for them (see pc_particles_native_node). */
+#define MAX_NODE_TILES 32
+typedef struct {
+    int xy[4], uv[4], page_clut, rgb;
+} deferred_tile;
+static deferred_tile deferred[MAX_SPRITES]; /* (the tiles as the items would have been, for a list that cannot be built) */
+
+/* Whether the node's `tiles` tiles at ordering-table index `bucket` go to the native list (pc_particles_native_node), so that
+ * the caller makes no draw items for them. `layered`: one of the fixed layers, which stays drawn as the items. */
+int pc_particles_native_takes(int tiles, int bucket, int layered, int sz)
 {
-    int native = collecting && !layered && bucket >= 0 && bucket < 0x800 && sz > 0 && tiles > 0
-              && node_count < MAX_NODES && sprite_count + tiles <= MAX_SPRITES
-              && (range_count < MAX_RANGES || ranges[range_count - 1][1] == start);
+    int native = collecting && !layered && bucket >= 0 && bucket < 0x800 && sz > 0 && tiles > 0 && tiles <= MAX_NODE_TILES
+              && node_count < MAX_NODES && sprite_count + tiles <= MAX_SPRITES;
     if (native && camera_serial != render_frame_serial()) {
         render_camera camera; /* also sets the camera inverse for pc_native_world_point */
         camera_ok = pc_native_camera(&camera);
         camera_serial = render_frame_serial();
     }
-    if (!native || !camera_ok) {
-        effect_items(start, end, 0);
-        return;
-    }
+    return native && camera_ok;
+}
+/* One node's tiles (textured quads: `page_clut` the high half page word, the low half CLUT, the colour `rgb` 0xBBGGRR; `xy`,
+ * `uv` four corners each, x/u low and y/v high) at view-space `view` (GTE units, depth `sz`), projected to screen position `xy_centre`
+ * (packed); drawn at ordering-table index `bucket`. */
+void pc_particles_native_node(int tiles, const int* page_clut, const int* rgb, const int* xy, const int* uv, const int view[3],
+    int sz, unsigned xy_centre, int bucket, const void* node, int age, unsigned source)
+{
+    unsigned centre_xy = xy_centre;
     double centre[3] = { view[0] + 0.5, view[1] + 0.5, view[2] + 0.5 };
     float world[3];
     pc_native_world_point(centre, world);
-    short cx = (short)(xy & 0xffff), cy = (short)(xy >> 16);
+    short cx = (short)(centre_xy & 0xffff), cy = (short)(centre_xy >> 16);
     /* Where the node was the frame before: the same node, not younger (a
      * reused node is a new particle), not far away. */
     const node_place* before = node ? place_before(node) : NULL;
@@ -454,32 +474,29 @@ void pc_particles_native_node(unsigned* start, unsigned* end, int first, int til
     nodes[node_count].count = tiles;
     nodes[node_count++].bucket = bucket;
     for (int t = 0; t < tiles; t++) {
-        const pc_item* q = pc_frame_item(first + t);
-        render_polygon* p = &sprites[sprite_count++];
+        render_polygon* p = &sprites[sprite_count];
+        deferred_tile* d = &deferred[sprite_count++];
+        memcpy(d->xy, xy + t * 4, sizeof d->xy);
+        memcpy(d->uv, uv + t * 4, sizeof d->uv);
+        d->page_clut = page_clut[t], d->rgb = rgb[t];
         memset(p, 0, sizeof *p);
         for (int k = 0; k < 4; k++) {
             /* at the node's palette entry (its centre) */
             p->bone[k] = (uint8_t)bone;
-            p->offset[k][0] = (int16_t)(q->x[k] - cx);
-            p->offset[k][1] = (int16_t)(q->y[k] - cy);
-            p->uv[k][0] = q->u[k];
-            p->uv[k][1] = q->v[k];
-            p->rgb[k][0] = q->rgb[0][0];
-            p->rgb[k][1] = q->rgb[0][1];
-            p->rgb[k][2] = q->rgb[0][2];
+            p->offset[k][0] = (int16_t)((short)xy[t * 4 + k] - cx);
+            p->offset[k][1] = (int16_t)((short)(xy[t * 4 + k] >> 16) - cy);
+            p->uv[k][0] = (unsigned char)uv[t * 4 + k];
+            p->uv[k][1] = (unsigned char)(uv[t * 4 + k] >> 8);
+            p->rgb[k][0] = (unsigned char)rgb[t];
+            p->rgb[k][1] = (unsigned char)(rgb[t] >> 8);
+            p->rgb[k][2] = (unsigned char)(rgb[t] >> 16);
         }
         p->offset_depth = (uint16_t)(sz > 65535 ? 65535 : sz);
-        p->code = (uint8_t)(0x2c | (q->flags & PC_ITEM_SEMI ? 2 : 0));
-        p->clut = q->clut;
-        p->tpage = q->mode;
+        p->code = (uint8_t)(0x2c | (page_clut[t] & 0x8000 ? 2 : 0));
+        p->clut = (unsigned short)page_clut[t];
+        p->tpage = (unsigned short)(page_clut[t] >> 16);
         p->flags = RENDER_POLY_QUAD | RENDER_POLY_SPRITE | RENDER_POLY_DOUBLE_SIDED;
         p->source = source; /* its particle system (glows.c) */
-    }
-    if (range_count && ranges[range_count - 1][1] == start)
-        ranges[range_count - 1][1] = end;
-    else {
-        ranges[range_count][0] = start;
-        ranges[range_count++][1] = end;
     }
 }
 /* The walk is done: the sprites become a transient mesh in an effects list,
@@ -543,8 +560,17 @@ unsigned* pc_particles_native_end(unsigned* packet, unsigned* ot)
             }
         }
     }
-    for (int r = 0; r < range_count; r++)
-        effect_items(ranges[r][0], ranges[r][1], list);
+    if (collecting && node_count && !list) {
+        /* No list (no camera, no mesh): the nodes' tiles are drawn as the items they would have been, in the walk's order. */
+        for (int n = 0; n < node_count; n++)
+            for (int t = 0; t < nodes[n].count; t++) {
+                const deferred_tile* d = &deferred[nodes[n].first + t];
+                int item = vs_battle_ft4Item(ot + nodes[n].bucket, 0, d->page_clut & 0x8000 ? 1 : 0, d->page_clut >> 16,
+                    d->page_clut & 0xFFFF, d->rgb, d->xy, d->uv);
+                vs_battle_itemBracket(item);
+            }
+        packet = vs_battle_itemCursor();
+    }
     collecting = 0;
     return packet;
 }
