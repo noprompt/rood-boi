@@ -169,6 +169,23 @@ def run(out, card):
               f"a 6 ms d.anchor (host work) for 20 gauge draws: no faults ({after['faults'] - before['faults']}), "
               f"the gauges still rood.classic's (failed {g3['claim_failed']})")
 
+        # the element handed to a draw is marshalled by the host before its Lua runs: 6 ms of that (a loaded machine
+        # filling the fields slowly) is the host's too, never the draw's budget
+        before = g.lua_plugins()["rood.classic"]
+        gauges = g.call("hud", action="stats")["kinds"]["gauges"]
+        g.call("lua", action="budget", slow_call={"name": "element", "ms": 6, "plugin": "rood.classic"})
+        try:
+            g.until(lambda: g.call("hud", action="stats")["kinds"]["gauges"]["drawn"] >= gauges["drawn"] + 20,
+                    guard=400)
+        finally:
+            g.call("lua", action="budget", slow_call={"name": "", "ms": 0})
+        after = g.lua_plugins()["rood.classic"]
+        g3 = g.call("hud", action="stats")["kinds"]["gauges"]
+        check(after["faults"] == before["faults"] and after["kills"] == before["kills"] and after["state"] == "loaded"
+              and not g3["claim_failed"] and g3["claimed_by"] == "rood.classic" and g3["honoured"],
+              f"6 ms of element marshalling for 20 gauge draws: no faults ({after['faults'] - before['faults']}), "
+              f"the gauges still rood.classic's (failed {g3['claim_failed']})")
+
         # rood.classic's own Lua tests, in the field with the classic look (none skipped here)
         g.call("hud", action="clear")
         tests = g.lua_test(plugin="rood.classic")

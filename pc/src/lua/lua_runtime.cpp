@@ -82,7 +82,15 @@ int traceback(lua_State* L)
     return 1;
 }
 
-/* Tests: a host call made slow (config.slow_call_*): CPU spent, as host work would. */
+/* Tests: host work made slow (config.slow_call_*): CPU spent, as host work would. */
+static void spin_cpu(double ms)
+{
+    double until = budget_now() + ms / 1000.0, wall = now_seconds() + 1;
+    volatile unsigned spin = 0;
+    while (budget_now() < until && now_seconds() < wall)
+        spin = spin + 1;
+    (void)spin;
+}
 void test_slow_call(lua_State* L)
 {
     if (!config.slow_call_plugin.empty() && plugin_of(L)->id() != config.slow_call_plugin)
@@ -90,11 +98,7 @@ void test_slow_call(lua_State* L)
     lua_Debug ar;
     if (!lua_getstack(L, 0, &ar) || !lua_getinfo(L, "n", &ar) || !ar.name || config.slow_call_name != ar.name)
         return;
-    double until = budget_now() + config.slow_call_ms / 1000.0, wall = now_seconds() + 1;
-    volatile unsigned spin = 0;
-    while (budget_now() < until && now_seconds() < wall)
-        spin = spin + 1;
-    (void)spin;
+    spin_cpu(config.slow_call_ms);
 }
 
 /* Every rood function: the budget checked on the way in; the time inside it is the host's (host_time),
@@ -188,6 +192,14 @@ std::string clipped(const std::string& text)
     return text.substr(0, RL_MAX_LOG_LINE) + "... (" + std::to_string(text.size()) + " bytes)";
 }
 } // namespace
+
+/* The element a hud draw is given, marshalled before its Lua runs (slow_call name "element"). */
+void test_slow_marshal(Plugin* p)
+{
+    if (config.slow_call_ms > 0 && config.slow_call_name == "element"
+        && (config.slow_call_plugin.empty() || p->id() == config.slow_call_plugin))
+        spin_cpu(config.slow_call_ms);
+}
 
 void log(int level, const std::string& plugin, const std::string& full)
 {

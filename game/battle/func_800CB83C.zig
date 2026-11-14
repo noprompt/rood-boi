@@ -3,6 +3,7 @@ const common = @import("common");
 const psx = common.psx;
 const v = @import("views_5BF94");
 const c = @import("c_5BF94");
+const Splice = *const fn (?*const anyopaque, ?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
 const Site = *const fn (c_int, ?*anyopaque, c_int, c_int, ?*anyopaque, ?*anyopaque) callconv(.c) void;
 const BubbleRect = *const fn (c_int, c_int, c_int, c_int, c_int) callconv(.c) void;
@@ -130,7 +131,9 @@ pub fn func_800CB83C() callconv(.c) void {
     }
     const ot_base = v.g.D_800F51B8();
     const ot_address: usize = if (ot_base.*) |p| @intFromPtr(p) else 0;
-    c.AddPrims(@ptrFromInt(@as(usize, psx.rawOf(v.g.vs_scratch().unk4)) -% 6 * 4), @ptrFromInt(ot_address), @ptrFromInt(ot_address +% 33 * 4));
+    // The page of the text boxes' table is walked after the frame's slot (unk4 - 6 words) and then that slot's own link: the
+    // table's packets are not linked into the frame's (the frame's walk, boot_runtime.c, follows the splice).
+    psx.weak(Splice, "pc_frame_splice").?(@ptrFromInt(@as(usize, psx.rawOf(v.g.vs_scratch().unk4)) -% 6 * 4), @ptrFromInt(ot_address), @ptrFromInt(ot_address +% 33 * 4));
     const page = v.g.D_800EB9CE();
     page.* = if (page.* == 2) 0 else page.* +% 1;
     ot_base.* = @as([*]u32, @ptrCast(v.g.D_800F4CD0())) + @as(usize, page.*) * 34;

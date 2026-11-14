@@ -1040,6 +1040,8 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     env = {"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(out / "plugins"), "ROOD_PLUGIN_DATA": str(out / "plugin_data"),
            "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_AUDIO": "none", "ROOD_WINDOW": "1280x720" if aspect == "16:9" else "960x720", "ROOD_LIGHTS": str(out / "lights"),
            "ROOD_PREFABS": str(out / "prefabs"), "ROOD_OUT": str(out)}
+    if aspect == "16:9":  # (the widescreen picture itself, not only a wide window: the setting is off by default)
+        env["ROOD_WIDESCREEN"] = "1"
     env.update(kv.split("=", 1) for kv in extra_env)
     if renderer == "null":  # (the CPU reference frame: no GPU, the original drawing; quicker and the manual opens)
         env["SDL_VIDEO_DRIVER"] = "invalid-null-classic-parity"

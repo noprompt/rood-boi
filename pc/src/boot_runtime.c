@@ -1612,9 +1612,43 @@ static const uint32_t* guest_packet(unsigned link)
 }
 static int game2d_entry(const uint32_t* p, int* hidden);
 static int ot_layers_note_of(const uint32_t* p, int front);
+/* A run of packets linked after another packet without touching either's link (AddPrims did: the text boxes' page of the
+ * ordering table after its slot in the frame's): the walk of the table follows `head` .. `last` after `at` and then `at`'s own
+ * link. Saved state (it is made in the frame, used at its DrawOTag, then gone). */
+#define SPLICES 4
+static struct {
+    const uint32_t *at, *head, *last;
+} splices[SPLICES];
+void pc_frame_splice(const void* at, const void* head, const void* last)
+{
+    int i, free_slot = -1;
+    for (i = 0; i < SPLICES; i++) {
+        if (splices[i].at == at) {
+            free_slot = i;
+            break;
+        }
+        if (!splices[i].at && free_slot < 0)
+            free_slot = i;
+    }
+    if (free_slot < 0)
+        pc_unimplemented("too many spliced runs of the ordering table");
+    splices[free_slot].at = at, splices[free_slot].head = head, splices[free_slot].last = last;
+}
+static const uint32_t* const* splice_of(const uint32_t* at)
+{
+    static const uint32_t* found[2];
+    for (int i = 0; i < SPLICES; i++)
+        if (splices[i].at == at) {
+            found[0] = splices[i].head, found[1] = splices[i].last;
+            return found;
+        }
+    return NULL;
+}
 static void adopt(const void* head, int photo)
 {
     const uint32_t* p = head;
+    const uint32_t *stop_at = NULL; /* (in a spliced run: its last packet, after which the table goes on where it left it) */
+    unsigned resume = 0;
     frame.count = 0, frame.used = 0, frame.end = 2;
     int front = 0, hidden = 0; /* (the layers are positions in the table: settled here, as the walk reaches each entry) */
     for (unsigned links = 0; links < 100000; links++) {
@@ -1643,16 +1677,27 @@ static void adopt(const void* head, int photo)
             e->g2d_hidden = (uint8_t)hidden;
         }
         unsigned next = tag & 0xffffff;
+        if (stop_at && p == stop_at) {
+            next = resume, stop_at = NULL;
+        } else if (!stop_at) {
+            const uint32_t* const* run = splice_of(p);
+            if (run) { /* the spliced run is walked here, then this packet's own link */
+                resume = next, stop_at = run[1];
+                p = run[0];
+                continue;
+            }
+        }
         if (next == 0xffffff) {
             frame.end = 0;
-            return;
+            break;
         }
         p = guest_packet(next);
         if (!p) {
             frame.end = 1;
-            return;
+            break;
         }
     }
+    memset(splices, 0, sizeof splices); /* (consumed: the next frame makes its own) */
 }
 /* The entry after the one whose tag word is `tag` (a pointer into the frame's words): its tag, 1 for none, NULL when `tag` is
  * not in the frame. */

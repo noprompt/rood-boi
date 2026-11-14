@@ -2656,7 +2656,13 @@ void draw_element(lua_State* L)
     }
     if (L != shared_state)
         shared_state = L, shared_kind = -1;
+    // Marshalling the element into the shared table is the host's work, not the plugin's: it is timed as a rood call
+    // is (rl::host_time) so that a loaded machine making a hundred field writes slow cannot spend the draw's budget
+    // before its Lua has run one instruction.
+    double marshal = rl::budget_now();
+    rl::test_slow_marshal(job.claim->plugin);
     fill_element(L, *job.element);
+    rl::host_time(job.claim->plugin, rl::budget_now() - marshal);
     lua_getfield(L, LUA_REGISTRYINDEX, "rood.hud.draw");
     lua_call(L, 2, 0);
     job.ok = true;

@@ -4,8 +4,8 @@
  "unnamed_symbol": 20559,
  "guest_pointer_field": 8,
  "guest_pointer_access": 38,
- "address_as_integer": 212,
+ "address_as_integer": 211,
  "zig_raw_memory": 972,
- "gpu_packet_writes": 49,
+ "gpu_packet_writes": 47,
  "lift_bridge": 3
 }

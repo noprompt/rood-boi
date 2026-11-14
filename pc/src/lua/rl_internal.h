@@ -144,6 +144,7 @@ void check_budget(lua_State* L);
  * renderer asked): `seconds` excluded from the plugin's budget, up to host_budget_ms a call. Every
  * rood function is timed by guarded_call; the rest (a proxy's callee is its own plugin's) need not. */
 void host_time(Plugin* p, double seconds);
+void test_slow_marshal(Plugin* p); /* tests: slow_call name "element" (a hud draw's element marshalling) */
 
 /* ---- lua_value.cpp: values crossing between plugin states ---- */
 struct FunctionRef {
