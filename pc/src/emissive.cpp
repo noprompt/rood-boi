@@ -135,23 +135,20 @@ struct Md5 {
             w[i] = (uint32_t)p[i * 4] | (uint32_t)p[i * 4 + 1] << 8 | (uint32_t)p[i * 4 + 2] << 16
                 | (uint32_t)p[i * 4 + 3] << 24;
         uint32_t A = a, B = b, C = c, D = d;
-        for (int i = 0; i < 64; i++) {
-            uint32_t f;
-            int g;
-            if (i < 16)
-                f = (B & C) | (~B & D), g = i;
-            else if (i < 32)
-                f = (D & B) | (~D & C), g = (5 * i + 1) & 15;
-            else if (i < 48)
-                f = B ^ C ^ D, g = (3 * i + 5) & 15;
-            else
-                f = C ^ (B | ~D), g = (7 * i) & 15;
-            uint32_t t = D;
-            D = C;
-            C = B;
-            B = B + rotl(A + f + k[i] + w[g], r[i]);
-            A = t;
-        }
+#define MD5_ROUND(F, i, g)                                          \
+    {                                                               \
+        uint32_t f = F, t = D;                                      \
+        D = C, C = B, B = B + rotl(A + f + k[i] + w[g], r[i]), A = t; \
+    }
+        for (int i = 0; i < 16; i++)
+            MD5_ROUND((B & C) | (~B & D), i, i)
+        for (int i = 16; i < 32; i++)
+            MD5_ROUND((D & B) | (~D & C), i, (5 * i + 1) & 15)
+        for (int i = 32; i < 48; i++)
+            MD5_ROUND(B ^ C ^ D, i, (3 * i + 5) & 15)
+        for (int i = 48; i < 64; i++)
+            MD5_ROUND(C ^ (B | ~D), i, (7 * i) & 15)
+#undef MD5_ROUND
         a += A, b += B, c += C, d += D;
     }
     void add(const void* data, size_t n)
@@ -228,13 +225,29 @@ std::string content_key(unsigned tpage, unsigned clut, int u0, int v0, int u1, i
 {
     Md5 m;
     uint8_t row[512];
+    const uint16_t* vram = emissive_vram();
+    int depth = (int)((tpage >> 7) & 3);
+    int tx = (int)(tpage & 15) * 64, ty = (int)((tpage >> 4) & 1) * 256;
     for (int v = v0; v <= v1; v++) {
         int n = 0;
-        for (int u = u0; u <= u1; u++) {
-            unsigned i = 0;
-            texel((unsigned)u, (unsigned)v, tpage, clut, &i);
-            row[n++] = (uint8_t)i, row[n++] = (uint8_t)(i >> 8);
-        }
+        if (vram && depth <= 2) { /* (the indices straight from the page's row: texel() without its CLUT reads) */
+            const uint16_t* line = vram + (size_t)((ty + (v & 255)) & 511) * 1024;
+            for (int u = u0; u <= u1; u++) {
+                unsigned uu = (unsigned)u & 255, i;
+                if (depth == 0)
+                    i = (line[(tx + (int)(uu >> 2)) & 1023] >> ((uu & 3) * 4)) & 15;
+                else if (depth == 1)
+                    i = (line[(tx + (int)(uu >> 1)) & 1023] >> ((uu & 1) * 8)) & 255;
+                else
+                    i = line[(tx + (int)uu) & 1023];
+                row[n++] = (uint8_t)i, row[n++] = (uint8_t)(i >> 8);
+            }
+        } else
+            for (int u = u0; u <= u1; u++) {
+                unsigned i = 0;
+                texel((unsigned)u, (unsigned)v, tpage, clut, &i);
+                row[n++] = (uint8_t)i, row[n++] = (uint8_t)(i >> 8);
+            }
         m.add(row, (size_t)n);
     }
     uint8_t size[2] = { (uint8_t)(u1 - u0), (uint8_t)(v1 - v0) };
@@ -940,6 +953,11 @@ struct MaterialArea {
 };
 std::vector<MaterialArea> material_areas;
 std::vector<uint16_t> material_count; /* per cell: the writes that found it without a material (material_cells) */
+struct WrittenBox {
+    uint16_t page;
+    uint8_t box[4];
+};
+std::vector<WrittenBox> material_written; /* the boxes the planes were written under since they were last all default (write_use) */
 std::vector<uint8_t> material_mask; /* the cells update_materials rewrites */
 /* Stamps by texture key, palette colours and surface (for material_stamps;
  * a palette cycling through its colours finds its earlier ones), and the
@@ -1515,6 +1533,7 @@ static const std::vector<std::pair<int, int>>& key_matches(const Catalog& c, con
 {
     return key_index_lookup(c, key).at;
 }
+static std::unordered_map<uint64_t, std::string> sync_keys; /* (box at a page -> its content key: this sync's) */
 static void match_use(Use& u)
 {
     u.state = 1;
@@ -1530,8 +1549,17 @@ static void match_use(Use& u)
     std::string was = u.key;
     bool kept = !u.key.empty() && texels_unchanged(u); /* (else only its CLUT changed: a palette animation) */
     if (!kept) {
-        u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
-        pc_cost_count(PC_COUNT_HASHED, (unsigned)((w1 + 1) * (h1 + 1)));
+        /* (the key is of the texels' indices, not the CLUT: the uses of one box at one page share it; VRAM does not change
+         * within a sync, so a box already hashed in this one is looked up) */
+        uint64_t box_key = (uint64_t)u.page << 32 | (uint32_t)u.box[0] << 24 | (uint32_t)u.box[1] << 16 | (uint32_t)u.box[2] << 8 | u.box[3];
+        auto at = sync_keys.find(box_key);
+        if (at != sync_keys.end())
+            u.key = at->second;
+        else {
+            u.key = content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]);
+            sync_keys.emplace(box_key, u.key);
+            pc_cost_count(PC_COUNT_HASHED, (unsigned)((w1 + 1) * (h1 + 1)));
+        }
     } else if (material_check() && u.key != content_key(u.page, u.clut, u.box[0], u.box[1], u.box[2], u.box[3]))
         fprintf(stderr, "[materials] check: a kept key differs\n");
     if (u.key != was && materials::catalog_has_size(w1 + 1, h1 + 1))
@@ -1909,6 +1937,7 @@ static void write_use(const Use& u, const uint8_t* mask)
     const size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
     uint8_t* p = material_planes.data();
     const uint8_t* stamp = u.stamp->cells.data();
+    material_written.push_back({ u.page, { u.box[0], u.box[1], u.box[2], u.box[3] } });
     box_cells(u.page, u.box, [&](size_t at, size_t i) {
         if (mask && !mask[at])
             return;
@@ -1983,15 +2012,35 @@ static void write_materials(bool fresh = false)
         ++material_serial; /* every use's entry again */
     resolved_catalog = catalog;
     const size_t plane = (size_t)512 * PC_EMISSIVE_MAP_W;
-    material_planes.assign((size_t)PC_MATERIAL_MAP_H * PC_EMISSIVE_MAP_W, 0);
-    memset(material_planes.data(), 255, plane);
-    material_count.assign(plane, 0);
+    if (!fresh && material_planes.size() == (size_t)PC_MATERIAL_MAP_H * PC_EMISSIVE_MAP_W && material_count.size() == plane
+        && material_written.size() < 8192) {
+        /* (the planes are default but for the cells of the boxes written: those only, not all 14.7 MB) */
+        uint8_t* p = material_planes.data();
+        int rows0 = 512, rows1 = 0;
+        for (const WrittenBox& w : material_written) {
+            box_cells(w.page, w.box, [&](size_t at, size_t) {
+                p[at] = 255;
+                for (int k = 1; k < PC_MATERIAL_PLANES; k++)
+                    p[k * plane + at] = 0;
+                material_count[at] = 0;
+            });
+            int row0 = (int)((w.page >> 4) & 1) * 256 + w.box[1];
+            rows0 = std::min(rows0, row0), rows1 = std::max(rows1, row0 + w.box[3] - w.box[1] + 1);
+        }
+        pub_row0 = std::min(pub_row0, rows0), pub_row1 = std::max(pub_row1, rows1); /* (the published copy: those rows) */
+        material_written.clear();
+    } else {
+        material_planes.assign((size_t)PC_MATERIAL_MAP_H * PC_EMISSIVE_MAP_W, 0);
+        memset(material_planes.data(), 255, plane);
+        material_count.assign(plane, 0);
+        material_written.clear();
+        pub_row0 = 0, pub_row1 = 512;
+    }
     material_uses = material_cells = 0;
     material_list.clear();
     any_material = false;
     material_areas.clear();
     material_row0 = 0, material_row1 = 512;
-    pub_row0 = 0, pub_row1 = 512;
     material_on = pc_specular != 0;
     if (!material_on)
         return;
@@ -1999,6 +2048,10 @@ static void write_materials(bool fresh = false)
     for (Use* u : order) {
         stamp_use(*u, fresh);
         write_use(*u, nullptr);
+    }
+    for (const WrittenBox& w : material_written) { /* (the published copy: the rows just written) */
+        int row0 = (int)((w.page >> 4) & 1) * 256 + w.box[1];
+        pub_row0 = std::min(pub_row0, row0), pub_row1 = std::max(pub_row1, row0 + w.box[3] - w.box[1] + 1);
     }
     list_materials(order);
 }
@@ -2438,6 +2491,7 @@ static int emissive_sync_body(int* row0, int* row1)
             && (!kv.second.key.empty() ? !vram_unchanged(kv.second) : (kv.second.tiles & dirty_tiles) != 0))
             kv.second.state = 0;
     dirty_tiles = 0;
+    sync_keys.clear();
     long budget = 1 << 21; /* texels hashed per frame */
     for (auto& kv : uses) {
         Use& u = kv.second;

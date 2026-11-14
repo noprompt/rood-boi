@@ -896,13 +896,19 @@ def story_scene(scene_id, warp=False, scaled=0):
         story = json.loads((ROOT / "pc/assets/cutscenes/story.json").read_text())
         frames = next(s["frames"] for s in story["scenes"] if s["id"] == scene_id)
         g.call("cutscene", action="start", scene=scene_id)
-        for _ in range(300):  # (the game reaching the scene runs by itself; vsyncs run now would wait on it)
+        # (the game reaching the scene runs by itself; vsyncs run now would wait on it.) A hang is the game's clock standing still for
+        # 30 s, not a wall-clock budget: a long chain (Hardin's past) on a loaded machine outran one.
+        last, still = g.status()["vsync"], time.monotonic()
+        while True:
             time.sleep(0.1)
             status = g.call("cutscene")
             if status["on"] and not status["busy"]:
                 break
-        else:
-            raise RuntimeError(f"{scene_id}: {status['message']}")
+            now = g.status()["vsync"]
+            if now != last:
+                last, still = now, time.monotonic()
+            elif time.monotonic() - still > 30:
+                raise RuntimeError(f"{scene_id}: {status['message']} (the game's clock stood still for 30 s at vsync {now})")
         # (the scene went on by itself, unpaced, while it was reached: back to its first frame, paused, replayed exactly from there)
         g.call("cutscene", action="pause")
         g.call("cutscene", action="seek", frame=g.call("cutscene")["first"])
