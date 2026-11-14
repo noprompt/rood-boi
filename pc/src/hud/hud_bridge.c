@@ -983,20 +983,39 @@ int vs_mainMenu_renderIntColor(int value, int xy, int color, u_long* before); /*
  * 16, 16, 8 at x + w - i) and a draw mode (semi-transparent, half), into ot. */
 static void button_background_packets(u_long* ot, int x, int y, int w, int h)
 {
-    u_long* p = packet_cursor();
     int i;
-    for (i = 0; i < h; ++i) {
-        p[0] = vs_getTag(u_long[6], ot[0]);
-        p[1] = vs_getTpage(0, 0, 0, 0, ditheringOn);
-        p[2] = vs_getRGB0(primLineG2, 64, 56, 32);
-        p[3] = ((x & 0xFFFF) | ((y + i) << 0x10));
-        p[4] = vs_getRGB888(16, 16, 8);
-        p[5] = vs_getXY_2((x + w) - i, y + i);
-        p[6] = vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff);
-        ot[0] = ((psx_to_int(u_long, p) << 8) >> 8);
-        p += 7;
+    if (!emit_items) { /* (the game's own drawing here is packets: so is the claim's) */
+        u_long* p = packet_cursor();
+        for (i = 0; i < h; ++i) {
+            p[0] = vs_getTag(u_long[6], ot[0]);
+            p[1] = vs_getTpage(0, 0, 0, 0, ditheringOn);
+            p[2] = vs_getRGB0(primLineG2, 64, 56, 32);
+            p[3] = ((x & 0xFFFF) | ((y + i) << 0x10));
+            p[4] = vs_getRGB888(16, 16, 8);
+            p[5] = vs_getXY_2((x + w) - i, y + i);
+            p[6] = vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff);
+            ot[0] = ((psx_to_int(u_long, p) << 8) >> 8);
+            p += 7;
+        }
+        vs_scratch.unk0 = p;
+        return;
     }
-    vs_scratch.unk0 = p;
+    for (i = 0; i < h; ++i) {
+        /* a draw item: the shaded line drawn in the dithered mode, the semi-transparent half mode left set after it, placed at
+         * `ot` by a marker (a frame of items alone: by its depth) */
+        u_long* mark = packet_cursor();
+        int first = pc_frame_count();
+        pc_item* it = pc_frame_add(PC_ITEM_LINE, emit_depth);
+        if (!it)
+            return;
+        it->flags = PC_ITEM_SHADED | PC_ITEM_AFTER;
+        it->mode = (unsigned short)(vs_getTpage(0, 0, 0, 0, ditheringOn) & 0x3fff);
+        it->after = (unsigned short)(vs_getTpage(0, 0, clut4Bit, semiTransparencyHalf, ditheringOff) & 0x3fff);
+        it->x[0] = (short)x, it->y[0] = (short)(y + i), it->x[1] = (short)((x + w) - i), it->y[1] = (short)(y + i);
+        it->rgb[0][0] = 64, it->rgb[0][1] = 56, it->rgb[0][2] = 32;
+        it->rgb[1][0] = 16, it->rgb[1][1] = 16, it->rgb[1][2] = 8;
+        vs_scratch.unk0 = emit_placed ? (u_long*)pc_frame_place(first, pc_frame_count() - first, (unsigned*)ot, (unsigned*)mark) : mark;
+    }
 }
 
 /* A text box's text (_printVariableWidthFont): the glyphs it set this frame (recorded as it set them); the box. */
@@ -1931,7 +1950,10 @@ static int only_markers(const u_long* from, const u_long* to)
 static void emit_command(const pc_hud_classic_cmd* c, u_long* ot, int kind, int shadowed)
 {
     if (!emit_items || !bridged(c->type)) {
+        u_long* from = packet_cursor();
         emit_command_packets(c, ot, kind, shadowed);
+        if (pc_classic_force_items() && emit_items) /* (the test mode's log: a command no bridge takes) */
+            pc_classic_items_note(only_markers(from, packet_cursor()), c->type);
         return;
     }
     switch (c->type) {
