@@ -22,8 +22,7 @@ extern float pc_shadow_history, pc_gi_resolution;
 extern int pc_lights_enabled;
 extern float pc_shadow_softness, pc_normal_smoothing;
 extern int pc_drop_shadow_mode __attribute__((weak)); // battle builds (actor_shadow.c)
-extern int pc_native_room, pc_native_occlusion, pc_native_actors, pc_native_actor_order, pc_native_blend,
-    pc_native_objects, pc_native_shadows, pc_native_effects, pc_reconstruct, pc_native_room_order,
+extern int pc_native_occlusion, pc_native_actor_order, pc_native_room_order,
     pc_room_texture_lod;
 extern float pc_native_actor_window; /* render.c: characters in the room's PS1 order near its surfaces */
 extern int pc_editor_hide_masks, pc_editor_game_cutaway, pc_editor_cutaway, pc_editor_cutaway_auto;
@@ -256,7 +255,6 @@ const Entry entries[] = {
     I("ui_subpixel", pc_ui_subpixel),
     I("ui_outline_boost", pc_ui_outline_boost),
     F("ui_bubble_outline", pc_ui_bubble_outline),
-    I("native_room", pc_native_room),
     I("native_occlusion", pc_native_occlusion),
     I("native_room_order", pc_native_room_order),
     I("room_texture_lod", pc_room_texture_lod),
@@ -268,14 +266,8 @@ const Entry entries[] = {
     I("instant_replay_interval", pc_instant_replay_interval),
     I("cutscene_auto_advance", pc_cutscene_auto_advance),
     I("cutscene_dialogue_hold", pc_cutscene_dialogue_hold),
-    I("native_actors", pc_native_actors),
     I("native_actor_order", pc_native_actor_order),
     F("native_actor_window", pc_native_actor_window),
-    I("native_blend", pc_native_blend),
-    I("native_objects", pc_native_objects),
-    I("native_shadows", pc_native_shadows),
-    I("native_effects", pc_native_effects),
-    I("reconstruct", pc_reconstruct),
     I("baked_estimate", pc_baked_estimate),
     F("shadow_history", pc_shadow_history),
     I("haze_steps", pc_fog_steps),

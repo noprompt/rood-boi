@@ -73,17 +73,13 @@ extern int pc_hw_raster_skip(int, int, int, int) __attribute__((weak));
 extern void pc_hw_before_write(int, int, int, int) __attribute__((weak));
 extern void pc_hw_set_2d(int);
 extern void pc_hw_set_bounds(int, int, int, int, unsigned, unsigned, const int*, const int*);
-extern void pc_hw_set_room(int);
 extern void pc_hw_set_packet(const void*);
-extern int pc_hw_room_depth(const void*, const unsigned*, int, int*) __attribute__((weak)); /* absent in unit probes */
 extern int pc_ui_precise_lookup(int, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
 extern int pc_ui_precise_find(int, const unsigned*, int, float*) __attribute__((weak)); /* ui_upscale.c */
 /* ui_text.c: battle number popups at the UI text scale. */
 extern int pc_ui_text_popup_place(const uint32_t*, const uint32_t* (*)(const uint32_t*), float*) __attribute__((weak));
 extern int pc_ui_text_popup_place_item(int, float*) __attribute__((weak));
 extern int pc_frame_command_item(const void*) __attribute__((weak));
-/* Room polygon depths from room_geometry.c (1) or the projection log (0). */
-int pc_room_exact_depth = 1;
 /* Widescreen HUD anchoring of the packet about to draw (gpu_hw.c). */
 #include "gpu_attr.h"
 extern void pc_hw_resolve(const void*, pc_hw_attr*) __attribute__((weak)); /* gpu_hw.c (absent in unit probes) */
@@ -92,7 +88,7 @@ extern int pc_ui_bubble_find(const void*) __attribute__((weak)); /* ui_bubbles.c
 extern int pc_ui_precise_slot(const void*) __attribute__((weak)); /* ui_upscale.c */
 static void attr_none(pc_hw_attr* a)
 {
-    *a = (pc_hw_attr) { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 };
+    *a = (pc_hw_attr) { .effect = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 };
 }
 /* Everything the walk asks about the packet whose tag word is at `tag`, settled once (the registries are keyed by address). */
 static void resolve_attr(const void* tag, pc_hw_attr* a)
@@ -110,19 +106,14 @@ extern int pc_gte_projected_depth(int, int, int*);
 extern void pc_hw_set_depth(const int*);
 extern void pc_hw_set_precise(const float*);
 extern void pc_hw_set_flipped_uv(const int*, const int*);
-extern int pc_gte_projected_precise(int, int, int*, float*, float*);
-extern int pc_gte_lookup_view[3];
-extern int pc_gte_projected_candidates(int, int, int*, unsigned*, int);
-extern const void* pc_gte_projection_caller(int);
-extern int pc_gte_log; /* off: no projection log (everything 3D is native) */
 extern int pc_gte_widescreen __attribute__((weak));
 extern void pc_hw_set_narrowed(void) __attribute__((weak));
-/* Widescreen with the log off: whether every vertex was projected (narrowed)
- * this frame (the GTE still records projections in widescreen). */
+/* Widescreen: whether every vertex was projected (narrowed) this frame (the GTE
+ * records projections in widescreen only). */
 static int ot_front; /* (below: the packet being drawn is linked in front of the scene's slots) */
 static int narrowed_2d(const int (*xy)[2], int count)
 {
-    if (pc_gte_log || !&pc_gte_widescreen || !pc_gte_widescreen || !pc_hw_set_narrowed || ot_front)
+    if (!&pc_gte_widescreen || !pc_gte_widescreen || !pc_hw_set_narrowed || ot_front)
         return 0;
     for (int i = 0; i < count; ++i) {
         int found = pc_gte_projected(xy[i][0], xy[i][1]);
@@ -135,8 +126,6 @@ static int narrowed_2d(const int (*xy)[2], int count)
     }
     return 1;
 }
-extern const void* pc_hw_caller;
-extern void pc_gte_projection_entry(int, int, int, int*, float*, float*); /* OFX, OFY (16.16), H of the last lookup */
 extern int pc_scene_game_projection(float*, float*, float*);
 static int stop_at_loading, stop_at_title, stop_at_opening, opening_ready;
 static unsigned opening_frames, battle_frames, stop_at_battle_frame;
@@ -150,7 +139,6 @@ int pc_skip_movies;
 int pc_skip_logos;
 static int intro_skipped_by_setting; /* 1: logos skipped; 2: and the movie (no --skip-movies) */
 extern int pc_skip_intro __attribute__((weak)); /* project_settings.cpp */
-int pc_room_checkpoint_requested;
 static int display_x, display_y, display_w = 320, display_h = 224;
 static int draw_x, draw_y, clip_x, clip_y, clip_w = 1024, clip_h = 512, tpage;
 static unsigned int frames;
@@ -912,9 +900,7 @@ int main(int argc, char** argv)
                 return 1;
             }
             stop_at_battle_frame = value;
-        } else if (!strcmp(argv[i], "--room-checkpoint"))
-            pc_room_checkpoint_requested = 1;
-        else if (!strcmp(argv[i], "--skip-movies"))
+        } else if (!strcmp(argv[i], "--skip-movies"))
             pc_skip_movies = 1;
         else if (!strcmp(argv[i], "--window"))
             window = 1;
@@ -2098,26 +2084,6 @@ void pc_title_selection(int item)
 {
     pc_title_cursor = item;
     fprintf(stderr, "[title] selected menu item %d\n", item);
-}
-
-void pc_finish_room_checkpoint(void)
-{
-    display_x = clip_x;
-    display_y = clip_y;
-    display_w = clip_w;
-    display_h = clip_h;
-    pc_present_now();
-    if (pc_hw_sync) {
-        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
-        pc_present_now();
-    }
-    if (pc_replace_file(pc_out_path("loading.ppm"), pc_out_path("room-checkpoint.ppm"))) {
-        perror("room checkpoint");
-        exit(1);
-    }
-    pc_log(
-        "ROOM RENDER CHECKPOINT: loaded geometry preview, ignores scripted hide; not gameplay");
-    exit(0);
 }
 
 /* How far into the field the game thinks it is. The game reads this as a per-frame budget (the AI's actor

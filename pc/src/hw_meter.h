@@ -21,12 +21,6 @@ extern "C" {
     X(set_narrowed, 'A') \
     X(set_flipped_uv, 'A') \
     X(set_bounds, 'A') \
-    X(set_room, 'A') \
-    X(room_packets, 'N') \
-    X(room_depths, 'N') \
-    X(room_depth, 'Q') \
-    X(native_room_packets, 'N') \
-    X(object_packets, 'N') \
     X(effect_packets, 'N') \
     X(anchor_packets, 'N') \
     X(anchor_recorded, 'N') \
@@ -133,18 +127,12 @@ void pc_hw_meter_end(pc_hw_meter_scope* scope);
 enum {
     PC_HW_WHY_TRI_INACTIVE,         /* the hardware path is off */
     PC_HW_WHY_TRI_SUPPRESSED,       /* suppressed (classic/UI claim) or the free camera's afterimage */
-    PC_HW_WHY_TRI_ROOM_STALE,       /* room polygon covered by a native list: skip, area marked stale (1) */
-    PC_HW_WHY_TRI_ROOM_COVERED,     /* ... covered but the native room is not exclusive: drawn by the CPU too (0) */
     PC_HW_WHY_TRI_EFFECT_STALE,     /* effect polygon covered by a native list (1) */
-    PC_HW_WHY_TRI_EFFECT_COVERED,
-    PC_HW_WHY_TRI_OBJECT_STALE,     /* object polygon covered by a native list (1) */
-    PC_HW_WHY_TRI_OBJECT_COVERED,
     PC_HW_WHY_TRI_DRAWN,            /* reconstructed and queued for the GPU, the CPU rasterizer draws it too (0) */
     PC_HW_WHY_SKIP_INACTIVE,        /* hardware path off, or no stale table this ordering table */
     PC_HW_WHY_SKIP_DISABLED,        /* ROOD_RASTER_SKIP=0 */
     PC_HW_WHY_SKIP_COVERED,         /* the rectangle lies inside a stale area: left out (1) */
     PC_HW_WHY_SKIP_NOT_COVERED,     /* drawn by the CPU rasterizer (0) */
-    PC_HW_WHY_COVERED_RENDER_FAILED, /* not an answer: a native list the producer counts as covering did not draw (a render failure, not a setting or list kind) */
     PC_HW_WHY_OT_STALE_READBACK,    /* not an answer: a stale area of the ordering table dropped because a read-back made it current */
     PC_HW_WHY_COUNT
 };

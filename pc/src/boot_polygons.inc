@@ -20,18 +20,6 @@ static int top_left(const pc_gpu_vertex* a, const pc_gpu_vertex* b)
 {
     return b->y < a->y || (b->y == a->y && b->x > a->x);
 }
-/* Whether the last projection lookup used the scene camera's projection;
- * other GTE drawing (the minimap) is screen furniture: no depth, so it is
- * neither lit nor blurred. */
-static int scene_projection(void)
-{
-    float h, ox, oy;
-    if (!pc_scene_game_projection(&h, &ox, &oy))
-        return 1;
-    return (unsigned short)pc_gte_lookup_view[2] == (unsigned short)h
-        && pc_gte_lookup_view[0] / 65536.0f - ox < 0.5f && ox - pc_gte_lookup_view[0] / 65536.0f < 0.5f
-        && pc_gte_lookup_view[1] / 65536.0f - oy < 0.5f && oy - pc_gte_lookup_view[1] / 65536.0f < 0.5f;
-}
 static void triangle(
     pc_gpu_vertex a, pc_gpu_vertex b, pc_gpu_vertex c, unsigned code, unsigned clut)
 {
@@ -147,11 +135,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         pc_unimplemented("truncated polygon packet");
     pc_gpu_vertex vertex[4];
     unsigned cursor = 1, rgb = p[0], clut = 0;
-    int projected = 1; /* every vertex came from the GTE this frame (3D) */
-    int absent = 0, missing = -1;
-    unsigned spread = 0; /* sequence spread of the vertices taken (diagnostics) */
-    int candidates[4], slots[4][4], screen[4][2];
-    unsigned sequences[4][4];
+    int screen[4][2];
     for (int i = 0; i < count; ++i) {
         if (i && gouraud)
             rgb = p[cursor++];
@@ -161,10 +145,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         vertex[i].y = (int16_t)(xy >> 16) + draw_y;
         vertex[i].fx = (float)vertex[i].x;
         vertex[i].fy = (float)vertex[i].y;
-        candidates[i] = pc_gte_log && !ot_front ? pc_gte_projected_candidates((int16_t)xy, (int16_t)(xy >> 16), slots[i], sequences[i], 4) : 0;
         screen[i][0] = (int16_t)xy, screen[i][1] = (int16_t)(xy >> 16);
-        if (!candidates[i])
-            ++absent, missing = i;
         for (int ch = 0; ch < 3; ++ch)
             vertex[i].color[ch] = (rgb >> (ch * 8)) & 255;
         vertex[i].u = vertex[i].v = 0;
@@ -190,116 +171,13 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         for (int i = 0; du && i < count; ++i)
             vertex[i].u += du;
     }
-    /* A room polygon is always 3D: should one vertex's log entry be gone
-     * anyway, it borrows another vertex's candidates for the choice below
-     * and then takes the others' mean depth, rather than the whole polygon
-     * dropping to 2D (unlit, black under the lighting) for a frame. */
-    int room = pc_hwc_cur_room(), room_sz[4];
     unsigned packet_xy[4];
     for (int i = 0; i < count; ++i)
         packet_xy[i] = (unsigned)(uint16_t)screen[i][0] | ((unsigned)(uint16_t)screen[i][1] << 16);
-    int exact = room && pc_room_exact_depth && pc_gte_log && pc_hw_room_depth && pc_hw_room_depth(GUEST(p), packet_xy, count, room_sz);
-    if (exact) {
-        /* Room geometry: the depths room_geometry.c recorded with the
-         * packet; the log only lends the unrounded position of a projection
-         * with the same depth. */
-        for (int i = 0; i < count; ++i) {
-            vertex[i].z = room_sz[i];
-            /* The closest depth's position (any is within the pixel; never
-             * whole pixels one frame and unrounded the next: that shook). */
-            int nearest = candidates[i] ? 1 << 30 : 0;
-            for (int k = 0; k < candidates[i]; ++k) {
-                int z;
-                float fx, fy;
-                pc_gte_projection_entry(slots[i][k], screen[i][0], screen[i][1], &z, &fx, &fy);
-                int off = z > room_sz[i] ? z - room_sz[i] : room_sz[i] - z;
-                if (off < nearest) {
-                    nearest = off;
-                    vertex[i].fx = fx + draw_x;
-                    vertex[i].fy = fy + draw_y;
-                }
-            }
-            if (nearest > 64 && getenv("ROOD_DEPTH_DEBUG")) {
-                static int mismatches;
-                if (mismatches++ < 200)
-                    fprintf(stderr, "[depth] room poly %p frame %u vertex %d: recorded %d, nearest projection off by %d\n",
-                        (void*)p, frames, i, room_sz[i], nearest);
-            }
-        }
-        absent = 0, missing = -1;
-    } else if (absent == 1 && room) {
-        int other = missing ? 0 : 1;
-        candidates[missing] = candidates[other];
-        memcpy(slots[missing], slots[other], sizeof slots[missing]);
-        memcpy(sequences[missing], sequences[other], sizeof sequences[missing]);
-    } else if (absent) {
-        projected = 0;
-        missing = -1;
-    }
-    if (projected && !exact) {
-        /* Several projections can share a pixel: take the vertices projected
-         * together (closest sequence numbers), not whichever came last. */
-        int pick[4] = { 0, 0, 0, 0 }, best[4] = { 0, 0, 0, 0 };
-        unsigned best_spread = ~0u;
-        for (;;) {
-            unsigned lo = sequences[0][pick[0]], hi = lo;
-            for (int i = 1; i < count; ++i) {
-                unsigned q = sequences[i][pick[i]];
-                lo = q - lo > 0x80000000u ? q : lo;
-                hi = hi - q > 0x80000000u ? q : hi;
-            }
-            if (hi - lo < best_spread)
-                best_spread = hi - lo, memcpy(best, pick, sizeof best);
-            int i = 0;
-            while (i < count && ++pick[i] == candidates[i])
-                pick[i++] = 0;
-            if (i == count)
-                break;
-        }
-        spread = best_spread;
-        pc_hw_caller = pc_gte_projection_caller(slots[0][best[0]]);
-        for (int i = 0; i < count; ++i) {
-            pc_gte_projection_entry(slots[i][best[i]], screen[i][0], screen[i][1], &vertex[i].z, &vertex[i].fx,
-                &vertex[i].fy);
-            vertex[i].fx += draw_x;
-            vertex[i].fy += draw_y;
-            /* Room packets are the scene whatever the projection (it can
-             * differ from the camera's for a frame while the view zooms). */
-            if (!room && !scene_projection())
-                vertex[i].z = 0;
-        }
-        if (missing >= 0) {
-            int sum = 0;
-            for (int i = 0; i < count; ++i)
-                if (i != missing)
-                    sum += vertex[i].z;
-            vertex[missing].z = sum / (count - 1);
-            vertex[missing].fx = (float)vertex[missing].x;
-            vertex[missing].fy = (float)vertex[missing].y;
-        }
-    }
-    if (getenv("ROOD_DEPTH_DEBUG") && room) {
-        /* Diagnostics: room polygons that lose their depth. */
-        static int reported;
-        int scene = projected ? scene_projection() : -1;
-        if ((!projected || !scene || missing >= 0 || spread > 64) && reported < 400) {
-            ++reported;
-            float h = 0, ox = 0, oy = 0;
-            pc_scene_game_projection(&h, &ox, &oy);
-            fprintf(stderr, "[depth] room poly %p frame %u, vertex %d borrowed: candidates", (void*)p, frames, missing);
-            for (int i = 0; i < count; ++i)
-                fprintf(stderr, " %d(%d,%d)", candidates[i], screen[i][0], screen[i][1]);
-            fprintf(stderr, " spread %u z %d %d %d %d", spread, vertex[0].z, vertex[1].z, vertex[2].z, count == 4 ? vertex[3].z : 0);
-            fprintf(stderr, " scene %d view %d,%d,%d camera %.1f,%.1f,%.0f\n", scene, pc_gte_lookup_view[0] >> 16,
-                pc_gte_lookup_view[1] >> 16, pc_gte_lookup_view[2], ox, oy, h);
-        }
-    }
-    if (!projected || exact)
-        pc_hw_caller = NULL;
     /* 2D text glyphs placed between whole pixels (ui_upscale.c, ui_subpixel):
      * the hardware path draws them where the game put them before rounding. */
     float corners[8];
-    if (!projected && textured && pc_ui_precise_lookup && pc_ui_precise_lookup(precise_slot_for(p), packet_xy, count, corners))
+    if (textured && pc_ui_precise_lookup && pc_ui_precise_lookup(precise_slot_for(p), packet_xy, count, corners))
         for (int i = 0; i < count; ++i) {
             vertex[i].fx = corners[i * 2] + draw_x;
             vertex[i].fy = corners[i * 2 + 1] + draw_y;
@@ -315,7 +193,7 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         pc_hwc_fence_texture(tpage, clut, texture_window, u0, v0, u1, v1, clip);
     }
     /* ui_text: a battle number popup's digit at the UI text scale (ui_text.c; scale 1: unchanged). */
-    if (!projected && textured && count == 4 && drawing_tag && drawing_tag + 1 == p && pc_ui_text_popup_place) {
+    if (textured && count == 4 && drawing_tag && drawing_tag + 1 == p && pc_ui_text_popup_place) {
         float placed[8]; /* (as the packet's: without the drawing offset) */
         for (int i = 0; i < 4; ++i)
             placed[i * 2] = vertex[i].fx - draw_x, placed[i * 2 + 1] = vertex[i].fy - draw_y;
@@ -337,15 +215,15 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         }
         stream_record(0x103, v, n);
     }
-    pc_hwc_set_2d(!projected);
-    if (!projected && narrowed_2d((const int (*)[2])screen, count))
+    pc_hwc_set_2d(1); /* (everything that reaches here is 2D: what 3D draws is native) */
+    if (narrowed_2d((const int (*)[2])screen, count))
         pc_hwc_set_narrowed();
-    if (!projected && textured) {
+    if (textured) {
         int xy[6] = { vertex[0].x, vertex[0].y, vertex[1].x, vertex[1].y, vertex[2].x, vertex[2].y };
         int uv[6] = { vertex[0].u, vertex[0].v, vertex[1].u, vertex[1].v, vertex[2].u, vertex[2].v };
         pc_hwc_set_flipped_uv(xy, uv);
     }
-    if (!projected) {
+    {
         /* Widescreen: 2D standing for the whole screen draws over the full view. */
         int x0 = vertex[0].x, y0 = vertex[0].y, x1 = x0, y1 = y0, clip[4] = { clip_x, clip_y, clip_w, clip_h };
         int texels[4] = { vertex[0].u, vertex[0].v, vertex[0].u, vertex[0].v };
@@ -359,13 +237,12 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
         }
         pc_hwc_set_bounds(x0, y0, x1, y1, code, tpage, textured ? texels : NULL, clip);
     }
-    pc_hwc_set_room(room);
     pc_hwc_set_packet(GUEST(p));
     /* ui_text_layout line: a scaled glyph cell (a zooming talk bubble's
      * text) is laid out with its line (gpu_hw.c); its triangles below are
      * then the original, drawn while the layout is off. */
     int text_piece = 0;
-    if (!projected && textured && count == 4) {
+    if (textured && count == 4) {
         float fxy[8];
         int fuv[8];
         if (!(pc_ui_precise_find && pc_ui_precise_find(precise_slot_for(p), packet_xy, count, fxy)))

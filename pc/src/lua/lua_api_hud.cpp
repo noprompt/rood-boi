@@ -30,6 +30,7 @@
 // The pass (pc_hud_frame), RPC hud {list, show, clear, stats, set} (pc_hud_rpc). Claims,
 // styles and element tables belong to the plugin's load: an unload drops them; held
 // moments belong to the host (hud_elements.cpp) and survive a reload.
+#include <time.h>
 #include "rl_internal.h"
 #include "hud/hud_internal.h"
 #include "classic/classic_parity.h"
@@ -3004,6 +3005,17 @@ int panels_classic_next(int* cursor, int* anchor)
 // The classic flavour: the claim on the element just recorded draws now, at the game's hook (pc_hud_classic_draw).
 #define CLASSIC_RING 256
 double classic_ms[CLASSIC_RING]; // the claims' Lua per game frame (every element drawn in it)
+/* The calling thread's CPU time, seconds: the classic draws' cost is what their Lua spent, not what a loaded machine made the
+ * thread wait (rood.classic's 0.1 ms budget, classic_hud_smoke). Where there is no thread clock, the wall clock. */
+static double thread_cpu_seconds()
+{
+#if defined(CLOCK_THREAD_CPUTIME_ID)
+    struct timespec t;
+    if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &t) == 0)
+        return (double)t.tv_sec + (double)t.tv_nsec * 1e-9;
+#endif
+    return now_seconds();
+}
 unsigned classic_frames;
 unsigned classic_frame_vsync = ~0u;
 int classic_draw(bool parity = false, const char** why = nullptr)
@@ -3029,7 +3041,7 @@ int classic_draw(bool parity = false, const char** why = nullptr)
             *why = "its classic claim failed";
         return -1;
     }
-    double start = now_seconds();
+    double start = thread_cpu_seconds();
     job = { c, e, false };
     drawing.anchor = drawing.element_anchor = e->f.anchor;
     in_draw = classic_pass = true;
@@ -3038,7 +3050,7 @@ int classic_draw(bool parity = false, const char** why = nullptr)
     bool ok = run(c->plugin, "hud draw", BUDGET_CALL, draw_element, &error) && job.ok;
     classic_allocations += c->plugin->mem.allocations - allocations;
     in_draw = classic_pass = false;
-    double ms = (now_seconds() - start) * 1000.0;
+    double ms = (thread_cpu_seconds() - start) * 1000.0;
     unsigned now = hud::vsync(); // (a game frame is 2-3 vsyncs: its elements' draws add up)
     if (now != classic_frame_vsync) {
         classic_frame_vsync = now;

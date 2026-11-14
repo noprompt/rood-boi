@@ -57,47 +57,28 @@ float pc_gte_view_ofx(void)
 /* 256K slots, probed sixteen deep (a room re-projects each shared vertex for
  * every polygon using it, so a frame logs many entries per pixel; a shallower
  * table evicted entries still needed and dropped whole floor tiles to 2D for
- * a frame); an entry stays valid for four generations
- * (DrawOTag calls), since a frame can draw several ordering tables. Several
- * projections can land on the same screen pixel (a wall vertex under a
- * character's): each is kept with its sequence number, and a polygon takes
- * the candidates projected together (pc_gte_projected_candidates). */
+ * a frame); an entry stays valid for four generations (DrawOTag calls), since
+ * a frame can draw several ordering tables. Several projections can land on
+ * the same screen pixel: each is kept with its sequence number, and lookups
+ * take the newest. Recorded only in widescreen (gpu_hw.c narrows the 2D
+ * packets that stand at a projected point: pc_gte_projected). */
 #define ROOD_PROJECTED_SLOTS 262144
 #define ROOD_SLOT_SHIFT 14 /* 32 - log2(slots) */
 static unsigned rood_projected_key[ROOD_PROJECTED_SLOTS];
 static unsigned short rood_projected_depth[ROOD_PROJECTED_SLOTS];
-/* Sub-pixel screen position before the GTE rounds it (PGXP-style), so the
- * hardware path can draw without the PS1's vertex snapping. */
-static float rood_projected_precise[ROOD_PROJECTED_SLOTS][2];
-static float rood_last_precise[2];
 static unsigned char rood_projected_age[ROOD_PROJECTED_SLOTS];
 static unsigned rood_projected_sequence[ROOD_PROJECTED_SLOTS], rood_sequence;
 #define ROOD_PROBES 16
-/* The projection used (OFX, OFY, H), so the renderer can tell the scene
- * camera's vertices from other GTE drawing such as the minimap. */
-static int rood_projected_view[ROOD_PROJECTED_SLOTS][3];
-int pc_gte_lookup_view[3];
-/* The code address that issued each projection (doCOP2's caller), for
- * attributing what is still reconstructed (ROOD_OTHER_DEBUG). Host data, not
- * game state: an engine address, which a save state must not carry across
- * an engine rebuild (pc/src/snapshot.c). */
-__attribute__((section(".bss.rood_host"))) const void* pc_gte_caller;
-__attribute__((section(".bss.rood_host"))) static const void* rood_projected_caller[ROOD_PROJECTED_SLOTS];
-const void* pc_gte_projection_caller(int s) { return s >= 0 && s < ROOD_PROJECTED_SLOTS ? rood_projected_caller[s] : 0; }
 static unsigned char rood_generation = 1;
 static int rood_fresh(unsigned slot)
 {
 	unsigned char age = rood_projected_age[slot];
 	return age && (unsigned char)(rood_generation - age) <= 3;
 }
-/* The renderer turns the log off once everything 3D is drawn natively
- * (gpu_hw.c, pc_reconstruct): nothing is recorded or found then. */
-int pc_gte_log = 1;
 static void rood_record_projection(int sx, int sy, int sz)
 {
-	/* (Widescreen keeps recording: the renderer leaves projected 2D packets
-	 * uncompressed, gpu_hw.c pc_hw_set_narrowed.) */
-	if (!pc_gte_log && !pc_gte_widescreen)
+	/* (The renderer leaves projected 2D packets uncompressed in widescreen: gpu_hw.c pc_hw_set_narrowed.) */
+	if (!pc_gte_widescreen)
 		return;
 	unsigned key = ((unsigned)sx & 0xffff) | ((unsigned)sy << 16);
 	unsigned slot = (key * 2654435761u) >> ROOD_SLOT_SHIFT;
@@ -127,13 +108,6 @@ static void rood_record_projection(int sx, int sy, int sz)
 	rood_projected_key[s] = key;
 	rood_projected_sequence[s] = ++rood_sequence;
 	rood_projected_depth[s] = (unsigned short)sz;
-	rood_projected_precise[s][0] = rood_last_precise[0];
-	rood_projected_precise[s][1] = rood_last_precise[1];
-	/* (OFX as the scene camera reports it, pc_gte_view_ofx, when narrowed.) */
-	rood_projected_view[s][0] = rood_narrow() ? (int)(rood_centre16() + ((long long)C2_OFX - rood_centre16()) * 3 / 4) : C2_OFX;
-	rood_projected_view[s][1] = C2_OFY;
-	rood_projected_view[s][2] = C2_H;
-	rood_projected_caller[s] = pc_gte_caller;
 	rood_projected_age[s] = rood_generation;
 }
 /* A screen X the GTE narrowed (widescreen), as the 4:3 projection gives it:
@@ -175,44 +149,6 @@ int pc_gte_projected_depth(int sx, int sy, int* sz)
 	return s >= 0;
 }
 int pc_gte_projected(int sx, int sy) { return pc_gte_projected_depth(sx, sy, 0); }
-/* As pc_gte_projected_depth, also returning the unrounded screen position. */
-void pc_gte_projection_entry(int s, int sx, int sy, int* sz, float* fx, float* fy);
-int pc_gte_projected_precise(int sx, int sy, int* sz, float* fx, float* fy)
-{
-	int s = rood_newest(sx, sy);
-	if (s < 0)
-		return 0;
-	pc_gte_projection_entry(s, sx, sy, sz, fx, fy);
-	return 1;
-}
-/* One logged projection: depth, unrounded position, and its view in
- * pc_gte_lookup_view. */
-void pc_gte_projection_entry(int s, int sx, int sy, int* sz, float* fx, float* fy)
-{
-	*sz = rood_projected_depth[s];
-	*fx = rood_projected_precise[s][0];
-	*fy = rood_projected_precise[s][1];
-	memcpy(pc_gte_lookup_view, rood_projected_view[s], sizeof pc_gte_lookup_view);
-	/* Keep within the rounding cell (guards bad precision at tiny z). */
-	if (*fx < sx - 1.0f || *fx > sx + 1.0f) *fx = (float)sx;
-	if (*fy < sy - 1.0f || *fy > sy + 1.0f) *fy = (float)sy;
-}
-/* Every fresh entry for (sx, sy): slot ids and sequence numbers; returns the
- * count (at most `max`). */
-int pc_gte_projected_candidates(int sx, int sy, int* slots, unsigned* sequences, int max)
-{
-	unsigned key = ((unsigned)sx & 0xffff) | ((unsigned)sy << 16);
-	unsigned slot = (key * 2654435761u) >> ROOD_SLOT_SHIFT;
-	int n = 0;
-	for (int probe = 0; probe < ROOD_PROBES && n < max; probe++) {
-		unsigned s = (slot + probe) & (ROOD_PROJECTED_SLOTS - 1);
-		if (rood_projected_key[s] == key && rood_fresh(s)) {
-			slots[n] = (int)s;
-			sequences[n++] = rood_projected_sequence[s];
-		}
-	}
-	return n;
-}
 }
 
 #define GTE_SF(op)			((op >> 19) & 1)
@@ -606,16 +542,6 @@ int GTE_RotTransPers(int idx, int lm)
 		C2_SX2 = Lm_G1(F(sx) >> 16);
 	}
 	C2_SY2 = Lm_G2(F((long long)C2_OFY + ((long long)C2_IR2 * h_over_sz3)) >> 16);
-	{
-		float z = C2_SZ3 > 0 ? (float)C2_SZ3 : 1.0f;
-		float x = (float)C2_OFX / 65536.0f + (float)C2_IR1 * (float)C2_H / z;
-		if (rood_narrow()) {
-			float c = (float)rood_centre16() / 65536.0f;
-			x = c + (x - c) * 0.75f;
-		}
-		rood_last_precise[0] = x;
-		rood_last_precise[1] = (float)C2_OFY / 65536.0f + (float)C2_IR2 * (float)C2_H / z;
-	}
 	rood_record_projection(C2_SX2, C2_SY2, C2_SZ3);
 
 #if USE_PGXP

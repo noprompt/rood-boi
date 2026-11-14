@@ -10,7 +10,6 @@
 /* The renderer's hooks, applied by the consumer (gpu_hw.c). */
 extern void pc_hw_set_2d(int);
 extern void pc_hw_set_narrowed(void) __attribute__((weak));
-extern void pc_hw_set_room(int);
 extern void pc_hw_set_precise(const float*);
 extern void pc_hw_set_depth(const int*);
 extern void pc_hw_set_packet(const void*);
@@ -40,10 +39,9 @@ extern const uint16_t* pc_native_vram(void);
 extern int pc_gpu_immediate; /* DrawPrim, not an ordering table: ui_text identifies the info signs by it */
 extern const void* pc_gpu_command; /* the packet a rectangle or text quad draws (boot_runtime.c) */
 
-enum { C_SET_2D = 1, C_SET_NARROWED, C_SET_ROOM, C_SET_PRECISE, C_SET_DEPTH, C_SET_PACKET, C_SET_FLIPPED_UV, C_SET_BOUNDS, C_SET_ATTR, C_NATIVE_MARKER, C_NATIVE_TRANSLUCENT, C_OT_NATIVE_AREA, C_RECT, C_LINE, C_TRIANGLE, C_MARK_RASTER, C_MARK, C_RASTER_POST, C_BEFORE_WRITE, C_STALE_COPY, C_TEXT_PIECE, C_TEXT_PIECE_DONE, C_EMISSIVE_NOTE, C_EMISSIVE_GONE, C_EMISSIVE_ROOM_MESH, C_FRAME_ROOM };
+enum { C_SET_2D = 1, C_SET_NARROWED, C_SET_PRECISE, C_SET_DEPTH, C_SET_PACKET, C_SET_FLIPPED_UV, C_SET_BOUNDS, C_SET_ATTR, C_NATIVE_MARKER, C_NATIVE_TRANSLUCENT, C_OT_NATIVE_AREA, C_RECT, C_LINE, C_TRIANGLE, C_MARK_RASTER, C_MARK, C_RASTER_POST, C_BEFORE_WRITE, C_STALE_COPY, C_TEXT_PIECE, C_TEXT_PIECE_DONE, C_EMISSIVE_NOTE, C_EMISSIVE_GONE, C_EMISSIVE_ROOM_MESH, C_FRAME_ROOM };
 
-struct pc_hwc_mirror_t pc_hwc_mirror = { .cur = { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 },
-    .poly = { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 } };
+struct pc_hwc_mirror_t pc_hwc_mirror = { .cur_effect = -1, .poly_effect = -1 };
 int pc_hwc_pending;
 int pc_hwc_stale_pending;
 /* ROOD_HWC_INLINE=1: every record is applied at once, as the walk called the hooks before the buffer (the proof's reference:
@@ -81,13 +79,6 @@ void pc_hwc_set_narrowed(void)
     if (inline_now())
         pc_hwc_flush();
 }
-void pc_hwc_set_room(int room)
-{
-    pc_hwc_mirror.room = room;
-    memcpy(record(C_SET_ROOM, sizeof room), &room, sizeof room);
-    if (inline_now())
-        pc_hwc_flush();
-}
 void pc_hwc_set_precise(const float* xy6)
 {
     memcpy(record(C_SET_PRECISE, 6 * sizeof(float)), xy6, 6 * sizeof(float));
@@ -102,8 +93,7 @@ void pc_hwc_set_depth(const int* depth3)
 }
 void pc_hwc_set_packet(const void* packet)
 {
-    pc_hwc_mirror.packet = (uintptr_t)packet;
-    pc_hwc_mirror.poly = pc_hwc_mirror.cur;
+    pc_hwc_mirror.poly_effect = pc_hwc_mirror.cur_effect;
     memcpy(record(C_SET_PACKET, sizeof packet), &packet, sizeof packet);
     if (inline_now())
         pc_hwc_flush();
@@ -137,12 +127,11 @@ void pc_hwc_set_attr(const pc_hw_attr* attr, int screen_x, int screen_w)
         pc_hw_attr attr;
         int x, w;
     } a = { *attr, screen_x, screen_w };
-    pc_hwc_mirror.cur = *attr;
+    pc_hwc_mirror.cur_effect = attr->effect;
     memcpy(record(C_SET_ATTR, sizeof a), &a, sizeof a);
     if (inline_now())
         pc_hwc_flush();
 }
-int pc_hwc_cur_room(void) { return pc_hwc_mirror.cur.room; }
 void pc_hwc_native_marker(unsigned list, int draw_x, int draw_y, const int* clip4, unsigned window, int mask_set)
 {
     struct {
@@ -220,7 +209,7 @@ int pc_hwc_triangle(const int* xy, const int* uv, const int* rgb, unsigned code,
     const int* clip, int mask_set, int mask_check)
 {
     triangle_record t;
-    pc_hw_triangle_decide(uv, code, tpage, clip, pc_hwc_mirror.is_2d, pc_hwc_mirror.room, pc_hwc_mirror.packet, &pc_hwc_mirror.poly, &t.decision);
+    pc_hw_triangle_decide(uv, code, tpage, clip, pc_hwc_mirror.is_2d, pc_hwc_mirror.poly_effect, &t.decision);
     if (t.decision.action != PC_HW_TRI_IGNORE) {
         memcpy(t.xy, xy, sizeof t.xy), memcpy(t.uv, uv, sizeof t.uv), memcpy(t.rgb, rgb, sizeof t.rgb);
         t.code = code, t.tpage = tpage, t.clut = clut, t.window = window;
@@ -483,13 +472,6 @@ void pc_hwc_flush(void)
                 pc_hw_set_narrowed();
             at += 1;
             break;
-        case C_SET_ROOM: {
-            int v;
-            memcpy(&v, r, sizeof v);
-            pc_hw_set_room(v);
-            at += 1 + (int)sizeof v;
-            break;
-        }
         case C_SET_PRECISE: {
             float v[6];
             memcpy(v, r, sizeof v);

@@ -2159,7 +2159,6 @@ extern void pc_scene_camera(const void*);
 extern void pc_room_warp_room_spawned(void);
 
 /* Declared for the Zig's c module (the C bodies that declared them are gone). */
-extern void pc_finish_room_checkpoint(void);
 extern int pc_room_warp_poll(void);
 extern int pc_action_poll(void); /* pc/src/action_driver.c: the dev RPC action */
 extern void pc_action_capture(const void* state, int kind, int mode, int menu);

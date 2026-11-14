@@ -32,7 +32,7 @@ names the rest as deferred; a step past 20 minutes is stopped and fails). The bu
   below) plus `ctest` (its fast part);
 - null renderer: the CPU-safe share of them (`NULL_SAFE` in `run.py`) plus
   `null_backend_smoke`; they do not run again on Vulkan;
-- OpenGL: a sanity subset (`rpc_smoke`, `room_smoke`, `opening_smoke`,
+- OpenGL: a sanity subset (`rpc_smoke`, `opening_smoke`,
   `golden_frames`, `title_fade_smoke`), plus what the OpenGL renderer's own
   files select when one of them changed (`[quick] gl_paths`);
 - long suites (`[[long]]`: the charge skip, the soaks, `emissive_catalog`,

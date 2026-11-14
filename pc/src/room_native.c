@@ -7,13 +7,12 @@
  * calls in here for each one. Opaque polygons draw with the list; each
  * semi-transparent polygon the game keeps (its back-face and ordering-table
  * tests) draws at a translucent marker linked right where its packet is
- * (pc_native_blend), so it keeps its place among everything else in the
- * ordering table. The room packets are all still built for the CPU's
- * reference VRAM (pc_native_room 1), or only the semi-transparent ones (2);
- * the hardware path skips those the native draws cover.
+ * so it keeps its place among everything else in the ordering table. Only
+ * the semi-transparent room packets are built; the hardware path skips those
+ * the native draws cover.
  *
  * Other blocks drawn through func_8009723C (func_8008E19C's animated floor
- * quads) become layered lists (pc_native_objects): room rules, drawn over
+ * quads) become layered lists: room rules, drawn over
  * the native surfaces so far instead of resetting depth. Their geometry is
  * rewritten between calls (position, brightness), so their meshes are keyed
  * by a hash of the whole block and kept for a few frames. */
@@ -40,7 +39,6 @@ extern const unsigned* pc_room_group_geometry(
     const void* data, unsigned length, unsigned index, unsigned* tris, unsigned* quads) __attribute__((weak));
 extern void pc_room_render_rules(int* near_bucket, int* far_bucket, int* lod_bucket) __attribute__((weak));
 extern int pc_room_texture_lod; /* render.c */
-extern void pc_hw_native_room_packets(const void* start, const void* end, uint32_t list) __attribute__((weak));
 #include "hw_cmd.h" /* pc_hwc_emissive_room_mesh: a mesh of the current room's geometry block at byte `offset` of the room data (emissive scopes) */
 
 typedef struct {
@@ -446,8 +444,9 @@ static float next_cut, next_cut_previous; /* pc_room_native_group_cut */
 static int next_cut_ghost;
 
 extern int pc_live_camera_active(void) __attribute__((weak));
-/* func_8009723C begins: returns pc_native_room's mode when the native list
- * takes this block's opaque polygons, 0 to draw them all as packets. */
+/* func_8009723C begins: returns 2 when the native list takes this block's opaque
+ * polygons (the semi-transparent ones stay packets with a marker), 0 to draw them
+ * all as packets (the hardware path is off). */
 int pc_room_native_begin(const void* data, unsigned mode, const unsigned* first)
 {
     list = 0;
@@ -457,13 +456,11 @@ int pc_room_native_begin(const void* data, unsigned mode, const unsigned* first)
     /* The room's texture effects this frame (animated materials, and the
      * ray-traced scene's UVs). */
     pc_uv_effects_frame(data);
-    if (!pc_native_room || !pc_hw_active)
+    if (!pc_hw_active)
         return 0;
     /* The current room (func_8008B1FC); other blocks drawn with this
      * function (func_8008E19C) are layered over it. */
     int room = pc_scene_room_data && data == pc_scene_room_data();
-    if (!room && !pc_native_objects)
-        return 0;
     unsigned count = *(const unsigned*)data;
     if (!count || count > 4096)
         return 0;
@@ -530,8 +527,8 @@ int pc_room_native_begin(const void* data, unsigned mode, const unsigned* first)
         if (effects)
             render_list_uv_effects(list, table, effects);
     }
-    list_mode = pc_native_room;
-    list_blend = pc_native_blend;
+    list_mode = 2; /* native only: no opaque room packets, a marker for each semi-transparent one */
+    list_blend = 1;
     list_block = block;
     list_first = first;
     instance_index = -1;
@@ -629,14 +626,12 @@ unsigned* pc_room_native_end(unsigned* packet, unsigned* ot)
     if (bucket < near_bucket)
         bucket = near_bucket;
     if (translucent_failed) {
-        /* Markers already linked draw nothing; the packets draw. */
+        /* Markers already linked draw nothing: the room's translucent polygons are not drawn. */
         static int logged;
         if (!logged++)
-            fprintf(stderr, "[render] room translucent polygons stay packets (packet space)\n");
+            fprintf(stderr, "[render] room translucent polygons are not drawn (packet space)\n");
         render_list_translucent_clear(list);
     }
-    if (pc_hw_native_room_packets && list_first && packet > list_first)
-        pc_hw_native_room_packets(list_first, packet, list);
     packet = render_list_link(list, ot + bucket, packet);
     last_list = list_block && list_block->room ? list : 0;
     list = 0;

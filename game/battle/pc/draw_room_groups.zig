@@ -22,7 +22,6 @@ const WallsGroup = *const fn (c_uint, c_int, [*c]f32, [*c]f32, [*c]c_int) callco
 const OcclusionFrame = *const fn (c_int) callconv(.c) void;
 const PhotoWhole = *const fn () callconv(.c) c_int;
 const SceneRoomData = *const fn () callconv(.c) ?*const anyopaque;
-const HwRoomPackets = *const fn (?*const anyopaque, ?*const anyopaque) callconv(.c) void;
 
 /// orig: func_8009723C (pc/src/room_geometry.c)
 /// Submits the room's groups (a count, then 0x40-byte groups) into the
@@ -39,7 +38,6 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
     if (count > 4096) c.pc_unimplemented("room group count");
     const native = v.g.native();
     native.* = if (psx.weak(NativeBegin, "pc_room_native_begin")) |begin| begin(data, mode, first) else 0;
-    v.g.translucent_only().* = @intFromBool(native.* == 2);
     const free_camera: c_int = @intFromBool(if (psx.weak(LiveCameraActive, "pc_live_camera_active")) |active| active() != 0 else false);
     const editor_facing = psx.weak(EditorFacing, "pc_room_editor_facing");
     const free_facing: c_uint = if (free_camera != 0 and editor_facing != null) editor_facing.?() else 0x10000;
@@ -96,12 +94,10 @@ pub fn drawRoomGroups(data: [*]u8, mode: c_uint) callconv(.c) void {
         }
         packet = @ptrCast(@alignCast(c.pc_room_group_packets(geometry, packet, ot, gp, mode, limit, @ptrCast(&view))));
     }
-    v.g.translucent_only().* = 0;
     if (record) {
         if (psx.weak(OcclusionFrame, "pc_occlusion_frame")) |frame| frame(free_camera);
     }
     if (native.* != 0) packet = @ptrCast(@alignCast(psx.weak(NativeEnd, "pc_room_native_end").?(packet, ot)));
     native.* = 0;
     scratch.unk0 = packet;
-    if (psx.weak(HwRoomPackets, "pc_hw_room_packets")) |room_packets| room_packets(first, packet);
 }

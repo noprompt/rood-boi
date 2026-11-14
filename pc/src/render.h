@@ -315,21 +315,15 @@ void render_anim_trace_present(unsigned vsync, int replayed, float t, const uint
 typedef struct {
     int lists, instances; /* native lists drawn, instances submitted */
     int native_triangles; /* triangles of submitted instances (before culling) */
-    int legacy_room_triangles; /* room triangles the hardware path drew from packets */
-    int skipped_room_triangles; /* room packet triangles left to the native draw */
     int meshes, mesh_polygons; /* live meshes and their polygons */
     int mesh_updates; /* render_mesh_update calls since startup (the fallback for UV rewrites not modelled) */
     int uv_effects; /* animated materials submitted with the frame's lists (render_list_uv_effects) */
     /* Objects (characters, weapons, props; actor_native.c): */
     int object_lists, object_instances, object_triangles; /* drawn natively */
-    int legacy_object_triangles; /* object packet triangles the hardware path drew */
-    int skipped_object_triangles; /* object packet triangles left to native lists */
     int object_meshes_built; /* object meshes built in the frame (cache misses) */
     int interpolated_instances; /* instances drawn with a blended palette (replays) */
     /* Translucent polygons (render_list_translucent): */
     int translucent_markers, translucent_polygons; /* drawn natively (room and objects) */
-    int legacy_translucent_triangles; /* semi-transparent room/object packet triangles drawn */
-    int skipped_translucent_triangles; /* semi-transparent packet triangles left to native draws */
     /* Other room blocks (render_rules.layered: func_8008E19C's): */
     int layered_lists, layered_instances;
     /* 3D triangles of packets that are neither room nor object packets
@@ -356,21 +350,6 @@ void render_stats_get(render_stats* stats);
 
 /* ---- switches ---- */
 
-/* Room geometry: 0 legacy packets; 1 native (the room packets are still
- * built and rasterized by the CPU for its reference VRAM, but the hardware
- * path skips the opaque ones); 2 native only (no opaque room packets at all,
- * covered semi-transparent ones not rasterized by the CPU: native VRAM is
- * copied back from the hardware target where it is read, gpu_hw.c
- * pc_hw_sync). Default 2; ROOD_NATIVE_ROOM sets it at startup. */
-extern int pc_native_room;
-/* Characters, weapons and props drawn by func_800B3CF0/func_800B4594: 0
- * legacy packets; 1 native (their packets are still built and rasterized by
- * the CPU for its reference VRAM; the hardware path skips the opaque ones
- * when the native list drew); 2 (default) as 1 without the CPU's
- * rasterization of covered packets (drop shadows and particles too). Needs
- * the native room in the same frame (its depth). ROOD_NATIVE_ACTORS sets it
- * at startup. */
-extern int pc_native_actors;
 /* Native characters paint their own polygons in the PS1's order (1,
  * default: as the PS1 shows models built from intersecting shells) or
  * depth-test them against each other (0). Against the room and other
@@ -398,33 +377,6 @@ extern int pc_native_occlusion;
  * tune pc_native_room_slack: relative, GTE units). */
 extern int pc_native_room_order;
 extern float pc_native_room_slack[2];
-/* Semi-transparent polygons of the native room and objects (the room's
- * window light and glass, characters' translucent records, the blended
- * builders func_800B516C/func_800B5C30): 0 legacy packets; 1 native
- * (translucent markers in ordering-table order; their packets are still
- * built for the CPU's reference VRAM). Needs pc_native_room / actors for
- * the lists they belong to. ROOD_NATIVE_BLEND sets it at startup. */
-extern int pc_native_blend;
-/* Room blocks other than the current room drawn through func_8009723C
- * (func_8008E19C's animated floor quads): 0 legacy packets; 1 native
- * layered lists. ROOD_NATIVE_OBJECTS sets it at startup. */
-extern int pc_native_objects;
-/* Drop shadows (actor_shadow.c, func_800B4B14) and the squares under moving
- * platforms (room_shadows.inc, func_8008CEB0): 0 legacy packets; 1 native
- * world-space triangles at translucent markers (their packets are still
- * built for the CPU's reference VRAM). ROOD_NATIVE_SHADOWS sets it. */
-extern int pc_native_shadows;
-/* Effect particles (effect_particles.c, func_800D6E44): 0 legacy packets;
- * 1 native sprites at their world positions. ROOD_NATIVE_EFFECTS sets it. */
-extern int pc_native_effects;
-/* The reconstruction of 3D from packets (GTE projection log lookups, room
- * depth records, caster capture from packets, nearest-triangle matching for
- * frame interpolation): 1 always; 0 retired whenever every native switch
- * above is on (it then serves nothing: what still reaches the hardware
- * path as packets draws as 2D in its ordering-table place). ROOD_RECONSTRUCT
- * sets it. */
-extern int pc_reconstruct;
-
 #ifdef __cplusplus
 }
 #endif

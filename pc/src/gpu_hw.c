@@ -100,7 +100,7 @@ unsigned pc_hw_history_cut;
  * (pc_gte_widescreen); 2D primitives, which the GTE did not project, are
  * compressed here about the drawing area's centre so they keep their shape. */
 extern int pc_gte_widescreen;
-static int primitive_2d, primitive_room, primitive_cover;
+static int primitive_2d, primitive_cover;
 /* Widescreen: untextured 2D reaching the screen's right (1) or left (-1)
  * edge (menu bars, title bars) stretches to that edge of the view from its
  * compressed other end (pc_hw_set_bounds); primitive_span is its x0, x1. */
@@ -395,152 +395,42 @@ void pc_hw_set_bounds(int x0, int y0, int x1, int y1, unsigned code, unsigned tp
             wide ? "full width" : tall ? "past the top or bottom" : backdrop ? "full-screen picture piece" : "a copy of the screen");
     }
 }
-void pc_hw_set_room(int room) { PC_HW_METER(set_room); primitive_room = room; }
 
-/* Room packet ranges (func_8009723C) recorded while an OT is built; at each
- * DrawOTag the recorded set becomes the active one for that OT. */
-#define MAX_ROOM_RANGES 16
-static uintptr_t pending_ranges[MAX_ROOM_RANGES][2], active_ranges[MAX_ROOM_RANGES][2];
-static int pending_count, active_count;
-void pc_hw_room_packets(const void* start, const void* end)
-{ PC_HW_METER(room_packets);
-    if (pending_count < MAX_ROOM_RANGES && end > start) {
-        pending_ranges[pending_count][0] = (uintptr_t)start;
-        pending_ranges[pending_count][1] = (uintptr_t)end;
-        ++pending_count;
-    }
-}
-/* Each room packet's vertex depths (SZ) and screen positions, recorded as
- * room_geometry.c writes it and keyed by its address: exact, where finding them by screen
- * position in the GTE's projection log can pick another projection to the
- * same pixel or miss one. An address is rewritten with its packet. */
-#define ROOM_DEPTH_SLOTS 65536
-static uintptr_t room_depth_key[ROOM_DEPTH_SLOTS];
-static uint16_t room_depth_value[ROOM_DEPTH_SLOTS][4];
-static uint32_t room_depth_xy[ROOM_DEPTH_SLOTS][4]; /* the screen positions they belong to */
-static unsigned room_depth_slot(uintptr_t key) { return ((unsigned)(key >> 2) * 2654435761u) >> 16; }
-extern int pc_gte_log;
-void pc_hw_room_depths(const void* packet, const unsigned* xy, const unsigned* sz, int count)
-{ PC_HW_METER(room_depths);
-    if (!pc_gte_log)
-        return; /* the reconstruction is retired (pc_reconstruct) */
-    uintptr_t key = (uintptr_t)packet;
-    unsigned home = room_depth_slot(key), s = home;
-    for (int probe = 0; probe < 8; probe++, s = (s + 1) & (ROOM_DEPTH_SLOTS - 1))
-        if (room_depth_key[s] == key || !room_depth_key[s])
-            break;
-    if (room_depth_key[s] != key && room_depth_key[s])
-        s = home; /* crowded: take the home slot */
-    room_depth_key[s] = key;
-    for (int i = 0; i < 4; i++) {
-        room_depth_value[s][i] = (uint16_t)sz[i < count ? i : count - 1];
-        room_depth_xy[s][i] = xy[i < count ? i : count - 1];
-    }
-}
-int pc_hw_room_depth(const void* packet, const unsigned* xy, int count, int* sz)
-{ PC_HW_METER(room_depth);
-    uintptr_t key = (uintptr_t)packet;
-    unsigned s = room_depth_slot(key);
-    for (int probe = 0; probe < 8; probe++, s = (s + 1) & (ROOM_DEPTH_SLOTS - 1)) {
-        if (!room_depth_key[s])
-            return 0;
-        if (room_depth_key[s] == key) {
-            /* Only if the packet still holds what was recorded: the address
-             * may since carry another frame's packet. */
-            for (int i = 0; i < count; i++)
-                if (room_depth_xy[s][i] != xy[i])
-                    return 0;
-            for (int i = 0; i < 4; i++)
-                sz[i] = room_depth_value[s][i];
-            return 1;
-        }
-    }
-    return 0;
-}
-/* Room packet ranges whose polygons a native draw list covers
- * (room_geometry.c with pc_native_room 1, room_native.c): the CPU's
- * reference VRAM still draws them, the hardware path does not once the
- * list drew (its opaque polygons; the semi-transparent ones too when the
- * list draws them at translucent markers). Active per OT like the above. */
+/* Drop shadow and effect packet ranges (effect_native.c): [start, end) of the markers and lowered items of effects list `list`
+ * (0: no list took them, the items draw as they are). Recorded while an ordering table is built and made active at its DrawOTag.
+ * They are covered once one of the list's translucent markers drew; the hardware path then skips them all (every polygon of an
+ * effects list is native). Items in a range are world geometry, never screen furniture. */
+#define MAX_EFFECT_RANGES 512
 typedef struct {
     uintptr_t start, end;
     uint32_t list;
-    int drawn, translucent;
-} native_range;
-static native_range pending_native[MAX_ROOM_RANGES], active_native[MAX_ROOM_RANGES];
-static int pending_native_count, active_native_count;
-void pc_hw_native_room_packets(const void* start, const void* end, uint32_t list)
-{ PC_HW_METER(native_room_packets);
-    if (pending_native_count < MAX_ROOM_RANGES && end > start) {
-        native_range* r = &pending_native[pending_native_count++];
-        r->start = (uintptr_t)start;
-        r->end = (uintptr_t)end;
-        r->list = list;
-        r->drawn = r->translucent = 0;
-    }
-}
-/* The packet's covered polygons: 1 opaque ones, 2 also semi-transparent
- * ones, 0 none. */
-static int native_covered(int range)
-{
-    if (range < 0 || range >= active_native_count)
-        return 0;
-    return !active_native[range].drawn ? 0 : active_native[range].translucent ? 2 : 1;
-}
-/* Object packet ranges (actor_native.c: one per model drawn by
- * func_800B3CF0/func_800B4594, with the native list built from the same
- * model, or list 0 with native objects off). At the list's marker the range
- * becomes covered when the list drew; the hardware path then skips the
- * range's opaque triangles (the CPU's reference VRAM still draws them). */
-#define MAX_OBJECT_RANGES 512
-typedef struct {
-    uintptr_t start, end;
-    uint32_t list;
-    int covered; /* 1 opaque polygons, 2 also semi-transparent ones */
-    int effects; /* drop shadows or effects (pc_hw_effect_packets): RENDER_EFFECTS_* */
-} object_range;
-static object_range pending_objects[MAX_OBJECT_RANGES], active_objects[MAX_OBJECT_RANGES];
-static int pending_object_count, active_object_count, last_object_range;
-void pc_hw_object_packets(const void* start, const void* end, uint32_t list)
-{ PC_HW_METER(object_packets);
-    if (pending_object_count < MAX_OBJECT_RANGES && end > start) {
-        object_range* r = &pending_objects[pending_object_count++];
-        r->start = (uintptr_t)start;
-        r->end = (uintptr_t)end;
-        /* 0xffffffff (actor_native.c: rood.ui.hide{actors}): drawn by nothing, as if a list had */
-        r->list = list == 0xffffffffu ? 0 : list;
-        r->covered = list == 0xffffffffu ? 2 : 0;
-        r->effects = 0;
-    }
-}
-/* Drop shadow or effect packets (effect_native.c): [start, end) of kind
- * RENDER_EFFECTS_*, drawn by effects list `list` (0: native off). They are
- * covered once one of the list's translucent markers drew; the hardware
- * path then skips them all (every polygon of an effects list is native). */
-void pc_hw_effect_packets(const void* start, const void* end, uint32_t list, int kind)
+    int covered;
+} effect_range;
+static effect_range pending_effects[MAX_EFFECT_RANGES], active_effects[MAX_EFFECT_RANGES];
+static int pending_effect_count, active_effect_count, last_effect_range;
+void pc_hw_effect_packets(const void* start, const void* end, uint32_t list)
 { PC_HW_METER(effect_packets);
-    if (pending_object_count < MAX_OBJECT_RANGES && end > start) {
-        object_range* r = &pending_objects[pending_object_count++];
+    if (pending_effect_count < MAX_EFFECT_RANGES && end > start) {
+        effect_range* r = &pending_effects[pending_effect_count++];
         r->start = (uintptr_t)start;
         r->end = (uintptr_t)end;
         r->list = list;
         r->covered = 0;
-        r->effects = kind > 0 ? kind : 1;
     }
 }
-/* The object range holding packet `p`, or NULL. */
-static int object_range_index(uintptr_t p)
+/* The effect range holding packet `p`, or -1. */
+static int effect_range_index(uintptr_t p)
 {
-    if (!active_object_count)
+    if (!active_effect_count)
         return -1;
-    if (last_object_range < active_object_count) {
-        object_range* r = &active_objects[last_object_range];
+    if (last_effect_range < active_effect_count) {
+        effect_range* r = &active_effects[last_effect_range];
         if (p >= r->start && p < r->end)
-            return last_object_range;
+            return last_effect_range;
     }
-    for (int i = 0; i < active_object_count; i++)
-        if (p >= active_objects[i].start && p < active_objects[i].end) {
-            last_object_range = i;
+    for (int i = 0; i < active_effect_count; i++)
+        if (p >= active_effects[i].start && p < active_effects[i].end) {
+            last_effect_range = i;
             return i;
         }
     return -1;
@@ -549,73 +439,18 @@ static int object_range_index(uintptr_t p)
 #define MAX_DRAWN_LISTS 256
 static uint32_t drawn_lists[MAX_DRAWN_LISTS];
 static int drawn_list_count;
-static void cover_objects(uint32_t list, int translucent)
+static void cover_effects(uint32_t list)
 {
-    for (int i = 0; i < active_object_count; i++)
-        if (active_objects[i].list == list)
-            active_objects[i].covered = translucent ? 2 : 1;
+    for (int i = 0; i < active_effect_count; i++)
+        if (active_effects[i].list == list)
+            active_effects[i].covered = 1;
 }
-static void cover_room(uint32_t list, int translucent)
-{
-    for (int i = 0; i < active_native_count; i++)
-        if (active_native[i].list == list)
-            active_native[i].drawn = 1, active_native[i].translucent = translucent;
-}
-/* Room triangles drawn here from packets, and those left to native lists,
- * in the frame being drawn (render_stats); the same for objects. */
+/* Triangles the hardware path drew from packets in the frame being drawn (render_stats). */
 static render_stats packet_stats;
-/* What is still reconstructed, by the code that projected it (ROOD_OTHER_DEBUG=1:
- * the GTE caller of the packet's first vertex, its GPU code and blend mode;
- * reported every 300 frames, resolve with addr2line -f -e the binary). */
-const void* pc_hw_caller;
-#define OTHER_CALLERS 64
-static struct {
-    const void* caller;
-    unsigned code, mode;
-    long count;
-} other_callers[OTHER_CALLERS];
-static int other_debug = -1, other_caller_count, other_frames;
-static void note_other(unsigned code, unsigned tpage)
-{
-    if (other_debug < 0)
-        other_debug = getenv("ROOD_OTHER_DEBUG") && atoi(getenv("ROOD_OTHER_DEBUG"));
-    if (!other_debug)
-        return;
-    unsigned mode = code & 2 ? (tpage >> 5) & 3 : 4;
-    for (int i = 0; i < other_caller_count; i++)
-        if (other_callers[i].caller == pc_hw_caller && other_callers[i].code == (code & 0xfc)
-            && other_callers[i].mode == mode) {
-            other_callers[i].count++;
-            return;
-        }
-    if (other_caller_count < OTHER_CALLERS) {
-        other_callers[other_caller_count].caller = pc_hw_caller;
-        other_callers[other_caller_count].code = code & 0xfc;
-        other_callers[other_caller_count].mode = mode;
-        other_callers[other_caller_count++].count = 1;
-    }
-}
-static void report_other(void)
-{
-    if (other_debug <= 0 || ++other_frames % 300)
-        return;
-    for (int i = 0; i < other_caller_count; i++)
-        fprintf(stderr, "[other] %ld triangles in 300 frames: caller %p code %02x %s\n", other_callers[i].count,
-            other_callers[i].caller, other_callers[i].code,
-            other_callers[i].mode == 4 ? "opaque" : (const char*[]) { "B/2+F/2", "B+F", "B-F", "B+F/4" }[other_callers[i].mode]);
-    other_caller_count = 0;
-}
-static int room_packet(const void* p)
-{
-    for (int i = 0; i < active_count; i++)
-        if ((uintptr_t)p >= active_ranges[i][0] && (uintptr_t)p < active_ranges[i][1])
-            return 1;
-    return 0;
-}
 
-/* The attributes of the packet being drawn (pc_hw_set_attr, once per packet), and those of the last polygon (pc_hw_set_packet:
- * what native_covered and the object ranges are asked about). */
-static pc_hw_attr cur_attr = { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 }, poly_attr = { .native = -1, .object = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 };
+/* The attributes of the packet being drawn (pc_hw_set_attr, once per packet). */
+static pc_hw_attr cur_attr = { .effect = -1, .span = -1, .opacity = 256, .bubble = -1, .precise = -1 };
+static int poly_effect = -1; /* its effect range at the last pc_hw_set_packet (what the decision is asked about) */
 /* Widescreen HUD anchoring: packet ranges of screen furniture that hugs a
  * screen edge (the status display at the left, the area map at the right),
  * recorded while an OT is built and made active at its DrawOTag like the room
@@ -826,16 +661,11 @@ static const span_shape* span_shape_of(uintptr_t packet)
  * VRAM X screen_x..screen_x + screen_w (drawing offset, display width). */
 extern void pc_stream_note(unsigned tag, const int* v, int n);
 /* The attributes of the packet whose tag word is at `p` (guest memory for a table's packets, the lowered arena for items):
- * the room, native, object, anchor, opacity and span ranges it lies in. */
+ * the effect, anchor, opacity and span ranges it lies in. */
 void pc_hw_resolve(const void* p, pc_hw_attr* a)
 {
     uintptr_t best = UINTPTR_MAX, at = (uintptr_t)p;
-    a->room = (unsigned char)room_packet(p);
-    a->native = -1;
-    for (int i = 0; i < active_native_count && a->native < 0; i++)
-        if (at >= active_native[i].start && at < active_native[i].end)
-            a->native = (short)i;
-    a->object = (short)object_range_index(at);
+    a->effect = (short)effect_range_index(at);
     a->anchor = PC_ANCHOR_NONE;
     a->exact = 0;
     for (int i = 0; i < active_anchor_count; i++) {
@@ -954,18 +784,6 @@ static void flush(void);
  * else is drawn, then laid out as lines (text_run_flush, below). */
 static int text_piece_count, text_emitting;
 static void text_run_flush(void);
-/* The reconstruction of 3D from packets (the GTE projection log and its
- * lookups, room depth records, caster capture from projected packets,
- * nearest-triangle matching for interpolation, which all follow from packets
- * having depth) serves only packets no native draw covers. It is off when
- * every native switch is on and pc_reconstruct is 0: packets that still
- * reach the hardware path (2D, and effects other than particles) then draw
- * as 2D, in their ordering-table place. */
-static int reconstruct_active(void)
-{
-    return pc_reconstruct || !pc_native_room || !pc_native_actors || !pc_native_blend || !pc_native_objects
-        || !pc_native_shadows || !pc_native_effects;
-}
 /* The drawing areas native draws left stale in the ordering table being
  * drawn (STALE_MISSING; pc_hw_begin_ot .. pc_hw_end_ot). What the CPU
  * rasterizer would draw inside one is replaced by the target's picture
@@ -984,21 +802,14 @@ void pc_hw_begin_ot(void)
         text_run_flush(); /* the previous table's last text */
     if (pc_widescreen_trace > 0 && !--pc_widescreen_trace)
         fprintf(stderr, "[widescreen trace] end\n");
-    pc_gte_log = !pc_hw_active || reconstruct_active();
     if (has_pending_translucent)
         flush(); /* the previous table's last translucent range */
-    memcpy(active_ranges, pending_ranges, sizeof active_ranges);
-    active_count = pending_count;
-    pending_count = 0;
-    memcpy(active_native, pending_native, (size_t)pending_native_count * sizeof *active_native);
-    active_native_count = pending_native_count;
-    pending_native_count = 0;
+    memcpy(active_effects, pending_effects, (size_t)pending_effect_count * sizeof *active_effects);
+    active_effect_count = pending_effect_count;
+    pending_effect_count = 0;
+    last_effect_range = 0;
     occlusion_on = surface_valid = 0;
     drawn_list_count = 0;
-    memcpy(active_objects, pending_objects, (size_t)pending_object_count * sizeof *active_objects);
-    active_object_count = pending_object_count;
-    pending_object_count = 0;
-    last_object_range = 0;
     memcpy(active_anchors, pending_anchors, sizeof active_anchors);
     active_anchor_count = pending_anchor_count;
     pending_anchor_count = 0;
@@ -1547,53 +1358,11 @@ natives:
             if (pc_settings_env_override)
                 pc_settings_env_override("present_rate");
         }
-        const char* native = getenv("ROOD_NATIVE_ROOM");
-        if (native) {
-            pc_native_room = atoi(native) < 0 ? 0 : atoi(native) > 2 ? 2 : atoi(native);
-            if (pc_settings_env_override)
-                pc_settings_env_override("native_room");
-        }
-        native = getenv("ROOD_NATIVE_ACTORS");
-        if (native) {
-            pc_native_actors = atoi(native) < 0 ? 0 : atoi(native) > 2 ? 2 : atoi(native);
-            if (pc_settings_env_override)
-                pc_settings_env_override("native_actors");
-        }
-        native = getenv("ROOD_NATIVE_BLEND");
-        if (native) {
-            pc_native_blend = atoi(native) != 0;
-            if (pc_settings_env_override)
-                pc_settings_env_override("native_blend");
-        }
-        native = getenv("ROOD_NATIVE_OBJECTS");
-        if (native) {
-            pc_native_objects = atoi(native) != 0;
-            if (pc_settings_env_override)
-                pc_settings_env_override("native_objects");
-        }
-        native = getenv("ROOD_NATIVE_ROOM_ORDER");
+        const char* native = getenv("ROOD_NATIVE_ROOM_ORDER");
         if (native) {
             pc_native_room_order = atoi(native) != 0;
             if (pc_settings_env_override)
                 pc_settings_env_override("native_room_order");
-        }
-        native = getenv("ROOD_NATIVE_SHADOWS");
-        if (native) {
-            pc_native_shadows = atoi(native) != 0;
-            if (pc_settings_env_override)
-                pc_settings_env_override("native_shadows");
-        }
-        native = getenv("ROOD_NATIVE_EFFECTS");
-        if (native) {
-            pc_native_effects = atoi(native) != 0;
-            if (pc_settings_env_override)
-                pc_settings_env_override("native_effects");
-        }
-        native = getenv("ROOD_RECONSTRUCT");
-        if (native) {
-            pc_reconstruct = atoi(native) != 0;
-            if (pc_settings_env_override)
-                pc_settings_env_override("reconstruct");
         }
     }
 #ifdef ROOD_VULKAN
@@ -2366,7 +2135,7 @@ void pc_hw_set_packet(const void* packet);
 static void record_triangle(const float* world, unsigned code, unsigned tpage, unsigned clut, const int* uv);
 /* Queue one triangle; state is the CPU rasterizer's at the time of drawing.
  * Returns 1 when a native draw covers it and the CPU's reference VRAM is
- * not kept for its kind (pc_native_room / pc_native_actors 2): the CPU
+ * not kept for its kind: the CPU
  * rasterizer may skip it (its area is then stale until pc_hw_sync). */
 static void mark_stale(const int* clip);
 enum { STALE_MISSING = 1, STALE_PLACED = 2 }; /* (stale_kinds, below) */
@@ -2449,13 +2218,13 @@ static int free_camera_afterimage(const int* uv, unsigned code, unsigned tpage, 
     ++pc_hw_afterimages_skipped;
     return 1;
 }
-/* PRODUCER SIDE (T1 R1): whether a native draw covers this triangle, so the CPU rasterizer may leave it out, and how the
- * renderer is to treat it. Reads only the frame's coverage tables (the ranges the native lists registered and which lists
- * drew), the settings and the game-side suppress flag, never the GPU; the primitive state it needs (2D or not, room or
- * not, the packet) comes in as arguments, as the walk set it. It marks stale areas (the tables the CPU rasterizer's skip
- * and the read-backs go by) and counts. The renderer's part is pc_hw_triangle_apply. */
-void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int room, uintptr_t packet,
-    const pc_hw_attr* poly, pc_hw_tri_decision* out)
+/* PRODUCER SIDE (T1 R1): whether a native list covers this triangle (a drop shadow or effect the list drew), so the CPU rasterizer
+ * may leave it out, and how the renderer is to treat it. Reads only the frame's coverage table (the effect ranges and which lists
+ * drew), the settings and the game-side suppress flag, never the GPU; the primitive state it needs (2D or not) comes in as an
+ * argument, as the walk set it. It marks stale areas (the tables the CPU rasterizer's skip and the read-backs go by) and counts.
+ * The renderer's part is pc_hw_triangle_apply. */
+void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int effect,
+    pc_hw_tri_decision* out)
 {
     out->skip = 0, out->action = PC_HW_TRI_IGNORE, out->ui = 0, out->other = 0, out->stats = 0;
     if (!pc_hw_active) {
@@ -2467,75 +2236,19 @@ void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const i
         pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_SUPPRESSED, 0);
         return;
     }
-    int other = 0; /* neither room nor object packet: still reconstructed */
-    int ui = is_2d; /* screen furniture: its texture may be magnified (pc_ui_upscale) */
-    if (room && packet) {
-        ui = 0; /* rects and lines carry no packet; 2D or not (no projection log) */
-        /* Room polygons that a native list draws (opaque ones at the list,
-         * semi-transparent ones at their translucent markers). */
-        int covered = active_native_count ? native_covered(poly->native) : 0;
-        if (covered > ((code & 2) ? 1 : 0)) {
-            if (code & 2)
-                out->stats |= 1u << 0;
-            else
-                out->stats |= 1u << 1;
-            out->action = PC_HW_TRI_RESET;
-            if (pc_native_room == 2) {
-                mark_stale(clip);
-                pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_ROOM_STALE, 1);
-                out->skip = 1;
-                return;
-            }
-            pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_ROOM_COVERED, 0);
-            return;
-        }
-        if (code & 2)
-            out->stats |= 1u << 2;
-        out->stats |= 1u << 3;
-    } else if (!room || !packet) {
-        /* Object polygons (characters, weapons, props) that a native list
-         * drew (whether or not the projection log made them 3D). */
-        object_range* range = active_object_count && poly->object >= 0 ? &active_objects[poly->object] : NULL;
-        if (range)
-            ui = 0; /* characters, props, drop shadows, effects */
-        if (range && range->effects) {
-            if (range->covered) {
-                out->stats |= 1u << 4;
-                out->action = PC_HW_TRI_RESET;
-                if (pc_native_actors == 2) {
-                    mark_stale(clip);
-                    pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_EFFECT_STALE, 1);
-                    out->skip = 1;
-                    return;
-                }
-                pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_EFFECT_COVERED, 0);
-                return;
-            }
-            out->stats |= 1u << 5;
-            other = !is_2d;
-        } else if (range) {
-            if (range->covered > ((code & 2) ? 1 : 0)) {
-                if (code & 2)
-                    out->stats |= 1u << 0;
-                else
-                    out->stats |= 1u << 6;
-                out->action = PC_HW_TRI_RESET;
-                if (pc_native_actors == 2) {
-                    mark_stale(clip);
-                    pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_OBJECT_STALE, 1);
-                    out->skip = 1;
-                    return;
-                }
-                pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_OBJECT_COVERED, 0);
-                return;
-            }
-            if (code & 2)
-                out->stats |= 1u << 2;
-            out->stats |= 1u << 7;
-        } else
-            other = !is_2d;
+    const effect_range* range = active_effect_count && effect >= 0 ? &active_effects[effect] : NULL;
+    if (range && range->covered) {
+        out->stats |= 1u << 0;
+        out->action = PC_HW_TRI_RESET;
+        mark_stale(clip);
+        pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_EFFECT_STALE, 1);
+        out->skip = 1;
+        return;
     }
-    out->action = PC_HW_TRI_DRAW, out->ui = ui, out->other = other;
+    if (range)
+        out->stats |= 1u << 1;
+    /* ui: screen furniture, its texture may be magnified (pc_ui_upscale); not an effect's items (world geometry). */
+    out->action = PC_HW_TRI_DRAW, out->ui = is_2d && !range, out->other = !is_2d;
 }
 /* The renderer's part: queue the triangle (or, for a left-out one, drop the pending depth and precise positions). */
 static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage, unsigned clut,
@@ -2613,7 +2326,6 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
     has_pending_depth = 0;
     if (other && (depth[0] | depth[1] | depth[2])) {
         ++packet_stats.legacy_other_triangles;
-        note_other(code, tpage);
     }
     /* 2D: a flipped sprite's coordinates (pc_hw_set_flipped_uv), and texels
      * kept inside the primitive (FLAG_CLAMP). */
@@ -2745,7 +2457,7 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
         }
         /* Additive (B + F, B + F/4) non-room triangles glow. */
         int additive = (code & 2) && (((tpage >> 5) & 3) == 1 || ((tpage >> 5) & 3) == 3);
-        if (has_world && !primitive_room && additive && emissive_count < MAX_EMISSIVE_TRIANGLES) {
+        if (has_world && additive && emissive_count < MAX_EMISSIVE_TRIANGLES) {
             emissive_source_collect[emissive_count] = PC_GLOW_ORIGIN_PACKET << 28 | texture_tag(tpage, clut);
             memcpy(emissive_collect + emissive_count * 9, world, sizeof world);
             pc_hw_surface* sf = &emissive_surface_collect[emissive_count++];
@@ -2758,7 +2470,7 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
             sf->clut = (uint16_t)clut;
         }
         /* Characters and props cast shadows: opaque non-room 3D triangles. */
-        if (has_world && !primitive_room && !(code & 2) && collect_count < MAX_CASTER_TRIANGLES) {
+        if (has_world && !(code & 2) && collect_count < MAX_CASTER_TRIANGLES) {
             memcpy(caster_collect + collect_count * 9, world, sizeof world);
             pc_hw_surface* sf = &surface_collect[collect_count];
             for (int i = 0; i < 9; i++)
@@ -2775,7 +2487,7 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
                 length = -length; /* face the camera */
             for (int k = 0; k < 3; k++)
                 normal[k] = (int8_t)(n[k] / length * 127.0f);
-            normal[3] = primitive_room ? 127 : 100; /* lit; room or moving (G-buffer alpha) */
+            normal[3] = 100; /* lit, moving (G-buffer alpha) */
         }
     }
     if (fade)
@@ -2840,12 +2552,10 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
 void pc_hw_triangle_apply(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage, unsigned clut,
     unsigned window, const int* clip, int mask_set, int mask_check, const pc_hw_tri_decision* decision)
 { PC_HW_METER(triangle);
-    int* counters[8] = { &packet_stats.skipped_translucent_triangles, &packet_stats.skipped_room_triangles,
-        &packet_stats.legacy_translucent_triangles, &packet_stats.legacy_room_triangles, &packet_stats.skipped_effect_triangles,
-        &packet_stats.legacy_effect_triangles, &packet_stats.skipped_object_triangles, &packet_stats.legacy_object_triangles };
-    for (int k = 0; k < 8; k++)
-        if (decision->stats >> k & 1)
-            ++*counters[k];
+    if (decision->stats & 1)
+        ++packet_stats.skipped_effect_triangles;
+    if (decision->stats & 2)
+        ++packet_stats.legacy_effect_triangles;
     triangle_apply_body(xy, uv, rgb, code, tpage, clut, window, clip, mask_set, mask_check, decision);
     int v[4] = { decision->skip, primitive_anchor | primitive_exact << 8, primitive_opacity, pc_hw_suppress };
     pc_stream_note(1, v, 4);
@@ -2855,7 +2565,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
     const int* clip, int mask_set, int mask_check)
 { PC_HW_METER(triangle);
     pc_hw_tri_decision decision;
-    pc_hw_triangle_decide(uv, code, tpage, clip, primitive_2d, primitive_room, current_packet, &poly_attr, &decision);
+    pc_hw_triangle_decide(uv, code, tpage, clip, primitive_2d, poly_effect, &decision);
     pc_hw_triangle_apply(xy, uv, rgb, code, tpage, clut, window, clip, mask_set, mask_check, &decision);
     return decision.skip;
 }
@@ -2877,7 +2587,7 @@ typedef struct {
     pc_ui_text_piece_info info;
     unsigned rgb, code, window;
     int mask_set, mask_check;
-    int is_2d, room, cover, extend, narrowed, anchor, opacity, uv_shift[2];
+    int is_2d, cover, extend, narrowed, anchor, opacity, uv_shift[2];
     float span[2];
     int sprite; /* a sprite (else a scaled quad) */
 } text_piece;
@@ -2919,7 +2629,7 @@ static void text_emit(int count, const pc_ui_text_quad* quads)
     for (int i = 0; i < count; i++) {
         const text_piece* p = &text_pieces[i];
         const pc_ui_text_quad* q = &quads[i];
-        primitive_2d = p->is_2d, primitive_room = p->room, primitive_cover = p->cover;
+        primitive_2d = p->is_2d, primitive_cover = p->cover;
         primitive_extend = p->extend, primitive_narrowed = p->narrowed, primitive_anchor = p->anchor;
         primitive_opacity = p->opacity;
         primitive_uv_shift[0] = p->uv_shift[0], primitive_uv_shift[1] = p->uv_shift[1];
@@ -2958,13 +2668,14 @@ static void text_run_flush(void)
     text_piece_count = 0;
     text_emitting = 1;
     /* The state of whatever is being drawn now, restored after. */
-    int was_2d = primitive_2d, was_room = primitive_room, was_cover = primitive_cover, was_extend = primitive_extend;
+    int was_2d = primitive_2d, was_cover = primitive_cover, was_extend = primitive_extend;
     int was_narrowed = primitive_narrowed, was_anchor = primitive_anchor, was_suppress = pc_hw_suppress;
     int was_opacity = primitive_opacity;
     int was_shift[2] = { primitive_uv_shift[0], primitive_uv_shift[1] };
     float was_span[2] = { primitive_span[0], primitive_span[1] };
     uintptr_t was_packet = current_packet;
-    pc_hw_attr was_poly = poly_attr, was_cur = cur_attr;
+    pc_hw_attr was_cur = cur_attr;
+    int was_poly_effect = poly_effect;
     int was_line_x = has_line_x, was_exact = has_exact, was_cover_exact = exact_cover;
     int was_depth = has_pending_depth, was_precise = has_pending_precise;
     float saved_line_x[3], saved_exact[6], saved_precise[6];
@@ -2986,13 +2697,13 @@ static void text_run_flush(void)
         text_emit(count, quads);
     }
     triangle_tag = 0;
-    primitive_2d = was_2d, primitive_room = was_room, primitive_cover = was_cover, primitive_extend = was_extend;
+    primitive_2d = was_2d, primitive_cover = was_cover, primitive_extend = was_extend;
     primitive_narrowed = was_narrowed, primitive_anchor = was_anchor, pc_hw_suppress = was_suppress;
     primitive_opacity = was_opacity;
     primitive_uv_shift[0] = was_shift[0], primitive_uv_shift[1] = was_shift[1];
     primitive_span[0] = was_span[0], primitive_span[1] = was_span[1];
     current_packet = was_packet;
-    poly_attr = was_poly, cur_attr = was_cur;
+    cur_attr = was_cur, poly_effect = was_poly_effect;
     has_line_x = was_line_x, has_exact = was_exact, exact_cover = was_cover_exact;
     has_pending_depth = was_depth, has_pending_precise = was_precise;
     memcpy(line_x, saved_line_x, sizeof saved_line_x);
@@ -3017,7 +2728,7 @@ static void text_piece_add(const pc_ui_text_piece_info* info, int sprite, unsign
     pc_ui_text_piece_call(&pc_gpu_command ? pc_gpu_command : NULL, &p->info);
     p->sprite = sprite;
     p->rgb = rgb, p->code = code, p->window = window, p->mask_set = mask_set, p->mask_check = mask_check;
-    p->is_2d = primitive_2d, p->room = primitive_room, p->cover = primitive_cover, p->extend = primitive_extend;
+    p->is_2d = primitive_2d, p->cover = primitive_cover, p->extend = primitive_extend;
     p->narrowed = primitive_narrowed, p->anchor = primitive_anchor, p->opacity = primitive_opacity;
     p->uv_shift[0] = primitive_uv_shift[0], p->uv_shift[1] = primitive_uv_shift[1];
     p->span[0] = primitive_span[0], p->span[1] = primitive_span[1];
@@ -3738,7 +3449,7 @@ extern void pc_vram_stream_rebase(void);
 extern void pc_ui_bubbles_forget_pending(void) __attribute__((weak));
 static void forget_pending(void)
 {
-    pending_count = pending_native_count = pending_object_count = pending_anchor_count = pending_opacity_count = pending_span_count = 0;
+    pending_effect_count = pending_anchor_count = pending_opacity_count = pending_span_count = 0;
     if (pc_ui_bubbles_forget_pending)
         pc_ui_bubbles_forget_pending();
 }
@@ -4195,10 +3906,9 @@ static int draw_native(GLuint fbo, uint32_t list, const int* clip, int ox, int o
     const render_camera* camera, float t)
 {
     int objects = render_list_objects(list); /* 1 objects, 2 another room block (layered) */
-    if (objects == 1 && !surface_valid && pc_native_room && pc_native_actors)
+    if (objects == 1 && !surface_valid)
         empty_surfaces(clip);
-    if (objects < 0 || (objects && !surface_valid) || (objects == 1 && !pc_native_actors)
-        || (objects == 2 && !pc_native_objects))
+    if (objects < 0 || (objects && !surface_valid))
         return 0;
     if (dirty_tiles)
         upload_all_dirty();
@@ -4361,27 +4071,19 @@ void pc_hw_native_marker(uint32_t list, int ox, int oy, const int* clip, unsigne
     flush();
     overlay_bake_rect(clip[0], clip[1], clip[0] + clip[2], clip[1] + clip[3]);
     if (!draw_native(target_fbo, list, clip, ox, oy, window, mask, NULL, 1.0f)) {
-        /* An object list that could not draw: its packets draw. Counted when nothing in the list's kind or the settings
-         * (what the producer can know) explains it: a render failure the producer's "covered" would have missed. */
-        int kind = render_list_objects(list);
-        if (kind >= 0 && (kind == 0 || (kind == 1 && pc_native_actors) || (kind == 2 && pc_native_objects)) && surface_valid)
-            pc_hw_meter_result(PC_HW_native_marker, PC_HW_WHY_COVERED_RENDER_FAILED, 1);
-        return;
+        return; /* (nothing else draws its polygons: there are no packets) */
     }
     record_native(list, clip, ox, oy, window, mask);
     side_paint_forget(clip[0], clip[1], clip[2], clip[3]); /* (the 3D spans the view) */
     if (drawn_list_count < MAX_DRAWN_LISTS)
         drawn_lists[drawn_list_count++] = list;
-    if (pc_native_room == 2 || pc_native_actors == 2)
-        mark_stale(clip); /* drawn here only: native VRAM lacks it */
+    mark_stale(clip); /* drawn here only: native VRAM lacks it */
     int translucent = render_list_translucent_count(list) > 0;
     if (render_list_objects(list) == 1) {
-        cover_objects(list, translucent);
         render_list_triangles(list, collect_caster, NULL);
         if (translucent)
             render_list_translucent_triangles(list, collect_emissive, NULL);
-    } else
-        cover_room(list, translucent);
+    }
 }
 /* A translucent marker (render_list_link_translucent): entries of a list
  * drawn earlier in this ordering table. */
@@ -4424,11 +4126,7 @@ void pc_hw_native_translucent(uint32_t list, int first, int count, int ox, int o
         /* An effects list (drop shadows, particles): no list marker; its
          * first translucent marker drawn in this ordering table covers its
          * packets, and its additive polygons glow. */
-        int kind = render_list_effects(list);
-        if ((kind == RENDER_EFFECTS_SHADOWS && !pc_native_shadows)
-            || (kind == RENDER_EFFECTS_SPRITES && !pc_native_effects))
-            return;
-        cover_objects(list, 2);
+        cover_effects(list);
         if (drawn_list_count < MAX_DRAWN_LISTS)
             drawn_lists[drawn_list_count++] = list;
         static int effects_context;
@@ -4452,7 +4150,7 @@ void pc_hw_native_translucent(uint32_t list, int first, int count, int ox, int o
 
 /* ---- keeping native VRAM current ----
  *
- * Without reference packets (pc_native_room / pc_native_actors 2) the CPU's
+ * Without reference packets the CPU's
  * native VRAM lacks what native draws covered. Every drawing area that
  * happened to is remembered as stale; before the CPU reads VRAM there
  * (StoreImage, VRAM copies, textures sampled by any primitive, RPC
@@ -5049,7 +4747,7 @@ static float present_blend = 1.0f; /* the replay's t while presenting_replay */
 void pc_hw_set_packet(const void* packet)
 { PC_HW_METER(set_packet);
     current_packet = (uintptr_t)packet;
-    poly_attr = cur_attr;
+    poly_effect = cur_attr.effect;
 }
 static recording* recording_now(void) { return &recordings[recording_index]; }
 /* The frame being drawn has a screen fade of this amount (the largest). */
@@ -5114,7 +4812,7 @@ static void record_triangle(const float* world, unsigned code, unsigned tpage, u
     for (int i = 0; i < 9; i++)
         h = (h ^ parts[i]) * 16777619u;
     t->surface = h;
-    t->keyed = current_packet != 0 && !primitive_room; /* the room never moves */
+    t->keyed = current_packet != 0;
 }
 static void record_batch(void) { record_vertices(batch, batch_count, batch_blend, batch_clip, 0); }
 /* Held-back text leaves the frame's triangle records (the current batch's,
@@ -6111,7 +5809,6 @@ static void close_frame(unsigned vsync)
         packet_stats.stale_rects = stale_count;
         packet_stats.vram_syncs = pc_hw_syncs;
         render_frame_end(&packet_stats);
-        report_other();
         memset(&packet_stats, 0, sizeof packet_stats);
         finish_recording(now);
         ++frame_serial;

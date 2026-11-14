@@ -266,7 +266,6 @@ def suites(args, mode="egl"):
                    "Windows build under Wine when installed"),
         Suite("window_smoke", [PY, str(TESTS / "window_smoke.py")], 180, binary="rood_boot",
               note="X11 events on Xvfb"),
-        Suite("room_smoke", [PY, str(TESTS / "room_smoke.py")], 120),
         Suite("opening_smoke", [PY, str(TESTS / "opening_smoke.py")], 120),
         Suite("scene_smoke", [PY, str(TESTS / "scene_smoke.py")], 300),
         *([Suite("editor_cutaway_smoke", [PY, str(TESTS / "editor_cutaway_smoke.py"), "--card", str(args.save)], 300,
@@ -1020,8 +1019,8 @@ def schedule(selected, timings, config):
 
 
 # What a budget never defers, whatever the estimates say (a checkout with no recorded times
-# estimates high): the game boots, a room and the opening draw, the frames match.
-QUICK_CORE = {"ps1_address_lint", "ctest", "rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "title_fade_smoke",
+# estimates high): the game boots, the opening draws, the frames match.
+QUICK_CORE = {"ps1_address_lint", "ctest", "rpc_smoke", "opening_smoke", "golden_frames", "title_fade_smoke",
               "ownership_smoke", "null_backend_smoke"}
 
 
@@ -1114,9 +1113,7 @@ def run_suite(suite, index, args, mode, results, lock):
         **({"ROOD_TEST_DESKTOP": "1", "ROOD_DESKTOP_DISPLAY": os.environ["DISPLAY"]}
            if os.environ.get("ROOD_TEST_DESKTOP") == "1" and os.environ.get("DISPLAY") else {}),
     )
-    for key in ("ROOD_EGL_DEVICE", "ROOD_NATIVE_ROOM", "ROOD_NATIVE_ACTORS", "ROOD_NATIVE_BLEND",
-                "ROOD_NATIVE_OBJECTS", "ROOD_NATIVE_SHADOWS", "ROOD_NATIVE_EFFECTS",
-                "ROOD_RECONSTRUCT", "ROOD_ARCH", "ROOD_RENDERER", "ROOD_VK_DEVICE", "ROOD_VK_VALIDATE",
+    for key in ("ROOD_EGL_DEVICE", "ROOD_ARCH", "ROOD_RENDERER", "ROOD_VK_DEVICE", "ROOD_VK_VALIDATE",
                 "ROOD_VK_RT", "ROOD_VK_PIPELINE_CACHE"):  # renderer choices to test under, binary
         if key in os.environ:
             env[key] = os.environ[key]

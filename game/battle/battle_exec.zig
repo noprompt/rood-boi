@@ -475,17 +475,6 @@ pub fn battleExec() callconv(.c) void {
                             common.gte.setFrame(&v.g.vs_view().viewMatrix);
                             c.func_800941FC();
                         }
-                        // ROOD_PC: explicit rendering diagnostic; normal battle logic is unchanged.
-                        if (psx.Global(c_int, "pc_room_checkpoint_requested").ptr().* != 0) {
-                            // Inspect loaded geometry even while an entry script hides it.
-                            if (v.g.vs_battle_roomData().unk1 == 0 and psx.get(v.g.vs_battle_roomData().geometrySection) != null) {
-                                c.func_8008B1FC(psx.get(v.g.vs_battle_roomData().geometrySection));
-                            }
-                            _ = c.PutDrawEnv(psx.cptr(c.DRAWENV, psx.at(v.g.vs_main_drawEnv(), @intFromBool(v.g.vs_main_frameBuf().* == 0))));
-                            c.vs_main_commitClut();
-                            c.DrawOTag(ot + 0x821);
-                            c.pc_finish_room_checkpoint();
-                        }
                     }
                     i = 0;
                     v.g.D_800F1868().* = c.func_800CF060();

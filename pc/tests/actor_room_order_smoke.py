@@ -17,20 +17,16 @@ further behind, depth decides.
    zone 4 room 0, where Ashley stands in a doorway while the text box says
    "Now, search!". The frame is kept as a save state and drawn once per
    setting from it (so every picture is the same game frame). In the leg's
-   rectangle (LEG, 960 x 720 picture), pixels away from the PS1-order
-   reference (native_actors 0: the character's packets in ordering-table
-   order after the room):
-   - window 0 (depth alone): many (the test sees the bug);
-   - the default window: few (the leg drawn);
-   - window 16 (less than the leg's 30-60 units behind the door): most of
-     the leg stays cut (beyond the window depth decides: constructed guard);
-   - MSAA 4x: as single-sampled (the multisampled key images).
+   rectangle (LEG, 960 x 720 picture), pixels away from the picture with
+   window 0 (depth alone: the leg cut by the door, the bug):
+   - the default window: many (the leg is drawn);
+   - window 16 (less than the leg's 30-60 units behind the door): few (the
+     leg stays cut: beyond the window depth decides, a constructed guard);
+   - MSAA 4x: as the single-sampled default (the multisampled key images).
 2. A character genuinely behind a wall (with a card; occlusion_smoke's
    scene: zone 51 room 1, Ashley moved behind the dark beam, camera yaw
    0x400, occlusion off): the beam hides her knees with the default window
-   as with window 0 and as in the packets' own order (native_room 0,
-   native_actors 0); the hybrid reference (native_actors 0 alone) shows her
-   legs there (so something is hidden).
+   as with window 0 (depth alone).
 No crash, shader error or validation message. --shots saves pictures (game
 imagery: keep them local).
 """
@@ -61,7 +57,7 @@ SETTLE = 16  # vsyncs a resumed save state runs before a picture
 # Ashley's lower left leg (left of the picture) against the door, 960 x 720.
 LEG = (325, 555, 380, 650)
 CLOSE = 24  # colour distance (sum over RGB) still "the same"
-BASE = {"native_actors": 2, "native_room": 2, "room_slack_units": 2, "aa": "off"}
+BASE = {"room_slack_units": 2, "aa": "off"}
 # The beam (occlusion_smoke): Ashley behind it at zone 51 room 1's save point.
 POSITION = 28  # D_800F4538_t unk0.position
 SPOT = (704, 0, 960)
@@ -173,20 +169,18 @@ def leg(out, env, socket, save):
     snap = reach_search(out, env, socket)
     if not snap:
         return
-    ref = picture(snap, out, env, socket, "reference", save, native_actors=0)
     depth = picture(snap, out, env, socket, "window0", save, actor_window_units=0)
     on = picture(snap, out, env, socket, "default", save)
     narrow = picture(snap, out, env, socket, "window16", save, actor_window_units=16)
     msaa = picture(snap, out, env, socket, "msaa4", save, aa="msaa4")
     area = (LEG[2] - LEG[0]) * (LEG[3] - LEG[1])
-    n_depth, n_on = off_reference(depth, ref, LEG), off_reference(on, ref, LEG)
-    n_narrow, n_msaa = off_reference(narrow, ref, LEG), off_reference(msaa, ref, LEG)
-    check(n_depth > 0.12 * area, f"depth alone (window 0) cuts the leg: {n_depth} of {area} leg pixels away from "
-          f"the PS1-order reference")
-    check(n_on < 0.15 * n_depth, f"the default window draws it: {n_on} pixels away (window 0: {n_depth})")
-    check(n_narrow > 0.6 * n_depth, f"beyond a 16-unit window depth decides: {n_narrow} pixels away "
+    n_on = off_reference(on, depth, LEG)
+    n_narrow, n_msaa = off_reference(narrow, depth, LEG), off_reference(msaa, on, LEG)
+    check(n_on > 0.12 * area, f"the default window draws the leg depth alone cuts: {n_on} of {area} leg pixels "
+          f"away from window 0")
+    check(n_narrow < 0.4 * n_on, f"beyond a 16-unit window depth decides: {n_narrow} pixels away from window 0 "
           f"(most of the leg is further behind the door)")
-    check(n_msaa < 0.25 * n_depth, f"MSAA 4x draws it too: {n_msaa} pixels away")
+    check(n_msaa < 0.25 * n_on, f"MSAA 4x draws it as the single-sampled default: {n_msaa} pixels away from it")
 
 
 def yaw(game):
@@ -225,8 +219,7 @@ def beam(card, out, env, socket, save):
         game.call("occlusion", occlusion="off")
         game.run(30)
         images = {}
-        for name, graphics in (("default", {}), ("window0", {"actor_window_units": 0}),
-                               ("hybrid", {"native_actors": 0}), ("packets", {"native_actors": 0, "native_room": 0})):
+        for name, graphics in (("default", {}), ("window0", {"actor_window_units": 0})):
             game.call("graphics", **dict(BASE, **graphics))
             game.run(4)  # the same still frame (she stands; the game keeps drawing it)
             images[name] = grab(game, out / f"beam-{name}")
@@ -236,13 +229,8 @@ def beam(card, out, env, socket, save):
         half = 30 * k / depth  # her knees and shins, behind the beam
         knees = (int(cx - half), int(cy - half), int(cx + half), int(cy + half))
         area = (knees[2] - knees[0]) * (knees[3] - knees[1])
-        hybrid = off_reference(images["hybrid"], images["window0"], knees)
         on = off_reference(images["default"], images["window0"], knees)
-        packets = off_reference(images["packets"], images["window0"], knees)
-        check(hybrid > 0.3 * area, f"her legs are behind the beam ({hybrid} of {area} pixels show them with "
-              f"the characters' packets drawn after the native room)")
         check(on < 0.05 * area, f"the default window keeps them hidden: {on} pixels differ from depth alone")
-        check(packets < 0.5 * hybrid, f"as the packets' own order does ({packets} pixels differ)")
     finally:
         game.close()
     log_ok(out / "game-beam.log")

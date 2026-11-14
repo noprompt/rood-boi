@@ -7,7 +7,6 @@
 #include "psx/gtereg.h"
 #include "gte_value_core.h"
 
-extern "C" const void* pc_gte_caller;
 
 /* The projection the game has set (SetGeomOffset, SetGeomScreen, InitGeom): kept in step with the registers by
  * rood_gte_screen_written (psycross CTC2), and what the value functions read. Game state, with the registers. */
@@ -51,6 +50,7 @@ static void load_view(GTERegisters& regs, const vs_gte_view* view)
 
 extern "C" vs_gte_result vs_gte_run(int op, const vs_gte_view* view, const short v[3], const void* caller)
 {
+    (void)caller;
     GTERegisters regs = {};
     GTERegisters* saved = gte_cur;
     vs_gte_result r = {};
@@ -60,7 +60,6 @@ extern "C" vs_gte_result vs_gte_run(int op, const vs_gte_view* view, const short
     regs.CP2D.p[0].d = (unsigned short)v[0] | ((unsigned)(unsigned short)v[1] << 16);
     regs.CP2D.p[1].d = (unsigned short)v[2];
     gte_cur = &regs;
-    pc_gte_caller = caller;
     GTE_operator(op);
     gte_cur = saved;
     r.sxy = (int)regs.CP2D.p[14].d;
@@ -86,6 +85,7 @@ extern "C" vs_gte_result vs_gte_run(int op, const vs_gte_view* view, const short
 
 extern "C" vs_gte_result4 vs_gte_run4(const vs_gte_view* view, const short v[4][3], const void* caller)
 {
+    (void)caller;
     GTERegisters regs = {};
     GTERegisters* saved = gte_cur;
     vs_gte_result4 r = {};
@@ -97,7 +97,6 @@ extern "C" vs_gte_result4 vs_gte_run4(const vs_gte_view* view, const short v[4][
         regs.CP2D.p[2 * i + 1].d = (unsigned short)v[i][2];
     }
     gte_cur = &regs;
-    pc_gte_caller = caller;
     GTE_operator(0x0280030); /* RTPT */
     r.sxy[0] = (int)regs.CP2D.p[12].d;
     r.sxy[1] = (int)regs.CP2D.p[13].d;
@@ -105,7 +104,6 @@ extern "C" vs_gte_result4 vs_gte_run4(const vs_gte_view* view, const short v[4][
     r.flag = regs.CP2C.p[31].d;
     regs.CP2D.p[0].d = (unsigned short)v[3][0] | ((unsigned)(unsigned short)v[3][1] << 16);
     regs.CP2D.p[1].d = (unsigned short)v[3][2];
-    pc_gte_caller = caller;
     GTE_operator(0x0180001); /* RTPS */
     r.sxy[3] = (int)regs.CP2D.p[14].d;
     r.ir0 = regs.CP2D.p[8].sw.l;

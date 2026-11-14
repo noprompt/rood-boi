@@ -96,7 +96,6 @@ pc_qol_fp_invert_y	First-person view: invert Y (PC setting)	host setting
 pc_charge_skip_kinds	Charging skip: action kinds mask (charge_skip.c)	host setting	
 pc_charge_skip_pump	Charging skip: run the effect loader back to back (RPC)	host setting	
 pc_charge_skip_pumped	Charging skip diagnostics counter	host diagnostics	
-pc_room_checkpoint_requested	Rendering diagnostic request (runtime)	host diagnostics	
 charge_skip_from	Charging skip state (pc/src/charge_skip.inc, compiled into 146C.c)	per-action	
 charge_skip_from_set	Charging skip state (pc/src/charge_skip.inc, compiled into 146C.c)	per-action	
 charge_skip_held	Charging skip state (pc/src/charge_skip.inc, compiled into 146C.c)	per-action	

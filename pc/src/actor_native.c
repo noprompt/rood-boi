@@ -27,12 +27,11 @@
  * - one list per model draw, its marker linked into the ordering table at
  *   the model's farthest bucket (before all of its packets), and the packet
  *   range reported to the hardware path, which skips the packets the native
- *   draws cover (pc_native_actors 1: the CPU's reference VRAM still gets
- *   them);
+ *   draws cover (the CPU does not rasterize them);
  * - semi-transparent polygons (record flag 16, and every polygon of a
  *   blended model) go into the list's translucent sequence, one translucent
  *   marker per ordering-table bucket they fall into, linked at that bucket
- *   in front of the model's packets there (pc_native_blend): they draw
+ *   in front of the model's packets there: they draw
  *   exactly where the PS1 draws them relative to everything else. */
 #define _POSIX_C_SOURCE 200809L
 #include "psx_types.h"
@@ -48,7 +47,6 @@
 extern float pc_gte_view_ofx(void);
 extern int pc_gte_widescreen;
 extern int pc_hw_active;
-extern void pc_hw_object_packets(const void* start, const void* end, uint32_t list) __attribute__((weak));
 extern void render_count_object_mesh_built(void);
 /* emissive.cpp: the model a mesh draws (its content hash: emissive scopes). */
 extern void pc_emissive_model_mesh(uint32_t mesh, uint32_t model) __attribute__((weak));
@@ -58,7 +56,6 @@ extern int pc_photo_hide_actors __attribute__((weak));
 extern int pc_dev_actor_of(const void* p) __attribute__((weak));
 /* editor_inspect.cpp: which actor slot a model mesh was drawn for (-1: none known). */
 extern void pc_inspect_model_actor(uint32_t mesh, int slot) __attribute__((weak));
-#define HW_OBJECT_HIDDEN 0xffffffffu /* pc_hw_object_packets: the packets drawn by nothing */
 
 typedef struct {
     short m[3][3];
@@ -635,8 +632,6 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
         unsigned mode = ((const unsigned char*)object)[9] & 0xf;
         blend = !mode ? 0 : mode < 7 ? RENDER_BLEND(2) : RENDER_BLEND(1);
     }
-    if (blend && !pc_native_blend)
-        return 0;
     model_mesh* c = mesh_for(object, model, kind, serial);
     if (!c || !c->mesh || !c->bones)
         return 0;
@@ -735,7 +730,7 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
      * first draw) and the buckets of the translucent ones. */
     int shift = (int)(ot - group.ot);
     int zsf3 = vs_gte_screen_current().zsf3;
-    int translucent = pc_native_blend && (blend || c->semi);
+    int translucent = blend || c->semi;
     for (int p = 0; c->sort && p < c->polygons; p++) {
         const sort_info* s = &c->sort[p];
         int depth = polygon_depth(s, depths, zsf3);
@@ -777,13 +772,14 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
     submitted_index = index;
     return list;
 }
-/* A packet builder finished one model: its packets are [start, the packet
- * pointer). `projected` is func_800B3A68's output (screen positions, then
- * the depths at + 0xc00). `kind`: the builder (KIND_*). */
-void pc_object_native_draw(int kind, const void* projected, const void* object, const void* model,
-    const void* color, unsigned* start)
+/* The model builders (func_800B3CF0, func_800B4594, func_800B516C, func_800B5C30) draw one model through here: no packets are
+ * built. `projected` is func_800B3A68's output (screen positions, then the depths at + 0xc00). `kind`: the builder (KIND_*).
+ * Returns 1 when the model is drawn (or hidden by the photo mode's actor hiding), 0 when nothing could (no hardware path, no
+ * matrices for this object, no mesh): it is then not drawn. */
+int pc_object_native_take(int kind, const void* projected, const void* object, const void* model, const void* color)
 {
-    unsigned* end = PC_PACKET_CURSOR;
+    unsigned* start = PC_PACKET_CURSOR;
+    unsigned* end = start;
     uint32_t list = 0;
     unsigned texture = *(const unsigned*)PC_PAD(0x390);
     if (kind < KIND_FLAT || kind > KIND_COLORED_GROUPS)
@@ -791,12 +787,10 @@ void pc_object_native_draw(int kind, const void* projected, const void* object, 
     if (&pc_photo_hide_actors && pc_photo_hide_actors && pc_dev_actor_of && pc_hw_active) {
         int slot = pc_dev_actor_of(object);
         if (slot >= 0 && (pc_photo_hide_actors & (slot == 0 ? 1 : 2))) {
-            if (pc_hw_object_packets)
-                pc_hw_object_packets(start, end, HW_OBJECT_HIDDEN);
-            return;
+            return 1;
         }
     }
-    if (pc_native_actors && pc_hw_active && object == last_object && model == last_model && last_matrices) {
+    if (pc_hw_active && object == last_object && model == last_model && last_matrices) {
         const unsigned* xy = projected;
         const unsigned* depths = (const unsigned*)((const char*)projected + 0xc00);
         unsigned* ot = PC_OT_BASE;
@@ -840,6 +834,5 @@ void pc_object_native_draw(int kind, const void* projected, const void* object, 
             PC_PACKET_CURSOR = end;
         }
     }
-    if (pc_hw_object_packets)
-        pc_hw_object_packets(start, end, list);
+    return list != 0;
 }

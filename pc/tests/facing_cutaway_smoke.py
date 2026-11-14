@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The game's cutaway walls (facing masks) under the game camera: the native
-room draws the same room groups and the same picture as the packet path at
-every camera yaw, during L1/R1 turns and with frame interpolation on.
+room draws the room groups the mask keeps at every camera yaw, during L1/R1
+turns and with frame interpolation on.
 
     python3 pc/tests/facing_cutaway_smoke.py [--card pc/save/card1.mcd] [--out DIR]
 
@@ -16,10 +16,8 @@ checks, at each:
 
 - the facing mask the frame tested is the one the game's yaw gives;
 - the groups drawn (RPC room_groups "drawn") are exactly those the mask and
-  the room's hide flags keep, the same with graphics native_room 0 (the
-  packet path, the original's drawing) and 2 (native meshes), and the
-  native list has one instance per drawn group;
-- the two paths' pictures match (up to the idle animation between frames);
+  the room's hide flags keep, and the native list has one instance per drawn
+  group;
 - while the camera turns, every frame's mask belongs to that frame's yaw
   (or the one just before) and its drawn groups follow it;
 - the editor's free camera, once turned off, leaves gameplay with the
@@ -28,15 +26,14 @@ checks, at each:
 Then (unless --no-room13) it goes through the save room's door with the
 door redirected (a RAM write to the room's door table) to zone 9 room 13,
 the user's report: at yaw 0xE00 a wall right of Ashley is cut away by the
-game's own mask, in both paths (a wall the original hides too).
+game's own mask (a wall the original hides too).
 
 All of the above runs with gameplay_walls original (the default). Smart
 walls (gameplay_walls smart, Native_Rendering.md "Smart walls") are
 checked too:
 
 - at each of the save room's yaws: no black shell group is drawn, every
-  group the game's mask keeps still is, and the packet path draws the
-  same groups;
+  group the game's mask keeps still is;
 - in room 13 (entered again with the Room Browser's warp, room_goto) at
   yaw 0xE00: groups the mask cuts that stand clear of the view are drawn
   (some with faces on screen), a group between the camera and Ashley is
@@ -123,8 +120,6 @@ def main():
     env = {"ROOD_WINDOW": gf.WINDOW, "ROOD_LIGHTS": str(lights), "ROOD_GI": "0", "ROOD_SCALE": "2"}
     os.environ.pop("ROOD_SETTINGS", None)
     game = launch_at("save_room", card=card, fast=True, log=out / "game.log", extra_env=env)
-    # The packet path keeps the PS1's distance UV halving: compare like with like.
-    game.call("graphics", room_texture_lod=1)
     failures = []
 
     def check(ok, message):
@@ -151,60 +146,37 @@ def main():
         return [i for i, g in enumerate(gs) if kept(g["flags"], facing) is not None
                 and g["drawn"] != int(kept(g["flags"], facing))]
 
-    def frame(name, mode):
-        game.call("graphics", native_room=mode)
+    def frame(name):
         game.run(gf.SETTLE)
         image = gf.capture(game, out / f"{name}.png")
         if args.out:
             Image.fromarray(image).save(out / f"{name}.png")
         return image, groups(), game.call("render_stats")
 
-    def compare_paths(name):
-        """Packet path, native, packet again: the same groups and picture."""
+    def check_yaw(name):
+        """The facing mask the frame tested, the groups drawn, one instance per drawn group."""
         y = yaw()
-        a, (fa, ga), _ = frame(f"{name}-packet", 0)
-        b, (fb, gb), sb = frame(f"{name}-native", 2)
-        c, _, _ = frame(f"{name}-packet2", 0)
-        game.call("graphics", native_room=2)
-        noise, _ = diff(a, c)
-        mean, share = diff(a, b)
-        da = [g["drawn"] for g in ga]
+        _, (fb, gb), sb = frame(f"{name}-native")
         db = [g["drawn"] for g in gb]
-        check(fa & 0x100FF == mask_for(y) and fb == fa,
-              f"{name}: yaw {y:#05x} facing {fa:#x}/{fb:#x} (the game's bits {mask_for(y):#x})")
-        check(not mismatched(fa, ga) and not mismatched(fb, gb),
-              f"{name}: drawn groups follow the mask ({sum(db)} drawn; off: {mismatched(fb, gb)})")
-        check(da == db, f"{name}: packet path and native draw the same groups")
+        check(fb & 0x100FF == mask_for(y),
+              f"{name}: yaw {y:#05x} facing {fb:#x} (the game's bits {mask_for(y):#x})")
+        check(not mismatched(fb, gb), f"{name}: drawn groups follow the mask ({sum(db)} drawn; off: {mismatched(fb, gb)})")
         check(sb["instances"] == sum(1 for g in gb if g["drawn"] == 1 and g["polygons"] > 0),
               f"{name}: one native instance per drawn group ({sb['instances']})")
-        check(mean <= 2 * noise + 1.0 and share <= 0.02 + 2 * diff(a, c)[1],
-              f"{name}: the same picture (mean {mean:.2f}, {share * 100:.2f}% strong; between packet frames "
-              f"{noise:.2f})")
         smart_basics(name)
         return fb, gb, y
 
     def smart_basics(name):
-        """gameplay_walls smart: shells stay hidden, kept groups stay drawn, both paths agree."""
-        same, differ = False, []
-        for attempt in range(3):  # (a creature or a hit moving the camera changes the decision between frames)
-            drawn = {}
-            for mode in (2, 0):
-                game.call("graphics", gameplay_walls="smart", native_room=mode)
-                game.run(90 if mode == 2 and attempt == 0 else gf.SETTLE * 2)  # (fades after the turn settle first)
-                facing, gs = groups()
-                drawn[mode] = [g["drawn"] for g in gs]
-                shells = [i for i, g in enumerate(gs) if g["black"] and g["drawn"] == 1 and mask_hides(g["flags"], facing)]
-                lost = [i for i, g in enumerate(gs) if kept(g["flags"], facing) and g["drawn"] != 1]
-                if mode == 2 and attempt == 0:
-                    revealed = [i for i, g in enumerate(gs) if kept(g["flags"], facing) is False and g["drawn"] == 1]
-                    check(not shells and not lost and all("shown" in g for g in gs),
-                          f"{name} smart: no black shell drawn {shells}, kept groups drawn {lost}; revealed {revealed}")
-            differ = [i for i in range(len(drawn[0])) if drawn[0][i] != drawn[2][i]]
-            if not differ:
-                same = True
-                break
-        check(same, f"{name} smart: packet path and native draw the same groups (differ: {differ})")
-        game.call("graphics", gameplay_walls="original", native_room=2)
+        """gameplay_walls smart: shells stay hidden and kept groups stay drawn."""
+        game.call("graphics", gameplay_walls="smart")
+        game.run(90)  # (fades after the turn settle first)
+        facing, gs = groups()
+        shells = [i for i, g in enumerate(gs) if g["black"] and g["drawn"] == 1 and mask_hides(g["flags"], facing)]
+        lost = [i for i, g in enumerate(gs) if kept(g["flags"], facing) and g["drawn"] != 1]
+        revealed = [i for i, g in enumerate(gs) if kept(g["flags"], facing) is False and g["drawn"] == 1]
+        check(not shells and not lost and all("shown" in g for g in gs),
+              f"{name} smart: no black shell drawn {shells}, kept groups drawn {lost}; revealed {revealed}")
+        game.call("graphics", gameplay_walls="original")
         game.run(gf.SETTLE)
 
     def turn(name, button="r1"):
@@ -249,7 +221,7 @@ def main():
             if abs(yaw() - 0xE00) < 4:
                 break
             turn("room13-smart-turn")
-        game.call("graphics", gameplay_walls="smart", gameplay_walls_ghost=False, native_room=2)
+        game.call("graphics", gameplay_walls="smart", gameplay_walls_ghost=False)
         game.run(gf.SETTLE * 3)
         image = gf.capture(game, out / "room13-smart.png")
         if args.out:
@@ -299,7 +271,7 @@ def main():
 
         yaws = set()
         for k in range(8):
-            compare_paths(f"save-{k}")
+            check_yaw(f"save-{k}")
             yaws.add(round(yaw() / 512) % 8)
             if k < 7 and not turn(f"save-turn-{k}"):
                 turn(f"save-turn-{k}-again")
@@ -332,7 +304,7 @@ def main():
                 u4, u6 = struct.unpack_from("<HH", entry, 4)
                 struct.pack_into("<HH", entry, 4, (u4 & 0x80FF) | (5 << 8), (u6 & 0x83FF) | (8 << 10))  # cell 5, 8
                 game.write(doors + 2 * 12, bytes(entry))
-                game.call("graphics", native_room=2)
+                game.call("graphics")
                 game.hold("left", 12)
                 game.run(5)
                 game.hold("up", 33)
@@ -353,7 +325,7 @@ def main():
                         if yaw() == 0xE00 or abs(yaw() - 0xE00) < 4:
                             break
                         turn("room13-turn")
-                    facing, gs, y = compare_paths("room13-e00")  # (hits on Ashley can nudge the camera after)
+                    facing, gs, y = check_yaw("room13-e00")  # (hits on Ashley can nudge the camera after)
                     cut = [i for i, g in enumerate(gs) if kept(g["flags"], facing) is False and not g["flags"] & 0x1100]
                     check(mask_for(y) == 0x20 and facing == 0x20 and cut,
                           f"room 13 at yaw {y:#05x}: the game's own mask {facing:#x} cuts groups {cut}")
@@ -368,7 +340,7 @@ def main():
     if failures:
         print(f"FAIL: {len(failures)} checks; frames in {out}")
         return 1
-    print("PASS: the native room keeps the game's cutaway walls at every yaw, as the packet path does; "
+    print("PASS: the native room keeps the game's cutaway walls at every yaw; "
           "smart walls draw what stands clear")
     return 0
 

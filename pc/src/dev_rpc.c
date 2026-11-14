@@ -519,7 +519,6 @@ extern const char* const pc_aa_downsample_names[3] __attribute__((weak));
 extern int pc_aa_msaa_active(void) __attribute__((weak)); /* gpu_hw.c: samples the 3D is drawn with now */
 extern int pc_aa_msaa_max(void) __attribute__((weak)); /* gpu_hw.c: the most samples this backend runs */
 extern int pc_gl_finish __attribute__((weak));
-extern int pc_room_exact_depth __attribute__((weak));
 extern int pc_baked_estimate __attribute__((weak));
 extern int pc_gl_view_mode __attribute__((weak));
 extern int pc_glow_shadows __attribute__((weak));
@@ -609,15 +608,10 @@ extern int pc_ui_menu_active(void) __attribute__((weak)); /* ui/menu_bridge.c (b
  * rain drops the game drew, of them hidden by room geometry (render_stats). */
 extern long pc_hw_afterimages_skipped __attribute__((weak));
 extern long pc_weather_drops __attribute__((weak)), pc_weather_drops_hidden __attribute__((weak));
-extern int pc_native_room __attribute__((weak)), pc_native_occlusion __attribute__((weak)),
-    pc_native_actors __attribute__((weak)), pc_native_actor_order __attribute__((weak)),
-    pc_native_blend __attribute__((weak)), pc_native_objects __attribute__((weak)),
-    pc_native_shadows __attribute__((weak)), pc_native_effects __attribute__((weak)),
-    pc_reconstruct __attribute__((weak)), pc_native_room_order __attribute__((weak)),
-    pc_room_texture_lod __attribute__((weak));
+extern int pc_native_occlusion __attribute__((weak)), pc_native_actor_order __attribute__((weak)),
+    pc_native_room_order __attribute__((weak)), pc_room_texture_lod __attribute__((weak));
 extern float pc_native_room_slack[2] __attribute__((weak));
 extern float pc_native_actor_window __attribute__((weak));
-extern int pc_gte_log __attribute__((weak));
 extern void render_stats_get(render_stats*) __attribute__((weak));
 
 #define MAX_CLIENTS 4
@@ -2067,8 +2061,6 @@ static void handle_method(int fd, const char* request)
         }
         if (params && bool_value(member(params, "finish"), &flag) && &pc_gl_finish)
             pc_gl_finish = flag;
-        if (params && bool_value(member(params, "room_depth"), &flag) && &pc_room_exact_depth)
-            pc_room_exact_depth = flag;
         if (params && bool_value(member(params, "baked_estimate"), &flag) && &pc_baked_estimate)
             pc_baked_estimate = flag;
         if (params && bool_value(member(params, "glow_shadows"), &flag) && &pc_glow_shadows)
@@ -2213,11 +2205,7 @@ static void handle_method(int fd, const char* request)
             pc_normal_smoothing = (float)value;
         if (params && number_value(member(params, "drop_shadows"), &n) && n >= 0 && n <= 3 && &pc_drop_shadow_mode)
             pc_drop_shadow_mode = (int)n;
-        if (params && &pc_native_room) {
-            if (number_value(member(params, "native_room"), &n) && n >= 0 && n <= 2)
-                pc_native_room = (int)n;
-            else if (bool_value(member(params, "native_room"), &flag))
-                pc_native_room = flag;
+        if (params && &pc_native_occlusion) {
             if (bool_value(member(params, "native_occlusion"), &flag))
                 pc_native_occlusion = flag;
             if (&pc_native_room_order) {
@@ -2240,11 +2228,7 @@ static void handle_method(int fd, const char* request)
                     pc_native_room_slack[1] = (float)slack;
             }
         }
-        if (params && &pc_native_actors) {
-            if (number_value(member(params, "native_actors"), &n) && n >= 0 && n <= 2)
-                pc_native_actors = (int)n;
-            else if (bool_value(member(params, "native_actors"), &flag))
-                pc_native_actors = flag;
+        if (params && &pc_native_actor_order) {
             if (bool_value(member(params, "actor_order"), &flag) && &pc_native_actor_order)
                 pc_native_actor_order = flag;
             else if (number_value(member(params, "actor_order"), &n) && &pc_native_actor_order)
@@ -2253,30 +2237,6 @@ static void handle_method(int fd, const char* request)
             if (&pc_native_actor_window && real_value(member(params, "actor_window_units"), &window) && window >= 0
                 && window <= 1024)
                 pc_native_actor_window = (float)window;
-        }
-        if (params && &pc_native_blend) {
-            if (bool_value(member(params, "native_blend"), &flag))
-                pc_native_blend = flag;
-            else if (number_value(member(params, "native_blend"), &n))
-                pc_native_blend = n != 0;
-            if (bool_value(member(params, "native_objects"), &flag))
-                pc_native_objects = flag;
-            else if (number_value(member(params, "native_objects"), &n))
-                pc_native_objects = n != 0;
-        }
-        if (params && &pc_native_shadows) {
-            if (bool_value(member(params, "native_shadows"), &flag))
-                pc_native_shadows = flag;
-            else if (number_value(member(params, "native_shadows"), &n))
-                pc_native_shadows = n != 0;
-            if (bool_value(member(params, "native_effects"), &flag))
-                pc_native_effects = flag;
-            else if (number_value(member(params, "native_effects"), &n))
-                pc_native_effects = n != 0;
-            if (bool_value(member(params, "reconstruct"), &flag))
-                pc_reconstruct = flag;
-            else if (number_value(member(params, "reconstruct"), &n))
-                pc_reconstruct = n != 0;
         }
         /* Smart cutaway walls in gameplay (gameplay_walls.h). */
         if (params && &pc_gameplay_walls) {
@@ -2419,24 +2379,21 @@ static void handle_method(int fd, const char* request)
             pc_dust = (int)n;
         int used = snprintf(result, sizeof result,
             "{\"hardware\":%s,\"scale\":%d,\"filter\":%d,\"aspect\":%d,\"widescreen\":%s,\"widescreen_scene\":%d,"
-            "\"perspective\":%s,\"show_depth\":%s,\"native_room\":%d,\"native_occlusion\":%s,"
+            "\"perspective\":%s,\"show_depth\":%s,\"native_occlusion\":%s,"
             "\"room_order\":%s,\"room_slack\":%g,\"room_slack_units\":%g,"
-            "\"native_actors\":%d,\"actor_order\":%s,\"actor_window_units\":%g,\"native_blend\":%d,\"native_objects\":%d,"
-            "\"native_shadows\":%d,\"native_effects\":%d,\"reconstruct\":%d,\"gte_log\":%d,"
+            "\"actor_order\":%s,\"actor_window_units\":%g,"
             "\"gi_denoiser\":\"%s\",\"gi_denoiser_active\":\"%s\",\"nrd_built\":%s,\"nrd_available\":%s,"
             "\"nrd_glow\":%s}",
             pc_hw_active ? "true" : "false", pc_hw_scale, pc_gl_filter, pc_gl_aspect,
             pc_gte_widescreen ? "true" : "false", &pc_widescreen_scene ? pc_widescreen_scene : -2,
             pc_hw_perspective ? "true" : "false",
-            pc_gl_show_depth ? "true" : "false", &pc_native_room ? pc_native_room : 0,
+            pc_gl_show_depth ? "true" : "false",
             &pc_native_occlusion && pc_native_occlusion ? "true" : "false",
             &pc_native_room_order && pc_native_room_order ? "true" : "false",
             pc_native_room_slack ? (double)pc_native_room_slack[0] : 0.0,
-            pc_native_room_slack ? (double)pc_native_room_slack[1] : 0.0, &pc_native_actors ? pc_native_actors : 0,
+            pc_native_room_slack ? (double)pc_native_room_slack[1] : 0.0,
             &pc_native_actor_order && pc_native_actor_order ? "true" : "false",
-            &pc_native_actor_window ? (double)pc_native_actor_window : 0.0, &pc_native_blend ? pc_native_blend : 0, &pc_native_objects ? pc_native_objects : 0,
-            &pc_native_shadows ? pc_native_shadows : 0, &pc_native_effects ? pc_native_effects : 0,
-            &pc_reconstruct ? pc_reconstruct : 1, &pc_gte_log ? pc_gte_log : 1,
+            &pc_native_actor_window ? (double)pc_native_actor_window : 0.0,
             denoiser_names[&pc_gi_denoise ? (pc_gi_denoise < 0 ? 0 : pc_gi_denoise > 2 ? 2 : pc_gi_denoise) : 1],
             denoiser_names[pc_gi_denoiser_active ? pc_gi_denoiser_active() : 1],
             vk_nrd_built && vk_nrd_built() ? "true" : "false", vk_nrd_available && vk_nrd_available() ? "true" : "false",
@@ -3787,27 +3744,27 @@ static void handle_method(int fd, const char* request)
         if (render_stats_get)
             render_stats_get(&st);
         snprintf(result, sizeof result,
-            "{\"native_room\":%d,\"lists\":%d,\"instances\":%d,\"native_triangles\":%d,"
-            "\"legacy_room_triangles\":%d,\"skipped_room_triangles\":%d,\"meshes\":%d,\"mesh_polygons\":%d,\"mesh_updates\":%d,"
-            "\"native_actors\":%d,\"object_lists\":%d,\"object_instances\":%d,\"object_triangles\":%d,"
-            "\"legacy_object_triangles\":%d,\"skipped_object_triangles\":%d,\"object_meshes_built\":%d,"
-            "\"interpolated_instances\":%d,\"native_blend\":%d,\"translucent_markers\":%d,"
-            "\"translucent_polygons\":%d,\"legacy_translucent_triangles\":%d,\"skipped_translucent_triangles\":%d,"
-            "\"native_objects\":%d,\"layered_lists\":%d,\"layered_instances\":%d,\"legacy_other_triangles\":%d,"
-            "\"native_shadows\":%d,\"shadow_markers\":%d,\"shadow_polygons\":%d,\"native_effects\":%d,"
+            "{\"lists\":%d,\"instances\":%d,\"native_triangles\":%d,"
+            "\"meshes\":%d,\"mesh_polygons\":%d,\"mesh_updates\":%d,"
+            "\"object_lists\":%d,\"object_instances\":%d,\"object_triangles\":%d,"
+            "\"object_meshes_built\":%d,"
+            "\"interpolated_instances\":%d,\"translucent_markers\":%d,"
+            "\"translucent_polygons\":%d,"
+            "\"layered_lists\":%d,\"layered_instances\":%d,\"legacy_other_triangles\":%d,"
+            "\"shadow_markers\":%d,\"shadow_polygons\":%d,"
             "\"effect_markers\":%d,\"effect_polygons\":%d,\"skipped_effect_triangles\":%d,"
             "\"legacy_effect_triangles\":%d,\"vram_syncs\":%d,\"stale_rects\":%d,\"uv_effects\":%d,"
             "\"narrowed_triangles\":%d,\"frame_serial\":%u,\"afterimages_skipped\":%ld,"
             "\"rain_drops\":%ld,\"rain_drops_hidden\":%ld}",
-            &pc_native_room ? pc_native_room : 0, st.lists, st.instances, st.native_triangles,
-            st.legacy_room_triangles, st.skipped_room_triangles, st.meshes, st.mesh_polygons, st.mesh_updates,
-            &pc_native_actors ? pc_native_actors : 0, st.object_lists, st.object_instances, st.object_triangles,
-            st.legacy_object_triangles, st.skipped_object_triangles, st.object_meshes_built,
-            st.interpolated_instances, &pc_native_blend ? pc_native_blend : 0, st.translucent_markers,
-            st.translucent_polygons, st.legacy_translucent_triangles, st.skipped_translucent_triangles,
-            &pc_native_objects ? pc_native_objects : 0, st.layered_lists, st.layered_instances,
-            st.legacy_other_triangles, &pc_native_shadows ? pc_native_shadows : 0, st.shadow_markers,
-            st.shadow_polygons, &pc_native_effects ? pc_native_effects : 0, st.effect_markers, st.effect_polygons,
+            st.lists, st.instances, st.native_triangles,
+            st.meshes, st.mesh_polygons, st.mesh_updates,
+            st.object_lists, st.object_instances, st.object_triangles,
+            st.object_meshes_built,
+            st.interpolated_instances, st.translucent_markers,
+            st.translucent_polygons,
+            st.layered_lists, st.layered_instances,
+            st.legacy_other_triangles, st.shadow_markers,
+            st.shadow_polygons, st.effect_markers, st.effect_polygons,
             st.skipped_effect_triangles, st.legacy_effect_triangles, st.vram_syncs, st.stale_rects, st.uv_effects,
             st.narrowed_triangles, render_frame_serial(), &pc_hw_afterimages_skipped ? pc_hw_afterimages_skipped : 0,
             &pc_weather_drops ? pc_weather_drops : 0, &pc_weather_drops_hidden ? pc_weather_drops_hidden : 0);

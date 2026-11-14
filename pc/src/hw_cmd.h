@@ -10,7 +10,7 @@
  * order with the same arguments (pointer arguments are copied into the record). When the consumer becomes a thread the
  * buffer is what it reads.
  *
- * The records so far: the primitive state setters (pc_hw_set_2d, _narrowed, _room, _precise, _depth, _packet, _flipped_uv,
+ * The records so far: the primitive state setters (pc_hw_set_2d, _narrowed, _precise, _depth, _packet, _flipped_uv,
  * _bounds) the draw calls without an answer (_rect, _line) and the walk's native-list marks (pc_hw_anchor_packet, _native_marker, _native_translucent, _ot_native_area). */
 #ifndef ROOD_HW_CMD_H
 #define ROOD_HW_CMD_H
@@ -22,9 +22,7 @@ extern "C" {
 
 /* The primitive state the walk has set (what the setter records will make the renderer's), as the producer side reads it. */
 extern struct pc_hwc_mirror_t {
-    int is_2d, room;
-    uintptr_t packet;
-    pc_hw_attr cur, poly; /* the current packet's attributes (pc_hwc_set_attr), and those of the last polygon (set_packet copies cur) */
+    int is_2d, cur_effect, poly_effect; /* the current packet's effect range (pc_hwc_set_attr), and its value at the last set_packet */
 } pc_hwc_mirror;
 /* A triangle's treatment, decided on the producer side (gpu_hw.c pc_hw_triangle_decide): ignore it (the renderer is off), drop
  * the pending depth and precise positions (left out, or suppressed), or draw it with this classification. */
@@ -35,8 +33,7 @@ typedef struct {
     int ui, other;
     unsigned stats; /* bits: the packet counters the renderer adds when it applies the triangle (gpu_hw.c) */
 } pc_hw_tri_decision;
-void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int room, uintptr_t packet,
-    const pc_hw_attr* poly, pc_hw_tri_decision* out);
+void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int effect, pc_hw_tri_decision* out);
 void pc_hw_raster_apply(const int (*rects)[4], int count, const uint16_t* pixels);
 void pc_hw_triangle_apply(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage, unsigned clut,
     unsigned window, const int* clip, int mask_set, int mask_check, const pc_hw_tri_decision* decision);
@@ -56,7 +53,6 @@ extern int pc_hwc_stale_pending;
 
 void pc_hwc_set_2d(int is_2d);
 void pc_hwc_set_narrowed(void);
-void pc_hwc_set_room(int room);
 void pc_hwc_set_precise(const float* xy6);
 void pc_hwc_set_depth(const int* depth3);
 void pc_hwc_set_packet(const void* packet);
@@ -66,7 +62,6 @@ void pc_hwc_set_flipped_uv(const int* xy6, const int* uv6);
 /* The packet about to be drawn, with its attributes by value (gpu_attr.h; resolved when its table was adopted): the renderer's
  * set_attr, and the producer's own copy for the decisions that need them. */
 void pc_hwc_set_attr(const pc_hw_attr* attr, int screen_x, int screen_w);
-int pc_hwc_cur_room(void);
 void pc_hwc_native_marker(unsigned list, int draw_x, int draw_y, const int* clip4, unsigned window, int mask_set);
 void pc_hwc_native_translucent(unsigned list, int first, int count, int draw_x, int draw_y, const int* clip4, unsigned window,
     int mask_set);

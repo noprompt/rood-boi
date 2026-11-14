@@ -38,8 +38,6 @@ static int vk_draw_translucent(uint32_t id, int first, int count, const render_t
 #endif
 
 extern int pc_hw_active;
-int pc_native_room = 2; /* native without the reference packets (VRAM readers sync from the target) */
-int pc_native_actors = 2;
 int pc_native_actor_order = 1;
 /* PS1-ordered characters near the room's surfaces (render.h): how far
  * behind the room surface in front of it (GTE units) a character's polygon
@@ -56,11 +54,6 @@ int pc_native_room_order = 1;
 int pc_room_texture_lod = 0;
 float pc_native_room_slack[2] = { 0.004f, 2.0f };
 int pc_native_occlusion = 1;
-int pc_native_blend = 1;
-int pc_native_objects = 1;
-int pc_native_shadows = 1;
-int pc_native_effects = 1;
-int pc_reconstruct = 0;
 
 /* ---- meshes ---- */
 
@@ -1348,12 +1341,6 @@ void render_anim_trace_present(unsigned vsync, int replayed, float t, const uint
 void render_frame_end(const render_stats* hardware)
 {
     finished = counting;
-    finished.legacy_room_triangles = hardware->legacy_room_triangles;
-    finished.skipped_room_triangles = hardware->skipped_room_triangles;
-    finished.legacy_object_triangles = hardware->legacy_object_triangles;
-    finished.skipped_object_triangles = hardware->skipped_object_triangles;
-    finished.legacy_translucent_triangles = hardware->legacy_translucent_triangles;
-    finished.skipped_translucent_triangles = hardware->skipped_translucent_triangles;
     finished.legacy_other_triangles = hardware->legacy_other_triangles;
     finished.narrowed_triangles = hardware->narrowed_triangles;
     finished.skipped_effect_triangles = hardware->skipped_effect_triangles;

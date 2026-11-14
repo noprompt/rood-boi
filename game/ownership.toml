@@ -2400,7 +2400,7 @@ functions = [
 
 [subsystem.d2_room_geometry.views]
 types = []
-globals = ["D_800F1CDC", "drawn_count", "drawn_data", "drawn_facing", "drawn_groups", "native", "translucent_only",
+globals = ["D_800F1CDC", "drawn_count", "drawn_data", "drawn_facing", "drawn_groups", "native",
            "vs_main_stateFlags"]
 
 [subsystem.d2_room_lighting]

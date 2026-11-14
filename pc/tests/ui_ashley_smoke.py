@@ -368,9 +368,7 @@ class Test:
         g, check = self.g, self.check
         g.run(4)
         st = g.call("render_stats")
-        check(st["object_lists"] >= 1 and st["legacy_object_triangles"] == 0,
-              f"the model is native: {st['object_lists']} object lists, {st['legacy_object_triangles']} object "
-              f"triangles left to packets ({st['skipped_object_triangles']} covered)")
+        check(st["object_lists"] >= 1, f"the model is native: {st['object_lists']} object lists")
         rect = self.ash()["model_rect"]
         g.call("graphics", interpolate=False)
         g.run(4)

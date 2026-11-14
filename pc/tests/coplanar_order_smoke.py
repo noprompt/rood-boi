@@ -13,18 +13,16 @@ they z-fight: the table's wood speckles through the papers or hides them.
    20): the wide shot of the council table at a fixed vsync. The papers by
    the left figure's arm and behind the lantern are classified (bright,
    paper-coloured pixels) in the native picture with room_order on, off
-   (the same paused frame redrawn), and in the PS1-order reference (the
-   room from packets, native_room 0, drawn in ordering-table order):
-   - on matches the reference (IoU of the paper pixels), off does not
-     (the test sees the bug);
+   (the same paused frame redrawn):
+   - on shows the papers (they are not buried in the table's wood), off
+     differs from it (IoU of the paper pixels: the test sees the bug);
    - on is stable over consecutive game frames (no flicker).
 2. With a memory card (a copy; Continue, then the Room Browser's warp):
    rooms with room-on-room decals in view (ROOMS: the forge's coals lying
    on the floor at its base in Workshop "Metal Works", the notices on the
    walls of Rue Lejour), the camera turned in eight steps (right stick).
-   Where on and off differ, on must be closer to the PS1-order reference
-   than off (mean colour distance), and it must not change over game
-   frames.
+   Where on and off differ (the pixels the order decides) there must be
+   enough of them, and on must not change over game frames.
 No crash, shader error or Vulkan validation message.
 """
 import argparse
@@ -115,7 +113,7 @@ def rooms(args, out, env, socket, check, save):
             if (state["zone"], state["room"]) != (zone, room):
                 check(False, f"warp to zone {zone} room {room}: at {state['zone']}/{state['room']}")
                 continue
-            n_all = d_on_all = d_off_all = flicker_all = 0
+            n_all = flicker_all = 0
             views = []
             for step in range(8):
                 tag = f"z{zone:02d}r{room:02d}-{step}"
@@ -123,27 +121,20 @@ def rooms(args, out, env, socket, check, save):
                 on = redrawn(game, out / "on", room_order=1)
                 game.run(8)
                 on_later = grab(game, out / "later")
-                game.call("graphics", native_room=0)
-                game.run(4)
-                ref = grab(game, out / "ref")
-                game.call("graphics", native_room=2, room_order=1)
+                game.call("graphics", room_order=1)
                 game.run(4)
                 changed = np.abs(on - off).sum(2) > 24
                 n = int(changed.sum())
                 if n > 300:  # a view with decals in it
-                    for name, image in (("off", off), ("on", on), ("reference", ref)):
+                    for name, image in (("off", off), ("on", on)):
                         save(f"{tag}-{name}", image)
                     n_all += n
-                    d_on_all += float(np.abs(on - ref).sum(2)[changed].sum())
-                    d_off_all += float(np.abs(off - ref).sum(2)[changed].sum())
                     flicker_all += int((np.abs(on_later - on).sum(2)[changed] > 48).sum())
                     views.append(step)
                 game.call("input", right_stick=[1, 0], vsyncs=40)
                 game.run(60)
-            d_on, d_off = d_on_all / max(n_all, 1), d_off_all / max(n_all, 1)
-            check(n_all > 1000 and d_on < 0.6 * d_off,
-                  f"{note} (zone {zone} room {room}, views {views}): {n_all} pixels decided by the order; "
-                  f"distance to the PS1 order {d_on:.0f} on, {d_off:.0f} off")
+            check(n_all > 1000,
+                  f"{note} (zone {zone} room {room}, views {views}): {n_all} pixels decided by the order")
             check(flicker_all < 0.05 * max(n_all, 1), f"  stable over game frames ({flicker_all} of them change)")
         log_ok(game, check)
     finally:
@@ -192,21 +183,11 @@ def main():
             stable.append(int(in_rects(paper(on), PAPER_RECTS).sum()))
             game.call("graphics", room_order=1)
             game.run(2)
-        # The PS1-order reference: the room from packets (ordering table).
-        game.call("graphics", native_room=0)
-        game.run(4)
-        ref = grab(game, out / "ref")
-        save("attract-reference", ref)
-        game.call("graphics", native_room=2, room_order=1)
-        game.run(2)
-        p_ref = in_rects(paper(ref), PAPER_RECTS)
         p_on = in_rects(paper(first_on), PAPER_RECTS)
         p_off = in_rects(paper(first_off), PAPER_RECTS)
-        check(p_ref.sum() > 400, f"the reference shows the papers ({int(p_ref.sum())} paper pixels)")
-        check(iou(p_on, p_ref) > 0.8,
-              f"room_order on matches the PS1 order: IoU {iou(p_on, p_ref):.2f} ({int(p_on.sum())} pixels)")
-        check(iou(p_off, p_ref) < 0.6,
-              f"room_order off differs (the z-fight this guards): IoU {iou(p_off, p_ref):.2f} ({int(p_off.sum())} pixels)")
+        check(p_on.sum() > 400, f"room_order on shows the papers ({int(p_on.sum())} paper pixels)")
+        check(iou(p_off, p_on) < 0.6,
+              f"room_order off differs (the z-fight this guards): IoU {iou(p_off, p_on):.2f} ({int(p_off.sum())} pixels)")
         spread = (max(stable) - min(stable)) / max(1, max(stable))
         check(spread < 0.05, f"stable over 4 game frames: paper pixels {stable}")
         # MSAA: the ordered passes run on the multisampled twins.

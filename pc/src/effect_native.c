@@ -38,7 +38,7 @@
 #include <string.h>
 
 extern int pc_hw_active;
-extern void pc_hw_effect_packets(const void* start, const void* end, uint32_t list, int kind) __attribute__((weak));
+extern void pc_hw_effect_packets(const void* start, const void* end, uint32_t list) __attribute__((weak));
 extern int pc_native_camera(render_camera* out);
 extern void pc_native_world_transform(const void* matrix, render_transform* out);
 extern void pc_native_world_point(const double view[3], float out[3]);
@@ -123,7 +123,7 @@ unsigned* pc_shadow_native(const void* actor, const void* matrix, int light, con
     D_800E9A68 = disc;
     D_800E9AD4 = disc_faces;
     uint32_t list = 0;
-    if (pc_native_shadows && pc_hw_active && count > 0 && light >= 0 && light < 256) {
+    if (pc_hw_active && count > 0 && light >= 0 && light < 256) {
         render_camera camera;
         render_mesh mesh = pc_native_camera(&camera) ? shadow_mesh(light) : 0;
         if (mesh) {
@@ -191,8 +191,6 @@ unsigned* pc_shadow_native(const void* actor, const void* matrix, int light, con
     }
     if (!list)
         return NULL;
-    if (pc_hw_effect_packets)
-        pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SHADOWS);
     return end;
 }
 /* A drop shadow's triangles that are draw items (the list did not take them): markers [start, end), drawn as they are. */
@@ -201,9 +199,9 @@ void pc_shadow_items(const void* start, const void* end)
     const void *lo, *hi;
     if (!pc_hw_effect_packets)
         return;
-    pc_hw_effect_packets(start, end, 0, RENDER_EFFECTS_SHADOWS);
+    pc_hw_effect_packets(start, end, 0);
     if (pc_frame_marker_span(start, end, &lo, &hi))
-        pc_hw_effect_packets(lo, hi, 0, RENDER_EFFECTS_SHADOWS);
+        pc_hw_effect_packets(lo, hi, 0);
 }
 
 /* ---- moving platforms' shadows (room_shadows.inc, func_8008CEB0) ---- */
@@ -249,7 +247,7 @@ static uint32_t platform_list, platform_serial;
  * packet itself when it stays a packet). */
 unsigned* pc_platform_shadow_native(int index, const int centre[3], int shade, unsigned* ot_entry, unsigned* packet)
 {
-    if (!pc_native_shadows || !pc_hw_active || shade < 0 || shade > 255)
+    if (!pc_hw_active || shade < 0 || shade > 255)
         return packet;
     uint32_t serial = render_frame_serial();
     if (platform_serial != serial || !platform_list) {
@@ -314,9 +312,9 @@ void pc_platform_shadows_end(const void* start, const void* end)
     if (pc_hw_effect_packets) {
         const void *lo, *hi;
         uint32_t list = platform_serial == render_frame_serial() ? platform_list : 0;
-        pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SHADOWS);
+        pc_hw_effect_packets(start, end, list);
         if (pc_frame_marker_span(start, end, &lo, &hi)) /* (the squares are draw items: their lowered packets) */
-            pc_hw_effect_packets(lo, hi, list, RENDER_EFFECTS_SHADOWS);
+            pc_hw_effect_packets(lo, hi, list);
     }
 }
 
@@ -382,16 +380,16 @@ static void effect_items(const void* start, const void* end, uint32_t list)
     const void *lo, *hi;
     if (!pc_hw_effect_packets)
         return;
-    pc_hw_effect_packets(start, end, list, RENDER_EFFECTS_SPRITES);
+    pc_hw_effect_packets(start, end, list);
     if (pc_frame_marker_span(start, end, &lo, &hi))
-        pc_hw_effect_packets(lo, hi, list, RENDER_EFFECTS_SPRITES);
+        pc_hw_effect_packets(lo, hi, list);
 }
 
 /* func_800D6E44 starts its walk. */
 void pc_particles_native_begin(void)
 {
     sprite_count = node_count = 0;
-    collecting = pc_native_effects && pc_hw_active;
+    collecting = pc_hw_active;
     /* A new frame: this frame's places replace the last frame's (the walk
      * runs once per frame; a frame without it forgets them). */
     uint32_t serial = render_frame_serial();

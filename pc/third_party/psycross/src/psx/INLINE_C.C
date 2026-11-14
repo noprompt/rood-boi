@@ -188,10 +188,7 @@ int CFC2_S(int reg)
 	return gteRegs.CP2C.p[reg].sd;
 }
 
-/* ROOD: who issued the GTE command (projection log attribution, ROOD_OTHER_DEBUG). */
-extern const void* pc_gte_caller;
 int doCOP2(int op)
 {
-	pc_gte_caller = __builtin_return_address(0);
 	return GTE_operator(op);
 }

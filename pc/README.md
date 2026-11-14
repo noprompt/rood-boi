@@ -2555,7 +2555,7 @@ what limits a full run.
 | `snapshot_resume_smoke` | 64-bit: the engine relinked elsewhere resumes a snapshot through RPC `restart` at the same moment and state, and 60 vsyncs on matches the original build; a snapshot of other game code is refused |
 | `rpc_smoke`, `gi_smoke`, `movie_smoke` | RPC control, path tracer, intro movie |
 | `lua_smoke` | plugins in one game: every Lua test (`rood.test`), runaway and failing scripts stopped within their budgets, memory cap, sandbox, capabilities, hot reload, settings from Lua (`docs/Extensions.md`) |
-| `room_smoke`, `opening_smoke`, `scene_smoke` | checkpoint frames without a window |
+| `opening_smoke`, `scene_smoke` | checkpoint frames without a window |
 | `window_smoke` | real X11 key and close events (always on Xvfb) |
 | `input:*` | each case in `start_button_smoke.sh` (`input_smoke.py`) |
 | `editor_cutaway_smoke`, `editor_snap_smoke` | the free camera's view into the save room; the viewport overlays and snapping there (both need `pc/save/card1.mcd`) |
@@ -2601,7 +2601,7 @@ states (native game statics and SPU too; `pc/tests/snapshot_diff.py`) after
 a field menu open and close. A checkpoint that fails stays unused: its suites
 boot. Suites whose subject is the boot path itself keep booting (`input:*`,
 `soak`, `soak:save`, `window_smoke`, `movie_smoke`, `opening_smoke`,
-`room_smoke`, `scene_smoke`, `interpolation_smoke`, `golden_frames`, `rpc_smoke`,
+`scene_smoke`, `interpolation_smoke`, `golden_frames`, `rpc_smoke`,
 `gi_smoke`, `widescreen_smoke`: title, idle cutscene and Continue), and so do
 run-ups no other suite shares (`aa_smoke`'s opening card, the attract scene of
 `coplanar_order_smoke`, `ui_upscale_smoke`'s title, the prologue fight of
@@ -2723,21 +2723,6 @@ Actor route paths still have unported callees; passing the current inactive-rout
 case does not establish complete AI support. VSync query mode now matches the
 original API; elapsed scanlines are estimated from monotonic host time, not PS1
 hardware precision. Animated-texture MoveImage uses the tested VRAM-copy decoder.
-
-An explicit diagnostic can render the loaded mesh before that actor update:
-
-```sh
-pc/build/boot/rood_battle_probe --skip-movies --fast --room-checkpoint
-```
-
-This follows the title's idle/demo route into ZONE020 / MAP213. It deliberately
-submits loaded geometry even while the entry script keeps the room hidden,
-without setting the room active or advancing the script. It exits after writing
-`pc/build/boot/room-checkpoint.ppm`. The current preview contains textured room
-geometry but is partial and very dark; it is not a completed scene or gameplay.
-Normal execution does not use this bypass. The same packet decoder is covered by
-32/64-bit `gpu_probe` tests; projection and room packet generation have a separate
-32-bit GTE probe.
 
 Host-only actor preparation/commands, scene submission, and object shadows reuse
 retained near-matching C candidates, with provenance in their source files.

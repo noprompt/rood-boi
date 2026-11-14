@@ -139,13 +139,10 @@ void pc_hw_meter_vsync(void)
 /* What each return reason depends on: "frame" the packet and the frame's native lists, "setting" a configuration
  * value, "flag" a renderer flag the game or classic layer sets, "table" bookkeeping the earlier hooks of the frame
  * wrote (stale areas). None depends on the GPU's state or on timing. */
-static const char* const why_names[PC_HW_WHY_COUNT] = { "tri_inactive", "tri_suppressed", "tri_room_stale", "tri_room_covered",
-    "tri_effect_stale", "tri_effect_covered", "tri_object_stale", "tri_object_covered", "tri_drawn", "skip_inactive",
-    "skip_disabled", "skip_covered", "skip_not_covered", "covered_render_failed", "ot_stale_dropped_by_readback" };
-static const char* const why_depends[PC_HW_WHY_COUNT] = { "flag", "flag", "frame+setting+table", "frame+setting",
-    "frame+setting+table", "frame+setting", "frame+setting+table", "frame+setting", "frame", "flag+table", "setting",
-    "table", "table", "renderer (a failure: the packets draw, the picture may lack the list)",
-    "readback (the game sampling or storing stale texels)" };
+static const char* const why_names[PC_HW_WHY_COUNT] = { "tri_inactive", "tri_suppressed", "tri_effect_stale",
+    "tri_drawn", "skip_inactive", "skip_disabled", "skip_covered", "skip_not_covered", "ot_stale_dropped_by_readback" };
+static const char* const why_depends[PC_HW_WHY_COUNT] = { "flag", "flag", "frame+setting+table", "frame", "flag+table", "setting",
+    "table", "table", "readback (the game sampling or storing stale texels)" };
 
 int pc_hw_meter_json(char* out, int size, int reset)
 {

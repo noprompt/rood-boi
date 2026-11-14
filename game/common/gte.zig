@@ -36,7 +36,6 @@ extern fn vs_gte_avsz3(zsf3: c_int, sz1: c_uint, sz2: c_uint, sz3: c_uint) callc
 extern fn vs_gte_op0(r11: c_uint, r22: c_uint, r33: c_uint, ir1: c_uint, ir2: c_uint, ir3: c_uint, mac: *[3]c_int) callconv(.c) void;
 extern fn SetGeomOffset(ofx: c_int, ofy: c_int) callconv(.c) void;
 extern fn vs_gte_light_transform(llm: *const [5]c_uint, bk: *const [3]c_uint, v: *const [3]i16, ir: *[3]i16) callconv(.c) void;
-extern fn vs_gte_dpcs(far_color: c_uint, rgbc: c_uint, ir0: c_uint) callconv(.c) c_uint;
 extern fn vs_gte_ctx_init(ctx: *Ctx) callconv(.c) void;
 extern fn vs_gte_mtc2(ctx: *Ctx, reg: c_int, value: c_uint) callconv(.c) void;
 extern fn vs_gte_ctc2(ctx: *Ctx, reg: c_int, value: c_uint) callconv(.c) void;
@@ -141,11 +140,6 @@ pub const Ctx = extern struct {
         vs_gte_cop2(ctx, op);
     }
 };
-
-/// DPCS: the colour word faded toward `far_color` (each channel) by `ir0`; RGB2 as MFC2 reads it.
-pub fn dpcsOf(far_color: c_uint, rgbc: c_uint, ir0: c_uint) c_uint {
-    return vs_gte_dpcs(far_color, rgbc, ir0);
-}
 
 /// SetGeomOffset: the screen offset in pixels (the registers and the screen record).
 pub fn setGeomOffset(ofx: c_int, ofy: c_int) void {

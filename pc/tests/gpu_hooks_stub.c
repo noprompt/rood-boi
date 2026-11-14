@@ -14,13 +14,11 @@ int pc_hwc_triangle(const int* xy, const int* uv, const int* rgb, unsigned code,
 }
 void pc_hwc_set_2d(int is_2d) { (void)is_2d; }
 void pc_hwc_set_narrowed(void) {}
-void pc_hwc_set_room(int room) { (void)room; }
 void pc_hwc_set_precise(const float* xy6) { (void)xy6; }
 void pc_hwc_set_depth(const int* depth3) { (void)depth3; }
 void pc_hwc_set_packet(const void* packet) { (void)packet; }
 void pc_hwc_set_flipped_uv(const int* xy6, const int* uv6) { (void)xy6, (void)uv6; }
 void pc_hwc_set_attr(const pc_hw_attr* attr, int screen_x, int screen_w) { (void)attr, (void)screen_x, (void)screen_w; }
-int pc_hwc_cur_room(void) { return 0; }
 void pc_hwc_native_marker(unsigned list, int draw_x, int draw_y, const int* clip4, unsigned window, int mask_set)
 {
     (void)list, (void)draw_x, (void)draw_y, (void)clip4, (void)window, (void)mask_set;
@@ -96,29 +94,11 @@ void pc_hw_set_bounds(int x0, int y0, int x1, int y1, unsigned code, unsigned tp
 void pc_hw_set_depth(const int* depth) { (void)depth; }
 int pc_gte_projected(int sx, int sy) { return (void)sx, (void)sy, 0; }
 int pc_gte_projected_depth(int sx, int sy, int* sz) { return (void)sx, (void)sy, (void)sz, 0; }
-void pc_hw_set_room(int room) { (void)room; }
 void pc_hw_set_packet(const void* p) { (void)p; }
-int pc_hw_is_room_packet(const void* p) { return (void)p, 0; }
 void pc_hw_set_precise(const float* xy) { (void)xy; }
 void pc_hw_set_flipped_uv(const int* xy, const int* uv) { (void)xy, (void)uv; }
-int pc_gte_projected_precise(int sx, int sy, int* sz, float* fx, float* fy)
-{
-    return (void)sx, (void)sy, (void)sz, (void)fx, (void)fy, 0;
-}
-int pc_gte_lookup_view[3];
-int pc_gte_log = 1;
 int pc_scene_projection(float* h, float* ofx, float* ofy) { return (void)h, (void)ofx, (void)ofy, 0; }
 int pc_scene_game_projection(float* h, float* ofx, float* ofy) { return (void)h, (void)ofx, (void)ofy, 0; }
-int pc_gte_projected_candidates(int sx, int sy, int* slots, unsigned* sequences, int max)
-{
-    return (void)sx, (void)sy, (void)slots, (void)sequences, (void)max, 0;
-}
-void pc_gte_projection_entry(int s, int sx, int sy, int* sz, float* fx, float* fy)
-{
-    (void)s, (void)sx, (void)sy, (void)sz, (void)fx, (void)fy;
-}
-const void* pc_gte_projection_caller(int s) { return (void)s, (const void*)0; }
-const void* pc_hw_caller;
 void* vs_scratch[4]; /* the packet cursor and ordering-table base (146C.c in the game) */
 void pc_hwc_set_bounds(int x0, int y0, int x1, int y1, unsigned code, unsigned tpage, const int* uv4, const int* clip4)
 {

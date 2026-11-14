@@ -18,21 +18,18 @@ Continues from a copy of the card into zone 32 room 3 (Rue Vermillion, the
 user's report: Room Browser warp, no scripts), shows the first platform
 (its section 12 entry hidden until a script shows it), stops the
 platforms' motion (D_800F1D6E) and looks down at its shadow on the water
-with the free camera. Four frames: the default (native) and the reference
-packet path (native_shadows 0, which brings the reconstruction back), each
-with the shadow and without it (the platform's altitude put above the
-floor's reach, so func_8008CEB0 skips it; the platform's room group stays
-where it is). The square is found from where the native draw put it
-(pc_platform_shadow_records), projected with the game camera and fitted to
-the reference frame. Its darkening is the square's light against the water
-around it, with the shadow over without it (the water animates between
-frames; its surroundings even that out). Checks:
+with the free camera. Two frames, with the shadow and without it (the
+platform's altitude put above the floor's reach, so func_8008CEB0 skips it;
+the platform's room group stays where it is). The square is found from where
+the native draw put it (pc_platform_shadow_records), projected with the game
+camera and fitted to the frame. Its darkening is the square's light against
+the water around it, with the shadow over without it (the water animates
+between frames; its surroundings even that out). Checks:
 
 - the square is drawn natively this frame,
-- both paths darken (< 0.9; the reference about 0.8),
-- the native one is not black (>= 0.25, under a quarter of its pixels
-  black; before the fix: 0.02, 98% black),
-- it darkens like the reference (within 0.15).
+- it darkens (< 0.9; the packet path it replaced about 0.8),
+- it is not black (>= 0.25, under a quarter of its pixels black; before the
+  fix: 0.02, 98% black).
 
 --out keeps the frames."""
 import argparse
@@ -155,34 +152,29 @@ def main():
         for shadow in (True, False):
             # The platform's altitude: its own, or out of the floor's reach.
             game.write(table + 0xAC, struct.pack("<i", int(altitude * 4096) if shadow else -0x7000000))
-            for name, native in (("native", True), ("reference", False)):
-                game.call("graphics", native_shadows=native)
-                game.run(SETTLE)
-                tag = f"{name}-{'shadow' if shadow else 'none'}"
-                path = game.present_screenshot(out / f"{tag}.png")
-                frames[tag] = luminance(path)
-                stats = game.call("render_stats")
-                if shadow:
-                    print(f"{tag}: shadow_markers {stats['shadow_markers']}, "
-                          f"legacy_other_triangles {stats['legacy_other_triangles']}")
-                if shadow and native:
-                    # Where it is (effect_native.c): its centre and shade, and the camera.
-                    record = game.read(symbols()["pc_platform_shadow_records"], RECORD)
-                    serial, shade = struct.unpack("<Ii", record[:8])
-                    check(serial and stats["frame_serial"] - serial <= 2 and stats["shadow_markers"] >= 1,
-                          f"the platform's shadow is drawn natively (frame {serial}, now {stats['frame_serial']})")
-                    centre = struct.unpack("<3f", record[8:20])
-                    square = corners(game.call("scene")["camera"], centre, 32 + shade // 8)
-                    print(f"square at {[round(c) for c in centre]}, shade {shade}: screen {square}")
-        game.call("graphics", native_shadows=True)
+            game.run(SETTLE)
+            tag = "shadow" if shadow else "none"
+            path = game.present_screenshot(out / f"{tag}.png")
+            frames[tag] = luminance(path)
+            stats = game.call("render_stats")
+            if shadow:
+                print(f"{tag}: shadow_markers {stats['shadow_markers']}, "
+                      f"legacy_other_triangles {stats['legacy_other_triangles']}")
+                # Where it is (effect_native.c): its centre and shade, and the camera.
+                record = game.read(symbols()["pc_platform_shadow_records"], RECORD)
+                serial, shade = struct.unpack("<Ii", record[:8])
+                check(serial and stats["frame_serial"] - serial <= 2 and stats["shadow_markers"] >= 1,
+                      f"the platform's shadow is drawn natively (frame {serial}, now {stats['frame_serial']})")
+                centre = struct.unpack("<3f", record[8:20])
+                square = corners(game.call("scene")["camera"], centre, 32 + shade // 8)
+                print(f"square at {[round(c) for c in centre]}, shade {shade}: screen {square}")
     finally:
         game.close()
 
-    ref, ref0 = frames["reference-shadow"], frames["reference-none"]
-    nat, nat0 = frames["native-shadow"], frames["native-none"]
-    h, w = ref.shape
-    # The square where the reference draws it: the projection placed within
-    # a few pixels (the display's vertical offset), the darkest fit wins.
+    nat, nat0 = frames["shadow"], frames["none"]
+    h, w = nat.shape
+    # The square where it is drawn: the projection placed within a few pixels
+    # (the display's vertical offset), the darkest fit wins.
     best = None
     for dy in range(-16, 17):
         for dx in range(-4, 5):
@@ -190,11 +182,11 @@ def main():
             inside, ring = regions(moved, w, h)
             if inside.sum() < 200 or ring.sum() < 200:
                 continue
-            fit = (ref[inside].mean() / ref[ring].mean()) / (ref0[inside].mean() / ref0[ring].mean())
+            fit = (nat[inside].mean() / nat[ring].mean()) / (nat0[inside].mean() / nat0[ring].mean())
             if best is None or fit < best[0]:
                 best = (fit, dx, dy)
     if best:
-        print(f"the square in the reference: {best[1]:+d}, {best[2]:+d} pixels from its projection")
+        print(f"the square in the picture: {best[1]:+d}, {best[2]:+d} pixels from its projection")
         square = [(p[0] + best[1], p[1] + best[2]) for p in square]
     inside, ring = regions(square, w, h)
     check(inside.sum() >= 200 and ring.sum() >= 200, f"the square is on screen ({int(inside.sum())} pixels)")
@@ -202,14 +194,11 @@ def main():
         def darkening(a, a0):
             """The square's light against the water around it, with the shadow over without it."""
             return float((a[inside].mean() / a[ring].mean()) / (a0[inside].mean() / a0[ring].mean()))
-        r_ref, r_nat = darkening(ref, ref0), darkening(nat, nat0)
+        r_nat = darkening(nat, nat0)
         dark = float((nat[inside] < 6).mean())
-        print(f"under the shadow: reference {r_ref:.2f}, native {r_nat:.2f} of the light without it; "
-              f"black pixels {dark:.0%}")
-        check(r_ref < 0.9, f"the reference darkens ({r_ref:.2f} < 0.9)")
+        print(f"under the shadow: {r_nat:.2f} of the light without it; black pixels {dark:.0%}")
         check(r_nat < 0.9, f"the native shadow darkens ({r_nat:.2f} < 0.9)")
         check(r_nat >= 0.25 and dark < 0.25, f"the native shadow is not black ({r_nat:.2f} >= 0.25, {dark:.0%} black)")
-        check(abs(r_nat - r_ref) <= 0.15, f"it darkens like the packet path ({r_nat:.2f} vs {r_ref:.2f})")
     if not args.out and not failures:
         shutil.rmtree(out, ignore_errors=True)
     print("FAIL" if failures else "PASS", f"({len(failures)} failures)" if failures else "")

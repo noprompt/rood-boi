@@ -43,14 +43,14 @@ paths = [".kameosa/*", ".kameosa", ".claude/*", ".claude", ".kameosa-*", ".workt
 # (seconds to a minute each): boot and RPC, the title and opening, a room, a
 # scene, field play into battle, menus and saves, 2D text, widescreen, Lua,
 # the lighting path, the editor, snapshots, the CTest probes.
-broad = ["rpc_smoke", "golden_frames", "room_smoke", "opening_smoke", "scene_smoke", "title_fade_smoke",
+broad = ["rpc_smoke", "golden_frames", "opening_smoke", "scene_smoke", "title_fade_smoke",
          "snapshot_equivalence", "input:start-through-the-opening", "input:start-select-in-battle",
          "ui_menus_smoke", "save_menu_smoke", "widescreen_smoke", "ui_text_smoke", "lua_smoke", "gi_smoke",
          "emissive_smoke", "animation_smoke", "damage_numbers_smoke", "tunables_smoke", "editor_selection_smoke",
          "ctest"]
 # What every frame goes through (the scaled VRAM target, native meshes, 2D,
 # post, presentation): the suites that compare pictures of each kind.
-render = ["golden_frames", "room_smoke", "opening_smoke", "scene_smoke", "title_fade_smoke", "transition_fade_smoke",
+render = ["golden_frames", "opening_smoke", "scene_smoke", "title_fade_smoke", "transition_fade_smoke",
           "widescreen_smoke", "widescreen_scene_smoke", "interpolation_smoke", "coplanar_order_smoke",
           "present_pacing_smoke", "present_canary_smoke", "stack_selftest_smoke",
           "flipped_sprite_smoke", "ui_text_smoke", "ui_lines_smoke", "ui_upscale_smoke", "text_fade_smoke",
@@ -59,10 +59,10 @@ render = ["golden_frames", "room_smoke", "opening_smoke", "scene_smoke", "title_
 # The test harness itself: the selector, verify.sh's argv, checkpoints and
 # save states, and a few game suites run through it end to end.
 harness = ["affected_test", "verify_args_test", "checkpoints_test", "snapshot_equivalence", "rpc_smoke",
-           "room_smoke", "opening_smoke", "null_backend_smoke"]
+           "opening_smoke", "null_backend_smoke"]
 # A file no rule covers: the builds (verify.sh always runs them), the null
 # backend, the probes and a few broad smokes.
-default = ["null_backend_smoke", "rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "ctest"]
+default = ["null_backend_smoke", "rpc_smoke", "opening_smoke", "golden_frames", "ctest"]
 
 [shared]
 # A test module imported by more suites than this (rood_rpc.py: 144,
@@ -108,7 +108,7 @@ suites = ["@default"]
 # the files in `gl_paths` (the OpenGL renderer's own code) select.
 vulkan = ["ctest", "ps1_address_lint"]
 null = ["null_backend_smoke"]
-gl_sanity = ["rpc_smoke", "room_smoke", "opening_smoke", "golden_frames", "title_fade_smoke"]
+gl_sanity = ["rpc_smoke", "opening_smoke", "golden_frames", "title_fade_smoke"]
 gl_paths = ["pc/src/gl_*", "pc/src/render_gl.h", "pc/src/post_gl.inc", "pc/src/gpu_hw.c", "pc/src/render.c",
             "pc/src/*_gl.*", "pc/tools/gl_shaders.py"]
 

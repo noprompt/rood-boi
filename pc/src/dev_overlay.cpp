@@ -897,79 +897,13 @@ static void graphics_panel()
                                       "slightly wider region before it stops counting as in the way (no flicker).");
             }
         }
-        bool native = pc_native_room != 0;
-        if (ImGui::Checkbox("Native room geometry", &native))
-            pc_native_room = native ? 2 : 0;
+        bool order = pc_native_actor_order != 0;
+        if (ImGui::Checkbox("PS1 order within a model", &order))
+            pc_native_actor_order = order;
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Draw the room from meshes with exact depth instead of the PS1 packets.");
-        if (pc_native_room) {
-            ImGui::SameLine();
-            bool only = pc_native_room == 2;
-            if (ImGui::Checkbox("No reference packets", &only))
-                pc_native_room = only ? 2 : 1;
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("Skip the room's opaque packets entirely (less CPU); native VRAM is\n"
-                                  "copied back from the hardware target where the game reads it.");
-        }
-        bool actors = pc_native_actors != 0;
-        if (ImGui::Checkbox("Native characters", &actors))
-            pc_native_actors = actors ? 2 : 0;
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Draw characters, weapons and props from meshes with bone palettes (exact depth,\n"
-                              "interpolated poses, real shadow casters) instead of their PS1 packets.\n"
-                              "Needs the native room.");
-        if (pc_native_actors) {
-            ImGui::SameLine();
-            bool only = pc_native_actors == 2;
-            if (ImGui::Checkbox("No reference##actors", &only))
-                pc_native_actors = only ? 2 : 1;
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("The CPU no longer rasterizes the packets of characters, drop shadows and\n"
-                                  "particles that native draws cover; native VRAM is copied back from the\n"
-                                  "hardware target where the game reads it (StoreImage, textures, copies).");
-            ImGui::SameLine();
-            bool order = pc_native_actor_order != 0;
-            if (ImGui::Checkbox("PS1 order within a model", &order))
-                pc_native_actor_order = order;
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("A character's own polygons paint over each other in the PS1's order (as the\n"
-                                  "game looks: hair over scalp, coat over body); off: depth-tested per pixel.\n"
-                                  "Against the room and other models depth is exact either way.");
-        }
-        bool blend = pc_native_blend != 0;
-        if (ImGui::Checkbox("Native translucent polygons", &blend))
-            pc_native_blend = blend;
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Semi-transparent room polygons (window light, glass), characters' translucent\n"
-                              "parts and blended (faded, tinted) models drawn from meshes in PS1 ordering-table\n"
-                              "order with the PS1 blend modes, instead of their packets.");
-        ImGui::SameLine();
-        bool objects = pc_native_objects != 0;
-        if (ImGui::Checkbox("Native room objects", &objects))
-            pc_native_objects = objects;
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Other room blocks drawn through the room code (animated floor quads) as\n"
-                              "native meshes layered over the room.");
-        bool shadows = pc_native_shadows != 0;
-        if (ImGui::Checkbox("Native drop shadows", &shadows))
-            pc_native_shadows = shadows;
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Drop shadows under characters drawn as world-space triangles (interpolated with\n"
-                              "the actor, hidden behind the room) instead of their PS1 packets.");
-        ImGui::SameLine();
-        bool effects = pc_native_effects != 0;
-        if (ImGui::Checkbox("Native particles", &effects))
-            pc_native_effects = effects;
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Effect particles drawn as sprites at their world positions (they move with the\n"
-                              "camera between game frames; additive ones light the scene) instead of packets.");
-        bool reconstruct = pc_reconstruct != 0;
-        if (ImGui::Checkbox("Reconstruct 3D from packets", &reconstruct))
-            pc_reconstruct = reconstruct;
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Keep the GTE projection log, room depth records and packet shadow casters\n"
-                              "(the pre-native renderer). Off: retired while every native switch is on;\n"
-                              "packets that remain (2D, spell effects) draw as 2D in their place.");
+            ImGui::SetTooltip("A character's own polygons paint over each other in the PS1's order (as the\n"
+                              "game looks: hair over scalp, coat over body); off: depth-tested per pixel.\n"
+                              "Against the room and other models depth is exact either way.");
         bool depth = pc_gl_show_depth != 0;
         if (ImGui::Checkbox("Show depth buffer", &depth))
             pc_gl_show_depth = depth;
@@ -1395,29 +1329,17 @@ static void render_panel()
     ImGui::SeparatorText("Native rendering");
     render_stats st;
     render_stats_get(&st);
-    ImGui::Text("Room: %s", pc_native_room == 0 ? "legacy packets" : pc_native_room == 1 ? "native (+ reference packets)"
-                                                                                       : "native only");
     ImGui::Text("Native: %d lists, %d instances, %d triangles", st.lists, st.instances, st.native_triangles);
-    ImGui::Text("Legacy room triangles: %d drawn, %d left to native", st.legacy_room_triangles,
-        st.skipped_room_triangles);
     ImGui::Text("Meshes: %d (%d polygons)", st.meshes, st.mesh_polygons);
-    ImGui::Text("Characters: %s", pc_native_actors ? "native (+ reference packets)" : "legacy packets");
     ImGui::Text("Native objects: %d lists, %d triangles; %d built", st.object_instances, st.object_triangles,
         st.object_meshes_built);
-    ImGui::Text("Object packet triangles: %d drawn, %d left to native", st.legacy_object_triangles,
-        st.skipped_object_triangles);
-    ImGui::Text("Translucent: %s; %d markers, %d polygons native", pc_native_blend ? "native" : "legacy packets",
-        st.translucent_markers, st.translucent_polygons);
-    ImGui::Text("Translucent packet triangles: %d drawn, %d left to native", st.legacy_translucent_triangles,
-        st.skipped_translucent_triangles);
+    ImGui::Text("Translucent: %d markers, %d polygons native", st.translucent_markers, st.translucent_polygons);
     ImGui::Text("Room blocks: %d layered lists (%d instances)", st.layered_lists, st.layered_instances);
-    ImGui::Text("Drop shadows: %s; %d markers, %d polygons native", pc_native_shadows ? "native" : "legacy packets",
-        st.shadow_markers, st.shadow_polygons);
-    ImGui::Text("Particles: %s; %d markers, %d sprites native", pc_native_effects ? "native" : "legacy packets",
-        st.effect_markers, st.effect_polygons);
+    ImGui::Text("Drop shadows: %d markers, %d polygons native", st.shadow_markers, st.shadow_polygons);
+    ImGui::Text("Particles: %d markers, %d sprites native", st.effect_markers, st.effect_polygons);
     ImGui::Text("Shadow/particle packet triangles: %d drawn, %d left to native", st.legacy_effect_triangles,
         st.skipped_effect_triangles);
-    ImGui::Text("Other 3D packet triangles (still reconstructed): %d", st.legacy_other_triangles);
+    ImGui::Text("Other 3D packet triangles: %d", st.legacy_other_triangles);
     bool occlusion = pc_native_occlusion != 0;
     if (ImGui::Checkbox("Native surfaces hide packets behind them", &occlusion))
         pc_native_occlusion = occlusion;

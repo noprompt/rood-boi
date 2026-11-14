@@ -12,14 +12,12 @@ draws them as animated materials (room_effects.c): its meshes keep the base
 UVs and each frame's draw list carries the offsets the game wrote, so no
 mesh is rewritten.
 
-Three runs of the same session (the same inputs on the same vsync phase;
+Two runs of the same session (the same inputs on the same vsync phase;
 frames are matched by the effects' offsets and the camera):
 
 - A: animated materials (the default);
 - B: ROOD_UV_EFFECTS=0, the meshes re-decoded whenever the game rewrites the
-  polygons (the behaviour before animated materials, following the bytes the
-  packet path draws);
-- C: the packet path (graphics native_room 0).
+  polygons (the behaviour before animated materials).
 
 Checks:
 
@@ -86,7 +84,7 @@ class Run:
     (the 18 effects' positions cycle over hundreds of frames) and the camera
     the picture was drawn with."""
 
-    def __init__(self, name, args, out, env, native_room=2):
+    def __init__(self, name, args, out, env):
         self.name, self.out = name, out / name
         self.out.mkdir(parents=True, exist_ok=True)
         card = self.out / "card1.mcd"
@@ -95,14 +93,13 @@ class Run:
         full_env = {"ROOD_WINDOW": WINDOW, "ROOD_LIGHTS": str(self.lights), "ROOD_GI": "0", "ROOD_SCALE": "1", **env}
         os.environ.pop("ROOD_SETTINGS", None)
         self.game = launch_at("save_room", card=card, fast=True, log=self.out / "game.log", extra_env=full_env)
-        self.native_room = native_room
         self.keep = args.out is not None
 
     def enter(self):
         game = self.game
         # The checkpoint pressed Continue on a fixed phase of the vsync count
         # (the game draws every 2-4 vsyncs; golden_frames.py).
-        game.call("graphics", **GRAPHICS, native_room=self.native_room)
+        game.call("graphics", **GRAPHICS)
         state = game.state()
         return state.get("player") and (state.get("zone"), state.get("room")) == (9, 17), state
 
@@ -283,17 +280,7 @@ def main():
     finally:
         check(b.close(), "B: no crash or shader error")
 
-    # ---- C: the packet path ----
-    c = Run("packets", args, out, {}, native_room=0)
-    try:
-        entered, _ = c.enter()
-        frames_c, _, _ = c.capture() if entered else ([], {}, {})
-        check(entered, "C: in the save room")
-    finally:
-        check(c.close(), "C: no crash or shader error")
-
     compare("animated materials vs re-decoded meshes", frames_a, frames_b, check)
-    compare("animated materials vs the packet path", frames_a, frames_c, check)
     if failures:
         print(f"FAIL: {len(failures)} checks; frames in {out}" if args.out else f"FAIL: {len(failures)} checks")
         return 1
