@@ -60,13 +60,13 @@ pub fn vs_actors_initializeActorAnimationPose(arg0: ?*anyopaque, arg1: ?*anyopaq
 
     {
         const data: *align(1) u8 = @ptrFromInt(dataBase +% psx.conv(u32, header[3]));
-        c.vs_actors_decodeInitialPoseVector(psx.cptr(c.SVECTOR, &pose.unk0[41]), @ptrCast(data), frame);
+        c.vs_actors_decodeInitialPoseVector(psx.cptr(c.SVECTOR, &pose.turns[41]), @ptrCast(data), frame);
     }
 
     var i: c_int = 0;
     while (i < actor.unk0.nBones) : (i +%= 1) {
         const data: *align(1) u8 = @ptrFromInt(dataBase +% psx.conv(u32, header[@as(usize, @intCast(5 +% i))]));
-        c.vs_actors_decodeInitialPoseVector(psx.cptr(c.SVECTOR, psx.at(&pose.unk0, i)), @ptrCast(data), frame);
+        c.vs_actors_decodeInitialPoseVector(psx.cptr(c.SVECTOR, psx.at(&pose.turns, i)), @ptrCast(data), frame);
     }
 
     if ((psx.byteAt(u8, header, 3).* & 1) != 0) {

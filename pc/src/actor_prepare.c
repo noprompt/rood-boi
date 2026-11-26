@@ -12,6 +12,7 @@
 #include "pc/src/game/BATTLE/BATTLE.PRG/30DB0.h"
 #include "pc/src/psx_types.h"
 #include "pc/src/gte_value.h"
+#include "pc/src/native_model/native_model_formats.h"
 
 
 typedef struct {
@@ -91,6 +92,53 @@ static inline void vs_actors_applyLockedBoneTransform(void* actorData, MATRIX* p
     actor->bones[bone] = *matrix;
 }
 
+/* The pose state of the actor whose record `object` is (the body draws pass the record itself), by its names: the bone angle vectors and scale keys the decode leaves in the
+ * blend pose, the actor's scale and its own turns (native_model.h pc_nm_actor_pose: what vs_actors_drawActorModel's chain reads, and what rood-studio's animation player
+ * produces). 0 when `object` is not an actor's record. */
+int pc_actor_pose_state(const void* object, pc_nm_actor_pose* state)
+{
+    for (int slot = 0; slot < 17; slot++) {
+        const D_800F4538_t* actor = vs_actors_actorRecords[slot];
+        if (!actor || (const void*)actor != object)
+            continue;
+        int bones = actor->unk0.nBones;
+        state->bones = bones < 0 ? 0 : bones > 42 ? 42 : bones;
+        for (int i = 0; i < state->bones; i++) {
+            state->turns[i][0] = actor->blendPose.turns[i].vx, state->turns[i][1] = actor->blendPose.turns[i].vy, state->turns[i][2] = actor->blendPose.turns[i].vz;
+            state->scale_keys[i][0] = (u_short)actor->blendPose.scaleKeys[i].vx, state->scale_keys[i][1] = (u_short)actor->blendPose.scaleKeys[i].vy,
+            state->scale_keys[i][2] = (u_short)actor->blendPose.scaleKeys[i].vz;
+        }
+        state->actor_scale = actor->unk183C;
+        state->rotation_x = actor->unk0.rotationX, state->facing = actor->unk0.facing, state->rotation_z = actor->unk0.rotationZ;
+        return 1;
+    }
+    return 0;
+}
+
+/* The pose state of a loaded weapon's (or shield's) record by its names (native_model_formats.h pc_nm_weapon_pose): its scale, and for each bone the armature's parent, the
+ * parent's length and the bone's turns from the bone info the loader keeps in the record. The weapon's bone chain (game/battle/weapon_model.zig) reads this and nothing
+ * else of the record; rood-studio makes the same structure from the decoded file. 0 when `weapon` is not a loaded weapon record. */
+int pc_weapon_pose_state(const void* weapon, pc_nm_weapon_pose* pose)
+{
+    for (int slot = 0; slot < 20; slot++) {
+        const vs_battle_wepModels_t* w = vs_battle_wepModels[slot];
+        if (!w || (const void*)w != weapon || !w->offsets)
+            continue;
+        const vs_actors_ShpModel* model = (const vs_actors_ShpModel*)w->offsets;
+        pose->bones = w->nBones > PC_NM_WEAPON_BONES ? PC_NM_WEAPON_BONES : w->nBones;
+        pose->scale = w->scale;
+        for (int i = 0; i < pose->bones; i++) {
+            int parent = model->armatures[i].unk4;
+            pose->parent[i] = parent;
+            pose->parent_length[i] = i ? (short)model->armatures[parent].unk0 : 0;
+            for (int k = 0; k < 3; k++)
+                pose->turns[i][k] = ((const short*)w->unkBoneInfo[i])[k];
+        }
+        return 1;
+    }
+    return 0;
+}
+
 void vs_actors_drawActorModel(void* actorData, MATRIX* parent, char arg2)
 {
     D_800F4538_t* actor = actorData;
@@ -116,9 +164,9 @@ void vs_actors_drawActorModel(void* actorData, MATRIX* parent, char arg2)
     *(int*)&scratch->translation = *(int*)&scratch->offset;
     *(int*)&scratch->translation.vz = *(int*)&scratch->offset.vz;
     transformed = vs_gte_transform(&view, &scratch->translation);
-    scratch->rotation.vx = actor->blendPose.unk0[0].vx >> 1;
-    scratch->rotation.vy = actor->blendPose.unk0[0].vy >> 1;
-    scratch->rotation.vz = actor->blendPose.unk0[0].vz >> 1;
+    scratch->rotation.vx = actor->blendPose.turns[0].vx >> 1;
+    scratch->rotation.vy = actor->blendPose.turns[0].vy >> 1;
+    scratch->rotation.vz = actor->blendPose.turns[0].vz >> 1;
     scratch->matrix.t[0] = transformed.mac[1];
     scratch->matrix.t[1] = transformed.mac[2];
     scratch->matrix.t[2] = transformed.mac[3];
@@ -193,9 +241,9 @@ void vs_actors_drawActorModel(void* actorData, MATRIX* parent, char arg2)
             scratch->translation.vz = 0;
             scratch->translation.vx = -length;
             transformed = vs_gte_transform(&view, &scratch->translation);
-            scratch->rotation.vx = actor->blendPose.unk0[i].vx >> 1;
-            scratch->rotation.vy = actor->blendPose.unk0[i].vy >> 1;
-            scratch->rotation.vz = actor->blendPose.unk0[i].vz >> 1;
+            scratch->rotation.vx = actor->blendPose.turns[i].vx >> 1;
+            scratch->rotation.vy = actor->blendPose.turns[i].vy >> 1;
+            scratch->rotation.vz = actor->blendPose.turns[i].vz >> 1;
             value = (i + scratch->model->armatures)->unk8;
 
             switch (value) {

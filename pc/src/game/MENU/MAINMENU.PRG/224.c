@@ -315,10 +315,10 @@ void vs_menu_frameworkResetAshleyEquipmentPose(void)
 
         if (var_a0 != 0) {
             if (temp_s1->unk0.weaponDrawn) {
-                var_a0->unk11 = 0x40;
+                var_a0->scale = 0x40;
                 var_a0->unk8_4 = 1;
             } else {
-                var_a0->unk11 = 0;
+                var_a0->scale = 0;
             }
         }
     }

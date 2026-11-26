@@ -58,7 +58,7 @@ typedef struct {
 } D_800F4538_unk1864;
 
 typedef struct {
-    SVECTOR unk0[42];
+    SVECTOR turns[42]; /* each bone's turns as the animation decode leaves them (doubled: the chain halves them); [41] the root's offset */
     SVECTOR scaleKeys[42];
     SVECTOR unk2A0[42];
     SVECTOR unk3F0[42];
@@ -390,9 +390,9 @@ typedef struct {
     u_char modelId;
     u_char texSlot;
     u_char clutSlotOffset;
-    u_char unk11;
-    u_char unk12;
-    u_char unk13;
+    u_char scale; /* the weapon's scale in 64ths (64 = 1: 0 hides it) */
+    u_char scaleTarget; /* where a scale change is going */
+    u_char scaleSteps; /* the frames of it that are left */
     int unk14;
     short unk18;
     short unk1A;

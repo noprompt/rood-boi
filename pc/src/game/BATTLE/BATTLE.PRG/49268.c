@@ -7,6 +7,10 @@
 #include "44F14.h"
 #include "../../SLUS_010.40/main.h"
 #include "pc/src/psx_types.h"
+#include "pc/src/native_model/native_model_formats.h"
+
+/* actor_prepare.c: a loaded weapon's pose state by its names (the bone chain below reads this and nothing else of the record's pose). */
+int pc_weapon_pose_state(const void* weapon, pc_nm_weapon_pose* pose);
 
 extern struct {
     char prefix[0x1FD0];

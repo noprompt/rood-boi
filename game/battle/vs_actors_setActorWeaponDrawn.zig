@@ -14,12 +14,12 @@ pub fn vs_actors_setActorWeaponDrawn(arg0: c_int, arg1: c_int, arg2: c_int) call
         while (i < 2) : (i += 1) {
             const model = psx.at(v.g.vs_battle_wepModels(), arg0 *% 2 +% i).* orelse continue;
             if (arg1 != 0) {
-                model.unk11 = 0x40;
-                model.unk12 = 0x40;
+                model.scale = 0x40;
+                model.scaleTarget = 0x40;
                 psx.setBits(model, "unk8_4", 1);
             } else {
-                model.unk11 = 0;
-                model.unk12 = 0;
+                model.scale = 0;
+                model.scaleTarget = 0;
                 psx.setBits(model, "unk8_4", 0);
             }
         }

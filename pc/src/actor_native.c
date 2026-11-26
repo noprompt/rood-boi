@@ -59,6 +59,10 @@ extern int pc_dev_actor_of(const void* p) __attribute__((weak));
 /* studio.cpp (the model studio, studio.h): the actor slots whose body is not drawn (a weapon shown alone: its holder). */
 extern int pc_studio_hide_bodies __attribute__((weak));
 extern int pc_dev_actor_body_of(const void* p) __attribute__((weak));
+/* actor_prepare.c: the pose state of the actor whose record an object is (0: not an actor's record; absent in rood-studio's own executable). */
+extern int pc_actor_pose_state(const void* object, pc_nm_actor_pose* state) __attribute__((weak));
+/* actor_prepare.c: the pose state of a loaded weapon's record (0: not a weapon's record). */
+extern int pc_weapon_pose_state(const void* weapon, pc_nm_weapon_pose* pose) __attribute__((weak));
 /* editor_inspect.cpp: which actor slot a model mesh was drawn for (-1: none known). */
 extern void pc_inspect_model_actor(uint32_t mesh, int slot) __attribute__((weak));
 
@@ -533,6 +537,79 @@ static int facing_away(const pc_nm_sort* s, const unsigned* xy)
     long long x2 = (short)xy[s->vertex[2]], y2 = (short)(xy[s->vertex[2]] >> 16);
     return (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0) <= 0;
 }
+/* The pose state of the actors drawn (native_model.h pc_nm_actor_pose): the newest draw of each mesh, read from the actor's record by its names. The model studio's parity
+ * dump writes it beside the renderer's input (rood_studio_smoke compares it with the animation player's); a game draw does not use it. */
+static struct {
+    render_mesh mesh;
+    int weapon; /* 1: `weapon` is the state, else `state` */
+    pc_nm_actor_pose state;
+    pc_nm_weapon_pose weapon_state;
+} drawn_pose[8];
+static int drawn_pose_next;
+static void note_pose(render_mesh mesh, const void* object)
+{
+    pc_nm_actor_pose state;
+    pc_nm_weapon_pose weapon;
+    int is_weapon = 0;
+    if (pc_actor_pose_state && pc_actor_pose_state(object, &state))
+        ;
+    else if (pc_weapon_pose_state && pc_weapon_pose_state(object, &weapon))
+        is_weapon = 1;
+    else
+        return;
+    int at = -1;
+    for (int i = 0; i < 8 && at < 0; i++)
+        if (drawn_pose[i].mesh == mesh)
+            at = i;
+    if (at < 0)
+        at = drawn_pose_next++ & 7;
+    drawn_pose[at].mesh = mesh, drawn_pose[at].weapon = is_weapon;
+    if (is_weapon)
+        drawn_pose[at].weapon_state = weapon;
+    else
+        drawn_pose[at].state = state;
+}
+int pc_actor_native_pose(unsigned mesh, pc_nm_actor_pose* state)
+{
+    for (int i = 0; i < 8; i++)
+        if (drawn_pose[i].mesh == mesh && mesh && !drawn_pose[i].weapon) {
+            *state = drawn_pose[i].state;
+            return 1;
+        }
+    return 0;
+}
+/* The pose state of a mesh's newest draw into `path` (binary: "POSE", the bone count, the turns, the scale keys, then the actor's scale and three turns; a weapon's, in
+ * `path`.weapon: "WPOS" and the pc_nm_weapon_pose as it stands). */
+int pc_actor_native_pose_dump(unsigned mesh, const char* path)
+{
+    pc_nm_actor_pose s;
+    for (int i = 0; i < 8; i++)
+        if (drawn_pose[i].mesh == mesh && mesh && drawn_pose[i].weapon) {
+            char weapon_path[1100];
+            snprintf(weapon_path, sizeof weapon_path, "%s.weapon", path);
+            FILE* f = fopen(weapon_path, "wb");
+            if (!f)
+                return -1;
+            int magic = 0x534f5057;
+            fwrite(&magic, sizeof magic, 1, f);
+            fwrite(&drawn_pose[i].weapon_state, sizeof drawn_pose[i].weapon_state, 1, f);
+            fclose(f);
+            return 0;
+        }
+    if (!pc_actor_native_pose(mesh, &s))
+        return -1;
+    FILE* f = fopen(path, "wb");
+    if (!f)
+        return -1;
+    int head[2] = { 0x45534f50, s.bones };
+    int tail[4] = { s.actor_scale, s.rotation_x, s.facing, s.rotation_z };
+    fwrite(head, sizeof head, 1, f);
+    fwrite(s.turns, sizeof s.turns[0], (size_t)s.bones, f);
+    fwrite(s.scale_keys, sizeof s.scale_keys[0], (size_t)s.bones, f);
+    fwrite(tail, sizeof tail, 1, f);
+    fclose(f);
+    return 0;
+}
 /* The model studio's framing (studio.h): the world-space box of every model drawn while it is on (the studio hides the
  * rest), from the vertices and the palette this draw uses. */
 static struct {
@@ -623,6 +700,7 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
         return 0;
     if (pc_inspect_model_actor)
         pc_inspect_model_actor(c->mesh, pc_dev_actor_of ? pc_dev_actor_of(object) : -1);
+    note_pose(c->mesh, object);
     /* The camera may change between the room and the models (the free
      * camera, cutscenes): read it for every draw. */
     if (!read_camera(serial))

@@ -23,13 +23,13 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
     psx.put(&scratch.model, psx.get(w.offsets));
     scratch.matrix = source.?.*;
 
-    if (w.unk13 != 0) {
-        const target: c_int = w.unk12;
-        const current: c_int = w.unk11;
+    if (w.scaleSteps != 0) {
+        const target: c_int = w.scaleTarget;
+        const current: c_int = w.scale;
         var value: c_int = target -% current;
-        value = @divTrunc(value, @as(c_int, w.unk13));
-        w.unk11 = psx.conv(u8, current +% value);
-        w.unk13 -%= 1;
+        value = @divTrunc(value, @as(c_int, w.scaleSteps));
+        w.scale = psx.conv(u8, current +% value);
+        w.scaleSteps -%= 1;
         // *(int*)&weapon->clutSlotOffset: the bytes clutSlotOffset, unk11, unk12, unk13.
         const clutWord: *align(1) c_int = @ptrCast(&w.clutSlotOffset);
         if ((clutWord.* & @as(c_int, @bitCast(@as(u32, 0xFF00FF00)))) == 0) {
@@ -37,8 +37,8 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
         }
     }
 
-    if (w.unk11 != 64) {
-        var value: c_int = w.unk11;
+    if (w.scale != 64) {
+        var value: c_int = w.scale;
         value <<= 6;
         scratch.scale.vx = value;
         scratch.scale.vy = value;
@@ -51,26 +51,27 @@ pub fn drawWeaponModel(weapon: ?*v.vs_battle_wepModels_t, source: ?*v.MATRIX) ca
     scratch.translation.vx = 0;
     scratch.translation.vy = 0;
 
+    // the pose the chain reads: the weapon's parents, lengths and turns by their names (native_model's pc_nm_weapon_pose, the one rood-studio places the weapon from)
+    var pose: c.pc_nm_weapon_pose = undefined;
+    _ = c.pc_weapon_pose_state(w, &pose);
     var i: c_int = 1;
-    while (i < @as(c_int, w.nBones)) : (i +%= 1) {
-        const model_bone_off: c_int = (i << 4) +% 0x44;
-        const parentBone: c_int = psx.at(psx.get(scratch.model).?, model_bone_off).*;
+    while (i < pose.bones) : (i +%= 1) {
+        const parentBone: c_int = pose.parent[@intCast(i)];
         const parentOffset: c_int = parentBone << 5;
         psx.put(&scratch.parent, psx.byteAt(v.MATRIX, w, @as(isize, parentOffset +% 0x20)));
 
         const parent = psx.get(scratch.parent).?;
         const view = gte.viewOf(parent, gte.no_screen);
 
-        const length: c_int = psx.byteAt(u16, psx.get(scratch.model).?, (parentBone << 4) +% 0x40).*;
+        const length: c_int = pose.parent_length[@intCast(i)];
         scratch.translation.vy = 0;
         scratch.translation.vz = 0;
         scratch.translation.vx = psx.conv(i16, -%length);
         gte.transformTo(&scratch.matrix.t, &view, &scratch.translation);
 
-        const rotation = psx.byteAt(v.weaponRotation, w, i << 3);
-        scratch.rotation.vx = rotation.rotation.vx;
-        scratch.rotation.vy = rotation.rotation.vy;
-        scratch.rotation.vz = rotation.rotation.vz;
+        scratch.rotation.vx = pose.turns[@intCast(i)][0];
+        scratch.rotation.vy = pose.turns[@intCast(i)][1];
+        scratch.rotation.vz = pose.turns[@intCast(i)][2];
         psx.fieldAt(c_int, &scratch.rotation, 0).* &= 0x0FFF0FFF;
         psx.fieldAt(c_int, &scratch.rotation.vz, 0).* &= 0xFFF;
 

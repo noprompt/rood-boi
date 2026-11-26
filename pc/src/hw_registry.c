@@ -339,24 +339,33 @@ static void cells_set(uint32_t* cells, int x0, int y0, int x1, int y1) /* pixels
         for (int b = y0 >> 4; b <= (y1 - 1) >> 4; b++)
             cells[c] |= 1u << b;
 }
-void pc_stale_mark(pc_stale_set* set, const int* clip, int kind)
+static int clamp_clip(const int* clip, int* r)
 {
     if (clip[2] <= 0 || clip[3] <= 0)
+        return 0;
+    r[0] = clip[0] < 0 ? 0 : clip[0], r[1] = clip[1] < 0 ? 0 : clip[1];
+    r[2] = clip[0] + clip[2] > 1024 ? 1024 : clip[0] + clip[2];
+    r[3] = clip[1] + clip[3] > 512 ? 512 : clip[1] + clip[3];
+    return r[2] > r[0] && r[3] > r[1];
+}
+void pc_stale_mark(pc_stale_set* set, const int* clip, int kind)
+{
+    int r[4];
+    if (!clamp_clip(clip, r))
         return;
-    int x0 = clip[0] < 0 ? 0 : clip[0], y0 = clip[1] < 0 ? 0 : clip[1];
-    int x1 = clip[0] + clip[2] > 1024 ? 1024 : clip[0] + clip[2];
-    int y1 = clip[1] + clip[3] > 512 ? 512 : clip[1] + clip[3];
-    if (x1 <= x0 || y1 <= y0)
-        return;
-    if (kind & (PC_STALE_MISSING | PC_STALE_DRAWN))
-        cells_set(set->missing, x0, y0, x1, y1);
-    if (kind & PC_STALE_PLACED)
-        cells_set(set->placed, x0, y0, x1, y1);
+    if (kind & (PC_STALE_MISSING | PC_STALE_DRAWN)) {
+        cells_set(set->missing, r[0], r[1], r[2], r[3]);
+        cells_set(set->ever_missing, r[0], r[1], r[2], r[3]);
+    }
+    if (kind & PC_STALE_PLACED) {
+        cells_set(set->placed, r[0], r[1], r[2], r[3]);
+        cells_set(set->ever_placed, r[0], r[1], r[2], r[3]);
+    }
 }
 int pc_stale_any(const pc_stale_set* set)
 {
     for (int c = 0; c < 16; c++)
-        if (set->missing[c] | set->placed[c])
+        if (set->ever_missing[c] | set->ever_placed[c])
             return 1;
     return 0;
 }
@@ -393,11 +402,29 @@ int pc_stale_meets(const uint32_t* cells, int x, int y, int w, int h)
     int box[4];
     return pc_stale_bbox(cells, x, y, w, h, box);
 }
+void pc_stale_clear_covered(pc_stale_set* set, int x, int y, int w, int h)
+{
+    if (w <= 0 || h <= 0 || x < 0 || y < 0 || x + w > 1024 || y + h > 512)
+        return; /* (a wrapping rectangle keeps its marks) */
+    int c0 = (x + 63) >> 6, c1 = ((x + w) >> 6) - 1, b0 = (y + 15) >> 4, b1 = ((y + h) >> 4) - 1;
+    for (int c = c0; c <= c1; c++)
+        for (int b = b0; b <= b1; b++)
+            set->missing[c] &= ~(1u << b), set->placed[c] &= ~(1u << b);
+}
 void pc_stale_copy(pc_stale_set* set, int sx, int sy, int dx, int dy, int w, int h)
 {
-    int clip[4] = { dx, dy, w, h };
+    int clip[4] = { dx, dy, w, h }, r[4];
+    if (!clamp_clip(clip, r))
+        return;
+    int drawn = 0;
     if (pc_stale_meets(set->missing, sx, sy, w, h))
-        pc_stale_mark(set, clip, PC_STALE_MISSING);
+        cells_set(set->missing, r[0], r[1], r[2], r[3]), drawn = 1;
     if (pc_stale_meets(set->placed, sx, sy, w, h))
-        pc_stale_mark(set, clip, PC_STALE_PLACED);
+        cells_set(set->placed, r[0], r[1], r[2], r[3]), drawn = 1;
+    if (!drawn)
+        pc_stale_clear_covered(set, dx, dy, w, h);
+    if (pc_stale_meets(set->ever_missing, sx, sy, w, h))
+        cells_set(set->ever_missing, r[0], r[1], r[2], r[3]);
+    if (pc_stale_meets(set->ever_placed, sx, sy, w, h))
+        cells_set(set->ever_placed, r[0], r[1], r[2], r[3]);
 }

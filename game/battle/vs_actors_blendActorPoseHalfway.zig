@@ -10,14 +10,14 @@ pub fn vs_actors_blendActorPoseHalfway(dst: ?*v.D_800F4538_unkC54, src: ?*v.D_80
     const d = dst.?;
     const s = src.?;
 
-    d.unk0[41].vx = psx.conv(i16, (@as(c_int, s.unk0[41].vx) +% @as(c_int, d.unk0[41].vx)) >> 1);
-    d.unk0[41].vy = psx.conv(i16, (@as(c_int, s.unk0[41].vy) +% @as(c_int, d.unk0[41].vy)) >> 1);
-    d.unk0[41].vz = psx.conv(i16, (@as(c_int, s.unk0[41].vz) +% @as(c_int, d.unk0[41].vz)) >> 1);
+    d.turns[41].vx = psx.conv(i16, (@as(c_int, s.turns[41].vx) +% @as(c_int, d.turns[41].vx)) >> 1);
+    d.turns[41].vy = psx.conv(i16, (@as(c_int, s.turns[41].vy) +% @as(c_int, d.turns[41].vy)) >> 1);
+    d.turns[41].vz = psx.conv(i16, (@as(c_int, s.turns[41].vz) +% @as(c_int, d.turns[41].vz)) >> 1);
 
     var i: c_int = 0;
     while (i < count) : (i +%= 1) {
-        const dv = psx.at(&d.unk0, i);
-        const sv = psx.at(&s.unk0, i);
+        const dv = psx.at(&d.turns, i);
+        const sv = psx.at(&s.turns, i);
 
         var x: c_int = @as(c_int, sv.vx) -% @as(c_int, dv.vx);
         if (x >= 4096) {

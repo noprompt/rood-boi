@@ -732,6 +732,18 @@ void pc_nm_euler(int ax, int ay, int az, float r[3][3])
     r[2][0] = -sy, r[2][1] = cy * sx, r[2][2] = cy * cx;
 }
 
+void pc_nm_pose_read(const pc_nm_actor_pose* state, pc_nm_pose* pose)
+{
+    pc_nm_pose_zero(NULL, pose);
+    for (int i = 0; i < state->bones && i < RENDER_MAX_BONES; i++)
+        for (int k = 0; k < 3; k++) {
+            pose->rot[i][k] = (int16_t)(state->turns[i][k] >> 1);
+            pose->scale[i][k] = state->scale_keys[i][k];
+        }
+    pose->actor_scale = (float)state->actor_scale / 4096.0f;
+    pose->rotation_x = state->rotation_x, pose->facing = state->facing, pose->rotation_z = state->rotation_z;
+}
+
 void pc_nm_pose_zero(const pc_nm_model* m, pc_nm_pose* pose)
 {
     (void)m;
@@ -800,21 +812,43 @@ int pc_nm_find_bone(const pc_nm_model* m, int code)
     return -1;
 }
 
-int pc_nm_weapon_transforms(const pc_nm_model* w, const render_transform* hand, render_transform* out)
+int pc_nm_weapon_pose_of(const pc_nm_model* w, pc_nm_weapon_pose* pose)
 {
-    if (!w->wep || !w->bone || !w->bone_info || w->bones <= 0 || w->bones > RENDER_MAX_BONES)
+    memset(pose, 0, sizeof *pose);
+    if (!w->wep || !w->bone || !w->bone_info || w->bones <= 0 || w->bones > PC_NM_WEAPON_BONES)
+        return -1;
+    pose->bones = w->bones;
+    pose->scale = 64;
+    for (int i = 0; i < w->bones; i++) {
+        const uint8_t* b = w->bone_info + 8 * i;
+        for (int k = 0; k < 3; k++)
+            pose->turns[i][k] = (int16_t)u16_at(b + 2 * k);
+        int parent = w->bone[i].parent;
+        pose->parent[i] = parent;
+        pose->parent_length[i] = i && parent >= 0 && parent < w->bones ? w->bone[parent].length : 0;
+    }
+    return w->bones;
+}
+
+int pc_nm_weapon_transforms(const pc_nm_weapon_pose* pose, const render_transform* hand, render_transform* out)
+{
+    if (pose->bones <= 0 || pose->bones > PC_NM_WEAPON_BONES)
         return -1;
     out[0] = *hand;
-    float rot[RENDER_MAX_BONES][3][3]; /* what the children turn from: the hand's matrix, then each bone's */
+    float rot[PC_NM_WEAPON_BONES][3][3]; /* what the children turn from: the hand's matrix (scaled), then each bone's */
     memcpy(rot[0], hand->rotation, sizeof rot[0]);
-    for (int i = 1; i < w->bones; i++) {
-        int parent = w->bone[i].parent;
-        if (parent >= i)
+    if (pose->scale != 64)
+        for (int a = 0; a < 3; a++)
+            for (int c = 0; c < 3; c++)
+                rot[0][a][c] *= (float)pose->scale / 64.0f;
+    memcpy(out[0].rotation, rot[0], sizeof rot[0]);
+    for (int i = 1; i < pose->bones; i++) {
+        int parent = pose->parent[i];
+        if (parent < 0 || parent >= i)
             return -1;
-        const uint8_t* b = w->bone_info + 8 * i;
         float own[3][3];
-        pc_nm_euler((int16_t)u16_at(b), (int16_t)u16_at(b + 2), (int16_t)u16_at(b + 4), own);
-        float length = (float)w->bone[parent].length;
+        pc_nm_euler(pose->turns[i][0], pose->turns[i][1], pose->turns[i][2], own);
+        float length = (float)pose->parent_length[i];
         for (int a = 0; a < 3; a++) {
             out[i].translation[a] = out[parent].translation[a] - rot[parent][a][0] * length;
             for (int c = 0; c < 3; c++)
@@ -822,7 +856,7 @@ int pc_nm_weapon_transforms(const pc_nm_model* w, const render_transform* hand, 
         }
         memcpy(out[i].rotation, rot[i], sizeof rot[i]);
     }
-    return w->bones;
+    return pose->bones;
 }
 
 /* ---- sequences ---- */
@@ -1026,8 +1060,17 @@ static void anim_reset(pc_nm_anim* a)
             /* the keys as a vector after two marker bytes: big-endian, the value itself */
             track_open(&a->scale[i], a, own, first + 2, keyed ? 8 : 0, (a->flags & 2) != 0, 1);
             a->scale_live[i] = 1;
-        } else
+        } else {
             a->scale_plain[i][0] = d[0], a->scale_plain[i][1] = d[1], a->scale_plain[i][2] = d[2];
+            if (a->flags & 2) {
+                /* a plain key is still a track when the record says its keys move (flag 2): the game steps the bone's stream whatever its first bytes are, the stream's
+                 * position past the three bytes when the animation starts at its beginning */
+                track_open(&a->scale[i], a, own, first, keyed ? 3 : 0, 1, 1);
+                for (int k = 0; k < 3; k++)
+                    a->scale[i].val[k] = d[k];
+                a->scale_live[i] = 1;
+            }
+        }
     }
 }
 

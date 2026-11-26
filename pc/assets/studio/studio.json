@@ -38,6 +38,8 @@
     "loader_id": 200,
     "material": 0,
     "weapon_material": 0,
+    "hold": -1,
+    "hold_material": 0,
     "rig": 0
   },
   "turntable": {

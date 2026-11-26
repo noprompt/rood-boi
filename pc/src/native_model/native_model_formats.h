@@ -122,6 +122,31 @@ unsigned pc_nm_shp_size(const unsigned char* file);
 int pc_nm_wep_load_texture(const unsigned char* file, int slot, void* first, void* others, int stride);
 int pc_nm_shp_load_texture(const unsigned char* file, int slot, void* cluts);
 
+/* The pose state of a game actor as the bone chain reads it (vs_actors_drawActorModel): what the game keeps for each bone, read once by the game's own code
+ * from its actor record (the adaptor names the fields: pc_actor_pose_state in actor_prepare.c) and held as plain values. `turns` are the pose block's
+ * angle vectors as the animation decode leaves them (doubled: the chain halves them), `scale_keys` the bones' scale keys (64 = 1), `actor_scale` the actor's own scale
+ * (4096 = 1) and `rotation_x`, `facing`, `rotation_z` the actor's own turns on top of the root bone's. */
+enum { PC_NM_POSE_BONES = 64 }; /* (RENDER_MAX_BONES: an actor has at most 42) */
+typedef struct {
+    int bones;
+    short turns[PC_NM_POSE_BONES][3];
+    unsigned short scale_keys[PC_NM_POSE_BONES][3];
+    int actor_scale, rotation_x, facing, rotation_z;
+} pc_nm_actor_pose;
+
+/* The pose state of a weapon (or shield) on its holder's hand, as the game's bone chain for it reads it (vs_actors_buildWeaponBoneChain): the weapon's own scale, and for
+ * each bone the armature's parent and the parent's length and the bone's turns (the bone info the loader copies into the record). The game reads it from the weapon's
+ * record by its names (pc_weapon_pose_state, actor_prepare.c); rood-studio makes it from the decoded model (pc_nm_weapon_pose_of): one structure for both, and one chain
+ * (pc_nm_weapon_transforms) for the studio. A weapon has at most four bones (the record's bone info holds four). */
+enum { PC_NM_WEAPON_BONES = 4 };
+typedef struct {
+    int bones;
+    int scale;                              /* 64 = 1: the matrix the chain starts from is scaled by it */
+    int parent[PC_NM_WEAPON_BONES];         /* the bone each hangs from */
+    int parent_length[PC_NM_WEAPON_BONES];  /* the parent's length along -x to its children */
+    short turns[PC_NM_WEAPON_BONES][3];     /* each bone's own turns, 4096 a turn */
+} pc_nm_weapon_pose;
+
 /* A model's texture as the loaders and rood-studio hold it: the place it occupies (a slot of `kind` PC_NM_TEXTURE_ACTOR or PC_NM_TEXTURE_WEAPON) and the size of its texels,
  * made once from the slot and the dimensions; its upload is the one way the texels reach the emulated VRAM (the renderer reads them by page, CLUT and box from there).
  * `width` is in texels as the files give it (4-bit: two to a byte, 8-bit: one), `words` in the 16-bit words LoadImage counts, `rows` the height. */

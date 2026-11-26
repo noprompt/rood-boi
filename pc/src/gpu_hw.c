@@ -715,6 +715,7 @@ static uint32_t dirty_tiles = 0xffffffffu;
  * first triangle (after its uploads); own_bands: where that copy is the
  * target's, not native VRAM (dirty again from the next textured primitive). */
 static int own_rects[4][4], own_count, own_active;
+static int own_flush; /* the primitive about to be drawn samples a cell that has ever been marked drawn: the batch ends before it, copy or not */
 static int own_want[4], own_want_valid; /* the texels the primitive samples (x0, y0, x1, y1, exclusive): what a capture takes whole */
 static uint32_t own_bands[16];
 static void own_apply(void);
@@ -2540,8 +2541,13 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
             upload_dirty(needed);
         }
         if (own_count)
-            own_apply();
+            own_apply(), own_flush = 0;
         else {
+            /* (no own copy here, but where a draw that samples a drawn area has always ended the batch before it, this one does: the pictures depend on
+             * where the batches break, held text above all, and why is not understood; own_flush is that rule, kept on the marks nothing clears) */
+            if (own_flush)
+                flush();
+            own_flush = 0;
             int box[4];
             sample_box(window, uv, box);
             tex_note(tpage, clut, window, box); /* (a draw that samples the frame stays on the VRAM image) */
@@ -3361,6 +3367,7 @@ void pc_hw_fill(int x, int y, int w, int h, int r, int g, int b, const uint16_t*
     screen_copy_write(0, 0, x, y, w, h, 0);
     side_paint_forget(x, y, w, h);
     fill_target(target_fbo, x, y, w, h, r, g, b);
+    pc_stale_clear_covered(&cstale, x, y, w, h); /* (the array and the target are equal there now) */
 }
 static void fill_target(GLuint fbo, int x, int y, int w, int h, int r, int g, int b)
 {
@@ -3606,6 +3613,7 @@ void pc_hw_upload(int x, int y, int w, int h, const uint16_t* pixels)
     }
     if (widescreen_screen_upload(x, y, w, h))
         return;
+    pc_stale_clear_covered(&cstale, x, y, w, h); /* (the array and the target are equal there now) */
 #ifdef ROOD_VULKAN
     if (pc_vk_on()) {
         pc_vk_hw_upload_rect(x, y, w, h);
@@ -4829,7 +4837,7 @@ static int sync_debug = -1;
 void pc_hw_sync_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip)
 { PC_HW_METER(sync_texture);
     own_fold();
-    own_count = 0, own_want_valid = 0;
+    own_count = 0, own_want_valid = 0, own_flush = 0;
     if (!pc_stale_any(&cstale))
         return;
     int depth = (tpage >> 7) & 3;
@@ -4849,6 +4857,14 @@ void pc_hw_sync_texture(unsigned tpage, unsigned clut, unsigned window, int u0, 
     if (depth < 2)
         own_add(reach[1][0], reach[1][1], reach[1][2] - reach[1][0] + 1, 1);
     own_active = own_count > 0;
+    {   /* where it has ever been drawn: the batch ends before this draw as it always has (own_flush) */
+        int tw = (x1 > 1023 ? 1023 : x1) - x0 + 1, th = v1 - v0 + 1;
+        own_flush = pc_stale_meets(cstale.ever_missing, x0, ty0, tw, th) || pc_stale_meets(cstale.ever_placed, x0, ty0, tw, th);
+        if (depth < 2 && !own_flush) {
+            int cw = reach[1][2] - reach[1][0] + 1;
+            own_flush = pc_stale_meets(cstale.ever_missing, reach[1][0], reach[1][1], cw, 1) || pc_stale_meets(cstale.ever_placed, reach[1][0], reach[1][1], cw, 1);
+        }
+    }
     if (sync_debug && own_count)
         fprintf(stderr, "[sync] own copy: texture page %x clut %x uv %d,%d..%d,%d into %d,%d %dx%d\n", tpage, clut,
             u0, v0, u1, v1, clip[0], clip[1], clip[2], clip[3]);

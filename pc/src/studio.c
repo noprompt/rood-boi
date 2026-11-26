@@ -200,6 +200,25 @@ int pc_studio_scene(const pc_studio_scene_cfg* c, pc_studio_scene_out* out)
             snprintf(out->message, sizeof out->message, "the loader did not finish");
             return -1;
         }
+        unsigned char* weapon = c->weapon ? copy_to_heap(c->weapon, c->weapon_size) : NULL;
+        if (c->weapon && !weapon) {
+            snprintf(out->message, sizeof out->message, "the heap is full");
+            return -1;
+        }
+        if (weapon) { /* a weapon in the hand bone that carries 0xF0 (as a weapon alone is held by its rig) */
+            vs_battle_objectData d;
+            memset(&d, 0, sizeof d);
+            d.dataType = 4;
+            d.index = (signed char)(slot * 2);
+            d.dataAddr = (__UINTPTR_TYPE__)weapon;
+            d.modelId = (short)(c->weapon_id + 1);
+            d.destination = (char*)buffer + VS_OBJECT_REGION;
+            d.actorId = (u_char)slot;
+            set_wep_byte(&d, 0xF0);
+            d.material = (char)c->weapon_material;
+            vs_battle_populateDataSlot(&d);
+            pump();
+        }
     } else if (c->kind == PC_STUDIO_ZUD) {
         pc_nm_zud zud;
         pc_nm_zud_decode(&zud, file);

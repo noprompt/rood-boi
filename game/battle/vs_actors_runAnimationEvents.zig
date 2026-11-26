@@ -99,13 +99,13 @@ fn execute(actor: *v.D_800F4538_t, state: *v.D_800F4538_unkC54, mode: c_int, id:
                             return .next;
                         }
                         psx.setBits(weapon, "unk8_4", 1);
-                        weapon.unk11 = 0;
-                        weapon.unk12 = 0x40;
+                        weapon.scale = 0;
+                        weapon.scaleTarget = 0x40;
                     } else {
-                        weapon.unk11 = 0x40;
-                        weapon.unk12 = 0;
+                        weapon.scale = 0x40;
+                        weapon.scaleTarget = 0;
                     }
-                    weapon.unk13 = psx.conv(u8, sfx0);
+                    weapon.scaleSteps = psx.conv(u8, sfx0);
                 }
             }
         },

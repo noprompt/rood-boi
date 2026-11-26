@@ -123,7 +123,7 @@ pub fn func_800AFA28(actor: ?*v.D_800F4538_t, state: ?*v.D_800F4538_unkC54, mode
                     a.unk0.position.vz = psx.conv(i16, @as(c_int, psx.conv(u16, a.unk0.position.vz)) +% (z >> 2));
                 }
 
-                c.vs_actors_decodeAnimationTrack(@as(c_int, psx.at(header, 3).*), psx.cptr(c.SVECTOR, &st.unk0[41]), 0, scratch);
+                c.vs_actors_decodeAnimationTrack(@as(c_int, psx.at(header, 3).*), psx.cptr(c.SVECTOR, &st.turns[41]), 0, scratch);
 
                 i = 0;
                 if (a.unk0.nBones != 0) {

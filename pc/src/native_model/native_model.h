@@ -121,6 +121,9 @@ typedef struct {
     uint8_t locked[RENDER_MAX_BONES];
     float lock_rotation[RENDER_MAX_BONES][3][3], lock_place[RENDER_MAX_BONES][3];
 } pc_nm_pose;
+/* The studio's pose (rot, scale, actor_scale and the actor's turns) from the game's state: the same values the animation player (pc_nm_anim_pose) leaves, so one pose
+ * structure carries both and they can be compared bone for bone. The place and the root's offset stay zero (the game keeps those in the parent matrix). */
+void pc_nm_pose_read(const pc_nm_actor_pose* state, pc_nm_pose* pose);
 void pc_nm_pose_zero(const pc_nm_model* m, pc_nm_pose* pose); /* every bone's turn zero, the root at the origin facing 0 */
 /* The rest pose: animation 0, frame 0 of the SHP's own sequence block (the base sequence; the idle animations are other files). Returns 0, or -1
  * when the block holds no such animation (the pose is then zero). */
@@ -159,9 +162,11 @@ void pc_nm_anim_holds(pc_nm_anim* a, int on); /* the events' bone holds (on by d
 
 /* The first bone whose armature carries `code` (the weapon's 0xF0 and the shield's 0xF1 mark the hand that holds them; func_800A152C field 0), -1 none. */
 int pc_nm_find_bone(const pc_nm_model* m, int code);
-/* A weapon's bones (vs_actors_buildWeaponBoneChain): bone 0 is `hand`, the holder's bone matrix; the others hang from it by the weapon's own armatures
- * and turns (the bone info, 8 bytes a bone: three little-endian turns). Returns the bone count, -1 when the model is no weapon. */
-int pc_nm_weapon_transforms(const pc_nm_model* weapon, const render_transform* hand, render_transform* out);
+/* The weapon pose of a decoded weapon (scale 64: whole): what the game's record holds for it once loaded. Returns the bone count, -1 when the model is no weapon. */
+int pc_nm_weapon_pose_of(const pc_nm_model* weapon, pc_nm_weapon_pose* pose);
+/* A weapon's bones (vs_actors_buildWeaponBoneChain): bone 0 is `hand`, the holder's bone matrix (its columns scaled by pose->scale / 64); the others hang from it by the
+ * pose's parents, lengths and turns. Returns the bone count, -1 when the pose is not a chain. */
+int pc_nm_weapon_transforms(const pc_nm_weapon_pose* pose, const render_transform* hand, render_transform* out);
 
 /* Rotation from the game's angles (Rz * Ry * Rx, 4096 a turn). */
 void pc_nm_euler(int ax, int ay, int az, float r[3][3]);

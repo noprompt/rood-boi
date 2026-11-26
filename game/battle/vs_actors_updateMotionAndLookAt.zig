@@ -45,13 +45,13 @@ pub fn vs_actors_updateMotionAndLookAt(actor: ?*v.D_800F4538_t, arg1: c_int) cal
     const body = &a.unk0;
 
     if (psx.fieldAt(c_int, &body.scaleX, 0).* == 0x10001000 and body.scaleZ == 4096) {
-        scratch.offset.vx = @as(i16, @bitCast(a.blendPose.unk0[41].vx)) >> 1;
-        scratch.offset.vy = @as(i16, @bitCast(a.blendPose.unk0[41].vy)) >> 1;
-        scratch.offset.vz = @as(i16, @bitCast(a.blendPose.unk0[41].vz)) >> 1;
+        scratch.offset.vx = @as(i16, @bitCast(a.blendPose.turns[41].vx)) >> 1;
+        scratch.offset.vy = @as(i16, @bitCast(a.blendPose.turns[41].vy)) >> 1;
+        scratch.offset.vz = @as(i16, @bitCast(a.blendPose.turns[41].vz)) >> 1;
     } else {
-        scratch.offset.vx = psx.conv(i16, @divTrunc(@as(c_int, a.blendPose.unk0[41].vx) *% body.scaleY, 8192));
-        scratch.offset.vy = psx.conv(i16, @divTrunc(@as(c_int, a.blendPose.unk0[41].vy) *% body.scaleZ, 8192));
-        scratch.offset.vz = psx.conv(i16, @divTrunc(@as(c_int, a.blendPose.unk0[41].vz) *% body.scaleX, 8192));
+        scratch.offset.vx = psx.conv(i16, @divTrunc(@as(c_int, a.blendPose.turns[41].vx) *% body.scaleY, 8192));
+        scratch.offset.vy = psx.conv(i16, @divTrunc(@as(c_int, a.blendPose.turns[41].vy) *% body.scaleZ, 8192));
+        scratch.offset.vz = psx.conv(i16, @divTrunc(@as(c_int, a.blendPose.turns[41].vz) *% body.scaleX, 8192));
     }
     scratch.offset.vx = psx.conv(i16, @divTrunc(@as(c_int, scratch.offset.vx) *% a.unk183C, 4096));
     scratch.offset.vy = psx.conv(i16, @divTrunc(@as(c_int, scratch.offset.vy) *% a.unk183C, 4096));
@@ -84,8 +84,8 @@ pub fn vs_actors_updateMotionAndLookAt(actor: ?*v.D_800F4538_t, arg1: c_int) cal
             body.turnFrames -%= 1;
         }
         if (psx.getBits(a, "unk5B0_4") != 0) {
-            a.blendPose.unk0[0].vx = 0x800;
-            a.pose.unk0[0].vx = 0x800;
+            a.blendPose.turns[0].vx = 0x800;
+            a.pose.turns[0].vx = 0x800;
         }
         if (body.translationFrames != 0) {
             var dx: c_int = @divTrunc(@as(c_int, body.unk34.vx), body.translationFrames);

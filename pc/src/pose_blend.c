@@ -108,8 +108,8 @@ void pc_pose_blend_actor(D_800F4538_t* actor, MATRIX* camera)
         return;
     memcpy(&blended, actor, sizeof blended);
     for (int i = 0; i < actor->unk0.nBones; i++) {
-        SVECTOR* r = &blended.blendPose.unk0[i];
-        const SVECTOR* to = &ahead.blendPose.unk0[i];
+        SVECTOR* r = &blended.blendPose.turns[i];
+        const SVECTOR* to = &ahead.blendPose.turns[i];
         r->vx = blend_angle(r->vx, to->vx, s);
         r->vy = blend_angle(r->vy, to->vy, s);
         r->vz = blend_angle(r->vz, to->vz, s);

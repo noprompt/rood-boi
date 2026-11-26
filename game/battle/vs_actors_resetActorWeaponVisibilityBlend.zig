@@ -14,13 +14,13 @@ pub fn vs_actors_resetActorWeaponVisibilityBlend(arg0: c_int) callconv(.c) void 
         if (model) |m| {
             if (m.unkD != 0) {
                 if (psx.getBits(m, "unk8_4") != 0) {
-                    m.unk11 = 0x40;
-                    m.unk12 = 0x40;
+                    m.scale = 0x40;
+                    m.scaleTarget = 0x40;
                 } else {
-                    m.unk11 = 0;
-                    m.unk12 = 0;
+                    m.scale = 0;
+                    m.scaleTarget = 0;
                 }
-                m.unk13 = 0;
+                m.scaleSteps = 0;
             }
         }
     }

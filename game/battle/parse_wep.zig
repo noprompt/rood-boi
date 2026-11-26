@@ -92,10 +92,10 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
             }
             m.clutSlotOffset = psx.conv(u8, @as(c_int, object.unk11) +% (@as(c_int, object.actorId) << 1) +% 16);
             c._loadMaterialPalette(object.index, object.material);
-            m.unk11 = 64;
+            m.scale = 64;
             psx.setBits(m, "unk8_4", 0);
             psx.setBits(m, "unk8_6", 0);
-            m.unk13 = 0;
+            m.scaleSteps = 0;
             psx.setBits(m, "actorId", psx.conv(u4, object.actorId));
             m.unkC = object.unk11;
             m.unkD = psx.conv(u8, c.func_800A152C(object.actorId, object.unk11, 0));
@@ -113,10 +113,10 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
             _ = memcpy(&m.unkBoneInfo, @ptrFromInt(data), intBits(@as(c_int, m.nBones) * 8));
             wep_file.release();
             c._loadMaterialPalette(object.index, object.material);
-            m.unk11 = 64;
+            m.scale = 64;
             psx.setBits(m, "unk8_4", 0);
             psx.setBits(m, "unk8_6", 0);
-            m.unk13 = 0;
+            m.scaleSteps = 0;
             psx.setBits(m, "actorId", psx.conv(u4, object.actorId));
             m.unkC = object.unk11;
             m.unkD = psx.conv(u8, c.func_800A152C(object.actorId, object.unk11, 0));

@@ -55,6 +55,7 @@ void pc_studio_bounds_set(const float lo[3], const float hi[3], const unsigned* 
 int pc_lights_tools_view(pc_overlay_view* out, pc_overlay_pick* pick) __attribute__((weak));
 int render_mesh_posed(render_mesh mesh, render_posed_triangle* out, int max) __attribute__((weak));
 int render_mesh_reference(render_mesh mesh, const char* path) __attribute__((weak));
+extern "C" int pc_actor_native_pose_dump(unsigned mesh, const char* path); /* actor_native.c: the pose state of a mesh's newest draw */
 }
 
 namespace {
@@ -334,7 +335,7 @@ bool glows_kept;     // the room's glow tracks are saved for this visit
 bool clean_seen;     // that render has begun
 std::string look_name = "neutral";
 const Item* current;
-std::vector<unsigned char> file_data, rig_data, base_data;
+std::vector<unsigned char> file_data, rig_data, base_data, hold_data; // hold_data: the weapon a character holds (model.hold)
 int base_id = -1;
 Camera camera;
 bool again;           // a render is wanted once this one has landed (the camera is not fitted yet)
@@ -584,8 +585,10 @@ void capture_take(bool clean)
     capture.meshes = pc_studio_meshes ? pc_studio_meshes(meshes, capture.keys, 16) : 0;
     if (!reference_path.empty()) { // RPC dump_model: the models as drawn (render_mesh_reference), one file per mesh: <path>.<k>
         for (int m = 0; m < capture.meshes; m++)
-            if (render_mesh_reference)
+            if (render_mesh_reference) {
                 render_mesh_reference(meshes[m], (reference_path + "." + std::to_string(m)).c_str());
+                pc_actor_native_pose_dump(meshes[m], (reference_path + "." + std::to_string(m) + ".pose").c_str());
+            }
         reference_path.clear();
     }
     capture.tris.clear();
@@ -787,7 +790,11 @@ void studio_render()
         if (base_id >= 0)
             c.base = base_data.data(), c.base_size = (unsigned)base_data.size(), c.base_id = base_id;
         if (current->kind == "character")
+        {
             c.kind = PC_STUDIO_SHP, c.material = (int)num("model.material", 0);
+            if (!hold_data.empty())
+                c.weapon = hold_data.data(), c.weapon_size = (unsigned)hold_data.size(), c.weapon_id = (int)num("model.hold", -1), c.weapon_material = (int)num("model.hold_material", 0);
+        }
         else if (current->kind == "enemy")
             c.kind = PC_STUDIO_ZUD;
         else {
@@ -910,7 +917,7 @@ std::string leave()
         pc_studio_bounds_stop();
     remove_look();
     current = nullptr;
-    file_data.clear(), rig_data.clear(), base_data.clear();
+    file_data.clear(), rig_data.clear(), base_data.clear(), hold_data.clear();
     base_id = -1;
     // The renderers keep what they built from the last picture (the stage's ray-traced scene, its lighting): one render of the game
     // as it is rebuilds them from the room, the room's glows being the ones kept at the start of the visit and put back by that
@@ -936,6 +943,9 @@ std::string summon(const std::string& kind, int id)
         return "cannot read " + item->file + " from the disc";
     if (kind == "weapon" && !read_disc(("OBJ/" + hex2((int)num("model.rig", 0)) + ".SHP"), rig))
         return "cannot read the rig that holds a weapon";
+    std::vector<unsigned char> hold;
+    if (kind == "character" && num("model.hold", -1) >= 0 && !read_disc(("OBJ/" + hex2((int)num("model.hold", -1)) + ".WEP"), hold))
+        return "cannot read the weapon a character holds";
     // The SHP is the file itself, or a ZUD's first part (its offset at +8); a shared texture needs its model.
     const unsigned char* shp = data.data();
     size_t shp_size = data.size();
@@ -955,7 +965,7 @@ std::string summon(const std::string& kind, int id)
     current = item;
     ++app_serial;
     animation.id = -1, animation.time = 1, animation.ids.clear(), animation.frames = 1;
-    file_data = std::move(data), rig_data = std::move(rig);
+    file_data = std::move(data), rig_data = std::move(rig), hold_data = std::move(hold);
     if (pc_studio_bounds_reset)
         pc_studio_bounds_reset();
     framed = false;
@@ -969,7 +979,7 @@ void clear()
 {
     current = nullptr;
     ++app_serial;
-    file_data.clear(), rig_data.clear(), base_data.clear();
+    file_data.clear(), rig_data.clear(), base_data.clear(), hold_data.clear();
     base_id = -1;
     pc_studio_hide_bodies = 0;
     if (pc_studio_bounds_reset)
@@ -1743,13 +1753,14 @@ extern "C" int pc_studio_app_frame(pc_studio_app_view* v)
         v->id = current->id;
     }
     v->scene = app_scene;
-    v->scene.file = v->scene.rig = v->scene.base = nullptr;
+    v->scene.file = v->scene.rig = v->scene.base = v->scene.weapon = nullptr;
     const float pi = PI_F;
     v->yaw = (camera.yaw + num("model.facing", 0) * 360.0f / 4096) * pi / 180, v->pitch = -camera.elevation * pi / 180;
     v->distance = camera.distance * camera.zoom, v->fov = camera.fov;
     memcpy(v->target, camera.target, sizeof v->target);
     v->framed = framed;
     v->rig = (int)num("model.rig", 0);
+    v->hold = current && current->kind == "character" ? (int)num("model.hold", -1) : -1, v->hold_material = (int)num("model.hold_material", 0);
     snprintf(v->look, sizeof v->look, "%s", look_name.c_str());
     // the sequence: time runs at the game's 30 frames a second (the animations' own rate in the field) when playing
     double now = photo::now_seconds();

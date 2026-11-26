@@ -41,6 +41,10 @@ typedef struct {
     int backdrop_rgb;
     int hide_others;              /* the room's actors are not drawn */
     int equipment;                /* ZUD: its weapon and shield (0: the model alone) */
+    const unsigned char* weapon;  /* SHP: a weapon file (OBJ/nn.WEP) the character holds in the hand bone that carries 0xF0 (NULL: none) */
+    unsigned weapon_size;
+    int weapon_id;                /* its catalog id */
+    int weapon_material;
 } pc_studio_scene_cfg;
 
 /* rood-studio (rood_studio.c): the studio without a game. pc_studio_app_frame gives the app this frame's state: the model asked for (kind, id; `serial`
@@ -48,6 +52,7 @@ typedef struct {
  * switch), the camera (yaw and pitch in radians, distance to the target, fov in degrees), the look. */
 typedef struct {
     int serial, has_item, id, framed, rig;
+    int hold, hold_material; /* a character holds this weapon (catalog id, -1 none) of this material (data model.hold, model.hold_material) */
     char kind[12], look[24];
     pc_studio_scene_cfg scene;
     float yaw, pitch, distance, fov, target[3];

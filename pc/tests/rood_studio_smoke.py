@@ -15,6 +15,8 @@ renderer was given for each. rood-studio then loads the same models from the dis
     running app, each changing the picture as it should;
   - the texture slots against the game's own slot records (rood-studio --check-slots);
   - every model the catalog names decodes (rood-studio --check-catalog);
+  - Ashley (character 0) holding a weapon (data model.hold, the weapon of the test card's save): the game's own dump of him with it (rood-studio --hold: the weapon's polygons, page and CLUT
+    words and key, its pose exactly the game's, its placement from the hand matrix, the picture), and the app drawing it in his hand;
   - a normal start (the rest pose from the model's own sequence block, path tracing on) draws a model on the stage.
 Pictures are written to the output folder (PNG). Skips without the disc image."""
 import argparse
@@ -42,6 +44,8 @@ import paint_live  # noqa: E402
 # one of each layout: characters (flat records), one with coloured records (0xB3), an enemy with a weapon, a dagger
 ITEMS = (("character", 3), ("character", 0), ("character", 16), ("character", 179), ("character", 58), ("enemy", 14), ("enemy", 4), ("enemy", 26), ("enemy", 40),
          ("enemy", 70), ("enemy", 95), ("weapon", 1))
+# a character holding a weapon: (character, weapon, material): Ashley and the weapon of the test card's save
+HOLD_ITEMS = ((0, 16, 3),)
 WINDOW = (960, 720)
 # a picture is the same where the stage and the model are drawn the same: the share of pixels that differ by more than 24 levels may not pass this
 PICTURE_DIFFERENT = 0.002
@@ -99,7 +103,7 @@ def run(out):
            "ROOD_MATERIAL_CATALOG_USER": str(work / "material_catalog_user.json")}
 
     # ---- the game's studio: the references and the pictures ----
-    refs, others, slot_tables = {}, {}, b""
+    refs, others, slot_tables, held = {}, {}, b"", {}
     g = Game.launch(fast=True, log=out / "game.log", extra_env={**env, "ROOD_STUDIO_BOOT": "1"})
     try:
         g.pause()
@@ -108,7 +112,8 @@ def run(out):
         g.call("studio", action="look", name="flat")
         g.run(1)
         slot_tables = g.data("vs_render_legacyActorTextureSlots") + g.data("vs_battle_wepTextures")
-        for kind, ident in ITEMS:
+        def capture(kind, ident, tag):
+            """The game's studio shows the model (a character may hold a weapon: model.hold) and dumps what the renderer was given and the picture."""
             g.call("studio", action="summon", kind=kind, id=ident)
             deadline = time.time() + 60
             while True:
@@ -120,20 +125,29 @@ def run(out):
                     raise SystemExit(f"{kind} {ident}: the game's studio did not settle")
                 time.sleep(0.05)
             g.wait_presents(3)
-            path = out / f"ref_{kind}_{ident}.bin"
+            path = out / f"ref_{tag}.bin"
             for k in range(4):
                 pathlib.Path(f"{path}.{k}").unlink(missing_ok=True)
             g.call("studio", action="dump_model", path=str(path))
             if not rood_rpc.wait_for_file(pathlib.Path(f"{path}.0"), 30):
                 raise SystemExit(f"{kind} {ident}: no dump")
             time.sleep(0.3)
-            shot = out / f"game_{kind}_{ident}.ppm"
+            shot = out / f"game_{tag}.ppm"
             shot.unlink(missing_ok=True)
             g.call("present_dump", path=str(shot))
             rood_rpc.wait_for_file(shot, 30)
             Image.fromarray(image(shot)).save(shot.with_suffix(".png"))
             shot.unlink()
-            refs[(kind, ident)] = (f"{path}.0", s["models"][0], s["animation"])
+            return (f"{path}.0", s["models"][0], s["animation"])
+
+        for kind, ident in ITEMS:
+            refs[(kind, ident)] = capture(kind, ident, f"{kind}_{ident}")
+        # Ashley (character 0) holding a weapon: the weapon of his save (16, material 3) in the hand bone that carries 0xF0
+        for ident, hold, material in HOLD_ITEMS:
+            g.call("studio", action="look", set="model.hold", value=hold)
+            g.call("studio", action="look", set="model.hold_material", value=material)
+            held[(ident, hold, material)] = capture("character", ident, f"character_{ident}_holds_{hold}_{material}")
+            g.call("studio", action="look", set="model.hold", value=-1)
         # other animations of the game's own, started some frames in (an enemy's attack: the sequence decoder's deltas)
         for kind, ident, number, frame in (("enemy", 14, 16, 0), ("enemy", 127, 64, 10)):
             g.call("studio", action="look", set="model.animation", value=number)
@@ -192,12 +206,18 @@ def run(out):
         return r.returncode, "\n".join(line for line in r.stderr.splitlines() if "[rood-studio]" in line)
 
     for (kind, ident), (ref, key, animation) in refs.items():
-        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(max(animation, 0)))
+        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(max(animation, 0)), "--exact-pose")
         check(code == 0, f"{kind} {ident}: decode equal to the game's (polygons, page, CLUT, key {key}, the skeleton's chain)\n{log}")
 
     for (kind, ident, animation), (ref, key) in others.items():
-        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(animation))
+        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(animation), "--exact-pose")
         check(code == 0, f"{kind} {ident}: animation {animation} decoded to the game's bone matrices\n{log}")
+
+    for (ident, hold, material), (ref, key, animation) in held.items():
+        code, log = studio("--character", str(ident), "--hold", str(hold), "--hold-material", str(material), "--reference", ref, "--expect-key", key,
+                           "--animation", str(max(animation, 0)), "--exact-pose")
+        check(code == 0, f"character {ident} holding weapon {hold} (material {material}): the weapon's polygons, page and CLUT words and key, its pose exactly the game's "
+                         f"(read from its record), its placement from the hand matrix within the fixed-point chain's tolerance\n{log}")
 
     for target, ref in live.items():
         code, log = studio("--enemy", "127", "--reference", ref, "--animation", "164", "--tolerance", "15")
@@ -220,6 +240,23 @@ def run(out):
         limit = PICTURE_DIFFERENT_ENEMY if kind == "enemy" else PICTURE_DIFFERENT
         check(a.std() > 4 and strong <= limit, f"{kind} {ident}: the picture is the game's studio's ({strong * 100:.3f}% differ, limit {limit * 100}%)")
 
+
+    # the picture of Ashley holding the weapon: the game's palettes and camera for both meshes, the same renderer
+    for (ident, hold, material), (ref, key, animation) in held.items():
+        tag = f"character_{ident}_holds_{hold}_{material}"
+        mine = out / f"studio_{tag}.ppm"
+        mine.unlink(missing_ok=True)
+        code, log = studio("--character", str(ident), "--hold", str(hold), "--hold-material", str(material), "--reference", ref, "--look", "flat", "--frames", "300",
+                           "--dump", str(mine), gi="1")
+        if not check(code == 0 and mine.exists(), f"{tag}: rood-studio draws the picture\n{log if code else ''}"):
+            continue
+        a, b = image(mine), np.array(Image.open(out / f"game_{tag}.png").convert("RGB"))
+        Image.fromarray(a).save(mine.with_suffix(".png"))
+        mine.unlink()
+        diff = np.abs(a.astype(int) - b.astype(int))
+        strong = float((diff.max(axis=2) > 24).mean())
+        print(f"      {tag}: mean difference {diff.mean():.2f}, {strong * 100:.3f}% of pixels differ by more than 24 levels")
+        check(a.std() > 4 and strong <= PICTURE_DIFFERENT, f"{tag}: the picture is the game's studio's ({strong * 100:.3f}% differ, limit {PICTURE_DIFFERENT * 100}%)")
 
     # ---- the app: the studio's own screen and its actions ----
     def settle(g, kind, ident, tries=80):
@@ -371,6 +408,17 @@ def run(out):
         weapon = shot(g, "weapon")
         bright = int((centre(weapon).max(axis=2) > 140).sum())
         check(bright > 200, f"a weapon alone: its blade is in the picture ({bright} bright pixels)")
+        # Ashley with a weapon asked for (data model.hold): the weapon is in his hand (the picture differs from the same model with none)
+        g.call("studio", action="summon", kind="character", id=0)
+        settle(g, "character", 0)
+        bare = shot(g, "ashley_bare")
+        g.call("studio", action="look", set="model.hold", value=16)
+        g.call("studio", action="look", set="model.hold_material", value=3)
+        g.call("studio", action="summon", kind="character", id=0)
+        settle(g, "character", 0)
+        armed = shot(g, "ashley_armed")
+        g.call("studio", action="look", set="model.hold", value=-1)
+        check(float(np.abs(centre(bare) - centre(armed)).mean()) > 0.3, f"a character with a weapon asked for holds it ({float(np.abs(centre(bare) - centre(armed)).mean()):.2f} levels of difference)")
     finally:
         g.close()
         rood_rpc.BINARY = old_binary

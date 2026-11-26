@@ -19,7 +19,7 @@ static struct {
     overlay_triangle overlay[OVERLAY_MAX];
     int overlay_count;
     uint64_t overlay_cells[32];
-    uint32_t stale_cells[16], placed_cells[16];
+    uint32_t stale_cells[16], placed_cells[16], ever_stale_cells[16], ever_placed_cells[16];
     int occlusion_on, occlusion_rect[4], surface_valid;
     int scale, vulkan;
     render_camera view;
@@ -148,7 +148,7 @@ int pc_hw_photo_mark_now(void)
     KEEP(fade, present_fade); COPY(fade_rect, present_fade_rect); KEEP(menu_model, present_menu_model);
     KEEP(redraw, redraw_shown); COPY(redraw_origin, redraw_origin);
     COPY(overlay, overlay); COPY(overlay_cells, overlay_cells); KEEP(overlay_count, overlay_count);
-    COPY(stale_cells, cstale.missing); COPY(placed_cells, cstale.placed);
+    COPY(stale_cells, cstale.missing); COPY(placed_cells, cstale.placed); COPY(ever_stale_cells, cstale.ever_missing); COPY(ever_placed_cells, cstale.ever_placed);
     KEEP(occlusion_on, occlusion_on); COPY(occlusion_rect, occlusion_rect); KEEP(surface_valid, surface_valid);
 #undef COPY
 #undef KEEP
@@ -189,7 +189,7 @@ int pc_hw_photo_restore_now(void)
     RESTORE(present_fade, fade); COPY(present_fade_rect, fade_rect); RESTORE(present_menu_model, menu_model);
     RESTORE(redraw_shown, redraw); COPY(redraw_origin, redraw_origin);
     COPY(overlay, overlay); COPY(overlay_cells, overlay_cells); RESTORE(overlay_count, overlay_count);
-    COPY(cstale.missing, stale_cells); COPY(cstale.placed, placed_cells);
+    COPY(cstale.missing, stale_cells); COPY(cstale.placed, placed_cells); COPY(cstale.ever_missing, ever_stale_cells); COPY(cstale.ever_placed, ever_placed_cells);
     RESTORE(occlusion_on, occlusion_on); COPY(occlusion_rect, occlusion_rect); RESTORE(surface_valid, surface_valid);
 #undef COPY
 #undef RESTORE

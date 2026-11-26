@@ -14,7 +14,7 @@ pub fn vs_actors_updateActorAnimationBlend(unit_opt: ?*v.D_800F4538_t) callconv(
     tail: {
         if (unit.unk5CC != 0) {
             if (unit.unk5CC == 1) {
-                c.vs_actors_alignPoseRotationBranches(@ptrCast(&unit.blendPose.unk0), @ptrCast(&unit.pose.unk0), unit.unk0.nBones);
+                c.vs_actors_alignPoseRotationBranches(@ptrCast(&unit.blendPose.turns), @ptrCast(&unit.pose.turns), unit.unk0.nBones);
             }
 
             const v5b2: c_int = unit.framesPerStep;

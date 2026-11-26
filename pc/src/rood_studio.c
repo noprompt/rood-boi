@@ -291,7 +291,33 @@ typedef struct {
     render_polygon* polygon;
     render_transform palette[RENDER_MAX_BONES];
     render_camera camera;
+    pc_nm_actor_pose state; /* the game's pose state of the draw (the dump's .pose file: actor_native.c pc_actor_native_pose_dump); state.bones 0: none */
 } reference_t;
+
+/* The pose state the game wrote beside a dump (<path>.pose); 0 when the file is not there. */
+static int read_pose_state(const char* reference, pc_nm_actor_pose* s)
+{
+    char path[1100];
+    snprintf(path, sizeof path, "%s.pose", reference);
+    FILE* f = fopen(path, "rb");
+    if (!f)
+        return 0;
+    int head[2], tail[4];
+    memset(s, 0, sizeof *s);
+    int ok = fread(head, sizeof head, 1, f) == 1 && head[0] == 0x45534f50 && head[1] > 0 && head[1] <= RENDER_MAX_BONES;
+    if (ok) {
+        s->bones = head[1];
+        ok = fread(s->turns, sizeof s->turns[0], (size_t)s->bones, f) == (size_t)s->bones && fread(s->scale_keys, sizeof s->scale_keys[0], (size_t)s->bones, f) == (size_t)s->bones
+            && fread(tail, sizeof tail, 1, f) == 1;
+    }
+    fclose(f);
+    if (!ok) {
+        s->bones = 0;
+        return 0;
+    }
+    s->actor_scale = tail[0], s->rotation_x = tail[1], s->facing = tail[2], s->rotation_z = tail[3];
+    return 1;
+}
 
 static int read_reference(const char* path, reference_t* r)
 {
@@ -347,9 +373,10 @@ static int compare_reference(const loaded_model* lm, const reference_t* r, unsig
     return bad || !page_ok || !key_ok;
 }
 
-/* The skeleton against the game's: the animation the game started, decoded here, at the time that fits the game's bone matrices best (the game's
+/* (exact_pose: the game's own turns, read from its actor record, must be the player's bone for bone.)
+ * The skeleton against the game's: the animation the game started, decoded here, at the time that fits the game's bone matrices best (the game's
  * render replays a few frames from where it held, so the time is not known), every bone within a few units. */
-static int compare_pose(const loaded_model* lm, const reference_t* r, int animation, float tolerance)
+static int compare_pose(const loaded_model* lm, const reference_t* r, int animation, float tolerance, int exact_pose)
 {
     if (!lm->model.bone || lm->model.wep || r->bones > lm->model.bones)
         return 0;
@@ -372,11 +399,35 @@ static int compare_pose(const loaded_model* lm, const reference_t* r, int animat
     if (!a)
         return 1;
     int frames = pc_nm_anim_frames(a), best_time = 0, best_within = -1;
+    int best_exact = -1, exact_time = 0, exact_bone_diff = 0, exact_worst = 4096;
+    char odd_scale[400] = ""; /* the game's own pose state (the turns and scale keys) against the player's, bone for bone */
     float best_worst = 1e30f;
     char odd[160] = "";
     for (int t = 1; t <= (frames < 400 ? frames : 400) + 1; t++) {
         pc_nm_pose pose;
         pc_nm_anim_pose(a, t, &pose);
+        if (r->state.bones) {
+            pc_nm_pose game;
+            pc_nm_pose_read(&r->state, &game);
+            int same = 0, worst_turn = 0;
+            for (int i = 0; i < r->state.bones; i++) {
+                for (int k = 0; k < 3; k++) {
+                    int d = (pose.rot[i][k] - game.rot[i][k]) & 0xfff;
+                    if (d > 2048)
+                        d = 4096 - d;
+                    worst_turn = d > worst_turn ? d : worst_turn;
+                }
+                same += !memcmp(pose.rot[i], game.rot[i], sizeof pose.rot[i]) && !memcmp(pose.scale[i], game.scale[i], sizeof pose.scale[i]);
+            }
+            if (same > best_exact || (same == best_exact && worst_turn < exact_worst)) {
+                best_exact = same, exact_time = t, exact_worst = worst_turn;
+                odd_scale[0] = 0;
+                for (int i = 0; i < r->state.bones; i++)
+                    if (memcmp(pose.scale[i], game.scale[i], sizeof pose.scale[i]))
+                        snprintf(odd_scale + strlen(odd_scale), sizeof odd_scale - strlen(odd_scale), " %d: (%d %d %d) not (%d %d %d)", i, pose.scale[i][0], pose.scale[i][1], pose.scale[i][2],
+                            game.scale[i][0], game.scale[i][1], game.scale[i][2]);
+            }
+        }
         for (int k = 0; k < 3; k++)
             pose.position[k] = r->palette[0].translation[k] - pose.offset[k];
         render_transform out[RENDER_MAX_BONES];
@@ -401,7 +452,14 @@ static int compare_pose(const loaded_model* lm, const reference_t* r, int animat
     pc_nm_anim_close(a);
     fprintf(stderr, "[rood-studio] pose: animation %d (%d frames), the closest time %d: %d of %d bones within %.0f units (largest error %.2f); not matched:%s\n",
         animation, frames, best_time, best_within, r->bones, tolerance, best_worst, best_within == r->bones ? " none" : odd);
-    return best_within != r->bones;
+    if (r->state.bones) {
+        exact_bone_diff = r->state.bones - best_exact;
+        fprintf(stderr, "[rood-studio] pose state: the game's turns and scale keys against the player's: time %d, %d of %d bones equal, the largest turn difference %d of 4096%s\n", exact_time,
+            best_exact, r->state.bones, exact_worst, exact_bone_diff ? " DIFFER" : "");
+        if (odd_scale[0])
+            fprintf(stderr, "[rood-studio] pose state: scale keys that differ (the player's, then the game's):%s\n", odd_scale);
+    }
+    return best_within != r->bones || (exact_pose && exact_bone_diff != 0);
 }
 
 /* The slot geometry against the game's own slot records (rood_studio_smoke.py hands it vs_render_legacyActorTextureSlots, 24 records, then vs_battle_wepTextures, 20, as hex: the
@@ -504,11 +562,42 @@ static int check_catalog(void)
     return failures != 0;
 }
 
-/* An enemy's weapon (the second mesh the game's studio dumped, <reference>.1): its polygons, page and CLUT words, key, and its bones from the holder's
- * hand bone in the game's palette. */
-static int compare_equipment(const loaded_model* body, const char* kind, const char* reference_path)
+/* A weapon placed from the decoded model's pose (the same pc_nm_weapon_pose the game reads from its weapon record) on the holder's hand matrix. */
+static int weapon_chain(const pc_nm_model* weapon, const render_transform* hand, render_transform* out)
 {
-    if (strcmp(kind, "enemy") || !body->zud)
+    pc_nm_weapon_pose pose;
+    if (pc_nm_weapon_pose_of(weapon, &pose) < 0)
+        return -1;
+    return pc_nm_weapon_transforms(&pose, hand, out);
+}
+
+/* The weapon pose state the game wrote beside a weapon's dump (<path>.pose.weapon); 0 when it is not there. */
+static int read_weapon_pose_state(const char* reference, pc_nm_weapon_pose* pose)
+{
+    char path[1100];
+    snprintf(path, sizeof path, "%s.pose.weapon", reference);
+    FILE* f = fopen(path, "rb");
+    if (!f)
+        return 0;
+    int magic = 0;
+    int ok = fread(&magic, sizeof magic, 1, f) == 1 && magic == 0x534f5057 && fread(pose, sizeof *pose, 1, f) == 1;
+    fclose(f);
+    return ok;
+}
+
+/* The weapon the game drew in the hand, as matched: kept for the picture (its model, and the game's own dump of it: the bones and the page words it drew with). */
+typedef struct {
+    loaded_model weapon;
+    reference_t ref;
+    int have;
+} equipment_t;
+
+/* A held weapon (the second mesh the game's studio dumped, <reference>.1): an enemy's out of its ZUD, or a character's (`hold`, the file the studio was asked to put in its
+ * hand): its polygons, page and CLUT words, key, the pose its placement reads (exactly the game's), and its bones from the holder's hand bone in the game's palette. */
+static int compare_equipment(const loaded_model* body, const char* kind, const char* reference_path, const unsigned char* hold, unsigned hold_size, int hold_material, equipment_t* keep)
+{
+    int from_zud = !strcmp(kind, "enemy") && body->zud;
+    if (!from_zud && !hold)
         return 0;
     char second[512];
     snprintf(second, sizeof second, "%s", reference_path);
@@ -521,10 +610,16 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
     if (read_reference(second, &ref))
         return 0;
     const unsigned char* z = body->zud;
-    unsigned offset = (unsigned)(z[16] | z[17] << 8 | z[18] << 16 | (unsigned)z[19] << 24), length = (unsigned)(z[20] | z[21] << 8 | z[22] << 16 | (unsigned)z[23] << 24);
-    if (!z[1] || !length || offset + length > body->zud_size) {
-        fprintf(stderr, "[rood-studio] equipment: the game drew a weapon the ZUD does not hold\n");
-        return 1;
+    const unsigned char* file = hold;
+    unsigned offset = 0, length = hold_size;
+    int material = hold_material;
+    if (from_zud) {
+        offset = (unsigned)(z[16] | z[17] << 8 | z[18] << 16 | (unsigned)z[19] << 24), length = (unsigned)(z[20] | z[21] << 8 | z[22] << 16 | (unsigned)z[23] << 24);
+        file = z + offset, material = z[3];
+        if (!z[1] || !length || offset + length > body->zud_size) {
+            fprintf(stderr, "[rood-studio] equipment: the game drew a weapon the ZUD does not hold\n");
+            return 1;
+        }
     }
     /* the game's slot for it: the page column says which pair of slots, the first polygon's u which of the two */
     int status = 1;
@@ -532,7 +627,7 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
         if (slot / 2 != (int)(ref.tpage & 15))
             continue;
         loaded_model w;
-        if (load_wep_part(&w, z + offset, length, slot, 0xF0, z[3]))
+        if (load_wep_part(&w, file, length, slot, 0xF0, material))
             continue;
         render_polygon* mine = NULL;
         int count = pc_nm_polygons(&w.model, w.u_add, w.v_add, &mine);
@@ -541,10 +636,19 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
         if (same) {
             fprintf(stderr, "[rood-studio] weapon in slot %d: ", slot);
             status = compare_reference(&w, &ref, 0, 0);
+            /* the pose the placement reads: the game's, from its weapon record by its names, against the decoded model's, exactly */
+            pc_nm_weapon_pose game_pose, mine_pose;
+            if (read_weapon_pose_state(second, &game_pose)) {
+                int ok = pc_nm_weapon_pose_of(&w.model, &mine_pose) >= 0 && game_pose.bones == mine_pose.bones && game_pose.scale == mine_pose.scale;
+                for (int i = 0; ok && i < mine_pose.bones; i++)
+                    ok = game_pose.parent[i] == mine_pose.parent[i] && game_pose.parent_length[i] == mine_pose.parent_length[i] && !memcmp(game_pose.turns[i], mine_pose.turns[i], sizeof game_pose.turns[i]);
+                fprintf(stderr, "[rood-studio] the weapon's pose (scale, parents, lengths, turns of %d bones) against the game's record: %s\n", game_pose.bones, ok ? "equal" : "DIFFER");
+                status |= !ok;
+            }
             /* the hand's matrix is the game's own (its bone 0), the others come from it: the chain, not the pose, is what is compared (the hand bone is not
              * one of the body mesh's, so the body's dump has no matrix for it) */
             render_transform chain[RENDER_MAX_BONES];
-            if (pc_nm_find_bone(&body->model, 0xF0) >= 0 && pc_nm_weapon_transforms(&w.model, &ref.palette[0], chain) >= 0) {
+            if (pc_nm_find_bone(&body->model, 0xF0) >= 0 && weapon_chain(&w.model, &ref.palette[0], chain) >= 0) {
                 float worst = 0;
                 for (int i = 0; i < ref.bones && i < w.model.bones; i++)
                     for (int a = 0; a < 3; a++) {
@@ -557,6 +661,11 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
             } else
                 status = 1;
         }
+        if (same && !status && keep) { /* kept for the picture */
+            keep->weapon = w, keep->ref = ref, keep->have = 1;
+            ref.polygon = NULL;
+            break;
+        }
         free_model(&w);
     }
     if (status)
@@ -567,7 +676,7 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
 static int run_fixed(int argc, char** argv)
 {
     const char* kind = "character";
-    int id = 3, frames = 0, slot = 8, check = 0, animation = 0;
+    int id = 3, frames = 0, slot = 8, check = 0, animation = 0, exact_pose = 0, hold = -1, hold_material = 0;
     const char* slots_hex = NULL;
     float tolerance = 4;
     const char *dump = NULL, *reference_path = NULL, *look = "neutral";
@@ -603,6 +712,12 @@ static int run_fixed(int argc, char** argv)
             expect_key = strtoull(argv[++i], NULL, 16), have_key = 1;
         else if (!strcmp(argv[i], "--check-catalog"))
             check = 1;
+        else if (!strcmp(argv[i], "--exact-pose"))
+            exact_pose = 1;
+        else if (!strcmp(argv[i], "--hold") && i + 1 < argc)
+            hold = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--hold-material") && i + 1 < argc)
+            hold_material = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--check-slots") && i + 1 < argc)
             slots_hex = argv[++i];
     }
@@ -621,11 +736,15 @@ static int run_fixed(int argc, char** argv)
     reference_t ref;
     memset(&ref, 0, sizeof ref);
     int have_ref = reference_path && read_reference(reference_path, &ref) == 0;
+    if (have_ref)
+        read_pose_state(reference_path, &ref.state);
     if (reference_path && !have_ref) {
         fprintf(stderr, "[rood-studio] cannot read the reference %s\n", reference_path);
         return 1;
     }
     int status = 0;
+    equipment_t held;
+    memset(&held, 0, sizeof held);
     if (have_ref && strcmp(kind, "weapon")) {
         /* the game puts a model in the first free texture slot of its kind: the slot the reference stands in, from its page and how far its texture
          * coordinates were moved down the page */
@@ -651,9 +770,17 @@ static int run_fixed(int argc, char** argv)
     }
     if (have_ref) {
         status |= compare_reference(&lm, &ref, expect_key, have_key);
-        status |= compare_equipment(&lm, kind, reference_path);
+        unsigned char* hold_file = NULL;
+        unsigned hold_size = 0;
+        if (hold >= 0 && strcmp(kind, "character") == 0) { /* a character holding a weapon: its file from the disc */
+            char path[32];
+            snprintf(path, sizeof path, "OBJ/%02X.WEP", hold);
+            if (!disc(path, &hold_file, &hold_size))
+                return 1;
+        }
+        status |= compare_equipment(&lm, kind, reference_path, hold_file, hold_size, hold_material, &held);
         if (lm.model.bone && !lm.model.wep)
-            status |= compare_pose(&lm, &ref, animation, tolerance);
+            status |= compare_pose(&lm, &ref, animation, tolerance, exact_pose);
         if (!dump)
             return status;
     }
@@ -772,6 +899,17 @@ static int run_fixed(int argc, char** argv)
             in.color[0] = colour & 0xff, in.color[1] = colour >> 8 & 0xff, in.color[2] = colour >> 16 & 0xff;
             in.tpage = (uint16_t)lm.tpage, in.clut = (uint16_t)lm.clut;
             render_list_add(list, &in);
+            if (held.have) { /* the held weapon, on the game's own bones for it and with the page words it drew with */
+                render_instance wi;
+                memset(&wi, 0, sizeof wi);
+                wi.mesh = held.weapon.mesh;
+                wi.palette = held.ref.palette;
+                wi.bones = held.weapon.bones;
+                wi.override = held.ref.override_flags;
+                wi.color[0] = held.ref.colour & 0xff, wi.color[1] = held.ref.colour >> 8 & 0xff, wi.color[2] = held.ref.colour >> 16 & 0xff;
+                wi.tpage = (uint16_t)held.weapon.tpage, wi.clut = (uint16_t)held.weapon.clut;
+                render_list_add(list, &wi);
+            }
             pc_item* it = pc_frame_add(PC_ITEM_NATIVE, 0);
             if (it)
                 it->mode = PC_ITEM_INHERIT, it->native_list = list & 0xffffff;
@@ -852,6 +990,17 @@ static int load_shown(shown_t* sh, const pc_studio_app_view* v)
                 pc_nm_table_from_block(z + offset, length, part == 3 ? &sh->common : &sh->battle);
         }
     }
+    if (!strcmp(v->kind, "character") && v->hold >= 0) { /* a weapon in the hand bone that carries 0xF0 (the studio's data model.hold) */
+        char path[32];
+        snprintf(path, sizeof path, "OBJ/%02X.WEP", v->hold);
+        unsigned char* file;
+        unsigned size;
+        if (disc(path, &file, &size)) {
+            if (load_wep_part(&sh->weapon, file, size, 4, 0xF0, v->hold_material) == 0)
+                sh->has_weapon = 1;
+            free(file);
+        }
+    }
     if (!strcmp(v->kind, "enemy") && v->scene.equipment && sh->body.zud) {
         const unsigned char* z = sh->body.zud;
         for (int part = 0; part < 2; part++) {
@@ -904,7 +1053,7 @@ static int pose_shown(shown_t* sh, const pc_studio_app_view* v, float lo[3], flo
         if (pc_nm_pose_transforms(&sh->rig.model, &sh->pose, sh->body_palette) < 0)
             return -1;
         int hand = pc_nm_find_bone(&sh->rig.model, 0xF0);
-        if (hand < 0 || pc_nm_weapon_transforms(&sh->weapon.model, &sh->body_palette[hand], sh->weapon_palette) < 0)
+        if (hand < 0 || weapon_chain(&sh->weapon.model, &sh->body_palette[hand], sh->weapon_palette) < 0)
             return -1;
         parts[0] = &sh->weapon, palettes[0] = sh->weapon_palette;
     } else if (sh->body.mesh) {
@@ -912,10 +1061,10 @@ static int pose_shown(shown_t* sh, const pc_studio_app_view* v, float lo[3], flo
             return -1;
         parts[0] = &sh->body, palettes[0] = sh->body_palette;
         int hand = pc_nm_find_bone(&sh->body.model, 0xF0);
-        if (sh->has_weapon && hand >= 0 && pc_nm_weapon_transforms(&sh->weapon.model, &sh->body_palette[hand], sh->weapon_palette) >= 0)
+        if (sh->has_weapon && hand >= 0 && weapon_chain(&sh->weapon.model, &sh->body_palette[hand], sh->weapon_palette) >= 0)
             parts[1] = &sh->weapon, palettes[1] = sh->weapon_palette;
         int off = pc_nm_find_bone(&sh->body.model, 0xF1);
-        if (sh->has_shield && off >= 0 && pc_nm_weapon_transforms(&sh->shield.model, &sh->body_palette[off], sh->shield_palette) >= 0)
+        if (sh->has_shield && off >= 0 && weapon_chain(&sh->shield.model, &sh->body_palette[off], sh->shield_palette) >= 0)
             parts[2] = &sh->shield, palettes[2] = sh->shield_palette;
     } else
         return 0;
