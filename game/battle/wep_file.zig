@@ -25,24 +25,11 @@ pub const WepFile = extern struct {
     /// The file's palette size byte: 96 is a double palette.
     palette_size: u8,
     offsets: [*]const u8,
-    /// The first palette (16 or 32 colours).
-    palette_first: [*]const u8,
-    /// The seven palettes that follow it.
-    palettes: [*]const u8,
-    texture: [*]const u8,
     /// The bone info after the texture: 8 bytes per bone.
     bone_info: [*]const u8,
 
     pub fn doublePalette(self: *const WepFile) bool {
         return self.palette_size == 96;
-    }
-    /// Bytes of the first palette.
-    pub fn firstPaletteBytes(self: *const WepFile) usize {
-        return if (self.doublePalette()) 64 else 32;
-    }
-    /// Bytes of each of the seven palettes.
-    pub fn paletteBytes(self: *const WepFile) usize {
-        return if (self.doublePalette()) 128 else 64;
     }
 };
 
@@ -58,9 +45,6 @@ pub fn decode(at: usize) ?*WepFile {
     file.tex_width = parts.tex_width;
     file.palette_size = @intCast(parts.palette_size);
     file.offsets = parts.offsets;
-    file.palette_first = parts.palette_first;
-    file.palettes = parts.palettes;
-    file.texture = parts.texture;
     file.bone_info = parts.bone_info;
     return file;
 }

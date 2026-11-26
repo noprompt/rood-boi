@@ -579,19 +579,16 @@ static void flush(void);
  * else is drawn, then laid out as lines (text_run_flush, below). */
 static int text_piece_count, text_emitting;
 static void text_run_flush(void);
-/* The drawing areas the ordering table being drawn drew in (STALE_MISSING; pc_hw_begin_ot .. pc_hw_end_ot): the target's picture
- * replaces the game's VRAM there before anything reads it (pc_hw_sync). Only this table's own marks count for own copies, so the
- * choice is the same in a game resumed from a save state (whose host state starts empty) as in the game that saved it. */
-/* The renderer's own stale set (the producer keeps its copy in hw_registry.c: pc_hwr_stale). */
+/* The drawn areas (hw_registry.h): where the target holds what the game's VRAM lacks; a draw that samples one takes own copies of it. */
 static pc_stale_set cstale;
-void pc_hw_end_ot(void) { PC_HW_METER(end_ot); cstale.in_ot = 0, cstale.ot_count = 0; }
+void pc_hw_end_ot(void) { PC_HW_METER(end_ot); cstale.in_ot = 0; }
 /* The renderer's part of a table's start; the registrations, the bubbles' frame and the suppress flag are the producer's
  * (hw_registry.c pc_hwr_begin_ot, called by pc_hwc_begin_ot). */
 void pc_hw_begin_ot(void)
 { PC_HW_METER(begin_ot);
     photo_restored = 0;
     pc_screen_owner_begin();
-    cstale.in_ot = 1, cstale.ot_count = 0;
+    cstale.in_ot = 1;
     if (text_piece_count && !text_emitting)
         text_run_flush(); /* the previous table's last text */
     if (pc_widescreen_trace > 0 && !--pc_widescreen_trace)
@@ -723,7 +720,7 @@ static uint32_t own_bands[16];
 static void own_apply(void);
 static const uint16_t* native_vram;
 /* The renderer's VRAM (T5 S2): what the stream's commands (upload, fill, copy: each applied at its event, from the game's
- * array as that command left it) and the GPU read-backs (sync_kinds) have made, and nothing else. The sampled copy, the UI
+ * array as that command left it) and the captures have made, and nothing else. The sampled copy, the UI
  * text and upscale lookups and the replays' undo read this array, not the game's: pixels only the CPU rasterizer wrote are
  * not in it unless a read-back brought them. ROOD_VRAM_RENDERER=native samples the game's array again (the comparison). */
 static uint16_t rvram[1024 * 512];
@@ -2254,7 +2251,7 @@ static void record_triangle(const float* world, unsigned code, unsigned tpage, u
 /* Queue one triangle; state is the CPU rasterizer's at the time of drawing.
  * Returns 1 when a native draw covers it and the CPU's reference VRAM is
  * not kept for its kind: the CPU
- * rasterizer may skip it (its area is then stale until pc_hw_sync). */
+ * rasterizer may skip it (its area is then drawn only in the target). */
 static void mark_stale(const int* clip);
 enum { STALE_MISSING = PC_STALE_MISSING, STALE_PLACED = PC_STALE_PLACED, STALE_DRAWN = PC_STALE_DRAWN }; /* (the stale lists, below) */
 static void mark_stale_kind(const int* clip, int kind);
@@ -2355,7 +2352,7 @@ void pc_hw_drawn_area(const int* clip, const int* b, int* area)
     int x1 = b[2] + 2 < clip[0] + clip[2] ? b[2] + 2 : clip[0] + clip[2], y1 = b[3] + 2 < clip[1] + clip[3] ? b[3] + 2 : clip[1] + clip[3];
     area[0] = x0, area[1] = y0, area[2] = x1 > x0 ? x1 - x0 : 0, area[3] = y1 > y0 ? y1 - y0 : 0;
 }
-void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int effect, pc_stale_set* stale,
+void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int effect, int mark,
     int suppress, const int* bounds, pc_hw_tri_decision* out)
 {
     memcpy(out->area, clip, sizeof out->area);
@@ -2374,9 +2371,7 @@ void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const i
     if (range && range->covered) {
         out->stats |= 1u << 0;
         out->action = PC_HW_TRI_RESET;
-        if (stale)
-            pc_stale_mark(stale, clip, PC_STALE_MISSING); /* (the renderer marks its own set when it applies the decision) */
-        out->mark = 1;
+        out->mark = 1; /* (the renderer marks its set when it applies the decision) */
         pc_hw_meter_result(PC_HW_triangle, PC_HW_WHY_TRI_EFFECT_STALE, 1);
         out->skip = 1;
         return;
@@ -2385,13 +2380,10 @@ void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const i
         out->stats |= 1u << 1;
     /* ui: screen furniture, its texture may be magnified (pc_ui_upscale); not an effect's items (world geometry). */
     out->action = PC_HW_TRI_DRAW, out->ui = is_2d && !range, out->other = !is_2d;
-    if (stale) { /* what it draws is the target's alone: game VRAM lacks it (the renderer marks its own set when it applies the decision) */
+    if (mark) { /* what it draws is the target's alone: game VRAM lacks it (the renderer marks its set when it applies the decision) */
         pc_hw_drawn_area(clip, bounds, out->area);
-        pc_stale_mark(stale, out->area, PC_STALE_DRAWN);
         out->mark = 1;
     }
-    if (stale && pc_hwc_mirror.widescreen && layout_enabled())
-        pc_stale_mark(stale, clip, PC_STALE_PLACED); /* (the renderer's apply marks its own set the same) */
 }
 /* The renderer's part: queue the triangle (or, for a left-out one, drop the pending depth and precise positions). */
 static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage, unsigned clut,
@@ -2726,7 +2718,7 @@ int pc_hw_triangle(const int* xy, const int* uv, const int* rgb, unsigned code, 
     const int* clip, int mask_set, int mask_check)
 { PC_HW_METER(triangle);
     pc_hw_tri_decision decision;
-    pc_hw_triangle_decide(uv, code, tpage, clip, primitive_2d, poly_effect, NULL, rsuppress, NULL, &decision);
+    pc_hw_triangle_decide(uv, code, tpage, clip, primitive_2d, poly_effect, 0, rsuppress, NULL, &decision);
     pc_hw_triangle_apply(xy, uv, rgb, code, tpage, clut, window, clip, mask_set, mask_check, &decision);
     return decision.skip;
 }
@@ -4497,14 +4489,10 @@ void pc_hw_native_translucent(uint32_t list, int first, int count, int ox, int o
 
 /* ---- keeping native VRAM current ----
  *
- * Without reference packets the CPU's
- * native VRAM lacks what native draws covered. Every drawing area that
- * happened to is remembered as stale; before the CPU reads VRAM there
- * (StoreImage, VRAM copies, textures sampled by any primitive, RPC
- * screenshots, checkpoints) pc_hw_sync copies the scaled target back into
- * native VRAM (the centre sample of each native pixel, 5 bits per channel as
- * the CPU rasterizer quantizes, the mask bit from alpha), so readers see
- * what the window shows. */
+ * The renderer's VRAM lacks what the target drew. Every drawing area is
+ * remembered (the drawn areas); a draw that samples one takes own copies of
+ * it (own_apply), and the game's frame reads, screenshots and checkpoints are
+ * captures of exactly the rectangle they name (pc_hw_capture_read). */
 /* Why each is stale: STALE_MISSING, native VRAM lacks what native draws
  * drew; STALE_PLACED, widescreen placed what is drawn there differently
  * (2D compressed or spread over the view, Hor+ 3D). StoreImage reads back
@@ -4513,10 +4501,8 @@ void pc_hw_native_translucent(uint32_t list, int first, int count, int ox, int o
  * background, its menu over its background) matches the 2D drawn by the
  * game, compressed. */
 static GLuint sync_fbo, sync_texture;
-int pc_hw_syncs; /* rectangles copied back (diagnostics) */
 static void mark_stale(const int* clip) { mark_stale_kind(clip, STALE_MISSING); }
 static void mark_stale_kind(const int* clip, int kind) { pc_stale_mark(&cstale, clip, kind); }
-static void sync_kinds(int x, int y, int w, int h, int kinds);
 /* Where the read-backs of the request being run put their pixels (renderer_rq.h); NULL: into the game's array, on this thread. */
 static pc_rq_readback* readback_reply;
 void pc_hw_readback_into(pc_rq_readback* reply) { readback_reply = reply; }
@@ -4576,7 +4562,7 @@ static void pixels_to_vram(const unsigned char* pixels, int x0, int y0, int x1, 
  * the live target (replay: the replay target) on the GPU: what
  * read_native_pixels, pixels_to_vram and an upload make of it, without the
  * GPU's work so far being waited for. Native VRAM is not changed. 0: not
- * here (ROOD_GPU_VRAM_COPY=0, or Vulkan without R16 storage images): the
+ * here (Vulkan without R16 storage images): the
  * caller reads back. */
 static GLuint vram_copy_fbo, vram_copy_program;
 static GLint u_vram_copy_target, u_vram_copy_scale, u_vram_copy_average;
@@ -4609,17 +4595,10 @@ static const char* vram_copy_fragment_source = /* (pc/shaders/vulkan/vram_from_t
     "    uvec4 c = uvec4(round(sum / n * 255.0));\n"
     "    vram = uvec4((c.r >> 3) | ((c.g >> 3) << 5) | ((c.b >> 3) << 10) | (c.a >= 128u ? 0x8000u : 0u));\n"
     "}\n";
-static int vram_copy_enabled = -1;
-int pc_hw_own_copies_enabled(void);
-static int own_copies_enabled(void)
-{
-    if (vram_copy_enabled < 0)
-        vram_copy_enabled = !getenv("ROOD_GPU_VRAM_COPY") || atoi(getenv("ROOD_GPU_VRAM_COPY")) != 0;
-    return vram_copy_enabled;
-}
+static int vram_copy_failed; /* (the GL copy program did not build: own_apply reads back) */
 static int vram_from_target(int replay_target, int x0, int y0, int x1, int y1)
 {
-    if (!own_copies_enabled())
+    if (vram_copy_failed)
         return 0;
     if (x1 <= x0 || y1 <= y0)
         return 1;
@@ -4634,7 +4613,7 @@ static int vram_from_target(int replay_target, int x0, int y0, int x1, int y1)
         if (!vram_copy_program) {
             vram_copy_program = pc_gl_program(vram_copy_vertex_source, vram_copy_fragment_source);
             if (!vram_copy_program) {
-                vram_copy_enabled = 0;
+                vram_copy_failed = 1;
                 return 0;
             }
             u_vram_copy_target = gl_GetUniformLocation(vram_copy_program, "target");
@@ -4668,64 +4647,29 @@ static int vram_from_target(int replay_target, int x0, int y0, int x1, int y1)
     pc_cost_count(PC_COUNT_GPU_COPIES, (unsigned)done);
     return done;
 }
-void pc_hw_sync(int x, int y, int w, int h) { PC_HW_METER(sync); sync_kinds(x, y, w, h, STALE_MISSING | STALE_PLACED); }
-static void sync_kinds(int x, int y, int w, int h, int kinds)
+/* An own copy where the GPU cannot copy (Vulkan without R16 storage images): the target's pixels of the rectangle, read back into the renderer's
+ * VRAM (the game's array is not written: nothing on the game's side reads it any more). */
+static void capture_into_renderer(int x0, int y0, int x1, int y1)
 {
-    if (!pc_hw_active || !pc_stale_any(&cstale) || w <= 0 || h <= 0)
+    if (!pc_hw_active || x1 <= x0 || y1 <= y0)
         return;
-    for (int list = 0; list < 2; list++) {
-    uint32_t* cells = list ? cstale.placed : cstale.missing;
-    if (!(kinds & (list ? STALE_PLACED : STALE_MISSING)))
-        continue;
-    int box[4];
-    if (!pc_stale_bbox(cells, x, y, w, h, box))
-        continue;
-    /* Copy back the stale cells the request meets (their bounding box: the held text baked into the picture for it is only what lies
-     * there, not a whole drawing area's); every other cell stays as it was. */
-    int x0 = box[0], y0 = box[1], x1 = box[2], y1 = box[3];
-    static int debug = -1;
-    if (debug < 0)
-        debug = getenv("ROOD_SYNC_DEBUG") != NULL;
-    if (debug)
-        fprintf(stderr, "[sync] read %d,%d %dx%d: stale cells %d,%d..%d,%d from %p\n", x, y, w, h, x0, y0, x1, y1, __builtin_return_address(0));
     flush();
     overlay_bake_rect(x0, y0, x1, y1);
     if (ms_scope == target_fbo)
         ms_end_over(x0, y0, x1 - x0, y1 - y0);
     static unsigned char pixels[1024 * 512 * 4];
     read_native_pixels(target_fbo, x0, y0, x1, y1, pixels);
-    if (readback_reply && readback_reply->count < 8) {
-        /* a request's reply (renderer_rq.h): the pixels travel back and the game side takes them into its array */
-        int w = x1 - x0, h = y1 - y0;
-        uint16_t* packed = malloc((size_t)w * (size_t)h * sizeof *packed);
-        if (packed) {
-            const unsigned char* src = pixels;
-            for (int i = 0; i < w * h; i++, src += 4)
-                packed[i] = (uint16_t)((src[0] >> 3) | ((src[1] >> 3) << 5) | ((src[2] >> 3) << 10) | (src[3] >= 128 ? 0x8000 : 0));
-            int k = readback_reply->count++;
-            readback_reply->rect[k].x = x0, readback_reply->rect[k].y = y0, readback_reply->rect[k].w = w, readback_reply->rect[k].h = h;
-            readback_reply->rect[k].pixels = packed;
-            rvram_put(x0, y0, w, h, packed); /* the read-back is the renderer's too */
-        }
-    } else {
-        pixels_to_vram(pixels, x0, y0, x1, y1, (uint16_t*)(uintptr_t)native_vram);
-        rvram_put(x0, y0, x1 - x0, y1 - y0, NULL); /* (from the game's array) */
-    }
+    int w = x1 - x0, h = y1 - y0;
+    uint16_t* packed = malloc((size_t)w * (size_t)h * sizeof *packed);
+    if (!packed)
+        return;
+    const unsigned char* src = pixels;
+    for (int i = 0; i < w * h; i++, src += 4)
+        packed[i] = (uint16_t)((src[0] >> 3) | ((src[1] >> 3) << 5) | ((src[2] >> 3) << 10) | (src[3] >= 128 ? 0x8000 : 0));
+    rvram_put(x0, y0, w, h, packed);
+    free(packed);
     pc_vram_taint(x0, y0, x1, y1); /* ROOD_VRAM_STREAM_CHECK: not the stream's */
     mark_dirty(x0, y0, x1 - 1, y1 - 1); /* the sampled copy follows */
-    ++pc_hw_syncs;
-    /* The game's VRAM is current there now. */
-    for (int k = 0; k < cstale.ot_count;) {
-        const int* o = cstale.ot[k];
-        if (o[0] < x1 && x0 < o[2] && o[1] < y1 && y0 < o[3]) {
-            pc_hw_meter_result(PC_HW_sync, PC_HW_WHY_OT_STALE_READBACK, 1);
-            memmove(cstale.ot[k], cstale.ot[k + 1], (size_t)(--cstale.ot_count - k) * sizeof cstale.ot[0]);
-        }
-        else
-            ++k;
-    }
-    pc_stale_clear(cells, x0, y0, x1, y1);
-    }
 }
 /* A capture: the target's picture of the rectangle (x, y, w, h) as it is, read in one blit of exactly that extent. The extent is the
  * request's, never a stale rectangle's: the driver's nearest blit places its samples by the extent it is given (measured with a probe:
@@ -4813,7 +4757,6 @@ static void own_add(int x, int y, int w, int h)
 }
 /* At the primitive's first triangle: its own copies, from the target as
  * drawn so far (or, where the GPU cannot, read back as before). */
-static int stale_covers(const int* clip) { return pc_stale_covers(&cstale, clip); }
 static void own_apply(void)
 {
     flush();
@@ -4852,7 +4795,7 @@ static void own_apply(void)
             bands_for(r[0], r[1], r[0] + r[2] - 1, r[1] + r[3] - 1, own_bands);
         else {
             uint32_t bands[16] = { 0 };
-            pc_hw_sync(r[0], r[1], r[2], r[3]);
+            capture_into_renderer(r[0], r[1], r[0] + r[2], r[1] + r[3]);
             bands_for(r[0], r[1], r[0] + r[2] - 1, r[1] + r[3] - 1, bands);
             upload_dirty(bands);
         }
@@ -4898,26 +4841,17 @@ void pc_hw_sync_texture(unsigned tpage, unsigned clut, unsigned window, int u0, 
     int x0 = reach[0][0], x1 = reach[0][2], ty0 = reach[0][1];
     if (sync_debug < 0)
         sync_debug = getenv("ROOD_SYNC_DEBUG") != NULL;
-    own_want_valid = 0;
-    if (own_copies_enabled()) { /* (the sampled copy takes its texels on the GPU: the CPU rasterizer that read them back into the game's VRAM is gone, and a read-back per sampling draw stalls the renderer and bakes the held text; ROOD_GPU_VRAM_COPY=0 reads back) */
-        own_want[0] = x0, own_want[1] = ty0, own_want[2] = (x1 > 1023 ? 1023 : x1) + 1, own_want[3] = reach[0][3] + 1;
-        own_want_valid = depth == 2;
-        own_add(x0, ty0, (x1 > 1023 ? 1023 : x1) - x0 + 1, v1 - v0 + 1);
-        if (depth < 2)
-            own_add(reach[1][0], reach[1][1], reach[1][2] - reach[1][0] + 1, 1);
-        own_active = own_count > 0;
-        if (sync_debug && own_count)
-            fprintf(stderr, "[sync] own copy: texture page %x clut %x uv %d,%d..%d,%d into %d,%d %dx%d\n", tpage, clut,
-                u0, v0, u1, v1, clip[0], clip[1], clip[2], clip[3]);
-        return;
-    }
-    pc_hw_sync(x0, ty0, (x1 > 1023 ? 1023 : x1) - x0 + 1, v1 - v0 + 1);
-    if (depth < 2) {
-        if (sync_debug)
-            fprintf(stderr, "[sync] texture page %x clut %x window %x uv %d,%d..%d,%d packet %p\n", tpage, clut, window,
-                u0, v0, u1, v1, (void*)current_packet);
-        pc_hw_sync(reach[1][0], reach[1][1], reach[1][2] - reach[1][0] + 1, 1);
-    }
+    /* The sampled copy takes its texels on the GPU (own copies): a read-back per sampling draw stalled the renderer and baked the held
+     * text. (own_apply reads back only where the GPU cannot copy.) */
+    own_want[0] = x0, own_want[1] = ty0, own_want[2] = (x1 > 1023 ? 1023 : x1) + 1, own_want[3] = reach[0][3] + 1;
+    own_want_valid = depth == 2;
+    own_add(x0, ty0, (x1 > 1023 ? 1023 : x1) - x0 + 1, v1 - v0 + 1);
+    if (depth < 2)
+        own_add(reach[1][0], reach[1][1], reach[1][2] - reach[1][0] + 1, 1);
+    own_active = own_count > 0;
+    if (sync_debug && own_count)
+        fprintf(stderr, "[sync] own copy: texture page %x clut %x uv %d,%d..%d,%d into %d,%d %dx%d\n", tpage, clut,
+            u0, v0, u1, v1, clip[0], clip[1], clip[2], clip[3]);
 }
 
 /* ---- frame interpolation ----
@@ -5640,7 +5574,7 @@ static void copy_to_replay(int x0, int y0, int x1, int y1)
  * an earlier draw's area): the game copies parts of its own picture (the
  * original Status screen redraws the rows under its information line from
  * the frame buffer each frame). Drawn live, it sampled the target as drawn
- * so far (pc_hw_sync), widescreen's compressed 2D included. */
+ * so far (own copies), widescreen's compressed 2D included. */
 static int op_feedback(const recording* b, int o)
 {
     const recorded_op* op = &b->ops[o];
@@ -5662,7 +5596,7 @@ static int op_feedback(const recording* b, int o)
 }
 /* For a replayed op_feedback batch: the sampled copy of VRAM over its texels
  * becomes the replay target as replayed so far (what the live draw sampled,
- * with this replay's moved 3D), as pc_hw_sync makes it for the live one.
+ * with this replay's moved 3D), as own copies make it for the live one.
  * Redrawn from native VRAM instead (the CPU's 4:3 picture: 2D not
  * compressed; or a newer frame's drawing), it drew misplaced copies of the
  * text at 16:9. Returns the tiles to upload from native VRAM again after
@@ -6211,7 +6145,7 @@ static void close_frame(unsigned vsync)
     recording* now = recording_now();
     if (now->op_count || now->triangle_count) {
         packet_stats.stale_rects = pc_stale_cells(cstale.missing) + pc_stale_cells(cstale.placed);
-        packet_stats.vram_syncs = pc_hw_syncs;
+        packet_stats.vram_syncs = 0; /* (the game never waits for a read-back now; the field stays: the digest and RPC render_stats carry it) */
         render_frame_end(&packet_stats);
         memset(&packet_stats, 0, sizeof packet_stats);
         finish_recording(now);
@@ -6520,15 +6454,3 @@ GLuint pc_hw_native_texture_now(void)
 /* hw_registry.c reads the widescreen switches through these. */
 int pc_hw_layout_enabled(void) { return layout_enabled(); }
 int pc_hw_scene_enabled(void) { return scene_enabled(); }
-/* ROOD_STALE_CHECK=1 (hw_cmd.c): whether the producer's stale set is the renderer's (they run the same marks; the check is made where no record is pending). */
-int pc_hw_stale_matches(const pc_stale_set* p)
-{
-    if (memcmp(p->missing, cstale.missing, sizeof p->missing) || p->ot_count != cstale.ot_count || p->in_ot != cstale.in_ot)
-        return 0;
-    for (int i = 0; i < p->ot_count; i++)
-        if (memcmp(p->ot[i], cstale.ot[i], sizeof p->ot[i]))
-            return 0;
-    return 1;
-}
-void pc_hw_stale_get(pc_stale_set* out) { *out = cstale; }
-int pc_hw_own_copies_enabled(void) { return own_copies_enabled(); }

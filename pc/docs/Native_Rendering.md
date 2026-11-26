@@ -739,7 +739,7 @@ for the GPU where only the GPU needs the picture:
   batches that sample their own frame do the same from the replay target.
   Each read-back had waited for the GPU's whole frame so far (with path
   tracing on, several milliseconds: the sphere and the menus fell to 12-20
-  fps). `ROOD_GPU_VRAM_COPY=0` reads back as before.
+  fps). (The read-back alternative, `ROOD_GPU_VRAM_COPY=0`, is gone: own copies are the only path.)
 - **Stale 2D is not drawn on the CPU.** An ordering table that holds native
   draws (render.c markers, found by a pre-scan of its packets) marks its
   drawing area stale from its start, and the CPU rasterizer leaves out what

@@ -50,7 +50,6 @@ extern "C" {
     X(resync, 'V') \
     X(native_marker, 'A') \
     X(native_translucent, 'A') \
-    X(sync, 'V') \
     X(capture_read, 'V') \
     X(stale_copy, 'V') \
     X(ot_native_area, 'A') \
@@ -116,7 +115,6 @@ enum {
     PC_HW_WHY_TRI_SUPPRESSED,       /* suppressed (classic/UI claim) or the free camera's afterimage */
     PC_HW_WHY_TRI_EFFECT_STALE,     /* effect polygon covered by a native list (1) */
     PC_HW_WHY_TRI_DRAWN,            /* reconstructed and queued for the GPU (0) */
-    PC_HW_WHY_OT_STALE_READBACK,    /* not an answer: a stale area of the ordering table dropped because a read-back made it current */
     PC_HW_WHY_COUNT
 };
 void pc_hw_meter_result(int hook, int why, int value);

@@ -13,6 +13,7 @@ renderer was given for each. rood-studio then loads the same models from the dis
   - the app: started with no model its screen shows the panels (the catalog's list, the controls); summoning, orbiting, zooming, the turntable, the
     backdrops (solid black, grey and white are the colour to the level) and an enemy with its weapon and a weapon alone are all RPC `studio` actions on the
     running app, each changing the picture as it should;
+  - the texture slots against the game's own slot records (rood-studio --check-slots);
   - every model the catalog names decodes (rood-studio --check-catalog);
   - a normal start (the rest pose from the model's own sequence block, path tracing on) draws a model on the stage.
 Pictures are written to the output folder (PNG). Skips without the disc image."""
@@ -98,7 +99,7 @@ def run(out):
            "ROOD_MATERIAL_CATALOG_USER": str(work / "material_catalog_user.json")}
 
     # ---- the game's studio: the references and the pictures ----
-    refs, others = {}, {}
+    refs, others, slot_tables = {}, {}, b""
     g = Game.launch(fast=True, log=out / "game.log", extra_env={**env, "ROOD_STUDIO_BOOT": "1"})
     try:
         g.pause()
@@ -106,6 +107,7 @@ def run(out):
         g.call("studio", action="enter")
         g.call("studio", action="look", name="flat")
         g.run(1)
+        slot_tables = g.data("vs_render_legacyActorTextureSlots") + g.data("vs_battle_wepTextures")
         for kind, ident in ITEMS:
             g.call("studio", action="summon", kind=kind, id=ident)
             deadline = time.time() + 60
@@ -372,6 +374,10 @@ def run(out):
     finally:
         g.close()
         rood_rpc.BINARY = old_binary
+
+    # where a model's texture goes: native_model's slots against the game's own slot records (its init builds them from native_model's slots)
+    code, log = studio("--check-slots", slot_tables.hex())
+    check(code == 0, f"the texture slots are the game's records\n{log}")
 
     # every model the catalog names
     code, log = studio("--check-catalog")

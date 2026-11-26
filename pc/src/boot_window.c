@@ -828,7 +828,7 @@ int pc_window_present_rate(void)
 extern float pc_present_phase __attribute__((weak));
 extern int pc_hw_interpolate __attribute__((weak));
 extern int pc_hw_active __attribute__((weak));
-extern void pc_hw_sync(int, int, int, int) __attribute__((weak));
+extern void pc_hw_capture_read(int, int, int, int, int) __attribute__((weak)); /* gpu_hw.c: absent in unit probes */
 extern void pc_hwc_fence_sync(int, int, int, int); /* hw_cmd.c: the read-back of the rectangle into the game's VRAM */
 /* Present statistics (RPC present_stats). An image is noted as (field, phase): it shows the game frame of that field blended to that
  * fraction of the field (0 up to 1), so its time on the game's clock is field + phase fields. Intervals between presents are real
@@ -1060,7 +1060,7 @@ static void present_images(void* arg)
 void pc_present_post(const pc_present_request* in)
 {
     if (in->kind == PC_PRESENT_SYNC) {
-        if (pc_hw_sync)
+        if (pc_hw_capture_read)
             pc_hwc_fence_sync(in->x, in->y, in->w, in->h); /* a request: the renderer reads the rectangle back, this side takes it into its VRAM */
         return;
     }

@@ -10,26 +10,25 @@ const Memcpy = *const fn (?*anyopaque, ?*const anyopaque, usize) callconv(.c) ?*
 const Memset = *const fn (?*anyopaque, c_int, usize) callconv(.c) ?*anyopaque;
 /// vs_actors_resetActorMotionState as the C calls it (2842C.h's `void vs_actors_resetActorMotionState();`): one argument.
 const Reset = *const fn (c_int) callconv(.c) void;
-/// LoadImage's u_long* as the C passes it: a byte pointer, any alignment.
-const LoadImage = *const fn ([*c]c.RECT, ?*const anyopaque) callconv(.c) c_int;
 
 /// *(u_int*)((char*)actor + 0x5AC): the actor's flag word.
 inline fn flagWord(actor: *v.D_800F4538_t) c_uint {
     return psx.bitsAt(c_uint, &actor._bits_unk5AC_0, 0).*;
 }
 
-/// A texture slot's VRAM origin from vs_actors_textureSlotOrigins (x, y in 4-byte entries) and vs_actors_textureSlotRowOffsets (the y step).
-fn slotRect(slot: u8, rect: *v.RECT) bool {
-    // The tables hold 24 slots (the disc's shapes need at most 8 from slot 20 in the fallback: pc/tools/event_table_scan.py); a slot the data puts outside is refused.
-    if (c.pc_table_index_ok("vs_actors_textureSlotOrigins", slot, 24, "actor texture slot", slot, 0) == 0) return false;
-    const table = v.g.vs_actors_textureSlotOrigins();
-    const x: c_int = @as(c_int, table[slot][0]) << 6;
-    rect.x = psx.conv(i16, x);
-    const y: c_int = (@as(c_int, table[slot][1]) << 8) +
-        (@as(c_int, v.g.vs_actors_textureSlotRowOffsets()[slot]) << 6);
-    rect.y = psx.conv(i16, y);
-    rect.w = psx.conv(i16, @divTrunc(v.g.D_800F22C0().*, 2));
-    rect.h = psx.conv(i16, v.g.D_800F22C4().*);
+/// The file's texels into the texture slot and its palettes into `cluts`, through the file decoded by native_model (`file` the file's start: the model block is 0xF8 bytes in).
+fn loadTexture(slot: u8, file: [*]const u8, cluts: ?*anyopaque) bool {
+    if (c.pc_table_index_ok("actor texture slots", slot, 24, "actor texture slot", slot, 0) == 0) return false;
+    return c.pc_nm_shp_load_texture(file, slot, cluts) == 0;
+}
+
+/// The model's texels (the width and height the loader holds in D_800F22C0 and D_800F22C4) into the texture slot, through native_model's texture object (its place and its upload).
+fn uploadTexture(slot: u8, texels: ?*const anyopaque) bool {
+    // The table holds 24 slots (the disc's shapes need at most 8 from slot 20 in the fallback: pc/tools/event_table_scan.py); a slot the data puts outside is refused.
+    if (c.pc_table_index_ok("actor texture slots", slot, 24, "actor texture slot", slot, 0) == 0) return false;
+    var texture: c.pc_nm_texture = undefined;
+    if (c.pc_nm_texture_at(&texture, c.PC_NM_TEXTURE_ACTOR, slot, v.g.D_800F22C0().*, v.g.D_800F22C4().*) == 0) return false;
+    c.pc_nm_texture_upload(&texture, texels);
     return true;
 }
 
@@ -42,12 +41,10 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
     const memcpy = @extern(Memcpy, .{ .name = "memcpy" });
     const memset = @extern(Memset, .{ .name = "memset" });
     const reset: Reset = @ptrCast(&c.vs_actors_resetActorMotionState);
-    const loadImage: LoadImage = @ptrCast(&c.LoadImage);
     const actors = v.g.vs_actors_actorRecords();
     const textures = v.g.vs_render_legacyActorTextureSlots();
     const pass = v.g.D_800E8F29();
     const clutCount = v.g.D_800F22B8();
-    var rect: v.RECT = undefined;
 
     const Stage = enum { parse, copy_shared, fix_uvs, setup_palettes };
     var stage: Stage = .parse;
@@ -63,8 +60,7 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
             v.g.D_800F22C0().* = 0x80;
             v.g.D_800F22C4().* = 0x80;
             c.vs_main_memcpy(&a.unk11A4, @constCast(f.cluts), @as(c_uint, clutCount.*) * 4);
-            if (!slotRect(a.unk5BB, &rect)) return -2;
-            _ = loadImage(psx.cptr(c.RECT, &rect), f.cluts + @as(usize, clutCount.*) * 4);
+            if (!uploadTexture(a.unk5BB, f.cluts + @as(usize, clutCount.*) * 4)) return -2;
             object.variant = 0;
             actor_opt = a;
             stage = .setup_palettes;
@@ -183,42 +179,9 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
                 hi = 12;
             }
 
-            const Target = enum { found, fallback, all_free };
-            var target: Target = .found;
-            switch (n) {
-                1, 2 => {
-                    i = lo;
-                    while (i < hi) : (i += n) {
-                        if (psx.at(textures, i).refCount == 0) break;
-                    }
-                    if (i == hi) target = .fallback;
-                },
-                3, 4 => {
-                    target = .fallback;
-                    i = lo;
-                    search: while (i < hi) : (i += 1) {
-                        var j: c_int = 0;
-                        while (j < n) : (j += 1) {
-                            if (psx.at(textures, i + j).refCount != 0) break;
-                        }
-                        if (j == n) {
-                            target = .found;
-                            break :search;
-                        }
-                        if ((i + n) & 3 == 0) i += n - 1;
-                    }
-                },
-                8 => {
-                    i = lo;
-                    while (i < hi) : (i += 1) {
-                        if (psx.at(textures, i).refCount != 0) break;
-                    }
-                    target = if (i == hi) .all_free else .fallback;
-                },
-                // n 0, 5..7: no case; i keeps the skip length read above.
-                else => {},
-            }
-            if (target == .fallback) {
+            // the slots the texture takes: native_model's search of the slot records' counts (-1: none fits)
+            const found = c.pc_nm_actor_slots_find(&psx.at(textures, 0).refCount, @sizeOf(@TypeOf(psx.at(textures, 0).*)), n, lo, hi);
+            if (found < 0) {
                 if (c.vs_render_reserveTexturePages(31, 1, 4) == 0) {
                     actor.unk5BB = 0;
                     psx.setBits(&actor.unk0, "unk8_4", 0);
@@ -227,8 +190,8 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
                 } else {
                     i = 20;
                 }
-            } else if (target == .all_free) {
-                i = lo;
+            } else {
+                i = found;
             }
 
             if (stage == .parse) {
@@ -245,9 +208,8 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
                 } else {
                     slot.tpage = psx.conv(i16, @as(c_int, slot.tpage) & ~@as(c_int, 0x180));
                 }
-                c.vs_main_memcpy(&actor.unk11A4, @constCast(f.cluts), @as(c_uint, clutCount.*) * 4);
-                if (!slotRect(actor.unk5BB, &rect)) return -2;
-                _ = loadImage(psx.cptr(c.RECT, &rect), f.texture);
+                // the palettes into the actor and the texels into the texture slot, from the file decoded by native_model
+                if (!loadTexture(actor.unk5BB, f.model - 0xF8, &actor.unk11A4)) return -2;
                 pass.* = 1;
                 return -1;
             }
@@ -258,8 +220,10 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
         const header = psx.get(actor.unk0.model).?;
         const prim: [*]u8 = @ptrFromInt(@intFromPtr(header) +% header.polyOffset);
         const slot_index: c_int = actor.unk5BB;
-        if (c.pc_table_index_ok("vs_actors_textureSlotRowOffsets", slot_index, 24, "actor texture slot", @intCast(slot_index), 0) == 0) return -2;
-        const texV: c_int = @as(c_int, v.g.vs_actors_textureSlotRowOffsets()[@intCast(slot_index)]) << 6;
+        if (c.pc_table_index_ok("actor texture slots", slot_index, 24, "actor texture slot", @intCast(slot_index), 0) == 0) return -2;
+        var place: c.pc_nm_texture_slot = undefined;
+        if (c.pc_nm_actor_texture_slot(slot_index, &place) == 0) return -2;
+        const texV: c_int = place.v_add;
         // the slot's rows added to every texture coordinate (native_model's: the flat records, or the coloured ones when the texture block's flags say so)
         c.pc_nm_fix_records(prim, actor.unk0.nTriangles, actor.unk0.nQuads, actor.unk0.nOther, psx.getBits(&actor.unk0, "unk8_3"), 0, texV);
     }
@@ -270,13 +234,20 @@ pub fn parseShp(object: *v.vs_battle_objectData) callconv(.c) c_int {
     c.vs_main_memcpy(palettes, psx.at(&actor.unk11A4, @as(c_int, object.variant) * 0x140), colors);
     c.vs_main_memcpy(psx.at(palettes, 0x140), palettes, colors);
     c.vs_main_memcpy(psx.at(palettes, 0x280), palettes, colors);
+    // the actor's palette rows are native_model's (the CLUT manager's slot and column from them): the second slot's pair for the object 16, the object's own otherwise
+    var first: c_int = undefined;
+    var second: c_int = undefined;
+    var column: c_int = undefined;
     if (object.index == 16) {
-        c.vs_main_loadClut(@ptrCast(@alignCast(palettes)), 0x17, 0, clutCount.*);
+        c.pc_nm_actor_palette_clut(1, 1, &first, &column);
+        c.vs_main_loadClut(@ptrCast(@alignCast(palettes)), psx.conv(c_uint, first), psx.conv(c_uint, column), clutCount.*);
         actor.unk6E8 = textures[1].clut1;
         actor.unk6EA = textures[1].clut1;
     } else {
-        c.vs_main_loadClut(@ptrCast(@alignCast(palettes)), psx.conv(c_uint, @as(c_int, object.index) + 4), 0, clutCount.*);
-        c.vs_main_loadClut(@ptrCast(@alignCast(palettes)), psx.conv(c_uint, @as(c_int, object.index) + 0x16), 0, clutCount.*);
+        c.pc_nm_actor_palette_clut(object.index, 0, &first, &column);
+        c.pc_nm_actor_palette_clut(object.index, 1, &second, &column);
+        c.vs_main_loadClut(@ptrCast(@alignCast(palettes)), psx.conv(c_uint, first), psx.conv(c_uint, column), clutCount.*);
+        c.vs_main_loadClut(@ptrCast(@alignCast(palettes)), psx.conv(c_uint, second), psx.conv(c_uint, column), clutCount.*);
         actor.unk6E8 = psx.at(textures, object.index).clut0;
         actor.unk6EA = psx.at(textures, object.index).clut1;
     }

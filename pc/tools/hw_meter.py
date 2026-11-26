@@ -64,8 +64,6 @@ def main():
         "ROOD_WINDOW": "1280x720" if args.aspect == "16:9" else "960x720", "ROOD_HW_METER": "1", "ROOD_HW_QUEUE_CHECK": "1", "ROOD_PERF": "1", **({"ROOD_WIDESCREEN": "1"} if args.aspect == "16:9" else {})})
     try:
         g.call("graphics", interpolate=False)
-        if os.environ.get("ROOD_STALE_CHECK"):
-            print("[stale] graphics:", {k: v for k, v in g.call("graphics").items() if "aspect" in k or "wide" in k})
         scene(g, args.scene, args.frames)
         if args.digest:
             st = g.call("stream", count=256)
@@ -77,7 +75,7 @@ def main():
             pass
     finally:
         g.close()
-    if os.environ.get("ROOD_RT_TRACE") or os.environ.get("ROOD_STALE_CHECK") or os.environ.get("ROOD_STREAM_TRACE"):  # the direct hook calls while the renderer thread is on (render_thread.c), from the game's log
+    if os.environ.get("ROOD_RT_TRACE") or os.environ.get("ROOD_STREAM_TRACE"):  # the direct hook calls while the renderer thread is on (render_thread.c), from the game's log
         try:
             for line in (out / "game.log").read_text(errors="ignore").splitlines():
                 if line.startswith("[render]") or line.startswith("[stale]") or line.startswith("[stream"):
@@ -98,7 +96,7 @@ def main():
         print(f"  {r['why']:20} returned 0: {r['returned_0']:9}  returned 1: {r['returned_1']:9}  depends on: {r['depends_on']}")
     stream = meter.get("vram_stream")
     if stream:
-        print("\nVRAM stream (blocking fences, by cause):", json.dumps(stream.get("fences", stream))[:300])
+        print("\nVRAM stream:", json.dumps(stream)[:300])
     bad = [h for h in meter["hooks"] if h["unlisted_in_walk"]]
     print("\nin the walk but not command, native list, query or VRAM event:",
           ", ".join(f"{h['hook']} ({h['class']}, {h['unlisted_in_walk']})" for h in bad) or "none")

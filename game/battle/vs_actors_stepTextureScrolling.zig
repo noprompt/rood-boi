@@ -23,15 +23,15 @@ fn packetEnd(p: *v.DR_MOVE) void {
 pub fn vs_actors_stepTextureScrolling(actor: ?*v.D_800F4538_t) callconv(.c) void {
     const a = actor.?;
     const page: usize = a.unk5BB;
-    if (c.pc_table_index_ok("vs_actors_textureSlotOrigins", @intCast(page), 24, "actor texture slot", page, 0) == 0) return;
+    if (c.pc_table_index_ok("actor texture slots", @intCast(page), 24, "actor texture slot", page, 0) == 0) return;
+    var place: c.pc_nm_texture_slot = undefined;
+    if (c.pc_nm_actor_texture_slot(@intCast(page), &place) == 0) return;
     // The part bounds (unk614 from byte 8), the scroll states (unk181C) and the part records (texMapOverlays).
     const bounds_base: [*]u8 = @as([*]u8, @ptrCast(&a.unk614)) + 8;
     const state_base: [*]u8 = @ptrCast(&a.unk181C);
     const part_base: [*]u8 = @ptrCast(&a.texMapOverlays);
-    const table = v.g.vs_actors_textureSlotOrigins();
-    const originX: c_int = @as(c_int, table[page][0]) << 6;
-    const originY: c_int = (@as(c_int, table[page][1]) << 8) +%
-        (@as(c_int, v.g.vs_actors_textureSlotRowOffsets()[page]) << 6);
+    const originX: c_int = place.x;
+    const originY: c_int = place.y;
     // Uninitialised in the original (the caller's register): 0 here, so the
     // first part's `bounds[2] != height` holds, as it does unless that register
     // happens to equal the part's width.

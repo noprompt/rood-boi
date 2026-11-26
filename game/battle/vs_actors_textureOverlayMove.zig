@@ -45,13 +45,11 @@ pub fn vs_actors_textureOverlayMove(index: c_int, arg: [*c]u8) callconv(.c) void
         }
 
         const slot: usize = actorStruct.unk5BB;
-        if (c.pc_table_index_ok("vs_actors_textureSlotOrigins", @intCast(slot), 24, "actor texture slot", slot, 0) == 0) return;
+        if (c.pc_table_index_ok("actor texture slots", @intCast(slot), 24, "actor texture slot", slot, 0) == 0) return;
         const packet = packetBegin();
 
-        const table = v.g.vs_actors_textureSlotOrigins();
-        const x: c_int = table[slot][0];
-        const y: c_int = table[slot][1];
-        const row: c_int = v.g.vs_actors_textureSlotRowOffsets()[slot];
+        var place: c.pc_nm_texture_slot = undefined;
+        if (c.pc_nm_actor_texture_slot(@intCast(slot), &place) == 0) return;
         const py: c_int = actor[partOff + 1];
         const page: c_int = v.g.D_800F2450()[v.g.vs_actors_sharedSequenceBankIndex().*];
 
@@ -64,8 +62,8 @@ pub fn vs_actors_textureOverlayMove(index: c_int, arg: [*c]u8) callconv(.c) void
         c.pc_frame_move(
             @ptrCast(packet),
             @ptrCast(&rect),
-            dstX +% (x << 6),
-            (y << 8) +% (row << 6) +% py,
+            dstX +% place.x,
+            place.y +% py,
         );
         packetEnd(packet);
     }

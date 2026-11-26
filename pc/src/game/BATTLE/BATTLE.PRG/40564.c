@@ -197,8 +197,6 @@ int vs_actors_setTextureAnimation(int actorId, int index, int value, int mode);
 
 int vs_actors_stepTextureAnimations(D_800F4538_t* actor);
 
-extern short vs_actors_textureSlotOrigins[24][2];
-extern u_char vs_actors_textureSlotRowOffsets[24]; /* by texture slot, as vs_actors_textureSlotOrigins */
 
 typedef struct {
     u_char overlay;

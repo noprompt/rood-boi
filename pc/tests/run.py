@@ -695,6 +695,13 @@ def suites(args, mode="egl"):
                  sources=[TESTS / "studio_smoke.py", ROOT / "pc/src/studio.cpp", ROOT / "pc/src/studio.c",
                           ROOT / "pc/tools/studio_scan.py", ROOT / "pc/assets/studio/studio.json"])]
           if args.save.exists() else []),
+        *([Suite("grouped_mesh_smoke", [PY, str(TESTS / "grouped_mesh_smoke.py"), "--card", str(args.save)], 600,
+                 note="the grouped model builders' alternate-palette records through native_model's one reader: in the fight room with the weapon "
+                      "drawn, the mask written (0, 0x55, 0x0F, 0xFF) and the renderer's input dumped: one CLUT, both CLUTs (the alternate +0x480), "
+                      "all alternate",
+                 sources=[TESTS / "grouped_mesh_smoke.py", ROOT / "pc/src/actor_native.c", ROOT / "pc/src/native_model/native_model.c",
+                          ROOT / "pc/src/native_model/native_model.h"])]
+          if args.save.exists() else []),
         *([Suite("rood_studio_smoke", [PY, str(TESTS / "rood_studio_smoke.py")], 900,
                  note="rood-studio, the standalone model studio (no game): the native SHP/WEP/ZUD decoders against the in-game studio "
                       "(polygons, texture words, CLUT words, content keys, the skeleton's chain: characters of both record layouts, an "
@@ -744,7 +751,7 @@ def suites(args, mode="egl"):
                    "whole 16:9 view; with the card a warp scene (9/1)"),
         *([Suite("frame_cost_smoke", [PY, str(TESTS / "frame_cost_smoke.py"), "--card", str(args.save)], 300,
                  note="per-frame cost (ROOD_PERF counters): no read-backs (sphere, Status rows: GPU copies), "
-                      "emissive not re-hashed, CPU skips stale 2D; pictures = the old paths'")]
+                      "emissive not re-hashed")]
           if args.save.exists() else []),
         *([Suite("button_roles_smoke", [PY, str(TESTS / "button_roles_smoke.py"), "--card", str(args.save)], 300,
                  note="QoL button roles: Cross confirms (settings file, title and loading, menus, the modern "

@@ -4,7 +4,7 @@
 
 The original Status and Equip screens redraw a few rows of their own picture
 each frame (sprites whose texels are the frame buffer under the information
-line). Drawn live they sample the target as drawn so far (pc_hw_sync: the
+line). Drawn live they sample the target as drawn so far (own copies: the
 16:9 picture, 2D compressed about the centre); the interpolated images
 redrew them from native VRAM (the CPU's 4:3 picture), so every other image
 showed a smeared copy of "INFORMATION" to its left and dashes right of the

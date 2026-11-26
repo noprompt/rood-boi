@@ -54,10 +54,9 @@ pub fn vs_actors_textureFrameMove(actor: ?*v.D_800F4538_t, index: c_int, frame: 
     const packet: *v.DR_MOVE = @ptrCast(@alignCast(common.scratch.get().unk0));
 
     const slot: c_int = a.unk5BB;
-    if (c.pc_table_index_ok("vs_actors_textureSlotOrigins", slot, 24, "actor texture slot", @intCast(slot), 0) == 0) return;
-    const x: c_int = v.g.vs_actors_textureSlotOrigins()[@intCast(slot)][0];
-    const y: c_int = v.g.vs_actors_textureSlotOrigins()[@intCast(slot)][1];
-    const row: c_int = psx.at(v.g.vs_actors_textureSlotRowOffsets(), slot).*;
+    if (c.pc_table_index_ok("actor texture slots", slot, 24, "actor texture slot", @intCast(slot), 0) == 0) return;
+    var place: c.pc_nm_texture_slot = undefined;
+    if (c.pc_nm_actor_texture_slot(slot, &place) == 0) return;
     const py: c_int = overlay.y;
     const f: c_int = @as(c_int, psx.at(v.g.D_800F2450(), sel).*) & 15;
 
@@ -67,8 +66,8 @@ pub fn vs_actors_textureFrameMove(actor: ?*v.D_800F4538_t, index: c_int, frame: 
     rect.w = psx.conv(i16, width);
     rect.h = psx.conv(i16, height);
 
-    srcY = (y << 8) +% (row << 6) +% py;
-    c.pc_frame_move(@ptrCast(packet), @ptrCast(&rect), dstX +% (x << 6), srcY);
+    srcY = place.y +% py;
+    c.pc_frame_move(@ptrCast(packet), @ptrCast(&rect), dstX +% place.x, srcY);
 
     // vs_battlePacketEnd: the cursor advances by one DR_MOVE.
     common.scratch.get().unk0 = psx.at(packet, 1);

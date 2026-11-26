@@ -16,17 +16,12 @@ one), in the save room, unpaced:
     waited for the GPU's whole frame: the sphere and the menus dropped to
     12-20 fps with path tracing on);
   - the original Status screen (it redraws rows of its own picture): no
-    read-back either.
-Then the same moments again in a second game with the old paths
-(ROOD_GPU_VRAM_COPY=0: read-backs): the displayed pictures (present_dump)
-are identical."""
+    read-back either."""
 import argparse
 import os
 import pathlib
 import sys
 
-import numpy as np
-from PIL import Image
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "pc/tools"))
@@ -52,27 +47,10 @@ def measure(game, vsyncs):
     return perf.get("cpu_counts"), perf.get("cpu_sections", {})
 
 
-def shot(game, path):
-    """The displayed picture: the next image presented (present_dump)."""
-    ppm = path.with_suffix(".ppm")
-    ppm.unlink(missing_ok=True)
-    game.wait_presents(3)
-    game.call("present_dump", path=str(ppm.resolve()))
-    for _ in range(200):
-        if ppm.exists():
-            break
-        game.wait_presents(1)
-    image = np.asarray(Image.open(ppm).convert("RGB"))
-    ppm.unlink()
-    return image
-
-
 def play(card, out, name, extra):
-    """The three moments in one game: their counters and screenshots."""
-    # screen_copy ps1 in both (78face25f: the default native samples the render-target capture at the target's own resolution, which
-    # the read-back path of the old game cannot give: the comparison is of the copy's two PS1-resolution routes)
+    """The three moments in one game: their counters."""
     env = {"ROOD_PERF": "1", "ROOD_GI": "0", "ROOD_LIGHTS": str(out / f"lights-{name}"), "ROOD_WINDOW": "960x720",
-           "ROOD_SCREEN_COPY": "0", **extra}
+           **extra}
     game = launch_at("save_room", card=str(card), fast=True, log=out / f"{name}.log", extra_env=env)
     result = {}
     try:
@@ -82,14 +60,12 @@ def play(card, out, name, extra):
         game.call("input", buttons=["circle"], vsyncs=3)
         game.run(40)  # the targeting sphere open
         result["sphere"] = measure(game, 60)
-        result["sphere_image"] = shot(game, out / f"{name}-sphere.png")
         for _ in range(3):
             game.press("cross", vsyncs=3, settle=40)
         game.run(60)
         for button, settle in (("triangle", 90), ("down", 20), ("down", 20), ("circle", 150)):
             game.press(button, vsyncs=4, settle=settle)
         result["status"] = measure(game, 60)
-        result["status_image"] = shot(game, out / f"{name}-status.png")
     finally:
         game.close()
     return result
@@ -111,23 +87,13 @@ def run(args, out, card):
         check(counts["readbacks"] == 0 and counts["gpu_copies"] > 0,
               f"{scene}: rows of its own picture copied on the GPU ({counts['gpu_copies']:.1f} a vsync), "
               f"no read-back ({counts['readbacks']:.1f})")
-    old = play(card, out, "old", {"ROOD_GPU_VRAM_COPY": "0"})
-    check(old["sphere"][0]["readbacks"] > 0, "the old path reads the sphere's rows back (the comparison means "
-          f"something: {old['sphere'][0]['readbacks']:.1f} a vsync)")
-    for scene in ("sphere", "status"):
-        a, b = new[scene + "_image"], old[scene + "_image"]
-        differ = int(np.count_nonzero(np.any(a != b, axis=2))) if a.shape == b.shape else -1
-        if differ and args.out:
-            Image.fromarray(a).save(out / f"{scene}-new.png")
-            Image.fromarray(b).save(out / f"{scene}-old.png")
-        check(differ == 0, f"{scene}: the picture equals the old paths' ({differ} pixels differ)")
     return 1 if failures else 0
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--card", default=str(default_save()))
-    parser.add_argument("--out", help="keep differing pictures here (game imagery: keep it out of git)")
+    parser.add_argument("--out", help="where the game's logs and lights go")
     args = parser.parse_args()
     if not pathlib.Path(args.card).exists():
         print("SKIP: no memory card", args.card)

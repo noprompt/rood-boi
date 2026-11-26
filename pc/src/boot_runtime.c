@@ -97,9 +97,8 @@ extern int pc_hw_triangle(const int*, const int*, const int*, unsigned, unsigned
 extern void pc_hw_rect(int, int, int, int, int, int, unsigned, unsigned, unsigned, unsigned,
     unsigned, const int*, int, int);
 extern void pc_hw_line(int, int, int, int, unsigned, unsigned, int, unsigned, const int*, int);
-/* Native VRAM is about to be read here: copy back what only the hardware
- * target has (gpu_hw.c; absent in unit probes). */
-extern void pc_hw_sync(int, int, int, int) __attribute__((weak));
+/* A frame read (screenshots, checkpoints, the game's own reads of the frame): the target's pixels of the rectangle (gpu_hw.c; absent in unit probes). */
+extern void pc_hw_capture_read(int, int, int, int, int) __attribute__((weak));
 extern void pc_hw_sync_texture(unsigned, unsigned, unsigned, int, int, int, int, const int*) __attribute__((weak));
 extern void pc_hw_stale_copy(int, int, int, int, int, int) __attribute__((weak));
 /* What a VRAM write replaces, kept for frame interpolation (gpu_hw.c). */
@@ -360,23 +359,6 @@ static void stream_event(int kind, int x, int y, int w, int h, const void* paylo
             vcen_rect(VC_COPY_DST, x, y, w, h), vcen_rect(VC_COPY_SRC, ((const int*)payload)[0], ((const int*)payload)[1], w, h);
     }
 }
-/* T5 S3: the points where the game waits for the renderer. The CPU rasterizer and StoreImage read VRAM that only the GPU target
- * holds (gpu_hw.c: stale rectangles); the call copies the target back (pc_hw_syncs counts the copies). Each one that copied is a
- * fence event in the stream (kind 6: why, and the rectangle), counted by cause: 1 StoreImage, 2 a sprite sampling the frame
- * being drawn. They are the whole of the game-to-renderer read-back (S1's feedback list: the display-area bands of the frame
- * readers in TITLE 22C.c, MENU5 4D8.c and MENU7 260.c are StoreImage's); what a renderer on its own thread waits at. */
-extern int pc_hw_syncs __attribute__((weak));
-static unsigned fence_counts[3] __attribute__((section(".data.rood_host")));
-static int fence_syncs(void) { return &pc_hw_syncs ? pc_hw_syncs : 0; }
-static void fence_event(int cause, int before, int x, int y, int w, int h)
-{
-    if (fence_syncs() == before)
-        return;
-    if (pc_jitter)
-        pc_jitter(PC_JITTER_FENCE);
-    stream_event(6, x, y, w, h, &cause, sizeof cause);
-    ++fence_counts[cause];
-}
 /* Each vsync (pc_tick, before the RPC poll): the completed frame's digest is latched. */
 static void vcheck_vsync(void);
 static void stream_vsync(void)
@@ -545,12 +527,11 @@ int pc_vram_stream_json(char* out, int size)
     extern struct { unsigned long long replays, rewritten, unwritten, fell_back, valid, invalid_overlap, invalid_count; } pc_hw_stats __attribute__((weak));
     int n = snprintf(out, (size_t)size,
         "{\"frames\":%u,\"frame\":{\"events\":%u,\"hash\":\"%016llx\"},\"total\":{\"events\":%u,\"hash\":\"%016llx\"},"
-        "\"check\":{\"on\":%d,\"frames\":%u,\"bad_frames\":%u,\"bad_pixels\":%llu,\"first_bad\":[%d,%d,%d,%d,%d,%d]},"
-        "\"fences\":{\"store\":%u,\"texture\":%u}}",
+        "\"check\":{\"on\":%d,\"frames\":%u,\"bad_frames\":%u,\"bad_pixels\":%llu,\"first_bad\":[%d,%d,%d,%d,%d,%d]}}",
         stream.frames, stream.last_events, (unsigned long long)stream.last, stream.total_events,
         (unsigned long long)stream.total, vcheck.on > 0, vcheck.checked, vcheck.bad_frames, vcheck.bad_pixels,
         vcheck.first_bad[0], vcheck.first_bad[1], vcheck.first_bad[2], vcheck.first_bad[3], vcheck.first_bad[4],
-        vcheck.first_bad[5], fence_counts[1], fence_counts[2]);
+        vcheck.first_bad[5]);
     if (n > 2 && &pc_hw_stats && n + 280 < size) { /* + "renderer": the replay statistics (gpu_hw.c) */
         n -= 1;
         n += snprintf(out + n, (size_t)(size - n),
@@ -566,16 +547,6 @@ int pc_vram_stream_json(char* out, int size)
     }
     return n;
 }
-extern int pc_hwr_area_stale(int x, int y, int w, int h) __attribute__((weak)); /* hw_registry.c */
-/* ROOD_SYNC_DEBUG: a read of a "transfer area" that the producer's stale set says a primitive drew into (the premise of pc_vram_read_area: none does). */
-static void transfer_area_check(int x, int y, int w, int h)
-{
-    static int debug __attribute__((section(".data.rood_host"))) = -1; /* host setting: not saved state */
-    if (debug < 0)
-        debug = getenv("ROOD_SYNC_DEBUG") != NULL;
-    if (debug && pc_hwr_area_stale && pc_hwr_area_stale(x, y, w, h))
-        fprintf(stderr, "[sync] a transfer-area read %d,%d %dx%d meets a stale (drawn) cell\n", x, y, w, h);
-}
 static void vram_transfer(int x, int y, int w, int h, void* data, int write, int fenced)
 {
     if (x < 0 || y < 0 || w < 0 || h < 0 || x + w > 1024 || y + h > 512) {
@@ -585,12 +556,8 @@ static void vram_transfer(int x, int y, int w, int h, void* data, int write, int
     stream_event(write ? 1 : 2, x, y, w, h, write ? data : NULL, write ? (size_t)w * (size_t)h * 2 : 0);
     if (write)
         vcheck_write(x, y, w, h, data, 1, NULL);
-    if (!write && !fenced)
-        transfer_area_check(x, y, w, h);
-    if (!write && fenced && pc_hw_sync) {
-        int before = fence_syncs();
+    if (!write && fenced && pc_hw_capture_read) {
         pc_hwc_fence_sync(x, y, w, h); /* a read of the frame: the renderer has everything before it, and the target's pixels of exactly this rectangle are in VRAM when it returns */
-        fence_event(1, before, x, y, w, h);
     }
     if (write && pc_hw_before_write) {
         pc_hwc_before_write(x, y, w, h);
@@ -1723,10 +1690,9 @@ static void commands(uint32_t* p, unsigned n)
                 uv += (unsigned)pc_button_roles_texels(vram, tpage, uv >> 16, (int)(uv & 255), (int)((uv >> 8) & 255),
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1);
             if (tex && pc_hw_sync_texture) {
-                int clip[4] = { clip_x, clip_y, clip_w, clip_h }, before = fence_syncs();
+                int clip[4] = { clip_x, clip_y, clip_w, clip_h };
                 pc_hwc_fence_texture(tpage, uv >> 16, texture_window, uv & 255, (uv >> 8) & 255,
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1, clip);
-                fence_event(2, before, (int)(uv & 255), (int)((uv >> 8) & 255), (int)w, (int)h);
             }
             vram_note_drawn(x > clip_x ? x : clip_x, y > clip_y ? y : clip_y,
                 (x + (int)w < clip_x + clip_w ? x + (int)w : clip_x + clip_w) - 1,
@@ -2139,7 +2105,7 @@ int pc_capture_display(const char* path, int* width, int* height)
      * for the picture below, and the array is put back as it was after (the game's VRAM is its state: a state hash or a save state
      * taken after a screenshot must equal one taken without). */
     uint16_t* kept = NULL; /* (not a static: this unit's statics are the game's state) */
-    int synced = pc_hw_sync != 0 && (kept = malloc(sizeof vram)) != NULL;
+    int synced = pc_hw_capture_read != 0 && (kept = malloc(sizeof vram)) != NULL;
     if (synced) {
         memcpy(kept, vram, sizeof vram);
         pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
@@ -2340,7 +2306,7 @@ void pc_battle_frame_complete(void)
         display_w = clip_w;
         display_h = clip_h;
         pc_present_now();
-        if (pc_hw_sync) {
+        if (pc_hw_capture_read) {
         pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
         pc_present_now();
     }
@@ -2363,7 +2329,7 @@ void pc_battle_frame_complete(void)
     display_w = clip_w;
     display_h = clip_h;
     pc_present_now();
-    if (pc_hw_sync) {
+    if (pc_hw_capture_read) {
         pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
         pc_present_now();
     }

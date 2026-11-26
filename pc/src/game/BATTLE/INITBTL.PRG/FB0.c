@@ -8,7 +8,6 @@ extern char _loadShpState;
 extern char D_800E8F2B;
 extern char vs_actors_sharedSequenceBankIndex;
 extern char _loadEtmState;
-extern short vs_actors_textureSlotOrigins[24][2];
 extern char D_800E8FC0;
 extern char D_800F2450[];
 extern void* vs_actors_sharedSequenceData[]; /* 30DB0.c: heap buffer pointers (8 bytes each on LP64) */
@@ -19,7 +18,6 @@ extern char D_800F4B19;
 void func_800FA7B0(void)
 {
     VECTOR sp10;
-    int temp_s0;
     int i;
 
     D_800E8FC0 = 0;
@@ -28,21 +26,14 @@ void func_800FA7B0(void)
         vs_battle_objectDataSlots[i].dataType = 0;
     }
 
-    for (i = 0; i < 12; ++i) {
-        short (*new_var)[2];
-        vs_render_legacyActorTextureSlots[i].tpage =
-            GetTPage(0, 0, vs_actors_textureSlotOrigins[i][0] << 6, (new_var = vs_actors_textureSlotOrigins)[i][1] << 8);
-        vs_render_legacyActorTextureSlots[i].clut0 = GetClut(768, i + 228);
-        vs_render_legacyActorTextureSlots[i].clut1 = GetClut(768, i + 246);
-        vs_render_legacyActorTextureSlots[i].refCount = 0;
-    }
-
-    for (; i < 24; ++i) {
-        short (*new_var)[2];
-        vs_render_legacyActorTextureSlots[i].tpage =
-            GetTPage(0, 0, vs_actors_textureSlotOrigins[i][0] << 6, (new_var = vs_actors_textureSlotOrigins)[i][1] << 8);
-        vs_render_legacyActorTextureSlots[i].clut0 = GetClut(768, 229);
-        vs_render_legacyActorTextureSlots[i].clut1 = GetClut(768, 247);
+    /* The 24 texture slots: the page of each slot's texels and the palette rows (native_model's: the slots past the twelfth share the second row's) */
+    for (i = 0; i < 24; ++i) {
+        pc_nm_texture_slot place;
+        int palette = i < 12 ? i : 1;
+        pc_nm_actor_texture_slot(i, &place);
+        vs_render_legacyActorTextureSlots[i].tpage = GetTPage(0, 0, place.page_x, place.page_y);
+        vs_render_legacyActorTextureSlots[i].clut0 = GetClut(768, pc_nm_actor_palette_row(palette, 0));
+        vs_render_legacyActorTextureSlots[i].clut1 = GetClut(768, pc_nm_actor_palette_row(palette, 1));
         vs_render_legacyActorTextureSlots[i].refCount = 0;
     }
 
@@ -54,9 +45,12 @@ void func_800FA7B0(void)
     D_800F4768 = vs_main_allocHeap(0x4800);
 
     for (i = 0; i < 20; ++i) {
-        temp_s0 = (i / 2);
-        vs_battle_wepTextures[i].tpage = GetTPage(1, 0, temp_s0 * 64, 0);
-        vs_battle_wepTextures[i].clut0 = GetClut(((i & 1) * 48) + 928, temp_s0 + 228);
+        pc_nm_texture_slot place;
+        int palette_x, palette_y;
+        pc_nm_weapon_texture_slot(i, &place);
+        pc_nm_weapon_palette_at(i, &palette_x, &palette_y);
+        vs_battle_wepTextures[i].tpage = GetTPage(1, 0, place.page_x, place.page_y);
+        vs_battle_wepTextures[i].clut0 = GetClut(palette_x, palette_y);
         vs_battle_wepTextures[i].refCount = 0;
     }
 

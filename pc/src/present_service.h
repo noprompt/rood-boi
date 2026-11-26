@@ -8,7 +8,7 @@
 #include <stdint.h>
 typedef enum {
     PC_PRESENT_FRAME, /* one game vsync's images: the frame, then its fractions when interpolating (present_rate) */
-    PC_PRESENT_SYNC,  /* the display rectangle read back into the game's VRAM (pc_hw_sync) */
+    PC_PRESENT_SYNC,  /* the display rectangle read back into the game's VRAM (pc_hw_capture_read) */
 } pc_present_kind;
 /* What the frame loop owns that the images' pacing reads, as of the request (boot_window.c): the service never looks at the game thread's
  * variables. */

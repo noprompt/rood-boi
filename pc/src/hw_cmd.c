@@ -244,8 +244,7 @@ void pc_hwc_set_attr(const pc_hw_attr* attr, int screen_x, int screen_w)
         pc_hwc_flush();
 }
 /* An ordering table starts and ends (DrawOTag, a frame's items): the producer's side (the registrations, the suppress flag, the
- * bubbles' frame) now, and the renderer's as a record. The record is applied at once: the producer's stale queries (raster_skip, the
- * triangle decisions' marks) read the table's state the begin and the end reset. */
+ * bubbles' frame) now, and the renderer's as a record. */
 void pc_hwc_begin_ot(void)
 {
     pc_hwr_begin_ot();
@@ -253,7 +252,6 @@ void pc_hwc_begin_ot(void)
 }
 void pc_hwc_end_ot(void)
 {
-    pc_hwr_end_ot();
     record(C_END_OT, 0);
 }
 void pc_hwc_native_marker(unsigned list, int draw_x, int draw_y, const int* clip4, unsigned window, int mask_set)
@@ -287,8 +285,6 @@ void pc_hwc_native_translucent(unsigned list, int first, int count, int draw_x, 
 }
 void pc_hwc_ot_native_area(const int* clip4)
 {
-    if (pc_hw_active && pc_hwr_stale.in_ot)
-        pc_stale_mark(&pc_hwr_stale, clip4, PC_STALE_MISSING); /* (the renderer marks its own set at the record) */
     memcpy(record(C_OT_NATIVE_AREA, 4 * sizeof(int)), clip4, 4 * sizeof(int));
     if (inline_now())
         pc_hwc_flush();
@@ -314,7 +310,7 @@ void pc_hwc_rect(int x, int y, int w, int h, int u, int v, unsigned color, unsig
         pc_hw_tri_decision d;
         const int uv[6] = { u, v, u + w, v, u, v + h };
         const int bounds[4] = { x, y, x + w, y + h };
-        pc_hw_triangle_decide(uv, code, tpage, clip4, pc_hwc_mirror.is_2d, pc_hwc_mirror.poly_effect, &pc_hwr_stale, pc_hw_suppress, bounds, &d);
+        pc_hw_triangle_decide(uv, code, tpage, clip4, pc_hwc_mirror.is_2d, pc_hwc_mirror.poly_effect, 1, pc_hw_suppress, bounds, &d);
         r.marked = d.mark;
         memcpy(r.area, d.area, sizeof r.area);
     }
@@ -342,7 +338,7 @@ void pc_hwc_line(int x0, int y0, int x1, int y1, unsigned ca, unsigned cb, int s
     if (pc_hw_active && !pc_hw_suppress) { /* (pc_hw_line draws it: its bounds are the target's alone) */
         const int bounds[4] = { x0 < x1 ? x0 : x1, y0 < y1 ? y0 : y1, (x0 > x1 ? x0 : x1) + 1, (y0 > y1 ? y0 : y1) + 1 };
         pc_hw_drawn_area(clip4, bounds, r.area);
-        pc_stale_mark(&pc_hwr_stale, r.area, PC_STALE_MISSING), r.marked = 1;
+        r.marked = 1;
     }
     memcpy(r.clip, clip4, sizeof r.clip);
     memcpy(record(C_LINE, sizeof r), &r, sizeof r);
@@ -373,7 +369,7 @@ void pc_hwc_triangle(const int* xy, const int* uv, const int* rgb, unsigned code
             x0 = xy[2 * i] < x0 ? xy[2 * i] : x0, x1 = xy[2 * i] > x1 ? xy[2 * i] : x1,
             y0 = xy[2 * i + 1] < y0 ? xy[2 * i + 1] : y0, y1 = xy[2 * i + 1] > y1 ? xy[2 * i + 1] : y1;
         const int bounds[4] = { x0, y0, x1 + 1, y1 + 1 };
-        pc_hw_triangle_decide(uv, code, tpage, clip, pc_hwc_mirror.is_2d, pc_hwc_mirror.poly_effect, &pc_hwr_stale, pc_hw_suppress, bounds, &t.decision);
+        pc_hw_triangle_decide(uv, code, tpage, clip, pc_hwc_mirror.is_2d, pc_hwc_mirror.poly_effect, 1, pc_hw_suppress, bounds, &t.decision);
     }
     if (t.decision.action != PC_HW_TRI_IGNORE) {
         memcpy(t.xy, xy, sizeof t.xy), memcpy(t.uv, uv, sizeof t.uv), memcpy(t.rgb, rgb, sizeof t.rgb);
@@ -434,20 +430,9 @@ void pc_hwc_before_write(int x, int y, int w, int h)
 void pc_hwc_stale_copy(int sx, int sy, int dx, int dy, int w, int h)
 {
     int v[6] = { sx, sy, dx, dy, w, h };
-    pc_stale_copy(&pc_hwr_stale, sx, sy, dx, dy, w, h);
     memcpy(record(C_STALE_COPY, sizeof v), v, sizeof v);
     if (inline_now())
         pc_hwc_flush();
-}
-/* The read-backs are requests (renderer_rq.h): the renderer replies with the pixels and this side puts them in the game's array. */
-static void fence(pc_rq* rq)
-{
-    pc_rq_readback reply;
-    rq->out = &reply, rq->out_bytes = sizeof reply;
-    pc_renderer_rq(rq);
-    for (int i = 0; i < reply.count; i++) /* (what was read back is no longer stale: the producer's copy forgets it) */
-        pc_stale_readback(&pc_hwr_stale, reply.rect[i].x, reply.rect[i].y, reply.rect[i].w, reply.rect[i].h);
-    pc_rq_readback_apply(&reply, (uint16_t*)(uintptr_t)pc_native_vram());
 }
 /* The stream digest\'s events (boot_runtime.c): records, in order with everything else, applied by the renderer. */
 typedef struct {
@@ -479,19 +464,14 @@ typedef struct {
 } texture_fence_record;
 void pc_hwc_fence_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip4)
 {
-    /* The producer's stale list says whether the renderer could read anything back for this texture: if not, the fence is a record (the renderer
-     * still does its own-copy bookkeeping for the primitive), not a round trip. */
-    if (!pc_hwr_texture_stale(tpage, clut, window, u0, v0, u1, v1, clip4, pc_hwc_mirror.widescreen)) {
-        texture_fence_record q = { tpage, clut, window, u0, v0, u1, v1, clip4 != NULL, { 0, 0, 0, 0 } };
-        if (clip4)
-            memcpy(q.clip, clip4, sizeof q.clip);
-        memcpy(record(C_TEXTURE_FENCE, sizeof q), &q, sizeof q);
-        if (inline_now())
-            pc_hwc_flush();
-        return;
-    }
-    pc_rq rq = { .kind = PC_RQ_SYNC_TEXTURE, .arg = { (int)tpage, (int)clut, (int)window, u0, v0, u1, v1 }, .in = clip4, .in_bytes = clip4 ? 4 * sizeof(int) : 0 };
-    fence(&rq);
+    /* A record, not a round trip: the renderer takes the sampled rows of a drawn area as own copies (pc_hw_sync_texture), on the GPU, and
+     * nothing reaches the game's array. */
+    texture_fence_record q = { tpage, clut, window, u0, v0, u1, v1, clip4 != NULL, { 0, 0, 0, 0 } };
+    if (clip4)
+        memcpy(q.clip, clip4, sizeof q.clip);
+    memcpy(record(C_TEXTURE_FENCE, sizeof q), &q, sizeof q);
+    if (inline_now())
+        pc_hwc_flush();
 }
 void pc_hwc_drain(void)
 {
@@ -502,10 +482,8 @@ void pc_hwc_resync(void) { pc_hwc_resync_picture(NULL); }
 /* The same with a state file's picture of the target (RGBA8, 1024 x 512) put over it, or NULL. */
 void pc_hwc_resync_picture(const uint8_t* picture)
 {
-    pc_stale_set stale;
-    pc_rq rq = { .kind = PC_RQ_RESYNC, .in = pc_native_vram(), .in_bytes = 1024 * 512 * sizeof(uint16_t), .in2 = picture, .out = &stale, .out_bytes = sizeof stale };
+    pc_rq rq = { .kind = PC_RQ_RESYNC, .in = pc_native_vram(), .in_bytes = 1024 * 512 * sizeof(uint16_t), .in2 = picture };
     pc_renderer_rq(&rq);
-    pc_hwr_stale = stale; /* (a restore may have changed what the renderer holds stale) */
 }
 void pc_hwc_fence_sync(int x, int y, int w, int h)
 {
@@ -1070,26 +1048,6 @@ static void hwc_post(void)
 void pc_hwc_post(void) { hwc_post(); }
 /* Before a hook that reads or writes the renderer's state from the game thread (PC_HWC_SYNC): everything recorded is applied, and with a
  * renderer thread running on its own, everything posted before (frames included) is done. */
-extern int pc_hw_stale_matches(const pc_stale_set* p);
-/* ROOD_STALE_CHECK=1: the producer's stale set against the renderer's wherever a flush has just applied everything (they run the same marks). */
-static void stale_check(void)
-{
-    static int on = -1;
-    static int shown;
-    if (on < 0)
-        on = getenv("ROOD_STALE_CHECK") != NULL;
-    if (!on || pc_render_thread >= 2 || pc_hwc_pending)
-        return;
-    static unsigned long long checks, differ, nonempty, in_table;
-    ++checks;
-    nonempty += pc_stale_any(&pc_hwr_stale) || pc_hwr_stale.ot_count > 0;
-    in_table += pc_hwr_stale.in_ot;
-    if (!pc_hw_stale_matches(&pc_hwr_stale) && ++differ && shown++ < 20)
-        fprintf(stderr, "[stale] the producer's set differs from the renderer's after check %llu (%llu differ); producer %d cells, in_ot %d, ot %d\n", checks,
-            differ, pc_stale_cells(pc_hwr_stale.missing), pc_hwr_stale.in_ot, pc_hwr_stale.ot_count);
-    if (checks % 5000 == 0)
-        fprintf(stderr, "[stale] %llu checks, %llu differ, %llu with something stale, %llu inside a table\n", checks, differ, nonempty, in_table);
-}
 /* ROOD_RT_TRACE=3: who calls the draining flush from the game thread (a histogram by return address, printed at exit). */
 static struct {
     void* at;
@@ -1119,5 +1077,4 @@ void pc_hwc_flush(void)
     hwc_post();
     if (pc_render_thread >= 2)
         pc_rt_drain();
-    stale_check();
 }

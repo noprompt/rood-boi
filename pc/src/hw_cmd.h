@@ -39,7 +39,7 @@ typedef struct {
     int area[4];    /* x, y, w, h: what it marked (the primitive's bounds inside the drawing area; a covered effect polygon: the whole area) */
     unsigned stats; /* bits: the packet counters the renderer adds when it applies the triangle (gpu_hw.c) */
 } pc_hw_tri_decision;
-void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int effect, pc_stale_set* stale,
+void pc_hw_triangle_decide(const int* uv, unsigned code, unsigned tpage, const int* clip, int is_2d, int effect, int mark,
     int suppress, const int* bounds, pc_hw_tri_decision* out);
 void pc_hw_triangle_apply(const int* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage, unsigned clut,
     unsigned window, const int* clip, int mask_set, int mask_check, const pc_hw_tri_decision* decision);

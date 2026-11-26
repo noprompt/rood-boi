@@ -303,7 +303,6 @@ void pc_hwr_begin_ot(void)
 {
     pc_hwr_activate();
     surface_valid_p = 0, drawn_p_count = 0;
-    pc_hwr_stale.in_ot = 1, pc_hwr_stale.ot_count = 0;
     pc_hw_suppress = 0;
     if (pc_ui_bubbles_frame)
         pc_ui_bubbles_frame();
@@ -321,7 +320,6 @@ void pc_hwr_marker(uint32_t list, const int* clip)
         surface_valid_p = 1; /* (a room list that drew something: its depth is the surfaces') */
     if (drawn_p_count < MAX_DRAWN)
         drawn_p[drawn_p_count++] = list;
-    pc_stale_mark(&pc_hwr_stale, clip, PC_STALE_MISSING); /* drawn here only: native VRAM lacks it */
 }
 void pc_hwr_translucent(uint32_t list)
 {
@@ -335,7 +333,6 @@ void pc_hwr_translucent(uint32_t list)
 }
 
 /* ---- the stale areas ---- */
-pc_stale_set pc_hwr_stale;
 static void cells_set(uint32_t* cells, int x0, int y0, int x1, int y1) /* pixels, exclusive, inside the VRAM */
 {
     for (int c = x0 >> 6; c <= (x1 - 1) >> 6; c++)
@@ -351,38 +348,10 @@ void pc_stale_mark(pc_stale_set* set, const int* clip, int kind)
     int y1 = clip[1] + clip[3] > 512 ? 512 : clip[1] + clip[3];
     if (x1 <= x0 || y1 <= y0)
         return;
-    if (kind & (PC_STALE_MISSING | PC_STALE_DRAWN)) {
-        if ((kind & PC_STALE_MISSING) && set->in_ot) {
-            int known = 0;
-            for (int i = 0; i < set->ot_count && !known; i++) {
-                const int* r = set->ot[i];
-                known = x0 >= r[0] && y0 >= r[1] && x1 <= r[2] && y1 <= r[3];
-            }
-            if (!known && set->ot_count < PC_MAX_STALE) {
-                int* r = set->ot[set->ot_count++];
-                r[0] = x0, r[1] = y0, r[2] = x1, r[3] = y1;
-            }
-        }
+    if (kind & (PC_STALE_MISSING | PC_STALE_DRAWN))
         cells_set(set->missing, x0, y0, x1, y1);
-    }
     if (kind & PC_STALE_PLACED)
         cells_set(set->placed, x0, y0, x1, y1);
-}
-int pc_stale_covers(const pc_stale_set* set, const int* clip)
-{
-    int x0 = clip[0] < 0 ? 0 : clip[0], y0 = clip[1] < 0 ? 0 : clip[1];
-    int x1 = clip[0] + clip[2] > 1024 ? 1024 : clip[0] + clip[2];
-    int y1 = clip[1] + clip[3] > 512 ? 512 : clip[1] + clip[3];
-    if (!set->in_ot)
-        return 0;
-    if (x1 <= x0 || y1 <= y0)
-        return 1; /* draws nothing */
-    for (int i = 0; i < set->ot_count; i++) {
-        const int* r = set->ot[i];
-        if (x0 >= r[0] && y0 >= r[1] && x1 <= r[2] && y1 <= r[3])
-            return 1;
-    }
-    return 0;
 }
 int pc_stale_any(const pc_stale_set* set)
 {
@@ -424,28 +393,6 @@ int pc_stale_meets(const uint32_t* cells, int x, int y, int w, int h)
     int box[4];
     return pc_stale_bbox(cells, x, y, w, h, box);
 }
-/* Whether the producer's stale set (a primitive drew there; the game's array lacks it) meets the rectangle. */
-int pc_hwr_area_stale(int x, int y, int w, int h)
-{
-    return pc_stale_meets(pc_hwr_stale.missing, x, y, w, h) || pc_stale_meets(pc_hwr_stale.placed, x, y, w, h);
-}
-void pc_stale_clear(uint32_t* cells, int x0, int y0, int x1, int y1)
-{
-    for (int c = x0 >> 6; c <= (x1 - 1) >> 6 && c < 16; c++)
-        for (int b = y0 >> 4; b <= (y1 - 1) >> 4 && b < 32; b++)
-            cells[c] &= ~(1u << b);
-}
-void pc_stale_readback(pc_stale_set* set, int x, int y, int w, int h)
-{
-    for (int k = 0; k < set->ot_count;) {
-        const int* o = set->ot[k];
-        if (o[0] < x + w && x < o[2] && o[1] < y + h && y < o[3])
-            memmove(set->ot[k], set->ot[k + 1], (size_t)(--set->ot_count - k) * sizeof set->ot[0]);
-        else
-            ++k;
-    }
-    pc_stale_clear(set->missing, x, y, x + w, y + h);
-}
 void pc_stale_copy(pc_stale_set* set, int sx, int sy, int dx, int dy, int w, int h)
 {
     int clip[4] = { dx, dy, w, h };
@@ -454,38 +401,3 @@ void pc_stale_copy(pc_stale_set* set, int sx, int sy, int dx, int dy, int w, int
     if (pc_stale_meets(set->placed, sx, sy, w, h))
         pc_stale_mark(set, clip, PC_STALE_PLACED);
 }
-void pc_hwr_end_ot(void)
-{
-    pc_hwr_stale.in_ot = 0, pc_hwr_stale.ot_count = 0;
-}
-
-/* Whether the texture a primitive is about to sample may need the renderer to read back (pc_hw_sync_texture): decided from the producer's stale
- * list, so the walk asks the renderer only when it can matter. It follows the renderer's own rules: nothing stale (the common case) is
- * nothing to do; a primitive whose drawing area is stale anyway takes own copies on the renderer's side; otherwise a stale area that meets
- * the texels or the CLUT is read back. The PLACED list is the renderer's alone, so with widescreen on the answer is always "ask". */
-int pc_hw_own_copies_enabled(void);
-int pc_hwr_texture_stale(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip, int widescreen)
-{
-    if (widescreen)
-        return 1;
-    if (!pc_stale_meets(pc_hwr_stale.missing, 0, 0, 1024, 512))
-        return 0;
-    if ((window & 0x3ff) || u0 < 0 || v0 < 0 || u1 > 255 || v1 > 255 || u1 < u0 || v1 < v0)
-        u0 = v0 = 0, u1 = v1 = 255;
-    if (pc_hw_own_copies_enabled())
-        return 0; /* (own copies, on the renderer's side: no read-back) */
-    int box[4] = { u0, v0, u1, v1 }, reach[2][4];
-    pc_tex_sampling sampling = pc_tex_describe(NULL, tpage, clut, window, box);
-    int count = pc_tex_reach(&sampling, reach);
-    int rects[2][4] = { { reach[0][0], reach[0][1], (reach[0][2] > 1023 ? 1023 : reach[0][2]) - reach[0][0] + 1, v1 - v0 + 1 },
-        { reach[1][0], reach[1][1], reach[1][2] - reach[1][0] + 1, 1 } };
-    for (int k = 0; k < count; k++) {
-        const int* q = rects[k];
-        if (q[2] <= 0 || q[3] <= 0)
-            continue;
-        if (pc_stale_meets(pc_hwr_stale.missing, q[0], q[1], q[2], q[3]))
-            return 1;
-    }
-    return 0;
-}
-

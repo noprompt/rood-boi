@@ -30,16 +30,9 @@ extern void pc_studio_app_stage(float*, float*, float*, int*, float*, float*, fl
 extern void SetGeomOffset(int, int);
 extern void SetGeomScreen(int);
 /* boot_sdk.c's own: what LoadImage, PutDrawEnv and PutDispEnv hand the renderer */
-extern void pc_vram_transfer(int x, int y, int w, int h, void* data, int to_vram);
 extern void pc_vram_clear(int x, int y, int w, int h, int r, int g, int b);
 extern void pc_draw_env(int x, int y, int w, int h, int ofs_x, int ofs_y, int tpage);
 extern void pc_display_env(int x, int y, int w, int h);
-
-/* The game's 24 texture slots (vs_actors_textureSlotOrigins, vs_actors_textureSlotRowOffsets; rood_studio_smoke.py checks them against the game):
- * x in 64-pixel pages, y in 256-line pages, the slot's own row offset in 64-line steps. */
-static const short slot_origin[24][2] = { { 0, 1 }, { 0, 1 }, { 2, 1 }, { 2, 1 }, { 10, 0 }, { 10, 0 }, { 10, 0 }, { 10, 0 }, { 11, 0 }, { 11, 0 }, { 11, 0 },
-    { 11, 0 }, { 13, 1 }, { 13, 1 }, { 13, 1 }, { 13, 1 }, { 14, 1 }, { 14, 1 }, { 14, 1 }, { 14, 1 }, { 15, 1 }, { 15, 1 }, { 15, 1 }, { 15, 1 } };
-static const unsigned char slot_rows[24] = { 2, 3, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3 };
 
 typedef struct {
     pc_nm_model model;
@@ -92,24 +85,20 @@ static int disc(const char* path, unsigned char** data, unsigned* size)
 static unsigned tpage_word(int depth, int x, int y) { return (unsigned)(((depth & 3) << 7) | ((y & 0x100) >> 4) | ((x & 0x3ff) >> 6)); }
 static unsigned clut_word(int x, int y) { return (unsigned)((y << 6) | ((x >> 4) & 0x3f)); }
 
-static void upload(int x, int y, int w_halfwords, int h, const void* data)
-{
-    pc_vram_transfer(x, y, w_halfwords, h, (void*)data, 1);
-}
-
-/* The texture and palette of `texture_from` (the model itself, or the model whose texture it shares) into the slot. */
+/* The texture and palette of `texture_from` (the model itself, or the model whose texture it shares) into the slot: the same texture object and uploads the game's loaders use. */
 static void put_texture(loaded_model* lm, const pc_nm_model* texture_from)
 {
     if (!texture_from->has_texture)
         return;
-    int slot = lm->texture_slot;
-    int x = slot_origin[slot][0] << 6, y = (slot_origin[slot][1] << 8) + (slot_rows[slot] << 6);
-    upload(x, y, texture_from->texture_width / 2, texture_from->texture_height, texture_from->texels);
+    pc_nm_texture texture;
+    if (!pc_nm_texture_at(&texture, PC_NM_TEXTURE_ACTOR, lm->texture_slot, texture_from->texture_width, texture_from->texture_height))
+        return;
+    pc_nm_texture_upload(&texture, texture_from->texels);
     /* the palette, at the actor slot's two CLUT rows (the loader's vs_main_loadClut slots index + 4 and index + 0x16) */
-    upload(768, 228 + lm->actor_slot, texture_from->colours, 1, texture_from->palette);
-    upload(768, 246 + lm->actor_slot, texture_from->colours, 1, texture_from->palette);
-    lm->tpage = tpage_word(texture_from->eight_bit ? 1 : 0, x, y);
-    lm->clut = clut_word(768, 228 + lm->actor_slot);
+    pc_nm_palette_upload(768, pc_nm_actor_palette_row(lm->actor_slot, 0), texture_from->colours, texture_from->palette);
+    pc_nm_palette_upload(768, pc_nm_actor_palette_row(lm->actor_slot, 1), texture_from->colours, texture_from->palette);
+    lm->tpage = tpage_word(texture_from->eight_bit ? 1 : 0, texture.place.x, texture.place.y);
+    lm->clut = clut_word(768, pc_nm_actor_palette_row(lm->actor_slot, 0));
 }
 
 /* The game's table from a weapon's material to the palette it takes of the file's seven (_weaponMaterialPaletteMap; rood_studio_smoke.py checks the first entries). */
@@ -149,9 +138,12 @@ static int load_wep_part(loaded_model* lm, const unsigned char* data, unsigned s
     }
     const pc_nm_model* w = &lm->model;
     lm->texture_slot = wep_slot;
-    lm->v_add = 0xE0, lm->u_add = (wep_slot & 1) * 64; /* the loader's fix-up: the page row 0xE0, the page column the slot's parity */
-    upload((wep_slot / 2) * 64 + (wep_slot & 1) * 32, 0xE0, w->texture_width / 2, 32, w->texels);
-    lm->tpage = tpage_word(1, (wep_slot / 2) * 64, 0);
+    pc_nm_texture texture;
+    if (!pc_nm_texture_at(&texture, PC_NM_TEXTURE_WEAPON, wep_slot, w->texture_width, 32))
+        return -1;
+    lm->v_add = texture.place.v_add, lm->u_add = texture.place.u_add; /* the loader's fix-up: the page row 0xE0, the page column the slot's parity */
+    pc_nm_texture_upload(&texture, w->texels);
+    lm->tpage = tpage_word(1, texture.place.page_x, texture.place.page_y);
     /* the CLUT slot: unk11 + 2 * actor slot + 16, its row and column from it (the first palette, then the material's after it) */
     int c = (unk11 + 2 * lm->actor_slot + 16) & 255;
     int palette = material >= 0 && material < 16 ? material_palette[material] : 0;
@@ -161,8 +153,9 @@ static int load_wep_part(loaded_model* lm, const unsigned char* data, unsigned s
     unsigned char* clut = calloc(1, first + second);
     memcpy(clut, w->palette, first);
     memcpy(clut + first, w->wep_palettes + (size_t)palette * second, second);
-    int x = 928 + (c & 1) * 48, y = 228 + (c >> 1);
-    upload(x, y, (int)(first + second) / 2, 1, clut);
+    int x, y;
+    pc_nm_weapon_palette_at(c, &x, &y);
+    pc_nm_palette_upload(x, y, (int)(first + second) / 2, clut);
     free(clut);
     lm->clut = clut_word(x, y);
     return make_mesh(lm, "weapon");
@@ -228,7 +221,10 @@ static int load_model(loaded_model* lm, const char* kind, int id, int texture_sl
         free(base_file);
         have_base = 1;
     }
-    lm->v_add = slot_rows[texture_slot] << 6;
+    pc_nm_texture_slot place;
+    if (!pc_nm_actor_texture_slot(texture_slot, &place))
+        return -1;
+    lm->v_add = place.v_add;
     put_texture(lm, have_base ? &base : &lm->model);
     if (have_base)
         pc_nm_free(&base);
@@ -408,6 +404,49 @@ static int compare_pose(const loaded_model* lm, const reference_t* r, int animat
     return best_within != r->bones;
 }
 
+/* The slot geometry against the game's own slot records (rood_studio_smoke.py hands it vs_render_legacyActorTextureSlots, 24 records, then vs_battle_wepTextures, 20, as hex: the
+ * game's init builds them from native_model's slots, and the loaders' rectangles and fix-ups read the same): each record's page words (the page's corner) and CLUT word are
+ * what the studio's own helpers make of the slot. */
+static int check_slots(const char* hex)
+{
+    unsigned char data[24 * 8 + 20 * 8];
+    if (strlen(hex) != sizeof data * 2)
+        return 1;
+    for (unsigned i = 0; i < sizeof data; i++) {
+        unsigned v;
+        if (sscanf(hex + i * 2, "%2x", &v) != 1)
+            return 1;
+        data[i] = (unsigned char)v;
+    }
+    int bad = 0;
+    for (int slot = 0; slot < 44; slot++) {
+        int weapon = slot >= 24, i = weapon ? slot - 24 : slot;
+        const unsigned char* r = data + slot * 8;
+        unsigned tpage = (unsigned)(r[0] | r[1] << 8) & 0x1f, clut = (unsigned)(r[2] | r[3] << 8);
+        pc_nm_texture_slot place;
+        unsigned want_tpage, want_clut;
+        if (weapon) {
+            int x, y;
+            if (!pc_nm_weapon_texture_slot(i, &place))
+                return 1;
+            pc_nm_weapon_palette_at(i, &x, &y);
+            want_tpage = tpage_word(1, place.page_x, place.page_y) & 0x1f, want_clut = clut_word(x, y);
+        } else {
+            if (!pc_nm_actor_texture_slot(i, &place))
+                return 1;
+            want_tpage = tpage_word(0, place.page_x, place.page_y) & 0x1f, want_clut = clut_word(768, pc_nm_actor_palette_row(i < 12 ? i : 1, 0));
+        }
+        if (tpage != want_tpage || clut != want_clut) {
+            fprintf(stderr, "[rood-studio] %s texture slot %d: the game's page %x and CLUT %x, here %x and %x\n", weapon ? "weapon" : "actor", i, tpage, clut, want_tpage, want_clut);
+            bad = 1;
+        }
+    }
+    pc_nm_texture_slot out;
+    bad |= pc_nm_actor_texture_slot(24, &out) || pc_nm_actor_texture_slot(-1, &out) || pc_nm_weapon_texture_slot(20, &out);
+    fprintf(stderr, "[rood-studio] the 24 actor and 20 weapon texture slots %s the game's records\n", bad ? "differ from" : "equal");
+    return bad;
+}
+
 /* Every model the catalog names decodes (and every one's polygons are valid): the sweep rood_studio_smoke.py runs. */
 static int check_catalog(void)
 {
@@ -529,6 +568,7 @@ static int run_fixed(int argc, char** argv)
 {
     const char* kind = "character";
     int id = 3, frames = 0, slot = 8, check = 0, animation = 0;
+    const char* slots_hex = NULL;
     float tolerance = 4;
     const char *dump = NULL, *reference_path = NULL, *look = "neutral";
     unsigned long long expect_key = 0;
@@ -563,7 +603,11 @@ static int run_fixed(int argc, char** argv)
             expect_key = strtoull(argv[++i], NULL, 16), have_key = 1;
         else if (!strcmp(argv[i], "--check-catalog"))
             check = 1;
+        else if (!strcmp(argv[i], "--check-slots") && i + 1 < argc)
+            slots_hex = argv[++i];
     }
+    if (slots_hex)
+        return check_slots(slots_hex);
     screen_init();
     if (check)
         return check_catalog();
@@ -588,8 +632,10 @@ static int run_fixed(int argc, char** argv)
         render_polygon* raw = NULL;
         if (pc_nm_polygons(&lm.model, 0, 0, &raw) > 0) {
             int dv = (ref.polygon[0].uv[0][1] - raw[0].uv[0][1]) & 255;
-            for (int candidate = 0; candidate < 24; candidate++)
-                if ((slot_rows[candidate] << 6) == dv && slot_origin[candidate][0] == (int)(ref.tpage & 15) && candidate != slot) {
+            for (int candidate = 0; candidate < 24; candidate++) {
+                pc_nm_texture_slot place;
+                pc_nm_actor_texture_slot(candidate, &place);
+                if (place.v_add == dv && place.page_x >> 6 == (int)(ref.tpage & 15) && candidate != slot) {
                     pc_nm_free(&lm.model);
                     render_mesh_destroy(lm.mesh);
                     slot = candidate;
@@ -599,6 +645,7 @@ static int run_fixed(int argc, char** argv)
                     }
                     break;
                 }
+            }
         }
         free(raw);
     }
@@ -1092,7 +1139,7 @@ static int run_app(int argc, char** argv)
 int pc_rood_studio_run(int argc, char** argv)
 {
     for (int i = 0; i < argc; i++)
-        if (!strcmp(argv[i], "--reference") || !strcmp(argv[i], "--check-catalog"))
+        if (!strcmp(argv[i], "--reference") || !strcmp(argv[i], "--check-catalog") || !strcmp(argv[i], "--check-slots"))
             return run_fixed(argc, argv);
     return run_app(argc, argv);
 }

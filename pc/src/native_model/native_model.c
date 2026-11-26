@@ -21,7 +21,7 @@ static int fail(char* err, size_t size, const char* what)
 }
 
 /* The records' size in words, walked as actor_native.c record_words does (0: the records disagree with their kind). */
-static unsigned walk_records(const uint32_t* r, const int counts[3], int kind, unsigned limit)
+unsigned pc_nm_record_words(const uint32_t* r, const int counts[3], int kind, unsigned limit)
 {
     unsigned at = 0;
     for (int section = 0; section < 3; section++)
@@ -89,7 +89,7 @@ static int decode_model(const uint8_t* model, size_t size, int bones, const uint
      * whose records all name vertices of the model (flat records are offsets in their words 1 and 2, coloured ones in words 0 and 1) */
     int kind = -1;
     for (int k = 0; k < 2 && kind < 0; k++) {
-        unsigned used = walk_records(words, out->counts, k, room);
+        unsigned used = pc_nm_record_words(words, out->counts, k, room);
         if (!used)
             continue;
         int valid = 1;
@@ -288,6 +288,65 @@ int pc_nm_wep_decode(const uint8_t* file, size_t size, pc_nm_model* out, char* e
     return 0;
 }
 
+unsigned pc_nm_wep_size(const unsigned char* file)
+{
+    pc_nm_wep_parts lay;
+    pc_nm_wep_layout(file, &lay);
+    unsigned model_end = 0x10 + lay.offsets_size + 8, parts_end = (unsigned)(lay.bone_info - file) + 8u * (unsigned)lay.n_bones;
+    return parts_end > model_end ? parts_end : model_end;
+}
+
+unsigned pc_nm_shp_size(const unsigned char* file)
+{
+    pc_nm_shp_parts lay;
+    pc_nm_shp_layout(file, &lay);
+    unsigned end = 0xF8 + (unsigned)lay.model_size + 8, seq_end = (unsigned)(lay.seq - file) + 8 + u32_at(lay.seq + 4) + 4;
+    if (seq_end > end)
+        end = seq_end;
+    if (lay.texture_block_size != 4) {
+        unsigned texture_end = (unsigned)(lay.cluts - 4 - file) + 4 + (unsigned)lay.clut_count * 4 + (unsigned)lay.width * (unsigned)lay.height;
+        if (texture_end > end)
+            end = texture_end;
+    }
+    return end;
+}
+
+int pc_nm_wep_load_texture(const unsigned char* file, int slot, void* first, void* others, int stride)
+{
+    pc_nm_model m;
+    char err[160];
+    if (pc_nm_wep_decode(file, pc_nm_wep_size(file), &m, err, sizeof err))
+        return -1;
+    pc_nm_texture texture;
+    if (!pc_nm_texture_at(&texture, PC_NM_TEXTURE_WEAPON, slot, m.texture_width, m.texture_height)) {
+        pc_nm_free(&m);
+        return -1;
+    }
+    memcpy(first, m.palette, m.wep_first_palette_bytes);
+    for (int i = 0; i < 7; i++)
+        memcpy((unsigned char*)others + (size_t)i * (size_t)stride, m.wep_palettes + (size_t)i * m.wep_palette_bytes, m.wep_palette_bytes);
+    pc_nm_texture_upload(&texture, m.texels);
+    pc_nm_free(&m);
+    return 0;
+}
+
+int pc_nm_shp_load_texture(const unsigned char* file, int slot, void* cluts)
+{
+    pc_nm_model m;
+    char err[160];
+    if (pc_nm_shp_decode(file, pc_nm_shp_size(file), &m, err, sizeof err) || !m.has_texture)
+        return -1;
+    pc_nm_texture texture;
+    if (!pc_nm_texture_at(&texture, PC_NM_TEXTURE_ACTOR, slot, m.texture_width, m.texture_height)) {
+        pc_nm_free(&m);
+        return -1;
+    }
+    memcpy(cluts, m.palette, (size_t)m.colours * 4);
+    pc_nm_texture_upload(&texture, m.texels);
+    pc_nm_free(&m);
+    return 0;
+}
+
 void pc_nm_free(pc_nm_model* m)
 {
     free(m->group_words), free(m->vertex), free(m->bone_of), free(m->records), free(m->bone);
@@ -345,6 +404,134 @@ static void fix_words(uint32_t* r, const int counts[3], int kind, int u_add, int
         }
 }
 
+/* vs_actors_textureSlotOrigins (x in 64-pixel pages, y in 256-line pages) and vs_actors_textureSlotRowOffsets (64-line steps): the 24 actor slots as the game's data has them. */
+static const signed char actor_origin[24][3] = { { 0, 1, 2 }, { 0, 1, 3 }, { 2, 1, 2 }, { 2, 1, 3 }, { 10, 0, 0 }, { 10, 0, 1 }, { 10, 0, 2 }, { 10, 0, 3 }, { 11, 0, 0 }, { 11, 0, 1 },
+    { 11, 0, 2 }, { 11, 0, 3 }, { 13, 1, 0 }, { 13, 1, 1 }, { 13, 1, 2 }, { 13, 1, 3 }, { 14, 1, 0 }, { 14, 1, 1 }, { 14, 1, 2 }, { 14, 1, 3 }, { 15, 1, 0 }, { 15, 1, 1 },
+    { 15, 1, 2 }, { 15, 1, 3 } };
+
+int pc_nm_actor_texture_slot(int slot, pc_nm_texture_slot* out)
+{
+    if (slot < 0 || slot >= 24)
+        return 0;
+    out->page_x = actor_origin[slot][0] << 6;
+    out->page_y = actor_origin[slot][1] << 8;
+    out->u_add = 0;
+    out->v_add = actor_origin[slot][2] << 6;
+    out->x = out->page_x;
+    out->y = out->page_y + out->v_add;
+    return 1;
+}
+
+int pc_nm_weapon_texture_slot(int slot, pc_nm_texture_slot* out)
+{
+    if (slot < 0 || slot >= 20)
+        return 0;
+    out->page_x = (slot / 2) * 64;
+    out->page_y = 0;
+    out->x = out->page_x + (slot & 1) * 32;
+    out->y = 0xE0;
+    out->u_add = (slot & 1) * 64;
+    out->v_add = 0xE0;
+    return 1;
+}
+
+int pc_nm_actor_palette_row(int index, int which) { return (which ? 246 : 228) + index; }
+
+int pc_nm_actor_slots_find(const unsigned char* refs, int stride, int n, int lo, int hi)
+{
+#define REF(k) refs[(k) * stride]
+    int i;
+    switch (n) {
+    case 1:
+    case 2:
+        for (i = lo; i < hi; i += n)
+            if (!REF(i))
+                break;
+        return i == hi ? -1 : i;
+    case 3:
+    case 4:
+        for (i = lo; i < hi; i++) {
+            int j = 0;
+            while (j < n && !REF(i + j))
+                j++;
+            if (j == n)
+                return i;
+            if (((i + n) & 3) == 0)
+                i += n - 1;
+        }
+        return -1;
+    case 8:
+        for (i = lo; i < hi; i++)
+            if (REF(i))
+                break;
+        return i == hi ? lo : -1;
+    default:
+        return 0;
+    }
+#undef REF
+}
+
+int pc_nm_weapon_slots_take(unsigned char* refs, int stride, int wide)
+{
+    for (int i = 0; i < 20; i += wide ? 2 : 1)
+        if (!refs[i * stride] && (!wide || !refs[(i + 1) * stride])) {
+            refs[i * stride] = 1;
+            if (wide)
+                refs[(i + 1) * stride] = 1;
+            return i;
+        }
+    return -1;
+}
+
+/* The host's own VRAM transfer (boot_sdk.c: what LoadImage does, and the studio's executable has it too). */
+extern void pc_vram_transfer(int x, int y, int w, int h, void* data, int to_vram);
+/* The classic layer's recorder (classic_parity.c): inside an open range a LoadImage is recorded and may be held back (1: not done now); the game's loaders ran through it, so these
+ * uploads do too. Weak: the studio's executable has no classic layer. */
+extern int pc_classic_immediate_load(int x, int y, int w, int h, const void* pixels) __attribute__((weak));
+static void load_image(int x, int y, int w, int h, void* data)
+{
+    if (pc_classic_immediate_load && pc_classic_immediate_load(x, y, w, h, data))
+        return;
+    pc_vram_transfer(x, y, w, h, data, 1);
+}
+
+int pc_nm_texture_at(pc_nm_texture* t, int kind, int slot, int width, int rows)
+{
+    int ok = kind == PC_NM_TEXTURE_WEAPON ? pc_nm_weapon_texture_slot(slot, &t->place) : pc_nm_actor_texture_slot(slot, &t->place);
+    t->kind = kind, t->slot = slot, t->words = width / 2, t->rows = rows;
+    return ok;
+}
+
+void pc_nm_texture_upload(const pc_nm_texture* t, const void* texels)
+{
+    load_image((short)t->place.x, (short)t->place.y, (short)t->words, (short)t->rows, (void*)texels);
+}
+
+void pc_nm_palette_upload(int x, int y, int words, const void* colours)
+{
+    load_image((short)x, (short)y, (short)words, 1, (void*)colours);
+}
+
+void pc_nm_actor_palette_clut(int index, int which, int* slot, int* offset)
+{
+    *slot = pc_nm_actor_palette_row(index, which) - 224;
+    *offset = 0;
+}
+
+void pc_nm_weapon_palette_clut(int slot, int* clut_slot, int* offset)
+{
+    int x, y;
+    pc_nm_weapon_palette_at(slot, &x, &y);
+    *clut_slot = y - 224;
+    *offset = x - 768;
+}
+
+void pc_nm_weapon_palette_at(int slot, int* x, int* y)
+{
+    *x = 928 + (slot & 1) * 48;
+    *y = 228 + (slot >> 1);
+}
+
 void pc_nm_fix_records(void* records, int triangles, int quads, int others, int kind, int u_add, int v_add)
 {
     int counts[3] = { triangles, quads, others };
@@ -382,19 +569,75 @@ unsigned pc_nm_mesh_hash(const pc_nm_model* m, int u_add, int v_add)
     return hash;
 }
 
-int pc_nm_polygons(const pc_nm_model* m, int u_add, int v_add, render_polygon** out)
+/* The grouped builders' material groups (func_800B516C next_group, vs_render_drawModelGouraudPolygonsWithOverrides actor_blend_group): per section up to eight counts read
+ * from the model (alternate CLUT when the mask bit for the group is set), then the remainder of the section with the model's CLUT. func_800B516C skips an empty section's eight
+ * counts, vs_render_drawModelGouraudPolygonsWithOverrides does not. Writes 1 per record that takes the alternate CLUT; returns 0 when the counts disagree with the sections. */
+static int group_cluts(const pc_nm_view* m, uint8_t* alternate)
 {
+    const uint16_t* counts = m->group_counts;
+    unsigned record = 0;
+    for (int section = 0; section < 3; section++) {
+        unsigned total = (unsigned)m->counts[section];
+        if (!total) {
+            if (m->kind == 2 && section < 2)
+                counts += 8;
+            continue;
+        }
+        int counter = 9, sum = 0;
+        unsigned done = 0;
+        while (--counter >= 0) {
+            int count, alt = 0;
+            if (!counter) {
+                count = (int)total - sum;
+                if (!count)
+                    break;
+            } else {
+                count = section < 2 ? *(const int16_t*)counts : *counts;
+                ++counts;
+                sum += count;
+                if (!count)
+                    continue;
+                alt = (int)((m->mask >> (counter - 1)) & 1);
+            }
+            if (count < 0 || done + (unsigned)count > total)
+                return 0;
+            memset(alternate + record + done, alt, (size_t)count);
+            done += (unsigned)count;
+        }
+        if (done != total)
+            return 0;
+        record += total;
+    }
+    return 1;
+}
+
+int pc_nm_view_polygons(const pc_nm_view* m, int u_add, int v_add, render_polygon** out, pc_nm_sort** sort_out, int* semi_out)
+{
+    const int coloured = m->kind == 1 || m->kind == 3, grouped = m->kind >= 2;
     unsigned total = (unsigned)(m->counts[0] + m->counts[1] + m->counts[2]);
     render_polygon* polygons = calloc(total ? total : 1, sizeof *polygons);
-    uint32_t* records = fixed_records(m, u_add, v_add);
+    pc_nm_sort* sort = calloc(total ? total : 1, sizeof *sort);
+    uint8_t* alternate = calloc(total ? total : 1, 1);
+    uint32_t* fixed = NULL;
+    const uint32_t* records = m->records;
+    if (u_add || v_add) {
+        unsigned words = pc_nm_record_words(m->records, m->counts, coloured, ~0u);
+        fixed = malloc((words ? words : 1) * 4u);
+        memcpy(fixed, m->records, (size_t)words * 4);
+        fix_words(fixed, m->counts, coloured ? PC_NM_COLOURED : PC_NM_FLAT, u_add, v_add);
+        records = fixed;
+    }
+    int count = 0, semi = 0, ok = polygons && sort && alternate;
+    if (ok && grouped)
+        ok = group_cluts(m, alternate);
     const unsigned* r = records;
-    int count = 0;
-    for (int section = 0; section < 3; section++)
-        for (int face = 0; face < m->counts[section]; face++) {
+    unsigned record = 0;
+    for (int section = 0; section < 3 && ok; section++)
+        for (int face = 0; face < m->counts[section] && ok; face++, record++) {
             render_polygon* p = &polygons[count];
             unsigned offsets[4], uv[4], colours[4] = { 0, 0, 0, 0 }, flags = 0, code;
             int quad, split = 0;
-            if (m->kind == PC_NM_FLAT) {
+            if (!coloured) {
                 quad = section == 1 || (section == 2 && (r[0] & 255) == 0x2c);
                 if (section == 2)
                     flags = r[0] >> 16;
@@ -402,10 +645,10 @@ int pc_nm_polygons(const pc_nm_model* m, int u_add, int v_add, render_polygon** 
                 uv[0] = r[3] & 0xffff, uv[1] = r[3] >> 16, uv[2] = quad ? r[4] & 0xffff : r[2] >> 16, uv[3] = quad ? r[4] >> 16 : 0;
                 split = section == 2 && (flags & 3) == 3;
                 if (split && !quad)
-                    goto bad;
+                    ok = 0;
                 code = quad ? 0x2c : 0x24;
                 for (int k = 0; k < 4; k++)
-                    colours[k] = 0x808080;
+                    colours[k] = 0x808080; /* replaced by the model's colour */
                 r += quad ? 5 : 4;
             } else {
                 quad = section == 1 || (section == 2 && (r[2] >> 24) == 0x3c);
@@ -419,33 +662,63 @@ int pc_nm_polygons(const pc_nm_model* m, int u_add, int v_add, render_polygon** 
                 code = r[2] >> 24;
                 r += quad ? 8 : 6;
             }
+            /* Record flag 16: semi-transparent with the record's blend bits (the coloured grouped builder keeps neither: only the code's own bit). */
             unsigned page_bits = flags & 0x60;
-            if (flags & 16)
+            if (m->kind == 3)
+                page_bits = 0;
+            else if (flags & 16)
                 code |= 2;
-            for (int k = 0; k < (quad ? 4 : 3); k++) {
+            memset(&sort[count], 0, sizeof sort[count]);
+            for (int k = 0; k < (quad ? 4 : 3) && ok; k++) {
                 unsigned offset = offsets[k];
-                if ((offset & 3) || (offset >> 2) >= (unsigned)m->vertices)
-                    goto bad;
-                const int16_t* xyz = m->vertex[offset >> 2];
+                if ((offset & 3) || (offset >> 2) >= (unsigned)m->vertices) {
+                    ok = 0;
+                    break;
+                }
+                unsigned v = offset >> 2;
+                const int16_t* xyz = m->vertex + v * 4;
                 p->position[k][0] = xyz[0], p->position[k][1] = xyz[1], p->position[k][2] = xyz[2];
-                p->bone[k] = m->bone_of[offset >> 2];
+                p->bone[k] = m->bone_of[v];
+                sort[count].vertex[k] = (uint16_t)v;
                 p->uv[k][0] = (uint8_t)(uv[k] & 0xff), p->uv[k][1] = (uint8_t)((uv[k] >> 8) & 0xff);
                 p->rgb[k][0] = (uint8_t)(colours[k] & 0xff), p->rgb[k][1] = (uint8_t)((colours[k] >> 8) & 0xff);
                 p->rgb[k][2] = (uint8_t)((colours[k] >> 16) & 0xff);
             }
-            p->tpage = (uint16_t)page_bits;
+            p->tpage = (uint16_t)page_bits; /* the model's page is the instance's */
+            p->clut = alternate[record] ? 0x480 : 0; /* added to the instance's CLUT */
             p->code = (uint8_t)code;
             p->flags = (uint8_t)((quad ? RENDER_POLY_QUAD : 0) | (split ? RENDER_POLY_SPLIT : 0) | (!split && (flags & 1) ? RENDER_POLY_DOUBLE_SIDED : 0));
             p->bias = (uint8_t)(split ? 4 : section == 2 ? ((flags >> 2) & 3) * 4 : 0);
+            sort[count].quad = (uint8_t)quad;
+            sort[count].semi = (code & 2) != 0;
+            sort[count].twosided = (uint8_t)((flags & 1) != 0);
+            sort[count].offset = (int8_t)(section == 2 && !split ? (int)((flags >> 2) & 3) * 4 - 5 : -1);
+            sort[count].bias = (int8_t)(section == 2 && !split ? (int)((flags >> 2) & 3) * 4 : 0);
+            semi += (code & 2) != 0;
             ++count;
         }
-    free(records);
+    free(alternate);
+    free(fixed);
+    if (!ok) {
+        free(polygons);
+        free(sort);
+        return -1;
+    }
     *out = polygons;
+    if (sort_out)
+        *sort_out = sort;
+    else
+        free(sort);
+    if (semi_out)
+        *semi_out = semi;
     return count;
-bad:
-    free(records);
-    free(polygons);
-    return -1;
+}
+
+int pc_nm_polygons(const pc_nm_model* m, int u_add, int v_add, render_polygon** out)
+{
+    pc_nm_view view = { m->kind + (m->grouped ? 2 : 0), { m->counts[0], m->counts[1], m->counts[2] }, m->vertices, &m->vertex[0][0], m->records, m->bone_of,
+        (const uint16_t*)(const void*)m->model_head, m->group_mask };
+    return pc_nm_view_polygons(&view, u_add, v_add, out, NULL, NULL);
 }
 
 void pc_nm_euler(int ax, int ay, int az, float r[3][3])

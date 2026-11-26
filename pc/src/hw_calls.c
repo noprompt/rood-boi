@@ -40,7 +40,6 @@ extern void pc_hw_init_now(const uint16_t*);
 extern int pc_hw_view_camera_now(float[3][3], float[3], float*, float*, float*);
 extern int pc_hw_replay_camera_now(float[3][3], float[3]);
 extern int pc_hw_replay_projection_now(float*, float*, float*);
-extern void pc_hw_stale_get(pc_stale_set* out);
 extern void pc_ui_bubbles_forget_pending(void) __attribute__((weak));
 
 /* Every record this thread made is applied first, then fn runs where the renderer lives. */
@@ -306,10 +305,9 @@ const float* pc_hw_casters(int* count, int* serial)
 }
 const void* pc_hw_caster_surfaces(void) { return surface_copy; }
 
-/* The photo mode's hooks change the renderer's stale areas (a restore brings back the picture's): the reply hands the producer's copy the set. */
+/* The photo mode's hooks, run on the renderer's side. */
 typedef struct {
     int result, op;
-    pc_stale_set stale;
 } photo_args;
 static void photo_call(void* p)
 {
@@ -320,13 +318,11 @@ static void photo_call(void* p)
     case 2: a->result = pc_hw_photo_mark_now(); break;
     case 3: a->result = pc_hw_photo_restore_now(); break;
     }
-    pc_hw_stale_get(&a->stale);
 }
 static int photo(int op)
 {
-    photo_args a = { 0, op, { { { 0 } } } };
+    photo_args a = { 0, op };
     call(photo_call, &a);
-    pc_hwr_stale = a.stale;
     return a.result;
 }
 int pc_hw_photo_prepare(void) { return photo(0); }

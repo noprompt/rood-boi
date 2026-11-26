@@ -80,6 +80,34 @@ unsigned pc_nm_mesh_hash(const pc_nm_model* m, int u_add, int v_add); /* (the le
  * *out is malloc'd. */
 int pc_nm_polygons(const pc_nm_model* m, int u_add, int v_add, render_polygon** out);
 
+/* A model's records as a builder sees them: the caller's own memory (the game's model block in its heap, or a decoded pc_nm_model's parts). `kind` is the game's builder kind:
+ * 0 flat records, 1 coloured, 2 flat in material groups, 3 coloured in groups (the content key's kinds); `group_counts` (24 counts of 16 bits) and `mask` (the alternate-palette
+ * bits) are read for the grouped kinds only. */
+typedef struct {
+    int kind;
+    int counts[3];                  /* triangles, quads, others */
+    int vertices;
+    const int16_t* vertex;          /* x, y, z, pad for each */
+    const uint32_t* records;
+    const uint8_t* bone_of;         /* per vertex */
+    const uint16_t* group_counts;
+    unsigned mask;
+} pc_nm_view;
+/* What the game's ordering-table sort needs of each polygon (actor_native.c): the polygon's vertices, whether it is a quad, translucent, never culled, and how its ordering-table
+ * index and bias follow its depth. */
+typedef struct {
+    uint16_t vertex[4];
+    uint8_t quad, semi, twosided;
+    int8_t offset, bias;
+} pc_nm_sort;
+/* The view's records in words, walked as the packet builders walk them when every face is drawn: 0 when a record's own size disagrees with its kind (or there are none). `limit`
+ * bounds the reads (a decoder's buffer; the game's heap block is trusted: pass a large one). */
+unsigned pc_nm_record_words(const uint32_t* records, const int counts[3], int coloured, unsigned limit);
+/* The view's polygons as the renderer takes them: one reading of the records for the game's actors and weapons and for rood-studio. `u_add` and `v_add` are added to every texture
+ * coordinate (the loader's slot fix-up: 0 when the records have it already). `sort` (optional) gets one pc_nm_sort for each polygon, *semi their translucent count. Returns the
+ * count (0 for no polygons), -1 when the records or groups are bad; *out and *sort are malloc'd. */
+int pc_nm_view_polygons(const pc_nm_view* v, int u_add, int v_add, render_polygon** out, pc_nm_sort** sort, int* semi);
+
 /* A pose: per bone rotation angles (the game's 4096-a-turn units, already halved as the animation keys are used), the root's place and
  * turns. The transforms are model -> world, bone by bone (vs_actors_drawActorModel's chain without the camera and the scales). */
 typedef struct {

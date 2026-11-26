@@ -161,8 +161,6 @@ inline int vs_content_findSharedActorModel(vs_battle_objectData* arg0);
 
 int _loadShp(vs_battle_objectData* arg0);
 
-extern short vs_actors_textureSlotOrigins[24][2]; /* x, y of each texture slot */
-extern u_char vs_actors_textureSlotRowOffsets[24]; /* by texture slot, as vs_actors_textureSlotOrigins */
 extern u_char D_800F22B8;
 extern int D_800F22BC;
 extern int D_800F22C0;

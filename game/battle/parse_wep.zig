@@ -22,7 +22,6 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
     const models = v.g.vs_battle_wepModels();
     var model = psx.at(models, object.index).*;
     var data: usize = object.dataAddr;
-    var texV: c_int = undefined;
 
     const Next = enum { parse, copy_slot, fix_prims };
     var next: Next = .parse;
@@ -64,7 +63,6 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
         }
     } else if (pass.* == 1) {
         data = @intFromPtr((wep_file.current() orelse return -2).bone_info);
-        texV = 0xE0;
         next = .fix_prims;
     }
 
@@ -108,9 +106,10 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
             const m = model.?;
             const offsets = psx.get(m.offsets).?;
             const records: [*]u8 = @ptrFromInt(@intFromPtr(offsets) +% @as(u32, @bitCast(offsets.polygonsOffset)));
-            const texU: c_int = (@as(c_int, m.texSlot) & 1) * 64;
+            var place: c.pc_nm_texture_slot = undefined;
+            if (c.pc_nm_weapon_texture_slot(m.texSlot, &place) == 0) return -2;
             // the texture slot's column and row added to every texture coordinate: native_model's, the flat records' layout
-            c.pc_nm_fix_records(records, m.nTriangles, m.nQuads, m.nOther, 0, texU, texV);
+            c.pc_nm_fix_records(records, m.nTriangles, m.nQuads, m.nOther, 0, place.u_add, place.v_add);
             _ = memcpy(&m.unkBoneInfo, @ptrFromInt(data), intBits(@as(c_int, m.nBones) * 8));
             wep_file.release();
             c._loadMaterialPalette(object.index, object.material);
@@ -147,27 +146,11 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
 
     const texW = file.tex_width;
     const textures = v.g.vs_battle_wepTextures();
-    var i: c_int = 0;
-    if (@as(c_int, @bitCast(texW)) < 65) {
-        psx.setBits(m, "isWideTexture", 0);
-        while (i < 20) : (i += 1) { // i < 20: the slot count
-            if (textures[@intCast(i)].refCount == 0) {
-                textures[@intCast(i)].refCount = 1;
-                break;
-            }
-        }
-        if (i == 20) return -2;
-    } else {
-        psx.setBits(m, "isWideTexture", 1);
-        while (i < 20) : (i += 2) { // i < 20: the slot count
-            if (textures[@intCast(i)].refCount == 0 and textures[@intCast(i + 1)].refCount == 0) {
-                textures[@intCast(i)].refCount = 1;
-                textures[@intCast(i + 1)].refCount = 1;
-                break;
-            }
-        }
-        if (i >= 20) return -2;
-    }
+    // the slot (or the page's pair, for a wide texture) from native_model's search of the slot records' counts, marked taken
+    const wide = @as(c_int, @bitCast(texW)) >= 65;
+    psx.setBits(m, "isWideTexture", @intFromBool(wide));
+    const i: c_int = c.pc_nm_weapon_slots_take(&psx.at(textures, 0).refCount, @sizeOf(@TypeOf(psx.at(textures, 0).*)), @intFromBool(wide));
+    if (i < 0) return -2;
 
     m.texSlot = psx.conv(u8, i);
     m.clutSlotOffset = psx.conv(u8, @as(c_int, object.unk11) +% (@as(c_int, object.actorId) << 1) +% 16);
@@ -178,23 +161,8 @@ pub fn parseWep(object: *v.vs_battle_objectData) callconv(.c) c_int {
         psx.setBits(m, "isDoubleClut", 0);
         m.nClutColors = 48;
     }
-    c.vs_main_memcpy(&m.unk440, @constCast(file.palette_first), @intCast(file.firstPaletteBytes()));
-    i = 0;
-    while (i < 7) : (i += 1) { // i < 7: the palette count
-        c.vs_main_memcpy(&m.palettes[@intCast(i)], @constCast(file.palettes + @as(usize, @intCast(i)) * file.paletteBytes()), @intCast(file.paletteBytes()));
-    }
-
-    const texU: c_int = @divTrunc(@as(c_int, m.texSlot), 2) * 64 + (@as(c_int, m.texSlot) & 1) * 32;
-    texV = 0xE0;
-    var rect: v.RECT = .{
-        .x = psx.conv(i16, texU),
-        .y = psx.conv(i16, texV),
-        .w = psx.conv(i16, texW / 2),
-        .h = 32,
-    };
-    // LoadImage's u_long* as the C passes it: a byte pointer, any alignment.
-    const loadImage: *const fn ([*c]c.RECT, ?*const anyopaque) callconv(.c) c_int = @ptrCast(&c.LoadImage);
-    _ = loadImage(psx.cptr(c.RECT, &rect), file.texture);
+    // the palettes into the model slot and the texels into the texture slot, from the file decoded by native_model
+    if (c.pc_nm_wep_load_texture(file.offsets - 0x10, i, &m.unk440, &m.palettes, @sizeOf(@TypeOf(m.palettes[0]))) != 0) return -2;
     pass.* = 1;
     return -1;
 }

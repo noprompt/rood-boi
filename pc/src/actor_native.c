@@ -38,6 +38,7 @@
 #include "render.h"
 #include <math.h>
 #include "model_key.h"
+#include "native_model/native_model.h"
 #include "view_state.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -97,15 +98,6 @@ void pc_object_native_matrices(const void* object, const void* matrices, const v
 
 /* ---- meshes ---- */
 
-/* Per mesh polygon, what its ordering-table bucket needs each frame. */
-typedef struct {
-    uint16_t vertex[4];
-    uint8_t quad;
-    uint8_t semi; /* semi-transparent record (drawn at translucent markers) */
-    uint8_t twosided; /* never culled (double-sided or split) */
-    int8_t offset; /* OT index - depth: -1 plain, bias - 5 mixed */
-    int8_t bias; /* added to the depth before the 0x7c0 test */
-} sort_info;
 typedef struct {
     const void* model;
     int kind;
@@ -114,7 +106,7 @@ typedef struct {
     render_mesh mesh; /* 0: the model could not be built (stays packets) */
     int bones;
     uint32_t used; /* frame serial */
-    sort_info* sort; /* one per mesh polygon */
+    pc_nm_sort* sort; /* one per mesh polygon */
     int polygons, semi;
 } model_mesh;
 #define MESH_CACHE 256
@@ -216,101 +208,16 @@ static int vertex_of(const model_view* m, unsigned offset, unsigned* index)
     *index = offset >> 2;
     return 1;
 }
-/* Decode the model's polygons (bone space, a bone per vertex). */
+/* Decode the model's polygons (bone space, a bone per vertex): native_model's one reading of the records (the same rood-studio draws from), over the model block in the heap. */
 static render_mesh build_mesh(const model_view* m, int kind, const unsigned char* bone_of, int* bones,
-    sort_info** sort_out, int* polygons_out, int* semi_out)
+    pc_nm_sort** sort_out, int* polygons_out, int* semi_out)
 {
-    unsigned total = (unsigned)m->counts[0] + m->counts[1] + m->counts[2];
-    render_polygon* polygons = calloc(total ? total : 1, sizeof *polygons);
-    sort_info* sort = calloc(total ? total : 1, sizeof *sort);
-    uint8_t* alternate = calloc(total ? total : 1, 1);
-    if (!polygons || !sort || !alternate) {
-        free(polygons);
-        free(sort);
-        free(alternate);
-        return 0;
-    }
-    int count = 0, ok = 1, semi = 0;
-    if (GROUPS(kind))
-        ok = group_cluts(m, kind, alternate);
-    const unsigned* r = m->records;
-    unsigned record = 0;
-    for (int section = 0; section < 3 && ok; section++)
-        for (unsigned face = 0; face < m->counts[section] && ok; face++, record++) {
-            render_polygon* p = &polygons[count];
-            memset(p, 0, sizeof *p);
-            unsigned offsets[4], uv[4], colors[4] = { 0, 0, 0, 0 }, flags = 0, code;
-            int quad, split = 0;
-            if (!COLORED(kind)) {
-                quad = section == 1 || (section == 2 && (r[0] & 255) == 0x2c);
-                if (section == 2)
-                    flags = r[0] >> 16;
-                offsets[0] = r[1] & 0xffff, offsets[1] = r[1] >> 16;
-                offsets[2] = r[2] & 0xffff, offsets[3] = r[2] >> 16;
-                uv[0] = r[3] & 0xffff, uv[1] = r[3] >> 16;
-                uv[2] = quad ? r[4] & 0xffff : r[2] >> 16;
-                uv[3] = quad ? r[4] >> 16 : 0;
-                split = section == 2 && (flags & 3) == 3;
-                if (split && !quad)
-                    ok = 0;
-                code = quad ? 0x2c : 0x24;
-                for (int k = 0; k < 4; k++)
-                    colors[k] = 0x808080; /* replaced by the model's colour */
-                r += quad ? 5 : 4;
-            } else {
-                quad = section == 1 || (section == 2 && (r[2] >> 24) == 0x3c);
-                if (section == 2)
-                    flags = r[4] >> 24;
-                offsets[0] = r[0] & 0xffff, offsets[1] = r[0] >> 16;
-                offsets[2] = r[1] & 0xffff, offsets[3] = r[1] >> 16;
-                for (int k = 0; k < (quad ? 4 : 3); k++)
-                    colors[k] = r[2 + k];
-                unsigned uv01 = r[quad ? 6 : 5], uv23 = quad ? r[7] : r[1] >> 16;
-                uv[0] = uv01 & 0xffff, uv[1] = uv01 >> 16, uv[2] = uv23 & 0xffff, uv[3] = uv23 >> 16;
-                code = r[2] >> 24;
-                r += quad ? 8 : 6;
-            }
-            /* Record flag 16: semi-transparent with the record's blend bits
-             * (vs_render_drawModelGouraudPolygonsWithOverrides keeps neither: only the code's own bit). */
-            unsigned page_bits = flags & 0x60;
-            if (kind == KIND_COLORED_GROUPS)
-                page_bits = 0;
-            else if (flags & 16)
-                code |= 2;
-            for (int k = 0; k < (quad ? 4 : 3) && ok; k++) {
-                unsigned v;
-                if (!vertex_of(m, offsets[k], &v)) {
-                    ok = 0;
-                    break;
-                }
-                const short* xyz = m->vertices + v * 4;
-                p->position[k][0] = xyz[0];
-                p->position[k][1] = xyz[1];
-                p->position[k][2] = xyz[2];
-                p->bone[k] = bone_of[v];
-                sort[count].vertex[k] = (uint16_t)v;
-                p->uv[k][0] = uv[k] & 0xff;
-                p->uv[k][1] = (uv[k] >> 8) & 0xff;
-                p->rgb[k][0] = colors[k] & 0xff;
-                p->rgb[k][1] = (colors[k] >> 8) & 0xff;
-                p->rgb[k][2] = (colors[k] >> 16) & 0xff;
-            }
-            p->tpage = (uint16_t)page_bits; /* the model's page is the instance's */
-            p->clut = alternate[record] ? 0x480 : 0; /* added to the instance's CLUT */
-            p->code = (uint8_t)code;
-            p->flags = (uint8_t)((quad ? RENDER_POLY_QUAD : 0) | (split ? RENDER_POLY_SPLIT : 0)
-                | (!split && (flags & 1) ? RENDER_POLY_DOUBLE_SIDED : 0));
-            p->bias = (uint8_t)(split ? 4 : section == 2 ? ((flags >> 2) & 3) * 4 : 0);
-            sort[count].quad = (uint8_t)quad;
-            sort[count].semi = (code & 2) != 0;
-            sort[count].twosided = (uint8_t)((flags & 1) != 0);
-            sort[count].offset = (int8_t)(section == 2 && !split ? (int)((flags >> 2) & 3) * 4 - 5 : -1);
-            sort[count].bias = (int8_t)(section == 2 && !split ? (int)((flags >> 2) & 3) * 4 : 0);
-            semi += (code & 2) != 0;
-            ++count;
-        }
-    free(alternate);
-    render_mesh mesh = ok && count ? render_mesh_create(polygons, count) : 0;
+    pc_nm_view view = { kind, { m->counts[0], m->counts[1], m->counts[2] }, (int)m->vertex_count, m->vertices, m->records, bone_of, m->group_counts, m->mask };
+    render_polygon* polygons = NULL;
+    pc_nm_sort* sort = NULL;
+    int semi = 0;
+    int count = pc_nm_view_polygons(&view, 0, 0, &polygons, &sort, &semi);
+    render_mesh mesh = count > 0 ? render_mesh_create(polygons, count) : 0;
     if (mesh) {
         *sort_out = sort;
         *polygons_out = count;
@@ -328,7 +235,7 @@ static render_mesh build_mesh(const model_view* m, int kind, const unsigned char
         fprintf(stderr,
             "[render] %s model: %u/%u/%u records, %d polygons (%d semi-transparent, %d quads, %d double-sided, %d "
             "split, %d biased), %u vertices%s\n",
-            kind_names[kind], m->counts[0], m->counts[1], m->counts[2], count, semi, quads, sided, split, layered,
+            kind_names[kind], m->counts[0], m->counts[1], m->counts[2], count < 0 ? 0 : count, semi, quads, sided, split, layered,
             m->vertex_count, mesh ? "" : ": stays packets");
     }
     free(polygons);
@@ -612,14 +519,14 @@ static int compare_keys(const void* a, const void* b)
 }
 /* The polygon's depth as its builder sorts it (quads (SZ0..3) >> 4,
  * triangles AVSZ3). */
-static int polygon_depth(const sort_info* s, const unsigned* depths, int zsf3)
+static int polygon_depth(const pc_nm_sort* s, const unsigned* depths, int zsf3)
 {
     unsigned sum = depths[s->vertex[0]] + depths[s->vertex[1]] + depths[s->vertex[2]];
     return s->quad ? (int)((sum + depths[s->vertex[3]]) >> 4) : (int)(((long long)zsf3 * sum) >> 12);
 }
 /* The builders' back-face test: NCLIP of the first triangle's projected
  * positions <= 0 culls (double-sided records excepted). */
-static int facing_away(const sort_info* s, const unsigned* xy)
+static int facing_away(const pc_nm_sort* s, const unsigned* xy)
 {
     long long x0 = (short)xy[s->vertex[0]], y0 = (short)(xy[s->vertex[0]] >> 16);
     long long x1 = (short)xy[s->vertex[1]], y1 = (short)(xy[s->vertex[1]] >> 16);
@@ -820,7 +727,7 @@ static uint32_t submit(int kind, const void* object, const void* model, unsigned
     int zsf3 = vs_gte_screen_current().zsf3;
     int translucent = blend || c->semi;
     for (int p = 0; c->sort && p < c->polygons; p++) {
-        const sort_info* s = &c->sort[p];
+        const pc_nm_sort* s = &c->sort[p];
         int depth = polygon_depth(s, depths, zsf3);
         int semi = blend || s->semi;
         if (semi && translucent) {

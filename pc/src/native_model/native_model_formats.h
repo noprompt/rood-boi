@@ -91,4 +91,55 @@ const unsigned char* pc_nm_table_data(const unsigned char* table);
 /* A first vector: three big-endian halves, each doubled (the turns and the root). */
 void pc_nm_initial_vector(const unsigned char* at, short out[3]);
 
+/* Where a model's texture and palette live in the emulated VRAM, written once (the loaders' slot tables, the slot records the renderer's page words come from, and the studio's
+ * uploads all read it). A texture slot is a place for a model's texels: `page_x`, `page_y` the texture page's corner (what GetTPage takes), `x`, `y` where the texels go
+ * (LoadImage's rectangle, and the slot's origin for the texture animations), `u_add`, `v_add` what the loader adds to every texture coordinate of the model's records.
+ * The actors have 24 slots (shapes take one to eight of them, in 4-bit or 8-bit pages: 64 x 64 texels each), the weapons 20 (8-bit, 64 x 32 texels, two to a page). 0 when `slot`
+ * is outside the table. */
+typedef struct {
+    int page_x, page_y, x, y, u_add, v_add;
+} pc_nm_texture_slot;
+int pc_nm_actor_texture_slot(int slot, pc_nm_texture_slot* out);
+int pc_nm_weapon_texture_slot(int slot, pc_nm_texture_slot* out);
+/* A palette's row: an actor's two (the colours the model's records name, the second the copy the renderer's alternate palette reads) are rows 228 + index and 246 + index of
+ * the column 768 (`which` 0, 1); a weapon's `slot` (the CLUT slot: the palette group, twice the actor's slot plus 16 and the holder's bone code) is a pair at the column
+ * 928 + 48 * (slot & 1), the row 228 + slot / 2. */
+int pc_nm_actor_palette_row(int index, int which);
+
+/* The slots' reference counts (the game's slot records keep them, where its save states do: `refs` the first record's count byte, `stride` the records' size). The loaders
+ * give a model its slots from them: an actor takes `n` (1 to 8) slots of [lo, hi) the way the shape loader always searched (one or two at the first free step of n, three or
+ * four the first free run not crossing a group of four, eight only when every slot of the range is free, any other count the first slot): the slot, or -1 when none fits.
+ * A weapon takes one slot, or a pair of the same page (`wide`): the first free one, both marked taken; -1 when none is. */
+int pc_nm_actor_slots_find(const unsigned char* refs, int stride, int n, int lo, int hi);
+int pc_nm_weapon_slots_take(unsigned char* refs, int stride, int wide);
+
+/* The loaders hold their file's buffer and not its length: a file's length from its own header (where its last part ends, as the decoders check it), for the decoder. */
+unsigned pc_nm_wep_size(const unsigned char* file);
+unsigned pc_nm_shp_size(const unsigned char* file);
+/* The loaders' texture step through the decoded model: decode the file, put its texels into slot `slot` of the texture's kind (a texture object and its upload) and copy its
+ * palettes out where the loader keeps them: a weapon's first palette to `first` and the seven others to `others`, a palette every `stride` bytes; a shape's palettes (its colour count of 4-byte entries) to
+ * `cluts`. 0, or -1 when the file does not decode (nothing is written then). */
+int pc_nm_wep_load_texture(const unsigned char* file, int slot, void* first, void* others, int stride);
+int pc_nm_shp_load_texture(const unsigned char* file, int slot, void* cluts);
+
+/* A model's texture as the loaders and rood-studio hold it: the place it occupies (a slot of `kind` PC_NM_TEXTURE_ACTOR or PC_NM_TEXTURE_WEAPON) and the size of its texels,
+ * made once from the slot and the dimensions; its upload is the one way the texels reach the emulated VRAM (the renderer reads them by page, CLUT and box from there).
+ * `width` is in texels as the files give it (4-bit: two to a byte, 8-bit: one), `words` in the 16-bit words LoadImage counts, `rows` the height. */
+enum { PC_NM_TEXTURE_ACTOR = 0, PC_NM_TEXTURE_WEAPON = 1 };
+typedef struct {
+    int kind, slot;
+    pc_nm_texture_slot place;
+    int words, rows;
+} pc_nm_texture;
+/* 0 when `slot` is outside the kind's table. */
+int pc_nm_texture_at(pc_nm_texture* t, int kind, int slot, int width, int rows);
+/* The texels (words * rows 16-bit words, any alignment) into the texture's place. */
+void pc_nm_texture_upload(const pc_nm_texture* t, const void* texels);
+/* A palette (`words` colours of 16 bits) into the row at (x, y). */
+void pc_nm_palette_upload(int x, int y, int words, const void* colours);
+void pc_nm_weapon_palette_at(int slot, int* x, int* y);
+/* The same places as vs_main_loadClut names them (its slot: the row less 224; its colour offset: the column less 768). */
+void pc_nm_actor_palette_clut(int index, int which, int* slot, int* offset);
+void pc_nm_weapon_palette_clut(int slot, int* clut_slot, int* offset);
+
 #endif

@@ -25,8 +25,10 @@ pub fn loadMaterialPalette(index: c_int, material: c_int) callconv(.c) void {
         psx.conv(c_uint, count *% 2),
     );
     c.vs_main_memcpy(&model.unk500, &model.unk440, @as(c_uint, @sizeOf(@TypeOf(model.unk500))));
-    const slot: c_int = (@as(c_int, model.clutSlotOffset) >> 1) +% 4;
-    const colorOffset: c_int = ((@as(c_int, model.clutSlotOffset) & 1) *% 48) +% 160;
+    // the CLUT slot's row and column: native_model's (the weapon's palette place)
+    var slot: c_int = undefined;
+    var colorOffset: c_int = undefined;
+    c.pc_nm_weapon_palette_clut(model.clutSlotOffset, &slot, &colorOffset);
     c.vs_main_loadClut(
         &model.unk500,
         psx.conv(c_uint, slot),
