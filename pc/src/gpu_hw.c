@@ -715,7 +715,6 @@ static uint32_t dirty_tiles = 0xffffffffu;
  * first triangle (after its uploads); own_bands: where that copy is the
  * target's, not native VRAM (dirty again from the next textured primitive). */
 static int own_rects[4][4], own_count, own_active;
-static int own_flush; /* the primitive about to be drawn samples a cell that has ever been marked drawn: the batch ends before it, copy or not */
 static int own_want[4], own_want_valid; /* the texels the primitive samples (x0, y0, x1, y1, exclusive): what a capture takes whole */
 static uint32_t own_bands[16];
 static void own_apply(void);
@@ -1756,16 +1755,17 @@ static void flush(void)
  * it last, finer, is the same picture. Redraws of a recorded frame (RPC
  * ui_upscale redraw) draw the held-back text into it, dumps of the target
  * bake it first. */
-#define OVERLAY_MAX 32768 /* triangles (each glyph three times: the original sprite, in its cell, as lines) */
+#define OVERLAY_MAX 16384 /* triangles, the most ever held: the arrays grow from 4,096 as text is held; the busiest menu holds 3,500 (score), the rest 1,500 or fewer */
 typedef struct {
     hw_vertex v[3];
     int clip[4];      /* its drawing area */
     int blend;        /* BLEND_TEXT + mode */
     int box[4];       /* x0, y0, x1, y1 (exclusive): where it can draw, VRAM pixels, a pixel around */
 } overlay_triangle;
-static overlay_triangle overlay[OVERLAY_MAX];
+static overlay_triangle* overlay; /* overlay_cap entries, grown by overlay_reserve */
+static int overlay_cap;
 static uint64_t overlay_cells[32]; /* 32 rows of 64 columns of 16 x 16 VRAM pixels: any held there */
-static uint8_t overlay_pick[OVERLAY_MAX];
+static uint8_t* overlay_pick; /* overlay_cap entries */
 static long overlay_baked, overlay_presented; /* triangles (RPC ui_text: tests) */
 static void record_vertices(const hw_vertex* v, int count, int blend, const int* clip, int triangles);
 static void unrecord_triangles(int count);
@@ -1925,17 +1925,61 @@ static void overlay_bake_under(const hw_vertex* v, int count, const int* clip)
     }
 }
 /* Hold back the current batch (BLEND_TEXT) instead of drawing it. */
+/* Room for `count` held triangles in all: the arrays double as text is held (whether text is held or baked must not depend on how its batches
+ * fall: a fixed capacity made a batch that did not fit bake every held triangle). 0 when `count` is past OVERLAY_MAX or memory is gone. */
+static int overlay_reserve(int count)
+{
+    if (count <= overlay_cap)
+        return 1;
+    if (count > OVERLAY_MAX)
+        return 0;
+    int cap = overlay_cap ? overlay_cap : 4096;
+    while (cap < count)
+        cap *= 2;
+    if (cap > OVERLAY_MAX)
+        cap = OVERLAY_MAX;
+    overlay_triangle* grown = realloc(overlay, (size_t)cap * sizeof *overlay);
+    if (!grown)
+        return 0;
+    overlay = grown;
+    uint8_t* picks = realloc(overlay_pick, (size_t)cap);
+    if (!picks)
+        return 0;
+    overlay_pick = picks;
+    overlay_cap = cap;
+    return 1;
+}
 static void overlay_hold(void)
 {
     int triangles = batch_count / 3;
-    if (overlay_count + triangles > OVERLAY_MAX)
-        overlay_bake_all(); /* (full: what is held is drawn) */
-    if (overlay_count + triangles > OVERLAY_MAX) {
+    if (!overlay_reserve(overlay_count + triangles))
+        overlay_bake_all(); /* (past OVERLAY_MAX or out of memory: what is held is drawn) */
+    if (!overlay_reserve(overlay_count + triangles)) {
         record_batch();
         draw_batch(target_fbo, batch, batch_count, batch_blend, batch_clip);
         return;
     }
+    /* Not held: what no path would draw. A triangle whose box is empty lies outside its drawing area (drawn clipped away) and nothing ever picks it:
+     * held, it stayed for good (97 % of a storage screen's 60,000 held triangles after a minute, growing without end). Text drawn three ways
+     * (TEXT_TAG_*): the ways neither the presenter's rule nor draw_batch's keeps are not held either, which is two thirds of the rest. */
+    const uint32_t drop_drawn = !(pc_ui_text_layout_on(pc_hw_scale) && pc_ui_upscale_draw_factor())
+        ? TEXT_TAG_CELL | TEXT_TAG_LINE
+        : pc_ui_text_layout == PC_UI_TEXT_LAYOUT_LINE ? TEXT_TAG_GLYPH | TEXT_TAG_CELL : TEXT_TAG_GLYPH | TEXT_TAG_LINE;
+    const uint32_t drop_shown = pc_ui_text == PC_UI_TEXT_FONT ? (pc_ui_text_layout == PC_UI_TEXT_LAYOUT_LINE ? TEXT_TAG_GLYPH | TEXT_TAG_CELL
+                                                                                                         : TEXT_TAG_GLYPH | TEXT_TAG_LINE)
+                                                              : TEXT_TAG_CELL | TEXT_TAG_LINE;
     for (int t = 0; t < triangles; t++) {
+        if (batch[t * 3].window & drop_drawn & drop_shown)
+            continue;
+        {
+            float bx0 = fminf(batch[t * 3].x, fminf(batch[t * 3 + 1].x, batch[t * 3 + 2].x)), bx1 = fmaxf(batch[t * 3].x, fmaxf(batch[t * 3 + 1].x, batch[t * 3 + 2].x));
+            float by0 = fminf(batch[t * 3].y, fminf(batch[t * 3 + 1].y, batch[t * 3 + 2].y)), by1 = fmaxf(batch[t * 3].y, fmaxf(batch[t * 3 + 1].y, batch[t * 3 + 2].y));
+            int x0 = (int)floorf(bx0) - 1, y0 = (int)floorf(by0) - 1, x1 = (int)ceilf(bx1) + 1, y1 = (int)ceilf(by1) + 1;
+            x0 = x0 > batch_clip[0] ? x0 : batch_clip[0], y0 = y0 > batch_clip[1] ? y0 : batch_clip[1];
+            x1 = x1 < batch_clip[0] + batch_clip[2] ? x1 : batch_clip[0] + batch_clip[2], y1 = y1 < batch_clip[1] + batch_clip[3] ? y1 : batch_clip[1] + batch_clip[3];
+            if (x1 <= x0 || y1 <= y0)
+                continue;
+        }
         overlay_triangle* o = &overlay[overlay_count++];
         memcpy(o->v, batch + t * 3, sizeof o->v);
         for (int k = 0; k < 3; k++)
@@ -2541,13 +2585,8 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
             upload_dirty(needed);
         }
         if (own_count)
-            own_apply(), own_flush = 0;
+            own_apply();
         else {
-            /* (no own copy here, but where a draw that samples a drawn area has always ended the batch before it, this one does: the pictures depend on
-             * where the batches break, held text above all, and why is not understood; own_flush is that rule, kept on the marks nothing clears) */
-            if (own_flush)
-                flush();
-            own_flush = 0;
             int box[4];
             sample_box(window, uv, box);
             tex_note(tpage, clut, window, box); /* (a draw that samples the frame stays on the VRAM image) */
@@ -4837,7 +4876,7 @@ static int sync_debug = -1;
 void pc_hw_sync_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip)
 { PC_HW_METER(sync_texture);
     own_fold();
-    own_count = 0, own_want_valid = 0, own_flush = 0;
+    own_count = 0, own_want_valid = 0;
     if (!pc_stale_any(&cstale))
         return;
     int depth = (tpage >> 7) & 3;
@@ -4857,14 +4896,6 @@ void pc_hw_sync_texture(unsigned tpage, unsigned clut, unsigned window, int u0, 
     if (depth < 2)
         own_add(reach[1][0], reach[1][1], reach[1][2] - reach[1][0] + 1, 1);
     own_active = own_count > 0;
-    {   /* where it has ever been drawn: the batch ends before this draw as it always has (own_flush) */
-        int tw = (x1 > 1023 ? 1023 : x1) - x0 + 1, th = v1 - v0 + 1;
-        own_flush = pc_stale_meets(cstale.ever_missing, x0, ty0, tw, th) || pc_stale_meets(cstale.ever_placed, x0, ty0, tw, th);
-        if (depth < 2 && !own_flush) {
-            int cw = reach[1][2] - reach[1][0] + 1;
-            own_flush = pc_stale_meets(cstale.ever_missing, reach[1][0], reach[1][1], cw, 1) || pc_stale_meets(cstale.ever_placed, reach[1][0], reach[1][1], cw, 1);
-        }
-    }
     if (sync_debug && own_count)
         fprintf(stderr, "[sync] own copy: texture page %x clut %x uv %d,%d..%d,%d into %d,%d %dx%d\n", tpage, clut,
             u0, v0, u1, v1, clip[0], clip[1], clip[2], clip[3]);

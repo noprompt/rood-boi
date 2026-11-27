@@ -1187,7 +1187,7 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
             card_copy = out / "no-card.mcd"
         else:
             card_copy.write_bytes(pathlib.Path(card).read_bytes())
-        g = launch_at(CHECKPOINT.get(name, "save_room"), card=str(card_copy), fast=True, log=out / f"{name}.log", extra_env=env)
+        g = launch_at(CHECKPOINT.get(name, "save_room"), card=str(card_copy), fast=not os.environ.get("BUILD_COMPARE_PACED"), log=out / f"{name}.log", extra_env=env)  # (BUILD_COMPARE_PACED=1: the game at its own speed, as played, not unpaced)
         if renderer == "null":  # (no pixels: the drawing stream's chain from here is the picture)
             os.environ["BUILD_COMPARE_ITEMS"] = "1"
             g.call("stream", on=True, reset=True)

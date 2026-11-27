@@ -33,7 +33,6 @@ const span_shape* pc_hwr_span_shape_of(uintptr_t packet);
 enum { PC_STALE_MISSING = 1, PC_STALE_PLACED = 2, PC_STALE_DRAWN = 4 };
 typedef struct {
     uint32_t missing[16], placed[16]; /* MISSING, PLACED: the cells that differ now (an upload or a fill over whole cells ends it) */
-    uint32_t ever_missing[16], ever_placed[16]; /* the same marks without that ending: where draws have flushed the batch before them (see gpu_hw.c own_flush) */
     int in_ot;                        /* an ordering table is being drawn (its native areas are marked) */
 } pc_stale_set;
 void pc_stale_mark(pc_stale_set* set, const int* clip, int kind);

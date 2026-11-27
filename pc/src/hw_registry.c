@@ -355,17 +355,15 @@ void pc_stale_mark(pc_stale_set* set, const int* clip, int kind)
         return;
     if (kind & (PC_STALE_MISSING | PC_STALE_DRAWN)) {
         cells_set(set->missing, r[0], r[1], r[2], r[3]);
-        cells_set(set->ever_missing, r[0], r[1], r[2], r[3]);
     }
     if (kind & PC_STALE_PLACED) {
         cells_set(set->placed, r[0], r[1], r[2], r[3]);
-        cells_set(set->ever_placed, r[0], r[1], r[2], r[3]);
     }
 }
 int pc_stale_any(const pc_stale_set* set)
 {
     for (int c = 0; c < 16; c++)
-        if (set->ever_missing[c] | set->ever_placed[c])
+        if (set->missing[c] | set->placed[c])
             return 1;
     return 0;
 }
@@ -423,8 +421,4 @@ void pc_stale_copy(pc_stale_set* set, int sx, int sy, int dx, int dy, int w, int
         cells_set(set->placed, r[0], r[1], r[2], r[3]), drawn = 1;
     if (!drawn)
         pc_stale_clear_covered(set, dx, dy, w, h);
-    if (pc_stale_meets(set->ever_missing, sx, sy, w, h))
-        cells_set(set->ever_missing, r[0], r[1], r[2], r[3]);
-    if (pc_stale_meets(set->ever_placed, sx, sy, w, h))
-        cells_set(set->ever_placed, r[0], r[1], r[2], r[3]);
 }

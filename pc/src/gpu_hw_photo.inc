@@ -16,10 +16,10 @@ static struct {
     unsigned arrival[3], serial;
     float blend, r[3][3], t[3], h, ofx, ofy, fade, fade_rect[4];
     int menu_model, redraw, redraw_origin[2];
-    overlay_triangle overlay[OVERLAY_MAX];
+    overlay_triangle* overlay; /* overlay_count held triangles, copied */
     int overlay_count;
     uint64_t overlay_cells[32];
-    uint32_t stale_cells[16], placed_cells[16], ever_stale_cells[16], ever_placed_cells[16];
+    uint32_t stale_cells[16], placed_cells[16];
     int occlusion_on, occlusion_rect[4], surface_valid;
     int scale, vulkan;
     render_camera view;
@@ -78,6 +78,8 @@ void pc_hw_photo_drop_now(void)
         memset(photo_gl, 0, sizeof photo_gl);
         memset(photo_gl_depth, 0, sizeof photo_gl_depth);
     }
+    if (photo_picture)
+        free(photo_picture->overlay);
     free(photo_picture);
     photo_picture = NULL;
     render_photo_drop();
@@ -147,8 +149,13 @@ int pc_hw_photo_mark_now(void)
     COPY(r, replay_r); COPY(t, replay_t); KEEP(h, replay_h); KEEP(ofx, replay_ofx); KEEP(ofy, replay_ofy);
     KEEP(fade, present_fade); COPY(fade_rect, present_fade_rect); KEEP(menu_model, present_menu_model);
     KEEP(redraw, redraw_shown); COPY(redraw_origin, redraw_origin);
-    COPY(overlay, overlay); COPY(overlay_cells, overlay_cells); KEEP(overlay_count, overlay_count);
-    COPY(stale_cells, cstale.missing); COPY(placed_cells, cstale.placed); COPY(ever_stale_cells, cstale.ever_missing); COPY(ever_placed_cells, cstale.ever_placed);
+    COPY(overlay_cells, overlay_cells); KEEP(overlay_count, overlay_count);
+    photo_picture->overlay = overlay_count ? malloc((size_t)overlay_count * sizeof *overlay) : NULL;
+    if (photo_picture->overlay)
+        memcpy(photo_picture->overlay, overlay, (size_t)overlay_count * sizeof *overlay);
+    else
+        photo_picture->overlay_count = 0;
+    COPY(stale_cells, cstale.missing); COPY(placed_cells, cstale.placed);
     KEEP(occlusion_on, occlusion_on); COPY(occlusion_rect, occlusion_rect); KEEP(surface_valid, surface_valid);
 #undef COPY
 #undef KEEP
@@ -188,8 +195,12 @@ int pc_hw_photo_restore_now(void)
     COPY(replay_r, r); COPY(replay_t, t); RESTORE(replay_h, h); RESTORE(replay_ofx, ofx); RESTORE(replay_ofy, ofy);
     RESTORE(present_fade, fade); COPY(present_fade_rect, fade_rect); RESTORE(present_menu_model, menu_model);
     RESTORE(redraw_shown, redraw); COPY(redraw_origin, redraw_origin);
-    COPY(overlay, overlay); COPY(overlay_cells, overlay_cells); RESTORE(overlay_count, overlay_count);
-    COPY(cstale.missing, stale_cells); COPY(cstale.placed, placed_cells); COPY(cstale.ever_missing, ever_stale_cells); COPY(cstale.ever_placed, ever_placed_cells);
+    COPY(overlay_cells, overlay_cells); RESTORE(overlay_count, overlay_count);
+    if (overlay_count && overlay_reserve(overlay_count))
+        memcpy(overlay, photo_picture->overlay, (size_t)overlay_count * sizeof *overlay);
+    else
+        overlay_count = 0, memset(overlay_cells, 0, sizeof overlay_cells);
+    COPY(cstale.missing, stale_cells); COPY(cstale.placed, placed_cells);
     RESTORE(occlusion_on, occlusion_on); COPY(occlusion_rect, occlusion_rect); RESTORE(surface_valid, surface_valid);
 #undef COPY
 #undef RESTORE
