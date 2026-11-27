@@ -44,7 +44,6 @@ extern void pc_hw_mark(int, int, int, int);
 extern void pc_hw_mark_drawn(const int*);
 extern void pc_hw_drawn_area(const int* clip, const int* bounds, int* area);
 extern void pc_hw_before_write(int, int, int, int) __attribute__((weak));
-extern void pc_hw_stale_copy(int, int, int, int, int, int) __attribute__((weak));
 extern int pc_hw_text_quad_decide(int, const float*, const int*, unsigned, unsigned, unsigned, const int*, pc_ui_text_piece_info*);
 extern void pc_hw_text_piece_apply(const pc_ui_text_piece_info*, unsigned, unsigned, unsigned, int, int, const void*);
 extern void pc_hw_text_piece_end(void);
@@ -66,7 +65,7 @@ extern const uint16_t* pc_native_vram(void);
 extern int pc_gpu_immediate; /* DrawPrim, not an ordering table: ui_text identifies the info signs by it */
 extern const void* pc_gpu_command; /* the packet a rectangle or text quad draws (boot_runtime.c) */
 
-enum { C_SET_2D = 1, C_SET_NARROWED, C_SET_PRECISE, C_SET_DEPTH, C_SET_PACKET, C_SET_FLIPPED_UV, C_SET_BOUNDS, C_SET_ATTR, C_NATIVE_MARKER, C_NATIVE_TRANSLUCENT, C_OT_NATIVE_AREA, C_RECT, C_LINE, C_TRIANGLE, C_MARK, C_BEFORE_WRITE, C_STALE_COPY, C_TEXT_PIECE, C_TEXT_PIECE_DONE, C_EMISSIVE_NOTE, C_EMISSIVE_GONE, C_EMISSIVE_ROOM_MESH, C_FRAME_ROOM, C_VRAM_FILL, C_VRAM_UPLOAD, C_VRAM_COPY, C_SET_WIDESCREEN, C_UPLOAD_MODE, C_BEGIN_OT, C_END_OT, C_SET_SUPPRESS, C_TEXTURE_FENCE, C_STREAM, C_STREAM_WORDS, C_FRAME_MENU_MODEL, C_SET_SETTINGS, C_SET_EXACT, C_CLEAR_EXACT, C_SKIP_PRESENT };
+enum { C_SET_2D = 1, C_SET_NARROWED, C_SET_PRECISE, C_SET_DEPTH, C_SET_PACKET, C_SET_FLIPPED_UV, C_SET_BOUNDS, C_SET_ATTR, C_NATIVE_MARKER, C_NATIVE_TRANSLUCENT, C_OT_NATIVE_AREA, C_RECT, C_LINE, C_TRIANGLE, C_MARK, C_BEFORE_WRITE, C_TEXT_PIECE, C_TEXT_PIECE_DONE, C_EMISSIVE_NOTE, C_EMISSIVE_GONE, C_EMISSIVE_ROOM_MESH, C_FRAME_ROOM, C_VRAM_FILL, C_VRAM_UPLOAD, C_VRAM_COPY, C_SET_WIDESCREEN, C_UPLOAD_MODE, C_BEGIN_OT, C_END_OT, C_SET_SUPPRESS, C_TEXTURE_FENCE, C_STREAM, C_STREAM_WORDS, C_FRAME_MENU_MODEL, C_SET_SETTINGS, C_SET_EXACT, C_CLEAR_EXACT, C_SKIP_PRESENT };
 
 struct pc_hwc_mirror_t pc_hwc_mirror = { .cur_effect = -1, .poly_effect = -1, .settings = { 1, 0, 1, 1, 1 } }; /* (the settings: the renderer's defaults, gpu_hw.c) */
 int pc_hwc_pending;
@@ -424,13 +423,6 @@ void pc_hwc_before_write(int x, int y, int w, int h)
 {
     int v[4] = { x, y, w, h };
     memcpy(record(C_BEFORE_WRITE, sizeof v), v, sizeof v);
-    if (inline_now())
-        pc_hwc_flush();
-}
-void pc_hwc_stale_copy(int sx, int sy, int dx, int dy, int w, int h)
-{
-    int v[6] = { sx, sy, dx, dy, w, h };
-    memcpy(record(C_STALE_COPY, sizeof v), v, sizeof v);
     if (inline_now())
         pc_hwc_flush();
 }
@@ -991,14 +983,6 @@ static void apply_batch(batch* b)
             memcpy(v, r, sizeof v);
             if (pc_hw_before_write)
                 pc_hw_before_write(v[0], v[1], v[2], v[3]);
-            at += 1 + (int)sizeof v;
-            break;
-        }
-        case C_STALE_COPY: {
-            int v[6];
-            memcpy(v, r, sizeof v);
-            if (pc_hw_stale_copy)
-                pc_hw_stale_copy(v[0], v[1], v[2], v[3], v[4], v[5]);
             at += 1 + (int)sizeof v;
             break;
         }

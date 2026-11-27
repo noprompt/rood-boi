@@ -213,7 +213,8 @@ static int probe_vk_bvh(void)
             memcpy(rgb[j], t->vertex[j].rgb, 3);
             uv[j][0] = t->vertex[j].u, uv[j][1] = t->vertex[j].v;
         }
-        add_triangle(p, rgb, uv, t->tpage, t->clut, t->code, 1u | (t->code & 1 ? 2u : 0u) | (t->code & 2 ? 4u : 0u));
+        int flat = !(t->code & 4) && !t->tpage && !t->clut && !uv[0][0] && !uv[0][1] && !uv[1][0] && !uv[1][1] && !uv[2][0] && !uv[2][1]; /* (vk_rt.inc) */
+        add_triangle(p, rgb, uv, t->tpage, t->clut, t->code, (flat ? 0u : 1u) | (t->code & 1 ? 2u : 0u) | (t->code & 2 ? 4u : 0u));
     }
     room_triangles = triangle_count;
     if (!triangle_count)

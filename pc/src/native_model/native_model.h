@@ -120,6 +120,10 @@ typedef struct {
     /* bones the animation's events hold (vs_actors_setActorBonePoseLock): where they were when held, relative to the actor's place, in the world's axes */
     uint8_t locked[RENDER_MAX_BONES];
     float lock_rotation[RENDER_MAX_BONES][3][3], lock_place[RENDER_MAX_BONES][3];
+    /* A pose between two of the game's (pc_nm_pose_mix): set, every bone's own turn is the matrix mix_turn (bone 0's with the actor's turns in it) and the scale its matrix carries is mix_scale
+     * (the chain's, 64 = 1, mixed), not the angles and keys above, which hold the nearer pose. Zero in every pose the player or the game's state gives. */
+    uint8_t mixed;
+    float mix_turn[RENDER_MAX_BONES][3][3], mix_scale[RENDER_MAX_BONES][3];
 } pc_nm_pose;
 /* The studio's pose (rot, scale, actor_scale and the actor's turns) from the game's state: the same values the animation player (pc_nm_anim_pose) leaves, so one pose
  * structure carries both and they can be compared bone for bone. The place and the root's offset stay zero (the game keeps those in the parent matrix). */
@@ -129,6 +133,10 @@ void pc_nm_pose_zero(const pc_nm_model* m, pc_nm_pose* pose); /* every bone's tu
  * when the block holds no such animation (the pose is then zero). */
 int pc_nm_pose_rest(const pc_nm_model* m, pc_nm_pose* pose);
 int pc_nm_pose_transforms(const pc_nm_model* m, const pc_nm_pose* pose, render_transform* out);
+/* The pose a fraction `t` (0..1) of the way from `a` to `b` (the same model's): each bone's turn is the quaternion slerp of the two (the shortest way round: no shrinking of
+ * bone lengths, as a blend of matrices has), scale keys, the root's offset and place linear. 0 gives `a` and 1 `b` exactly (copies). Held bones (events 56 and 57) are
+ * mixed when both poses hold them, else the nearer pose's. The actor's turns (rotation_x, facing, rotation_z) are carried in bone 0's turn: set them on both poses first. */
+void pc_nm_pose_mix(const pc_nm_model* m, const pc_nm_pose* a, const pc_nm_pose* b, float t, pc_nm_pose* out);
 
 /* ---- sequences: the animation tables and a player (vs_actors_findActorAnimationHeader, vs_actors_initializeActorAnimationPose and
  * vs_actors_decodeAnimationTrack; written from the Zig in game/battle and checked against the game's palettes by rood_studio_smoke.py) ----

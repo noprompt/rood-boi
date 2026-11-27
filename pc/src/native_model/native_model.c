@@ -756,38 +756,64 @@ void pc_nm_pose_zero(const pc_nm_model* m, pc_nm_pose* pose)
 
 static unsigned be16(const uint8_t* p) { return (unsigned)p[0] << 8 | p[1]; }
 
+/* A bone's own turn and scale keys of a pose, whether it came from the player or from pc_nm_pose_mix. */
+static void pose_turn(const pc_nm_pose* p, int i, float r[3][3])
+{
+    if (p->mixed)
+        memcpy(r, p->mix_turn[i], sizeof(float[3][3]));
+    else if (i == 0)
+        pc_nm_euler(p->rot[0][0] + p->rotation_x, p->rot[0][1] + p->facing, p->rot[0][2] + p->rotation_z, r);
+    else
+        pc_nm_euler(p->rot[i][0], p->rot[i][1], p->rot[i][2], r);
+}
+
+/* The scale each bone's matrix carries (the chain's, 64 = 1): whole numbers, truncated as the game's integer arithmetic does, unless the pose is mixed (its mix_scale is that, mixed). */
+static void chain_scale(const pc_nm_model* m, const pc_nm_pose* p, int bones, float s[][3])
+{
+    if (p->mixed) {
+        memcpy(s, p->mix_scale, sizeof(float[3]) * (size_t)bones);
+        return;
+    }
+    for (int k = 0; k < 3; k++)
+        s[0][k] = p->scale[0][k];
+    for (int i = 1; i < bones; i++) {
+        int parent = m->bone[i].parent;
+        int keys_unit = p->scale[i][0] == 64 && p->scale[i][1] == 64 && p->scale[i][2] == 64;
+        for (int k = 0; k < 3; k++)
+            s[i][k] = p->locked[i] ? 64 : keys_unit ? s[parent][k] : (float)((int)s[parent][k] * p->scale[i][k] / 64);
+    }
+}
+
 int pc_nm_pose_transforms(const pc_nm_model* m, const pc_nm_pose* pose, render_transform* out)
 {
     if (!m->bone || m->bones <= 0 || m->bones > RENDER_MAX_BONES)
         return -1;
     float unscaled[RENDER_MAX_BONES][3][3]; /* what the children turn from (D_800F2458.boneMatrices) */
-    int scale[RENDER_MAX_BONES][3];         /* the chain's scale, 64 = 1 */
-    pc_nm_euler(pose->rot[0][0] + pose->rotation_x, pose->rot[0][1] + pose->facing, pose->rot[0][2] + pose->rotation_z, unscaled[0]);
+    float scale[RENDER_MAX_BONES][3];
+    for (int i = 1; i < m->bones; i++)
+        if (m->bone[i].parent >= i)
+            return -1;
+    chain_scale(m, pose, m->bones, scale);
+    pose_turn(pose, 0, unscaled[0]);
     for (int a = 0; a < 3; a++)
         for (int b = 0; b < 3; b++)
             unscaled[0][a][b] *= pose->actor_scale;
-    for (int k = 0; k < 3; k++)
-        scale[0][k] = pose->scale[0][k];
     for (int a = 0; a < 3; a++) {
-        out[0].translation[a] = pose->position[a] + (float)pose->offset[a];
+        out[0].translation[a] = pose->position[a] + (float)pose->offset[a] * pose->actor_scale; /* (the game scales the root's offset with the actor: 1820 of 4096) */
         for (int b = 0; b < 3; b++)
-            out[0].rotation[a][b] = unscaled[0][a][b] * (float)scale[0][b] / 64.0f;
+            out[0].rotation[a][b] = unscaled[0][a][b] * scale[0][b] / 64.0f;
     }
     for (int i = 1; i < m->bones; i++) {
         int parent = m->bone[i].parent;
-        if (parent >= i)
-            return -1;
         if (pose->locked[i]) { /* held: where it was, whatever its parents do */
             memcpy(unscaled[i], pose->lock_rotation[i], sizeof unscaled[i]);
             memcpy(out[i].rotation, pose->lock_rotation[i], sizeof out[i].rotation);
             for (int a = 0; a < 3; a++)
                 out[i].translation[a] = pose->lock_place[i][a] + pose->position[a];
-            for (int k = 0; k < 3; k++)
-                scale[i][k] = 64;
             continue;
         }
         float own[3][3];
-        pc_nm_euler(pose->rot[i][0], pose->rot[i][1], pose->rot[i][2], own);
+        pose_turn(pose, i, own);
         float length = (float)m->bone[parent].length;
         const render_transform* p = &out[parent];
         for (int a = 0; a < 3; a++) {
@@ -795,14 +821,114 @@ int pc_nm_pose_transforms(const pc_nm_model* m, const pc_nm_pose* pose, render_t
             for (int b = 0; b < 3; b++)
                 unscaled[i][a][b] = unscaled[parent][a][0] * own[0][b] + unscaled[parent][a][1] * own[1][b] + unscaled[parent][a][2] * own[2][b];
         }
-        int keys_unit = pose->scale[i][0] == 64 && pose->scale[i][1] == 64 && pose->scale[i][2] == 64;
-        for (int k = 0; k < 3; k++)
-            scale[i][k] = keys_unit ? scale[parent][k] : scale[parent][k] * pose->scale[i][k] / 64;
         for (int a = 0; a < 3; a++)
             for (int b = 0; b < 3; b++)
-                out[i].rotation[a][b] = unscaled[i][a][b] * (float)scale[i][b] / 64.0f;
+                out[i].rotation[a][b] = unscaled[i][a][b] * scale[i][b] / 64.0f;
     }
     return m->bones;
+}
+
+/* quaternions (w, x, y, z) of rotations given as matrices (the columns the matrix's images of the axes: r[row][column]) */
+static void mix_to_quat(const float r[3][3], float q[4])
+{
+    float tr = r[0][0] + r[1][1] + r[2][2];
+    if (tr > 0) {
+        float s = sqrtf(tr + 1) * 2;
+        q[0] = s / 4, q[1] = (r[2][1] - r[1][2]) / s, q[2] = (r[0][2] - r[2][0]) / s, q[3] = (r[1][0] - r[0][1]) / s;
+    } else if (r[0][0] > r[1][1] && r[0][0] > r[2][2]) {
+        float s = sqrtf(1 + r[0][0] - r[1][1] - r[2][2]) * 2;
+        q[0] = (r[2][1] - r[1][2]) / s, q[1] = s / 4, q[2] = (r[0][1] + r[1][0]) / s, q[3] = (r[0][2] + r[2][0]) / s;
+    } else if (r[1][1] > r[2][2]) {
+        float s = sqrtf(1 + r[1][1] - r[0][0] - r[2][2]) * 2;
+        q[0] = (r[0][2] - r[2][0]) / s, q[1] = (r[0][1] + r[1][0]) / s, q[2] = s / 4, q[3] = (r[1][2] + r[2][1]) / s;
+    } else {
+        float s = sqrtf(1 + r[2][2] - r[0][0] - r[1][1]) * 2;
+        q[0] = (r[1][0] - r[0][1]) / s, q[1] = (r[0][2] + r[2][0]) / s, q[2] = (r[1][2] + r[2][1]) / s, q[3] = s / 4;
+    }
+}
+
+static void mix_from_quat(const float q[4], float r[3][3])
+{
+    float w = q[0], x = q[1], y = q[2], z = q[3];
+    r[0][0] = 1 - 2 * (y * y + z * z), r[0][1] = 2 * (x * y - w * z), r[0][2] = 2 * (x * z + w * y);
+    r[1][0] = 2 * (x * y + w * z), r[1][1] = 1 - 2 * (x * x + z * z), r[1][2] = 2 * (y * z - w * x);
+    r[2][0] = 2 * (x * z - w * y), r[2][1] = 2 * (y * z + w * x), r[2][2] = 1 - 2 * (x * x + y * y);
+}
+
+static void mix_slerp(const float qa[4], const float qb_in[4], float t, float out[4])
+{
+    float qb[4] = { qb_in[0], qb_in[1], qb_in[2], qb_in[3] };
+    float dot = qa[0] * qb[0] + qa[1] * qb[1] + qa[2] * qb[2] + qa[3] * qb[3];
+    if (dot < 0) { /* the shorter way round */
+        dot = -dot;
+        for (int k = 0; k < 4; k++)
+            qb[k] = -qb[k];
+    }
+    float wa, wb;
+    if (dot > 0.9995f) { /* nearly the same: the chord, renormalised below */
+        wa = 1 - t, wb = t;
+    } else {
+        float theta = acosf(dot), s = sinf(theta);
+        wa = sinf((1 - t) * theta) / s, wb = sinf(t * theta) / s;
+    }
+    float n = 0;
+    for (int k = 0; k < 4; k++)
+        out[k] = wa * qa[k] + wb * qb[k], n += out[k] * out[k];
+    n = 1 / sqrtf(n);
+    for (int k = 0; k < 4; k++)
+        out[k] *= n;
+}
+
+/* a turn that may carry scale in its columns: the rotation of the columns' directions slerped, their lengths linear */
+static void mix_matrix(const float a[3][3], const float b[3][3], float t, float out[3][3])
+{
+    float na[3], nb[3], ua[3][3], ub[3][3];
+    for (int c = 0; c < 3; c++) {
+        na[c] = sqrtf(a[0][c] * a[0][c] + a[1][c] * a[1][c] + a[2][c] * a[2][c]);
+        nb[c] = sqrtf(b[0][c] * b[0][c] + b[1][c] * b[1][c] + b[2][c] * b[2][c]);
+        for (int r = 0; r < 3; r++)
+            ua[r][c] = na[c] > 1e-6f ? a[r][c] / na[c] : (r == c), ub[r][c] = nb[c] > 1e-6f ? b[r][c] / nb[c] : (r == c);
+    }
+    float qa[4], qb[4], q[4], u[3][3];
+    mix_to_quat(ua, qa), mix_to_quat(ub, qb), mix_slerp(qa, qb, t, q), mix_from_quat(q, u);
+    for (int c = 0; c < 3; c++)
+        for (int r = 0; r < 3; r++)
+            out[r][c] = u[r][c] * (na[c] + (nb[c] - na[c]) * t);
+}
+
+void pc_nm_pose_mix(const pc_nm_model* m, const pc_nm_pose* a, const pc_nm_pose* b, float t, pc_nm_pose* out)
+{
+    if (!(t > 0)) {
+        *out = *a;
+        return;
+    }
+    if (!(t < 1)) {
+        *out = *b;
+        return;
+    }
+    const pc_nm_pose* near = t < 0.5f ? a : b;
+    int bones = m->bones > 0 && m->bones < RENDER_MAX_BONES ? m->bones : RENDER_MAX_BONES;
+    *out = *near;
+    float ca[RENDER_MAX_BONES][3], cb[RENDER_MAX_BONES][3];
+    chain_scale(m, a, bones, ca), chain_scale(m, b, bones, cb);
+    out->mixed = 1;
+    for (int k = 0; k < 3; k++) {
+        out->position[k] = a->position[k] + (b->position[k] - a->position[k]) * t;
+        out->offset[k] = (int16_t)lrintf((float)a->offset[k] + (float)(b->offset[k] - a->offset[k]) * t);
+    }
+    out->actor_scale = a->actor_scale + (b->actor_scale - a->actor_scale) * t;
+    for (int i = 0; i < bones; i++) {
+        float ta[3][3], tb[3][3];
+        pose_turn(a, i, ta), pose_turn(b, i, tb);
+        mix_matrix(ta, tb, t, out->mix_turn[i]);
+        for (int k = 0; k < 3; k++)
+            out->mix_scale[i][k] = ca[i][k] + (cb[i][k] - ca[i][k]) * t;
+        if (a->locked[i] && b->locked[i]) {
+            mix_matrix(a->lock_rotation[i], b->lock_rotation[i], t, out->lock_rotation[i]);
+            for (int k = 0; k < 3; k++)
+                out->lock_place[i][k] = a->lock_place[i][k] + (b->lock_place[i][k] - a->lock_place[i][k]) * t;
+        }
+    }
 }
 
 int pc_nm_find_bone(const pc_nm_model* m, int code)

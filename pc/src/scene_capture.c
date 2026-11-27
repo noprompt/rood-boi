@@ -20,7 +20,6 @@ typedef struct {
 typedef struct {
     short vx, vy, vz, pad;
 } pc_svector;
-extern pc_matrix* RotMatrixYXZ_gte(pc_svector*, pc_matrix*);
 #include "gte_value_core.h" /* vs_gte_screen_current: the projection the game set */
 
 #include "psx_types.h"
@@ -72,6 +71,35 @@ static unsigned signature(const unsigned char* data)
     for (unsigned i = 0; i < count && i < 64; ++i)
         hash = (hash ^ *(const unsigned*)(data + 4 + i * 0x40 + 0x1c)) * 16777619u;
     return hash;
+}
+
+/* The game's RotMatrixYXZ_gte (31724.s; boot_sdk.c) without the GTE or the game's sine table: the table is round(4096 sin) of the angle in 4096ths of a turn (each of
+ * its 4096 values checked against the table in the executable), and each GPF is (IR0 * IRn) >> 12 held to 16 bits. Checked against the routine itself: every angle
+ * of each axis and four million turns. The group matrix of a room is built by this and not by the game's, so a capture reads nothing from the game's data: rood-studio
+ * has none loaded (its sine table is empty or whatever the memory held, which gave the stage's triangles a different size and turn on every run). */
+static int trig_sin(int a) { return (int)lround(4096.0 * sin(6.283185307179586 * (double)(a & 4095) / 4096.0)); }
+static int gpf12(int ir0, int ir)
+{
+    long long m = ((long long)ir0 * ir) >> 12;
+    return m < -32768 ? -32768 : m > 32767 ? 32767 : (int)m;
+}
+static void rotation_yxz(const pc_svector* angles, pc_matrix* out)
+{
+    int sx = trig_sin(angles->vx), cx = trig_sin(angles->vx + 0x400);
+    int sy2 = trig_sin(angles->vy) * 2, cy2 = trig_sin(angles->vy + 0x400) * 2;
+    int sz2 = trig_sin(angles->vz) * 2, cz2 = trig_sin(angles->vz + 0x400) * 2;
+    int a0 = gpf12(sz2, sy2), a1 = gpf12(sz2, cy2), m10 = gpf12(sz2, cx) >> 1;
+    int a2 = gpf12(cz2, sy2), a3 = gpf12(cz2, cy2), m11 = gpf12(cz2, cx) >> 1;
+    int r9 = gpf12(sx, a0), r10 = gpf12(sx, a2), r11 = gpf12(sx, a1);
+    out->m[0][0] = (short)((r9 + a3) >> 2);
+    out->m[0][1] = (short)((r10 - a1) >> 2);
+    out->m[0][2] = (short)((cx * sy2) >> 13);
+    out->m[1][0] = (short)m10;
+    out->m[1][1] = (short)m11;
+    out->m[1][2] = (short)-sx;
+    out->m[2][0] = (short)((r11 - a2) >> 2);
+    out->m[2][1] = (short)((((sx * a3) >> 12) + a0) >> 2);
+    out->m[2][2] = (short)((cx * cy2) >> 13);
 }
 
 /* Group-local vertices exactly as room_geometry.c decodes them. */
@@ -152,7 +180,7 @@ void pc_scene_room(const void* data)
         const int* angles = (const int*)(group + 0x10);
         pc_svector rotation = { (short)angles[0], (short)angles[1], (short)angles[2], 0 };
         pc_matrix world;
-        RotMatrixYXZ_gte(&rotation, &world);
+        rotation_yxz(&rotation, &world);
         unsigned shift = flags & 0x800 ? 0 : 3;
         unsigned tris, quads;
         const unsigned* geometry = pc_room_group_geometry(bytes, length, g, &tris, &quads);

@@ -65,6 +65,8 @@ typedef struct {
     int animation;        /* the animation asked for (-1: the game's own choice) */
     float animation_time; /* where in it, in frames */
     int holds;            /* the animation's bone holds are applied (data animation.holds) */
+    int smooth;           /* the pose is shown between the game's steps (data animation.smooth) */
+    float smooth_blend;   /* frames a change of animation fades the shown pose into the new one over (data animation.smooth_blend) */
     const unsigned char *seq_common, *seq_battle; /* a character's sequence sets (valid until the serial changes) */
     unsigned seq_common_size, seq_battle_size;
     int handover, weapon_drawn, stance_a5, stance_a0_3, stance_a6, action_done, tickspeed, collision_radius, event_playback; /* the animation plays on into the next one, and the world it is mapped in (data animation.*) */

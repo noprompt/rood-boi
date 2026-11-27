@@ -3697,6 +3697,9 @@ void pc_hw_upload(int x, int y, int w, int h, const uint16_t* pixels)
  * so overlapping rectangles read the source before it is overwritten. */
 void pc_hw_copy(int sx, int sy, int dx, int dy, int w, int h, int mask_set, int mask_check)
 { PC_HW_METER(copy);
+    /* A VRAM copy: a stale source makes the destination stale (copied back when something reads it), rather than reading the target back
+     * for every copy (the game copies two pixels from the screen's corner every frame). */
+    pc_stale_copy(&cstale, sx, sy, dx, dy, w, h);
     if (!pc_hw_active || w <= 0 || h <= 0)
         return;
     rvram_copy(sx, sy, dx, dy, w, h, mask_set, mask_check); /* the stream's copy event */
@@ -3747,6 +3750,7 @@ static int apply_scale(int scale);
 /* A detail view (pc_hw_detail_view): one internal pixel per window pixel
  * or finer, at the view size the presenters last gave. */
 static int detail_view, last_view_h, last_display_h;
+static int detail_min_lines; /* a detail view's least height in lines (rood-studio: 1080 on a smaller window); 0: the window's own */
 static int window_scale(int view_h, int display_h)
 {
     int s = view_h > 0 && display_h > 0 ? (int)ceilf((float)view_h / (float)display_h - 0.01f) : pc_hw_scale_setting;
@@ -3774,7 +3778,7 @@ void pc_hw_supersample_now(int view_h, int display_h)
         pc_hw_scale_setting = window_scale(view_h, display_h); /* "Match window": follows the window */
     supersample_scale = pc_aa_ssaa_scale(view_h, display_h);
     if (detail_view && view_h > 0 && display_h > 0) {
-        int detail = (int)ceilf((float)view_h / (float)display_h - 0.01f);
+        int detail = (int)ceilf((float)(view_h > detail_min_lines ? view_h : detail_min_lines) / (float)display_h - 0.01f);
         detail = detail > 8 ? 8 : detail;
         if (detail > supersample_scale)
             supersample_scale = detail;
@@ -3794,9 +3798,11 @@ void pc_hw_supersample_now(int view_h, int display_h)
  * new scale (a change refills the target from native VRAM). */
 void pc_hw_detail_view_now(int on)
 { PC_HW_METER(detail_view);
-    if (!pc_hw_active || detail_view == !!on)
+    /* `on`: 0 off, 1 on (the window's height), above 1 on with that many lines at least (the studio's 1080) */
+    if (!pc_hw_active || (detail_view == !!on && detail_min_lines == (on > 1 ? on : 0)))
         return;
     detail_view = !!on;
+    detail_min_lines = on > 1 ? on : 0;
     if (last_view_h > 0 && last_display_h > 0)
         pc_hw_supersample(last_view_h, last_display_h);
 }
@@ -4767,14 +4773,6 @@ void pc_hw_capture_read(int x, int y, int w, int h, int pure)
     rvram_put(x0, y0, w, h, packed);
     pc_vram_taint(x0, y0, x1, y1);
     mark_dirty(x0, y0, x1 - 1, y1 - 1);
-}
-/* A VRAM copy (the hardware target copies too): a stale source makes the
- * destination stale (copied back when something reads it), rather than
- * reading the target back for every copy (the game copies two pixels from
- * the screen's corner every frame). */
-void pc_hw_stale_copy(int sx, int sy, int dx, int dy, int w, int h)
-{ PC_HW_METER(stale_copy);
-    pc_stale_copy(&cstale, sx, sy, dx, dy, w, h);
 }
 /* Whether what the CPU rasterizer draws inside drawing area `clip` lands
  * where native VRAM is stale anyway: in a drawing area a native draw of

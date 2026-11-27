@@ -42,6 +42,13 @@ extern "C" {
 extern int pc_hw_interpolate __attribute__((weak));
 extern int pc_interp_holds __attribute__((weak)); /* actor_native.c: a held pose's next change is spread over the hold */
 int pc_studio_hide_bodies;
+void pc_hw_detail_view(int on) __attribute__((weak));
+void pc_settings_env_override(const char* key) __attribute__((weak));
+extern float pc_gi_resolution __attribute__((weak));
+extern int pc_gte_widescreen __attribute__((weak));
+extern int pc_shadow_samples __attribute__((weak));
+int pc_aa_parse(const char* text) __attribute__((weak));
+const char* pc_aa_string(void) __attribute__((weak));
 int pc_env_studio(const char* json);
 void pc_glows_keep(void);
 void pc_glows_give_back(void);
@@ -452,9 +459,86 @@ void advance_turntable()
     turn_last = now;
 }
 
+// The picture's quality (data: render.*): the renderer's internal resolution, the GI's and the width, while the studio is up. The internal resolution is
+// the window's or render.height lines, whichever is larger (a detail view: gpu_hw.c, the picture is then scaled to the window), the GI's is one pixel
+// to a line of that (render.gi_resolution, 0: from the height), and rood-studio's picture is 16:9 (render.widescreen). The user's settings are not
+// changed (a save keeps what the file had) and the game's own are given back when the studio is left.
+struct RenderState {
+    bool on = false;
+    int lines = 0;
+    float saved_gi = 0;
+    int saved_shadow_samples = 0;
+    std::string saved_aa, applied_aa;
+} render_state;
+void apply_render()
+{
+    int lines = (int)num("render.height", 1080);
+    if (lines <= 1) {
+        return;
+    }
+    if (!render_state.on) {
+        render_state.saved_gi = &pc_gi_resolution ? pc_gi_resolution : 0;
+        render_state.saved_shadow_samples = &pc_shadow_samples ? pc_shadow_samples : 0;
+        render_state.saved_aa = pc_aa_string ? pc_aa_string() : "";
+    }
+    if (!render_state.on || render_state.lines != lines) {
+        // (rood-studio only: the in-game studio is a photo-mode hold, which keeps the presented image at the resolution it was made at and gives up the
+        // hold's camera when the renderer's size changes under it, so there the GI alone follows the height)
+        if (app_mode && pc_hw_detail_view)
+            pc_hw_detail_view(lines);
+        render_state.lines = lines;
+    }
+    if (&pc_gi_resolution) {
+        float want = num("render.gi_resolution", 0);
+        if (want <= 0)
+            want = (float)lines / 224.0f;
+        want = fmaxf(0.25f, fminf(8.0f, want));
+        if (pc_gi_resolution != want) {
+            pc_gi_resolution = want;
+            if (pc_settings_env_override)
+                pc_settings_env_override("gi_resolution"); // (not saved as the user's: project_settings.cpp)
+        }
+    }
+    // The sun's shadow rays a pixel (render.shadow_rays, 0: the settings'): more rays, a smoother penumbra from the sun's disc (the look's sun.angle).
+    if (&pc_shadow_samples) {
+        int rays = (int)num("render.shadow_rays", 0);
+        if (rays > 0 && pc_shadow_samples != rays) {
+            pc_shadow_samples = rays > 8 ? 8 : rays;
+            if (pc_settings_env_override)
+                pc_settings_env_override("shadow_rays");
+        }
+    }
+    // The anti-aliasing (render.aa, as the setting's text: "smaa", "msaa4+smaa"; empty: the settings'), rood-studio only.
+    if (app_mode && pc_aa_parse) {
+        const Json* aa = at("render.aa");
+        if (aa && aa->type == Json::String && !aa->string.empty() && pc_aa_string && aa->string != pc_aa_string()) { // (the first run's pick comes after the first frame)
+            if (pc_aa_parse(aa->string.c_str()) && pc_settings_env_override)
+                pc_settings_env_override("aa");
+            render_state.applied_aa = aa->string;
+        }
+    }
+    render_state.on = true;
+}
+void remove_render()
+{
+    if (!render_state.on)
+        return;
+    render_state.on = false;
+    if (pc_hw_detail_view)
+        pc_hw_detail_view(0);
+    if (&pc_gi_resolution && render_state.saved_gi > 0)
+        pc_gi_resolution = render_state.saved_gi;
+    if (&pc_shadow_samples && render_state.saved_shadow_samples > 0)
+        pc_shadow_samples = render_state.saved_shadow_samples;
+    if (!render_state.applied_aa.empty() && pc_aa_parse && !render_state.saved_aa.empty())
+        pc_aa_parse(render_state.saved_aa.c_str());
+    render_state.applied_aa.clear();
+}
+
 // The look's room settings (room_settings.cpp's keys) as a transient layer over the room's, the sun and sky, the fog.
 void apply_look()
 {
+    apply_render();
     const Json* look = at("looks." + look_name);
     if (!look) {
         scene_message = "no look called " + look_name;
@@ -489,6 +573,7 @@ void apply_look()
 }
 void remove_look()
 {
+    remove_render();
     if (!looks_applied)
         return;
     pc_env_studio(nullptr);
@@ -854,6 +939,11 @@ void studio_render()
     float radius = num("stage.radius", 900), fillet = num("stage.fillet", 450), height = num("stage.height", 1600);
     float reach = camera.distance * camera.zoom * num("stage.reach", 1.15f);
     float scale = fmaxf(1.0f, fminf(reach / (radius + fillet), num("stage.max_scale", 12)));
+    // ... in steps (stage.scale_step, each a share larger than the one before; 0 or 1: continuously): the stage is rebuilt (its mesh, the scene capture and
+    // the GI's acceleration structures, whose history then starts again) when a step is crossed, not at every turn of the wheel
+    float step = num("stage.scale_step", 1.5f);
+    if (step > 1.001f && scale > 1.0f)
+        scale = fminf(powf(step, ceilf(logf(scale) / logf(step) - 0.001f)), fmaxf(1.0f, num("stage.max_scale", 12)));
     c.stage = 1;
     c.radius = radius * scale, c.fillet = fillet * scale, c.height = height * scale;
     c.grey = (int)num("stage.grey", 95), c.facet = num("stage.facet", 400);
@@ -1406,10 +1496,16 @@ static void controls_body()
             }
             ImGui::Checkbox("Play", &animation.playing);
             ImGui::SameLine();
+            bool smooth = !at("animation.smooth") || flag("animation.smooth");
+            if (ImGui::Checkbox("Smooth", &smooth))
+                set_at("animation.smooth", Json::boolean_(smooth));
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Show the pose between the game's steps (its rotations slerped); off: the game's own 30 or 15 poses a second");
+            ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetFontSize() * 6);
             ImGui::SliderFloat("Speed", &animation.speed, 0.1f, 4, "%.1f x");
             float t = animation.time;
-            if (ImGui::SliderFloat("Frame", &t, 1, (float)animation.frames + 0.999f, "%.0f"))
+            if (ImGui::SliderFloat("Frame", &t, 1, (float)animation.frames + 0.999f, "%.2f"))
                 animation.time = t, animation.playing = false;
         }
         ImGui::Separator();
@@ -1840,6 +1936,12 @@ extern "C" int pc_studio_boot_skip_title(void)
 
 // rood-studio (rood_studio.c): the studio's data and look without the game. The look's sun and sky go through the environment layer and the
 // room settings as in the game; the stage's measures are the data's.
+// rood-studio's window when ROOD_WINDOW does not say: render.window_width x render.window_height (studio.json), 1920 x 1080.
+extern "C" int pc_studio_app_window(int* w, int* h)
+{
+    *w = (int)num("render.window_width", 1920), *h = (int)num("render.window_height", 1080);
+    return *w >= 320 && *h >= 240;
+}
 extern "C" int pc_studio_app_look(const char* name)
 {
     look_name = name && *name ? name : "neutral";
@@ -1909,6 +2011,7 @@ extern "C" int pc_studio_app_frame(pc_studio_app_view* v)
     v->animation = animation.id;
     v->animation_time = animation.time;
     v->holds = !at("animation.holds") || flag("animation.holds");
+    v->smooth = !at("animation.smooth") || flag("animation.smooth"), v->smooth_blend = (float)num("animation.smooth_blend", 6);
     v->handover = flag("animation.handover"), v->weapon_drawn = flag("animation.weapon_drawn"), v->stance_a5 = flag("animation.stance_a5");
     v->stance_a0_3 = flag("animation.stance_a0_3"), v->stance_a6 = flag("animation.stance_a6"), v->action_done = flag("animation.action_done");
     v->tickspeed = (int)num("animation.tickspeed", 2), v->collision_radius = (int)num("animation.collision_radius", 0), v->event_playback = flag("animation.event_playback");
@@ -1942,6 +2045,14 @@ static void app_screen()
 {
     ImGuiIO& io = ImGui::GetIO();
     const float W = io.DisplaySize.x, H = io.DisplaySize.y, unit = ImGui::GetFontSize();
+    if (&pc_gte_widescreen && flag("render.widescreen") && !getenv("ROOD_WIDESCREEN") && H > 0) { // the picture is the window's shape (16:9 or 4:3), not bars
+        int wide = W / H > 1.5f ? 1 : 0;
+        if (pc_gte_widescreen != wide) {
+            pc_gte_widescreen = wide;
+            if (pc_settings_env_override)
+                pc_settings_env_override("widescreen"); // (not saved as the user's)
+        }
+    }
     const float left = fmaxf(W * 0.2f, unit * 16), right = fmaxf(W * 0.27f, unit * 22);
     const ImGuiWindowFlags fixed = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings
         | ImGuiWindowFlags_NoTitleBar;

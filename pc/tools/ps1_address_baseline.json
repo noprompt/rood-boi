@@ -8,7 +8,7 @@
  "unnamed_symbol": 7471,
  "byte_offset_access": 346,
  "ram_reference": 0,
- "unnamed_field": 11298,
+ "unnamed_field": 11276,
  "guest_pointer_field": 0,
  "guest_pointer_access": 0,
  "address_as_integer": 0,
@@ -22,6 +22,6 @@
  "vram_frame_readers": 0,
  "cpu_raster": 0,
  "stale_area": 0,
- "vram_readback": 23,
+ "vram_readback": 14,
  "tool_address_read": 0
 }

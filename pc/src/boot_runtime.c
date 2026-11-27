@@ -100,7 +100,6 @@ extern void pc_hw_line(int, int, int, int, unsigned, unsigned, int, unsigned, co
 /* A frame read (screenshots, checkpoints, the game's own reads of the frame): the target's pixels of the rectangle (gpu_hw.c; absent in unit probes). */
 extern void pc_hw_capture_read(int, int, int, int, int) __attribute__((weak));
 extern void pc_hw_sync_texture(unsigned, unsigned, unsigned, int, int, int, int, const int*) __attribute__((weak));
-extern void pc_hw_stale_copy(int, int, int, int, int, int) __attribute__((weak));
 /* What a VRAM write replaces, kept for frame interpolation (gpu_hw.c). */
 extern void pc_hw_before_write(int, int, int, int) __attribute__((weak));
 extern void pc_hw_set_2d(int);
@@ -1104,8 +1103,16 @@ int main(int argc, char** argv)
 #endif
     if (pc_engine_start)
         pc_engine_start(); /* the engine library, once the fixed ranges are taken */
-    if (studio_app)
+    if (studio_app) {
         window = 1;
+        extern int pc_studio_app_window(int*, int*) __attribute__((weak));
+        int w, h;
+        char size[32];
+        if (!getenv("ROOD_WINDOW") && pc_studio_app_window && pc_studio_app_window(&w, &h)) { /* the studio's window size is data (studio.json render) */
+            snprintf(size, sizeof size, "%dx%d", w, h);
+            pc_setenv("ROOD_WINDOW", size);
+        }
+    }
     pc_window_init(window, fast); /* loads the settings (dev_overlay.cpp) */
     if (studio_app) { /* no game: the studio's app takes over (rood_studio.c) */
         extern int pc_rood_studio_run(int, char**) __attribute__((weak));
@@ -1586,8 +1593,6 @@ static void commands(uint32_t* p, unsigned n)
             unsigned h = (((p[i + 3] >> 16) - 1) & 511) + 1;
             stream_event(5, (int)dx, (int)dy, (int)w, (int)h, (int[]) { (int)sx, (int)sy }, 2 * sizeof(int));
             vcheck_copy(sx, sy, dx, dy, w, h);
-            if (pc_hw_stale_copy)
-                pc_hwc_stale_copy((int)sx, (int)sy, (int)dx, (int)dy, (int)w, (int)h);
             if (pc_hw_before_write) {
                 pc_hwc_before_write((int)dx, (int)dy, (int)w, (int)h);
             }

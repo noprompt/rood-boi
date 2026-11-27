@@ -58,7 +58,6 @@ void pc_hwc_sync_suppress(void);
 void pc_hwc_sync_settings(void); /* a record when one of the draw settings the renderer reads changed (the header fill calls it) */
 extern int pc_render_thread;
 #define PC_HWC_SYNC() ((void)(pc_gte_widescreen != pc_hwc_mirror.widescreen ? (pc_hwc_sync_widescreen(), 0) : 0), (void)(pc_hw_suppress != pc_hwc_mirror.suppress ? (pc_hwc_sync_suppress(), 0) : 0), (void)(pc_hwc_pending || pc_render_thread >= 2 ? (pc_hwc_flush(), 0) : 0))
-/* The same, only when a stale_copy record is waiting (the producer's own queries). */
 
 void pc_hwc_frame_menu_model(int on);
 void pc_hwc_set_2d(int is_2d);
@@ -91,7 +90,7 @@ void pc_hwc_begin_ot(void);
 void pc_hwc_end_ot(void);
 void pc_hwc_upload_mode(int mode); /* what the next LoadImage is (widescreen.h PC_UPLOAD_AS) */
 /* The VRAM hooks (T1 R1b): what the game's VRAM commands tell the renderer. before_write (what the write about to happen will replace,
- * for the write log) and stale_copy (a VRAM copy carries staleness) are records. The two read-backs are fences: they apply every
+ * for the write log) is a record. The two read-backs are fences: they apply every
  * record, then run on the renderer and return when the rectangle's pixels are in the game's VRAM array (the game continues with
  * them): a frame read (pc_frame_read, a capture) and sync_texture (a sprite or polygon about to sample what only the GPU target holds). */
 /* The VRAM events (T1 R4e): fill, upload (LoadImage) and copy carry the rectangle they leave in the game's array, so the renderer applies
@@ -100,7 +99,6 @@ void pc_hwc_vram_fill(int x, int y, int w, int h, int r, int g, int b);
 void pc_hwc_vram_upload(int x, int y, int w, int h);
 void pc_hwc_vram_copy(int sx, int sy, int dx, int dy, int w, int h, int mask_set, int mask_check); /* (no pixels: the renderer applies the copy to its own VRAM) */
 void pc_hwc_before_write(int x, int y, int w, int h);
-void pc_hwc_stale_copy(int sx, int sy, int dx, int dy, int w, int h);
 void pc_hwc_fence_sync(int x, int y, int w, int h); /* a capture: the rectangle of the display read back */
 void pc_hwc_resync_picture(const uint8_t* picture); /* pc_hwc_resync with a state file's picture of the target over it */
 int pc_hwc_capture_picture(uint8_t* rgba); /* the target's own pixels (RGBA8 1024 x 512): no state of the game or the renderer changes */

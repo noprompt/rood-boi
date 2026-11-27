@@ -493,7 +493,10 @@ static int vrt_room(void)
             memcpy(rgb[j], t->vertex[j].rgb, 3);
             uv[j][0] = t->vertex[j].u, uv[j][1] = t->vertex[j].v;
         }
-        add_triangle(p, rgb, uv, t->tpage, t->clut, t->code, 1u | (t->code & 1 ? 2u : 0u) | (t->code & 2 ? 4u : 0u));
+        /* Textured, as the game's room polygons are; a flat-shaded one (the studio's stage: code 0x30 or 0x38, no page, palette or texel coordinates) is not:
+         * taken as textured it sampled the texel at VRAM (0, 0), the frame buffer, for its colour and for whether rays pass through it (cut-out) or stop. */
+        int flat = !(t->code & 4) && !t->tpage && !t->clut && !uv[0][0] && !uv[0][1] && !uv[1][0] && !uv[1][1] && !uv[2][0] && !uv[2][1];
+        add_triangle(p, rgb, uv, t->tpage, t->clut, t->code, (flat ? 0u : 1u) | (t->code & 1 ? 2u : 0u) | (t->code & 2 ? 4u : 0u));
     }
     room_triangles = triangle_count;
     /* Opaque first (stable within each part). */
@@ -1414,7 +1417,7 @@ int pc_vk_gi_update(int x, int y, int w, int h, int replay)
     vk_section("gi scene");
     if (!vrt_scene())
         return 0;
-    float res = pc_ph()->gi_resolution < 0.25f ? 0.25f : pc_ph()->gi_resolution > 4 ? 4 : pc_ph()->gi_resolution;
+    float res = pc_ph()->gi_resolution < 0.25f ? 0.25f : pc_ph()->gi_resolution > 8 ? 8 : pc_ph()->gi_resolution;
     int gw = (int)(w * res + 0.5f), gh = (int)(h * res + 0.5f);
     gi_display_size[0] = w, gi_display_size[1] = h; /* pc_gi_probe_world (ptgi.c) */
     vrt_images(gw, gh);

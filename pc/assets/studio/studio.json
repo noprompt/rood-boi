@@ -4,16 +4,27 @@
     "about": "the Studio window: the controls column's share of the window's width (the catalog has the rest)",
     "controls_share": 0.55
   },
+  "render": {
+    "about": "The picture's quality while the studio is up. height: lines the renderer works at (the internal resolution is the window's own height or this, whichever is larger, 1 or less: the game's own setting; the picture is scaled to the window), also the lines the GI and its denoiser work at (gi_resolution: pixels of GI to a native line, 0: height / 224); shadow_rays: the sun's shadow rays a pixel (1..8, 0: the settings'; more is a smoother penumbra from the look's sun.angle); aa: rood-studio's anti-aliasing as the setting's text (\"smaa\", \"msaa4+smaa\"; empty: the settings'; the internal resolution is 5x the game's, so SMAA is enough and MSAA's resolve left dark dots along the stage's triangle edges where the sun's shadow is lit); widescreen: rood-studio's picture is 16:9 in a window wider than 3:2, else 4:3 (the game's own); window_width, window_height: rood-studio's window when ROOD_WINDOW is not set. The in-game studio (a photo-mode hold) takes the GI's resolution only; the internal resolution is the game's own there.",
+    "height": 1080,
+    "gi_resolution": 6,
+    "shadow_rays": 6,
+    "aa": "smaa",
+    "widescreen": true,
+    "window_width": 1920,
+    "window_height": 1080
+  },
   "stage": {
     "radius": 900,
     "fillet": 450,
     "height": 1600,
     "grey": 95,
-    "facet": 400,
-    "floor_step": 450,
-    "wall_step": 800,
+    "facet": 200,
+    "floor_step": 300,
+    "wall_step": 400,
     "reach": 1.15,
     "max_scale": 12,
+    "scale_step": 1.5,
     "actor_light": 8421504
   },
   "camera": {
@@ -28,7 +39,9 @@
     "guess_distance": 600
   },
   "animation": {
-    "about": "holds: the script's bone holds apply. handover: an animation that hands over (its script starts another: the game's commands 2 and 19 to 24) plays on into the next, mapped as the game maps it by the actor's state (weapon_drawn: the studio's actor holds its weapon out, as in the game's studio; stance_a5, stance_a0_3, stance_a6: the actor's stance flags unkA_5, unkA_0 = 3 and unkA_6, which the decomp leaves unnamed; off, as in the game's studio) with the blend of the old pose into the new; event_playback: the game is in its event-playback phase (the game's studio is: a handover always starts the next animation; off, one to the same table and record starts nothing); collision_radius: the actor's collision radius (0x80 and over, a large actor: its blends take twice the frames); action_done: command 2's condition, the action's hits are done (the game's func_8006C84C returns 0), so it goes on to the idle animation; tickspeed: the game's update spacing (2 the normal; 4 its slow tick, which doubles the frames an update plays and the steps a blend takes).",
+    "about": "holds: the script's bone holds apply. handover: an animation that hands over (its script starts another: the game's commands 2 and 19 to 24) plays on into the next, mapped as the game maps it by the actor's state (weapon_drawn: the studio's actor holds its weapon out, as in the game's studio; stance_a5, stance_a0_3, stance_a6: the actor's stance flags unkA_5, unkA_0 = 3 and unkA_6, which the decomp leaves unnamed; off, as in the game's studio) with the blend of the old pose into the new; event_playback: the game is in its event-playback phase (the game's studio is: a handover always starts the next animation; off, one to the same table and record starts nothing); collision_radius: the actor's collision radius (0x80 and over, a large actor: its blends take twice the frames); action_done: command 2's condition, the action's hits are done (the game's func_8006C84C returns 0), so it goes on to the idle animation; tickspeed: the game's update spacing (2 the normal; 4 its slow tick, which doubles the frames an update plays and the steps a blend takes). smooth: the pose is shown at the time between the game's steps (the two steps around it, each bone's rotation slerped, scales and places linear; whole steps are exactly the game's); off, the game's own steps. smooth_blend: the frames a change of animation fades the shown pose into the new animation's over (0: a cut).",
+    "smooth": true,
+    "smooth_blend": 6,
     "holds": true,
     "handover": true,
     "weapon_drawn": true,
@@ -88,7 +101,7 @@
   "looks": {
     "neutral": {
       "about": "A key light and a flat sky: the model read in clean light. The room's own lights, glows, haze and fog are off.",
-      "sun": { "enabled": true, "azimuth": 45, "elevation": 40, "intensity": 1.2, "color": [1, 0.98, 0.95], "angle": 4, "shadows": true },
+      "sun": { "enabled": true, "azimuth": 45, "elevation": 65, "intensity": 1.2, "color": [1, 0.98, 0.95], "angle": 8, "shadows": true },
       "sky": { "enabled": true, "zenith": [0.62, 0.64, 0.68], "horizon": [0.66, 0.66, 0.68], "ground": [0.3, 0.3, 0.3], "intensity": 1, "ambient": 0.5 },
       "room": { "light_intensity": 0, "glow_light": 0, "haze_density": 0, "contact_radius": 0, "gi_strength": 0.5, "glow_fixtures_enabled": 0, "glow_magic_enabled": 0, "glow_effects_enabled": 0 },
       "fog": false

@@ -2037,7 +2037,7 @@ GLuint pc_gi_update(int x, int y, int w, int h)
         return 0;
     gi_display_size[0] = w, gi_display_size[1] = h;
     gi_context* c = &game_context;
-    float res = pc_gi_resolution < 0.25f ? 0.25f : pc_gi_resolution > 4 ? 4 : pc_gi_resolution;
+    float res = pc_gi_resolution < 0.25f ? 0.25f : pc_gi_resolution > 8 ? 8 : pc_gi_resolution;
     int gw = (int)(w * res + 0.5f), gh = (int)(h * res + 0.5f);
     ensure_images(c, gw, gh);
     static unsigned cut_seen;

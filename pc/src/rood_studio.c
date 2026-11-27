@@ -459,7 +459,7 @@ static int compare_pose(const loaded_model* lm, const reference_t* r, int animat
             }
         }
         for (int k = 0; k < 3; k++)
-            pose.position[k] = r->palette[0].translation[k] - pose.offset[k];
+            pose.position[k] = r->palette[0].translation[k] - (float)pose.offset[k] * pose.actor_scale;
         render_transform out[RENDER_MAX_BONES];
         if (pc_nm_pose_transforms(&lm->model, &pose, out) < 0)
             break;
@@ -817,6 +817,110 @@ static int bench_play(int enemy, int animation)
     return 0;
 }
 
+/* The smooth pose against the game's steps (`rood-studio --check-smooth ENEMY ANIMATION`, run by rood_studio_smoke.py): at whole steps the mix is exactly the player's pose, halfway each
+ * bone's turn lies between its neighbours' (the angles to each add up to the angle between them, each half of it) and bone lengths do not shrink, over the animation and its wrap. */
+static float turn_angle(const float a[3][3], const float b[3][3])
+{
+    float tr = 0; /* trace of a^T b */
+    for (int i = 0; i < 3; i++)
+        for (int k = 0; k < 3; k++)
+            tr += a[i][k] * b[i][k];
+    float c = (tr - 1) / 2;
+    return acosf(c > 1 ? 1 : c < -1 ? -1 : c);
+}
+
+static int check_smooth(int enemy, int animation)
+{
+    loaded_model lm;
+    if (load_model(&lm, "enemy", enemy, 8))
+        return 1;
+    pc_nm_table common, battle;
+    memset(&common, 0, sizeof common), memset(&battle, 0, sizeof battle);
+    for (int part = 3; part < 5 && lm.zud; part++) {
+        const unsigned char* q = lm.zud + 8 + 8 * part;
+        unsigned offset = (unsigned)(q[0] | q[1] << 8 | q[2] << 16 | (unsigned)q[3] << 24), length = (unsigned)(q[4] | q[5] << 8 | q[6] << 16 | (unsigned)q[7] << 24);
+        if (length > 8 && offset + length <= lm.zud_size)
+            pc_nm_table_from_block(lm.zud + offset, length, part == 3 ? &common : &battle);
+    }
+    pc_nm_table table;
+    int index;
+    if (pc_nm_find_animation(&lm.model, common.bytes ? &common : NULL, battle.bytes ? &battle : NULL, animation, &table, &index))
+        return 1;
+    pc_nm_anim* a = pc_nm_anim_open(&lm.model, &table, index);
+    if (!a)
+        return 1;
+    int frames = pc_nm_anim_frames(a), bones = lm.model.bones;
+    const float ts[3] = { 0.25f, 0.5f, 0.75f };
+    int bad_whole = 0, bad_between = 0, bad_half = 0, bad_length = 0, pairs = 0, moved = 0;
+    float worst_length = 1, worst_half = 0;
+    static pc_nm_pose steps[2];
+    for (int n = 1; n <= frames && n <= 400; n++) {
+        int next = n < frames ? n + 1 : 1; /* the loop's wrap */
+        pc_nm_pose_zero(&lm.model, &steps[0]), pc_nm_pose_zero(&lm.model, &steps[1]);
+        pc_nm_anim_play(a, n, &steps[0], NULL, NULL);
+        pc_nm_anim_play(a, next, &steps[1], NULL, NULL); /* (a wrap plays the start again) */
+        pc_nm_pose* pa = &steps[0];
+        pc_nm_pose* pb = &steps[1];
+        pc_nm_pose mixed;
+        render_transform ta[RENDER_MAX_BONES], tb[RENDER_MAX_BONES], tm[RENDER_MAX_BONES], tx[RENDER_MAX_BONES];
+        pc_nm_pose_mix(&lm.model, pa, pb, 0, &mixed);
+        if (pc_nm_pose_transforms(&lm.model, pa, ta) < 0 || pc_nm_pose_transforms(&lm.model, &mixed, tx) < 0 || memcmp(ta, tx, sizeof(render_transform) * bones))
+            bad_whole++;
+        pc_nm_pose_mix(&lm.model, pa, pb, 1, &mixed);
+        if (pc_nm_pose_transforms(&lm.model, pb, tb) < 0 || pc_nm_pose_transforms(&lm.model, &mixed, tx) < 0 || memcmp(tb, tx, sizeof(render_transform) * bones))
+            bad_whole++;
+        for (int ti = 0; ti < 3; ti++) {
+            pc_nm_pose_mix(&lm.model, pa, pb, ts[ti], &mixed);
+            if (pc_nm_pose_transforms(&lm.model, &mixed, tm) < 0)
+                continue;
+            pairs++;
+            for (int i = 0; i < bones; i++) {
+                float ra[3][3], rb[3][3];
+                pc_nm_euler(i ? pa->rot[i][0] : pa->rot[0][0] + pa->rotation_x, i ? pa->rot[i][1] : pa->rot[0][1] + pa->facing, i ? pa->rot[i][2] : pa->rot[0][2] + pa->rotation_z, ra);
+                pc_nm_euler(i ? pb->rot[i][0] : pb->rot[0][0] + pb->rotation_x, i ? pb->rot[i][1] : pb->rot[0][1] + pb->facing, i ? pb->rot[i][2] : pb->rot[0][2] + pb->rotation_z, rb);
+                if (pa->locked[i] || pb->locked[i])
+                    continue;
+                float whole = turn_angle(ra, rb), first = turn_angle(ra, mixed.mix_turn[i]), second = turn_angle(mixed.mix_turn[i], rb);
+                if (whole > 0.002f) {
+                    moved++;
+                    if (fabsf(first + second - whole) > 0.002f + 0.003f * whole) /* on the shortest path between them */
+                        bad_between++;
+                    if (fabsf(first - ts[ti] * whole) > 0.002f + 0.003f * whole) /* at the fraction of the way */
+                        bad_half++;
+                    float off = fabsf(first - ts[ti] * whole);
+                    if (off > worst_half)
+                        worst_half = off;
+                }
+                if (i > 0) {
+                    int p = lm.model.bone[i].parent;
+                    float d[3];
+                    float la = 0, lb = 0, lmid = 0;
+                    for (int k = 0; k < 3; k++)
+                        d[k] = ta[i].translation[k] - ta[p].translation[k], la += d[k] * d[k];
+                    for (int k = 0; k < 3; k++)
+                        d[k] = tb[i].translation[k] - tb[p].translation[k], lb += d[k] * d[k];
+                    for (int k = 0; k < 3; k++)
+                        d[k] = tm[i].translation[k] - tm[p].translation[k], lmid += d[k] * d[k];
+                    la = sqrtf(la), lb = sqrtf(lb), lmid = sqrtf(lmid);
+                    float lo = fminf(la, lb), hi = fmaxf(la, lb);
+                    if (lo > 1e-3f) {
+                        if (lmid / lo < worst_length)
+                            worst_length = lmid / lo;
+                        if (lmid < lo * 0.995f || lmid > hi * 1.005f)
+                            bad_length++, bad_length == 1 ? fprintf(stderr, "[rood-studio] smooth: first long/short bone %d step %d t %.2f: %.4f %.4f mid %.4f locked %d %d\n", i, n, ts[ti], la, lb, lmid, pa->locked[i], pb->locked[i]) : 0;
+                    }
+                }
+            }
+        }
+    }
+    fprintf(stderr, "[rood-studio] smooth: enemy %d animation %d (%d frames, %d mixes, %d bone turns moving): whole steps off %d, off the shortest path %d, off the fraction %d (worst %.4f rad), "
+                    "bone lengths shrunk %d (worst %.4f of the shorter step)\n",
+            enemy, animation, frames, pairs, moved, bad_whole, bad_between, bad_half, worst_half, bad_length, worst_length);
+    pc_nm_anim_close(a);
+    free_model(&lm);
+    return bad_whole || bad_between || bad_half || bad_length ? 1 : 0;
+}
+
 /* Every model the catalog names decodes (and every one's polygons are valid): the sweep rood_studio_smoke.py runs. */
 static int check_catalog(void)
 {
@@ -988,7 +1092,7 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
 static int run_fixed(int argc, char** argv)
 {
     const char* kind = "character";
-    int id = 3, frames = 0, slot = 8, check = 0, scan = 0, bench_enemy = -1, bench_animation = 0, animation = 0, exact_pose = 0, events = 0, handover = 0, no_equipment = 0, hold = -1, hold_material = 0;
+    int id = 3, frames = 0, slot = 8, check = 0, scan = 0, bench_enemy = -1, smooth_enemy = -1, bench_animation = 0, animation = 0, exact_pose = 0, events = 0, handover = 0, no_equipment = 0, hold = -1, hold_material = 0;
     const char* slots_hex = NULL;
     float tolerance = 4;
     const char *dump = NULL, *reference_path = NULL, *look = "neutral";
@@ -1032,6 +1136,8 @@ static int run_fixed(int argc, char** argv)
             scan = 3;
         else if (!strcmp(argv[i], "--bench-play") && i + 2 < argc)
             bench_enemy = atoi(argv[i + 1]), bench_animation = atoi(argv[i + 2]), i += 2;
+        else if (!strcmp(argv[i], "--check-smooth") && i + 2 < argc)
+            smooth_enemy = atoi(argv[i + 1]), bench_animation = atoi(argv[i + 2]), i += 2;
         else if (!strcmp(argv[i], "--exact-pose"))
             exact_pose = 1;
         else if (!strcmp(argv[i], "--events"))
@@ -1075,6 +1181,8 @@ static int run_fixed(int argc, char** argv)
         return check_catalog();
     if (scan)
         return scan == 3 ? scan_character_handovers() : scan == 2 ? scan_handovers() : scan_events();
+    if (smooth_enemy >= 0)
+        return check_smooth(smooth_enemy, bench_animation);
     if (bench_enemy >= 0)
         return bench_play(bench_enemy, bench_animation);
     loaded_model lm;
@@ -1286,7 +1394,19 @@ typedef struct {
     pc_nm_table common, battle; /* an enemy's sequence tables (parts of its ZUD) */
     pc_nm_anim* anim;
     int anim_id, ids[256], id_count;
+    /* the smooth pose (data animation.smooth): the player's poses at two steps, so a time between them is a mix; the pose last shown, for a change of animation to fade from */
+    pc_nm_pose step_a, step_b, last_shown, fade_from;
+    int step_na, step_nb, steps_have, last_have, fade_on;
+    double fade_start; /* the clock's seconds when the fade began (the animation's own time stands still when it is paused) */
+    unsigned char step_key[sizeof(pc_nm_world) + 16];
 } shown_t;
+
+static double clock_seconds(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (double)ts.tv_sec + (double)ts.tv_nsec * 1e-9;
+}
 
 static void unload(shown_t* sh)
 {
@@ -1389,8 +1509,11 @@ static int pose_shown(shown_t* sh, const pc_studio_app_view* v, float lo[3], flo
             want = 0, pc_nm_find_animation(&holder->model, NULL, NULL, 0, &table, &index);
     }
     if (!sh->anim || sh->anim_id != want) {
-        if (sh->anim)
+        if (sh->anim) { /* another animation: the pose shown now fades into its first */
             pc_nm_anim_close(sh->anim);
+            if (sh->last_have)
+                sh->fade_from = sh->last_shown, sh->fade_on = 1, sh->fade_start = clock_seconds(), sh->steps_have = 0;
+        }
         sh->anim = pc_nm_anim_open(&holder->model, &table, index);
         sh->anim_id = want;
         sh->id_count = pc_nm_list_animations(&holder->model, sh->common.bytes ? &sh->common : NULL, sh->battle.bytes ? &sh->battle : NULL, sh->ids, 256);
@@ -1408,7 +1531,46 @@ static int pose_shown(shown_t* sh, const pc_studio_app_view* v, float lo[3], flo
             pc_nm_anim_world(sh->anim, &world);
         } else
             pc_nm_anim_world(sh->anim, NULL);
-        pc_nm_anim_play(sh->anim, (int)v->animation_time, &sh->pose, NULL, NULL); /* the player as the game updates its actor: the script's pose commands run */
+        /* the player as the game updates its actor: the script's pose commands run. The two steps around the time are kept (a step later only the next is played), whole
+         * steps are the game's poses exactly, between them the rotations are slerped (pc_nm_pose_mix) */
+        int frames = pc_nm_anim_frames(sh->anim);
+        float time = v->animation_time < 0 ? 0 : v->animation_time;
+        int n = (int)time, next = n + 1;
+        float t = time - (float)n;
+        if (!v->handover && next > frames)
+            next = 1; /* a loop's end carries on from its start */
+        unsigned char key[sizeof sh->step_key];
+        memset(key, 0, sizeof key);
+        memcpy(key, &world, sizeof world);
+        key[sizeof world] = (unsigned char)v->holds, key[sizeof world + 1] = (unsigned char)v->handover;
+        memcpy(key + sizeof world + 4, &want, sizeof want);
+        if (!sh->steps_have || memcmp(key, sh->step_key, sizeof key))
+            sh->steps_have = 0, memcpy(sh->step_key, key, sizeof key);
+        int want_b = v->smooth && t > 0;
+        if (!sh->steps_have || sh->step_na != n) {
+            if (sh->steps_have && sh->step_nb == n) /* the step after, now this one: the player only goes on */
+                sh->step_a = sh->step_b;
+            else
+                pc_nm_anim_play(sh->anim, n, &sh->step_a, NULL, NULL);
+            sh->steps_have = 1, sh->step_na = n, sh->step_nb = -1;
+        }
+        if (want_b && sh->step_nb != next)
+            pc_nm_anim_play(sh->anim, next, &sh->step_b, NULL, NULL), sh->step_nb = next;
+        pc_nm_pose from = sh->step_a;
+        from.rotation_x = 0, from.facing = facing, from.rotation_z = 0;
+        if (want_b) {
+            pc_nm_pose to = sh->step_b;
+            to.rotation_x = 0, to.facing = facing, to.rotation_z = 0;
+            pc_nm_pose_mix(&holder->model, &from, &to, t, &sh->pose);
+        } else
+            sh->pose = from;
+        double fading = (clock_seconds() - sh->fade_start) * 30.0; /* in frames at the game's 30 a second */
+        if (sh->fade_on && v->smooth && v->smooth_blend > 0 && sh->last_have && fading >= 0 && fading < v->smooth_blend) {
+            pc_nm_pose_mix(&holder->model, &sh->fade_from, &sh->pose, (float)(fading / v->smooth_blend), &from);
+            sh->pose = from;
+        } else
+            sh->fade_on = 0;
+        sh->last_shown = sh->pose, sh->last_have = 1;
         sh->pose.facing = facing;
     }
     sh->pose.facing = v->scene.facing;
@@ -1654,7 +1816,7 @@ static int run_app(int argc, char** argv)
 int pc_rood_studio_run(int argc, char** argv)
 {
     for (int i = 0; i < argc; i++)
-        if (!strcmp(argv[i], "--reference") || !strcmp(argv[i], "--check-catalog") || !strcmp(argv[i], "--scan-events") || !strcmp(argv[i], "--scan-handovers") || !strcmp(argv[i], "--scan-handovers-characters") || !strcmp(argv[i], "--bench-play") || !strcmp(argv[i], "--check-slots"))
+        if (!strcmp(argv[i], "--reference") || !strcmp(argv[i], "--check-catalog") || !strcmp(argv[i], "--scan-events") || !strcmp(argv[i], "--scan-handovers") || !strcmp(argv[i], "--scan-handovers-characters") || !strcmp(argv[i], "--bench-play") || !strcmp(argv[i], "--check-smooth") || !strcmp(argv[i], "--check-slots"))
             return run_fixed(argc, argv);
     return run_app(argc, argv);
 }

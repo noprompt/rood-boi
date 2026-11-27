@@ -435,6 +435,10 @@ def run(out):
         settle(g, "character", 3)
         a = shot(g, "summon")
         check(centre(a).std() > 12, f"summoning a character through the studio's RPC shows it ({centre(a).std():.1f})")
+        # the model stands on the stage: its lowest point is on the floor (y 0, down is positive), as the game stands an actor at its floor (the root's offset is
+        # scaled by the actor's scale, 1820 of 4096; unscaled it was 170 units up)
+        box = g.call("studio").get("box")
+        check(box is not None and -12 < box["hi"][1] < 6, f"a character's feet are on the stage ({box['hi'][1] if box else None:.1f} units from the floor)")
 
         # ---- live paint: the Aseprite bridge into the running studio (and a second target, as a game beside it) ----
         pkg = out / "paint_pkg"
@@ -540,6 +544,28 @@ def run(out):
         weapon = shot(g, "weapon")
         bright = int((centre(weapon).max(axis=2) > 140).sum())
         check(bright > 200, f"a weapon alone: its blade is in the picture ({bright} bright pixels)")
+        # smooth animation (data animation.smooth): at a whole frame the picture is the stepped one; between two frames it is not (a pose between them), and the stepped look is one switch away
+        g.call("studio", action="look", name="flat")  # (the neutral look's sun is ray traced with a few random rays: two pictures of one pose differ by noise; flat has no sun; the checks after compare pictures too)
+        g.call("studio", action="summon", kind="enemy", id=14)
+        settle(g, "enemy", 14)
+        g.call("studio", action="animation", id=101, time=10.0, play=False)
+        g.wait_presents(8)
+        g.call("studio", action="look", set="animation.smooth", value=True)
+        g.wait_presents(4)
+        whole_on = shot(g, "smooth_whole_on")
+        g.call("studio", action="look", set="animation.smooth", value=False)
+        g.wait_presents(4)
+        whole_off = shot(g, "smooth_whole_off")
+        check(float(np.abs(centre(whole_on) - centre(whole_off)).mean()) < 0.05, "smooth animation: at a whole frame the picture is the stepped one")
+        g.call("studio", action="animation", time=10.5, play=False)
+        g.wait_presents(8)
+        half_off = shot(g, "smooth_half_off")
+        g.call("studio", action="look", set="animation.smooth", value=True)
+        g.wait_presents(8)
+        half_on = shot(g, "smooth_half_on")
+        check(float(np.abs(centre(half_on) - centre(half_off)).mean()) > 0.05, "smooth animation: at half a frame the picture differs from the stepped one (a pose between two steps)")
+        check(float(np.abs(centre(half_off) - centre(whole_off)).mean()) < 0.05, "and stepped (smooth off), half a frame is still the pose of frame 10")
+        check(abs(g.call("studio")["sequence"]["time"] - 10.5) < 1e-3, "the sequence reports a fractional time")
         # Ashley's weapon chosen in the panel's data (model.hold, model.hold_material: what its pickers and the RPC set): it appears in his hand with no new summon
         g.call("studio", action="summon", kind="character", id=0)
         settle(g, "character", 0)
@@ -564,6 +590,12 @@ def run(out):
     # where a model's texture goes: native_model's slots against the game's own slot records (its init builds them from native_model's slots)
     code, log = studio("--check-slots", slot_tables.hex())
     check(code == 0, f"the texture slots are the game's records\n{log}")
+
+    # the smooth pose against the game's steps, in the player's own poses: whole steps are exactly the stepped pose, halfway each bone's turn is between its neighbours' and the bones keep
+    # their lengths (an idle, a long idle, a wait that stands still and a bigger enemy's attack, with the loop's wrap)
+    for enemy, animation in ((4, 101), (14, 101), (34, 179), (127, 164)):
+        code, log = studio("--check-smooth", str(enemy), str(animation))
+        check(code == 0, f"smooth animation: enemy {enemy} animation {animation}: whole steps exact, turns slerped between, bone lengths kept\n{log}")
 
     # every model the catalog names
     code, log = studio("--check-catalog")

@@ -51,7 +51,6 @@ extern "C" {
     X(native_marker, 'A') \
     X(native_translucent, 'A') \
     X(capture_read, 'V') \
-    X(stale_copy, 'V') \
     X(ot_native_area, 'A') \
     X(sync_texture, 'V') \
     X(upload_mode, 'V') \
