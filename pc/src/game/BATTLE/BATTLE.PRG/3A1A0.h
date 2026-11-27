@@ -276,7 +276,7 @@ typedef struct {
     texMapOverlay_t texMapOverlays[8];
     u_char unk614[0x24];
     int unk638;
-    u_short unk63C;
+    u_short collisionRadius; /* the actor's collision radius (set from its stats): 0x80 and over is a large actor, whose animation blends take twice the frames */
     u_short menuCameraHeightOffset;
     u_char unk640[6];
     u_short unk646;

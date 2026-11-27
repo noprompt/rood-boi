@@ -148,7 +148,7 @@ pub fn vs_actors_updateAndDrawRoomModels(camera: [*c]v.MATRIX) callconv(.c) void
                         shift(actor, -1);
                     }
                 }
-                if (actor.unk63C >= 0x80 and actor.unk5CC != 0) {
+                if (actor.collisionRadius >= 0x80 and actor.unk5CC != 0) {
                     common.object.flags8(actor).* = common.object.flags8(actor).* | 0x8000_0000;
                 }
             }

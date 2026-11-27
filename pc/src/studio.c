@@ -219,6 +219,21 @@ int pc_studio_scene(const pc_studio_scene_cfg* c, pc_studio_scene_out* out)
             vs_battle_populateDataSlot(&d);
             pump();
         }
+        /* the sequence sets the shape's header lists, loaded as the game loads them with its shape (object data of type 8: set 0 the common animations, the weapon category's set
+         * the battle ones) */
+        for (int set = 0; set < 2; set++) {
+            const unsigned char* seq = set ? c->seq_battle : c->seq_common;
+            unsigned seq_size = set ? c->seq_battle_size : c->seq_common_size;
+            unsigned char* copy = seq ? copy_to_heap(seq, seq_size) : NULL;
+            if (!copy)
+                continue;
+            vs_battle_objectData d;
+            memset(&d, 0, sizeof d);
+            d.dataType = 8, d.index = (signed char)slot, d.dataAddr = (__UINTPTR_TYPE__)copy, d.actorId = 0;
+            d.modelId = set ? (short)c->weapon_category : 0;
+            vs_battle_populateDataSlot(&d);
+        }
+        pump();
     } else if (c->kind == PC_STUDIO_ZUD) {
         pc_nm_zud zud;
         pc_nm_zud_decode(&zud, file);
@@ -289,7 +304,7 @@ int pc_studio_scene(const pc_studio_scene_cfg* c, pc_studio_scene_out* out)
     BODY(a)->position.vx = (short)cx, BODY(a)->position.vy = (short)fy, BODY(a)->position.vz = (short)cz;
     BODY(a)->facing = (short)(c->facing & 0xfff);
     BODY(a)->skip = 0;
-    BODY(a)->weaponDrawn = 1;
+    BODY(a)->weaponDrawn = c->weapon_drawn ? 1 : 0;
     out->slot = slot;
     out->bones = BODY(a)->nBones;
     /* shown, animated, its weapon and shield drawn (as the loader leaves an actor that a script has yet to show) */

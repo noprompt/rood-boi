@@ -51,7 +51,7 @@ pub fn vs_field_sampleActorCollisionPerimeter(actor: ?*v.D_800F4538_t, diagonal:
         return;
     }
 
-    i = a.unk63C;
+    i = a.collisionRadius;
     const negativeRadius: c_int = -%i;
 
     // ROOD_PC: off the floor the tile lookup is NULL; the original reads PS1 address 0.

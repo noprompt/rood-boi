@@ -335,7 +335,9 @@ bool glows_kept;     // the room's glow tracks are saved for this visit
 bool clean_seen;     // that render has begun
 std::string look_name = "neutral";
 const Item* current;
-std::vector<unsigned char> file_data, rig_data, base_data, hold_data; // hold_data: the weapon a character holds (model.hold)
+std::vector<unsigned char> file_data, rig_data, base_data, hold_data, seq_common_data, seq_battle_data; // hold_data: the weapon a character holds (model.hold); the sequence sets of a character
+int applied_hold = -2, applied_material = -2, applied_sets = -2; // (applied_sets: the weapon the loaded sequence sets were chosen for)
+int seq_category; // the hold (and material) hold_data and the loaded scene belong to; -2: not looked at yet
 int base_id = -1;
 Camera camera;
 bool again;           // a render is wanted once this one has landed (the camera is not fitted yet)
@@ -363,6 +365,53 @@ int shared_texture_of(const unsigned char* shp, size_t size)
         return -1;
     size_t block = (size_t)(seq + 8 + seq_length);
     return i32(block) == 4 ? (int)i32(block + 4) : -1;
+}
+// A shape's sequence sets (studio.h pc_studio_sequences).
+static int weapon_category_of(int weapon_id)
+{
+    if (weapon_id < 0)
+        return 10;
+    static unsigned char limits[12];
+    static int have = -1;
+    if (have < 0) { // _wepIdCategories: BATTLE.PRG's data, 0x7F9E4 bytes into the file
+        unsigned char* data = nullptr;
+        unsigned size = 0;
+        have = 0;
+        if (pc_ui_disc_read("BATTLE/BATTLE.PRG", &data, &size)) {
+            const size_t at = 0x7F9E4;
+            if (size >= at + sizeof limits)
+                memcpy(limits, data + at, sizeof limits), have = 1;
+            free(data);
+        }
+    }
+    if (!have)
+        return 10;
+    for (int i = 1; i < 11; i++)
+        if (limits[i] >= weapon_id)
+            return i;
+    return 11;
+}
+static bool sequence_set(const unsigned char* overlays, int set, unsigned char** out, unsigned* size)
+{
+    if (set < 0 || set > 11)
+        return false;
+    unsigned lba = overlays[0x70 + 4 * set] | overlays[0x71 + 4 * set] << 8 | overlays[0x72 + 4 * set] << 16 | (unsigned)overlays[0x73 + 4 * set] << 24;
+    unsigned bytes = ((overlays[0xA0 + 2 * set] | overlays[0xA1 + 2 * set] << 8) >> 11) << 11; // (the game reads the size >> 11 sectors)
+    if (!bytes || !lba || !pc_ui_disc_read_sectors(lba, bytes, out))
+        return false;
+    *size = bytes;
+    return true;
+}
+extern "C" int pc_studio_sequence_set(const unsigned char* overlays, int set, unsigned char** data, unsigned* size) { return sequence_set(overlays, set, data, size); }
+extern "C" int pc_studio_sequences(const unsigned char* overlays, int weapon_id, unsigned char** common, unsigned* common_size, unsigned char** battle, unsigned* battle_size, int* category)
+{
+    *common = *battle = nullptr, *common_size = *battle_size = 0;
+    *category = weapon_category_of(weapon_id);
+    if (!sequence_set(overlays, 0, common, common_size))
+        return 0;
+    if (*category <= 10 && !sequence_set(overlays, *category, battle, battle_size))
+        *battle = nullptr, *battle_size = 0;
+    return 1;
 }
 bool read_disc(const std::string& path, std::vector<unsigned char>& out)
 {
@@ -743,6 +792,42 @@ void draw_hits(ImDrawList* d, const std::vector<studio_locate::Hit>& hits, const
 
 // ---------------------------------------------------------------- the render callbacks
 
+// The weapon a character holds follows the data (model.hold, model.hold_material: the panel's pickers, the RPC `studio look set=`, the data editor): its file is read
+// when the weapon changes, and the app loads its parts again (the serial); the game's studio builds its scene on every render and needs only the file.
+void sync_hold()
+{
+    int want = current && current->kind == "character" ? (int)num("model.hold", -1) : -1;
+    int material = (int)num("model.hold_material", 0);
+    if (want != applied_hold) {
+        hold_data.clear();
+        if (want >= 0 && !read_disc("OBJ/" + hex2(want) + ".WEP", hold_data)) {
+            hold_data.clear();
+            scene_message = "cannot read the weapon a character holds";
+        }
+        applied_hold = want;
+        ++app_serial;
+    }
+    if (want >= 0 && material != applied_material)
+        applied_material = material, ++app_serial;
+    // the sequence sets the shape's header lists (model.sequences: on): the common one and the held weapon's category's (the unarmed one when it holds none)
+    int sets = current && current->kind == "character" && flag("model.sequences") ? want : -3;
+    if (sets != applied_sets) {
+        seq_common_data.clear(), seq_battle_data.clear();
+        if (sets != -3 && file_data.size() >= 0xC + 0xE8) {
+            unsigned char *common, *battle;
+            unsigned common_size, battle_size;
+            if (pc_studio_sequences(file_data.data() + 0xC, want, &common, &common_size, &battle, &battle_size, &seq_category)) {
+                seq_common_data.assign(common, common + common_size);
+                if (battle)
+                    seq_battle_data.assign(battle, battle + battle_size);
+            }
+            free(common);
+            free(battle);
+        }
+        applied_sets = sets;
+        ++app_serial;
+    }
+}
 void studio_render()
 {
     dirty = false;
@@ -762,6 +847,7 @@ void studio_render()
     // The box the render before this one measured; the camera is fitted to it before the frames run.
     if (current && !framed)
         fit_camera();
+    sync_hold();
     pc_studio_scene_cfg c;
     memset(&c, 0, sizeof c);
     // The stage grows with the camera's reach (a dragon is a model of a thousand units), never smaller than its data says.
@@ -781,6 +867,7 @@ void studio_render()
         }
     }
     c.equipment = (int)num("model.equipment", 1);
+    c.weapon_drawn = flag("animation.weapon_drawn");
     c.animation = (int)num("model.animation", 1);
     c.animation_frame = (int)num("model.animation_frame", 0);
     c.facing = (int)lroundf(num("model.facing", 0) + model_angle * 4096.0f / 360.0f) & 0xfff; // (the turntable turns the model)
@@ -792,6 +879,11 @@ void studio_render()
         if (current->kind == "character")
         {
             c.kind = PC_STUDIO_SHP, c.material = (int)num("model.material", 0);
+            if (!seq_common_data.empty())
+                c.seq_common = seq_common_data.data(), c.seq_common_size = (unsigned)seq_common_data.size();
+            if (!seq_battle_data.empty())
+                c.seq_battle = seq_battle_data.data(), c.seq_battle_size = (unsigned)seq_battle_data.size();
+            c.weapon_category = seq_category;
             if (!hold_data.empty())
                 c.weapon = hold_data.data(), c.weapon_size = (unsigned)hold_data.size(), c.weapon_id = (int)num("model.hold", -1), c.weapon_material = (int)num("model.hold_material", 0);
         }
@@ -917,7 +1009,7 @@ std::string leave()
         pc_studio_bounds_stop();
     remove_look();
     current = nullptr;
-    file_data.clear(), rig_data.clear(), base_data.clear(), hold_data.clear();
+    file_data.clear(), rig_data.clear(), base_data.clear(), hold_data.clear(), seq_common_data.clear(), seq_battle_data.clear(), applied_hold = applied_material = applied_sets = -2;
     base_id = -1;
     // The renderers keep what they built from the last picture (the stage's ray-traced scene, its lighting): one render of the game
     // as it is rebuilds them from the room, the room's glows being the ones kept at the start of the visit and put back by that
@@ -943,9 +1035,6 @@ std::string summon(const std::string& kind, int id)
         return "cannot read " + item->file + " from the disc";
     if (kind == "weapon" && !read_disc(("OBJ/" + hex2((int)num("model.rig", 0)) + ".SHP"), rig))
         return "cannot read the rig that holds a weapon";
-    std::vector<unsigned char> hold;
-    if (kind == "character" && num("model.hold", -1) >= 0 && !read_disc(("OBJ/" + hex2((int)num("model.hold", -1)) + ".WEP"), hold))
-        return "cannot read the weapon a character holds";
     // The SHP is the file itself, or a ZUD's first part (its offset at +8); a shared texture needs its model.
     const unsigned char* shp = data.data();
     size_t shp_size = data.size();
@@ -965,7 +1054,7 @@ std::string summon(const std::string& kind, int id)
     current = item;
     ++app_serial;
     animation.id = -1, animation.time = 1, animation.ids.clear(), animation.frames = 1;
-    file_data = std::move(data), rig_data = std::move(rig), hold_data = std::move(hold);
+    file_data = std::move(data), rig_data = std::move(rig), hold_data.clear(), seq_common_data.clear(), seq_battle_data.clear(), applied_hold = applied_material = applied_sets = -2; // (the weapon: sync_hold reads it)
     if (pc_studio_bounds_reset)
         pc_studio_bounds_reset();
     framed = false;
@@ -979,7 +1068,7 @@ void clear()
 {
     current = nullptr;
     ++app_serial;
-    file_data.clear(), rig_data.clear(), base_data.clear(), hold_data.clear();
+    file_data.clear(), rig_data.clear(), base_data.clear(), hold_data.clear(), seq_common_data.clear(), seq_battle_data.clear(), applied_hold = applied_material = applied_sets = -2;
     base_id = -1;
     pc_studio_hide_bodies = 0;
     if (pc_studio_bounds_reset)
@@ -1264,6 +1353,25 @@ static void controls_body()
             put_camera();
             request();
         }
+        if (current && current->kind == "character") { // the weapon in his hand: the data model.hold and model.hold_material, as the RPC sets them
+            build_items();
+            ImGui::Separator();
+            int hold = (int)num("model.hold", -1);
+            std::string preview = hold < 0 ? "none" : "Weapon " + hex2(hold);
+            if (ImGui::BeginCombo("Holds", preview.c_str())) {
+                if (ImGui::Selectable("none", hold < 0))
+                    set_at("model.hold", Json::num(-1)), request();
+                for (const Item& w : items)
+                    if (w.kind == "weapon" && ImGui::Selectable(w.name.c_str(), w.id == hold))
+                        set_at("model.hold", Json::num(w.id)), request();
+                ImGui::EndCombo();
+            }
+            if (hold >= 0) {
+                int material = (int)num("model.hold_material", 0), count = (int)num("model.materials", 16);
+                if (ImGui::SliderInt("Material", &material, 0, count - 1))
+                    set_at("model.hold_material", Json::num(material)), request();
+            }
+        }
         if (app_mode && !animation.ids.empty()) { // the sequence: which, where in it, running
             ImGui::Separator();
             std::string preview = animation.id < 0 ? "auto (" + std::to_string(animation.shown) + ")" : std::to_string(animation.id);
@@ -1274,6 +1382,27 @@ static void controls_body()
                     if (ImGui::Selectable(std::to_string(id).c_str(), animation.id == id))
                         animation.id = id, animation.time = 1;
                 ImGui::EndCombo();
+            }
+            {
+                bool changed_world = false;
+                bool on = flag("animation.handover");
+                if (ImGui::Checkbox("Play on into the next animation", &on))
+                    set_at("animation.handover", Json::boolean_(on)), changed_world = true;
+                if (on) {
+                    for (const char* key : { "weapon_drawn", "stance_a5", "stance_a0_3", "stance_a6", "action_done", "event_playback" }) {
+                        bool v = flag(std::string("animation.") + key);
+                        if (ImGui::Checkbox(key, &v))
+                            set_at(std::string("animation.") + key, Json::boolean_(v)), changed_world = true;
+                    }
+                    int tick = (int)num("animation.tickspeed", 2);
+                    if (ImGui::RadioButton("Update every 2", tick != 4))
+                        set_at("animation.tickspeed", Json::num(2)), changed_world = true;
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("every 4", tick == 4))
+                        set_at("animation.tickspeed", Json::num(4)), changed_world = true;
+                }
+                if (changed_world)
+                    request();
             }
             ImGui::Checkbox("Play", &animation.playing);
             ImGui::SameLine();
@@ -1287,7 +1416,7 @@ static void controls_body()
         bool changed = false;
         if (ImGui::CollapsingHeader("Stage, camera and look values")) {
             Json& root = cfg();
-            for (const char* group : { "window", "stage", "camera", "model", "turntable", "backdrop", "locate" })
+            for (const char* group : { "window", "stage", "camera", "model", "animation", "turntable", "backdrop", "locate" })
                 if (Json* g = root.get(group))
                     if (ImGui::TreeNode(group)) {
                         changed |= rows(*g, std::string(group) + ".", 1);
@@ -1556,8 +1685,10 @@ extern "C" int pc_studio_rpc(const char* params_text, char* out, int size)
         unsigned long long keys[16];
         int n = pc_studio_meshes ? pc_studio_meshes(meshes, keys, 16) : 0;
         for (int m = 0; m < n && !base.empty(); m++)
-            if (render_mesh_reference)
+            if (render_mesh_reference) {
                 render_mesh_reference(meshes[m], (base + "." + std::to_string(m)).c_str());
+                pc_actor_native_pose_dump(meshes[m], (base + "." + std::to_string(m) + ".pose").c_str());
+            }
         result = ",\"meshes\":" + std::to_string(n);
     } else if (action == "animation") {
         // {id: a number of the model's (-1: the game's choice), time: frame, play: bool, speed}; the reply's state lists the model's animations
@@ -1753,7 +1884,9 @@ extern "C" int pc_studio_app_frame(pc_studio_app_view* v)
         v->id = current->id;
     }
     v->scene = app_scene;
-    v->scene.file = v->scene.rig = v->scene.base = v->scene.weapon = nullptr;
+    v->scene.file = v->scene.rig = v->scene.base = v->scene.weapon = v->scene.seq_common = v->scene.seq_battle = nullptr;
+    v->seq_common = seq_common_data.empty() ? nullptr : seq_common_data.data(), v->seq_common_size = (unsigned)seq_common_data.size();
+    v->seq_battle = seq_battle_data.empty() ? nullptr : seq_battle_data.data(), v->seq_battle_size = (unsigned)seq_battle_data.size();
     const float pi = PI_F;
     v->yaw = (camera.yaw + num("model.facing", 0) * 360.0f / 4096) * pi / 180, v->pitch = -camera.elevation * pi / 180;
     v->distance = camera.distance * camera.zoom, v->fov = camera.fov;
@@ -1767,7 +1900,7 @@ extern "C" int pc_studio_app_frame(pc_studio_app_view* v)
     if (animation.playing && animation.frames > 1 && animation.last > 0)
         animation.time += (float)(fmin(fmax(now - animation.last, 0.0), 0.1) * 30.0 * animation.speed);
     animation.last = now;
-    if (animation.frames > 0) {
+    if (animation.frames > 0 && !flag("animation.handover")) { // (a handover plays on: the player's own commands carry the animation past its end)
         while (animation.time >= animation.frames + 1)
             animation.time -= animation.frames;
         if (animation.time < 1)
@@ -1776,6 +1909,9 @@ extern "C" int pc_studio_app_frame(pc_studio_app_view* v)
     v->animation = animation.id;
     v->animation_time = animation.time;
     v->holds = !at("animation.holds") || flag("animation.holds");
+    v->handover = flag("animation.handover"), v->weapon_drawn = flag("animation.weapon_drawn"), v->stance_a5 = flag("animation.stance_a5");
+    v->stance_a0_3 = flag("animation.stance_a0_3"), v->stance_a6 = flag("animation.stance_a6"), v->action_done = flag("animation.action_done");
+    v->tickspeed = (int)num("animation.tickspeed", 2), v->collision_radius = (int)num("animation.collision_radius", 0), v->event_playback = flag("animation.event_playback");
     return app_serial;
 }
 // The model's world box and drawn meshes (what actor_native.c measures in the game), for the camera's fit and the locator.

@@ -158,6 +158,37 @@ int pc_nm_anim_frames(const pc_nm_anim* a);   /* the animation's length in frame
 /* The pose after `time` steps (0 and 1: the first vectors; each step after applies one frame's deltas), as the game's actor shows it. */
 void pc_nm_anim_pose(pc_nm_anim* a, int time, pc_nm_pose* pose);
 void pc_nm_anim_close(pc_nm_anim* a);
+/* An animation's script (vs_actors_runAnimationEvents' stream): each command with the frame it is due on and its argument bytes (the command's length from the game's table less
+ * its opcode). Returns how many (at most max); the stream ends at an opcode the table does not know. */
+typedef struct {
+    int frame, op, length;
+    unsigned char arg[6];
+} pc_nm_event;
+int pc_nm_anim_events(const pc_nm_anim* a, pc_nm_event* out, int max);
+/* What the handover between animations (commands 2 and 19 to 24, vs_actors_playActorAnimation) needs of the world: the model's tables, the animation the play starts with (the
+ * game's number: 100 and more with the weapon drawn) and the actor's state the game maps the numbers by (the weapon drawn; the stance flags unkA_5, unkA_0 == 3 and unkA_6 of the
+ * actor's body, which the decomp leaves unnamed) and command 2's condition (func_8006C84C: the action's hits are done). With none set, an animation that hands over ends the play. */
+typedef struct {
+    const pc_nm_table *common, *battle;
+    int animation;
+    int weapon_drawn, stance_a5, stance_a0_3, stance_a6;
+    int action_done;
+    int event_playback; /* vs_event_playbackPhase == 4 (vs_event_eventPlaybackState: an event is playing, and the game's studio is in that phase): every handover starts the animation, whatever it is */
+    int collision_radius; /* the actor's collisionRadius: 0x80 and over doubles the frames of a blend */
+    int tickspeed; /* vs_gametime_tickspeed: 4 doubles an update's frames of the animation (framesPerStep): the game at its slow tick; 2 is the normal one */
+} pc_nm_world;
+void pc_nm_anim_world(pc_nm_anim* a, const pc_nm_world* world);
+/* The animation the game plays for `number` in the world (stance and weapon mapping, then the tables, falling back to the model's own animation 0): its number (-1: the model's own
+ * animation 0, found), its table and record; 0 when there is none. */
+int pc_nm_map_animation(const pc_nm_model* m, const pc_nm_world* world, int number, pc_nm_table* table, int* index);
+/* The animation played as the game plays it: `steps` updates of its actor (func_800AFA28, one frame a step) from the animation's start, its script's commands run as
+ * vs_actors_runAnimationEvents runs them where they change a pose or its timing: 1 (and 13 where the battle allows it: not run here) restart the animation (the pose and the script
+ * from the start: an idle animation loops), 55 waits (the frame counter stands still for its count of steps), 56 and 57 release and hold a bone (vs_actors_setActorBonePoseLock).
+ * 61 and 62 (the actor's pace flag unk5B0_3: framesPerStep one or two) change the speed of the updates. A command that starts another animation (2, 19 to 24) plays it on when the
+ * animation has a world (pc_nm_anim_world: the mapping by the actor's stance and weapon, the blend of the old pose into the new), else it ends the play: the pose stays as it is.
+ * `steps` counts the frames of the animation (a game update takes framesPerStep of them). Everything else (sounds, effects, texture
+ * and vertex changes, the actor's motion, the weapon's scale) is the game's business and is skipped. `*frame` (optional) gets the frame counter the pose belongs to. */
+void pc_nm_anim_play(pc_nm_anim* a, int steps, pc_nm_pose* pose, int* frame, int* animation);
 void pc_nm_anim_holds(pc_nm_anim* a, int on); /* the events' bone holds (on by default) */
 
 /* The first bone whose armature carries `code` (the weapon's 0xF0 and the shield's 0xF1 mark the hand that holds them; func_800A152C field 0), -1 none. */

@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 extern int pc_vsync_wait_frames(void) __attribute__((weak));
@@ -376,7 +377,13 @@ static int compare_reference(const loaded_model* lm, const reference_t* r, unsig
 /* (exact_pose: the game's own turns, read from its actor record, must be the player's bone for bone.)
  * The skeleton against the game's: the animation the game started, decoded here, at the time that fits the game's bone matrices best (the game's
  * render replays a few frames from where it held, so the time is not known), every bone within a few units. */
-static int compare_pose(const loaded_model* lm, const reference_t* r, int animation, float tolerance, int exact_pose)
+static int pose_hold = -1, pose_sets = 0, pose_drawn = 1; /* --hold N (the weapon the character holds: its sequence set), --sets (the character's sequence sets), --sheathed */
+static int pose_playback = 0; /* --event-playback: the game is in its event-playback phase (vs_event_playbackPhase 4) */
+static int pose_stance = 0; /* --stance-a5, --stance-a0-3, --stance-a6: the actor's stance flags the animation numbers are mapped by (bits 0, 1, 2) */
+static int pose_radius = 0; /* --radius N: the actor's collisionRadius */
+static int pose_tickspeed = 2; /* --tickspeed N: the game's update spacing (the studio's game plays at 4) */
+static int pose_steps = -1, pose_window = 1; /* --steps N --steps-window W: with --events, the game's pose is looked for only at N - W .. N + W updates from the start (the game's update count) */
+static int compare_pose(const loaded_model* lm, const reference_t* r, int animation, float tolerance, int exact_pose, int events, int handover)
 {
     if (!lm->model.bone || lm->model.wep || r->bones > lm->model.bones)
         return 0;
@@ -389,6 +396,16 @@ static int compare_pose(const loaded_model* lm, const reference_t* r, int animat
             if (length > 8 && offset + length <= lm->zud_size)
                 pc_nm_table_from_block(lm->zud + offset, length, part == 3 ? &common : &battle);
         }
+    if (!lm->zud && pose_sets) { /* a character: the sequence sets its shape's header lists, the weapon category's from the held weapon */
+        unsigned char *c, *b;
+        unsigned cs, bs;
+        int category;
+        if (pc_studio_sequences(lm->model.overlays, pose_hold, &c, &cs, &b, &bs, &category)) {
+            pc_nm_table_from_block(c, cs, &common);
+            if (b)
+                pc_nm_table_from_block(b, bs, &battle);
+        }
+    }
     pc_nm_table table;
     int index;
     if (pc_nm_find_animation(&lm->model, common.bytes ? &common : NULL, battle.bytes ? &battle : NULL, animation, &table, &index)) {
@@ -398,14 +415,27 @@ static int compare_pose(const loaded_model* lm, const reference_t* r, int animat
     pc_nm_anim* a = pc_nm_anim_open(&lm->model, &table, index);
     if (!a)
         return 1;
+    if (handover) { /* the animations that hand over play on (the world: the model's tables, the studio's weapon drawn and no stance) */
+        pc_nm_world world;
+        memset(&world, 0, sizeof world);
+        world.common = common.bytes ? &common : NULL, world.battle = battle.bytes ? &battle : NULL, world.animation = animation;
+        world.weapon_drawn = pose_drawn, world.action_done = 1, world.tickspeed = pose_tickspeed, world.collision_radius = pose_radius, world.event_playback = pose_playback;
+        world.stance_a5 = pose_stance & 1, world.stance_a0_3 = pose_stance >> 1 & 1, world.stance_a6 = pose_stance >> 2 & 1;
+        pc_nm_anim_world(a, &world);
+    }
     int frames = pc_nm_anim_frames(a), best_time = 0, best_within = -1;
     int best_exact = -1, exact_time = 0, exact_bone_diff = 0, exact_worst = 4096;
     char odd_scale[400] = ""; /* the game's own pose state (the turns and scale keys) against the player's, bone for bone */
     float best_worst = 1e30f;
     char odd[160] = "";
-    for (int t = 1; t <= (frames < 400 ? frames : 400) + 1; t++) {
+    for (int t = 1; t <= (events ? 600 : (frames < 400 ? frames : 400) + 1); t++) {
+        if (events && pose_steps >= 0 && (t < pose_steps - pose_window || t > pose_steps + pose_window))
+            continue;
         pc_nm_pose pose;
-        pc_nm_anim_pose(a, t, &pose);
+        if (events)
+            pc_nm_anim_play(a, t, &pose, NULL, NULL); /* t updates of the actor from the animation's start, its script run */
+        else
+            pc_nm_anim_pose(a, t, &pose);
         if (r->state.bones) {
             pc_nm_pose game;
             pc_nm_pose_read(&r->state, &game);
@@ -503,6 +533,288 @@ static int check_slots(const char* hex)
     bad |= pc_nm_actor_texture_slot(24, &out) || pc_nm_actor_texture_slot(-1, &out) || pc_nm_weapon_texture_slot(20, &out);
     fprintf(stderr, "[rood-studio] the 24 actor and 20 weapon texture slots %s the game's records\n", bad ? "differ from" : "equal");
     return bad;
+}
+
+/* The animation scripts' commands that change a pose, by the animations that hold them (the enemies' tables): `rood-studio --scan-events`. */
+static int scan_events(void)
+{
+    const char* path = getenv("ROOD_STUDIO_CATALOG");
+    FILE* f = fopen(path && *path ? path : "pc/assets/studio/catalog.json", "rb");
+    if (!f)
+        return 1;
+    char* text = malloc(1 << 20);
+    size_t n = fread(text, 1, (1 << 20) - 1, f);
+    fclose(f);
+    text[n] = 0;
+    char* at = strstr(text, "\"enemies\"");
+    if (!at)
+        return 1;
+    static const int ops[] = { 1, 2, 13, 19, 20, 21, 22, 23, 24, 26, 27, 29, 55, 56, 57 };
+    for (char* p = at; (p = strstr(p, "{\"id\": ")) != NULL;) {
+        int id = atoi(p + 7);
+        p += 7;
+        loaded_model lm;
+        if (load_model(&lm, "enemy", id, 8))
+            continue;
+        pc_nm_table common, battle;
+        memset(&common, 0, sizeof common), memset(&battle, 0, sizeof battle);
+        for (int part = 3; part < 5 && lm.zud; part++) {
+            const unsigned char* q = lm.zud + 8 + 8 * part;
+            unsigned offset = (unsigned)(q[0] | q[1] << 8 | q[2] << 16 | (unsigned)q[3] << 24), length = (unsigned)(q[4] | q[5] << 8 | q[6] << 16 | (unsigned)q[7] << 24);
+            if (length > 8 && offset + length <= lm.zud_size)
+                pc_nm_table_from_block(lm.zud + offset, length, part == 3 ? &common : &battle);
+        }
+        int ids[256];
+        int count = pc_nm_list_animations(&lm.model, common.bytes ? &common : NULL, battle.bytes ? &battle : NULL, ids, 256);
+        for (int i = 0; i < count; i++) {
+            pc_nm_table table;
+            int index;
+            if (pc_nm_find_animation(&lm.model, common.bytes ? &common : NULL, battle.bytes ? &battle : NULL, ids[i], &table, &index))
+                continue;
+            pc_nm_anim* a = pc_nm_anim_open(&lm.model, &table, index);
+            if (!a)
+                continue;
+            pc_nm_event ev[400];
+            int events = pc_nm_anim_events(a, ev, 400);
+            char line[300] = "";
+            for (int e = 0; e < events; e++)
+                for (unsigned k = 0; k < sizeof ops / sizeof *ops; k++)
+                    if (ev[e].op == ops[k])
+                        snprintf(line + strlen(line), sizeof line - strlen(line) - 1, " %d@%d(%d,%d)", ev[e].op, ev[e].frame, ev[e].arg[0], ev[e].arg[1]);
+            if (line[0])
+                fprintf(stderr, "[rood-studio] events: enemy %d animation %d (%d frames):%s\n", id, ids[i], pc_nm_anim_frames(a), line);
+            pc_nm_anim_close(a);
+        }
+        free_model(&lm);
+    }
+    free(text);
+    return 0;
+}
+
+/* The handovers of the enemies' animations by what they start (`rood-studio --scan-handovers`): another animation of the same table and record (the game starts nothing), animation 0
+ * as the number, a number the tables lack (the model's own animation 0 plays), or an ordinary one. */
+static int scan_handovers(void)
+{
+    const char* path = getenv("ROOD_STUDIO_CATALOG");
+    FILE* f = fopen(path && *path ? path : "pc/assets/studio/catalog.json", "rb");
+    if (!f)
+        return 1;
+    char* text = malloc(1 << 20);
+    size_t n = fread(text, 1, (1 << 20) - 1, f);
+    fclose(f);
+    text[n] = 0;
+    char* at = strstr(text, "\"enemies\"");
+    int same = 0, zero = 0, lacking = 0, plain = 0;
+    for (char* p = at; at && (p = strstr(p, "{\"id\": ")) != NULL;) {
+        int id = atoi(p + 7);
+        p += 7;
+        loaded_model lm;
+        if (load_model(&lm, "enemy", id, 8))
+            continue;
+        pc_nm_table common, battle;
+        memset(&common, 0, sizeof common), memset(&battle, 0, sizeof battle);
+        for (int part = 3; part < 5 && lm.zud; part++) {
+            const unsigned char* q = lm.zud + 8 + 8 * part;
+            unsigned offset = (unsigned)(q[0] | q[1] << 8 | q[2] << 16 | (unsigned)q[3] << 24), length = (unsigned)(q[4] | q[5] << 8 | q[6] << 16 | (unsigned)q[7] << 24);
+            if (length > 8 && offset + length <= lm.zud_size)
+                pc_nm_table_from_block(lm.zud + offset, length, part == 3 ? &common : &battle);
+        }
+        pc_nm_world world;
+        memset(&world, 0, sizeof world);
+        world.common = common.bytes ? &common : NULL, world.battle = battle.bytes ? &battle : NULL, world.weapon_drawn = 1, world.action_done = 1, world.tickspeed = 2;
+        int ids[256];
+        int count = pc_nm_list_animations(&lm.model, world.common, world.battle, ids, 256);
+        for (int i = 0; i < count; i++) {
+            pc_nm_table table;
+            int index;
+            if (pc_nm_find_animation(&lm.model, world.common, world.battle, ids[i], &table, &index))
+                continue;
+            pc_nm_anim* a = pc_nm_anim_open(&lm.model, &table, index);
+            if (!a)
+                continue;
+            pc_nm_event ev[400];
+            int events = pc_nm_anim_events(a, ev, 400);
+            for (int e = 0; e < events; e++) {
+                int op = ev[e].op, number = -1;
+                if (op == 2)
+                    number = 1;
+                else if (op == 19 || op == 20)
+                    number = op == 19 ? 13 : 1;
+                else if (op == 21 || op == 22)
+                    number = ev[e].arg[0];
+                else if (op == 23 || op == 24) {
+                    number = op == 23 ? ids[i] - 1 : ids[i] + 1;
+                    if (number >= 100)
+                        number -= 100;
+                }
+                if (number < 0)
+                    continue;
+                pc_nm_table to;
+                int to_index, mapped = number == 0 ? 0 : pc_nm_map_animation(&lm.model, &world, number, &to, &to_index);
+                const char* kind = "plain";
+                if (number == 0)
+                    kind = "number 0", zero++;
+                else if (mapped == -1)
+                    kind = "falls back to animation 0", lacking++;
+                else if (mapped == 0)
+                    kind = "no animation", lacking++;
+                else if (to.bytes == table.bytes && to_index == index)
+                    kind = "same table and record", same++;
+                else
+                    plain++;
+                if (strcmp(kind, "plain"))
+                    fprintf(stderr, "[rood-studio] handover: enemy %d animation %d command %d at frame %d (%d,%d) starts %d: %s\n", id, ids[i], op, ev[e].frame, ev[e].arg[0], ev[e].arg[1], number, kind);
+            }
+            pc_nm_anim_close(a);
+        }
+        free_model(&lm);
+    }
+    fprintf(stderr, "[rood-studio] handovers: %d ordinary, %d to the same table and record, %d with number 0, %d to an animation the tables lack\n", plain, same, zero, lacking);
+    free(text);
+    return 0;
+}
+
+/* The handovers of the characters' sequence sets (`rood-studio --scan-handovers-characters`): for each character whose shape lists them, the common set with each weapon category's, the
+ * weapon drawn and sheathed: what each handover starts, as scan_handovers sorts them. */
+static int scan_character_handovers(void)
+{
+    const char* path = getenv("ROOD_STUDIO_CATALOG");
+    FILE* f = fopen(path && *path ? path : "pc/assets/studio/catalog.json", "rb");
+    if (!f)
+        return 1;
+    char* text = malloc(1 << 20);
+    size_t n = fread(text, 1, (1 << 20) - 1, f);
+    fclose(f);
+    text[n] = 0;
+    char* at = strstr(text, "\"characters\"");
+    long tally[2][5] = { { 0 } }; /* [drawn][plain, same, lacking: falls back to 0, no animation, handover ops] */
+    int with_sets = 0, characters = 0;
+    for (char* p = at ? strchr(at, '[') + 1 : NULL; p && *p && *p != ']';) {
+        int id = (int)strtol(p, &p, 10);
+        while (*p == ',' || *p == ' ' || *p == '\n')
+            p++;
+        loaded_model lm;
+        if (load_model(&lm, "character", id, 8))
+            continue;
+        characters++;
+        unsigned char* common_data;
+        unsigned common_size;
+        if (!pc_studio_sequence_set(lm.model.overlays, 0, &common_data, &common_size)) {
+            free_model(&lm);
+            continue;
+        }
+        with_sets++;
+        pc_nm_table common;
+        memset(&common, 0, sizeof common);
+        pc_nm_table_from_block(common_data, common_size, &common);
+        for (int set = 1; set <= 10; set++) {
+            unsigned char* battle_data;
+            unsigned battle_size;
+            pc_nm_table battle;
+            memset(&battle, 0, sizeof battle);
+            int have = pc_studio_sequence_set(lm.model.overlays, set, &battle_data, &battle_size);
+            if (have)
+                pc_nm_table_from_block(battle_data, battle_size, &battle);
+            for (int drawn = 0; drawn < 2; drawn++) {
+                pc_nm_world world;
+                memset(&world, 0, sizeof world);
+                world.common = &common, world.battle = have ? &battle : NULL, world.weapon_drawn = drawn, world.action_done = 1, world.tickspeed = 2;
+                int ids[256];
+                int count = pc_nm_list_animations(&lm.model, world.common, world.battle, ids, 256);
+                for (int i = 0; i < count; i++) {
+                    pc_nm_table table;
+                    int index;
+                    if (pc_nm_find_animation(&lm.model, world.common, world.battle, ids[i], &table, &index))
+                        continue;
+                    pc_nm_anim* a = pc_nm_anim_open(&lm.model, &table, index);
+                    if (!a)
+                        continue;
+                    pc_nm_event ev[400];
+                    int events = pc_nm_anim_events(a, ev, 400);
+                    for (int e = 0; e < events; e++) {
+                        int op = ev[e].op, number = -1;
+                        if (op == 2)
+                            number = 1;
+                        else if (op == 19 || op == 20)
+                            number = op == 19 ? 13 : 1;
+                        else if (op == 21 || op == 22)
+                            number = ev[e].arg[0];
+                        else if (op == 23 || op == 24) {
+                            number = op == 23 ? ids[i] - 1 : ids[i] + 1;
+                            if (number >= 100)
+                                number -= 100;
+                        }
+                        if (number < 0)
+                            continue;
+                        tally[drawn][4]++;
+                        pc_nm_table to;
+                        int to_index, mapped = number == 0 ? 0 : pc_nm_map_animation(&lm.model, &world, number, &to, &to_index);
+                        const char* kind = "plain";
+                        if (number == 0)
+                            kind = "number 0", tally[drawn][3]++;
+                        else if (mapped == -1)
+                            kind = "falls back to animation 0", tally[drawn][2]++;
+                        else if (mapped == 0)
+                            kind = "no animation", tally[drawn][3]++;
+                        else if (to.bytes == table.bytes && to_index == index)
+                            kind = "same table and record", tally[drawn][1]++;
+                        else
+                            tally[drawn][0]++;
+                        if ((strcmp(kind, "plain") && getenv("ROOD_SCAN_VERBOSE")) || (getenv("ROOD_SCAN_ALL") && atoi(getenv("ROOD_SCAN_ALL")) == id))
+                            fprintf(stderr, "[rood-studio] handover: character %d set %d %s: animation %d command %d at frame %d starts %d: %s\n", id, set, drawn ? "drawn" : "sheathed", ids[i], op,
+                                ev[e].frame, number, kind);
+                    }
+                    pc_nm_anim_close(a);
+                }
+            }
+        }
+        free_model(&lm);
+    }
+    for (int drawn = 0; drawn < 2; drawn++)
+        fprintf(stderr, "[rood-studio] character handovers, weapon %s: %ld handover commands: %ld ordinary, %ld to the same table and record, %ld to a number the tables lack (animation 0 plays), %ld to none or number 0\n",
+            drawn ? "drawn" : "sheathed", tally[drawn][4], tally[drawn][0], tally[drawn][1], tally[drawn][2], tally[drawn][3]);
+    fprintf(stderr, "[rood-studio] character handovers: %d of %d characters list sequence sets\n", with_sets, characters);
+    free(text);
+    return 0;
+}
+
+/* The player's cost: `--bench-play ENEMY ANIMATION`: the time one frame of play takes (pc_nm_anim_play called every frame with the update count one more each time, as the app
+ * does) after 1 and after 10 minutes of play at the game's 30 frames a second, the animation's handovers on. */
+static int bench_play(int enemy, int animation)
+{
+    loaded_model lm;
+    if (load_model(&lm, "enemy", enemy, 8))
+        return 1;
+    pc_nm_table common, battle;
+    memset(&common, 0, sizeof common), memset(&battle, 0, sizeof battle);
+    for (int part = 3; part < 5 && lm.zud; part++) {
+        const unsigned char* q = lm.zud + 8 + 8 * part;
+        unsigned offset = (unsigned)(q[0] | q[1] << 8 | q[2] << 16 | (unsigned)q[3] << 24), length = (unsigned)(q[4] | q[5] << 8 | q[6] << 16 | (unsigned)q[7] << 24);
+        if (length > 8 && offset + length <= lm.zud_size)
+            pc_nm_table_from_block(lm.zud + offset, length, part == 3 ? &common : &battle);
+    }
+    pc_nm_table table;
+    int index;
+    if (pc_nm_find_animation(&lm.model, common.bytes ? &common : NULL, battle.bytes ? &battle : NULL, animation, &table, &index))
+        return 1;
+    pc_nm_anim* a = pc_nm_anim_open(&lm.model, &table, index);
+    pc_nm_world world;
+    memset(&world, 0, sizeof world);
+    world.common = common.bytes ? &common : NULL, world.battle = battle.bytes ? &battle : NULL, world.animation = animation, world.weapon_drawn = 1, world.action_done = 1, world.tickspeed = 2;
+    pc_nm_anim_world(a, &world);
+    for (int minutes = 1; minutes <= 10; minutes += 9) {
+        int from = minutes * 60 * 30;
+        struct timespec t0, t1;
+        pc_nm_pose pose;
+        pc_nm_anim_play(a, from - 1, &pose, NULL, NULL); /* (the app got here a frame at a time: what the frame after costs is the measure) */
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        for (int i = 0; i < 100; i++)
+            pc_nm_anim_play(a, from + i, &pose, NULL, NULL);
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        fprintf(stderr, "[rood-studio] bench: %d minutes of play (frame %d): %.1f microseconds a frame\n", minutes, from, ((t1.tv_sec - t0.tv_sec) * 1e6 + (t1.tv_nsec - t0.tv_nsec) / 1e3) / 100);
+    }
+    pc_nm_anim_close(a);
+    return 0;
 }
 
 /* Every model the catalog names decodes (and every one's polygons are valid): the sweep rood_studio_smoke.py runs. */
@@ -676,7 +988,7 @@ static int compare_equipment(const loaded_model* body, const char* kind, const c
 static int run_fixed(int argc, char** argv)
 {
     const char* kind = "character";
-    int id = 3, frames = 0, slot = 8, check = 0, animation = 0, exact_pose = 0, hold = -1, hold_material = 0;
+    int id = 3, frames = 0, slot = 8, check = 0, scan = 0, bench_enemy = -1, bench_animation = 0, animation = 0, exact_pose = 0, events = 0, handover = 0, no_equipment = 0, hold = -1, hold_material = 0;
     const char* slots_hex = NULL;
     float tolerance = 4;
     const char *dump = NULL, *reference_path = NULL, *look = "neutral";
@@ -712,8 +1024,42 @@ static int run_fixed(int argc, char** argv)
             expect_key = strtoull(argv[++i], NULL, 16), have_key = 1;
         else if (!strcmp(argv[i], "--check-catalog"))
             check = 1;
+        else if (!strcmp(argv[i], "--scan-events"))
+            scan = 1;
+        else if (!strcmp(argv[i], "--scan-handovers"))
+            scan = 2;
+        else if (!strcmp(argv[i], "--scan-handovers-characters"))
+            scan = 3;
+        else if (!strcmp(argv[i], "--bench-play") && i + 2 < argc)
+            bench_enemy = atoi(argv[i + 1]), bench_animation = atoi(argv[i + 2]), i += 2;
         else if (!strcmp(argv[i], "--exact-pose"))
             exact_pose = 1;
+        else if (!strcmp(argv[i], "--events"))
+            events = 1;
+        else if (!strcmp(argv[i], "--handover"))
+            events = 1, handover = 1;
+        else if (!strcmp(argv[i], "--no-equipment"))
+            no_equipment = 1;
+        else if (!strcmp(argv[i], "--sets"))
+            pose_sets = 1;
+        else if (!strcmp(argv[i], "--sheathed"))
+            pose_drawn = 0;
+        else if (!strcmp(argv[i], "--event-playback"))
+            pose_playback = 1;
+        else if (!strcmp(argv[i], "--stance-a5"))
+            pose_stance |= 1;
+        else if (!strcmp(argv[i], "--stance-a0-3"))
+            pose_stance |= 2;
+        else if (!strcmp(argv[i], "--stance-a6"))
+            pose_stance |= 4;
+        else if (!strcmp(argv[i], "--radius") && i + 1 < argc)
+            pose_radius = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--tickspeed") && i + 1 < argc)
+            pose_tickspeed = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--steps") && i + 1 < argc)
+            pose_steps = atoi(argv[++i]);
+        else if (!strcmp(argv[i], "--steps-window") && i + 1 < argc)
+            pose_window = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--hold") && i + 1 < argc)
             hold = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--hold-material") && i + 1 < argc)
@@ -721,11 +1067,16 @@ static int run_fixed(int argc, char** argv)
         else if (!strcmp(argv[i], "--check-slots") && i + 1 < argc)
             slots_hex = argv[++i];
     }
+    pose_hold = hold;
     if (slots_hex)
         return check_slots(slots_hex);
     screen_init();
     if (check)
         return check_catalog();
+    if (scan)
+        return scan == 3 ? scan_character_handovers() : scan == 2 ? scan_handovers() : scan_events();
+    if (bench_enemy >= 0)
+        return bench_play(bench_enemy, bench_animation);
     loaded_model lm;
     if (load_model(&lm, kind, id, slot)) {
         fprintf(stderr, "[rood-studio] cannot load %s %d\n", kind, id);
@@ -778,9 +1129,10 @@ static int run_fixed(int argc, char** argv)
             if (!disc(path, &hold_file, &hold_size))
                 return 1;
         }
-        status |= compare_equipment(&lm, kind, reference_path, hold_file, hold_size, hold_material, &held);
+        if (!no_equipment) /* (--no-equipment: the game's second mesh is not the weapon: a play on can draw another actor) */
+            status |= compare_equipment(&lm, kind, reference_path, hold_file, hold_size, hold_material, &held);
         if (lm.model.bone && !lm.model.wep)
-            status |= compare_pose(&lm, &ref, animation, tolerance, exact_pose);
+            status |= compare_pose(&lm, &ref, animation, tolerance, exact_pose, events, handover);
         if (!dump)
             return status;
     }
@@ -990,6 +1342,11 @@ static int load_shown(shown_t* sh, const pc_studio_app_view* v)
                 pc_nm_table_from_block(z + offset, length, part == 3 ? &sh->common : &sh->battle);
         }
     }
+    if (!strcmp(v->kind, "character") && v->seq_common) { /* the character's sequence sets (the studio's data model.sequences) */
+        pc_nm_table_from_block(v->seq_common, v->seq_common_size, &sh->common);
+        if (v->seq_battle)
+            pc_nm_table_from_block(v->seq_battle, v->seq_battle_size, &sh->battle);
+    }
     if (!strcmp(v->kind, "character") && v->hold >= 0) { /* a weapon in the hand bone that carries 0xF0 (the studio's data model.hold) */
         char path[32];
         snprintf(path, sizeof path, "OBJ/%02X.WEP", v->hold);
@@ -1042,7 +1399,16 @@ static int pose_shown(shown_t* sh, const pc_studio_app_view* v, float lo[3], flo
     if (sh->anim) {
         int facing = v->scene.facing;
         pc_nm_anim_holds(sh->anim, v->holds);
-        pc_nm_anim_pose(sh->anim, (int)v->animation_time, &sh->pose);
+        pc_nm_world world;
+        memset(&world, 0, sizeof world);
+        if (v->handover) { /* the animations that hand over play on, in the world the data names */
+            world.common = sh->common.bytes ? &sh->common : NULL, world.battle = sh->battle.bytes ? &sh->battle : NULL, world.animation = want;
+            world.weapon_drawn = v->weapon_drawn, world.stance_a5 = v->stance_a5, world.stance_a0_3 = v->stance_a0_3, world.stance_a6 = v->stance_a6;
+            world.action_done = v->action_done, world.tickspeed = v->tickspeed, world.collision_radius = v->collision_radius, world.event_playback = v->event_playback;
+            pc_nm_anim_world(sh->anim, &world);
+        } else
+            pc_nm_anim_world(sh->anim, NULL);
+        pc_nm_anim_play(sh->anim, (int)v->animation_time, &sh->pose, NULL, NULL); /* the player as the game updates its actor: the script's pose commands run */
         sh->pose.facing = facing;
     }
     sh->pose.facing = v->scene.facing;
@@ -1288,7 +1654,7 @@ static int run_app(int argc, char** argv)
 int pc_rood_studio_run(int argc, char** argv)
 {
     for (int i = 0; i < argc; i++)
-        if (!strcmp(argv[i], "--reference") || !strcmp(argv[i], "--check-catalog") || !strcmp(argv[i], "--check-slots"))
+        if (!strcmp(argv[i], "--reference") || !strcmp(argv[i], "--check-catalog") || !strcmp(argv[i], "--scan-events") || !strcmp(argv[i], "--scan-handovers") || !strcmp(argv[i], "--scan-handovers-characters") || !strcmp(argv[i], "--bench-play") || !strcmp(argv[i], "--check-slots"))
             return run_fixed(argc, argv);
     return run_app(argc, argv);
 }

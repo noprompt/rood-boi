@@ -118,7 +118,7 @@ pub fn startAnimation(actorId: c_int, animation: c_int, _: c_int, blendFrames_: 
         c.vs_actors_initializeActorAnimationPose(@ptrCast(actor), &actor.pose);
         actor.queuedAnimation = 0;
         c.vs_actors_beginActorShadowBlend(@ptrCast(actor), blendFrames);
-        if (actor.unk63C >= 0x80) {
+        if (actor.collisionRadius >= 0x80) {
             blendFrames *%= 2;
         }
         if (blendFrames >= 2) {

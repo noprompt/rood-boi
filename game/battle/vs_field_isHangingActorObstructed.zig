@@ -12,7 +12,7 @@ pub fn vs_field_isHangingActorObstructed(actor: ?*v.D_800F4538_t) callconv(.c) c
     const scratch: *v.collisionScratchView = pad.collision(v.collisionScratchView);
 
     const saved = psx.getBits(&a.unk0, "unkC_0");
-    const radius: c_int = a.unk63C;
+    const radius: c_int = a.collisionRadius;
 
     psx.setBits(&a.unk0, "unkC_0", 0);
     psx.setBits(&a.unk0, "unkA_3", 0);

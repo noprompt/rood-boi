@@ -17,7 +17,7 @@ pub fn vs_battle_playDefenseAbilityAnimation(arg0: c_int, arg1: ?*v.SVECTOR, _: 
     {
         var var_s1: c_int = 4;
 
-        if (@as(c_int, temp_s0.unk63C) < 0x80) {
+        if (@as(c_int, temp_s0.collisionRadius) < 0x80) {
             temp_s0.unk0.facingDelta = psx.conv(i16, c.vs_actors_actorFacingDeltaToPoint(@ptrCast(temp_s0), @ptrCast(arg1)));
             temp_s0.unk0.turnFrames = 4;
             var_s1 = 8;

@@ -27,7 +27,7 @@ pub fn vs_field_canActorHangFromLedge(actor: ?*v.D_800F4538_t, offset: ?*v.SVECT
         psx.getBits(a, "unk5AC_13") == 0 and height < 5)
     {
         height = c.rsin(0x200);
-        height = @divTrunc(height *% @as(c_int, a.unk63C), 4096);
+        height = @divTrunc(height *% @as(c_int, a.collisionRadius), 4096);
         if (((@as(c_int, v.g.vs_field_collisionProbeDirection().*) >> 1) & 1) != 0) {
             off.vz = psx.conv(i16, height);
         } else {

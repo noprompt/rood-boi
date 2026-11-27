@@ -50,7 +50,7 @@ pub fn initActorState(actor: ?*v.vs_battle_actor, options: c_int) callconv(.c) c
     c.vs_actors_anchorPoint(state.id, 250, &result, 0);
     state.height = psx.conv(i16, @as(c_int, result[1]) -% @as(c_int, model.unk0.position.vy));
 
-    var radius: c_uint = model.unk63C;
+    var radius: c_uint = model.collisionRadius;
     if (id == 0) {
         state.radius = 40;
     } else if (radius < 63) {

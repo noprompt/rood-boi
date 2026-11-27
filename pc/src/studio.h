@@ -45,6 +45,12 @@ typedef struct {
     unsigned weapon_size;
     int weapon_id;                /* its catalog id */
     int weapon_material;
+    const unsigned char* seq_common; /* SHP: the sequence sets the shape's header lists (animations 1 to 99, and the weapon category's from 100: the game loads them with the shape); NULL: none */
+    unsigned seq_common_size;
+    const unsigned char* seq_battle;
+    unsigned seq_battle_size;
+    int weapon_category;
+    int weapon_drawn;             /* the actor holds its weapon out (the animation numbers gain 100) */
 } pc_studio_scene_cfg;
 
 /* rood-studio (rood_studio.c): the studio without a game. pc_studio_app_frame gives the app this frame's state: the model asked for (kind, id; `serial`
@@ -59,7 +65,16 @@ typedef struct {
     int animation;        /* the animation asked for (-1: the game's own choice) */
     float animation_time; /* where in it, in frames */
     int holds;            /* the animation's bone holds are applied (data animation.holds) */
+    const unsigned char *seq_common, *seq_battle; /* a character's sequence sets (valid until the serial changes) */
+    unsigned seq_common_size, seq_battle_size;
+    int handover, weapon_drawn, stance_a5, stance_a0_3, stance_a6, action_done, tickspeed, collision_radius, event_playback; /* the animation plays on into the next one, and the world it is mapped in (data animation.*) */
 } pc_studio_app_view;
+/* A shape's sequence sets as the game loads them: the SHP header (`overlays`, the 0xE8 bytes after +0xC) lists for each set number a sector and a size in bytes; set 0 is the shape's
+ * common animations (1 to 99), set N the animations of weapon category N (from 100: a drawn weapon's). The category of weapon `weapon_id` (-1 none: 10) is the first of 1 to 10 whose
+ * limit in BATTLE.PRG's table of weapon model numbers (_wepIdCategories) is at least the weapon's. malloc'd blocks (the sequence blocks as the loader copies them), *category the
+ * set number; 0 when the shape lists no common set. */
+int pc_studio_sequence_set(const unsigned char* overlays, int set, unsigned char** data, unsigned* size); /* one set of the header's list (0 the common one, 1 to 10 a weapon category's) */
+int pc_studio_sequences(const unsigned char* overlays, int weapon_id, unsigned char** common, unsigned* common_size, unsigned char** battle, unsigned* battle_size, int* category);
 void pc_studio_app_begin(void);
 int pc_studio_app_frame(pc_studio_app_view* view);
 void pc_studio_app_measured(const float lo[3], const float hi[3], const unsigned* meshes, const unsigned long long* keys, int count);

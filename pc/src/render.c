@@ -1114,6 +1114,8 @@ static int instance_palette(const draw_list* list, const list_instance* in, floa
  * palette (game units, the pose of that frame), a quad as its two triangles. Returns the triangles written, -1 when no list draws it
  * or the file cannot be written (the model painting round trip: pc/docs/Materials.md). */
 /* The newest unblended instance of `mesh` in the draw lists, with its palette at t = 1 (the pose of that frame); 0 when no list draws it. */
+extern int pc_hw_present_lists(uint32_t*, int, float*) __attribute__((weak));
+extern int pc_photo_holding(void) __attribute__((weak));
 static render_camera posed_camera; /* the camera of the list posed_instance found (render_mesh_reference) */
 static int posed_instance(render_mesh mesh, mesh_slot** slot_out, const list_instance** in_out, render_transform* palette)
 {
@@ -1122,14 +1124,28 @@ static int posed_instance(render_mesh mesh, mesh_slot** slot_out, const list_ins
         return 0;
     const draw_list* list = NULL;
     const list_instance* in = NULL;
-    for (int i = 0; i < LIST_RING; i++) {
-        const draw_list* l = &lists[i];
-        if (!l->id || (list && l->id < list->id))
-            continue;
-        for (int k = 0; k < l->count; k++)
-            if (l->instances[k].mesh == mesh && !l->instances[k].blend)
-                list = l, in = &l->instances[k];
-    }
+    /* In a photo hold, the lists the picture on show is made of (a photo render runs on a few game frames past the one it keeps, so
+     * the newest list is a later pose than the picture's): the newest drawing the mesh among them, else the newest of all. A running
+     * game's newest list is the one its actors' state belongs to. */
+    uint32_t shown[64];
+    float shown_t;
+    int shown_count = pc_hw_present_lists && pc_photo_holding && pc_photo_holding() ? pc_hw_present_lists(shown, 64, &shown_t) : 0;
+    for (int pass = shown_count > 0 ? 0 : 1; pass < 2 && !list; pass++)
+        for (int i = 0; i < LIST_RING; i++) {
+            const draw_list* l = &lists[i];
+            if (!l->id || (list && l->id < list->id))
+                continue;
+            if (!pass) {
+                int is_shown = 0;
+                for (int j = 0; j < shown_count && !is_shown; j++)
+                    is_shown = shown[j] == l->id;
+                if (!is_shown)
+                    continue;
+            }
+            for (int k = 0; k < l->count; k++)
+                if (l->instances[k].mesh == mesh && !l->instances[k].blend)
+                    list = l, in = &l->instances[k];
+        }
     if (!list)
         return 0;
     if (in->bones > 0)

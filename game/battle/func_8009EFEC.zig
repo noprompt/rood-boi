@@ -33,7 +33,7 @@ pub fn func_8009EFEC(actorId: c_int, target: ?*v.SVECTOR, mode: c_int) callconv(
         }
         a.unk0.facingDelta = psx.conv(i16, facingDelta);
         a.unk0.turnFrames = 0xA;
-        if (a.unk63C >= 0x80) {
+        if (a.collisionRadius >= 0x80) {
             a.unk0.turnFrames = 0x14;
         }
         var animation: [*c]u16 = null;
@@ -54,7 +54,7 @@ pub fn func_8009EFEC(actorId: c_int, target: ?*v.SVECTOR, mode: c_int) callconv(
             if (fallback) |fb| {
                 fb.unk0.facingDelta = psx.conv(i16, c.vs_actors_actorFacingDeltaToPoint(@ptrCast(fb), @ptrCast(target)));
                 fb.unk0.turnFrames = 0xA;
-                if (fb.unk63C >= 0x81) {
+                if (fb.collisionRadius >= 0x81) {
                     fb.unk0.turnFrames = 0x14;
                 }
                 const pitch: c_int = c.vs_actors_pitchToPoint(@ptrCast(fb), @ptrCast(target));

@@ -35,6 +35,8 @@ const unsigned char* pc_ui_item_name_bytes(int id);
  * buffer (*out, *size; the caller frees it); 0 when it cannot be read. Read
  * into host memory only, never written anywhere. */
 int pc_ui_disc_read(const char* path, unsigned char** out, unsigned* size);
+/* `bytes` bytes from sector `lba` of the disc image (a file the game names by its position, not its name: the sequence sets of a shape's header) into a new buffer; 0 when unreadable. */
+int pc_ui_disc_read_sectors(unsigned lba, unsigned bytes, unsigned char** out);
 
 #ifdef __cplusplus
 }

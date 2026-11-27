@@ -28,7 +28,17 @@
     "guess_distance": 600
   },
   "animation": {
-    "holds": true
+    "about": "holds: the script's bone holds apply. handover: an animation that hands over (its script starts another: the game's commands 2 and 19 to 24) plays on into the next, mapped as the game maps it by the actor's state (weapon_drawn: the studio's actor holds its weapon out, as in the game's studio; stance_a5, stance_a0_3, stance_a6: the actor's stance flags unkA_5, unkA_0 = 3 and unkA_6, which the decomp leaves unnamed; off, as in the game's studio) with the blend of the old pose into the new; event_playback: the game is in its event-playback phase (the game's studio is: a handover always starts the next animation; off, one to the same table and record starts nothing); collision_radius: the actor's collision radius (0x80 and over, a large actor: its blends take twice the frames); action_done: command 2's condition, the action's hits are done (the game's func_8006C84C returns 0), so it goes on to the idle animation; tickspeed: the game's update spacing (2 the normal; 4 its slow tick, which doubles the frames an update plays and the steps a blend takes).",
+    "holds": true,
+    "handover": true,
+    "weapon_drawn": true,
+    "stance_a5": false,
+    "stance_a0_3": false,
+    "stance_a6": false,
+    "action_done": true,
+    "event_playback": true,
+    "collision_radius": 0,
+    "tickspeed": 2
   },
   "model": {
     "facing": 0,
@@ -37,9 +47,11 @@
     "equipment": 1,
     "loader_id": 200,
     "material": 0,
+    "sequences": true,
     "weapon_material": 0,
     "hold": -1,
     "hold_material": 0,
+    "materials": 16,
     "rig": 0
   },
   "turntable": {

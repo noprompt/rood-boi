@@ -178,3 +178,28 @@ const unsigned char* pc_ui_item_name_bytes(int id)
 }
 
 int pc_ui_disc_read(const char* path, unsigned char** out, unsigned* size) { return read_file(path, out, size); }
+
+int pc_ui_disc_read_sectors(unsigned lba, unsigned bytes, unsigned char** out)
+{
+    const char* image = getenv("ROOD_DISC");
+    FILE* f = fopen(image && *image ? image : "disks/SLUS-01040.bin", "rb");
+    unsigned char block[2048];
+    unsigned char* data;
+    if (!f)
+        return 0;
+    if (!bytes || !(data = malloc(bytes))) {
+        fclose(f);
+        return 0;
+    }
+    for (unsigned done = 0, k = 0; done < bytes; ++k, done += 2048) {
+        if (!read_sector(f, lba + k, block)) {
+            free(data);
+            fclose(f);
+            return 0;
+        }
+        memcpy(data + done, block, bytes - done < 2048 ? bytes - done : 2048);
+    }
+    fclose(f);
+    *out = data;
+    return 1;
+}

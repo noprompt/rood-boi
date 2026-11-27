@@ -1,6 +1,7 @@
 /* Native model decoders: see native_model.h. Pure data: no game headers, no guest memory. */
 #include "native_model.h"
 #include "../model_key.h"
+#include "../gte_value_core.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1016,6 +1017,9 @@ struct pc_nm_anim {
     uint8_t scale_plain[RENDER_MAX_BONES][3];
     pc_nm_table source;
     int record, no_locks;
+    int world_set, sim_dirty;
+    pc_nm_world world;
+    struct pc_nm_sim* sim; /* pc_nm_anim_play's state */
     struct {
         int frame, bone, hold;
     } hold[64]; /* the animation's pose-lock events, in order */
@@ -1108,6 +1112,39 @@ static void read_holds(pc_nm_anim* a)
     }
 }
 
+int pc_nm_anim_events(const pc_nm_anim* a, pc_nm_event* out, int max)
+{
+    unsigned at = a->data_at + u16_at(a->header + 4);
+    int n = 0;
+    if (!u16_at(a->header + 4) || at >= a->size)
+        return 0;
+    int frame;
+    if (a->table[at] == 0xff) {
+        frame = a->table[at + 1] + 0xff;
+        at += 2;
+    } else
+        frame = a->table[at++];
+    while (n < max && at < a->size) {
+        int op = a->table[at];
+        if (op == 0 || op >= (int)sizeof event_length || event_length[op] == 0)
+            break;
+        out[n].frame = frame, out[n].op = op, out[n].length = event_length[op];
+        memset(out[n].arg, 0, sizeof out[n].arg);
+        for (int k = 1; k < event_length[op] && k <= 6 && at + (unsigned)k < a->size; k++)
+            out[n].arg[k - 1] = a->table[at + (unsigned)k];
+        n++;
+        at += event_length[op];
+        if (at >= a->size)
+            break;
+        if (a->table[at] == 0xff) {
+            frame = a->table[at + 1] + 0xff;
+            at += 2;
+        } else
+            frame = a->table[at++];
+    }
+    return n;
+}
+
 pc_nm_anim* pc_nm_anim_open(const pc_nm_model* m, const pc_nm_table* table, int index)
 {
     unsigned stride = (unsigned)m->bones * 4 + 10, at = 8 + stride * (unsigned)index;
@@ -1138,8 +1175,32 @@ pc_nm_anim* pc_nm_anim_open(const pc_nm_model* m, const pc_nm_table* table, int 
 
 int pc_nm_anim_frames(const pc_nm_anim* a) { return a->frames; }
 
+/* The bones held by pose-lock events (vs_actors_setActorBonePoseLock): `since[b]` the frame counter the event held bone b at (-1: free); each stays where it stood then,
+ * the pose of the frame the event fires in (the game, played live, fits that best). */
+static void lock_bones(pc_nm_anim* a, pc_nm_pose* pose, const int since[RENDER_MAX_BONES])
+{
+    for (int b = 0; b < a->bones; b++) {
+        if (since[b] < 0)
+            continue;
+        pc_nm_anim* before = pc_nm_anim_open(a->m, &a->source, a->record);
+        if (!before)
+            continue;
+        before->no_locks = 1;
+        pc_nm_pose p0;
+        pc_nm_anim_pose(before, since[b] > 1 ? since[b] : 1, &p0);
+        render_transform at[RENDER_MAX_BONES];
+        if (pc_nm_pose_transforms(a->m, &p0, at) > b) {
+            pose->locked[b] = 1;
+            memcpy(pose->lock_rotation[b], at[b].rotation, sizeof pose->lock_rotation[b]);
+            memcpy(pose->lock_place[b], at[b].translation, sizeof pose->lock_place[b]);
+        }
+        pc_nm_anim_close(before);
+    }
+}
+
 void pc_nm_anim_pose(pc_nm_anim* a, int time, pc_nm_pose* pose)
 {
+    a->sim_dirty = 1; /* (the tracks move on: a play in progress is over) */
     if (time < a->time)
         anim_reset(a);
     /* the actor's frame counter is `time`: frames 1 .. time - 1 have been decoded */
@@ -1167,30 +1228,426 @@ void pc_nm_anim_pose(pc_nm_anim* a, int time, pc_nm_pose* pose)
     /* the bones the events hold at this time: each where it stood when the event ran */
     if (a->no_locks || !a->holds)
         return;
-    for (int b = 0; b < a->bones; b++) {
-        int since = -1;
+    int since[RENDER_MAX_BONES];
+    for (int b = 0; b < RENDER_MAX_BONES; b++)
+        since[b] = -1;
+    for (int b = 0; b < a->bones; b++)
         for (int e = 0; e < a->holds; e++)
             if (a->hold[e].bone == b && a->hold[e].frame <= time)
-                since = a->hold[e].hold ? a->hold[e].frame : -1;
-        if (since < 0)
-            continue;
-        pc_nm_anim* before = pc_nm_anim_open(a->m, &a->source, a->record);
-        if (!before)
-            continue;
-        before->no_locks = 1;
-        pc_nm_pose p0;
-        pc_nm_anim_pose(before, since > 1 ? since : 1, &p0); /* (the game, played live: the pose of the frame the event fires in fits best) */
-        render_transform at[RENDER_MAX_BONES];
-        if (pc_nm_pose_transforms(a->m, &p0, at) > b) {
-            pose->locked[b] = 1;
-            memcpy(pose->lock_rotation[b], at[b].rotation, sizeof pose->lock_rotation[b]);
-            memcpy(pose->lock_place[b], at[b].translation, sizeof pose->lock_place[b]);
+                since[b] = a->hold[e].hold ? a->hold[e].frame : -1;
+    lock_bones(a, pose, since);
+}
+
+/* ---- the handover between animations: vs_actors_playActorAnimation and the blend of the old pose into the new (vs_actors_updateActorAnimationBlend) ---- */
+
+/* One track over the frames an update decodes (vs_actors_decodeAnimationTrack): a stream that ends stops the track's frames there, the values the frames before it gave stay and the
+ * position and frame it had when the call began are what is kept (the call returns before it stores them): a later call reads from there again. */
+static void track_run(pc_nm_track* t, int first, int last, int rotation)
+{
+    if (!t->live)
+        return;
+    unsigned pos = t->pos;
+    int next = t->next;
+    t->ended = 0;
+    for (int f = first; f <= last; f++) {
+        pc_nm_track_step(t, f, rotation);
+        if (t->ended) {
+            t->pos = pos, t->next = next, t->ended = 0;
+            return;
         }
-        pc_nm_anim_close(before);
     }
 }
 
-void pc_nm_anim_close(pc_nm_anim* a) { free(a); }
+/* The actor's blended pose as the game keeps it (the pose block's vectors, doubled turns and scale keys, 4 halves each; the root's offset). */
+typedef struct {
+    int16_t turns[RENDER_MAX_BONES][4], scale[RENDER_MAX_BONES][4], root[4];
+} blend_t;
+
+/* vs_actors_alignPoseRotationBranches: the blended turns taken round a turn when the new pose is a tile away in x and z. */
+static void blend_align(blend_t* dst, const blend_t* src, int count)
+{
+    for (int i = 0; i < count; i++) {
+        int x = src->turns[i][0] - dst->turns[i][0];
+        if (x >= 4096)
+            x -= 8192;
+        else if (x < -4096)
+            x += 8192;
+        x = x >= 0 ? x : -x;
+        int z = src->turns[i][2] - dst->turns[i][2];
+        if (z >= 4096)
+            z -= 8192;
+        else if (z < -4096)
+            z += 8192;
+        z = z >= 0 ? z : -z;
+        if (x + z >= 4096) {
+            dst->turns[i][0] = (int16_t)((dst->turns[i][0] + 4096) % 8192);
+            dst->turns[i][2] = (int16_t)((dst->turns[i][2] + 4096) % 8192);
+            dst->turns[i][1] = (int16_t)((4096 - dst->turns[i][1]) % 8192);
+        }
+    }
+}
+
+/* One vector toward its source by the GTE's GPF (the weight in IR0: Q12), as blend_vector in game/battle/pc/blend_animation_records.zig does it, on the same register
+ * emulation (vs_gte_ctx: the call's own registers: IR3 stays what the last vector left when a rotation's z delta is zero): the delta of a rotation wrapped to half a turn, the
+ * first half unsigned when `unsigned_x`, the stores only where the original makes them (the third as a whole word over the third half and the pad). */
+static void blend_vector(vs_gte_ctx* ctx, int16_t* dst, const int16_t* src, int rotation, int unsigned_x)
+{
+    int base[3] = { unsigned_x ? (uint16_t)dst[0] : dst[0], dst[1], dst[2] };
+    int delta[3] = { (unsigned_x ? (uint16_t)src[0] : src[0]) - base[0], src[1] - base[1], src[2] - base[2] };
+    for (int i = 0; i < 3; i++) {
+        if (rotation) {
+            if (delta[i] >= 4096)
+                delta[i] -= 8192;
+            else if (delta[i] < -4096)
+                delta[i] += 8192;
+        }
+        if (i != 2 || !rotation || delta[i] != 0)
+            vs_gte_mtc2(ctx, 9 + i, (unsigned)delta[i]);
+    }
+    vs_gte_cop2(ctx, 0x0198003D); /* gte_gpf12 */
+    if ((delta[0] | delta[1] | delta[2]) == 0)
+        return;
+    int dx = (int)vs_gte_mfc2(ctx, 25), dy = (int)vs_gte_mfc2(ctx, 26), dz = (int)vs_gte_mfc2(ctx, 27);
+    if ((dx | dy) != 0) {
+        dst[0] = (int16_t)(base[0] + dx);
+        dst[1] = (int16_t)(base[1] + dy);
+    }
+    if (dz != 0) {
+        int32_t word = base[2] + dz;
+        dst[2] = (int16_t)(word & 0xffff);
+        dst[3] = (int16_t)(word >> 16);
+    }
+}
+
+/* vs_actors_blendActorPose (game/battle/pc/blend_animation_records.zig): `src` into `dst` by `step` of `duration`. */
+static void blend_pose(blend_t* dst, const blend_t* src, int count, int step, int duration)
+{
+    if (step == duration) {
+        *dst = *src;
+        return;
+    }
+    if (step == (int)((unsigned)duration >> 1)) { /* vs_actors_blendActorPoseHalfway */
+        for (int k = 0; k < 3; k++)
+            dst->root[k] = (int16_t)((src->root[k] + dst->root[k]) >> 1);
+        for (int i = 0; i < count; i++) {
+            for (int k = 0; k < 3; k++) {
+                int x = src->turns[i][k] - dst->turns[i][k];
+                if (x >= 4096)
+                    x -= 8192;
+                else if (x < -4096)
+                    x += 8192;
+                dst->turns[i][k] = (int16_t)(dst->turns[i][k] + (x >> 1));
+                dst->scale[i][k] = (int16_t)((src->scale[i][k] + dst->scale[i][k]) >> 1);
+            }
+        }
+        return;
+    }
+    int dividend = (int)((unsigned)step << 12);
+    int weight = duration != 0 ? dividend / duration : (dividend < 0 ? 1 : -1); /* (`div $zero` on the R3000) */
+    vs_gte_ctx ctx;
+    vs_gte_ctx_init(&ctx);
+    vs_gte_mtc2(&ctx, 8, (unsigned)weight);
+    blend_vector(&ctx, dst->root, src->root, 0, 0);
+    for (int i = 0; i < count; i++) {
+        blend_vector(&ctx, dst->turns[i], src->turns[i], 1, 0);
+        blend_vector(&ctx, dst->scale[i], src->scale[i], 0, 1);
+    }
+}
+
+/* The animation number the game plays for `animation` (vs_actors_playActorAnimation's mapping by the actor's stance and weapon), and its table and record; 0 when there is none. */
+static int map_animation(const pc_nm_anim* cur, const pc_nm_world* w, int animation, pc_nm_table* table, int* index)
+{
+    int anim = animation;
+    if (anim < 100) {
+        if (w->stance_a5) {
+            if (anim == 1 || anim == 6)
+                anim = 8;
+        } else if (w->stance_a0_3) {
+            if (anim == 1)
+                anim = w->stance_a6 ? 35 : 48;
+        } else if (w->stance_a6) {
+            if (anim == 1)
+                anim = 31;
+            else if (anim == 13)
+                anim = 32;
+        }
+        if (w->weapon_drawn)
+            anim += 100;
+    }
+    for (;;) {
+        if (pc_nm_find_animation(cur->m, w->common, w->battle, anim, table, index) == 0)
+            return anim ? anim : -1; /* (-1: animation 0, the model's own) */
+        if (anim == 0)
+            return 0;
+        anim = 0;
+    }
+}
+
+int pc_nm_map_animation(const pc_nm_model* m, const pc_nm_world* w, int number, pc_nm_table* table, int* index)
+{
+    pc_nm_anim shell;
+    memset(&shell, 0, sizeof shell);
+    shell.m = m;
+    return map_animation(&shell, w, number, table, index);
+}
+
+void pc_nm_anim_world(pc_nm_anim* a, const pc_nm_world* w)
+{
+    a->world_set = w != NULL;
+    if (w)
+        a->world = *w;
+}
+
+static void blend_from(blend_t* b, const pc_nm_anim* a)
+{
+    memset(b, 0, sizeof *b);
+    for (int k = 0; k < 3; k++)
+        b->root[k] = a->root.val[k];
+    for (int i = 0; i < a->bones && i < RENDER_MAX_BONES; i++)
+        for (int k = 0; k < 3; k++) {
+            b->turns[i][k] = a->bone[i].val[k];
+            b->scale[i][k] = (int16_t)(!(a->flags & 1) ? 64 : a->scale_live[i] ? (uint16_t)a->scale[i].val[k] : a->scale_plain[i][k]);
+        }
+}
+
+/* The play's state (what the game keeps of the actor's animation between updates), kept in the animation and stepped forward: a later call for more steps continues from it;
+ * one for fewer, or after a choice changed (the world, the holds), plays from the start again. */
+struct pc_nm_sim {
+    pc_nm_anim* cur; /* the animation playing: `a`, or one opened for a handover (owned) */
+    pc_nm_event ev[400];
+    int count, frame, wait, e, stopped, due, id, bstep, bdur, quick;
+    blend_t blend;
+    int since[RENDER_MAX_BONES];
+    int consumed, prev_consumed, updates;
+    pc_nm_world world;
+    int world_set, no_locks;
+};
+
+static void sim_free(pc_nm_anim* a)
+{
+    if (!a->sim)
+        return;
+    if (a->sim->cur != a)
+        free(a->sim->cur);
+    free(a->sim);
+    a->sim = NULL;
+}
+
+static void sim_start(pc_nm_anim* a)
+{
+    sim_free(a);
+    struct pc_nm_sim* m = calloc(1, sizeof *m);
+    a->sim = m;
+    m->cur = a;
+    m->count = pc_nm_anim_events(a, m->ev, 400);
+    anim_reset(a);
+    a->time = 0;
+    m->world_set = a->world_set, m->world = a->world, m->no_locks = a->no_locks;
+    m->frame = 0, m->wait = 0, m->e = 0, m->stopped = 0, m->due = m->count ? m->ev[0].frame : 0xffff, m->id = m->world_set ? m->world.animation : 0;
+    m->bstep = m->bdur = m->quick = 0;
+    blend_from(&m->blend, a);
+    for (int b = 0; b < RENDER_MAX_BONES; b++)
+        m->since[b] = -1;
+    m->consumed = 0, m->prev_consumed = -1, m->updates = 0;
+}
+
+/* An update of the actor (vs_actors_updateActorAnimationBlend): `fps` frames of the animation (framesPerStep: the pace flag's one or two, doubled on the slow tick), then the blend. */
+static void sim_update(pc_nm_anim* a, struct pc_nm_sim* m)
+{
+    const int world = m->world_set;
+    const pc_nm_world* w = &m->world;
+    pc_nm_anim* cur = m->cur;
+    pc_nm_event* ev = m->ev;
+    int frame = m->frame, wait = m->wait, e = m->e, due = m->due, count = m->count, id = m->id, quick = m->quick, bstep = m->bstep, bdur = m->bdur;
+    int fps = (quick + 1) * (world && w->tickspeed == 4 ? 2 : 1);
+    int first = frame, reached_end = 0, consumed = m->consumed;
+    blend_t now;
+    for (int it = 0; it < fps; it++) {
+        int ran_first = 1;
+        if (due == frame) { /* the commands due on this frame (vs_actors_runAnimationEvents, mode 0) */
+            for (;;) {
+                int op = e < count ? ev[e].op : -1, reload = 0;
+                if (op == 1) {
+                    anim_reset(cur);
+                    cur->time = 0;
+                    e = 0, due = count ? ev[0].frame : 0xffff, wait = 0;
+                    reload = 1;
+                } else if (op == 55) {
+                    if (wait == 0)
+                        wait = ev[e].arg[0];
+                    else if (--wait == 0)
+                        goto consumed;
+                    frame -= 1;
+                    break; /* the command stays: it runs again next step */
+                } else if (op == 56 || op == 57) {
+                    m->since[ev[e].arg[0] % RENDER_MAX_BONES] = op == 57 ? frame : -1;
+                } else if (op == 61 || op == 62) {
+                    quick = op == 62; /* unk5B0_3 */
+                } else if (op == 2 || (op >= 19 && op <= 24)) {
+                    /* another animation (vs_actors_playActorAnimation): the number, and the blend over the frames after it */
+                    int number = 0, blendframes = 0, go = 1;
+                    if (op == 2) {
+                        go = !world || w->action_done; /* func_8006C84C: the action's hits are done */
+                        number = 1, blendframes = ran_first ? 0 : ev[e].frame; /* (the function-wide `arg`: the stamp of the command, 0 when it is the first run) */
+                    } else if (op == 19 || op == 20)
+                        number = op == 19 ? 13 : 1, blendframes = ev[e].arg[0];
+                    else if (op == 21)
+                        number = ev[e].arg[0];
+                    else if (op == 22)
+                        number = ev[e].arg[0], blendframes = ev[e].arg[1];
+                    else {
+                        number = op == 23 ? id - 1 : id + 1;
+                        if (number >= 100)
+                            number -= 100;
+                    }
+                    if (!go)
+                        goto consumed;
+                    pc_nm_table table;
+                    int index, mapped = 0;
+                    if (!world) {
+                        m->stopped = 1; /* no world to play on: the play ends here */
+                        break;
+                    }
+                    if (number == 0) { /* animation 0 asked for: the call returns at once (nothing started, nothing cleared), the command's reload still takes the counter back to 0 */
+                        reload = 1;
+                        goto consumed;
+                    }
+                    if ((mapped = map_animation(cur, w, number, &table, &index)) == 0) {
+                        m->stopped = 1; /* not even the model's own animation 0 */
+                        break;
+                    }
+                    id = mapped < 0 ? 0 : mapped;
+                    quick = 0; /* (playActorAnimation clears unk5B0_3 and the pose locks first of all, started or not) */
+                    for (int b = 0; b < RENDER_MAX_BONES; b++)
+                        m->since[b] = -1;
+                    if (!w->event_playback && table.bytes == cur->source.bytes && index == cur->record) { /* the same table and record as the last start (unk187C, D_800F49DC), outside an event's playback: the game starts nothing; the command's reload still takes the counter back to 0 */
+                        reload = 1;
+                        goto consumed;
+                    }
+                    pc_nm_anim* next = pc_nm_anim_open(cur->m, &table, index);
+                    if (!next) {
+                        m->stopped = 1;
+                        break;
+                    }
+                    next->no_locks = cur->no_locks;
+                    if (cur != a)
+                        free(cur);
+                    m->cur = cur = next;
+                    count = m->count = pc_nm_anim_events(cur, ev, 400);
+                    e = 0, due = count ? ev[0].frame : 0xffff, wait = 0;
+                    if (w->collision_radius >= 0x80)
+                        blendframes *= 2; /* a large actor's blends take twice the frames (the actor's collisionRadius, as playActorAnimation reads it) */
+                    bdur = blendframes >= 2 ? blendframes : 0, bstep = bdur ? 1 : 0;
+                    reload = 1;
+                } else if (op < 0) {
+                    due = 0xffff;
+                    break;
+                }
+            consumed:
+                ran_first = 0;
+                if (reload) {
+                    frame = 0;
+                } else {
+                    e++;
+                    due = e < count ? ev[e].frame : 0xffff;
+                }
+                if (frame < due)
+                    break;
+            }
+        }
+        if (m->stopped)
+            break;
+        if (frame >= cur->frames) {
+            frame -= 1;
+            reached_end = 1;
+        }
+        frame += 1;
+        consumed++;
+    }
+    m->frame = frame, m->wait = wait, m->e = e, m->due = due, m->id = id, m->quick = quick;
+    if (m->stopped) { /* (the frames of this update the play did not reach are not played) */
+        m->prev_consumed = m->consumed;
+        m->consumed = 0x7fffffff;
+        return;
+    }
+    if (frame != 1 && !reached_end) {
+        int last = frame - 1;
+        if (wait == 0) {
+            if (last < first)
+                first = 1;
+            if (first == 0)
+                first = 1;
+            track_run(&cur->root, first, last, 0);
+            for (int i = 0; i < cur->bones; i++) {
+                track_run(&cur->bone[i], first, last, 1);
+                if (cur->scale_live[i])
+                    track_run(&cur->scale[i], first, last, 0);
+            }
+        }
+    }
+    /* the actor's blend: the new pose into the one shown while a blend runs, else it is the pose */
+    blend_from(&now, cur);
+    if (bdur) {
+        int copy = 0;
+        if (bstep == 1)
+            blend_align(&m->blend, &now, cur->bones);
+        if (fps != 1) { /* a frame step of more than one: the blend moves by it */
+            bstep = (bstep + 0xff + fps) & 0xff;
+            if (bstep >= bdur)
+                bstep = bdur = 0, copy = 1;
+        }
+        if (copy)
+            m->blend = now;
+        else {
+            blend_pose(&m->blend, &now, cur->bones, bstep, bdur);
+            if (++bstep >= bdur)
+                bstep = bdur = 0;
+        }
+    } else
+        m->blend = now;
+    m->bstep = bstep, m->bdur = bdur;
+    m->prev_consumed = m->consumed;
+    m->consumed = consumed;
+    m->updates++;
+}
+
+void pc_nm_anim_play(pc_nm_anim* a, int steps, pc_nm_pose* pose, int* frame_out, int* animation_out)
+{
+    struct pc_nm_sim* m = a->sim;
+    /* from the start again when time goes backwards, or a choice changed (the world, the holds), or the tracks were moved by pc_nm_anim_pose */
+    if (!m || a->sim_dirty || steps <= m->prev_consumed || m->world_set != a->world_set || m->no_locks != a->no_locks || (a->world_set && memcmp(&m->world, &a->world, sizeof m->world))) {
+        sim_start(a);
+        m = a->sim;
+        a->sim_dirty = 0;
+    }
+    while (m->consumed < steps && !m->stopped)
+        sim_update(a, m);
+    pc_nm_anim* cur = m->cur;
+    pc_nm_pose_zero(a->m, pose);
+    blend_t blend = m->blend;
+    if (m->updates == 0)
+        blend_from(&blend, cur);
+    for (int k = 0; k < 3; k++)
+        pose->offset[k] = (int16_t)(blend.root[k] >> 1);
+    for (int i = 0; i < cur->bones && i < RENDER_MAX_BONES; i++)
+        for (int k = 0; k < 3; k++) {
+            pose->rot[i][k] = (int16_t)(blend.turns[i][k] >> 1);
+            pose->scale[i][k] = (uint16_t)blend.scale[i][k];
+        }
+    if (!cur->no_locks)
+        lock_bones(cur, pose, m->since);
+    if (frame_out)
+        *frame_out = m->frame;
+    if (animation_out)
+        *animation_out = m->id;
+    a->time = 0x7fffffff; /* (a seek by pc_nm_anim_pose starts over) */
+}
+
+void pc_nm_anim_close(pc_nm_anim* a)
+{
+    sim_free(a);
+    free(a);
+}
 void pc_nm_anim_holds(pc_nm_anim* a, int on) { a->no_locks = !on; }
 
 int pc_nm_pose_rest(const pc_nm_model* m, pc_nm_pose* pose)

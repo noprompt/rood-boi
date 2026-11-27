@@ -49,8 +49,6 @@ HOLD_ITEMS = ((0, 16, 3),)
 WINDOW = (960, 720)
 # a picture is the same where the stage and the model are drawn the same: the share of pixels that differ by more than 24 levels may not pass this
 PICTURE_DIFFERENT = 0.002
-# the enemy holds a weapon the game's studio draws and M1's rood-studio does not (a weapon is drawn on its holder's hand bone: M2)
-PICTURE_DIFFERENT_ENEMY = 0.01
 
 
 def image(path):
@@ -103,7 +101,7 @@ def run(out):
            "ROOD_MATERIAL_CATALOG_USER": str(work / "material_catalog_user.json")}
 
     # ---- the game's studio: the references and the pictures ----
-    refs, others, slot_tables, held = {}, {}, b"", {}
+    refs, others, slot_tables, held, hold_changes = {}, {}, b"", {}, []
     g = Game.launch(fast=True, log=out / "game.log", extra_env={**env, "ROOD_STUDIO_BOOT": "1"})
     try:
         g.pause()
@@ -147,6 +145,20 @@ def run(out):
             g.call("studio", action="look", set="model.hold", value=hold)
             g.call("studio", action="look", set="model.hold_material", value=material)
             held[(ident, hold, material)] = capture("character", ident, f"character_{ident}_holds_{hold}_{material}")
+            # the hold is the panel's and the RPC's data: cleared and set again with no new summon, the weapon leaves his hand and comes back (the game's studio)
+            def meshes_drawn(want):
+                deadline = time.time() + 40
+                while time.time() < deadline:
+                    st = g.call("studio")
+                    if st["entered"] and st["settled"] and st.get("item") and len(st["models"]) == want:
+                        return True
+                    time.sleep(0.05)
+                return False
+            g.call("studio", action="look", set="model.hold", value=-1)
+            gone = meshes_drawn(1)
+            g.call("studio", action="look", set="model.hold", value=hold)
+            back = meshes_drawn(2)
+            hold_changes.append((gone, back))
             g.call("studio", action="look", set="model.hold", value=-1)
         # other animations of the game's own, started some frames in (an enemy's attack: the sequence decoder's deltas)
         for kind, ident, number, frame in (("enemy", 14, 16, 0), ("enemy", 127, 64, 10)):
@@ -173,7 +185,7 @@ def run(out):
 
     # the Golem's attack played by the game itself, frame after frame (not started at a frame: its events hold bones 22 and 23 from the animation's
     # frame 17, which the game saves between frames), the pose before the holds, during and after
-    live = {}
+    live, idle = {}, {}
     g = Game.launch(fast=True, log=out / "game_live.log", extra_env={**env, "ROOD_STUDIO_BOOT": "1"})
     try:
         g.pause()
@@ -186,11 +198,97 @@ def run(out):
                 g.run(1)
                 step += 1
             path = out / f"live_golem_{target}.bin"
-            pathlib.Path(f"{path}.0").unlink(missing_ok=True)
+            for k in (".0", ".0.pose"):
+                pathlib.Path(f"{path}{k}").unlink(missing_ok=True)
             g.call("studio", action="live_dump", path=str(path))
             live[target] = f"{path}.0"
     finally:
         g.close()
+    # an idle animation played on: enemy 4's (animation 101, 40 frames) ends with a command that starts it over, so the game's pose comes round again
+    g = Game.launch(fast=True, log=out / "game_idle.log", extra_env={**env, "ROOD_STUDIO_BOOT": "1"})
+    try:
+        g.pause()
+        g.run(1500)
+        g.call("studio", action="look", set="model.animation", value=1)
+        g.call("studio", action="live", kind="enemy", id=4)
+        step = 0
+        for target in (20, 50, 90, 130):
+            while step < target:
+                g.run(1)
+                step += 1
+            path = out / f"live_idle_{target}.bin"
+            for k in (".0", ".0.pose"):
+                pathlib.Path(f"{path}{k}").unlink(missing_ok=True)
+            g.call("studio", action="live_dump", path=str(path))
+            idle[target] = f"{path}.0"
+    finally:
+        g.close()
+
+    # chained animations played by the game, frame after frame: enemy 4's 113 ends with a command that starts 114 (and 114 starts 113: no blend), and its 164 ends with one
+    # that starts the idle animation with a blend of 8 frames (the game at its slow tick, an update every four vsyncs: the blend steps by two, its halfway frame in it)
+    chains = {}
+
+    def play_chain(animation, targets, tag, enemy=4, stores=(), kind="enemy", looks=()):
+        game = Game.launch(fast=True, log=out / f"game_{tag}.log", extra_env={**env, "ROOD_STUDIO_BOOT": "1"})
+        try:
+            game.pause()
+            game.run(1500)
+            game.call("studio", action="look", set="model.animation", value=animation)
+            for path, value in looks:  # the studio's data (a character's held weapon, the weapon drawn or sheathed)
+                game.call("studio", action="look", set=path, value=value)
+            game.call("studio", action="live", kind=kind, id=enemy)
+            slot = game.call("studio")["slot"]
+            for path, value in stores:  # a part of the actor's state the studio's game does not give it (the rule being tested)
+                game.store(path.replace("SLOT", str(slot)), value)
+            # the world the game plays the actor in, read from it: the update spacing, the stance flags the numbers are mapped by, its collision radius, the event phase
+            actor = f"vs_actors_actorRecords[{slot}]->"
+            world = ["--tickspeed", str(game.value("vs_gametime_tickspeed")), "--radius", str(game.value(actor + "collisionRadius"))]
+            for flag, path in (("--stance-a5", "unk0.unkA_5"), ("--stance-a6", "unk0.unkA_6")):
+                if game.value(actor + path):
+                    world.append(flag)
+            if game.value(actor + "unk0.unkA_0") == 3:
+                world.append("--stance-a0-3")
+            if game.value("vs_event_playbackPhase") == 4:
+                world.append("--event-playback")
+            done = 0
+            for target in targets:
+                while done < target:
+                    game.run(1)
+                    done += 1
+                path = out / f"live_{tag}_{target}.bin"
+                for k in (".0", ".0.pose"):
+                    pathlib.Path(f"{path}{k}").unlink(missing_ok=True)
+                game.call("studio", action="live_dump", path=str(path))
+                drawn = [v for k, v in looks if k == "animation.weapon_drawn"]
+                started = animation + 100 if not drawn or drawn[0] else animation
+                chains[(tag, target)] = (f"{path}.0", started, world, enemy, kind, [v for k, v in looks if k == "model.hold"], bool(drawn) and not drawn[0])
+        finally:
+            game.close()
+
+    play_chain(13, (36, 44, 64, 100), "chain")
+    play_chain(64, (80, 84, 88, 92, 96, 100), "blend")
+    # a wait at the start of an animation (enemy 34's 179, 19 frames: command 55 for 28 frames, then it hands over): the game's pose stands still through the wait and moves on after it
+    play_chain(79, (8, 40, 60, 80, 100), "wait", enemy=34)
+    # the rules of the start (vs_actors_playActorAnimation) the studio's game would not show by itself, each by the game's own pose across the handover:
+    #   the stance's mapping: enemy 92 has the stance flag unkA_6, so its 164 hands over to 131 (animation 1 + 30 + 100), not 101 (which it lacks)
+    play_chain(64, (52, 60, 64, 72, 100), "stance", enemy=92)
+    #   the animation 0 fallback: with the flag cleared the number is 101, the tables lack it, and the model's own animation 0 plays
+    play_chain(64, (52, 60, 64, 72, 100), "fallback", enemy=92, stores=(("vs_actors_actorRecords[SLOT]->unk0.unkA_6", 0),))
+    #   a large actor's blends take twice the frames: the collision radius 0x90 on enemy 4 makes the blend of 8 frames one of 16
+    play_chain(64, (84, 92, 100, 108, 116, 124), "large", stores=(("vs_actors_actorRecords[SLOT]->collisionRadius", 0x90),))
+    #   one animation handing over to another of the same table and record (enemy 167's 119 and 120): in the event phase the studio's game is in, the game starts it anyway;
+    #   with the phase cleared it starts nothing (the frame counter goes back to 0 and the pose stays where the tracks are)
+    play_chain(19, (108, 112, 160, 216, 264), "record_event", enemy=167)
+    play_chain(19, (108, 112, 160, 216, 264), "record_same", enemy=167, stores=(("vs_event_playbackPhase", 0),))
+
+    # Ashley (character 0) holding his weapon (16: weapon category 2), his animation sets as the game loads them with his shape (the common one and the category's), across handovers,
+    # the weapon drawn (the animation numbers gain 100: the category's set) and sheathed (the common set)
+    ashley = (("model.hold", 16), ("model.hold_material", 3))
+    play_chain(13, (36, 44, 64, 100), "ashley_chain", enemy=0, kind="character", looks=ashley)
+    play_chain(64, (60, 72, 80, 84, 88, 92, 96, 100, 120), "ashley_blend", enemy=0, kind="character", looks=ashley)
+    sheathed = (*ashley, ("animation.weapon_drawn", False))
+    play_chain(13, (36, 44, 64, 100), "ashley_sheathed_chain", enemy=0, kind="character", looks=sheathed)
+    play_chain(36, (24, 32, 36, 40, 44, 48, 52, 56, 100), "ashley_sheathed_blend", enemy=0, kind="character", looks=sheathed)
 
     # ---- rood-studio against them ----
     binary = rood_rpc.BUILD / "rood-studio"
@@ -206,29 +304,61 @@ def run(out):
         return r.returncode, "\n".join(line for line in r.stderr.splitlines() if "[rood-studio]" in line)
 
     for (kind, ident), (ref, key, animation) in refs.items():
-        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(max(animation, 0)), "--exact-pose")
+        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(max(animation, 0)), "--exact-pose", *(["--sets"] if kind == "character" else []))
         check(code == 0, f"{kind} {ident}: decode equal to the game's (polygons, page, CLUT, key {key}, the skeleton's chain)\n{log}")
 
     for (kind, ident, animation), (ref, key) in others.items():
         code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--expect-key", key, "--animation", str(animation), "--exact-pose")
         check(code == 0, f"{kind} {ident}: animation {animation} decoded to the game's bone matrices\n{log}")
 
+    for gone, back in hold_changes:
+        check(gone and back, f"the game's studio: clearing the hold takes the weapon out of his hand and setting it brings it back, with no new summon (gone {gone}, back {back})")
+
     for (ident, hold, material), (ref, key, animation) in held.items():
         code, log = studio("--character", str(ident), "--hold", str(hold), "--hold-material", str(material), "--reference", ref, "--expect-key", key,
-                           "--animation", str(max(animation, 0)), "--exact-pose")
+                           "--animation", str(max(animation, 0)), "--exact-pose", "--sets")
         check(code == 0, f"character {ident} holding weapon {hold} (material {material}): the weapon's polygons, page and CLUT words and key, its pose exactly the game's "
                          f"(read from its record), its placement from the hand matrix within the fixed-point chain's tolerance\n{log}")
 
     for target, ref in live.items():
         code, log = studio("--enemy", "127", "--reference", ref, "--animation", "164", "--tolerance", "15")
         check(code == 0, f"the Golem's animation 164, played by the game (game frame {target}): its bones, the held ones included, match to 15 units\n{log}")
+        # the same with the script run (the player updated as the game updates its actor: two game frames an update): the turns and scale keys exactly the game's, the held bones' matrices
+        code, log = studio("--enemy", "127", "--reference", ref, "--animation", "164", "--tolerance", "15", "--events", "--steps", str(target // 2), "--steps-window", "2", "--exact-pose")
+        check(code == 0, f"the Golem's animation 164 with its script run, game frame {target}: exact turns and scale keys, held bones within 15 units\n{log}")
+
+    def pose_states(path):
+        data = pathlib.Path(f"{path}.pose").read_bytes()
+        bones = struct.unpack_from("<ii", data, 0)[1]
+        return [struct.unpack_from("<3h", data, 8 + 6 * i) for i in range(bones)]
+
+    held_at = pose_states(chains[("wait", 8)][0])
+    check(pose_states(chains[("wait", 40)][0]) == held_at, "the wait: the game's pose at its frame 40 is the one at frame 8 (the animation stands still while the command waits)")
+    check(sum(a != b for a, b in zip(pose_states(chains[("wait", 60)][0]), held_at)) > 5, "the wait: and it moves on by frame 60 (the wait is over)")
+    for (tag, target), (ref, animation, world, enemy, kind, holds, sheathed) in chains.items():
+        # (the world as the game has it, read from the game: the update spacing (what a frame took, 2 or 4 vsyncs: an update plays one frame of the animation or two), the stance, the radius, the phase)
+        code, log = studio(f"--{kind}", str(enemy), "--reference", ref, "--animation", str(animation), "--tolerance", "15", "--handover", *world, "--steps", str(target // 2),
+                           "--steps-window", "1", "--exact-pose", "--no-equipment",
+                           *(["--sets"] if kind == "character" else []), *(["--hold", str(holds[0])] if holds else []), *(["--sheathed"] if sheathed else []))
+        what = {"chain": "113 into 114 and back (no blend)", "blend": "164 into the idle animation (a blend of 8 frames)", "wait": "a wait of 28 frames at the start of 179 (command 55), then on",
+                "stance": "enemy 92's 164 into 131 (the stance flag unkA_6 maps animation 1 to 31)", "fallback": "enemy 92's 164 into the model's own animation 0 (101 is absent)",
+                "large": "164 into the idle animation with a collision radius of 0x90 (a blend of 16 frames)", "record_event": "119 into 120, one record, in the event phase (it starts)",
+                "record_same": "119 into 120, one record, outside the event phase (it starts nothing)",
+                "ashley_chain": "Ashley's 113 into 114 and back (weapon drawn, category 2's set; no blend)", "ashley_blend": "Ashley's 164 into his idle animation 101 (weapon drawn, a blend)",
+                "ashley_sheathed_chain": "Ashley's common 13 into 14 and back (weapon sheathed; no blend)", "ashley_sheathed_blend": "Ashley's common 36 into his idle animation 1 (weapon sheathed, a blend)"}[tag]
+        check(code == 0, f"animations handed over, {what}, game frame {target}: exact turns and scale keys across the handover\n{log}")
+
+    for target, ref in idle.items():
+        code, log = studio("--enemy", "4", "--reference", ref, "--animation", "101", "--tolerance", "15", "--events", "--steps", str(target // 2 + 1), "--steps-window", "1", "--exact-pose")
+        check(code == 0, f"an idle animation played on past its end (enemy 4, 101: 40 frames; game frame {target}): its command that starts it over run: exact turns and scale keys\n{log}")
 
     # the picture: the game's palette and camera, the flat look, both drawn by the same renderer
     for kind, ident in (("character", 3), ("character", 0), ("character", 58), ("weapon", 1), ("enemy", 14)):
         ref, key, animation = refs[(kind, ident)]
         mine = out / f"studio_{kind}_{ident}.ppm"
         mine.unlink(missing_ok=True)
-        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--look", "flat", "--frames", "300", "--dump", str(mine), gi="1")
+        code, log = studio(f"--{kind}", str(ident), "--reference", ref, "--look", "flat", "--frames", "300", "--dump", str(mine), "--animation", str(max(animation, 0)), gi="1",
+                           *(["--sets"] if kind == "character" else []))
         if not check(code == 0 and mine.exists(), f"{kind} {ident}: rood-studio draws the picture"):
             continue
         a, b = image(mine), image(out / f"game_{kind}_{ident}.png".replace(".png", ".ppm")) if False else np.array(Image.open(out / f"game_{kind}_{ident}.png").convert("RGB"))
@@ -237,7 +367,7 @@ def run(out):
         diff = np.abs(a.astype(int) - b.astype(int))
         strong = float((diff.max(axis=2) > 24).mean())
         print(f"      {kind} {ident}: mean difference {diff.mean():.2f}, {strong * 100:.3f}% of pixels differ by more than 24 levels")
-        limit = PICTURE_DIFFERENT_ENEMY if kind == "enemy" else PICTURE_DIFFERENT
+        limit = PICTURE_DIFFERENT
         check(a.std() > 4 and strong <= limit, f"{kind} {ident}: the picture is the game's studio's ({strong * 100:.3f}% differ, limit {limit * 100}%)")
 
 
@@ -247,7 +377,7 @@ def run(out):
         mine = out / f"studio_{tag}.ppm"
         mine.unlink(missing_ok=True)
         code, log = studio("--character", str(ident), "--hold", str(hold), "--hold-material", str(material), "--reference", ref, "--look", "flat", "--frames", "300",
-                           "--dump", str(mine), gi="1")
+                           "--dump", str(mine), "--animation", str(max(animation, 0)), "--sets", gi="1")
         if not check(code == 0 and mine.exists(), f"{tag}: rood-studio draws the picture\n{log if code else ''}"):
             continue
         a, b = image(mine), np.array(Image.open(out / f"game_{tag}.png").convert("RGB"))
@@ -256,7 +386,8 @@ def run(out):
         diff = np.abs(a.astype(int) - b.astype(int))
         strong = float((diff.max(axis=2) > 24).mean())
         print(f"      {tag}: mean difference {diff.mean():.2f}, {strong * 100:.3f}% of pixels differ by more than 24 levels")
-        check(a.std() > 4 and strong <= PICTURE_DIFFERENT, f"{tag}: the picture is the game's studio's ({strong * 100:.3f}% differ, limit {PICTURE_DIFFERENT * 100}%)")
+        limit = PICTURE_DIFFERENT
+        check(a.std() > 4 and strong <= limit, f"{tag}: the picture is the game's studio's ({strong * 100:.3f}% differ, limit {limit * 100}%)")
 
     # ---- the app: the studio's own screen and its actions ----
     def settle(g, kind, ident, tries=80):
@@ -299,6 +430,7 @@ def run(out):
         check(panel.mean() < 70 and panel.std() > 20, f"the home screen: the models panel is drawn on the left (mean {panel.mean():.0f}, spread {panel.std():.0f})")
         right = a[:, int(w * 0.76):].astype(int)
         check(right.mean() < 70 and right.std() > 15, f"the home screen: the controls panel is drawn on the right (mean {right.mean():.0f}, spread {right.std():.0f})")
+        g.call("studio", action="animation", play=False)  # (the characters now play their sequence sets: the pictures that are compared stand at the animation's first frame)
         g.call("studio", action="summon", kind="character", id=3)
         settle(g, "character", 3)
         a = shot(g, "summon")
@@ -408,17 +540,23 @@ def run(out):
         weapon = shot(g, "weapon")
         bright = int((centre(weapon).max(axis=2) > 140).sum())
         check(bright > 200, f"a weapon alone: its blade is in the picture ({bright} bright pixels)")
-        # Ashley with a weapon asked for (data model.hold): the weapon is in his hand (the picture differs from the same model with none)
+        # Ashley's weapon chosen in the panel's data (model.hold, model.hold_material: what its pickers and the RPC set): it appears in his hand with no new summon
         g.call("studio", action="summon", kind="character", id=0)
         settle(g, "character", 0)
         bare = shot(g, "ashley_bare")
         g.call("studio", action="look", set="model.hold", value=16)
         g.call("studio", action="look", set="model.hold_material", value=3)
-        g.call("studio", action="summon", kind="character", id=0)
+        g.wait_presents(10)
         settle(g, "character", 0)
         armed = shot(g, "ashley_armed")
         g.call("studio", action="look", set="model.hold", value=-1)
-        check(float(np.abs(centre(bare) - centre(armed)).mean()) > 0.3, f"a character with a weapon asked for holds it ({float(np.abs(centre(bare) - centre(armed)).mean()):.2f} levels of difference)")
+        g.wait_presents(10)
+        settle(g, "character", 0)
+        bare_again = shot(g, "ashley_bare_again")
+        differ = float(np.abs(centre(bare) - centre(armed)).mean())
+        check(differ > 0.3, f"a weapon chosen with no new summon is drawn in his hand ({differ:.2f} levels of difference)")
+        back = float(np.abs(centre(bare) - centre(bare_again)).mean())
+        check(back < differ * 0.2, f"and clearing it takes it out again ({back:.2f} levels from the bare picture)")
     finally:
         g.close()
         rood_rpc.BINARY = old_binary

@@ -23,7 +23,7 @@ pub fn func_8009DDF4(arg0: c_int, arg1: ?*v.SVECTOR) callconv(.c) void {
     {
         var var_s1: c_int = 4;
 
-        if (temp.unk63C < 0x80) {
+        if (temp.collisionRadius < 0x80) {
             hdr.facingDelta = psx.conv(i16, c.vs_actors_actorFacingDeltaToPoint(@ptrCast(temp), @ptrCast(arg1)));
             hdr.turnFrames = 4;
             var_s1 = 8;

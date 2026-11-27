@@ -11,7 +11,7 @@ pub fn vs_field_hasActorLedgeSideSupport(arg0: ?*v.D_800F4538_t) callconv(.c) c_
     var vec: v.SVECTOR = .{ .vx = 0, .vy = 0, .vz = 0, .pad = 0 };
     var ret: c_int = 0;
     // rsin(ONE / 8): the product wraps in int, then truncates toward zero (signed /).
-    var h: c_int = @divTrunc(c.rsin(4096 / 8) *% @as(c_int, arg0.?.unk63C), 4096);
+    var h: c_int = @divTrunc(c.rsin(4096 / 8) *% @as(c_int, arg0.?.collisionRadius), 4096);
 
     if (((@as(c_int, v.g.vs_field_collisionProbeDirection().*) >> 1) & 1) != 0) {
         vec.vz = psx.conv(i16, h);

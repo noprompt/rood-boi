@@ -35,7 +35,7 @@ pub fn vs_actors_updateActorSteering(arg0: ?*v.D_800F4538_t, arg1: c_int, arg2: 
     } else {
         c.vs_actors_turnActorToOverTime(@as(c_int, u.slot), psx.conv(c_short, arg1), 12);
     }
-    if (@as(c_int, obj.unk63C) > 0x80) {
+    if (@as(c_int, obj.collisionRadius) > 0x80) {
         var delta: c_int = @divTrunc(@as(c_int, u.facingDelta), 32);
         if (delta < 0) {
             delta = 0 -% delta;

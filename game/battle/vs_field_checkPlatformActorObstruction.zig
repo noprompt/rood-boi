@@ -24,7 +24,7 @@ pub fn vs_field_checkPlatformActorObstruction(contact: c_int, point: ?*v.SVECTOR
             actor.unk0.position.vz = psx.conv(i16, @as(c_int, actor.unk0.position.vz) -% dz);
             if (hit == 0) continue;
         } else {
-            const radius: c_int = actor.unk63C;
+            const radius: c_int = actor.collisionRadius;
             const x: c_int = point.?.vx;
             if (x +% 64 < @as(c_int, actor.unk0.position.vx) -% radius or
                 x -% 64 > @as(c_int, actor.unk0.position.vx) +% radius) continue;

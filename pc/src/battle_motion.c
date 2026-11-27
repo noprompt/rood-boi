@@ -59,7 +59,7 @@ void func_800B65F4(int id, int* position, int b);
 void vs_actors_turnNavigationActor(int id, int a)
 {
     D_800F4538_t* model = vs_actors_actorRecords[id];
-    vs_actors_turnActorToAtRate(id, a, model->unk63C < 0x80 ? 0x20 : 0x80);
+    vs_actors_turnActorToAtRate(id, a, model->collisionRadius < 0x80 ? 0x20 : 0x80);
     vs_actors_playActorTurnAnimation(id, a);
 }
 void vs_actors_turnActorAtSpeed(int id, short a, int b);

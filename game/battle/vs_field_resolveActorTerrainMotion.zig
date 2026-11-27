@@ -357,7 +357,7 @@ pub fn vs_field_resolveActorTerrainMotion(actor: ?*v.D_800F4538_t, motion: ?*v.S
     psx.put(&scratch.actor, @as(*v.D_800F45E0_t, @ptrCast(a)));
     psx.setBits(a, "unk5AC_14", psx.getBits(a, "unk5AC_13"));
     psx.setBits(a, "unk5AC_13", 0);
-    const radius: c_int = a.unk63C;
+    const radius: c_int = a.collisionRadius;
     var l = Locals{
         .actor = a,
         .motion = m,
