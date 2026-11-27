@@ -12,7 +12,7 @@ one), in the save room, unpaced:
     only when their VRAM changed, not every frame); loading.ppm is not
     rewritten every frame;
   - battle mode, the targeting sphere held: rows of the picture it samples
-    are copied on the GPU (own copies), never read back (each read-back
+    are captures of the target (no copy, no read-back) (each read-back
     waited for the GPU's whole frame: the sphere and the menus dropped to
     12-20 fps with path tracing on);
   - the original Status screen (it redraws rows of its own picture): no
@@ -55,6 +55,7 @@ def play(card, out, name, extra):
     result = {}
     try:
         game.run(30)
+        game.call("graphics", interpolate=False)  # (a replay of an interpolated frame keeps its copies: the live frame's are counted)
         result["field"] = measure(game, 120)
         game.press("circle", vsyncs=3, settle=60)  # the weapon drawn
         game.call("input", buttons=["circle"], vsyncs=3)
@@ -84,8 +85,8 @@ def run(args, out, card):
     for scene in ("sphere", "status"):
         counts, sections = new[scene]
         print(f"      {scene}: {sections.get('vsync', 0):.3f} ms a vsync; {counts}")
-        check(counts["readbacks"] == 0 and counts["gpu_copies"] > 0,
-              f"{scene}: rows of its own picture copied on the GPU ({counts['gpu_copies']:.1f} a vsync), "
+        check(counts["readbacks"] == 0 and counts["gpu_copies"] == 0,
+              f"{scene}: the rows of its own picture it samples are captures, not copies ({counts['gpu_copies']:.1f} copies a vsync), "
               f"no read-back ({counts['readbacks']:.1f})")
     return 1 if failures else 0
 

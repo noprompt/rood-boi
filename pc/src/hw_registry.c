@@ -333,11 +333,11 @@ void pc_hwr_translucent(uint32_t list)
 }
 
 /* ---- the stale areas ---- */
-static void cells_set(uint32_t* cells, int x0, int y0, int x1, int y1) /* pixels, exclusive, inside the VRAM */
+static void cells_set(pc_stale_set* set, uint32_t* cells, int x0, int y0, int x1, int y1) /* pixels, exclusive, inside the VRAM */
 {
     for (int c = x0 >> 6; c <= (x1 - 1) >> 6; c++)
         for (int b = y0 >> 4; b <= (y1 - 1) >> 4; b++)
-            cells[c] |= 1u << b;
+            cells[c] |= 1u << b, set->rows[c][b] = 0;
 }
 static int clamp_clip(const int* clip, int* r)
 {
@@ -354,10 +354,10 @@ void pc_stale_mark(pc_stale_set* set, const int* clip, int kind)
     if (!clamp_clip(clip, r))
         return;
     if (kind & (PC_STALE_MISSING | PC_STALE_DRAWN)) {
-        cells_set(set->missing, r[0], r[1], r[2], r[3]);
+        cells_set(set, set->missing, r[0], r[1], r[2], r[3]);
     }
     if (kind & PC_STALE_PLACED) {
-        cells_set(set->placed, r[0], r[1], r[2], r[3]);
+        cells_set(set, set->placed, r[0], r[1], r[2], r[3]);
     }
 }
 int pc_stale_any(const pc_stale_set* set)
@@ -404,21 +404,50 @@ void pc_stale_clear_covered(pc_stale_set* set, int x, int y, int w, int h)
 {
     if (w <= 0 || h <= 0 || x < 0 || y < 0 || x + w > 1024 || y + h > 512)
         return; /* (a wrapping rectangle keeps its marks) */
-    int c0 = (x + 63) >> 6, c1 = ((x + w) >> 6) - 1, b0 = (y + 15) >> 4, b1 = ((y + h) >> 4) - 1;
-    for (int c = c0; c <= c1; c++)
-        for (int b = b0; b <= b1; b++)
-            set->missing[c] &= ~(1u << b), set->placed[c] &= ~(1u << b);
+    for (int c = x >> 6; c <= (x + w - 1) >> 6; c++) {
+        if (x > c * 64 || x + w < c * 64 + 64)
+            continue; /* (not across the cell's whole width: no row of it is wholly written) */
+        for (int b = y >> 4; b <= (y + h - 1) >> 4; b++) {
+            int r0 = y > b * 16 ? y - b * 16 : 0, r1 = y + h < b * 16 + 16 ? y + h - b * 16 : 16;
+            uint16_t bits = (uint16_t)(((1u << (r1 - r0)) - 1) << r0);
+            set->rows[c][b] |= bits;
+            if (set->rows[c][b] == 0xffffu)
+                set->missing[c] &= ~(1u << b), set->placed[c] &= ~(1u << b), set->rows[c][b] = 0;
+        }
+    }
+}
+int pc_stale_bbox_rows(const pc_stale_set* set, int list, int x, int y, int w, int h, int* out)
+{
+    const uint32_t* cells = list ? set->placed : set->missing;
+    int x0 = x < 0 ? 0 : x, y0 = y < 0 ? 0 : y, x1 = x + w > 1024 ? 1024 : x + w, y1 = y + h > 512 ? 512 : y + h;
+    if (x1 <= x0 || y1 <= y0)
+        return 0;
+    int minc = 99, maxc = -1, minb = 99, maxb = -1;
+    for (int c = x0 >> 6; c <= (x1 - 1) >> 6; c++)
+        for (int b = y0 >> 4; b <= (y1 - 1) >> 4; b++) {
+            if (!(cells[c] >> b & 1))
+                continue;
+            int r0 = y0 > b * 16 ? y0 - b * 16 : 0, r1 = y1 < b * 16 + 16 ? y1 - b * 16 : 16;
+            uint16_t bits = (uint16_t)(((1u << (r1 - r0)) - 1) << r0);
+            if (!(bits & ~set->rows[c][b]))
+                continue; /* (every row of the reach in this cell is equal again) */
+            minc = c < minc ? c : minc, maxc = c > maxc ? c : maxc, minb = b < minb ? b : minb, maxb = b > maxb ? b : maxb;
+        }
+    if (maxc < 0)
+        return 0;
+    out[0] = minc * 64, out[1] = minb * 16, out[2] = (maxc + 1) * 64, out[3] = (maxb + 1) * 16;
+    return 1;
 }
 void pc_stale_copy(pc_stale_set* set, int sx, int sy, int dx, int dy, int w, int h)
 {
     int clip[4] = { dx, dy, w, h }, r[4];
     if (!clamp_clip(clip, r))
         return;
-    int drawn = 0;
-    if (pc_stale_meets(set->missing, sx, sy, w, h))
-        cells_set(set->missing, r[0], r[1], r[2], r[3]), drawn = 1;
-    if (pc_stale_meets(set->placed, sx, sy, w, h))
-        cells_set(set->placed, r[0], r[1], r[2], r[3]), drawn = 1;
+    int drawn = 0, box[4];
+    if (pc_stale_bbox_rows(set, 0, sx, sy, w, h, box))
+        cells_set(set, set->missing, r[0], r[1], r[2], r[3]), drawn = 1;
+    if (pc_stale_bbox_rows(set, 1, sx, sy, w, h, box))
+        cells_set(set, set->placed, r[0], r[1], r[2], r[3]), drawn = 1;
     if (!drawn)
         pc_stale_clear_covered(set, dx, dy, w, h);
 }

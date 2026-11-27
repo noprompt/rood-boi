@@ -20,6 +20,7 @@ static struct {
     int overlay_count;
     uint64_t overlay_cells[32];
     uint32_t stale_cells[16], placed_cells[16];
+    uint16_t stale_rows[16][32];
     int occlusion_on, occlusion_rect[4], surface_valid;
     int scale, vulkan;
     render_camera view;
@@ -155,7 +156,7 @@ int pc_hw_photo_mark_now(void)
         memcpy(photo_picture->overlay, overlay, (size_t)overlay_count * sizeof *overlay);
     else
         photo_picture->overlay_count = 0;
-    COPY(stale_cells, cstale.missing); COPY(placed_cells, cstale.placed);
+    COPY(stale_cells, cstale.missing); COPY(placed_cells, cstale.placed); COPY(stale_rows, cstale.rows);
     KEEP(occlusion_on, occlusion_on); COPY(occlusion_rect, occlusion_rect); KEEP(surface_valid, surface_valid);
 #undef COPY
 #undef KEEP
@@ -200,7 +201,7 @@ int pc_hw_photo_restore_now(void)
         memcpy(overlay, photo_picture->overlay, (size_t)overlay_count * sizeof *overlay);
     else
         overlay_count = 0, memset(overlay_cells, 0, sizeof overlay_cells);
-    COPY(cstale.missing, stale_cells); COPY(cstale.placed, placed_cells);
+    COPY(cstale.missing, stale_cells); COPY(cstale.placed, placed_cells); COPY(cstale.rows, stale_rows);
     RESTORE(occlusion_on, occlusion_on); COPY(occlusion_rect, occlusion_rect); RESTORE(surface_valid, surface_valid);
 #undef COPY
 #undef RESTORE

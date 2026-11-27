@@ -575,6 +575,8 @@ static uint32_t texture_tag(unsigned tpage, unsigned clut)
 }
 static int has_pending_translucent;
 static void flush(void);
+static int rec_drawn(int x0, int y0, int x1, int y1);
+static uint32_t rec_cells[16]; /* (see rec_note) */
 /* ui_text_layout line (ui_text.h): glyph sprites buffered until something
  * else is drawn, then laid out as lines (text_run_flush, below). */
 static int text_piece_count, text_emitting;
@@ -2589,6 +2591,13 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
         else {
             int box[4];
             sample_box(window, uv, box);
+            if (batch_count && pc_hw_draw_interpolate) {
+                int reach[2][4];
+                pc_tex_sampling sampling = pc_tex_describe(NULL, tpage, clut, window, box);
+                pc_tex_reach(&sampling, reach);
+                if (rec_drawn(reach[0][0], reach[0][1], reach[0][2] + 1, reach[0][3] + 1))
+                    flush(); /* (a replay reads what the frame drew before a sampler of it: its own op) */
+            }
             tex_note(tpage, clut, window, box); /* (a draw that samples the frame stays on the VRAM image) */
         }
     }
@@ -3829,6 +3838,7 @@ void pc_hw_resync(const uint16_t* vram, const uint8_t* picture)
     /* The target is now the game's array exactly: nothing is stale (a stale cell is where the target holds more than the array), whatever it was
      * before the restore, restart or rewind, so the set starts empty and no read-back or own copy is hidden by it. */
     memset(&cstale, 0, sizeof cstale);
+    memset(rec_cells, 0, sizeof rec_cells);
     mark_dirty_tiles(0xffffffffu);
     pc_hw_upload(0, 0, 1024, 512, vram);
     /* A state file's picture (snapshot.c): the target holds what the primitives drew, which the array lacks, in the cells the game's own
@@ -4785,7 +4795,7 @@ static void own_add(int x, int y, int w, int h)
 {
     for (int list = 0; list < 2; list++) {
         int box[4];
-        if (!pc_stale_bbox(list ? cstale.placed : cstale.missing, x, y, w, h, box))
+        if (!pc_stale_bbox_rows(&cstale, list, x, y, w, h, box))
             continue;
         int x0 = x > box[0] ? x : box[0], y0 = y > box[1] ? y : box[1];
         int x1 = x + w < box[2] ? x + w : box[2], y1 = y + h < box[3] ? y + h : box[3];
@@ -4832,7 +4842,18 @@ static void own_apply(void)
         }
     }
 #endif
-    for (int i = 0; i < own_count; i++) {
+    /* A screen copy (15-bit texels of a frame buffer) is sampled from the render-target capture: the target over the texels the primitive
+     * samples, at its own resolution (the held text drawn in, the multisampled scope resolved). The shader reads nothing else for it, so the
+     * copies of its rows into the sampled VRAM below are left out when the capture is taken. */
+#ifdef ROOD_VULKAN
+    if (own_want_valid && screen_copy_native() && pc_vk_on()) {
+        const int* w = own_want;
+        if (ms_scope == target_fbo)
+            ms_end_over(w[0], w[1], w[2] - w[0], w[3] - w[1]);
+        capture_taken = pc_vk_hw_capture(0, w[0], w[1], w[2], w[3]);
+    }
+#endif
+    for (int i = 0; i < own_count && !capture_taken; i++) {
         const int* r = own_rects[i];
         if (!scratch && !pc_vk_on())
             overlay_bake_rect(r[0], r[1], r[0] + r[2], r[1] + r[3]);
@@ -4848,18 +4869,7 @@ static void own_apply(void)
         }
     }
     own_count = 0;
-    /* A screen copy (15-bit texels of a frame buffer) is sampled from the render-target capture: the target over the texels
-     * the primitive samples, at its own resolution, as the loop above left it (the held text baked, the multisampled scope
-     * resolved). The PS1-resolution copies of VRAM stay for what reads them. */
 #ifdef ROOD_VULKAN
-    if (own_want_valid && screen_copy_native() && pc_vk_on()) {
-        const int* w = own_want;
-        if (!scratch && !pc_vk_on())
-            overlay_bake_rect(w[0], w[1], w[2], w[3]); /* (the texels the stale parts left out too) */
-        if (ms_scope == target_fbo)
-            ms_end_over(w[0], w[1], w[2] - w[0], w[3] - w[1]);
-        capture_taken = pc_vk_hw_capture(0, w[0], w[1], w[2], w[3]);
-    }
     if (scratch)
         pc_vk_hw_scratch(1, u[0], u[1], u[2], u[3]); /* the picture shown: its text live again */
 #endif
@@ -5090,6 +5100,32 @@ void pc_hw_set_packet(const void* packet)
     poly_effect = cur_attr.effect;
 }
 static recording* recording_now(void) { return &recordings[recording_index]; }
+/* The cells (64 x 16) any recorded op has drawn in since the renderer's VRAM was last put right (batches, fills, native lists): a replay (an interpolated frame)
+ * draws each recorded op on the replay target in order and reads the frame back for an op that samples what an earlier op drew (op_feedback), so a
+ * sampler of such a cell must not share an op with what it samples: the batch ends before it (the old own_flush, which kept this on the marks
+ * nothing cleared). Measured with build_compare --interp 4: the interpolated fight differs in 19 of 120 frames without it, in 8 when the cells
+ * are those of the frame being recorded, in none with all that were drawn. Only with interpolation on: without it no replay reads the recording, and the
+ * extra batch breaks changed a held glyph's edge pixels in one Status/storage frame. */
+static void rec_note(int x0, int y0, int x1, int y1)
+{
+    x0 = x0 < 0 ? 0 : x0, y0 = y0 < 0 ? 0 : y0, x1 = x1 > 1024 ? 1024 : x1, y1 = y1 > 512 ? 512 : y1;
+    if (x1 <= x0 || y1 <= y0)
+        return;
+    for (int c = x0 >> 6; c <= (x1 - 1) >> 6; c++)
+        for (int b = y0 >> 4; b <= (y1 - 1) >> 4; b++)
+            rec_cells[c] |= 1u << b;
+}
+static int rec_drawn(int x0, int y0, int x1, int y1)
+{
+    x0 = x0 < 0 ? 0 : x0, y0 = y0 < 0 ? 0 : y0, x1 = x1 > 1024 ? 1024 : x1, y1 = y1 > 512 ? 512 : y1;
+    if (x1 <= x0 || y1 <= y0)
+        return 0;
+    for (int c = x0 >> 6; c <= (x1 - 1) >> 6; c++)
+        for (int b = y0 >> 4; b <= (y1 - 1) >> 4; b++)
+            if (rec_cells[c] >> b & 1)
+                return 1;
+    return 0;
+}
 /* The frame being drawn has a screen fade of this amount (the largest). */
 static void record_fade(float amount, const float rect[4])
 {
@@ -5234,6 +5270,7 @@ static void record_vertices(const hw_vertex* batch, int batch_count, int batch_b
             cluts[2] = c[2] > cluts[2] ? c[2] : cluts[2], cluts[3] = c[3] > cluts[3] ? c[3] : cluts[3];
         }
     }
+    rec_note(bounds[0], bounds[1], bounds[2], bounds[3]);
     for (int i = 0; i < 4; i++) {
         op->texels[i] = (int16_t)texels[i];
         op->cluts[i] = (int16_t)cluts[i];
@@ -5280,6 +5317,7 @@ static void record_fill(int x, int y, int w, int h, int r, int g, int b)
         rec->overflow = 1;
         return;
     }
+    rec_note(x, y, x + w, y + h);
     recorded_op* op = &rec->ops[rec->op_count++];
     op->fill = 1;
     op->clip[0] = x, op->clip[1] = y, op->clip[2] = w, op->clip[3] = h;
@@ -5292,6 +5330,7 @@ static void record_native(uint32_t list, const int* clip, int ox, int oy, unsign
         rec->overflow = 1;
         return;
     }
+    rec_note(clip[0], clip[1], clip[0] + clip[2], clip[1] + clip[3]);
     recorded_op* op = &rec->ops[rec->op_count++];
     op->fill = 2;
     memcpy(op->clip, clip, sizeof op->clip);
@@ -5306,6 +5345,7 @@ static void record_translucent(uint32_t list, int first, int count, const int* c
         rec->overflow = 1;
         return;
     }
+    rec_note(clip[0], clip[1], clip[0] + clip[2], clip[1] + clip[3]);
     recorded_op* op = &rec->ops[rec->op_count++];
     op->fill = 3;
     memcpy(op->clip, clip, sizeof op->clip);
@@ -5875,7 +5915,10 @@ static void replay_frame(const recording* a, const recording* b, float t)
         uint32_t restore[16] = { 0 };
         uint32_t own = op_feedback(b, o) ? replay_sample_own(op->texels, restore) : 0;
 #ifdef ROOD_VULKAN
-        /* A screen copy drawn from the capture (WINDOW_CAPTURE): the replay target over its texels, as the live draw took it. */
+        /* A screen copy drawn from the capture (WINDOW_CAPTURE): the replay target over its texels, as the live draw took it. The copy of the
+         * texels into the sampled VRAM above stays: the ops after it in the recording read those rows from it (left out, the interpolated
+         * fight loses the spell banner's text; left out unless a later op overlaps the texels, the later screen copies of the sphere and Status
+         * still need it, 7 of the 8 a vsync). */
         if (pc_vk_on() && scratch[0].window & WINDOW_CAPTURE && op->texels[2] > op->texels[0] && op->texels[3] > op->texels[1])
             pc_vk_hw_capture(1, op->texels[0], op->texels[1], op->texels[2], op->texels[3]);
 #endif

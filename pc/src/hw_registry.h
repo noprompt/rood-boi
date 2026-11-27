@@ -33,6 +33,7 @@ const span_shape* pc_hwr_span_shape_of(uintptr_t packet);
 enum { PC_STALE_MISSING = 1, PC_STALE_PLACED = 2, PC_STALE_DRAWN = 4 };
 typedef struct {
     uint32_t missing[16], placed[16]; /* MISSING, PLACED: the cells that differ now (an upload or a fill over whole cells ends it) */
+    uint16_t rows[16][32];             /* per cell: the rows (bit r = row 16 b + r) a write across the cell's whole width has made equal since it was marked */
     int in_ot;                        /* an ordering table is being drawn (its native areas are marked) */
 } pc_stale_set;
 void pc_stale_mark(pc_stale_set* set, const int* clip, int kind);
@@ -46,4 +47,6 @@ int pc_stale_cells(const uint32_t* cells); /* how many are stale */
 void pc_stale_copy(pc_stale_set* set, int sx, int sy, int dx, int dy, int w, int h);
 /* A write that leaves the renderer's VRAM and the target equal (an upload, a fill): the cells lying wholly inside (x, y, w, h) are no longer drawn. */
 void pc_stale_clear_covered(pc_stale_set* set, int x, int y, int w, int h);
+/* Like pc_stale_bbox over the MISSING (list 0) or PLACED (list 1) cells, without the cells whose rows in (x, y, w, h) are all equal again. */
+int pc_stale_bbox_rows(const pc_stale_set* set, int list, int x, int y, int w, int h, int* out);
 #endif

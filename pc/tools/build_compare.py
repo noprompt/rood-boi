@@ -120,10 +120,10 @@ def start(card, out, name):
     """A game in the fight's room, scripts off, the settings the comparison needs."""
     from checkpoints import launch_at
     g = launch_at("save_room", card=card, fast=True, log=out / f"{name}.log", extra_env={
-        "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
+        "ROOD_GI": os.environ.get("BUILD_COMPARE_GI", "0"), "ROOD_INTERPOLATE": "1" if INTERP else "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
         "ROOD_WINDOW": "960x720", "ROOD_LIGHTS": str(out / "lights"), "ROOD_PREFABS": str(out / "prefabs"),
         "ROOD_PLUGINS_SHIPPED": frozen_plugins(out)})
-    g.call("graphics", interpolate=False)
+    g.call("graphics", interpolate=bool(INTERP), **({"present_rate": INTERP} if INTERP else {}))
     g.call("room_goto", hold=True, zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
     for _ in range(80):
         g.run(20)
@@ -132,7 +132,8 @@ def start(card, out, name):
     return g
 
 
-PRESENT = os.environ.get("BUILD_COMPARE_PRESENT") == "1"  # --present: each sample also carries the presented picture (RPC present_dump, what the player sees); the comparison is on it
+INTERP = int(os.environ.get("BUILD_COMPARE_INTERP", "0"))  # --interp N: frame interpolation on, N images presented per vsync, the presented pictures compared (implies --present)
+PRESENT = os.environ.get("BUILD_COMPARE_PRESENT") == "1" or INTERP > 0  # --present: each sample also carries the presented picture (RPC present_dump, what the player sees); the comparison is on it
 
 
 def present_hash(g, out):
@@ -265,6 +266,10 @@ def play(binary, seconds, card, out):
             shot = out / "frame.ppm"
             if PRESENT:  # (no RPC screenshot: reading the display back bakes the text overlay into the picture where a stale area is read, which changes what is shown from then on, in the build that has one)
                 frames.append("-~" + present_hash(g, out))
+                keep = os.environ.get("BUILD_COMPARE_KEEP")  # (a directory: every sampled frame kept, for looking at a difference)
+                if keep:
+                    pathlib.Path(keep).mkdir(parents=True, exist_ok=True)
+                    (pathlib.Path(keep) / f"fight-{os.getpid()}-{len(frames) - 1:04d}.ppm").write_bytes((out / "present.ppm").read_bytes())
             else:
                 g.screenshot(str(shot))
                 frames.append(hashlib.sha256(shot.read_bytes()).hexdigest()[:16])
@@ -1168,7 +1173,9 @@ def play_menus(binary, card, out, names, sample, claims, aspect="4:3", extra_env
     out = pathlib.Path(out)
     (out / "plugins").mkdir()
     settings = out / "settings.cfg"
-    lines = {"ui_menus": "0", "ui_text": "font", "interpolate": "0", "aspect": aspect, "shader_reload": "0"}
+    lines = {"ui_menus": "0", "ui_text": "font", "interpolate": "1" if INTERP else "0", "aspect": aspect, "shader_reload": "0"}
+    if INTERP:
+        lines["present_rate"] = str(INTERP)
     lines.update(kv.split(" ", 1) for kv in settings_lines)
     settings.write_text("".join(f"{k} {v}\n" for k, v in lines.items()))
     env = {"ROOD_SETTINGS": str(settings), "ROOD_PLUGINS": str(out / "plugins"), "ROOD_PLUGIN_DATA": str(out / "plugin_data"),
@@ -1678,6 +1685,7 @@ def main():
     parser.add_argument("--env", action="append", default=[], help=argparse.SUPPRESS)
     parser.add_argument("--renderer", choices=["vulkan", "null"], default="vulkan", help="--menus: null draws no pixels (no GPU, no CPU rasterizer): the sample is the drawing stream's chain, the items the game made; no ui_text")
     parser.add_argument("--setting", action="append", default=[], metavar="'KEY VALUE'", help="--menus: a settings.cfg line (ui_text original)")
+    parser.add_argument("--interp", type=int, default=0, choices=range(0, 9), metavar="N", help="frame interpolation on, N images presented per vsync (1 to 8), and the presented pictures compared (implies --present): the interpolated frames the replay draws, which the default lanes (interpolation off) never show. Fight, rooms, --menus")
     parser.add_argument("--aspect", choices=["4:3", "16:9"], default="4:3", help="--menus: the display's aspect")
     parser.add_argument("--stream", action="store_true", help="also compare every vsync's drawing digest (RPC stream: the words the walk draws, native marker draws, environments); fight, --rooms and --menus lanes. OLD must have the RPC")
     parser.add_argument("--control", action="store_true", help="also run OLD against OLD again (the control): for when a lane differs and flakiness is suspected; off, each lane runs OLD and NEW once")
@@ -1694,6 +1702,11 @@ def main():
         STREAM = True
     if args.vram_stream:
         os.environ["BUILD_COMPARE_VRAM_STREAM"] = "1"
+    if args.interp:
+        os.environ["BUILD_COMPARE_INTERP"] = str(args.interp)
+        global INTERP
+        INTERP = args.interp
+        args.present = True
     if args.present:
         global PRESENT
         os.environ["BUILD_COMPARE_PRESENT"] = "1"
