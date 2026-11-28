@@ -688,6 +688,64 @@ with tempfile.TemporaryDirectory() as d:
     pushed = json.loads(client.recv()[1])
     check(pushed == {"select": {"material": "mabc_p10_c3b70", "x": 70, "y": 5, "scroll": True}}, f"over the socket: the studio's pick arrives as a select ({pushed})")
     sock.close()
+    # paint starts the live link: the port probe, a link already running (same package: reused, another: named, never touched), and stopping with Aseprite
+    import paint_live as pl
+    port = server.server_address[1]
+    check(pl.probe_port(port, lb.folder)[0] == "same", "the port probe finds a live link of this package")
+    check(pl.probe_port(port, lb.folder / "elsewhere")[0] == "other", "...and one of another package")
+    with socket.socket() as free:
+        free.bind(("127.0.0.1", 0))
+        free_port = free.getsockname()[1]
+    check(pl.probe_port(free_port, lb.folder)[0] == "free", "...and a free port")
+    with socket.socket() as plain:
+        plain.bind(("127.0.0.1", 0))
+        plain.listen(1)
+        threading.Thread(target=lambda: plain.accept(), daemon=True).start()
+        check(pl.probe_port(plain.getsockname()[1], lb.folder, timeout=0.5)[0] == "unknown", "...and something that is not a live link")
+
+    class FakeAseprite:
+        def __init__(self):
+            self.code = None
+
+        def poll(self):
+            return self.code
+    lines = []
+    pl.LAUNCHER_GRACE = 0.3
+    live_args = argparse.Namespace(dir=str(lb.folder), layer=None, catalog=None, debounce=0.3, port=port, no_watch=True, rpc=None)
+    fake_ase = FakeAseprite()
+    threading.Timer(0.8, lambda: setattr(fake_ase, "code", 0)).start()
+    check(pl.live(live_args, proc=fake_ase, say=lines.append) == 0 and any("already running" in t for t in lines), f"a live link of the same package on the port is reused, and paint ends with Aseprite ({lines})")
+    lines.clear()
+    other_args = argparse.Namespace(**{**vars(live_args), "dir": str(lb.folder / "elsewhere")})
+    check(pl.live(other_args, proc=FakeAseprite(), say=lines.append) == 1 and str(lb.folder) in lines[0] and "another package" in lines[0],
+          f"a live link of another package is named, not replaced ({lines})")
+    lines.clear()
+    free_args = argparse.Namespace(**{**vars(live_args), "port": free_port, "rpc": [os.path.join(tempfile.gettempdir(), "aseprite_test_no_such.sock")]})
+    fake_ase = FakeAseprite()
+    result = []
+    runner = threading.Thread(target=lambda: result.append(pl.live(free_args, proc=fake_ase, say=lines.append)))
+    runner.start()
+    for _ in range(50):
+        if pl.probe_port(free_port, lb.folder)[0] == "same":
+            break
+        time.sleep(0.1)
+    check(pl.probe_port(free_port, lb.folder)[0] == "same", "paint's live link serves its package on a free port")
+    time.sleep(0.5)  # (past the launcher's grace)
+    fake_ase.code = 0
+    runner.join(10)
+    check(result == [0] and not runner.is_alive() and any("Aseprite closed" in t for t in lines) and pl.probe_port(free_port, lb.folder)[0] == "free",
+          f"the live link stops when Aseprite exits, and frees the port ({lines})")
+    lines.clear()
+    quick = FakeAseprite()
+    quick.code = 0  # an aseprite command that ended at once (handed to a running copy): the link stays up
+    result = []
+    pl.LAUNCHER_GRACE = 5.0
+    runner = threading.Thread(target=lambda: result.append(pl.live(free_args, proc=quick, say=lines.append)), daemon=True)
+    runner.start()
+    time.sleep(1.5)
+    check(runner.is_alive() and any("ended at once" in t for t in lines), f"an aseprite command that ends at once does not stop the live link ({lines})")
+    check(pl.probe_port(free_port, lb.folder)[0] == "same", "...it keeps serving")
+    # (only Ctrl+C ends that one; its thread is a daemon of this test)
     server.shutdown()
     # the extension's side, in Lua with Aseprite's API faked
     manifest = json.loads((ROOT / "pc/tools/aseprite/rood-live/package.json").read_text())

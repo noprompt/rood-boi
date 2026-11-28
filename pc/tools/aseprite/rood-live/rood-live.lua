@@ -29,7 +29,18 @@ function init(plugin)
 
   local ws, timer, dialog, hoverTimer
   local connected, lastSpot = false, nil
-  local status = { text = "not connected" }
+  -- the command that starts the live link: the folder is the active sprite's package (<package>/aseprite/<material>.aseprite) when it is one
+  local function startCommand()
+    local folder = "<package folder>"
+    pcall(function()
+      local sprite = app.sprite
+      local dir = sprite and sprite.filename and sprite.filename:match("^(.*)[/\\]aseprite[/\\][^/\\]*$")
+      if dir and dir ~= "" then folder = dir end
+    end)
+    return "python3 pc/tools/paint_roundtrip.py live " .. folder
+  end
+  local function notRunning() return "the live link is not running; start it: " .. startCommand() end
+  local status = { text = notRunning() }
   local flush, ensureTimer
   local presets = {} -- from the bridge's greeting: { name, rgb = "rrggbb", about = "metal 1, roughness 0.12" }
   local dirty = {}    -- layer name -> sprite
@@ -175,7 +186,7 @@ function init(plugin)
       ws:sendText("hello") -- (its reply names the layers; every layer of an attached sprite is sent then)
     elseif messageType == flag("CLOSE") then
       connected = false
-      show("bridge not running (paint_roundtrip.py live <package>)")
+      show(notRunning())
     elseif messageType == flag("TEXT") then
       local ok = message:match('"ok":%s*(%a+)') == "true"
       local game = message:match('"game":%s*(%a+)') == "true"

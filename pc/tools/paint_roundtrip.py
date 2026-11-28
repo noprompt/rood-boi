@@ -1087,14 +1087,14 @@ def unpack_package(args, say=say_now):
 
 def open_painter(out, painter):
     """Starts a painter on the package's paint.gltf, detached: SubCraft when it is on the PATH (and `painter` is auto or subcraft),
-    else Blender. Returns what it started, or None."""
+    else Blender. Returns (what it started or None, the file it opened, the Aseprite process or None)."""
     gltf = pathlib.Path(out) / "paint.gltf"
     if painter == "aseprite":
         files = sorted((pathlib.Path(out) / "aseprite").glob("*.aseprite"))
         if not shutil.which("aseprite") or not files or len(files) > 6:
-            return None, pathlib.Path(out) / "aseprite"
-        subprocess.Popen(["aseprite", *map(str, files)], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-        return "Aseprite", files[0]
+            return None, pathlib.Path(out) / "aseprite", None
+        proc = subprocess.Popen(["aseprite", *map(str, files)], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        return "Aseprite", files[0], proc
     if painter in ("auto", "subcraft") and shutil.which("subcraft"):
         command, name = ["subcraft", str(gltf)], "SubCraft"
         try:  # a project with the game's texture already in it (subcraft_project.py); the plain glTF when its format is not known
@@ -1106,9 +1106,9 @@ def open_painter(out, painter):
     elif painter in ("auto", "blender") and shutil.which("blender"):
         command, name = ["blender", "--python-expr", f"import bpy; bpy.ops.import_scene.gltf(filepath={str(gltf)!r})"], "Blender"
     else:
-        return None, gltf
+        return None, gltf, None
     subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
-    return name, (pathlib.Path(command[1]) if name == "SubCraft" else gltf)
+    return name, (pathlib.Path(command[1]) if name == "SubCraft" else gltf), None
 
 
 def refresh_palettes(args, say=print):
@@ -1139,6 +1139,9 @@ def main():
     painters = ["auto", "subcraft", "blender", "aseprite"]
     e.add_argument("--painter", choices=painters, default="auto", help="aseprite: also write <out>/aseprite/<material>.aseprite (Metal and Roughness layers for a pixel painter; Materials.md)")
     pt.add_argument("--painter", choices=painters, default="auto")
+    pt.add_argument("--no-live", action="store_true", help="with --painter aseprite: only open Aseprite; start the live link yourself (the live command)")
+    pt.add_argument("--port", type=int, default=47480, help="with --painter aseprite: the live link's WebSocket port (the extension's default)")
+    pt.add_argument("--rpc", action="append", metavar="SOCKET", help="with --painter aseprite: an RPC socket the live link paints into, repeatable (see live --rpc); --game's is always one")
     for flag in e._actions[1:]:
         if flag.dest == "painter":
             continue
@@ -1202,7 +1205,19 @@ def main():
     if args.command == "paint" and not status:
         out = args.out or ROOT / "pc/user/paint" / (f"model-{args.model}" if args.target == "model" and args.model else
                                                     f"room-{args.zone}-{args.room}" if args.zone is not None else args.target)
-        started, opened = open_painter(out, args.painter)
+        started, opened, proc = open_painter(out, args.painter)
+        if args.painter == "aseprite" and not args.no_live:
+            print(f"paint: Aseprite opened {opened}" if started else
+                  f"paint: Aseprite is not on the PATH (or there are more than six files); open the files in {opened} by hand")
+            print("paint: starting the live link for it (Ctrl+C stops it; it stops by itself when Aseprite closes); Ctrl+S in Aseprite keeps your work", flush=True)
+            import paint_live
+            rpc = list(args.rpc) if args.rpc else None
+            game = getattr(args, "game", None)
+            if game:  # (the running game it exported from is one of the sockets to paint into, beside the defaults)
+                rpc = (rpc if rpc is not None else paint_live.default_sockets())
+                rpc = rpc + [game] if game not in rpc else rpc
+            live_args = argparse.Namespace(dir=str(out), layer=None, catalog=None, debounce=0.3, port=args.port, no_watch=False, rpc=rpc)
+            return paint_live.live(live_args, proc=proc)
         print((f"paint: Aseprite opened {opened}; start the live link in another terminal: python3 pc/tools/paint_roundtrip.py live {out}"
                f" (Ctrl+S in Aseprite keeps your work)" if started == "Aseprite" else
                f"paint: {started} opened {opened}; paint, export the maps into that folder, then: "

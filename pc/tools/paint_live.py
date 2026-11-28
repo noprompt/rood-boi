@@ -141,7 +141,7 @@ class Bridge:
         return [{"name": p["name"], "colour": "#%02x%02x%02x" % p["rgb"], "about": mp.about(p)} for p in self.presets]
 
     def greeting(self, note):
-        return {"ok": True, "game": self.game is not None, "targets": self.targets(), "note": note, "presets": self.preset_list(), **pch.greeting()}
+        return {"ok": True, "game": self.game is not None, "targets": self.targets(), "note": note, "package": str(self.folder.resolve()), "presets": self.preset_list(), **pch.greeting()}
 
     def layers_of(self, label, rec):
         """The layer canvases the bridge knows of a material: what the extension sent, else the saved file's (first use)."""
@@ -368,23 +368,79 @@ def serve(bridge, port, log=lambda text: print(text, flush=True)):
     return server
 
 
-def live(args):
+LAUNCHER_GRACE = 5.0  # seconds: a painter that exits sooner handed its files to a copy already open (its launcher, not the painter, is gone)
+
+
+def probe_port(port, folder, timeout=3):
+    """What listens on the port: "free", ("same", package), ("other", package) for a live link and which package it serves (its greeting
+    names it), or ("unknown", None) for something else (or a live link of an older version that does not name its package)."""
+    try:
+        ws = miniws.connect("127.0.0.1", port, timeout=timeout)
+    except ConnectionRefusedError:
+        return "free", None
+    except (OSError, miniws.Closed):
+        return "unknown", None
+    try:
+        ws.send("hello")
+        got = ws.recv()
+        package = json.loads(got[1]).get("package") if got else None
+    except (OSError, miniws.Closed, ValueError, AttributeError, TypeError):
+        package = None
+    finally:
+        try:
+            ws.close()
+        except OSError:
+            pass
+    if not package:
+        return "unknown", None
+    return ("same" if pathlib.Path(package) == pathlib.Path(folder).resolve() else "other"), package
+
+
+def wait_painter(proc, say):
+    """Blocks until `proc` (the painter this run started) exits for good, or Ctrl+C: True when the painter went. proc None: until Ctrl+C."""
+    started = time.monotonic()
+    try:
+        while True:
+            time.sleep(0.5 if proc else 1)
+            if proc is not None and proc.poll() is not None:
+                if time.monotonic() - started >= LAUNCHER_GRACE:
+                    say("live: Aseprite closed; stopping the live link")
+                    return True
+                say("live: the aseprite command ended at once (it handed the files to an Aseprite already open); the live link keeps running until Ctrl+C")
+                proc = None
+    except KeyboardInterrupt:
+        say("live: stopped")
+    return False
+
+
+def live(args, proc=None, say=lambda text: print(text, flush=True)):
+    """The live link in the foreground. proc: the Aseprite process `paint` started (the link stops when it exits). A live link already on the
+    port serving this package is reused (this waits as long as Aseprite stays); one serving another package is left alone and named."""
+    state, package = probe_port(args.port, args.dir)
+    if state == "same":
+        say(f"live: a live link for this package is already running on port {args.port}; using it (stop it with Ctrl+C in its terminal)")
+        wait_painter(proc, say)
+        return 0
+    if state == "other":
+        say(f"live: port {args.port} is taken by a live link for another package ({package}). Stop it (Ctrl+C in its terminal) and run: "
+            f"python3 pc/tools/paint_roundtrip.py live {args.dir}")
+        return 1
+    if state == "unknown":
+        say(f"live: port {args.port} is in use by something else (or by an older live link): stop it, or pass --port N here and in Aseprite's Rood live preferences")
+        return 1
     bridge = Bridge(args.dir, rpc=args.rpc or None, layer=args.layer, catalog=args.catalog)
-    server = serve(bridge, args.port)
+    server = serve(bridge, args.port, log=say)
     bridge.connect()
     up = [t["rpc"] for t in bridge.targets() if t["up"]]
     down = [t["rpc"] for t in bridge.targets() if not t["up"]]
     now = f"painting into {', '.join(up)}" if up else "no game or studio running (strokes are kept for when one is; saved files still import)"
-    print(f"live: listening on ws://127.0.0.1:{args.port} for the Aseprite extension; {now}"
-          + (f"; looking for {', '.join(down)} as they start" if down else ""), flush=True)
+    say(f"live: listening on ws://127.0.0.1:{args.port} for the Aseprite extension; {now}"
+        + (f"; looking for {', '.join(down)} as they start" if down else ""))
     stop = threading.Event()
     if not args.no_watch:
         threading.Thread(target=pr.watch_package, args=(args, stop), daemon=True).start()
     try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("live: stopped")
+        wait_painter(proc, say)
     finally:
         stop.set()
         server.shutdown()

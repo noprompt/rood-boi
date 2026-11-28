@@ -69,25 +69,27 @@ With the model still on the stage:
 python3 pc/tools/paint_roundtrip.py paint model --game pc/build/boot/rpc-live.sock --model studio --painter aseprite
 ```
 
-This reads the model the studio is showing and writes one Aseprite file per texture page into `pc/user/paint/model-<id>/aseprite/`, then opens them in Aseprite (when there are six or fewer). The file names look like `m61c3d37af4_p10_c3b70.aseprite`: the model, the texture page and the palette. Some models have more than one page; paint each file.
+This reads the model the studio is showing and writes one Aseprite file per texture page into `pc/user/paint/model-<id>/aseprite/`, then opens them in Aseprite (when there are six or fewer) and starts the live link for them (step 5). The file names look like `m61c3d37af4_p10_c3b70.aseprite`: the model, the texture page and the palette. Some models have more than one page; paint each file.
 
 The pages are 256 by 256 pixels, but the game's texture only fills part of each one. The rest shows as a checkerboard. Zoom in on the part with the texture.
 
-### 5. Start the live link
+### 5. The live link
 
-In the second terminal, leave this running while you paint:
+`paint ... --painter aseprite` starts the live link itself, right after it opens Aseprite, and keeps running in that terminal, printing what it is doing (strokes, saves). Leave it there while you paint. It stops by itself when you close Aseprite, or with Ctrl+C. Its first line says what it is painting into: the studio's socket, the game's, or both (`--rpc SOCKET` names them yourself, once for each; the `--game` socket you exported from is always one; by default it also looks for `rpc-studio.sock` and `rpc-live.sock`). If it says the game is not running, your game was not started with `pc/run-game.sh`: pass its socket with `--game` or `--rpc <path>`.
+
+If a live link is already running for the same package, `paint` uses it. If one is running for another package, `paint` says which and does not touch it: stop that one with Ctrl+C in its terminal, then start this package's by hand:
 
 ```
 python3 pc/tools/paint_roundtrip.py live pc/user/paint/model-<id>
 ```
 
-Use the folder name step 4 printed. It should say what it is painting into (the studio's socket, the game's, or both: `--rpc SOCKET` names them yourself, once for each; by default it looks for `rpc-studio.sock` and `rpc-live.sock`). If it says the game is not running, your game was not started with `pc/run-game.sh`: pass its socket with `--rpc <path>`.
+The same command starts the link when `paint` did not (`--no-live`, or more than six pages so Aseprite was not opened for you). `--port N` changes the port (also in Aseprite's Rood live preferences).
 
 ### 6. Connect Aseprite
 
 1. Open the file in Aseprite if it is not open already.
 2. The first time, Aseprite shows a Security window asking to let the script open a WebSocket connection to `ws://127.0.0.1:47480`. Click Allow to Open Connections. Tick Don't show this specific alert again if you do not want it each time.
-3. A small window called Rood live appears. Its Game line should say the game is running. It lists the twelve material presets as buttons.
+3. A small window called Rood live appears. Its Game line should say the game is running. If it says the live link is not running, the link in step 5 is not up: it shows the command to start it. It lists the twelve material presets as buttons.
 
 Screenshot: the Security window, then Aseprite with the layers panel and the Rood live window. The Rood live window opens at the right edge of the Aseprite window, out of the canvas's way. Drag it by its title bar if you want it elsewhere; Aseprite remembers where you left it.
 
@@ -161,7 +163,7 @@ The strokes go into your Aseprite files and into your game, as if you had painte
 
 ## If something goes wrong
 
-- **The live link says the game is not running, or strokes do nothing.** The game has to be the one started by `pc/run-game.sh` (or pass its socket with `--rpc`), and the live link must still be running in its terminal. Its first line says "game reachable" when it found the game.
+- **The live link says the game is not running, or strokes do nothing.** The game has to be the one started by `pc/run-game.sh` (or pass its socket with `--rpc`), and the live link must still be running in its terminal (the one `paint` started; if you closed it, start it again with the `live` command of step 5). Its first line says "game reachable" when it found the game.
 - **The export says the model is not drawn.** Summon it in the studio first and keep the studio open while you export.
 - **Aseprite's Extensions page shows an old Rood live.** Remove it, then install the new file from step 3 and restart Aseprite.
 - **Nothing is selected in Aseprite when you click the model.** The file for that texture page must be open. Models with several pages need each page's file open to react to clicks on it.

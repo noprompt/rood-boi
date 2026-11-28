@@ -28,7 +28,15 @@ WebSocket = function(t)
   sockets[#sockets + 1] = o
   return o
 end
-Dialog = function() return setmetatable({}, { __index = function() return function(self) return self end end }) end
+local statuses = {} -- what the Rood live window's Game line was set to
+Dialog = function()
+  return setmetatable({}, { __index = function(_, name)
+    return function(self, t)
+      if (name == "modify" or name == "label") and type(t) == "table" and t.id == "status" then statuses[#statuses + 1] = t.text end
+      return self
+    end
+  end })
+end
 Color = function(t) return t end
 Rectangle = function(x, y, w, h) return { x = x, y = y, width = w, height = h } end
 ColorMode = { RGB = 1 }
@@ -55,6 +63,11 @@ local ws = sockets[1]
 local function hover_timer() for _, t in ipairs(timers) do if t.interval == 0.05 then return t end end end
 check(hover_timer() ~= nil, "a hover timer reads the cursor's pixel")
 
+sprite.filename = "/p/q/aseprite/m0123456789_p10_c3b70.aseprite"
+ws.onreceive(WebSocketMessageType.CLOSE, "")
+check(statuses[#statuses] and statuses[#statuses]:find("live link is not running", 1, true) and statuses[#statuses]:find("paint_roundtrip.py live /p/q", 1, true),
+      "a bridge that cannot be reached: the window says the live link is not running and the command, with the sprite's package: " .. tostring(statuses[#statuses]))
+sprite.filename = "/x/m0123456789_p10_c3b70.aseprite"
 ws.onreceive(WebSocketMessageType.OPEN, "")
 hover_timer().ontick()
 local locates = {}
