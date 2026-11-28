@@ -65,6 +65,15 @@ def main():
             bridge.clear = lambda key, obj, channel: cleared.append((key, obj, channel)) or True
             log = []
             link = pp.PhotoCraftLink(pkg, bridge, conn, say=log.append)
+            draws = []
+            real_draw = pp.render_groups
+            pp.render_groups = lambda *a, **k: draws.append(1) or real_draw(*a, **k)
+
+            def view():
+                """What a render must not change: the views (zoom, centre, rotation), the active document and layer, the selection, the toasts."""
+                u, dd = conn.call("ui.inspect"), conn.execute("document.inspect")
+                return {"views": u["views"], "notices": u["notices"], "path": dd["path"], "active": dd["activeLayer"], "selected": dd["selectedLayers"],
+                        "history": dd["history"], "tabs": len(u["views"])}
             doc = conn.execute("document.inspect", document=0)
             check(pathlib.Path(doc["path"]).resolve() == files[0].resolve(), "the .psd is open in PhotoCraft")
             names = [n["name"] for n in doc["layers"]]
@@ -84,6 +93,15 @@ def main():
             check(len(link.canvases.get("aaaaaaaaaa@g100", {})) == 3, "...but each of the three groups was drawn alone")
             c = link.canvases["aaaaaaaaaa@g100"]
             check(not c["metal"][..., 3].any() and not c["roughness"][..., 3].any(), "...and each is the game's own value everywhere (transparent canvas)")
+            # selecting a layer, zooming and hiding a layer for a look are no edits: nothing is drawn
+            conn.call("ui.set", zoom=3.0)
+            doc = conn.execute("document.inspect", document=0)
+            conn.execute("layer.select", layer=doc["layers"][1]["id"])
+            drawn = len(draws)
+            link.step()
+            time.sleep(pp.SETTLE + 0.2)
+            link.step()
+            check(len(draws) == drawn, "selecting a layer and zooming draw nothing")
             # a fill layer in Metal, with a mask that reveals the left half: Metal 1.0 there
             doc = conn.execute("document.inspect", document=0)
             metal = next(n for n in doc["layers"] if n["name"] == "Metal")
@@ -94,9 +112,15 @@ def main():
             conn.execute("layer.layerMask.revealSelection")
             doc = conn.execute("document.inspect", document=0)
             check(doc["revision"] > 1, f"the document's revision moves with an edit: {doc['revision']}")
+            before = view()
+            drawn = len(draws)
             link.step()
             time.sleep(pp.SETTLE + 0.1)
             link.step()
+            after = view()
+            check(len(draws) == drawn + 1, f"the edit is drawn once: {len(draws) - drawn}")
+            check(after == before and before["views"][0]["zoom"] == 3.0, f"a render leaves the zoom, the active document and layer, the selection and the toasts as they were: {[k for k in before if before[k] != after[k]]}")
+            check(not list((pkg / "photocraft" / ".live").glob("*")), "the copies the render made are removed")
             metal_pushes = [p for p in pushed if p[2] == "metal"]
             check(len(metal_pushes) >= 1 and not [p for p in pushed if p[2] != "metal"], f"only the Metal map changed, only it is pushed: {[p[2] for p in pushed]}")
             m = metal_pushes[-1][3]
@@ -125,6 +149,7 @@ def main():
             time.sleep(0.3)
             check(link.step() is False, "closing the package's documents ends the link")
         finally:
+            link.headless.close()
             try:
                 conn.call("app.quit")
             except Exception:

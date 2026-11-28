@@ -66,6 +66,8 @@ class Bridge:
         self.seed = json.loads((self.folder / "seed.json").read_text())
         self.labels = {pr.safe(label): (label, rec) for label, rec in self.seed["labels"].items()}
         self.rpcs = [rpc] if isinstance(rpc, str) else list(rpc) if rpc else default_sockets()
+        seen = set()  # (one socket named twice, absolutely and relatively, is one: a map is pushed once)
+        self.rpcs = [p for p in self.rpcs if not (str(pathlib.Path(p).resolve()) in seen or seen.add(str(pathlib.Path(p).resolve())))]
         self.rpc = self.rpcs[0]
         self.conns = [None] * len(self.rpcs)
         self.ns = argparse.Namespace(dir=str(self.folder), layer=layer, catalog=catalog, normal_format="auto", keep_seed=False)

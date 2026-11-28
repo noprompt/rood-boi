@@ -84,7 +84,9 @@ class FakeServer(socketserver.ThreadingTCPServer):
                 return reply(error="command `document.inspect` is not available right now: no document open")
             if i >= len(self.docs):
                 return reply(error=f"no document at index {i}")
-            return reply({"path": self.docs[i]["path"], "revision": self.docs[i]["revision"], "layers": self.docs[i]["layers"]})
+            doc = self.docs[i]
+            return reply({"path": doc["path"], "revision": doc["revision"], "layers": doc["layers"], "history": doc.get("history", ["Open"]),
+                          "canUndo": len(doc.get("history", ["Open"])) > 1, "canRedo": False})
         reply(error=f"unknown command {c}")
 
 
@@ -146,71 +148,109 @@ with tempfile.TemporaryDirectory() as d:
     check(c[0, 2, 3] == 0 and c[1, 0, 3] == 0, "a pixel at the game's value, or transparent, stays transparent (the game's)")
     check(pr.layered_map(c, was)[0].tolist() == [255, 178, 100] and pr.layered_map(c, was)[1, 0] == 100, f"the import's layered_map reads it: {pr.layered_map(c, was).tolist()}")
 
+    # ---------------------------------------------------------------- words for the two causes, and one socket named twice
+    check("dialog" in pp.explain(ctl.CtlError("command is unavailable while a modal dialog is open")) and "minimised" not in pp.explain(ctl.CtlError("command is unavailable while a modal dialog is open")), "a modal dialog is named as one cause")
+    check("minimised" in pp.explain(ctl.CtlError("timeout: no reply in 60s")) and "dialog" not in pp.explain(ctl.CtlError("timeout: no reply in 60s")), "a timeout is named as the other (a window that is not drawing)")
+    sock = d / "rpc.sock"
+    sock.write_text("")
+    here = pathlib.Path.cwd()
+    import os
+    os.chdir(d)
+    try:
+        check(pr.with_game_socket([str(sock)], "rpc.sock") == [str(sock)], "the game's socket named relatively beside the same one named absolutely is listed once")
+        b2 = paint_live.Bridge(make_package(d, "dup"), rpc=[str(sock), "rpc.sock"], layer=str(d / "l"), catalog=str(d / "c.json"))
+        check(len(b2.rpcs) == 1, "the bridge pushes to one socket named twice once")
+    finally:
+        os.chdir(here)
+
     # ---------------------------------------------------------------- the link against a fake PhotoCraft
     pkg = make_package(d, "link")
     bridge = paint_live.Bridge(pkg, rpc=["/nonexistent/x.sock"], layer=str(d / "layer"), catalog=str(d / "cat.json"))
     pushed = []
     bridge.push = lambda key, obj, channel, array: pushed.append((channel, array.copy())) or True
-    server.docs = [{"path": str((pkg / "photocraft" / "aaaaaaaaaa_g100.psd").resolve()), "revision": 1, "layers": []},
-                   {"path": str((pkg / "photocraft" / "aaaaaaaaaa_g200.psd").resolve()), "revision": 1, "layers": []}]
+    server.docs = [{"path": str((pkg / "photocraft" / "aaaaaaaaaa_g100.psd").resolve()), "revision": 1, "layers": [], "history": ["Open"]},
+                   {"path": str((pkg / "photocraft" / "aaaaaaaaaa_g200.psd").resolve()), "revision": 1, "layers": [], "history": ["Open"]}]
     renders = []
-    state = {"metal": 0}
+    state = {"metal": 0, "others": "a"}
 
-    def fake_render(conn_, docs_, info, size, folder, tag):
+    def fake_render(conn_, headless_, size, folder, tag):
         renders.append(tag)
         h, w = size
         out = {c: np.zeros((h, w, 4), np.uint8) for c in ("height", "metal", "roughness")}
         out["metal"][:, :2] = (255, 255, 255, 255) if state["metal"] else (0, 0, 0, 0)
-        return out
+        return out, {"Layer 1": state["others"]}
     real_render = pp.render_groups
     pp.render_groups = fake_render
     clock = {"t": 0.0}
     log = []
     link = pp.PhotoCraftLink(pkg, bridge, ctl.Control(port, tokfile), say=log.append, now=lambda: clock["t"])
+
+    def look(seconds=0.0):
+        clock["t"] += seconds
+        return link.step()
     try:
-        link.step()
-        clock["t"] += pp.SETTLE + 0.01
-        link.step()
-        check(sorted(renders) == ["aaaaaaaaaa_g100", "aaaaaaaaaa_g200"] and not pushed, "the first look draws each document once; nothing painted, nothing pushed")
+        look()
+        look(pp.SETTLE + 0.01)
+        check(renders == ["aaaaaaaaaa_g100"] and not pushed, f"the first look draws the active document once; nothing painted, nothing pushed: {renders}")
+        server.active = 1
+        look(0.1)
+        look(pp.SETTLE + 0.01)
+        check(sorted(renders) == ["aaaaaaaaaa_g100", "aaaaaaaaaa_g200"] and not pushed, "...and the other when it becomes the active one (only the active document can be copied)")
         renders.clear()
-        clock["t"] += 1
-        link.step()
-        check(not renders, "a document whose revision did not move is not drawn again")
+        server.active = 0
+        look(1)
+        # selecting a layer, zooming, hiding for a look: the revision moves, the history does not
         server.docs[0]["revision"] = 2
-        clock["t"] += 1
-        link.step()
-        check(not renders, "a changed revision is not drawn at once (a stroke may be going on): it has to hold still")
+        look(1)
+        look(pp.SETTLE + 1)
+        check(not renders, "a layer selected (the revision moves, the history does not) draws nothing")
+        server.docs[0]["history"] = ["Open", "Brush Tool"]
         server.docs[0]["revision"] = 3
-        clock["t"] += pp.SETTLE - 0.1
-        link.step()
-        check(not renders, "...and a revision that moves again starts the wait over")
+        look(1)
+        check(not renders, "a content edit is not drawn at once (a stroke may follow): the history has to hold still")
+        server.docs[0]["history"] = ["Open", "Brush Tool", "Brush Tool"]
+        look(pp.SETTLE - 0.1)
+        check(not renders, "...and an edit that follows starts the wait over")
         state["metal"] = 1
-        clock["t"] += pp.SETTLE + 0.01
-        link.step()
-        check(renders == ["aaaaaaaaaa_g100"] and [p[0] for p in pushed] == ["metal"], f"a settled change draws that document and pushes only the channel that changed: {renders}, {[p[0] for p in pushed]}")
+        look(pp.SETTLE + 0.01)
+        check(renders == ["aaaaaaaaaa_g100"] and [p[0] for p in pushed] == ["metal"], f"a settled edit draws that document and pushes only the channel that changed: {renders}, {[p[0] for p in pushed]}")
+        check(any("after 'Brush Tool'" in line and "metal 12 pixels" in line for line in log), f"...and the log says what changed: {log[-2:]}")
         check((pushed[0][1][:, :2] == 255).all() and np.array_equal(pushed[0][1][:, 2:], np.tile(np.arange(2, 8, dtype=np.uint8) * 20, (6, 1))), "...the painted texels 255, the game's metal elsewhere")
-        server.docs[0]["revision"] = 4
-        clock["t"] += 1
-        link.step()
-        clock["t"] += pp.SETTLE + 0.01
-        link.step()
-        check(len(pushed) == 1, "a new revision that draws the same picture pushes nothing")
-        # a save: the file's stamp moves while the document is open: the maps are kept and imported
+        server.docs[0]["history"].append("Brush Tool")
+        look(1)
+        look(pp.SETTLE + 0.01)
+        check(len(pushed) == 1 and any("no map changed" in line and "Height, Metal or Roughness" in line for line in log), "an edit that draws the same maps pushes nothing and says so")
+        # an edit outside the groups: named
+        state["others"] = "b"
+        server.docs[0]["history"].append("Brush Tool")
+        log.clear()
+        look(1)
+        look(pp.SETTLE + 0.01)
+        check(any("'Layer 1' changed outside the Height, Metal, Roughness groups: only strokes inside" in line for line in log), f"a change outside the channel groups is named: {log}")
+        # a document that is not active waits
+        renders.clear()
+        server.docs[1]["history"] = ["Open", "Brush Tool"]
+        look(1)
+        look(pp.SETTLE + 0.01)
+        check(not renders, "an edit in a document that is not the active one waits for it to be")
+        server.active = 1
+        look(0.1)
+        check(renders == ["aaaaaaaaaa_g200"], "...and is drawn when it is")
+        server.active = 0
+        # a save: the file's stamp moves while the document is open: the maps are kept and imported (no new drawing when nothing changed since)
+        renders.clear()
         (pkg / "photocraft" / "aaaaaaaaaa_g100.psd").write_bytes((pkg / "photocraft" / "aaaaaaaaaa_g100.psd").read_bytes() + b"\0")
-        clock["t"] += 1
-        link.step()
+        look(1)
         saved = sorted(p.relative_to(d / "layer").as_posix() for p in (d / "layer").rglob("*.png"))
-        check(saved == ["aaaaaaaaaa/@g100/metal.png"], f"a save imports the painted channel only: {saved}")
+        check(saved == ["aaaaaaaaaa/@g100/metal.png"] and not renders, f"a save imports the painted channel only, from the last drawing: {saved}")
         check((np.asarray(Image.open(d / "layer/aaaaaaaaaa/@g100/metal.png"))[:, :2] == 255).all(), "...as the picture drew it")
         check(any("saved" in line and "metal imported" in line for line in log), f"...and says so: {log[-1:]}")
-        # the standalone import reads what the save kept, with no PhotoCraft
         other = d / "layer2"
         pr.import_package(argparse.Namespace(dir=str(pkg), layer=str(other), catalog=str(d / "cat2.json"), normal_format="auto", keep_seed=False))
         check(sorted(p.relative_to(other).as_posix() for p in other.rglob("*.png")) == ["aaaaaaaaaa/@g100/metal.png"], "`import` reads the maps the last save kept")
-        check(link.step() is True, "the link goes on while a document is open")
+        check(look() is True, "the link goes on while a document is open")
         server.docs.clear()
-        clock["t"] += 1
-        check(link.step() is False, "the link ends when the package's documents are all closed")
+        check(look(1) is False, "the link ends when the package's documents are all closed")
     finally:
         pp.render_groups = real_render
     server.shutdown()

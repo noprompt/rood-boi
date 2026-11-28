@@ -1156,15 +1156,23 @@ def open_painter(out, painter):
     return name, (pathlib.Path(command[1]) if name == "SubCraft" else gltf), None
 
 
+def with_game_socket(rpc, game):
+    """The sockets to paint into with the game's socket among them once: compared by resolved path (rpc-live.sock named absolutely by the default and
+    relatively by --game is one socket)."""
+    import paint_live
+    rpc = list(rpc) if rpc is not None else paint_live.default_sockets()
+    if game and str(pathlib.Path(game).resolve()) not in {str(pathlib.Path(p).resolve()) for p in rpc}:
+        rpc.append(game)
+    return rpc
+
+
 def run_photocraft(out, args):
     """Opens a package's .psd files in PhotoCraft (control server on) and runs the live link until its documents are closed or Ctrl+C."""
     import paint_photocraft
     rpc = list(args.rpc) if getattr(args, "rpc", None) else None
     game = getattr(args, "game", None)
     if game:  # (the running game it exported from is one of the sockets to paint into, beside the defaults)
-        import paint_live
-        rpc = rpc if rpc is not None else paint_live.default_sockets()
-        rpc = rpc + [game] if game not in rpc else rpc
+        rpc = with_game_socket(rpc, game)
     link_args = argparse.Namespace(dir=str(out), layer=None, catalog=None, rpc=rpc, port=getattr(args, "photocraft_port", None))
     return paint_photocraft.run(link_args)
 
@@ -1283,8 +1291,7 @@ def main():
             rpc = list(args.rpc) if args.rpc else None
             game = getattr(args, "game", None)
             if game:  # (the running game it exported from is one of the sockets to paint into, beside the defaults)
-                rpc = (rpc if rpc is not None else paint_live.default_sockets())
-                rpc = rpc + [game] if game not in rpc else rpc
+                rpc = with_game_socket(rpc, game)
             live_args = argparse.Namespace(dir=str(out), layer=None, catalog=None, debounce=0.3, port=args.port, no_watch=False, rpc=rpc)
             return paint_live.live(live_args, proc=proc)
         print((f"paint: Aseprite opened {opened}; start the live link in another terminal: python3 pc/tools/paint_roundtrip.py live {out}"
