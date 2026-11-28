@@ -38,6 +38,7 @@ VIEWS = [
     ("fight 40,3 later", "save_room", (40, 3), 540),
     ("fight 10,1 early", "save_room", (10, 1), 180),
     ("fight 10,1 later", "save_room", (10, 1), 540),
+    ("materials 28,0", "save_room", (28, 0), 120),  # a room with material responses (reflections: the traced specular)
 ]
 REGIONS = ("whole", "top", "middle", "bottom")
 
@@ -64,11 +65,15 @@ def play(binary, card, out):
     out = pathlib.Path(out)
     (out / "settings.cfg").write_text("qol_skip_charging 0\nui_menus 0\nshader_reload 0\ninterpolate 0\n")
     table = {}
+    gi = os.environ.get("PAIRED_GI") == "1"  # with the path-traced GI at Ultra (the lighting the user sees), not the original's look
+    only = [v for v in os.environ.get("PAIRED_ONLY", "").split(";") if v]
     for index, (name, checkpoint, room, vsyncs) in enumerate(VIEWS):
+        if only and name not in only:
+            continue
         copy = out / f"card-{index}.mcd"
         copy.write_bytes(pathlib.Path(card).read_bytes())
         g = launch_at(checkpoint, card=str(copy), fast=True, log=out / f"{index}.log", extra_env={
-            "ROOD_GI": "0", "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
+            "ROOD_GI": "1" if gi else "0", **({"ROOD_LIGHTING_PRESET": "ultra"} if gi else {}), "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
             "ROOD_WINDOW": "960x720", "ROOD_OUT": str(out)})
         try:
             if room:
