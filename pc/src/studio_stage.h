@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+extern float pc_stage_crease; /* degrees: vertex normals are averaged across faces within it (0: flat polygons) */
 typedef struct {
     float radius, fillet, height; /* the floor's, the curve's, the wall's */
     int grey;                     /* 0..255 */

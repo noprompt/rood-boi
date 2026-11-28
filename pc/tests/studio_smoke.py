@@ -174,6 +174,7 @@ def run(out, card):
 
         # ---- enter: the empty stage ----
         studio(action="enter")
+        studio(action="look", set="render.dither", value=0)  # (and with no dither: they are compared pixel for pixel, a flat backdrop to the level)
         studio(action="look", set="render.progressive", value=False)  # (the pictures below are compared as the fast path draws them; the progressive ones further down)
         s = settled("enter")
         check(s["look"] == "neutral" and s["item"] is None, f"entered, the neutral look, nothing summoned ({s['look']})")

@@ -190,6 +190,7 @@ static uint8_t* tag_mesh(const void* data, unsigned offset, const unsigned* geom
  * NULL; `tags` (may be NULL): each polygon's animated material, whose
  * polygons keep the effect's base UVs. Returns the polygon count (0: none or
  * out of memory). */
+extern float pc_stage_crease; /* studio_stage.c */
 static int decode_polygons(const unsigned* geometry, unsigned shift, render_polygon** out_polygons, int16_t* map,
     const uint8_t* tags)
 {
@@ -198,7 +199,7 @@ static int decode_polygons(const unsigned* geometry, unsigned shift, render_poly
     *out_polygons = polygons;
     if (!polygons)
         return 0;
-    int count = 0;
+    int count = 0, any_smooth = 0;
     const unsigned* poly = geometry + 2;
     for (unsigned i = 0; i < total; ++i) {
         int quad = i >= tris;
@@ -243,8 +244,13 @@ static int decode_polygons(const unsigned* geometry, unsigned shift, render_poly
          * semi-transparent (drawn at translucent markers). */
         out->code = (uint8_t)(code & 0xfe);
         out->flags = (uint8_t)((quad ? RENDER_POLY_QUAD : 0) | (code & 1 ? RENDER_POLY_DOUBLE_SIDED : 0));
+        /* The studio's stage (untextured: no page, palette or texel coordinates) is smooth: its vertices share the normal of the surface the polygons approximate. */
+        if (pc_stage_crease > 0 && !(code & 4) && !poly[6] && !poly[7])
+            out->flags |= RENDER_POLY_SMOOTH, any_smooth = 1;
         poly += quad ? 10 : 8;
     }
+    if (any_smooth)
+        render_polygons_smooth(polygons, count, pc_stage_crease);
     return count;
 }
 /* One mesh per distinct geometry block (groups may share one): all of its

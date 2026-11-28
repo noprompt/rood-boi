@@ -330,6 +330,8 @@ std::vector<Field>& fields()
     add({ "grain_highlights", FLOAT, V1(0.4f), 0, 2, "Film|Grain", "Response: highlights", "", nullptr, nullptr, 0 });
     add({ "grain_color", FLOAT, V1(0), 0, 1, "Film|Grain", "Colour grain", "0 monochrome, 1 per channel.", nullptr,
         nullptr, 0 });
+    add({ "dither", FLOAT, V1(0), 0, 4, "Film|Dither", "Dither", "Triangular noise of this many 8-bit levels (1: plus or minus one) added before the picture's 8 bits, fixed to the "
+        "screen's pixels: smooth gradients (a sky, a lit floor) show no contour steps. 0 off.", nullptr, nullptr, 0 });
     int offset = 0;
     for (Field& x : f) {
         x.offset = offset;
@@ -1175,7 +1177,7 @@ bool grade_needed(const Values& v)
 {
     Values d = defaults();
     static const char* const keys[] = { "exposure", "chromatic_aberration", "vignette", "grain", "tonemapper",
-        "temperature", "tint", "sharpen" };
+        "temperature", "tint", "sharpen", "dither" };
     for (const char* k : keys)
         if (get(v, k) != get(d, k))
             return true;
@@ -1628,6 +1630,7 @@ extern "C" void pc_post_gpu_pack(pc_post_gpu* out, int lit_w, int lit_h, int vie
     g[30][0] = get(v, "sharpen_gain"), g[30][1] = get(v, "vignette_gain");
     g[30][2] = frame.shoulder[0], g[30][3] = frame.shoulder[1];
     g[31][0] = get(v, "vignette_roundness"), g[31][1] = get(v, "lens_distortion");
+    g[31][2] = get(v, "dither");
 }
 
 /* ------------------------------------------------------------ the convolution kernel */

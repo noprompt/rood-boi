@@ -47,6 +47,9 @@ void pc_settings_env_override(const char* key) __attribute__((weak));
 extern float pc_gi_resolution __attribute__((weak));
 extern int pc_gte_widescreen __attribute__((weak));
 extern int pc_shadow_samples __attribute__((weak));
+extern float pc_stage_crease;
+int pc_post_override_set(const char* owner, const char* key, const char* value, char* why, int size) __attribute__((weak));
+void pc_post_override_clear(const char* owner, const char* key) __attribute__((weak));
 extern int pc_gi_progressive __attribute__((weak)), pc_gi_rays __attribute__((weak)), pc_gi_progress_count __attribute__((weak)), pc_gi_progress_target __attribute__((weak));
 int pc_aa_parse(const char* text) __attribute__((weak));
 const char* pc_aa_string(void) __attribute__((weak));
@@ -470,6 +473,7 @@ struct RenderState {
     float saved_gi = 0;
     int saved_shadow_samples = 0, saved_rays = 0;
     std::string saved_aa, applied_aa;
+    float dithered = 0;
 } render_state;
 void apply_render()
 {
@@ -529,6 +533,23 @@ void apply_render()
             render_state.applied_aa = aa->string;
         }
     }
+    pc_stage_crease = num("stage.crease", 70); // (the stage's vertex normals: studio_stage.c)
+    // Dither (render.dither: 8-bit levels of triangular noise before the picture's 8 bits, a post field the studio holds as its own): a smooth gradient shows no contour steps.
+    if (pc_post_override_set) {
+        float dither = num("render.dither", 1);
+        const Json* mode = at("backdrop.mode");
+        if (mode && mode->type == Json::String && mode->string == "solid")
+            dither = 0; // (a solid backdrop is its colour exactly)
+        if (dither != render_state.dithered) {
+            char why[96] = "", value[16];
+            snprintf(value, sizeof value, "%g", dither);
+            if (dither > 0)
+                pc_post_override_set("studio", "dither", value, why, sizeof why);
+            else if (pc_post_override_clear)
+                pc_post_override_clear("studio", "dither");
+            render_state.dithered = dither;
+        }
+    }
     render_state.on = true;
 }
 void remove_render()
@@ -536,6 +557,9 @@ void remove_render()
     if (!render_state.on)
         return;
     render_state.on = false;
+    pc_stage_crease = 0;
+    if (pc_post_override_clear)
+        pc_post_override_clear("studio", nullptr), render_state.dithered = 0;
     if (pc_hw_detail_view)
         pc_hw_detail_view(0);
     if (&pc_gi_resolution && render_state.saved_gi > 0)

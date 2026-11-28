@@ -46,6 +46,7 @@
 #define PG_SHARPEN_GAIN PG(30).x /* post sharpen_gain */
 #define PG_VIGNETTE_GAIN PG(30).y /* post vignette_gain */
 #define PG_SHOULDER PG(30).zw /* post shoulder_start, shoulder_width */
+#define PG_DITHER PG(31).z /* post dither: 8-bit levels of triangular noise */
 #define PG_VIGNETTE_ROUND PG(31).x /* post vignette_roundness: 1 a circle, 0 the frame's shape */
 #define PG_DISTORTION PG(31).y /* post lens_distortion: > 0 barrel, < 0 pincushion */
 
@@ -244,6 +245,11 @@ vec3 pg_pixel(vec4 centre, vec2 uv, vec2 st, vec2 st_per_uv)
         float s = 1.0 - smoothstep(0.0, 0.4, l), h = smoothstep(0.6, 1.0, l);
         float response = PG(2).x * s + PG(2).z * h + PG(2).y * max(1.0 - s - h, 0.0);
         outc += n * PG_GRAIN * response * 0.12;
+    }
+    // Dither: triangular noise of PG_DITHER levels of 8 bits, fixed to the view's pixels (a still picture stays still), before the 8-bit write.
+    if (PG_DITHER > 0.0) {
+        vec2 px = floor(uv * PG_VIEW);
+        outc += (pg_hash(vec3(px, 17.0)) + pg_hash(vec3(px, 41.0)) - 1.0) * PG_DITHER / 255.0;
     }
     // The game's screen fade (a full-screen subtractive quad, gpu_hw.c BLEND_FADE), as the PS1 subtracts it.
     // Where it covers: the whole view, or (widescreen without the cover fix) the 4:3 middle.

@@ -105,6 +105,83 @@ static void face_normal(const render_polygon* p, float n[3])
     for (int k = 0; k < 3; k++)
         n[k] = length > 0 ? n[k] / length : 0;
 }
+/* The vertex normals of the polygons marked RENDER_POLY_SMOOTH (render.h): welded by position (a hash of the rounded corner), each corner the sum of the area-weighted face
+ * normals of the marked polygons at that point within the crease angle of its own face. */
+void render_polygons_smooth(render_polygon* polygons, int count, float crease_degrees)
+{
+    typedef struct { int x, y, z, next; float n[3]; } corner_t;
+    int marked = 0;
+    for (int i = 0; i < count; i++)
+        marked += (polygons[i].flags & RENDER_POLY_SMOOTH) != 0;
+    if (!marked)
+        return;
+    /* every marked polygon's corners (and its face normal, unnormalised: its length is twice the area for a triangle) */
+    int cap = 1, corners = 0;
+    while (cap < marked * 8)
+        cap <<= 1;
+    int* head = malloc((size_t)cap * sizeof *head);
+    corner_t* list = malloc((size_t)marked * 4 * sizeof *list);
+    float(*face)[3] = malloc((size_t)count * sizeof *face);
+    if (!head || !list || !face) {
+        free(head), free(list), free(face);
+        return;
+    }
+    memset(head, 0xff, (size_t)cap * sizeof *head);
+    for (int i = 0; i < count; i++) {
+        render_polygon* p = &polygons[i];
+        if (!(p->flags & RENDER_POLY_SMOOTH))
+            continue;
+        float f[3];
+        face_normal(p, f);
+        /* face_normal returns a unit vector: the area weight is the polygon's size */
+        const float *a = p->position[0], *b = p->position[1], *c = p->position[2];
+        float e1[3] = { b[0] - a[0], b[1] - a[1], b[2] - a[2] }, e2[3] = { c[0] - a[0], c[1] - a[1], c[2] - a[2] };
+        float cx = e1[1] * e2[2] - e1[2] * e2[1], cy = e1[2] * e2[0] - e1[0] * e2[2], cz = e1[0] * e2[1] - e1[1] * e2[0];
+        float area = 0.5f * sqrtf(cx * cx + cy * cy + cz * cz);
+        if (p->flags & RENDER_POLY_QUAD) {
+            const float* d = p->position[3];
+            float e3[3] = { d[0] - a[0], d[1] - a[1], d[2] - a[2] };
+            float qx = e2[1] * e3[2] - e2[2] * e3[1], qy = e2[2] * e3[0] - e2[0] * e3[2], qz = e2[0] * e3[1] - e2[1] * e3[0];
+            area += 0.5f * sqrtf(qx * qx + qy * qy + qz * qz);
+        }
+        memcpy(face[i], f, sizeof f);
+        for (int k = 0; k < ((p->flags & RENDER_POLY_QUAD) ? 4 : 3); k++) {
+            corner_t* q = &list[corners];
+            q->x = (int)lroundf(p->position[k][0]), q->y = (int)lroundf(p->position[k][1]), q->z = (int)lroundf(p->position[k][2]);
+            q->n[0] = f[0] * area, q->n[1] = f[1] * area, q->n[2] = f[2] * area;
+            unsigned h = ((unsigned)q->x * 73856093u ^ (unsigned)q->y * 19349663u ^ (unsigned)q->z * 83492791u) & (unsigned)(cap - 1);
+            q->next = head[h];
+            head[h] = corners++;
+        }
+    }
+    float cosine = cosf(crease_degrees * 3.14159265f / 180.0f);
+    for (int i = 0; i < count; i++) {
+        render_polygon* p = &polygons[i];
+        if (!(p->flags & RENDER_POLY_SMOOTH))
+            continue;
+        for (int k = 0; k < 4; k++) {
+            int s = (p->flags & RENDER_POLY_QUAD) || k < 3 ? k : 2;
+            int x = (int)lroundf(p->position[s][0]), y = (int)lroundf(p->position[s][1]), z = (int)lroundf(p->position[s][2]);
+            unsigned h = ((unsigned)x * 73856093u ^ (unsigned)y * 19349663u ^ (unsigned)z * 83492791u) & (unsigned)(cap - 1);
+            float sum[3] = { 0, 0, 0 };
+            for (int j = head[h]; j >= 0; j = list[j].next) {
+                const corner_t* q = &list[j];
+                if (q->x != x || q->y != y || q->z != z)
+                    continue;
+                float len = sqrtf(q->n[0] * q->n[0] + q->n[1] * q->n[1] + q->n[2] * q->n[2]);
+                float d = len > 0 ? (q->n[0] * face[i][0] + q->n[1] * face[i][1] + q->n[2] * face[i][2]) / len : 0;
+                if (len <= 0 || fabsf(d) < cosine)
+                    continue;
+                float sign = d < 0 ? -1.0f : 1.0f; /* (a face wound the other way is the same surface: the normal that points the same way as this polygon's) */
+                sum[0] += sign * q->n[0], sum[1] += sign * q->n[1], sum[2] += sign * q->n[2];
+            }
+            float len = sqrtf(sum[0] * sum[0] + sum[1] * sum[1] + sum[2] * sum[2]);
+            for (int a = 0; a < 3; a++)
+                p->vnormal[k][a] = len > 0 ? sum[a] / len : face[i][a];
+        }
+    }
+    free(head), free(list), free(face);
+}
 /* Four vertices per polygon (triangles repeat their last). */
 static mesh_vertex* mesh_vertices(const render_polygon* polygons, int count, const uint16_t* scope, const uint16_t* variant)
 {
@@ -121,7 +198,7 @@ static mesh_vertex* mesh_vertices(const render_polygon* polygons, int count, con
             int s = (p->flags & RENDER_POLY_QUAD) || k < 3 ? k : 2;
             mesh_vertex* v = &vertices[i * 4 + k];
             memcpy(v->position, p->position[sprite ? 0 : s], sizeof v->position);
-            memcpy(v->normal, n, sizeof n);
+            memcpy(v->normal, (p->flags & RENDER_POLY_SMOOTH) && !sprite ? p->vnormal[s] : n, sizeof n);
             if (sprite) {
                 /* The vertex's screen offset and the depth it was measured
                  * at, in place of the normal (sprites face the camera). */

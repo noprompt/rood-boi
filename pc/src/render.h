@@ -39,11 +39,15 @@ enum {
      * was at depth `offset_depth` (they scale with offset_depth / depth, as
      * the game's sprites do). Drawn facing the camera at the centre's depth. */
     RENDER_POLY_SPRITE = 8,
+    /* Smooth shading: `vnormal` holds a normal for each vertex (model space), interpolated across the polygon; without the flag the polygon has the one normal. A
+     * polygon marked for render_polygons_smooth before the call has them made by it. */
+    RENDER_POLY_SMOOTH = 16,
 };
 #define RENDER_MAX_BONES 64
 typedef struct {
     float position[4][3]; /* model (bone) space; [3] unused for triangles */
     float normal[3]; /* model space; zero: computed from the positions */
+    float vnormal[4][3]; /* RENDER_POLY_SMOOTH: a normal for each vertex (model space) */
     uint8_t uv[4][2];
     uint8_t rgb[4][3]; /* baked PS1 vertex colour (128 = texel as is) */
     uint16_t tpage, clut; /* GPU texture page (blend mode bits 5-6, depth 7-8) and CLUT */
@@ -65,6 +69,9 @@ typedef struct {
  * handle stays invalid even after its slot is reused. */
 typedef uint32_t render_mesh;
 render_mesh render_mesh_create(const render_polygon* polygons, int count);
+/* The vertex normals of the polygons marked RENDER_POLY_SMOOTH: the average, weighted by area, of the face normals of the marked polygons that share the vertex
+ * (its position) and lie within `crease_degrees` of this polygon's face; a crease sharper than that stays an edge. The polygons' positions stay as they are. */
+void render_polygons_smooth(render_polygon* polygons, int count, float crease_degrees);
 /* A mesh for this frame only (effects rebuilt every frame): destroyed by the
  * renderer once the frames that may replay it are gone. */
 render_mesh render_mesh_transient(const render_polygon* polygons, int count);

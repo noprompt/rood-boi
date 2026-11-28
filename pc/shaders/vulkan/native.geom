@@ -21,7 +21,7 @@ layout(location = 2) smooth centroid out vec3 v_color_persp;
 layout(location = 3) smooth centroid out vec2 v_uv_persp;
 layout(location = 4) smooth centroid out float v_z;
 layout(location = 5) flat out uvec4 v_state; // flags | material variant << 8, tpage, clut, effect | halved << 8 | emissive scope bits << 16
-layout(location = 6) flat out vec3 v_normal;
+layout(location = 6) out vec3 v_normal; // interpolated: a polygon whose vertices carry their own normals (render_polygon.vnormal) is shaded smooth; the rest have one normal at all its corners
 layout(location = 7) flat out uvec4 v_bounds;
 layout(location = 8) smooth centroid out vec3 v_view; // view space, rows' scales divided out (cutaway)
 layout(location = 9) flat out int v_cut; // bit 0: the polygon stands between the eye and the cutaway focus;
@@ -36,6 +36,8 @@ vec2 s[4];
 uint tpage, clut, pcode;
 uint effect = 0u, halved = 0u;
 vec3 n;
+bool corner_normals = false;
+vec3 vertex_normal[4]; // each corner's normal (the polygon's own at all four unless it is smooth)
 float z_near = 0.0; // sprites: tested and written at their nearest point
 int cut = 0, occl_bits = 0;
 int tri_edges = 7, corner = 0; // a quad's diagonal is no edge
@@ -53,7 +55,7 @@ void emit(int i) {
     v_uv_affine = v_uv_persp = uv[i];
     v_z = q.z - z_near;
     v_state = uvec4((pcode & 7u) | (g_variant[0] << 8), tpage, clut, effect | (halved << 8) | (g_scope[0] << 16));
-    v_normal = n;
+    v_normal = corner_normals ? vertex_normal[i] : n;
     v_view = q * u.cut_scale.xyz;
     v_cut = cut | (tri_edges << 1) | (occl_bits << 4);
     v_bary = vec3(corner == 0 ? 1.0 : 0.0, corner == 1 ? 1.0 : 0.0, corner == 2 ? 1.0 : 0.0);
@@ -258,7 +260,15 @@ void main() {
     n = u.normal_matrix * g_normal[0];
     float length_ = length(n);
     n = length_ > 1e-6 ? n / length_ : vec3(0.0, 0.0, -1.0);
-    if (dot(n, p[0]) > 0.0) n = -n;
+    bool flip = dot(n, p[0]) > 0.0;
+    if (flip) n = -n;
+    for (int i = 0; i < 4; i++) { // (the same for all four where the polygon has one normal: g_normal[i] is g_normal[0])
+        vec3 t = u.normal_matrix * g_normal[i];
+        float l = length(t);
+        t = l > 1e-6 ? t / l : vec3(0.0, 0.0, -1.0);
+        vertex_normal[i] = flip ? -t : t;
+    }
+    corner_normals = true;
     cutaway_test(quad);
     occlusion_test(quad);
     tri_edges = quad ? 6 : 7;

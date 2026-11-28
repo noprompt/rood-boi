@@ -172,6 +172,9 @@ unsigned pc_stage_build(const pc_stage_cfg* c, float cx, float fy, float cz, uns
 }
 
 
+/* The angle between two faces up to which the stage's vertex normals are averaged across them (studio data stage.crease; 0: each polygon keeps its own flat normal). */
+float pc_stage_crease = 0; /* (off: the game's rooms are not smoothed; the studio sets it) */
+
 /* The block's polygons for the renderer (room_native.c decode_polygons' reading of the same words): returns the count, malloc'd in *out. */
 int pc_stage_polygons(const unsigned char* block, unsigned length, void** out)
 {
@@ -200,8 +203,11 @@ int pc_stage_polygons(const unsigned char* block, unsigned length, void** out)
         }
         o->code = (uint8_t)((poly[3] >> 24) & 0xfe);
         o->flags = (uint8_t)((quad ? RENDER_POLY_QUAD : 0) | ((poly[3] >> 24) & 1 ? RENDER_POLY_DOUBLE_SIDED : 0));
+        if (pc_stage_crease > 0)
+            o->flags |= RENDER_POLY_SMOOTH;
         poly += quad ? 10 : 8;
     }
+    render_polygons_smooth(polygons, (int)total, pc_stage_crease);
     *out = polygons;
     return (int)total;
 }
