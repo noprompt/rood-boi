@@ -30,6 +30,14 @@ again) are compared action by action. Where the new build records them
 functions and counted against all of the build's (the coverage the frames cover).
 Slow (several minutes); its actions are the spells' effect plugins, not every one.
 
+    python3 pc/tools/build_compare.py OLD_BINARY --states [--rooms 'zone,room;..'] [--menus a,b]
+
+The state lane (the routine gate; no picture, no GPU, a few minutes): the fight (and each room of --rooms) and the menu routes of
+--menus (default: the whole list in STATE_ROUTES) played with the null renderer, and compared as the game's own state: the fight's
+actors, objects, AI and effects field by field at each sample (RPC battle_state), the game's memory hashes (RPC snapshot hash: state,
+heap, overlays) at each sample of every route, and the drawing stream's chain (the items the game made). Nothing the renderer does
+can change them, so a difference is a logic or draw-data bug.
+
     python3 pc/tools/build_compare.py OLD_BINARY --menus [ending,menuf] [--vram-stream] [--menu-sample N] [--claims off] [--aspect 16:9] [--new-env K=V]
 
 The menus' lane: the screens the classic UI draws, reached by the routes classic_parity.py tours them by (the
@@ -299,6 +307,39 @@ def play(binary, seconds, card, out):
         for log in out.glob("*.log"):
             (pathlib.Path(keep_logs) / f"{os.getpid()}-{log.name}").write_bytes(log.read_bytes())
     print("RESULT" + json.dumps({"frames": frames, "casts": casts, "drops": drops, "states": states, "sites": sites, "stream": taken[1]}))
+
+
+def state_hash(g):
+    """The game's memory as RPC snapshot hash has it (not the VRAM array, the layout or the code key, which a build changes without the game's state changing)."""
+    h = g.call("snapshot", action="hash")
+    return ":".join(h[k][:8] for k in ("state", "heap", "overlays")) + (":g" if h.get("guard_free") else "")  # (g: heap and overlays hashed without the stack guard, which a run draws at random: a build without it compares the game's statics only)
+
+
+def play_states(binary, seconds, card, out):
+    """The fight with the null renderer: at each sample the battle state and the game's memory hashes, as JSON on stdout."""
+    os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_ARCH="64", ROOD_TEST_SNAPSHOTS="0")
+    sys.path[:0] = [str(ROOT / "pc/tools"), str(ROOT / "pc/tests")]
+    cover(binary)
+    from checkpoints import launch_at
+    out = pathlib.Path(out)
+    (out / "settings.cfg").write_text("qol_skip_charging 0\nui_menus 0\nshader_reload 0\n")
+    g = launch_at("save_room", card=card, fast=True, headless="null", log=out / "states.log", extra_env={
+        "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none", "ROOD_PLUGINS_SHIPPED": frozen_plugins(out), "ROOD_OUT": str(out)})
+    states, hashes, layout = [], [], None
+    try:
+        layout = g.call("snapshot", action="hash").get("layout_key")
+        g.call("room_goto", hold=True, zone=ROOM[0], room=ROOM[1], enemies=True, scripts=False)
+        for _ in range(80):
+            g.run(20)
+            if g.call("room_goto", action="status")["phase"] in (0, 4):
+                break
+        for _ in range(seconds * 4):
+            g.run(15)
+            states.append(g.call("battle_state"))
+            hashes.append(state_hash(g))
+    finally:
+        g.close()
+    print("RESULT" + json.dumps({"states": states, "hashes": hashes, "layout_key": layout}))
 
 
 DRIVE_CRASHES = {}  # action id -> why the driver skips it (none: a valid id does not crash)
@@ -674,7 +715,7 @@ def hashed(g, out, sample, hashes, taken=None, first=None):
                 stream_take(g, taken)
             if state["t"] % sample == 0:
                 if os.environ.get("BUILD_COMPARE_ITEMS"):  # (the null renderer draws no pixels: the sample is the drawing stream's chain, RPC stream)
-                    hashes.append(g.call("stream", count=0)["chain"][:12])
+                    hashes.append(g.call("stream", count=0)["chain"][:12] + (":" + state_hash(g) if os.environ.get("BUILD_COMPARE_STATES") else ""))
                 elif PRESENT:  # (the presented picture alone: see the fight lane)
                     hashes.append("-~" + present_hash(g, out))
                 else:
@@ -1275,8 +1316,21 @@ def env_of(binary, args):
     return args.new_env if binary == args.new else []
 
 
+@contextlib.contextmanager
+def workdir():
+    """The directory a lane's game runs in: a temporary one, or for the state lane the same path every time (the game keeps paths in its memory, which the state hashes cover)."""
+    if os.environ.get("BUILD_COMPARE_STATES"):
+        out = ROOT / "pc/build/states-lane"
+        shutil.rmtree(out, ignore_errors=True)
+        out.mkdir(parents=True)
+        yield str(out)
+    else:
+        with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
+            yield out
+
+
 def run_menus(binary, args, names):
-    with tempfile.TemporaryDirectory(prefix="build-compare-", dir=ROOT / "pc/build") as out:
+    with workdir() as out:
         done = subprocess.run([sys.executable, __file__, "--play-menus", binary, "--menus", ",".join(names), "--menu-sample",
                                str(args.menu_sample), "--claims", args.claims, "--aspect", args.aspect, "--renderer", args.renderer] + [a for kv in args.setting for a in ("--setting", kv)] + [ "--card", args.card, "--out", out]
                               + [a for kv in env_of(binary, args) for a in ("--env", kv)],
@@ -1459,6 +1513,65 @@ def compare_rooms(args):
     if sites:
         ran, calls, fran, fall, pran, pall = coverage(args.new, sorted(sites))
         print(f"effect polygon call sites run: {ran} of {calls}; functions {fran} of {fall}; plugins {pran} of {pall}")
+    return code
+
+
+STATE_ROUTES = "title,map,storage,manual,setup,score,items,status,data,loot,mainmenu,magic,arts,abilities,levelled"  # the menu routes of the state lane (the routes' list in the menus lane)
+
+
+def run_states(binary, args, env=None):
+    with workdir() as out:
+        done = subprocess.run([sys.executable, __file__, "--play-states", binary, "--seconds", str(args.seconds), "--card", args.card,
+                               "--out", out], capture_output=True, text=True, env=env)
+        tails = log_tails(out) if not any(line.startswith("RESULT") for line in done.stdout.splitlines()) else ""
+    lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
+    if not lines:
+        sys.exit(f"build_compare: {binary} did not finish (exit {done.returncode}):\n{done.stderr[-1500:]}\n{tails}")
+    return json.loads(lines[-1][6:])
+
+
+def compare_state_lane(args):
+    """--states: the fight (and each of --rooms) and the menu routes, old and new, as the game's own state (see the top of this file).
+    Gated on the game's statics (RPC snapshot hash `state`), the fight's actors field by field, the drawing stream's chain and the end
+    state's statics. The heap and the overlays' statics are hashed too and reported, but two runs of one build differ in them (host
+    pointers the game keeps: a saved stack address, a socket name), so they gate nothing: --control says how much they differ by themselves."""
+    code, began = 0, time.time()
+    os.environ["BUILD_COMPARE_STATES"] = "1"
+    os.environ["ROOD_NO_ASLR"] = "1"  # (the game's memory holds pointers: two runs put them at the same addresses)
+    os.environ["ROOD_RPC"] = str(ROOT / "pc/build/states-lane.sock")  # (and the RPC socket's path, which it holds too: not one with the process id in it)
+    rooms = [None] + ([r for r in args.rooms.split(";") if r] if args.rooms else [])
+    for room in rooms:
+        env = dict(os.environ, **({"BUILD_COMPARE_ROOM": room} if room else {}))
+        first = run_states(args.old, args, env)
+        new = run_states(args.new, args, env)
+        step = compare_states(first, new)
+        statics = lambda r: [x.split(":")[1] for x in r["hashes"]]
+        comparable = first["layout_key"] == new["layout_key"]  # (a build that changed the state sections' symbols or sizes hashes them differently)
+        bad = next((i for i, (a, b) in enumerate(zip(statics(first), statics(new))) if a != b), None) if comparable else None
+        rest = len([1 for a, b in zip(first["hashes"], new["hashes"]) if a.split(":")[2:4] != b.split(":")[2:4]])
+        print(f"fight {room or ','.join(map(str, ROOM))}: {len(first['hashes'])} samples; statics {'not comparable (the layout differs)' if not comparable else 'equal' if bad is None else f'differ from sample {bad}'}; heap and overlays differ at {rest} samples (not gated)", flush=True)
+        if step is not None or bad is not None:
+            code = 1
+    names = [n for n in (args.menus or STATE_ROUTES).split(",") if n]
+    unknown = [n for n in names if n not in SCENES]
+    if unknown:
+        sys.exit(f"build_compare: no route {unknown} (have {', '.join(SCENES)})")
+    args.renderer = "null"
+    first, new = run_menus(args.old, args, names), run_menus(args.new, args, names)
+    for name in names:
+        a, b = first[name], new[name]
+        part = lambda r, i: [h.split(":")[i] for h in r["hashes"]]  # (the drawing stream's chain, the statics, the heap, the overlays' statics)
+        chain = differing({"frames": part(a, 0)}, {"frames": part(b, 0)})
+        comparable = ((a["final"] or {}).get("snapshot") or {}).get("layout_key") == ((b["final"] or {}).get("snapshot") or {}).get("layout_key")
+        statics = differing({"frames": part(a, 1)}, {"frames": part(b, 1)}) if comparable else []
+        rest = len(differing({"frames": [":".join(h.split(":")[2:4]) for h in a["hashes"]]}, {"frames": [":".join(h.split(":")[2:4]) for h in b["hashes"]]}))
+        end, end_new = ((r["final"] or {}).get("snapshot") for r in (a, b))
+        end_same = end is not None and end_new is not None and (not comparable or end.get("state") == end_new.get("state"))
+        print(f"{name}: {len(a['hashes'])} samples; drawing stream {'equal' if not chain else f'differs from sample {chain[0]}'}, statics {'not comparable (the layout differs)' if not comparable else 'equal' if not statics else f'differ from sample {statics[0]}'}; "
+              f"end statics {'equal' if end_same else 'DIFFERENT'}; heap and overlays differ at {rest} samples (not gated)", flush=True)
+        if chain or statics or not end_same:
+            code = 1
+    print(f"states lane: {'every state equal' if not code else 'DIFFERENCES'} in {time.time() - began:.0f} s")
     return code
 
 
@@ -1671,6 +1784,8 @@ def main():
     parser.add_argument("--cast-limit", type=int, default=0, help="--casts: stop after this many actions")
     parser.add_argument("--play", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--play-casts", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--play-states", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--states", action="store_true", help="the state lane, the routine gate: fight (and --rooms) and the menu routes (--menus, default all) with the null renderer, compared as the game's state, the memory hashes and the drawing stream; no pictures")
     parser.add_argument("--play-audio", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--play-audio-rooms", metavar="ROOMS", help=argparse.SUPPRESS)
     parser.add_argument("--audio-rooms", metavar="'zone,room[=music];...'", help="only the sound lane, over these rooms (=music: the id of MUSIC<id>.DAT the zone plays there): each room's recorded mix, old against new, byte for byte")
@@ -1713,6 +1828,10 @@ def main():
         PRESENT = True
     if args.play:
         return play(args.old, args.seconds, args.card, args.out)
+    if args.play_states:
+        return play_states(args.old, args.seconds, args.card, args.out)
+    if args.states:
+        return compare_state_lane(args)
     if args.play_audio:
         return play_audio(args.old, args.card, args.out)
     if args.play_audio_rooms:

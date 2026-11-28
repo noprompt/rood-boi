@@ -31,6 +31,14 @@ class Ps1AddressLintTest(unittest.TestCase):
         for name in ("pc_hw_sample_texture", "pc_hwc_texture_sample", "own_from_target", "pc_frame_read", "pc_hwc_capture_picture"):  # (GPU-side, a caller of the read, or no write into the array)
             self.assertFalse(rule.search(name + "(x);"), name)
 
+    def test_game_code_names_no_renderer_symbol(self):
+        rule = lint.RULES["renderer_symbol"]
+        for text in ('psx.weak(Anchor, "pc_hw_anchor_packets")', "extern int pc_hw_opacity_on(void);", "render_mesh_posed(m);", "pc_vk_hw_capture(0, 1, 2, 3, 4);"):
+            self.assertTrue(rule.search(text), text)
+        for text in ("vs_render_drawGimTiles(p);", "render_text_immediate(x);", "pc_frame_sprite(1, 2);"):  # (the game's own names)
+            self.assertFalse(rule.search(text), text)
+        self.assertEqual(lint.ONLY_UNDER["renderer_symbol"], ("game/", "pc/src/game/"))  # (the renderer's own files name them freely)
+
     def test_only_a_rise_fails(self):
         rose, fell = lint.compare({"a": 5, "b": 2, "c": 3}, {"a": 4, "b": 3, "c": 3})
         self.assertEqual(rose, {"a": (4, 5)})

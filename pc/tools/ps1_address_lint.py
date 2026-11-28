@@ -101,10 +101,14 @@ RULES = {
     # array (StoreImage of a drawn area, a sprite sampling the frame, screenshots and checkpoints), counted so that it only falls (T5-7).
     "cpu_raster": re.compile(r"^\s*\S"),
     "stale_area": re.compile(r"\b(?:pc_hw_raster_skip|pc_hw_mark_raster|pc_hwc_mark_raster|pc_hwc_raster_post|pc_hw_raster_apply|raster_refresh)\b"),
+    # renderer_symbol (the native renderer plan, K0): game code (game/ and pc/src/game/) names nothing of the renderer. The renderer reads what the
+    # game publishes and the game never reads the renderer; what is left are hints going one way (the widescreen anchors, the opacity setting)
+    # that become fields of what the game publishes. Counted so that it only falls.
+    "renderer_symbol": re.compile(r"\b(?:pc_hw_\w+|pc_hwc_\w+|pc_vk_\w+|pc_rq_\w+|pc_native_(?:vram|room|actors|objects|shadows|effects|blend)\w*|render_(?:list|mesh|instance|scene)\w*|pc_gpu_\w+)\b"),
     "vram_readback": re.compile(r"\b(?:pc_hw_sync(?:_store|_texture|s)?|pc_hwc_fence_sync|pc_rq_readback_apply|pc_hw_capture_read|rvram_apply|pc_hw_stale\w*|pc_hwc_stale\w*)\b"),
 }
 # Rules that count only under a path (the others count in every tree).
-ONLY_UNDER = {"vram_frame_readers": ("pc/src/game/TITLE/", "pc/src/game/MENU/MENU5.PRG/", "pc/src/game/MENU/MENU7.PRG/"),
+ONLY_UNDER = {"renderer_symbol": ("game/", "pc/src/game/"), "vram_frame_readers": ("pc/src/game/TITLE/", "pc/src/game/MENU/MENU5.PRG/", "pc/src/game/MENU/MENU7.PRG/"),
               "cpu_raster": ("pc/src/boot_polygons.inc", "pc/src/boot_lines.inc")} # (the files are gone: 0)
 # Rules that leave out paths: the SDK's own libgpu and the walker that draws the packets (they are what the game's
 # packets are for, T16), and the typed items' lowering to packets (it goes when a renderer takes items directly).

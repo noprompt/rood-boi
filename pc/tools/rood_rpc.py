@@ -438,7 +438,10 @@ def _die_with_parent():
     try:
         import ctypes
         import signal
-        ctypes.CDLL("libc.so.6", use_errno=True).prctl(1, signal.SIGTERM)  # PR_SET_PDEATHSIG
+        libc = ctypes.CDLL("libc.so.6", use_errno=True)
+        libc.prctl(1, signal.SIGTERM)  # PR_SET_PDEATHSIG
+        if os.environ.get("ROOD_NO_ASLR"):  # the state lane: two runs put their pointers at the same addresses, which the game's memory holds
+            libc.personality(libc.personality(0xffffffff) | 0x0040000)  # ADDR_NO_RANDOMIZE
     except (OSError, AttributeError):
         pass
 

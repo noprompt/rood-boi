@@ -415,6 +415,25 @@ static uint64_t fnv(const void* data, size_t size, uint64_t h)
     return h;
 }
 #define FNV0 1469598103934665603ull
+/* The same over memory with the process's stack guard read as zero: the guard is a fresh random value each run and sits in every saved stack
+ * frame of the game's code, so two runs of the same game state hash alike only without it (RPC snapshot hash and ranges). */
+static uint64_t fnv_guard_free(const void* data, size_t size, uint64_t h)
+{
+    uint64_t guard;
+    __asm__("movq %%fs:0x28, %0" : "=r"(guard));
+    const unsigned char* p = data;
+    size_t i = 0;
+    for (; i < size; i++) {
+        if (guard && !((uintptr_t)(p + i) & 7) && size - i >= 8 && memcmp(p + i, &guard, 8) == 0) {
+            for (int k = 0; k < 8; k++)
+                h = (h ^ 0) * 1099511628211ull;
+            i += 7;
+            continue;
+        }
+        h = (h ^ p[i]) * 1099511628211ull;
+    }
+    return h;
+}
 /* The keys a snapshot must match: the pinned layout's (64 bits), else a hash
  * of the whole code (the same binary only). */
 static uint64_t code_key(void)
@@ -1044,7 +1063,7 @@ int pc_snapshot_ranges(char* out, int size, int dump, const char* path)
     for (int i = 0; i < n && used < size - 160; i++)
         used += snprintf(out + used, (size_t)(size - used), "%s{\"name\":\"%s\",\"start\":%llu,\"size\":%llu,\"hash\":\"%016llx\"}",
             i ? "," : "", r[i].name, (unsigned long long)(uintptr_t)r[i].start, (unsigned long long)r[i].size,
-            (unsigned long long)fnv(r[i].start, r[i].size, FNV0));
+            (unsigned long long)fnv_guard_free(r[i].start, r[i].size, FNV0));
     return used + snprintf(out + used, (size_t)(size - used), "]}");
 }
 
@@ -1059,16 +1078,16 @@ int pc_snapshot_hash(char* out, int size)
     uint64_t state = FNV0, overlays = FNV0, heap = FNV0;
     for (int i = 0; i < n; i++) {
         if (!strcmp(r[i].name, "heap"))
-            heap = fnv(r[i].start, r[i].size, FNV0);
+            heap = fnv_guard_free(r[i].start, r[i].size, FNV0);
         else if (r[i].name[0] == 's') /* state_data, state_bss */
-            state = fnv(r[i].start, r[i].size, state);
+            state = fnv_guard_free(r[i].start, r[i].size, state);
         else
-            overlays = fnv(r[i].start, r[i].size, overlays);
+            overlays = fnv_guard_free(r[i].start, r[i].size, overlays);
     }
     return snprintf(out, (size_t)size,
         "{\"heap\":\"%016llx\",\"state\":\"%016llx\","
         "\"overlays\":\"%016llx\",\"vram\":\"%016llx\",\"vsync\":%u,\"code_key\":\"%016llx\","
-        "\"layout_key\":\"%016llx\"}",
+        "\"layout_key\":\"%016llx\",\"guard_free\":true}",
         (unsigned long long)heap, (unsigned long long)state,
         (unsigned long long)overlays, (unsigned long long)pc_vram_transfer_digest(FNV0),
         pc_vsync_count(), (unsigned long long)code_key(), (unsigned long long)layout_key());

@@ -213,6 +213,27 @@ by the same harness (`checkpoints.harness_key()`: `checkpoints.py`,
 `snapshot_equivalence.py`, `snapshot_diff.py`) is not validated again;
 `snapshot_equivalence.py --again` does.
 
+## The state lane (`build_compare.py --states`)
+
+The routine gate for any change that is not a picture change: the fight (and each room of `--rooms`) and the menu routes played with the
+null renderer (no GPU, no pixels), old binary and new, compared as the game's own state. Gated on: the fight's actors, objects, AI and
+effects field by field at every sample (RPC `battle_state`); the drawing stream's chain at every sample of every route (the items the game
+made); and, when the two builds have the same layout key, the game's statics (RPC `snapshot hash`, `state`) at every sample and at the end.
+The heap and the overlays' statics are hashed and reported but gate nothing: a run keeps host pointers in them (a saved stack address, a
+socket name) that differ between two runs of one build. The lane makes everything else the same in both runs (`ROOD_NO_ASLR`, the same
+output directory and RPC socket path, a stack-guard-free hash). Nothing the renderer does can change what it compares, so a difference
+is a logic or draw-data bug; a picture change shows only on the paired frames. About 2 to 3 minutes on two cores at nice 19 (fight and
+15 routes). `python3 pc/tools/build_compare.py OLD --states [--rooms 'zone,room;..'] [--menus a,b] [--seconds N]`.
+
+## Paired frames (`paired_frames.py`)
+
+For a change that is meant to move a picture: `paired_frames.py OLD` renders nine views (title, the opening's first bubble, the save room,
+the fight in three rooms at two moments) with OLD and the current build, writes a sheet a view (old | new | difference x4) under
+`pc/build/paired-frames` and prints the mean luminance and channel means of each view's whole, top, middle and bottom with their ratio;
+a ratio beyond 3% is marked DRIFT. `--record` writes the current build's table to `pc/tests/look_reference.json` (numbers, no pictures)
+and `--check` compares the current build with it without an old binary. About 15 to 30 s on two cores. The original's values are the
+defaults: a look change that moves them is a finding for the user's sheet, not a note.
+
 ## Measured
 
 All on the RTX PRO 6000 / Core Ultra 7 265K (8 P + 12 E cores), wall time
