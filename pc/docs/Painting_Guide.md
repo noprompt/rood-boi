@@ -1,6 +1,6 @@
 # Painting material maps for a model
 
-This guide takes you from nothing to a painted model: summon a character, enemy or weapon in the game's model studio, paint how its surfaces look in Aseprite (shiny or dull, metal or cloth, flat or raised) and watch the game show every stroke as you paint it.
+This guide takes you from nothing to a painted model: summon a character, enemy or weapon in the game's model studio, paint how its surfaces look in Aseprite, or in PhotoCraft if you want layer masks (shiny or dull, metal or cloth, flat or raised) and watch the game show every stroke as you paint it.
 
 You do not paint colour. The game's own texture stays as it is; you paint extra maps that tell the lighting how each pixel of it behaves.
 
@@ -160,6 +160,53 @@ python3 pc/tools/paint_roundtrip.py unpack <the pack file> pc/user/paint/model-<
 ```
 
 The strokes go into your Aseprite files and into your game, as if you had painted and saved them. A pack made for another model is refused, with a message saying what to export.
+
+## Painting in PhotoCraft (layer masks, fill layers, blend modes)
+
+[PhotoCraft](https://github.com/storytold/photocraft) is a Photoshop-like editor with real layer masks, so you can paint a region once and let a mask decide where it applies. It is a second painter beside Aseprite: the same maps, the same live link into the game, a different set of tools. Needs PhotoCraft 0.23 or later on the PATH (`photocraft`).
+
+### Start
+
+Run the same export as for Aseprite, with `--painter photocraft`, while the game is running (the model is the one summoned in the studio):
+
+```
+python3 pc/tools/paint_roundtrip.py paint model --model 7d3ede67 --game pc/build/boot/rpc-live.sock --painter photocraft
+```
+
+This writes one layered Photoshop file per texture page into `pc/user/paint/model-<id>/photocraft/` (`<texture>.psd`), starts a separate PhotoCraft with them open (your own PhotoCraft, if you have one open, is left alone), and runs the live link in that terminal. Leave the terminal running. It stops when you close the package's documents in PhotoCraft, when PhotoCraft quits, or with Ctrl+C. If a PhotoCraft started this way for the package is still open, the files open in it instead. `--photocraft-port N` picks the control port (default: the first free one from 47490). To start the link for a package that is already exported: `python3 pc/tools/paint_roundtrip.py photocraft pc/user/paint/model-<id>`.
+
+PhotoCraft's control server listens on `127.0.0.1` only, with a token the tool keeps in `photocraft/.control-token` (mode 0600) and checks with a challenge that never sends it; PhotoCraft may read and write only that `photocraft/` folder.
+
+### The layers
+
+Each file has, bottom to top:
+
+- **Game colour (reference)**: the game's texture, locked. Not imported.
+- **Height**, **Metal**, **Roughness**: groups. Each holds one layer, "<name> from the game": the game's current map, grey and opaque where the game has a map and transparent where it has none (transparent means "the game's own value"). Paint inside the group. Height: 128 grey is flat, lighter is raised, darker is sunk. Metal: black is not metal, white is metal. Roughness: white is matte, black is mirror-like.
+
+What the game gets for a channel is PhotoCraft's picture of that group alone, laid over the game's value: masks, fill layers, blend modes, layer opacity, feather and brush softness all count exactly as you see them. A pixel the group leaves transparent (or at the game's value) keeps the game's value; a half-transparent pixel is halfway to it. Which group is visible, and the group's own opacity, do not matter (the link draws each group at full strength); hide or delete layers inside a group to take them out.
+
+The material presets are swatches: in the Swatches panel the group "Rood materials" has a grey swatch for each preset and channel it sets ("Worn steel: Metal 1.00", "Worn steel: Roughness 0.42"). A grey's value is the map's value. They are added once; a PhotoCraft that already has the group is left as it is (the values are in `pc/assets/materials/paint-presets.json`, and your own in `<lighting>/paint-presets.json`).
+
+### Using masks
+
+- **A region of worn steel.** Select the Metal group, add a Solid Color fill layer in it (the "Worn steel: Metal 1.00" swatch), and give the fill layer a mask: fill the mask black and paint white where the steel is (or make a selection and add the mask from it). Do the same in the Roughness group with the "Worn steel: Roughness 0.42" swatch, and share the mask by copying it (Alt-drag the mask onto the other layer), or paint both fill layers' masks from one selection saved as a channel. Change the swatch colour of the fill layer and the game follows.
+- **Relief with a soft edge.** In the Height group add a layer filled 150 grey (a little raised) with a mask painted with a soft brush: the edge falls off smoothly.
+- **Dirt and scuffs.** Paint with a soft grey brush on a new layer in Roughness; set the layer's opacity or blend mode (Multiply to only darken) as you like.
+- **Back to the game's value.** Erase to transparent, or delete the layer.
+
+### Save
+
+Press Ctrl+S in PhotoCraft (keep the format Photoshop). The link prints `photocraft: <time> <file>.psd saved: metal, roughness imported`. The maps go into `pc/user/lighting/materials/` with a catalog entry, exactly as the Aseprite save does, and nothing is written until something differs from the game. `python3 pc/tools/paint_roundtrip.py import pc/user/paint/model-<id>` imports what the last save kept (the link keeps the maps as they were at each save in `photocraft/saved/`). Exporting again keeps your `.psd` files (delete one to start it again from the game's maps).
+
+### Limits
+
+- The link talks to PhotoCraft's control server, which has no change event: it looks at each document's revision four times a second and draws the groups about a third of a second after the last change. A map reaches the game after you finish a stroke, not during it.
+- To draw a group the link makes a throwaway copy of the document for about a third of a second and closes it again; the tab flashes and your active document is made active again. Do not close tabs while it works.
+- PhotoCraft answers the control server only while its window is drawing. A minimised or fully covered window (on Wayland) stops the link until the window is back; it says so and tries again, and the link ends only when PhotoCraft quits.
+- A saved file can only be read back through PhotoCraft: keep the link running while you save. Saving with the link stopped keeps your layers but the maps are not imported until the file is opened and saved again with the link running.
+- No Material preset layer and no texel locator (the pink ring and click-to-select of the Aseprite extension): the presets are swatches, and the link only moves maps.
+- Do not resize the canvas or change its mode (8-bit RGB). The only channels are the ones the channel table has.
 
 ## If something goes wrong
 

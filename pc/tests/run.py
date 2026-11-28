@@ -187,6 +187,11 @@ def suites(args, mode="egl"):
               note="painting height, metal and roughness in Aseprite without Aseprite or the game (the channel table's rows): the .aseprite reader (offsets, linked and "
                    "raw cels, groups, palettes, other colour depths), the export's files, import and watch writing only the painted "
                    "channel and texels, the WebSocket framing, the live bridge up to the RPC call"),
+        Suite("photocraft", [PY, str(TESTS / "photocraft_test.py")], 60, binary=None,
+              sources=[ROOT / "pc/tools/paint_photocraft.py", ROOT / "pc/tools/photocraft_ctl.py", ROOT / "pc/tools/psd_io.py",
+                       ROOT / "pc/tools/paint_roundtrip.py", ROOT / "pc/tools/paint_live.py", ROOT / "pc/tools/paint_channels.py", TESTS / "photocraft_fixture.py"],
+              note="painting in PhotoCraft without PhotoCraft or the game: the control handshake against a fake server, the .psd the export writes, a group's "
+                   "picture as the game's map (masks and partial alpha), the link's polling (a revision must settle, only the changed channel pushed, a save imported, closing ends it)"),
         Suite("build_compare_shaders", [PY, str(TESTS / "build_compare_shaders_test.py")], 60, binary=None,
               sources=[ROOT / "pc/tools/build_compare.py"],
               note="build_compare runs each probe with the shaders it was built with (every lane that launches a game calls own_shaders)"),

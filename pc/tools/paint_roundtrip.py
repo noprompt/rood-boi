@@ -6,6 +6,8 @@ the maps in a painter").
     python3 pc/tools/paint_roundtrip.py export model (--model HASH|studio | --model-at X,Y) [--zone Z --room R] [--out DIR]
     python3 pc/tools/paint_roundtrip.py paint  (room|model) ...   export, then open paint.gltf in SubCraft (or Blender)
     python3 pc/tools/paint_roundtrip.py (export|paint) ... --painter aseprite   also <out>/aseprite/<material>.aseprite (a layer per channel: Height, Metal, Roughness)
+    python3 pc/tools/paint_roundtrip.py (export|paint) ... --painter photocraft   also <out>/photocraft/<material>.psd (a group per channel; PhotoCraft's masks work), and `paint` runs the live link
+    python3 pc/tools/paint_roundtrip.py photocraft DIR   open the package's .psd files in PhotoCraft and run its live link (paint_photocraft.py)
     python3 pc/tools/paint_roundtrip.py watch DIR     import each .aseprite file when it is saved
     python3 pc/tools/paint_roundtrip.py palette DIR   rewrite the swatches of DIR/aseprite/*.aseprite from the preset files (pixels untouched)
     python3 pc/tools/paint_roundtrip.py live DIR      watch, and take strokes live from the Aseprite extension (pc/tools/paint_live.py)
@@ -53,6 +55,7 @@ os.environ.setdefault("ROOD_ARCH", "64")  # the 32-bit build is retired: run by 
 sys.path.insert(0, str(ROOT / "pc/tools"))
 sys.path.insert(0, str(ROOT / "pc/tests"))
 import aseprite_io as ase  # noqa: E402
+import psd_io  # noqa: E402
 import material_presets as mp  # noqa: E402
 import paint_channels as pch  # noqa: E402
 import room_blender as rb  # noqa: E402
@@ -382,7 +385,25 @@ def write_aseprite(path, images):
     ase.write(path, w, h, layers, palette=mp.palette(mp.load()))
 
 
-def write_package(out, positions, colours, tris, found, textures, labels, rgba_of, meta, layers, outward=False, aseprite=False):
+def write_photocraft(path, images, has):
+    """A material's layered .psd file for PhotoCraft (psd_io.py): the game's colour (locked), then a group per channel of the table (Height,
+    Metal, Roughness...) holding one layer, the game's map of it: gray and opaque where the game has a map (`has[channel]`: an (H, W) bool
+    array), transparent where it has none (a transparent pixel keeps the game's value). Paint in the groups; masks, fill layers and blend modes
+    inside a group are what the game gets (paint_photocraft.py reads each group alone)."""
+    h, w = images["basecolor"].shape[:2]
+    layers = [{"name": ASE_COLOUR, "pixels": images["basecolor"], "locked": True}]
+    for channel in pch.NAMES:
+        row = pch.BY_CHANNEL[channel]
+        image, plane = pch.seed_image(channel)
+        values = images[image] if plane is None else images[image][..., plane]
+        pixels = np.empty((h, w, 4), np.uint8)
+        pixels[..., :3] = values[..., None]
+        pixels[..., 3] = np.where(has[channel], 255, 0)
+        layers.append({"group": row["layer"], "open": True, "layers": [{"name": f"{row['layer']} from the game", "pixels": pixels}]})
+    psd_io.write(path, w, h, layers)
+
+
+def write_package(out, positions, colours, tris, found, textures, labels, rgba_of, meta, layers, outward=False, aseprite=False, photocraft=False):
     """paint.gltf, tex/, seed/ and seed.json in `out`. textures: {label: {w, h, box, key?, object?, ...}}, rgba_of: {key: RGBA array}."""
     shutil.rmtree(out / "tex", ignore_errors=True)
     shutil.rmtree(out / "seed", ignore_errors=True)
@@ -416,6 +437,22 @@ def write_package(out, positions, colours, tris, found, textures, labels, rgba_o
         pbr[label] = files
         if aseprite:
             write_aseprite(out / "aseprite" / f"{safe(label)}.aseprite", images)
+        if photocraft:
+            psd = out / "photocraft" / f"{safe(label)}.psd"
+            if psd.exists():
+                print(f"export: keeping {psd.name} (your layers; delete it to start from the game's maps again)")
+            else:
+                h, w = t["h"], t["w"]
+                has = {c: np.zeros((h, w), bool) for c in pch.NAMES}
+                if atlas:
+                    for sl in atlas:
+                        u0, v0, u1, v1 = sl["box"]
+                        for c in sl.get("maps") or ():
+                            has[c][v0:v1 + 1, u0:u1 + 1] = True
+                else:
+                    for c in own_maps:
+                        has[c][...] = True
+                write_photocraft(psd, images, has)
         records[label] = {"key": key, "object": obj, "w": t["w"], "h": t["h"], "group_offset": t.get("group_offset"),
                           "model": t.get("model"), "model_legacy": t.get("model_legacy"), "entry": t.get("entry", ""), "files": {c: files[c] for c in CHANNELS},
                           **({"maps": own_maps} if own_maps is not None else {}),
@@ -548,7 +585,7 @@ def export_package(args):
         labels, textures = rb.split_shared(tris, found, groups, textures, always=True)
         meta = {"target": "room", "zone": state["zone"], "room": state["room"]}
     records = write_package(out, positions, colours, tris, found, textures, labels, rgba_of, meta, seed_layers(args.bake),
-                             outward=args.target == "model", aseprite=getattr(args, "painter", None) == "aseprite")
+                             outward=args.target == "model", aseprite=getattr(args, "painter", None) == "aseprite", photocraft=getattr(args, "painter", None) == "photocraft")
     args.out = str(out)  # (where it went: `paint` opens it)
     print(f"export: {meta['target']} {meta.get('model') or '%s-%s' % (meta['zone'], meta['room'])}: {len(tris)} triangles, "
           f"{len(records)} materials -> {out / 'paint.gltf'} (images in {out / 'tex'})")
@@ -584,6 +621,8 @@ def find_images(folder, label_safe, gltf):
     if ase_file.exists():
         for channel, rgba in read_ase_channels(ase_file).items():
             add(channel, AseSource(ase_file, rgba))
+    for channel, (path, rgba) in read_pc_channels(folder, label_safe).items():
+        add(channel, AseSource(path, rgba))
     label = re.escape(label_safe.lower())
     pattern = re.compile(rf"(?:.*[_.\- ])?{label}[_.\- ]+(.+)")
     for path in folder.rglob("*"):
@@ -696,6 +735,12 @@ def read_ase_channels(path):
         if layer is not None:
             out[channel] = layer.pixels if layer.pixels is not None else np.zeros((sprite.height, sprite.width, 4), np.uint8)
     return out
+
+
+def read_pc_channels(folder, label_safe):
+    """{channel: (file, canvas)} of what the PhotoCraft live link kept at the .psd's last save (paint_photocraft.py), else nothing."""
+    import paint_photocraft
+    return paint_photocraft.read_pc_channels(folder, label_safe)
 
 
 def over_seed(rgba, seed):
@@ -1111,6 +1156,19 @@ def open_painter(out, painter):
     return name, (pathlib.Path(command[1]) if name == "SubCraft" else gltf), None
 
 
+def run_photocraft(out, args):
+    """Opens a package's .psd files in PhotoCraft (control server on) and runs the live link until its documents are closed or Ctrl+C."""
+    import paint_photocraft
+    rpc = list(args.rpc) if getattr(args, "rpc", None) else None
+    game = getattr(args, "game", None)
+    if game:  # (the running game it exported from is one of the sockets to paint into, beside the defaults)
+        import paint_live
+        rpc = rpc if rpc is not None else paint_live.default_sockets()
+        rpc = rpc + [game] if game not in rpc else rpc
+    link_args = argparse.Namespace(dir=str(out), layer=None, catalog=None, rpc=rpc, port=getattr(args, "photocraft_port", None))
+    return paint_photocraft.run(link_args)
+
+
 def refresh_palettes(args, say=print):
     """The palette of each .aseprite file of the package set to the presets' swatches (named) and the grays; nothing else in the file changes."""
     presets = mp.load()
@@ -1136,10 +1194,11 @@ def main():
     e.add_argument("--out")
     e.add_argument("--game", metavar="SOCKET", help="export from this running game (its RPC socket: $ROOD_RPC, pc/build/boot/rpc-live.sock for pc/run-game.sh) instead of starting one; --model studio is the model summoned in its model studio")
     e.add_argument("--card", default=str(ROOT / "pc/build/test-card1.mcd"))
-    painters = ["auto", "subcraft", "blender", "aseprite"]
-    e.add_argument("--painter", choices=painters, default="auto", help="aseprite: also write <out>/aseprite/<material>.aseprite (Metal and Roughness layers for a pixel painter; Materials.md)")
+    painters = ["auto", "subcraft", "blender", "aseprite", "photocraft"]
+    e.add_argument("--painter", choices=painters, default="auto", help="aseprite: also write <out>/aseprite/<material>.aseprite (Metal and Roughness layers for a pixel painter; Materials.md); photocraft: <out>/photocraft/<material>.psd (a group per channel, masks welcome)")
     pt.add_argument("--painter", choices=painters, default="auto")
     pt.add_argument("--no-live", action="store_true", help="with --painter aseprite: only open Aseprite; start the live link yourself (the live command)")
+    pt.add_argument("--photocraft-port", type=int, help="with --painter photocraft: PhotoCraft's control port (default: the first free from 47490)")
     pt.add_argument("--port", type=int, default=47480, help="with --painter aseprite: the live link's WebSocket port (the extension's default)")
     pt.add_argument("--rpc", action="append", metavar="SOCKET", help="with --painter aseprite: an RPC socket the live link paints into, repeatable (see live --rpc); --game's is always one")
     for flag in e._actions[1:]:
@@ -1164,6 +1223,10 @@ def main():
     up.add_argument("dir")
     up.add_argument("--layer", help="the maps' layer (default: the user layer)")
     up.add_argument("--catalog", help="the user catalog file")
+    pcr = sub.add_parser("photocraft", help="open a package's .psd files (export ... --painter photocraft) in PhotoCraft and run the live link for them")
+    pcr.add_argument("dir")
+    pcr.add_argument("--port", type=int, help="PhotoCraft's control port (default: the first free from 47490)")
+    pcr.add_argument("--rpc", action="append", metavar="SOCKET", help="an RPC socket the link paints into, repeatable (see live --rpc)")
     pal = sub.add_parser("palette", help="rewrite the palette of the package's .aseprite files from the preset files (material_presets.py); pixels untouched; close the files in Aseprite first")
     pal.add_argument("dir")
     rk = sub.add_parser("rekey", help="move the user's model paint to the models' content keys: the game's ids into model_aliases.json, with --apply the entries and maps (copied)")
@@ -1186,6 +1249,8 @@ def main():
     args = parser.parse_args()
     if args.command == "watch":
         return watch_package(args)
+    if args.command == "photocraft":
+        return run_photocraft(args.dir, argparse.Namespace(rpc=args.rpc, photocraft_port=args.port))
     if args.command == "palette":
         return refresh_palettes(args)
     if args.command == "pack":
@@ -1202,6 +1267,10 @@ def main():
     if args.command == "import":
         return import_package(args)
     status = export_package(args)
+    if args.command == "paint" and not status and args.painter == "photocraft":
+        out = args.out or ROOT / "pc/user/paint" / (f"model-{args.model}" if args.target == "model" and args.model else
+                                                    f"room-{args.zone}-{args.room}" if args.zone is not None else args.target)
+        return run_photocraft(out, args)
     if args.command == "paint" and not status:
         out = args.out or ROOT / "pc/user/paint" / (f"model-{args.model}" if args.target == "model" and args.model else
                                                     f"room-{args.zone}-{args.room}" if args.zone is not None else args.target)
