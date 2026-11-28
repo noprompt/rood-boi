@@ -21,6 +21,9 @@ layout(std140, binding = 0) uniform Trace {
     vec4 env_[5]; // the room's sun and sky (environment.h pc_env_gpu; environment.glsl)
     vec4 emitter_shape_[32]; // xyz half axis, w radius of a column glow (> 0 its side, < 0 solid); 0: the sphere
     vec4 emitter_shadow_[32]; // a column's shadows (glows.c): x core radius, y weight in the baked light's shadows (0: its colour's), z clear radius
+    ivec4 i4; // radiance cache (rt_cache.glsl): on, slot mask, update tile, update bounces
+    ivec4 i5; // settled samples, samples a read needs, bilinear filter
+    vec4 f3; // cell size, distance of the first doubling, lookup jitter, refresh share
 } u;
 #define env_sun_dir u.env_[0]
 #define env_sun_col u.env_[1]

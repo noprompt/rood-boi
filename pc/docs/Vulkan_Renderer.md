@@ -368,6 +368,48 @@ in it, never the present count or the wall clock:
   `build_compare.py --present --control` of the GI platforms route with eight busy processes gave control 0
   and old against new 0 differing frames, twice (before: 143 to 156 of 178).
 
+### Radiance cache (`rt_cache.glsl`, `rt_cache_update.comp`, `rt_cache_resolve.comp`)
+
+The path-traced GI traces one ray a pixel and one bounce, so every pixel's light is one random hit's direct light and the denoiser
+averages thousands of such speckles into a blotchy picture. The radiance cache (lighting key `gi_cache`) keeps the light in a hash table
+instead, written from the published technique (spatially hashed radiance caching) and nothing else, and the pixels read it.
+
+- **The table** is a storage buffer of `2^gi_cache_size` slots (48 bytes each: a check word, this frame's deposits as fixed point
+  with a sample count, the resolved mean, its sample count, the frame it was last used in, the first hits' mean distance). A cell is
+  keyed by the quantised world position of a surface point, the face its normal looks along (6 directions) and its distance level: the
+  cell is `gi_cache_cell` world units wide up to `gi_cache_lod` from the eye and doubles every doubling of that distance, so detail is
+  where you look. The key hashes to a slot (eight linear probes, 32-bit check word); deposits are atomic adds. A table that fills
+  drops the deposits (the pixels fall back to tracing).
+- **Two kinds of cell.** A *radiance* cell holds the light that leaves a surface point (its direct light from the lights, glows, sun and
+  baked light, plus the albedo times the light the next vertex sends back), found by path vertices. An *irradiance* cell holds the light
+  that arrives at a point the camera sees, from the paths that start there.
+- **Update** (`rt_cache_update.comp`): each frame one pixel of every `1/sqrt(gi_cache_update)` tile (`gi_cache_update`, default 1/16
+  of the pixels; a different pixel each frame) starts a cosine-weighted path of up to `gi_cache_bounces` vertices. At a vertex the
+  path takes its direct light exactly as the GI's bounces did (`direct()`: the dynamic lights with shadow rays, the glows -- the
+  game's torches and lanterns, `emitted()` -- the sun, and the baked light's bounce), and goes on. A path ends at the sky (the
+  sky's light), after its last vertex (the light of the cell it meets next, if the cache has it), at a character or prop (a leaf, no
+  cell), or at a *settled* cell (`gi_cache_settle` samples): the bounces past it are in the cache, so the path stops with the cache's
+  value, except for `gi_cache_refresh` of the visits, which go on and sample the cell again. Then backwards: each vertex's light is
+  its own plus the albedo times the next one's, deposited in its radiance cell, and what the first vertex returns is a sample of the
+  pixel's own irradiance cell. Every frame's light therefore goes one more bounce round through the cache: many bounces for the price
+  of a short path.
+- **Resolve** (`rt_cache_resolve.comp`, one thread a slot): each cell's deposits join its running mean with weight `n / (min(seen,
+  gi_cache_history) + n)`, so `gi_cache_history` samples is its memory (a light that changes still shows); a cell unused for
+  `gi_cache_evict` frames is freed. The whole table is emptied when the room (scene serial) or a history cut changes.
+- **Read** (`rt_trace.comp`): a pixel of the room (not a character or prop) reads its irradiance cell with no ray at all; each of
+  `rays_per_pixel` reads is shifted along the surface by a random part of `gi_cache_jitter` cells (a stochastic filter between cells;
+  its own cell when the shifted one is empty) and averaged. Pixels whose cell has fewer than `gi_cache_min` samples (the first frames
+  of a room, characters) trace as before, their first hit read from a radiance cell when it has samples. The first-hit distance NRD
+  wants comes from the cell. Shadow visibility, the baked-light visibility, AO and the signature are traced per pixel as before:
+  only the indirect light comes from the cache.
+- Not used by the progressive (studio) renderer, which stays the unbiased path tracer. The frame counter the update uses is the
+  trace's frame index, so it follows the game's frames like the rest (`vrt_run` skips a repeated image before the cache runs).
+- Settings (lighting quality keys; all but `gi_cache` are not part of a preset): `gi_cache` (Ultra: on), `gi_cache_size` (log2 slots,
+  20), `gi_cache_cell` (32), `gi_cache_lod` (300), `gi_cache_update` (0.0625), `gi_cache_bounces` (3), `gi_cache_history` (32),
+  `gi_cache_evict` (240), `gi_cache_settle` (4), `gi_cache_min` (2), `gi_cache_jitter` (1), `gi_cache_refresh` (0.1). RPC `graphics`
+  takes them like every lighting key; the dev panel has the main ones under the GI settings. `gi_trace_debug 4` shows which pixels read
+  the cache (green) and which trace (red).
+
 ### NRD (`vk_nrd.cpp`, `rt_nrd_in.comp`, `rt_nrd_out.comp`)
 
 The "Ultra" denoiser, following NVIDIA's RELAX sample usage: NVIDIA NRD

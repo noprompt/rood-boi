@@ -1,0 +1,67 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_ray_query : require
+// The radiance cache's update (rt_cache.glsl): one short path from one pixel of
+// each cache_tile x cache_tile tile (a different pixel every frame). Each
+// vertex of the path finds the light it sends back (the lights, the glows, the sun,
+// the baked light, and the light the next vertex sends back), and deposits it
+// into its cell (a radiance cell). What the whole path finds is also what
+// arrives at the pixel's own surface point: it goes to that point's cell (an
+// irradiance cell), the one the GI of the pixels reads. A path ends where it leaves the room (the sky), after
+// cache_bounces vertices (the light of the cell it meets next, as far as the
+// cache knows it, closes it), or at a cell that is settled: bounces past it are in
+// the cache already, so the paths stay short and the light goes round many
+// times over the frames.
+layout(local_size_x = 8, local_size_y = 8) in;
+#include "rt_paths.glsl"
+const int MAX_VERTICES = 6;
+void main() {
+    ivec2 tile = ivec2(gl_GlobalInvocationID.xy), size = imageSize(gi_out);
+    int s = max(cache_tile, 1);
+    rng = uint(tile.x) * 1973u + uint(tile.y) * 9277u + frame * 26699u + 7919u;
+    ivec2 g = tile * s + ivec2(int(rand() * float(s)), int(rand() * float(s)));
+    if (!cache_on || any(greaterThanEqual(g, size))) return;
+    vec4 pw = imageLoad(position_in, g);
+    if (pw.w < 0.5) return;
+    vec3 p = pw.xyz, n = imageLoad(normal_in, g).xyz;
+    float lift = 2.0 + distance(p, eye) * 0.002;
+    vec3 o = p + n * lift, nrm = n;
+    vec3 vp[MAX_VERTICES], vn[MAX_VERTICES], valbedo[MAX_VERTICES], vlight[MAX_VERTICES];
+    bool vmover[MAX_VERTICES];
+    int count = 0, last = min(max(cache_bounces, 1), MAX_VERTICES);
+    vec3 tail = vec3(0.0);
+    float first_hit = 4096.0;
+    for (int b = 0; b <= last; b++) {
+        vec3 d = cosine_direction(nrm);
+        float t; int hit; vec2 bc;
+        if (!trace(o, d, 8192.0, false, nrm, b == 0 ? 16.0 : 0.0, t, hit, bc)) {
+            if (env_sky_on()) tail = env_sky(d);
+            break;
+        }
+        if (b == 0) first_hit = t;
+        Tri tri = tri_at(hit);
+        vec3 y = o + d * t, ny = hit_normal(tri, d);
+        bool mover = hit >= MOVER_BIT;
+        if (!mover) {
+            float unused;
+            vec4 c = cache_read(y, ny, vec3(0.0), 0u, unused);
+            if (b == last || (c.w >= float(cache_settle) && rand() >= cache_refresh)) {
+                if (c.w > 0.0) tail = c.rgb;
+                break;
+            }
+        } else if (b == last) break;
+        vec3 baked;
+        vec3 albedo = hit_albedo(tri, bc, baked);
+        vp[count] = y; vn[count] = ny; valbedo[count] = albedo; vmover[count] = mover;
+        vlight[count] = albedo * (direct(y + ny * 0.5, ny) + sun_light(y + ny * 0.5, ny)) + baked * baked_bounce;
+        count++;
+        if (mover) break; // a character or prop: no cell of the room's
+        o = y + ny * 1.0; nrm = ny;
+    }
+    vec3 light = tail;
+    for (int k = count - 1; k >= 0; k--) {
+        light = vlight[k] + valbedo[k] * light;
+        if (!vmover[k]) cache_deposit(vp[k], vn[k], light, 0u, 0.0);
+    }
+    if (pw.w < 1.5) cache_deposit(p, n, light, 1u, first_hit);
+}

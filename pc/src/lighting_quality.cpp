@@ -67,6 +67,12 @@ int pc_haze_quality = PC_HAZE_HIGH;
 int pc_ao;
 float pc_ao_radius = 64.0f; /* world units */
 float pc_ao_strength = 0.6f;
+/* The radiance cache (vk_rt.inc, rt_cache.glsl; pc/docs/Vulkan_Renderer.md "Radiance cache"). */
+int pc_gi_cache = 0, pc_gi_cache_size = 20 /* log2 of the cells */, pc_gi_cache_bounces = 3, pc_gi_cache_history = 32, pc_gi_cache_evict = 240,
+    pc_gi_cache_settle = 4, pc_gi_cache_min = 2, pc_gi_cache_filter = 1 /* 1: bilinear between the four cells, 0: a random one nearby */;
+float pc_gi_cache_cell = 32.0f /* world units, near the eye */, pc_gi_cache_lod = 300.0f /* distance the cells first double at */,
+    pc_gi_cache_update = 0.0625f /* share of the pixels that start an update path each frame */, pc_gi_cache_jitter = 1.0f /* lookup shift, in cells */,
+    pc_gi_cache_refresh = 0.1f /* share of the visits to a settled cell that still sample it */;
 
 namespace {
 const char* const preset_names[PC_PRESET_COUNT] = { "original", "low", "medium", "high", "ultra", "custom" };
@@ -83,23 +89,23 @@ const char* const preset_help[PC_PRESET_COUNT] = {
  * gi_resolution is capped at 1.5 on integrated GPUs. */
 const char* const presets[PC_PRESET_CUSTOM] = {
     /* Original */
-    "dynamic_lights 0\ngi_method off\ngi_resolution 1\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
+    "dynamic_lights 0\ngi_cache 0\ngi_method off\ngi_resolution 1\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
     "shadows off\nshadow_map_filter pcf\nshadow_map_softness 0.02\nshadow_rays 1\nglow_shadows 0\n"
     "characters_shadow_baked 0\nhaze off\nao 0\nao_radius 64\nprobe_spacing 128\nprobe_rays 32\nhaze_cell 4\n",
     /* Low */
-    "dynamic_lights 1\ngi_method off\ngi_resolution 1\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
+    "dynamic_lights 1\ngi_cache 0\ngi_method off\ngi_resolution 1\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
     "shadows maps\nshadow_map_filter pcf\nshadow_map_softness 0.02\nshadow_rays 1\nglow_shadows 0\n"
     "characters_shadow_baked 0\nhaze off\nao 1\nao_radius 64\nprobe_spacing 128\nprobe_rays 32\nhaze_cell 4\n",
     /* Medium */
-    "dynamic_lights 1\ngi_method probes|off\ngi_resolution 1.5\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
+    "dynamic_lights 1\ngi_cache 0\ngi_method probes|off\ngi_resolution 1.5\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
     "shadows maps\nshadow_map_filter pcss\nshadow_map_softness 0.02\nshadow_rays 1\nglow_shadows 0\n"
     "characters_shadow_baked 0\nhaze low\nao 1\nao_radius 64\nprobe_spacing 128\nprobe_rays 32\nhaze_cell 4\n",
     /* High */
-    "dynamic_lights 1\ngi_method probes|off\ngi_resolution 1.5\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
+    "dynamic_lights 1\ngi_cache 0\ngi_method probes|off\ngi_resolution 1.5\nbounces 1\nrays_per_pixel 1\ngi_denoiser filter\n"
     "shadows traced|maps\nshadow_map_filter pcss\nshadow_map_softness 0.02\nshadow_rays 1\nglow_shadows 1\n"
     "characters_shadow_baked 1\nhaze high|low\nao 1\nao_radius 64\nprobe_spacing 128\nprobe_rays 64\nhaze_cell 3\n",
     /* Ultra */
-    "dynamic_lights 1\ngi_method path|probes|off\ngi_resolution 3\nbounces 1\nrays_per_pixel 1\n"
+    "dynamic_lights 1\ngi_cache 1\ngi_method path|probes|off\ngi_resolution 3\nbounces 1\nrays_per_pixel 1\n"
     "gi_denoiser nrd|filter\nshadows traced|maps\nshadow_map_filter pcss\nshadow_map_softness 0.02\n"
     "shadow_rays 2\nglow_shadows 1\ncharacters_shadow_baked 1\nhaze high|low\nao 0\nao_radius 64\n"
     "probe_spacing 96\nprobe_rays 64\nhaze_cell 2\n",
@@ -125,6 +131,20 @@ Key keys[] = {
     { "gi_resolution", FLOAT_KEY, &pc_gi_resolution, nullptr, 0, true },
     { "bounces", INT, &pc_gi_bounces, nullptr, 0, true },
     { "rays_per_pixel", INT, &pc_gi_rays, nullptr, 0, true },
+    /* The radiance cache (path traced GI, Vulkan): a hash table of the light leaving the surfaces, many bounces, little noise. */
+    { "gi_cache", BOOL, &pc_gi_cache, nullptr, 0, true },
+    { "gi_cache_size", INT, &pc_gi_cache_size, nullptr, 0, false },
+    { "gi_cache_cell", FLOAT_KEY, &pc_gi_cache_cell, nullptr, 0, false },
+    { "gi_cache_lod", FLOAT_KEY, &pc_gi_cache_lod, nullptr, 0, false },
+    { "gi_cache_update", FLOAT_KEY, &pc_gi_cache_update, nullptr, 0, false },
+    { "gi_cache_bounces", INT, &pc_gi_cache_bounces, nullptr, 0, false },
+    { "gi_cache_history", INT, &pc_gi_cache_history, nullptr, 0, false },
+    { "gi_cache_evict", INT, &pc_gi_cache_evict, nullptr, 0, false },
+    { "gi_cache_settle", INT, &pc_gi_cache_settle, nullptr, 0, false },
+    { "gi_cache_min", INT, &pc_gi_cache_min, nullptr, 0, false },
+    { "gi_cache_filter", BOOL, &pc_gi_cache_filter, nullptr, 0, false },
+    { "gi_cache_jitter", FLOAT_KEY, &pc_gi_cache_jitter, nullptr, 0, false },
+    { "gi_cache_refresh", FLOAT_KEY, &pc_gi_cache_refresh, nullptr, 0, false },
     { "gi_denoiser", ENUM, &pc_gi_denoise, denoisers, 3, true },
     { "shadows", ENUM, &pc_shadow_mode, shadow_modes, 3, true },
     { "shadow_map_filter", ENUM, &pc_shadow_map_filter, map_filters, 3, true },
@@ -961,6 +981,18 @@ extern "C" void pc_lighting_panel(void)
     if (pc_gi_method == PC_GI_PATH) {
         ImGui::SliderInt("Bounces", &pc_gi_bounces, 1, 4);
         ImGui::SliderInt("Rays per pixel", &pc_gi_rays, 1, 8);
+        if (c.vulkan) {
+            checkbox("Radiance cache", &pc_gi_cache);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                ImGui::SetTooltip("A hash table of the light leaving the surfaces: light that goes round many times, with far less noise");
+            if (pc_gi_cache) {
+                ImGui::SliderFloat("Cache cell", &pc_gi_cache_cell, 8, 128, "%.0f units");
+                ImGui::SliderFloat("Cache detail distance", &pc_gi_cache_lod, 100, 2000, "%.0f units");
+                ImGui::SliderFloat("Cache update", &pc_gi_cache_update, 0.004f, 0.5f, "%.3f of the pixels", ImGuiSliderFlags_Logarithmic);
+                ImGui::SliderInt("Cache bounces", &pc_gi_cache_bounces, 1, 6);
+                ImGui::SliderInt("Cache history", &pc_gi_cache_history, 2, 255, "%d samples");
+            }
+        }
         int denoiser = pc_gi_denoise < 0 ? 0 : pc_gi_denoise > 2 ? 2 : pc_gi_denoise;
         choice_combo("Denoiser", "gi_denoiser", denoiser_labels);
         if (denoiser == 2 && pc_gi_denoiser_active && pc_gi_denoiser_active() != 2 && c.traced)

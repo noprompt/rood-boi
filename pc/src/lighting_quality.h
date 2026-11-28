@@ -34,6 +34,7 @@ enum { PC_HAZE_OFF, PC_HAZE_LOW, PC_HAZE_HIGH };
 
 extern int pc_lighting_preset, pc_gi_method, pc_shadow_mode, pc_shadow_map_filter, pc_haze_quality, pc_ao;
 extern float pc_ao_radius, pc_ao_strength;
+extern int pc_gi_cache;
 
 /* What this backend and GPU can run. */
 typedef struct {

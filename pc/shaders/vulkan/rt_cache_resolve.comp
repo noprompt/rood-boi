@@ -1,0 +1,32 @@
+#version 460
+// The radiance cache's resolve (rt_cache.glsl): each cell's deposits of this
+// frame join its running mean (a mean of at most `history` samples, so a light
+// that changes still shows), and a cell nobody has used for `evict` frames is freed.
+layout(local_size_x = 64) in;
+layout(std430, binding = 0) buffer RadianceCache { uint cache_[]; };
+layout(push_constant) uniform Resolve { uint slots, frame, history, evict; } r;
+const uint CACHE_STRIDE = 12u;
+const float CACHE_FIXED = 1024.0;
+const float CACHE_DISTANCE_FIXED = 16.0;
+void main() {
+    uint s = gl_GlobalInvocationID.x;
+    if (s >= r.slots) return;
+    uint b = s * CACHE_STRIDE;
+    if (cache_[b] == 0u) return;
+    uint n = cache_[b + 4u];
+    if (n > 0u) {
+        vec3 mean = vec3(cache_[b + 1u], cache_[b + 2u], cache_[b + 3u]) / (CACHE_FIXED * float(n));
+        uint seen = cache_[b + 8u];
+        vec3 old = vec3(uintBitsToFloat(cache_[b + 5u]), uintBitsToFloat(cache_[b + 6u]), uintBitsToFloat(cache_[b + 7u]));
+        float w = float(n) / float(min(seen, r.history) + n);
+        vec3 now = seen == 0u ? mean : mix(old, mean, w);
+        cache_[b + 5u] = floatBitsToUint(now.x); cache_[b + 6u] = floatBitsToUint(now.y); cache_[b + 7u] = floatBitsToUint(now.z);
+        cache_[b + 8u] = min(seen + n, r.history);
+        float away = float(cache_[b + 10u]) / (CACHE_DISTANCE_FIXED * float(n));
+        if (away > 0.0) cache_[b + 11u] = floatBitsToUint(seen == 0u ? away : mix(uintBitsToFloat(cache_[b + 11u]), away, w));
+        cache_[b + 10u] = 0u;
+        cache_[b + 1u] = 0u; cache_[b + 2u] = 0u; cache_[b + 3u] = 0u; cache_[b + 4u] = 0u;
+    } else if (r.frame - cache_[b + 9u] > r.evict) {
+        for (uint i = 0u; i < CACHE_STRIDE; i++) cache_[b + i] = 0u;
+    }
+}

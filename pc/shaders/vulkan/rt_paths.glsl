@@ -8,12 +8,29 @@
 #define LIGHT_LIST 11
 #include "rt_lights.glsl"
 #include "rt_common.glsl"
+#include "rt_cache.glsl"
 layout(binding = 4, rgba32f) uniform readonly image2D position_in; // world xyz, w 1 = surface, 2 = moving
 layout(binding = 5, rgba16f) uniform readonly image2D normal_in;
 layout(binding = 6, rgba16f) uniform writeonly image2D gi_out;
 layout(binding = 7, rgba16f) uniform writeonly image2D extra_out; // r: baked light visibility, gba glow light
 layout(binding = 8, r32ui) uniform writeonly uimage2D signature_out;
 layout(binding = 10, r16f) uniform writeonly image2D hit_out; // mean first-bounce hit distance (NRD)
+// The geometric normal of a hit triangle, facing the ray that hit it.
+vec3 hit_normal(Tri tri, vec3 d) {
+    vec3 ny = normalize(cross(tri.b.xyz - tri.a.xyz, tri.c.xyz - tri.a.xyz));
+    return dot(ny, d) > 0.0 ? -ny : ny;
+}
+// The hit surface's albedo (the texel or the vertex colours) and the baked light it sends back.
+vec3 hit_albedo(Tri tri, vec2 bc, out vec3 baked) {
+    vec3 vc = vertex_rgb(tri.a.w) * (1.0 - bc.x - bc.y) + vertex_rgb(tri.b.w) * bc.x + vertex_rgb(tri.c.w) * bc.y;
+    vec3 albedo = vc;
+    if ((tri.info.w & 1u) != 0u) {
+        uint c = surface_texel(tri, bc);
+        albedo = vec3(c & 31u, (c >> 5) & 31u, (c >> 10) & 31u) / 31.0;
+    }
+    baked = (tri.info.w & 2u) != 0u ? albedo : min(albedo * vc * 2.0, 1.0);
+    return albedo;
+}
 // A moving blocker (character, prop) shadowed this pixel's visibility or
 // baked-light visibility: its history is kept short (signature bit 31).
 bool touched = false;

@@ -37,6 +37,14 @@
     X(baked_shadows, pc_baked_shadows) \
     X(fog_steps, pc_fog_steps) \
     X(gi_bounces, pc_gi_bounces) \
+    X(gi_cache, pc_gi_cache) \
+    X(gi_cache_size, pc_gi_cache_size) \
+    X(gi_cache_bounces, pc_gi_cache_bounces) \
+    X(gi_cache_history, pc_gi_cache_history) \
+    X(gi_cache_evict, pc_gi_cache_evict) \
+    X(gi_cache_settle, pc_gi_cache_settle) \
+    X(gi_cache_min, pc_gi_cache_min) \
+    X(gi_cache_filter, pc_gi_cache_filter) \
     X(gi_denoise, pc_gi_denoise) \
     X(gi_rays, pc_gi_rays) \
     X(gi_trace_debug, pc_gi_trace_debug) \
@@ -67,6 +75,11 @@
     X(fog_anisotropy, pc_fog_anisotropy) \
     X(fog_density, pc_fog_density) \
     X(gi_strength, pc_gi_strength) \
+    X(gi_cache_cell, pc_gi_cache_cell) \
+    X(gi_cache_lod, pc_gi_cache_lod) \
+    X(gi_cache_update, pc_gi_cache_update) \
+    X(gi_cache_jitter, pc_gi_cache_jitter) \
+    X(gi_cache_refresh, pc_gi_cache_refresh) \
     X(light_size, pc_light_size) \
     X(lights_baked, pc_lights_baked) \
     X(normal_smoothing, pc_normal_smoothing) \

@@ -69,6 +69,7 @@ def main():
     parser.add_argument("--paced", action="store_true", help="59.94 Hz pacing (frames a second as shown)")
     parser.add_argument("--card", default=str(ROOT / "pc/build/test-card1.mcd"))
     parser.add_argument("--gi", action="store_true", help="with the path-traced indirect light (ROOD_GI=1)")
+    parser.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="a graphics setting for the run (lighting keys too), e.g. --set gi_cache=1")
     parser.add_argument("--json", help="write the rows here")
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
@@ -80,6 +81,12 @@ def main():
     rows = []
     game = launch_at("save_room", card=str(card), fast=not args.paced, log=OUT / "frame-cost-game.log", extra_env=env)
     try:
+        if args.set:
+            values = {}
+            for item in args.set:
+                key, _, value = item.partition("=")
+                values[key] = float(value) if value.replace(".", "", 1).lstrip("-").isdigit() else value
+            game.call("graphics", **values)
         game.run(30)
         for scene in args.scenes:
             if scene == "field":

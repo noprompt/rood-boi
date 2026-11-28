@@ -48,19 +48,19 @@ PRESETS = ["original", "low", "medium", "high", "ultra"]
 # The presets as lighting_quality.cpp defines them: value choices in order of
 # preference (the first this backend can run).
 TABLE = {
-    "original": dict(dynamic_lights=0, gi_method="off", shadows="off", shadow_map_filter="pcf", glow_shadows=0,
+    "original": dict(dynamic_lights=0, gi_cache=0, gi_method="off", shadows="off", shadow_map_filter="pcf", glow_shadows=0,
                      characters_shadow_baked=0, haze="off", ao=0, gi_resolution=1, shadow_rays=1, gi_denoiser="filter",
                      probe_spacing=128, probe_rays=32),
-    "low": dict(dynamic_lights=1, gi_method="off", shadows="maps", shadow_map_filter="pcf", glow_shadows=0,
+    "low": dict(dynamic_lights=1, gi_cache=0, gi_method="off", shadows="maps", shadow_map_filter="pcf", glow_shadows=0,
                 characters_shadow_baked=0, haze="off", ao=1, gi_resolution=1, shadow_rays=1, gi_denoiser="filter",
                 probe_spacing=128, probe_rays=32),
-    "medium": dict(dynamic_lights=1, gi_method="probes|off", shadows="maps", shadow_map_filter="pcss", glow_shadows=0,
+    "medium": dict(dynamic_lights=1, gi_cache=0, gi_method="probes|off", shadows="maps", shadow_map_filter="pcss", glow_shadows=0,
                    characters_shadow_baked=0, haze="low", ao=1, gi_resolution=1.5, shadow_rays=1,
                    gi_denoiser="filter", probe_spacing=128, probe_rays=32),
-    "high": dict(dynamic_lights=1, gi_method="probes|off", shadows="traced|maps", shadow_map_filter="pcss",
+    "high": dict(dynamic_lights=1, gi_cache=0, gi_method="probes|off", shadows="traced|maps", shadow_map_filter="pcss",
                  glow_shadows=1, characters_shadow_baked=1, haze="high|low", ao=1, gi_resolution=1.5, shadow_rays=1,
                  gi_denoiser="filter", probe_spacing=128, probe_rays=64),
-    "ultra": dict(dynamic_lights=1, gi_method="path|probes|off", shadows="traced|maps", shadow_map_filter="pcss",
+    "ultra": dict(dynamic_lights=1, gi_cache=1, gi_method="path|probes|off", shadows="traced|maps", shadow_map_filter="pcss",
                   glow_shadows=1, characters_shadow_baked=1, haze="high|low", ao=0, gi_resolution=3, shadow_rays=2,
                   gi_denoiser="nrd|filter", probe_spacing=96, probe_rays=64),
 }

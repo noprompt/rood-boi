@@ -5,6 +5,11 @@
     python3 pc/tools/paired_frames.py --check                the current build against that table: drift above 3% is flagged (exit 1)
     python3 pc/tools/paired_frames.py OLD [--out DIR]        OLD and the current build at the same views: a sheet per view
                                                              (old | new | difference x4) and the table with both
+    python3 pc/tools/paired_frames.py --just [--out DIR]     only the current build: its pictures under DIR/new and the tables
+
+Environment: PAIRED_GI=1 (the path-traced GI at Ultra), PAIRED_ONLY="view;view" (the views to take), PAIRED_SETTINGS="key=value;key=value"
+(graphics RPC settings, lighting keys among them, applied to the new build only; PAIRED_OLD_SETTINGS to the old one). Every table also
+has the blotch measure of noise_band.py (the speckle of the lighting over flat walls and floors).
 
 The views (VIEWS) are states the game reaches the same way in every build: the title, the opening's first bubble, the save room, and
 the fight in three rooms at two moments. Each is the picture the window shows (RPC present_dump) with the settings that give the
@@ -57,6 +62,18 @@ def stats(path):
     return out
 
 
+def noise_table(directory):
+    """{view: blotch measure} of the pictures kept in `directory`."""
+    sys.path.insert(0, str(ROOT / "pc/tools"))
+    from noise_band import band_noise
+    table = {}
+    for index, (view, *_) in enumerate(VIEWS):
+        picture = pathlib.Path(directory) / f"{index}.ppm"
+        if picture.exists():
+            table[view] = band_noise(picture)[0]
+    return table
+
+
 def play(binary, card, out):
     """In a process of its own (ROOD_BINARY is read at import): each view's picture under `out` and the table as JSON on stdout."""
     os.environ.update(ROOD_BINARY=binary, ROOD_SYMBOLS=binary, ROOD_ARCH="64", ROOD_HEADLESS="egl", ROOD_RENDERER="vulkan", ROOD_TEST_SNAPSHOTS="0")
@@ -76,6 +93,13 @@ def play(binary, card, out):
             "ROOD_GI": "1" if gi else "0", **({"ROOD_LIGHTING_PRESET": "ultra"} if gi else {}), "ROOD_INTERPOLATE": "0", "ROOD_SETTINGS": str(out / "settings.cfg"), "ROOD_AUDIO": "none",
             "ROOD_WINDOW": "960x720", "ROOD_OUT": str(out)})
         try:
+            settings = os.environ.get("PAIRED_SETTINGS_NOW", "")
+            if settings:
+                values = {}
+                for item in settings.split(";"):
+                    key, _, value = item.partition("=")
+                    values[key] = float(value) if value.replace(".", "", 1).lstrip("-").isdigit() else value
+                g.call("graphics", **values)
             if room:
                 g.call("room_goto", hold=True, zone=room[0], room=room[1], enemies=True, scripts=False)
                 for _ in range(80):
@@ -98,10 +122,11 @@ def play(binary, card, out):
     print("RESULT" + json.dumps(table))
 
 
-def run(binary, card, keep=None):
+def run(binary, card, keep=None, settings=""):
     """The table of `binary`'s views; the pictures go to `keep` (a directory) when given."""
     with tempfile.TemporaryDirectory(prefix="paired-frames-", dir=ROOT / "pc/build") as out:
-        done = subprocess.run([sys.executable, __file__, "--play", binary, "--card", card, "--out", out], capture_output=True, text=True)
+        done = subprocess.run([sys.executable, __file__, "--play", binary, "--card", card, "--out", out], capture_output=True, text=True,
+                              env={**os.environ, "PAIRED_SETTINGS_NOW": settings})
         lines = [line for line in done.stdout.splitlines() if line.startswith("RESULT")]
         if not lines:
             sys.exit(f"paired_frames: {binary} did not finish (exit {done.returncode}):\n{done.stderr[-1500:]}\n{done.stdout[-800:]}")
@@ -161,6 +186,7 @@ def main():
     parser.add_argument("old", nargs="?", help="a reference binary: the pairs against the current build")
     parser.add_argument("--new", default=str(ROOT / "pc/build/boot64/rood_battle_probe"))
     parser.add_argument("--card", default=str(ROOT / "pc/build/test-card1.mcd"))
+    parser.add_argument("--just", action="store_true", help="only the current build, its pictures kept under --out/new")
     parser.add_argument("--record", action="store_true", help="write the current build's table to " + str(REFERENCE.relative_to(ROOT)))
     parser.add_argument("--check", action="store_true", help="the current build against the recorded table")
     parser.add_argument("--out", default=str(ROOT / "pc/build/paired-frames"))
@@ -179,12 +205,23 @@ def main():
         drifted = report(json.loads(REFERENCE.read_text()), run(args.new, args.card), "recorded", "now")
         print(f"{drifted} regions drifted by more than {DRIFT:.0%}")
         return 1 if drifted else 0
+    if args.just:
+        out = pathlib.Path(args.out)
+        run(args.new, args.card, out / "new", os.environ.get("PAIRED_SETTINGS", ""))
+        for view, value in noise_table(out / "new").items():
+            print(f"{view:<20}blotch {value:.3f}")
+        return 0
     if args.old:
         out = pathlib.Path(args.out)
-        old = run(args.old, args.card, out / "old")
-        new = run(args.new, args.card, out / "new")
+        old = run(args.old, args.card, out / "old", os.environ.get("PAIRED_OLD_SETTINGS", ""))
+        new = run(args.new, args.card, out / "new", os.environ.get("PAIRED_SETTINGS", ""))
         sheets(out / "old", out / "new", out)
         drifted = report(old, new, "old", "new")
+        noise_old, noise_new = noise_table(out / "old"), noise_table(out / "new")
+        print(f"\n{'view':<20}{'blotch old':>11}{'blotch new':>11}{'ratio':>8}")
+        for view in noise_new:
+            if view in noise_old:
+                print(f"{view:<20}{noise_old[view]:>11.3f}{noise_new[view]:>11.3f}{ratio(noise_new[view], noise_old[view]):>8.2f}")
         print(f"{drifted} regions drifted by more than {DRIFT:.0%}; sheets in {out}")
         return 1 if drifted else 0
     parser.print_help()

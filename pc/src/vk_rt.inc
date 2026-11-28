@@ -48,6 +48,12 @@ static struct {
     VkPipelineLayout trace_layout, surface_layout, temporal_layout, atrous_layout, skin_layout, nrd_in_layout,
         nrd_out_layout;
     VkPipeline trace, surface, temporal, atrous, skin, nrd_in, nrd_out;
+    /* The radiance cache (rt_cache.glsl): its update (the trace's set) and resolve, the table, and what it is of. */
+    VkDescriptorSetLayout cache_resolve_set;
+    VkPipelineLayout cache_resolve_layout;
+    VkPipeline cache_update, cache_resolve;
+    vk_buffer cache, cache_dummy;
+    int cache_log2, cache_valid, cache_scene[3]; /* slots (log2), whether it holds light of this scene, the scene it is of (serial, size) */
     /* Reflections (emissive.h pc_reflection_bounces): the trace (the trace's set) and its filter. */
     VkDescriptorSetLayout reflect_filter_set;
     VkPipelineLayout reflect_filter_layout;
@@ -120,6 +126,8 @@ typedef struct {
     pc_env_gpu env; /* the room's sun and sky (environment.h) */
     float emitter_shape[32][4]; /* glows.c: a column glow's half axis and radius (0: a sphere) */
     float emitter_shadow[32][4]; /* glows.c: x a column's shadow core radius */
+    int i4[4], i5[4]; /* radiance cache (rt_cache.glsl) */
+    float f3[4];
 } vrt_trace_ubo;
 typedef struct {
     int rect[4], scale[4];
@@ -165,11 +173,11 @@ static int vrt_init(void)
                            T = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, B = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
                            A = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
     /* trace 11: the light list; 12, 13: the reflections' material in and rays out (rt_reflect.comp) */
-    VkDescriptorType trace[14] = { U, A, B, T, S, S, S, S, S, B, S, B, S, S };
+    VkDescriptorType trace[15] = { U, A, B, T, S, S, S, S, S, B, S, B, S, S, B }; /* 14: the radiance cache */
     VkDescriptorType surface[13] = { U, A, B, T, T, T, S, S, S, B, B, T, S }; /* 11, 12: the material */
     VkDescriptorType temporal[17] = { U, S, S, S, S, S, S, S, S, S, S, S, S, S, S, S, S };
     VkDescriptorType atrous[8] = { S, S, S, S, S, S, S, S };
-    vrt.trace_set = vk_push_layout(trace, 14);
+    vrt.trace_set = vk_push_layout(trace, 15);
     vrt.surface_set = vk_push_layout(surface, 13);
     vrt.temporal_set = vk_push_layout(temporal, 17);
     vrt.atrous_set = vk_push_layout(atrous, 8);
@@ -179,6 +187,11 @@ static int vrt_init(void)
     vrt.atrous_layout = vrt_layout(vrt.atrous_set, 32);
     vrt.trace = vrt_compute(VK_SHADER(rt_trace_comp), vrt.trace_layout);
     vrt.reflect = vrt_compute(VK_SHADER(rt_reflect_comp), vrt.trace_layout);
+    vrt.cache_update = vrt_compute(VK_SHADER(rt_cache_update_comp), vrt.trace_layout);
+    VkDescriptorType cache_resolve[1] = { B };
+    vrt.cache_resolve_set = vk_push_layout(cache_resolve, 1);
+    vrt.cache_resolve_layout = vrt_layout(vrt.cache_resolve_set, 16);
+    vrt.cache_resolve = vrt_compute(VK_SHADER(rt_cache_resolve_comp), vrt.cache_resolve_layout);
     VkDescriptorType reflect_filter[10] = { U, S, S, S, S, S, S, S, S, S };
     vrt.reflect_filter_set = vk_push_layout(reflect_filter, 10);
     vrt.reflect_filter_layout = vrt_layout(vrt.reflect_filter_set, 0);
@@ -1179,6 +1192,8 @@ static void vrt_trace_descriptors(vk_descriptors* d, vk_slice ubo)
         vrt_lights_bytes);
     vk_descriptors_storage_image(d, 12, im[VRT_MATERIAL].view);
     vk_descriptors_storage_image(d, 13, im[VRT_REFLECT_RAW].view);
+    vk_buffer* cache = vrt.cache.buffer ? &vrt.cache : &vrt.cache_dummy;
+    vk_descriptors_buffer(d, 14, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, cache->buffer, 0, cache->size);
 }
 static void vrt_reflect(vk_slice trace_ubo, float footprint)
 {
@@ -1218,6 +1233,74 @@ int pc_vk_reflect_bind(VkImageView* view)
         return 0;
     *view = vrt.images[vrt.reflect_result].view;
     return 1;
+}
+
+/* The radiance cache (rt_cache.glsl): its settings into the trace's uniforms. Off (the shader reads nothing) while the cache is off,
+ * the table cannot be had, or progressive rendering runs (the studio's reference is the unbiased path tracer). The table is
+ * allocated on the first use and again when its size changes; vrt_cache_run empties it when what it holds is of another scene. */
+static void vrt_cache_setup(vrt_trace_ubo* u)
+{
+    if (!vrt.cache_dummy.buffer)
+        vk_buffer_create(&vrt.cache_dummy, 256, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0);
+    if (!pc_ph()->gi_cache || pc_ph()->gi_progressive > 0 || !vrt.cache_update || !vrt.cache_resolve)
+        return;
+    int bits = pc_ph()->gi_cache_size < 14 ? 14 : pc_ph()->gi_cache_size > 24 ? 24 : pc_ph()->gi_cache_size;
+    if (!vrt.cache.buffer || vrt.cache_log2 != bits) {
+        vk_buffer_destroy_later(&vrt.cache);
+        vrt.cache_valid = 0;
+        if (!vk_buffer_create(&vrt.cache, (VkDeviceSize)(12u * 4u) << bits, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0)) {
+            fprintf(stderr, "[gi] radiance cache of 2^%d cells: no memory\n", bits);
+            memset(&vrt.cache, 0, sizeof vrt.cache);
+            return;
+        }
+        vrt.cache_log2 = bits;
+    }
+    float fraction = pc_ph()->gi_cache_update;
+    int tile = (int)ceilf(1.0f / sqrtf(fraction < 0.001f ? 0.001f : fraction > 1.0f ? 1.0f : fraction));
+    u->i4[0] = 1;
+    u->i4[1] = (1 << bits) - 1;
+    u->i4[2] = tile;
+    u->i4[3] = pc_ph()->gi_cache_bounces < 1 ? 1 : pc_ph()->gi_cache_bounces > 6 ? 6 : pc_ph()->gi_cache_bounces;
+    u->i5[0] = pc_ph()->gi_cache_settle < 1 ? 1 : pc_ph()->gi_cache_settle;
+    u->i5[1] = pc_ph()->gi_cache_min < 1 ? 1 : pc_ph()->gi_cache_min;
+    u->i5[2] = pc_ph()->gi_cache_filter != 0;
+    u->f3[0] = pc_ph()->gi_cache_cell < 1.0f ? 1.0f : pc_ph()->gi_cache_cell;
+    u->f3[1] = pc_ph()->gi_cache_lod < 1.0f ? 1.0f : pc_ph()->gi_cache_lod;
+    u->f3[2] = pc_ph()->gi_cache_jitter < 0.0f ? 0.0f : pc_ph()->gi_cache_jitter;
+    u->f3[3] = pc_ph()->gi_cache_refresh < 0.0f ? 0.0f : pc_ph()->gi_cache_refresh;
+}
+/* This frame's cache work, before the trace reads it: the table emptied when it is of another scene, the update paths, the resolve. */
+static void vrt_cache_run(vrt_trace_ubo* u, vk_slice ubo)
+{
+    if (!u->i4[0])
+        return;
+    extern unsigned pc_hw_history_cut;
+    int scene[3] = { pc_ph_scene_serial(), (int)pc_hw_history_cut, vrt.room_count };
+    vk_section("gi cache");
+    if (!vrt.cache_valid || memcmp(scene, vrt.cache_scene, sizeof scene)) {
+        vkCmdFillBuffer(vk_cmd(), vrt.cache.buffer, 0, VK_WHOLE_SIZE, 0);
+        vk_barrier();
+        memcpy(vrt.cache_scene, scene, sizeof scene);
+        vrt.cache_valid = 1;
+    }
+    vk_descriptors d = { 0 };
+    vrt_trace_descriptors(&d, ubo);
+    int tile = u->i4[2];
+    VkCommandBuffer cmd = vk_cmd();
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vrt.cache_update);
+    vk_descriptors_push(&d, VK_PIPELINE_BIND_POINT_COMPUTE, vrt.trace_layout);
+    vkCmdDispatch(cmd, (uint32_t)((vrt.size[0] / tile + 1) + 7) / 8, (uint32_t)((vrt.size[1] / tile + 1) + 7) / 8, 1);
+    vk_barrier();
+    vk_descriptors r = { 0 };
+    vk_descriptors_buffer(&r, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vrt.cache.buffer, 0, vrt.cache.size);
+    uint32_t slots = 1u << vrt.cache_log2;
+    uint32_t push[4] = { slots, (uint32_t)u->i2[3], (uint32_t)(pc_ph()->gi_cache_history < 1 ? 1 : pc_ph()->gi_cache_history),
+        (uint32_t)(pc_ph()->gi_cache_evict < 1 ? 1 : pc_ph()->gi_cache_evict) };
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vrt.cache_resolve);
+    vkCmdPushConstants(cmd, vrt.cache_resolve_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof push, push);
+    vk_descriptors_push(&r, VK_PIPELINE_BIND_POINT_COMPUTE, vrt.cache_resolve_layout);
+    vkCmdDispatch(cmd, (slots + 63) / 64, 1, 1);
+    vk_barrier();
 }
 
 static void vrt_run(const float to_image[16], const float eye[3], float footprint)
@@ -1281,6 +1364,7 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     u->f2[2] = pc_ph()->roughness_bias; /* the reflections (rt_reflect.comp) */
     u->f2[3] = (float)(pc_ph()->reflection_bounces < 0 ? 0 : pc_ph()->reflection_bounces > 2 ? 2 : pc_ph()->reflection_bounces);
     u->env = env_now;
+    vrt_cache_setup(u);
     /* Progressive rendering (the studio's: pc_gi_progressive, the samples to reach): a view that stays the same is traced every frame with no denoiser, each frame's
      * samples one more in a running mean per pixel (rt_temporal.comp's history length, up to the target), and once the target is reached nothing is traced
      * until something changes (the camera, the lights, the sun, a caster's triangles, the room). The frame a change shows is the fast path's, as it is. */
@@ -1340,6 +1424,8 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     }
     u->i2[3] = (int)++vrt.frame;
     vk_descriptors d = { 0 };
+    vrt_cache_run(u, ubo);
+    vk_section("gi trace");
     vrt_trace_descriptors(&d, ubo);
     vrt_dispatch(vrt.trace, vrt.trace_layout, &d);
     vrt_haze(ubo);

@@ -33,7 +33,49 @@ void main() {
     vec3 total = vec3(0.0);
     float hit_sum = 0.0, hit_count = 0.0;
     float vis = shadows != 0 ? visibility_with_sun(p + n * lift, n) : 1.0;
-    for (int r = 0; r < (indirect != 0 ? rays : 0); r++) {
+    bool cached = false; // the irradiance cell of this point has the light that arrives: no rays
+    if (cache_on && pw.w < 1.5 && indirect != 0) {
+        vec3 tangent = normalize(cross(abs(n.y) < 0.9 ? vec3(0, 1, 0) : vec3(1, 0, 0), n)), bitangent = cross(n, tangent);
+        float cell = cache_cell * exp2(max(floor(log2(max(distance(p, eye) / cache_lod, 1.0))), 0.0));
+        vec3 sum = vec3(0.0); float away = 0.0, found = 0.0;
+        if (cache_bilinear) { // the four cells around the point along its surface, by their distance
+            uint face = cache_face(n); uint axis = face / 2u, a1 = (axis + 1u) % 3u, a2 = (axis + 2u) % 3u;
+            vec2 uv = vec2(p[a1], p[a2]) / cell - 0.5, f = fract(uv), base = floor(uv);
+            float weight = 0.0;
+            for (int k = 0; k < 4; k++) {
+                vec2 corner = vec2(float(k & 1), float(k >> 1));
+                vec3 q = p;
+                q[a1] = (base.x + corner.x + 0.5) * cell; q[a2] = (base.y + corner.y + 0.5) * cell;
+                float a;
+                vec4 c = cache_read(q, n, vec3(0.0), 1u, a);
+                if (c.w < float(cache_min)) continue;
+                float w = (corner.x > 0.5 ? f.x : 1.0 - f.x) * (corner.y > 0.5 ? f.y : 1.0 - f.y);
+                sum += c.rgb * w; away += a * w; weight += w;
+            }
+            if (weight > 0.0) { sum /= weight; away /= weight; found = 1.0; }
+            if (found == 0.0) { // none of them: the point's own cell
+                float a;
+                vec4 c = cache_read(p, n, vec3(0.0), 1u, a);
+                if (c.w >= float(cache_min)) { sum = c.rgb; away = a; found = 1.0; }
+            }
+        } else for (int r = 0; r < rays; r++) { // a cell nearby, a different one for each ray (a filter between the cells)
+            vec2 j = (vec2(rand(), rand()) - 0.5) * cache_jitter * cell;
+            float a;
+            vec4 c = cache_read(p, n, tangent * j.x + bitangent * j.y, 1u, a);
+            if (c.w < float(cache_min)) c = cache_read(p, n, vec3(0.0), 1u, a); // the shifted cell is not there (an edge): the point's own
+            if (c.w >= float(cache_min)) { sum += c.rgb; away += a; found += 1.0; }
+        }
+        if (found > 0.0) {
+            float scale = cache_bilinear ? 1.0 : 1.0 / found; // (bilinear: already the mean)
+            total = sum * scale * float(rays);
+            hit_sum = away * scale * float(rays); hit_count = float(rays);
+            cached = true;
+        }
+    }
+    if (trace_debug == 4) { imageStore(gi_out, g, cached ? vec4(0, 1, 0, 1) : vec4(1, 0, 0, 1)); return; } // the radiance cache: green where the GI came from it
+    // (characters and props have no cell of their own: with the cache the rays cost no shadow rays, so they get more of them)
+    int ray_count = cache_on && pw.w > 1.5 ? rays * 4 : rays;
+    for (int r = 0; r < (indirect != 0 && !cached ? ray_count : 0); r++) {
         vec3 o = p + n * lift, nrm = n, throughput = vec3(1.0);
         for (int b = 0; b < bounces; b++) {
             vec3 d = cosine_direction(nrm);
@@ -48,21 +90,23 @@ void main() {
             if (b == 0) { hit_sum += t; hit_count += 1.0; }
             Tri tri = tri_at(hit);
             vec3 y = o + d * t;
-            vec3 ny = normalize(cross(tri.b.xyz - tri.a.xyz, tri.c.xyz - tri.a.xyz));
-            if (dot(ny, d) > 0.0) ny = -ny;
-            vec3 vc = vertex_rgb(tri.a.w) * (1.0 - bc.x - bc.y) + vertex_rgb(tri.b.w) * bc.x + vertex_rgb(tri.c.w) * bc.y;
-            vec3 albedo = vc;
-            if ((tri.info.w & 1u) != 0u) {
-                uint c = surface_texel(tri, bc);
-                albedo = vec3(c & 31u, (c >> 5) & 31u, (c >> 10) & 31u) / 31.0;
+            vec3 ny = hit_normal(tri, d);
+            if (b == 0 && cache_on && hit < MOVER_BIT) { // the radiance cache has what leaves y, bounces and all
+                vec3 tangent = normalize(cross(abs(ny.y) < 0.9 ? vec3(0, 1, 0) : vec3(1, 0, 0), ny)), bitangent = cross(ny, tangent);
+                float cell = cache_cell * exp2(max(floor(log2(max(distance(y, eye) / cache_lod, 1.0))), 0.0));
+                vec2 j = (vec2(rand(), rand()) - 0.5) * cache_jitter * cell;
+                float unused;
+                vec4 c = cache_read(y, ny, tangent * j.x + bitangent * j.y, 0u, unused);
+                if (c.w >= float(cache_min)) { total += c.rgb; break; }
             }
-            vec3 baked = (tri.info.w & 2u) != 0u ? albedo : min(albedo * vc * 2.0, 1.0);
+            vec3 baked;
+            vec3 albedo = hit_albedo(tri, bc, baked);
             total += throughput * (albedo * (direct(y + ny * 0.5, ny) + sun_light(y + ny * 0.5, ny)) + baked * baked_bounce);
             throughput *= albedo;
             o = y + ny * 1.0; nrm = ny;
         }
     }
-    vec3 gi = total / float(max(rays, 1));
+    vec3 gi = total / float(max(cached ? rays : ray_count, 1));
     vec3 glow = emitted(p + n * lift, n);
     if (any(isnan(gi)) || any(isinf(gi))) gi = vec3(0.0);
     if (isnan(vis) || isinf(vis)) vis = 1.0;
