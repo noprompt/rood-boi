@@ -64,7 +64,7 @@ extern int pc_baked_shadows_active, pc_display_rgb24, pc_gi_debug, pc_gi_enabled
 extern float pc_fog_anisotropy, pc_fog_density, pc_gi_strength, pc_light_size, pc_lights_baked, pc_normal_smoothing,
     pc_shadow_softness;
 extern int pc_gl_inset[4];
-extern int pc_baked_shadows, pc_fog_steps, pc_gi_bounces, pc_gi_denoise, pc_gi_rays, pc_gi_trace_debug, pc_glow_shadows, pc_nrd_glow, pc_nrd_max_frames, pc_probe_budget, pc_probe_rays, pc_probe_show, pc_shadow_samples, pc_fog_volume_render, pc_fog_volume_shadows, pc_fog_volume_steps, pc_haze_cell, pc_reflection_bounces, pc_gi_method, pc_haze_quality, pc_lights_enabled, pc_particles_untraced;
+extern int pc_gi_progressive, pc_baked_shadows, pc_fog_steps, pc_gi_bounces, pc_gi_denoise, pc_gi_rays, pc_gi_trace_debug, pc_glow_shadows, pc_nrd_glow, pc_nrd_max_frames, pc_probe_budget, pc_probe_rays, pc_probe_show, pc_shadow_samples, pc_fog_volume_render, pc_fog_volume_shadows, pc_fog_volume_steps, pc_haze_cell, pc_reflection_bounces, pc_gi_method, pc_haze_quality, pc_lights_enabled, pc_particles_untraced;
 extern float pc_baked_ambient, pc_contact_radius, pc_emitter_light, pc_fog_glow, pc_gi_baked_bounce, pc_gi_resolution, pc_haze_history, pc_probe_hysteresis, pc_probe_normal_bias, pc_probe_spacing, pc_probe_view_bias, pc_shadow_history, pc_shadow_motion_history, pc_fog_volume_history, pc_fog_volume_resolution;
 
 pc_present_header pc_present_header_slots[PC_HEADER_SLOTS] __attribute__((section(".data.rood_host")));

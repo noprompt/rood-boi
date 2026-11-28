@@ -47,6 +47,7 @@ void pc_settings_env_override(const char* key) __attribute__((weak));
 extern float pc_gi_resolution __attribute__((weak));
 extern int pc_gte_widescreen __attribute__((weak));
 extern int pc_shadow_samples __attribute__((weak));
+extern int pc_gi_progressive __attribute__((weak)), pc_gi_rays __attribute__((weak)), pc_gi_progress_count __attribute__((weak)), pc_gi_progress_target __attribute__((weak));
 int pc_aa_parse(const char* text) __attribute__((weak));
 const char* pc_aa_string(void) __attribute__((weak));
 int pc_env_studio(const char* json);
@@ -467,7 +468,7 @@ struct RenderState {
     bool on = false;
     int lines = 0;
     float saved_gi = 0;
-    int saved_shadow_samples = 0;
+    int saved_shadow_samples = 0, saved_rays = 0;
     std::string saved_aa, applied_aa;
 } render_state;
 void apply_render()
@@ -479,6 +480,7 @@ void apply_render()
     if (!render_state.on) {
         render_state.saved_gi = &pc_gi_resolution ? pc_gi_resolution : 0;
         render_state.saved_shadow_samples = &pc_shadow_samples ? pc_shadow_samples : 0;
+        render_state.saved_rays = &pc_gi_rays ? pc_gi_rays : 0;
         render_state.saved_aa = pc_aa_string ? pc_aa_string() : "";
     }
     if (!render_state.on || render_state.lines != lines) {
@@ -506,6 +508,18 @@ void apply_render()
                 pc_settings_env_override("shadow_rays");
         }
     }
+    // Progressive rendering (render.progressive, render.samples; render.rays the GI's paths a pixel a frame): a view that stays the same is traced every frame with no
+    // denoiser until the samples are reached, then nothing is traced (vk_rt.inc); any change starts it again.
+    if (&pc_gi_progressive) {
+        pc_gi_progressive = flag("render.progressive") ? (int)fmaxf(2.0f, fminf(4096.0f, num("render.samples", 256))) : 0;
+        int rays = (int)num("render.rays", 0);
+        if (&pc_gi_rays && rays > 0 && pc_gi_progressive && pc_gi_rays != rays) {
+            pc_gi_rays = rays > 16 ? 16 : rays;
+            if (pc_settings_env_override)
+                pc_settings_env_override("rays_per_pixel");
+        } else if (&pc_gi_rays && !pc_gi_progressive && render_state.saved_rays > 0)
+            pc_gi_rays = render_state.saved_rays;
+    }
     // The anti-aliasing (render.aa, as the setting's text: "smaa", "msaa4+smaa"; empty: the settings'), rood-studio only.
     if (app_mode && pc_aa_parse) {
         const Json* aa = at("render.aa");
@@ -528,6 +542,10 @@ void remove_render()
         pc_gi_resolution = render_state.saved_gi;
     if (&pc_shadow_samples && render_state.saved_shadow_samples > 0)
         pc_shadow_samples = render_state.saved_shadow_samples;
+    if (&pc_gi_progressive)
+        pc_gi_progressive = 0;
+    if (&pc_gi_rays && render_state.saved_rays > 0)
+        pc_gi_rays = render_state.saved_rays;
     if (!render_state.applied_aa.empty() && pc_aa_parse && !render_state.saved_aa.empty())
         pc_aa_parse(render_state.saved_aa.c_str());
     render_state.applied_aa.clear();
@@ -1248,6 +1266,8 @@ std::string state_json()
     if (pc_studio_bounds_get && pc_studio_bounds_get(lo, hi))
         j += ",\"box\":{\"lo\":[" + jnum(lo[0]) + "," + jnum(lo[1]) + "," + jnum(lo[2]) + "],\"hi\":[" + jnum(hi[0]) + "," + jnum(hi[1])
             + "," + jnum(hi[2]) + "]}";
+    if (&pc_gi_progress_target)
+        j += ",\"progress\":{\"samples\":" + std::to_string(pc_gi_progress_count) + ",\"target\":" + std::to_string(pc_gi_progress_target) + "}";
     j += ",\"turntable\":{\"model_angle\":" + jnum(model_angle) + ",\"light_angle\":" + jnum(light_angle) + ",\"running\":";
     j += turntable_running() ? "true}" : "false}";
     if (app_mode) {
@@ -1522,6 +1542,17 @@ static void controls_body()
                         changed |= rows(*look, "looks." + look_name + ".", 1);
                         ImGui::TreePop();
                     }
+        }
+        {
+            bool on = flag("render.progressive");
+            if (ImGui::Checkbox("Progressive rendering", &on)) {
+                set_at("render.progressive", Json::boolean_(on));
+                changed = true;
+            }
+            if (on && &pc_gi_progress_target) {
+                ImGui::SameLine();
+                ImGui::TextDisabled("%d / %d samples%s", pc_gi_progress_count, pc_gi_progress_target, pc_gi_progress_count >= pc_gi_progress_target ? " (done)" : "");
+            }
         }
         if (ImGui::Button("Turntable: stop and reset")) {
             set_at("turntable.model", Json::boolean_(false)), set_at("turntable.light", Json::boolean_(false));

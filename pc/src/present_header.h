@@ -22,6 +22,7 @@
     X(display_rgb24, pc_display_rgb24) \
     X(fog_volume_debug, pc_fog_volume_debug) \
     X(gi_debug, pc_gi_debug) \
+    X(gi_progressive, pc_gi_progressive) \
     X(gi_enabled, pc_gi_enabled) \
     X(gl_aa, pc_gl_aa) \
     X(gl_aspect, pc_gl_aspect) \

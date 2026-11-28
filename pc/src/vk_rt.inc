@@ -27,6 +27,7 @@ enum {
 /* NRD RELAX diffuse (vk_nrd.cpp) for the indirect light; with
  * pc_nrd_glow the glows' light goes through it too (else our filter). */
 int pc_nrd_glow = 0;
+int pc_gi_progress_count, pc_gi_progress_target; /* progressive rendering's samples so far and the target (0: off), for the studio's counter */
 int pc_nrd_max_frames = 30; /* RELAX's maximum accumulated frames */
 /* Volumetric haze: a froxel volume of pc_haze_cell x pc_haze_cell display
  * pixels per cell (atmosphere.h; the lighting quality's haze_cell) and
@@ -88,6 +89,8 @@ static struct {
      * replay (interpolated) frame; a burst of dumps of the next updates. */
     float eye[3];
     int replay, dump_left, dump_index;
+    unsigned prog_signature; /* progressive rendering: what the view is of; prog_count the frames traced of it (-1: the frame that showed a change) */
+    int prog_count;
     unsigned run_signature; /* what the last update was of (vrt_run): the same again is a repeat of the picture, not a new frame */
     char dump_path[400];
     /* NRD: its camera (orthonormal view, projection) of the previous
@@ -1278,6 +1281,39 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     u->f2[2] = pc_ph()->roughness_bias; /* the reflections (rt_reflect.comp) */
     u->f2[3] = (float)(pc_ph()->reflection_bounces < 0 ? 0 : pc_ph()->reflection_bounces > 2 ? 2 : pc_ph()->reflection_bounces);
     u->env = env_now;
+    /* Progressive rendering (the studio's: pc_gi_progressive, the samples to reach): a view that stays the same is traced every frame with no denoiser, each frame's
+     * samples one more in a running mean per pixel (rt_temporal.comp's history length, up to the target), and once the target is reached nothing is traced
+     * until something changes (the camera, the lights, the sun, a caster's triangles, the room). The frame a change shows is the fast path's, as it is. */
+    int prog = pc_ph()->gi_progressive, progressive = 0;
+    if (prog > 0) {
+        int caster_count, caster_serial;
+        const float* caster_data = pc_hw_casters(&caster_count, &caster_serial);
+        int serials[3] = { pc_ph_scene_serial(), vrt.size[0], vrt.size[1] };
+        int knobs[6] = { pc_ph()->gi_denoise, pc_ph()->gi_rays, pc_ph()->shadow_samples, pc_ph()->gi_bounces, prog, (int)pc_hw_history_cut };
+        unsigned ps = 2166136261u;
+        ps = vrt_hash(ps, u, sizeof *u);
+        ps = vrt_hash(ps, vrt_lights_slice.data, (size_t)vrt_light_count * sizeof(pc_light_gpu));
+        ps = vrt_hash(ps, to_image, 16 * sizeof(float));
+        ps = vrt_hash(ps, serials, sizeof serials);
+        ps = vrt_hash(ps, knobs, sizeof knobs);
+        ps = vrt_hash(ps, caster_data, (size_t)caster_count * 9 * sizeof(float));
+        if (ps != vrt.prog_signature || !vrt.history_valid)
+            vrt.prog_signature = ps, vrt.prog_count = -1;
+        else if (vrt.prog_count == -1) { /* still for one frame: a new accumulation, from nothing */
+            vrt.prog_count = 0;
+            vrt.history_valid = 0, vrt.nrd.valid = 0;
+            progressive = 1;
+        } else if (vrt.prog_count < prog)
+            progressive = 1;
+        else {
+            pc_gi_progress_count = vrt.prog_count, pc_gi_progress_target = prog;
+            return; /* converged: the images hold the picture; nothing is traced */
+        }
+        if (progressive)
+            ++vrt.prog_count;
+        pc_gi_progress_count = vrt.prog_count < 0 ? 0 : vrt.prog_count, pc_gi_progress_target = prog;
+    } else
+        pc_gi_progress_count = pc_gi_progress_target = 0;
     /* The same picture again (a paused game redrawn, once for each request served and at 60 Hz: as many as the wall clock lets
      * the machine make between two steps) is not a new frame: the trace's random numbers (the frame index) and the temporal
      * and NRD histories advance on the game's frames and its interpolation images only, so the picture a step ends on does
@@ -1298,7 +1334,7 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
         signature = vrt_hash(signature, &phase, sizeof phase);
         signature = vrt_hash(signature, accumulation, sizeof accumulation);
         signature = vrt_hash(signature, history, sizeof history);
-        if (vrt.history_valid && signature == vrt.run_signature)
+        if (!progressive && vrt.history_valid && signature == vrt.run_signature)
             return; /* the images already hold this frame's result (vrt.result) */
         vrt.run_signature = signature;
     }
@@ -1321,9 +1357,9 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     vrt_temporal_ubo* t = tubo.data;
     memcpy(t->previous_to_image, vrt.previous_to_image, sizeof t->previous_to_image);
     t->params[0] = footprint;
-    t->params[1] = pc_ph()->gi_denoise ? pc_ph()->shadow_history : 1.0f;
+    t->params[1] = progressive ? (float)prog : pc_ph()->gi_denoise ? pc_ph()->shadow_history : 1.0f;
     t->params[2] = (float)vrt.history_valid;
-    t->params[3] = pc_ph()->gi_denoise ? fminf(pc_ph()->shadow_motion_history, t->params[1]) : 1.0f;
+    t->params[3] = progressive ? (float)prog : pc_ph()->gi_denoise ? fminf(pc_ph()->shadow_motion_history, t->params[1]) : 1.0f;
     vk_descriptors_buffer(&d, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, tubo.buffer, tubo.offset, sizeof *t);
     int old_moments = VRT_MOMENTS_A + vrt.history_current, out_moments = VRT_MOMENTS_A + (vrt.history_current ^ 1);
     int temporal_images[16] = { RAW, POSITION, NORMAL, out, RAW_EXTRA, out_extra, SIGNATURE, old, POSITION_OLD,
@@ -1343,8 +1379,10 @@ static void vrt_run(const float to_image[16], const float eye[3], float footprin
     /* 3: a-trous filtering of the accumulated light (display only). */
     vrt.result = out;
     vrt.result_extra = out_extra;
-    if (!pc_ph()->gi_denoise) {
+    if (!pc_ph()->gi_denoise || progressive) { /* (progressive: the mean itself, no filter, no NRD) */
         vrt.nrd.denoised = 0;
+        if (progressive)
+            vrt.nrd.valid = 0;
         return;
     }
     vk_section("gi filter");

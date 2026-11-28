@@ -81,6 +81,7 @@ void pc_gi_room_bounds(float lo[3], float hi[3])
 float pc_gi_strength = 1.0f; /* indirect light scale */
 float pc_gi_resolution = 3.0f; /* GI pixels per native display pixel (3: ~670 lines) */
 int pc_gi_bounces = 1;
+int pc_gi_progressive; /* the studio's progressive rendering: the samples to reach (0: off); vk_rt.inc */
 int pc_gi_rays = 1; /* paths per GI pixel per frame */
 float pc_gi_baked_bounce = 0.0f; /* let the baked vertex lighting bounce too */
 /* gi_denoiser: 0 raw samples, 1 our temporal + a-trous filter, 2 NVIDIA NRD

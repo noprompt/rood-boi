@@ -174,6 +174,7 @@ def run(out, card):
 
         # ---- enter: the empty stage ----
         studio(action="enter")
+        studio(action="look", set="render.progressive", value=False)  # (the pictures below are compared as the fast path draws them; the progressive ones further down)
         s = settled("enter")
         check(s["look"] == "neutral" and s["item"] is None, f"entered, the neutral look, nothing summoned ({s['look']})")
         p = g.call("photo")
@@ -465,6 +466,38 @@ def run(out, card):
         settled("second visit")
         again = shot("second_visit")
         check(mean_difference(again, base) < 0.3, f"a second visit draws the same picture ({mean_difference(again, base):.3f})")
+
+        # ---- progressive rendering: a view that stays still converges, holds as it is (nothing is traced), and a change starts it again ----
+        studio(action="look", set="render.progressive", value=True)
+        studio(action="look", set="render.samples", value=24)
+        studio(action="look", name="neutral")
+        studio(action="summon", kind="character", id=3)
+        settled("progressive")
+        deadline = Deadline(60)
+        while not (studio().get("progress", {}).get("target") and studio()["progress"]["samples"] >= studio()["progress"]["target"]):
+            if deadline.passed():
+                check(False, f"progressive: no convergence ({studio().get('progress')})")
+                break
+            time.sleep(0.05)
+        pa = studio().get("progress", {})
+        check(pa.get("target") == 24 and pa.get("samples") == 24, f"progressive: the samples reach the target and stop ({pa})")
+        g.wait_presents(3)
+        first = shot("progressive_a")
+        g.wait_presents(10)
+        second = shot("progressive_b")
+        check(mean_difference(first, second) == 0, f"progressive: the converged picture holds exactly ({mean_difference(first, second):.4f})")
+        studio(action="camera", orbit_yaw=30)
+        deadline = Deadline(20)
+        restarted = False
+        while not deadline.passed():
+            st = studio().get("progress", {})
+            if st.get("samples", 99) < 24 or (st.get("samples") == 24 and mean_difference(first, shot("progressive_c")) > 0.4):
+                restarted = True
+                break
+            time.sleep(0.02)
+        check(restarted, "progressive: a change of the camera starts the accumulation again")
+        studio(action="look", set="render.progressive", value=False)
+        settled("progressive off")
         studio(action="leave")
         deadline = Deadline(30)
         while g.call("photo")["phase"] != "running":
