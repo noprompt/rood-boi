@@ -36,4 +36,6 @@ int pc_renderer_rq(pc_rq* rq);
 void pc_rq_run(pc_rq* rq); /* the renderer's side: the one handler table */
 /* The game side takes a reply into its VRAM array and frees it. */
 void pc_rq_readback_apply(pc_rq_readback* reply, uint16_t* vram);
+/* The game side frees a reply it only looked at (a screenshot's: the pixels are not put into the array). */
+void pc_rq_readback_free(pc_rq_readback* reply);
 #endif

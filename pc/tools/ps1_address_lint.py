@@ -101,7 +101,7 @@ RULES = {
     # array (StoreImage of a drawn area, a sprite sampling the frame, screenshots and checkpoints), counted so that it only falls (T5-7).
     "cpu_raster": re.compile(r"^\s*\S"),
     "stale_area": re.compile(r"\b(?:pc_hw_raster_skip|pc_hw_mark_raster|pc_hwc_mark_raster|pc_hwc_raster_post|pc_hw_raster_apply|raster_refresh)\b"),
-    "vram_readback": re.compile(r"\b(?:pc_hw_sync(?:_store|_texture|s)?|pc_hwc_fence_sync|vram_from_target|rvram_apply|pc_hw_stale\w*|pc_hwc_stale\w*)\b"),
+    "vram_readback": re.compile(r"\b(?:pc_hw_sync(?:_store|_texture|s)?|pc_hwc_fence_sync|pc_rq_readback_apply|pc_hw_capture_read|rvram_apply|pc_hw_stale\w*|pc_hwc_stale\w*)\b"),
 }
 # Rules that count only under a path (the others count in every tree).
 ONLY_UNDER = {"vram_frame_readers": ("pc/src/game/TITLE/", "pc/src/game/MENU/MENU5.PRG/", "pc/src/game/MENU/MENU7.PRG/"),

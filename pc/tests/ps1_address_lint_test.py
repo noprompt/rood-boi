@@ -24,6 +24,13 @@ class Ps1AddressLintTest(unittest.TestCase):
             self.assertTrue(lint.RULES[rule].search(text), rule)
         self.assertFalse(lint.RULES["ps1_address"].search("x = 0x8001;"))
 
+    def test_vram_readback_names_the_reads_into_the_games_array(self):
+        rule = lint.RULES["vram_readback"]
+        for name in ("pc_hwc_fence_sync", "pc_rq_readback_apply", "pc_hw_capture_read", "pc_hw_sync_texture", "pc_hw_stale_copy", "rvram_apply"):
+            self.assertTrue(rule.search(name + "(x);"), name)
+        for name in ("pc_hw_sample_texture", "pc_hwc_texture_sample", "own_from_target", "pc_frame_read", "pc_hwc_capture_picture"):  # (GPU-side, a caller of the read, or no write into the array)
+            self.assertFalse(rule.search(name + "(x);"), name)
+
     def test_only_a_rise_fails(self):
         rose, fell = lint.compare({"a": 5, "b": 2, "c": 3}, {"a": 4, "b": 3, "c": 3})
         self.assertEqual(rose, {"a": (4, 5)})

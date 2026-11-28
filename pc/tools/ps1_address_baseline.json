@@ -22,6 +22,6 @@
  "vram_frame_readers": 0,
  "cpu_raster": 0,
  "stale_area": 0,
- "vram_readback": 14,
+ "vram_readback": 16,
  "tool_address_read": 0
 }

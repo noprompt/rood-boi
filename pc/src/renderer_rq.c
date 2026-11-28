@@ -58,3 +58,9 @@ void pc_rq_readback_apply(pc_rq_readback* reply, uint16_t* vram)
     }
     reply->count = 0;
 }
+void pc_rq_readback_free(pc_rq_readback* reply)
+{
+    for (int i = 0; i < reply->count; i++)
+        free(reply->rect[i].pixels);
+    reply->count = 0;
+}

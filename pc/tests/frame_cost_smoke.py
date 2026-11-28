@@ -47,6 +47,16 @@ def measure(game, vsyncs):
     return perf.get("cpu_counts"), perf.get("cpu_sections", {})
 
 
+def moment_both(game, result, name, vsyncs):
+    """A moment's counters with the live frame (interpolation off), then with interpolated frames (what players see)."""
+    result[name] = measure(game, vsyncs)
+    game.call("graphics", interpolate=True)
+    game.run(10)
+    result[name + " interpolated"] = measure(game, vsyncs)
+    game.call("graphics", interpolate=False)
+    game.run(10)
+
+
 def play(card, out, name, extra):
     """The three moments in one game: their counters."""
     env = {"ROOD_PERF": "1", "ROOD_GI": "0", "ROOD_LIGHTS": str(out / f"lights-{name}"), "ROOD_WINDOW": "960x720",
@@ -55,18 +65,18 @@ def play(card, out, name, extra):
     result = {}
     try:
         game.run(30)
-        game.call("graphics", interpolate=False)  # (a replay of an interpolated frame keeps its copies: the live frame's are counted)
+        game.call("graphics", interpolate=False)  # (the live frame's counters; the replays' follow: moment_both)
         result["field"] = measure(game, 120)
         game.press("circle", vsyncs=3, settle=60)  # the weapon drawn
         game.call("input", buttons=["circle"], vsyncs=3)
         game.run(40)  # the targeting sphere open
-        result["sphere"] = measure(game, 60)
+        moment_both(game, result, "sphere", 60)
         for _ in range(3):
             game.press("cross", vsyncs=3, settle=40)
         game.run(60)
         for button, settle in (("triangle", 90), ("down", 20), ("down", 20), ("circle", 150)):
             game.press(button, vsyncs=4, settle=settle)
-        result["status"] = measure(game, 60)
+        moment_both(game, result, "status", 60)
     finally:
         game.close()
     return result
@@ -82,7 +92,7 @@ def run(args, out, card):
     check(counts["hashed_texels"] < 2000,
           f"standing: emissive matching hashes {counts['hashed_texels']:.0f} texels a vsync (< 2000)")
     check(counts["debug_ppm"] < 0.1, f"standing: loading.ppm written {counts['debug_ppm']:.2f} times a vsync")
-    for scene in ("sphere", "status"):
+    for scene in ("sphere", "status", "sphere interpolated", "status interpolated"):
         counts, sections = new[scene]
         print(f"      {scene}: {sections.get('vsync', 0):.3f} ms a vsync; {counts}")
         check(counts["readbacks"] == 0 and counts["gpu_copies"] == 0,

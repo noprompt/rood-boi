@@ -99,7 +99,7 @@ extern void pc_hw_rect(int, int, int, int, int, int, unsigned, unsigned, unsigne
 extern void pc_hw_line(int, int, int, int, unsigned, unsigned, int, unsigned, const int*, int);
 /* A frame read (screenshots, checkpoints, the game's own reads of the frame): the target's pixels of the rectangle (gpu_hw.c; absent in unit probes). */
 extern void pc_hw_capture_read(int, int, int, int, int) __attribute__((weak));
-extern void pc_hw_sync_texture(unsigned, unsigned, unsigned, int, int, int, int, const int*) __attribute__((weak));
+extern void pc_hw_sample_texture(unsigned, unsigned, unsigned, int, int, int, int, const int*) __attribute__((weak));
 /* What a VRAM write replaces, kept for frame interpolation (gpu_hw.c). */
 extern void pc_hw_before_write(int, int, int, int) __attribute__((weak));
 extern void pc_hw_set_2d(int);
@@ -649,18 +649,31 @@ static void copy_file(const char* from, const char* to)
  * (PutDispEnv isrgb24, the intro movie) bytes R, G, B packed across VRAM
  * halfwords from the display's left edge. */
 int pc_display_rgb24;
+/* The target's pixels of the display rectangle for a screenshot or a checkpoint (pc_present_post CAPTURE), looked at in place of the game's array
+ * where they cover it: the array is the game's state and is not written. NULL: the array alone. */
+static pc_rq_readback* display_view __attribute__((section(".data.rood_host"))) = NULL; /* host */
+static uint16_t display_word(int y, int x)
+{
+    y &= 511, x &= 1023;
+    if (display_view)
+        for (int i = 0; i < display_view->count; i++) {
+            const int* r = &display_view->rect[i].x; /* x, y, w, h */
+            if (x >= r[0] && x < r[0] + r[2] && y >= r[1] && y < r[1] + r[3])
+                return display_view->rect[i].pixels[(size_t)(y - r[1]) * (size_t)r[2] + (size_t)(x - r[0])];
+        }
+    return vram[y * 1024 + x];
+}
 static void display_pixel(int x, int y, unsigned char* rgb)
 {
-    const uint16_t* row = vram + ((y + display_y) & 511) * 1024;
     if (pc_display_rgb24) {
         int byte = display_x * 2 + x * 3;
         for (int i = 0; i < 3; i++, byte++) {
-            uint16_t p = row[(byte >> 1) & 1023];
+            uint16_t p = display_word(y + display_y, byte >> 1);
             rgb[i] = byte & 1 ? p >> 8 : p & 0xFF;
         }
         return;
     }
-    uint16_t p = row[(x + display_x) & 1023];
+    uint16_t p = display_word(y + display_y, x + display_x);
     rgb[0] = ((p & 31) * 255) / 31;
     rgb[1] = (((p >> 5) & 31) * 255) / 31;
     rgb[2] = (((p >> 10) & 31) * 255) / 31;
@@ -746,6 +759,20 @@ static void pc_present_now(void)
     pc_present();
     if (display_unwritten)
         write_display();
+}
+/* The picture a checkpoint writes: the display as shown, then (with a renderer) the renderer's pixels of the display rectangle looked at in place of the game's
+ * VRAM array's (display_view), the array untouched. */
+static void present_checkpoint(void)
+{
+    pc_present_now();
+    if (pc_hw_capture_read) {
+        pc_rq_readback capture = { 0 };
+        pc_present_post(&(pc_present_request) { .kind = PC_PRESENT_CAPTURE, .vram = vram, .x = display_x, .y = display_y, .w = display_w, .h = display_h, .capture = &capture });
+        display_view = &capture;
+        pc_present_now();
+        display_view = NULL;
+        pc_rq_readback_free(&capture);
+    }
 }
 /* Debug aid: `kill -USR1 <pid>` prints the native call stack; resolve the
  * addresses with pc/tools/where.sh. */
@@ -1694,9 +1721,9 @@ static void commands(uint32_t* p, unsigned n)
             if (tex && pc_button_roles_texels) /* the game's ○ / × follow the button roles */
                 uv += (unsigned)pc_button_roles_texels(vram, tpage, uv >> 16, (int)(uv & 255), (int)((uv >> 8) & 255),
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1);
-            if (tex && pc_hw_sync_texture) {
+            if (tex && pc_hw_sample_texture) {
                 int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-                pc_hwc_fence_texture(tpage, uv >> 16, texture_window, uv & 255, (uv >> 8) & 255,
+                pc_hwc_texture_sample(tpage, uv >> 16, texture_window, uv & 255, (uv >> 8) & 255,
                     (int)(uv & 255) + (int)w - 1, (int)((uv >> 8) & 255) + (int)h - 1, clip);
             }
             vram_note_drawn(x > clip_x ? x : clip_x, y > clip_y ? y : clip_y,
@@ -2106,21 +2133,17 @@ unsigned pc_battle_frame_count(void) { return battle_frames; }
 /* Developer RPC screenshot: the displayed frame as a binary PPM. */
 int pc_capture_display(const char* path, int* width, int* height)
 {
-    /* Looking at the game does not change it: the display rectangle is read back from the renderer into the VRAM array
-     * for the picture below, and the array is put back as it was after (the game's VRAM is its state: a state hash or a save state
-     * taken after a screenshot must equal one taken without). */
-    uint16_t* kept = NULL; /* (not a static: this unit's statics are the game's state) */
-    int synced = pc_hw_capture_read != 0 && (kept = malloc(sizeof vram)) != NULL;
-    if (synced) {
-        memcpy(kept, vram, sizeof vram);
-        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
+    /* Looking at the game does not change it: the display rectangle's pixels from the renderer are looked at where they are (display_view), never put
+     * into the VRAM array (the game's state: a state hash or a save state taken after a screenshot equals one taken without). */
+    pc_rq_readback capture = { 0 };
+    if (pc_hw_capture_read) {
+        pc_present_post(&(pc_present_request) { .kind = PC_PRESENT_CAPTURE, .vram = vram, .x = display_x, .y = display_y, .w = display_w, .h = display_h, .capture = &capture });
+        display_view = &capture;
     }
     FILE* f = fopen(path, "wb");
     if (!f) {
-        if (synced) {
-            memcpy(vram, kept, sizeof vram);
-            free(kept);
-        }
+        display_view = NULL;
+        pc_rq_readback_free(&capture);
         return -1;
     }
     fprintf(f, "P6\n%d %d\n255\n", display_w, display_h);
@@ -2132,10 +2155,8 @@ int pc_capture_display(const char* path, int* width, int* height)
     }
     *width = display_w;
     *height = display_h;
-    if (synced) {
-        memcpy(vram, kept, sizeof vram);
-        free(kept);
-    }
+    display_view = NULL;
+    pc_rq_readback_free(&capture);
     return fclose(f) ? -1 : 0;
 }
 /* Present the current frame again (paused developer view). */
@@ -2310,11 +2331,7 @@ void pc_battle_frame_complete(void)
         display_y = clip_y;
         display_w = clip_w;
         display_h = clip_h;
-        pc_present_now();
-        if (pc_hw_capture_read) {
-        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
-        pc_present_now();
-    }
+        present_checkpoint();
     if (pc_replace_file(pc_out_path("loading.ppm"), pc_out_path("battle-checkpoint.ppm"))) {
             perror("battle checkpoint");
             exit(1);
@@ -2333,11 +2350,7 @@ void pc_battle_frame_complete(void)
     display_y = clip_y;
     display_w = clip_w;
     display_h = clip_h;
-    pc_present_now();
-    if (pc_hw_capture_read) {
-        pc_present_post(&(pc_present_request) { PC_PRESENT_SYNC, vram, display_x, display_y, display_w, display_h });
-        pc_present_now();
-    }
+    present_checkpoint();
     if (pc_replace_file(pc_out_path("loading.ppm"), pc_out_path("opening-checkpoint.ppm"))) {
         perror("opening checkpoint");
         exit(1);

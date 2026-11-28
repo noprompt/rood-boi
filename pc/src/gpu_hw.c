@@ -712,7 +712,7 @@ static int batch_clip[4] = { -1, -1, -1, -1 };
  * buffer no longer brings the frame buffer's half of its tile along. */
 static uint32_t dirty_bands[16] = { [0 ... 15] = 0xffffffffu };
 static uint32_t dirty_tiles = 0xffffffffu;
-/* Own copies (pc_hw_sync_texture): the rectangles of the target the
+/* Own copies (pc_hw_sample_texture): the rectangles of the target the
  * primitive being drawn samples, copied into the sampled copy of VRAM at its
  * first triangle (after its uploads); own_bands: where that copy is the
  * target's, not native VRAM (dirty again from the next textured primitive). */
@@ -2579,7 +2579,7 @@ static void triangle_apply_body(const int* xy, const int* uv, const int* rgb, un
     tex_pure = 0;
     if (textured) {
         if (!own_active)
-            own_fold(); /* (a textured primitive drawn without pc_hw_sync_texture) */
+            own_fold(); /* (a textured primitive drawn without pc_hw_sample_texture) */
         uint32_t needed[16];
         sampled_bands(tpage, clut, window, uv, needed);
         if (dirty_in(needed)) {
@@ -4563,7 +4563,7 @@ void pc_hw_native_translucent(uint32_t list, int first, int count, int ox, int o
  * loads back after changing it (the title's copyright fading in over its
  * background, its menu over its background) matches the 2D drawn by the
  * game, compressed. */
-static GLuint sync_fbo, sync_texture;
+static GLuint sync_fbo, sample_texture;
 static void mark_stale(const int* clip) { mark_stale_kind(clip, STALE_MISSING); }
 static void mark_stale_kind(const int* clip, int kind) { pc_stale_mark(&cstale, clip, kind); }
 /* Where the read-backs of the request being run put their pixels (renderer_rq.h); NULL: into the game's array, on this thread. */
@@ -4589,14 +4589,14 @@ static void read_native_pixels_gl(GLuint fbo, int x0, int y0, int x1, int y1, un
     }
 #endif
     if (!sync_fbo) {
-        gl_GenTextures(1, &sync_texture);
-        gl_BindTexture(GL_TEXTURE_2D, sync_texture);
+        gl_GenTextures(1, &sample_texture);
+        gl_BindTexture(GL_TEXTURE_2D, sample_texture);
         gl_TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         gl_TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         gl_TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1024, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         gl_GenFramebuffers(1, &sync_fbo);
         gl_BindFramebuffer(GL_FRAMEBUFFER, sync_fbo);
-        gl_FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sync_texture, 0);
+        gl_FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sample_texture, 0);
     }
     int s = pc_hw_scale;
     gl_BindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
@@ -4635,7 +4635,7 @@ static const char* vram_copy_vertex_source =
     "    vec2 p = vec2(gl_VertexID & 1, gl_VertexID >> 1);\n"
     "    gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0);\n"
     "}\n";
-static const char* vram_copy_fragment_source = /* (pc/shaders/vulkan/vram_from_target.comp) */
+static const char* vram_copy_fragment_source = /* (pc/shaders/vulkan/own_from_target.comp) */
     "#version 330 core\n"
     "out uvec4 vram;\n"
     "uniform sampler2D target;\n"
@@ -4659,7 +4659,7 @@ static const char* vram_copy_fragment_source = /* (pc/shaders/vulkan/vram_from_t
     "    vram = uvec4((c.r >> 3) | ((c.g >> 3) << 5) | ((c.b >> 3) << 10) | (c.a >= 128u ? 0x8000u : 0u));\n"
     "}\n";
 static int vram_copy_failed; /* (the GL copy program did not build: own_apply reads back) */
-static int vram_from_target(int replay_target, int x0, int y0, int x1, int y1)
+static int own_from_target(int replay_target, int x0, int y0, int x1, int y1)
 {
     if (vram_copy_failed)
         return 0;
@@ -4857,7 +4857,7 @@ static void own_apply(void)
             overlay_bake_rect(r[0], r[1], r[0] + r[2], r[1] + r[3]);
         if (ms_scope == target_fbo)
             ms_end_over(r[0], r[1], r[2], r[3]);
-        if (vram_from_target(0, r[0], r[1], r[0] + r[2], r[1] + r[3]))
+        if (own_from_target(0, r[0], r[1], r[0] + r[2], r[1] + r[3]))
             bands_for(r[0], r[1], r[0] + r[2] - 1, r[1] + r[3] - 1, own_bands);
         else {
             uint32_t bands[16] = { 0 };
@@ -4881,8 +4881,8 @@ static void own_apply(void)
  * rows of the picture it draws over), only the GPU needs them: they are
  * copied on the GPU (own copies) and nothing waits for the GPU's frame. */
 static int sync_debug = -1;
-void pc_hw_sync_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip)
-{ PC_HW_METER(sync_texture);
+void pc_hw_sample_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip)
+{ PC_HW_METER(sample_texture);
     own_fold();
     own_count = 0, own_want_valid = 0;
     if (!pc_stale_any(&cstale))
@@ -5714,7 +5714,7 @@ static uint32_t replay_sample_own(const int16_t* texels, uint32_t restore[16])
         bands_for(x0, y0, x1 - 1, y1 - 1, rect);
         upload_dirty(rect);
     }
-    if (vram_from_target(1, x0, y0, x1, y1)) {
+    if (own_from_target(1, x0, y0, x1, y1)) {
         bands_for(x0, y0, x1 - 1, y1 - 1, restore); /* native VRAM there again after the draw */
         return 0;
     }
@@ -5911,13 +5911,17 @@ static void replay_frame(const recording* a, const recording* b, float t)
             }
         }
         uint32_t restore[16] = { 0 };
-        uint32_t own = op_feedback(b, o) ? replay_sample_own(op->texels, restore) : 0;
+        /* A screen copy is drawn from the capture (WINDOW_CAPTURE): the replay target over its texels, the multisampled scope resolved there as
+         * the live draw's own_apply does; the shader reads nothing else for it, so the copy of those texels into the sampled VRAM is left out. */
+        int captured = 0;
 #ifdef ROOD_VULKAN
-        /* A screen copy drawn from the capture (WINDOW_CAPTURE): the replay target over its texels, as the live draw took it. The copy of the
-         * texels into the sampled VRAM above stays: the ops after it in the recording read those rows from it (left out, the interpolated
-         * fight loses the spell banner's text; left out unless a later op overlaps the texels, the later screen copies of the sphere and Status
-         * still need it, 7 of the 8 a vsync). */
-        if (pc_vk_on() && scratch[0].window & WINDOW_CAPTURE && op->texels[2] > op->texels[0] && op->texels[3] > op->texels[1])
+        captured = pc_vk_on() && (scratch[0].window & WINDOW_CAPTURE) && op->texels[2] > op->texels[0] && op->texels[3] > op->texels[1];
+        if (captured && ms_scope == replay.fbo)
+            ms_end_over(op->texels[0], op->texels[1], op->texels[2] - op->texels[0], op->texels[3] - op->texels[1]);
+#endif
+        uint32_t own = op_feedback(b, o) && !captured ? replay_sample_own(op->texels, restore) : 0;
+#ifdef ROOD_VULKAN
+        if (captured)
             pc_vk_hw_capture(1, op->texels[0], op->texels[1], op->texels[2], op->texels[3]);
 #endif
         draw_batch(replay.fbo, scratch, op->count, op->blend, op->clip);

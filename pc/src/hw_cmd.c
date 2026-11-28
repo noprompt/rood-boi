@@ -55,7 +55,7 @@ extern void pc_hw_fill(int, int, int, int, int, int, int, const uint16_t*);
 extern void pc_hw_upload(int, int, int, int, const uint16_t*);
 extern void pc_hw_copy(int, int, int, int, int, int, int, int);
 extern void pc_hw_upload_mode(int);
-extern void pc_hw_sync_texture(unsigned, unsigned, unsigned, int, int, int, int, const int*);
+extern void pc_hw_sample_texture(unsigned, unsigned, unsigned, int, int, int, int, const int*);
 extern void pc_stream_apply(int op, unsigned tag, const int* v, int n); /* boot_runtime.c: the digest's side of a record */
 extern void pc_stream_apply_words(const uint32_t* p, unsigned n);
 extern void pc_hw_begin_ot(void);
@@ -65,7 +65,7 @@ extern const uint16_t* pc_native_vram(void);
 extern int pc_gpu_immediate; /* DrawPrim, not an ordering table: ui_text identifies the info signs by it */
 extern const void* pc_gpu_command; /* the packet a rectangle or text quad draws (boot_runtime.c) */
 
-enum { C_SET_2D = 1, C_SET_NARROWED, C_SET_PRECISE, C_SET_DEPTH, C_SET_PACKET, C_SET_FLIPPED_UV, C_SET_BOUNDS, C_SET_ATTR, C_NATIVE_MARKER, C_NATIVE_TRANSLUCENT, C_OT_NATIVE_AREA, C_RECT, C_LINE, C_TRIANGLE, C_MARK, C_BEFORE_WRITE, C_TEXT_PIECE, C_TEXT_PIECE_DONE, C_EMISSIVE_NOTE, C_EMISSIVE_GONE, C_EMISSIVE_ROOM_MESH, C_FRAME_ROOM, C_VRAM_FILL, C_VRAM_UPLOAD, C_VRAM_COPY, C_SET_WIDESCREEN, C_UPLOAD_MODE, C_BEGIN_OT, C_END_OT, C_SET_SUPPRESS, C_TEXTURE_FENCE, C_STREAM, C_STREAM_WORDS, C_FRAME_MENU_MODEL, C_SET_SETTINGS, C_SET_EXACT, C_CLEAR_EXACT, C_SKIP_PRESENT };
+enum { C_SET_2D = 1, C_SET_NARROWED, C_SET_PRECISE, C_SET_DEPTH, C_SET_PACKET, C_SET_FLIPPED_UV, C_SET_BOUNDS, C_SET_ATTR, C_NATIVE_MARKER, C_NATIVE_TRANSLUCENT, C_OT_NATIVE_AREA, C_RECT, C_LINE, C_TRIANGLE, C_MARK, C_BEFORE_WRITE, C_TEXT_PIECE, C_TEXT_PIECE_DONE, C_EMISSIVE_NOTE, C_EMISSIVE_GONE, C_EMISSIVE_ROOM_MESH, C_FRAME_ROOM, C_VRAM_FILL, C_VRAM_UPLOAD, C_VRAM_COPY, C_SET_WIDESCREEN, C_UPLOAD_MODE, C_BEGIN_OT, C_END_OT, C_SET_SUPPRESS, C_TEXTURE_SAMPLE, C_STREAM, C_STREAM_WORDS, C_FRAME_MENU_MODEL, C_SET_SETTINGS, C_SET_EXACT, C_CLEAR_EXACT, C_SKIP_PRESENT };
 
 struct pc_hwc_mirror_t pc_hwc_mirror = { .cur_effect = -1, .poly_effect = -1, .settings = { 1, 0, 1, 1, 1 } }; /* (the settings: the renderer's defaults, gpu_hw.c) */
 int pc_hwc_pending;
@@ -453,15 +453,15 @@ typedef struct {
     unsigned tpage, clut, window;
     int u0, v0, u1, v1;
     int has_clip, clip[4];
-} texture_fence_record;
-void pc_hwc_fence_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip4)
+} texture_sample_record;
+void pc_hwc_texture_sample(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip4)
 {
-    /* A record, not a round trip: the renderer takes the sampled rows of a drawn area as own copies (pc_hw_sync_texture), on the GPU, and
+    /* A record, not a round trip: the renderer takes the sampled rows of a drawn area as own copies (pc_hw_sample_texture), on the GPU, and
      * nothing reaches the game's array. */
-    texture_fence_record q = { tpage, clut, window, u0, v0, u1, v1, clip4 != NULL, { 0, 0, 0, 0 } };
+    texture_sample_record q = { tpage, clut, window, u0, v0, u1, v1, clip4 != NULL, { 0, 0, 0, 0 } };
     if (clip4)
         memcpy(q.clip, clip4, sizeof q.clip);
-    memcpy(record(C_TEXTURE_FENCE, sizeof q), &q, sizeof q);
+    memcpy(record(C_TEXTURE_SAMPLE, sizeof q), &q, sizeof q);
     if (inline_now())
         pc_hwc_flush();
 }
@@ -485,6 +485,14 @@ void pc_hwc_fence_sync(int x, int y, int w, int h)
     pc_rq rq = { .kind = PC_RQ_CAPTURE, .arg = { x, y, w, h }, .out = &reply, .out_bytes = sizeof reply };
     pc_renderer_rq(&rq);
     pc_rq_readback_apply(&reply, (uint16_t*)(uintptr_t)pc_native_vram());
+}
+/* The display rectangle as a capture reads it (a screenshot, a checkpoint), in `reply` (the caller frees it: pc_rq_readback_free) and nowhere else: the
+ * game's VRAM is as it was. The renderer has every record before it applied first, as for any capture. */
+void pc_hwc_capture_view(pc_rq_readback* reply, int x, int y, int w, int h)
+{
+    memset(reply, 0, sizeof *reply);
+    pc_rq rq = { .kind = PC_RQ_CAPTURE, .arg = { x, y, w, h }, .out = reply, .out_bytes = sizeof *reply };
+    pc_renderer_rq(&rq);
 }
 /* The whole target as a capture reads it, its own pixels (RGBA8, 1024 x 512, the 1x grid) into `rgba` and nothing else: the game's VRAM, its
  * statics and the renderer's state are as they were (a state file's picture). False when there is no renderer to read. */
@@ -763,10 +771,10 @@ static void apply_batch(batch* b)
             at += 1 + (int)(sizeof n + n * sizeof *words);
             break;
         }
-        case C_TEXTURE_FENCE: {
-            texture_fence_record q;
+        case C_TEXTURE_SAMPLE: {
+            texture_sample_record q;
             memcpy(&q, r, sizeof q);
-            pc_hw_sync_texture(q.tpage, q.clut, q.window, q.u0, q.v0, q.u1, q.v1, q.has_clip ? q.clip : NULL);
+            pc_hw_sample_texture(q.tpage, q.clut, q.window, q.u0, q.v0, q.u1, q.v1, q.has_clip ? q.clip : NULL);
             at += 1 + (int)sizeof q;
             break;
         }

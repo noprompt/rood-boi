@@ -482,9 +482,7 @@ void apply_render()
         render_state.saved_aa = pc_aa_string ? pc_aa_string() : "";
     }
     if (!render_state.on || render_state.lines != lines) {
-        // (rood-studio only: the in-game studio is a photo-mode hold, which keeps the presented image at the resolution it was made at and gives up the
-        // hold's camera when the renderer's size changes under it, so there the GI alone follows the height)
-        if (app_mode && pc_hw_detail_view)
+        if (pc_hw_detail_view)
             pc_hw_detail_view(lines);
         render_state.lines = lines;
     }

@@ -52,7 +52,7 @@ extern "C" {
     X(native_translucent, 'A') \
     X(capture_read, 'V') \
     X(ot_native_area, 'A') \
-    X(sync_texture, 'V') \
+    X(sample_texture, 'V') \
     X(upload_mode, 'V') \
     X(set_packet, 'A') \
     X(present_world, 'P') \

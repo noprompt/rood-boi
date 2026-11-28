@@ -1,14 +1,15 @@
 /* The present as a request (T1 R3): the game's tick posts what the window should show; the service performs it. Today the
  * service runs inline on the calling thread (boot_window.c: pc_present_post); a renderer thread (R4) takes the same
  * requests from a mailbox. A request is a value: the display rectangle and the CPU frame it is taken from travel in it, and
- * nothing in it points into the game's state. SYNC is a fence with a reply: it returns when the rectangle's pixels from the
- * GPU target are in the game's VRAM (the screenshot RPC and the checkpoints need them). */
+ * nothing in it points into the game's state. CAPTURE is a fence with a reply: it returns when the rectangle's pixels from
+ * the GPU target are in `capture` (the screenshot RPC and the checkpoints need them; the game's VRAM is not touched). */
 #ifndef PC_PRESENT_SERVICE_H
 #define PC_PRESENT_SERVICE_H
 #include <stdint.h>
+#include "renderer_rq.h"
 typedef enum {
     PC_PRESENT_FRAME, /* one game vsync's images: the frame, then its fractions when interpolating (present_rate) */
-    PC_PRESENT_SYNC,  /* the display rectangle read back into the game's VRAM (pc_hw_capture_read) */
+    PC_PRESENT_CAPTURE, /* the display rectangle's pixels from the GPU target, in `capture` (pc_hw_capture_read); the game's VRAM is not written */
 } pc_present_kind;
 /* What the frame loop owns that the images' pacing reads, as of the request (boot_window.c): the service never looks at the game thread's
  * variables. */
@@ -25,6 +26,7 @@ typedef struct {
     pc_present_kind kind;
     const uint16_t* vram; /* the CPU frame (the software presenter and the null renderer) */
     int x, y, w, h;       /* the display rectangle */
+    pc_rq_readback* capture; /* CAPTURE: where the pixels go (the caller frees them) */
     /* filled by the service's post: */
     int header;                  /* the slot of the frame header (present_header.h) the images read, -1: none */
     pc_present_pacing_in pace;

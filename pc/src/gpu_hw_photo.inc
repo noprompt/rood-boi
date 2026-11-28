@@ -92,7 +92,9 @@ int pc_hw_photo_mark_now(void)
         if (photo_picture->vulkan != !!pc_vk_on())
             return 0;
 #endif
-        return pc_hw_active && photo_picture->scale == pc_hw_scale;
+        /* The picture kept is the one the hold began on, made at the scale that was then: a change of the scale since (the studio asks for its own while it holds)
+         * leaves it as it is, and the restore wants that scale back (the studio gives it back when it is left). */
+        return pc_hw_active;
     }
     if (!pc_hw_active)
         return 0;

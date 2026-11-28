@@ -14,6 +14,7 @@
  * _bounds) the draw calls without an answer (_rect, _line) and the walk's native-list marks (pc_hw_anchor_packet, _native_marker, _native_translucent, _ot_native_area). */
 #ifndef ROOD_HW_CMD_H
 #define ROOD_HW_CMD_H
+#include "renderer_rq.h"
 #include <stdint.h>
 #include "gpu_attr.h"
 #include "hw_registry.h"
@@ -92,7 +93,7 @@ void pc_hwc_upload_mode(int mode); /* what the next LoadImage is (widescreen.h P
 /* The VRAM hooks (T1 R1b): what the game's VRAM commands tell the renderer. before_write (what the write about to happen will replace,
  * for the write log) is a record. The two read-backs are fences: they apply every
  * record, then run on the renderer and return when the rectangle's pixels are in the game's VRAM array (the game continues with
- * them): a frame read (pc_frame_read, a capture) and sync_texture (a sprite or polygon about to sample what only the GPU target holds). */
+ * them): a frame read (pc_frame_read, a capture) and sample_texture (a sprite or polygon about to sample what only the GPU target holds). */
 /* The VRAM events (T1 R4e): fill, upload (LoadImage) and copy carry the rectangle they leave in the game's array, so the renderer applies
  * them without reading the game's memory. Call them where pc_hw_fill, pc_hw_upload and pc_hw_copy were called. */
 void pc_hwc_vram_fill(int x, int y, int w, int h, int r, int g, int b);
@@ -101,12 +102,13 @@ void pc_hwc_vram_copy(int sx, int sy, int dx, int dy, int w, int h, int mask_set
 void pc_hwc_before_write(int x, int y, int w, int h);
 void pc_hwc_fence_sync(int x, int y, int w, int h); /* a capture: the rectangle of the display read back */
 void pc_hwc_resync_picture(const uint8_t* picture); /* pc_hwc_resync with a state file's picture of the target over it */
+void pc_hwc_capture_view(pc_rq_readback* reply, int x, int y, int w, int h); /* the display rectangle's pixels, in the reply alone */
 int pc_hwc_capture_picture(uint8_t* rgba); /* the target's own pixels (RGBA8 1024 x 512): no state of the game or the renderer changes */
 /* The fences of the snapshot, rewind, photo and reload paths (renderer_rq.h): pc_hwc_drain returns when every record is applied and the
  * GPU is idle; pc_hwc_resync rebuilds the renderer's state from the game's VRAM after a restore. */
 void pc_hwc_drain(void);
 void pc_hwc_resync(void);
-void pc_hwc_fence_texture(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip4);
+void pc_hwc_texture_sample(unsigned tpage, unsigned clut, unsigned window, int u0, int v0, int u1, int v1, const int* clip4);
 /* A scaled glyph cell (ui_text layout): 1 when the layout takes it. The producer decides; the piece and its end are records. The
  * caller draws the quad's triangles, then calls pc_hwc_text_piece_done when it got 1. */
 int pc_hwc_text_quad(const float* xy, const int* uv, const int* rgb, unsigned code, unsigned tpage, unsigned clut, unsigned window,

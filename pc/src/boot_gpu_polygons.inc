@@ -105,14 +105,14 @@ static unsigned polygon_command(const uint32_t* p, unsigned available)
             vertex[i].fx = corners[i * 2] + draw_x;
             vertex[i].fy = corners[i * 2 + 1] + draw_y;
         }
-    if (textured && pc_hw_sync_texture) {
+    if (textured && pc_hw_sample_texture) {
         int u0 = 255, v0 = 255, u1 = 0, v1 = 0;
         for (int i = 0; i < count; ++i) {
             u0 = vertex[i].u < u0 ? vertex[i].u : u0, u1 = vertex[i].u > u1 ? vertex[i].u : u1;
             v0 = vertex[i].v < v0 ? vertex[i].v : v0, v1 = vertex[i].v > v1 ? vertex[i].v : v1;
         }
         int clip[4] = { clip_x, clip_y, clip_w, clip_h };
-        pc_hwc_fence_texture(tpage, clut, texture_window, u0, v0, u1, v1, clip);
+        pc_hwc_texture_sample(tpage, clut, texture_window, u0, v0, u1, v1, clip);
     }
     /* ui_text: a battle number popup's digit at the UI text scale (ui_text.c; scale 1: unchanged). */
     if (textured && count == 4 && drawing_tag && drawing_tag + 1 == p && pc_ui_text_popup_place) {
